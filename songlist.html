@@ -12,75 +12,48 @@
             --accent: #9147ff;
             --text-main: #efeff1;
             --text-sub: #adadb8;
-            --badge-bg: #2f2f35;
+            
+            /* 태그별 색상 정의 */
+            --tag-default: #2f2f35;
+            --tag-200: #5c16ff;   /* 200개: 보라색 */
+            --tag-300: #ff8c00;   /* 300개: 주황색 */
+            --tag-guitar: #8b572a; /* ★ 악기 기타: 나무색(브라운) */
         }
 
-        body { 
-            background-color: var(--bg-color); 
-            color: var(--text-main); 
-            font-family: 'Noto Sans KR', sans-serif; 
-            margin: 0; padding: 0;
-            display: flex; justify-content: center;
-            min-height: 100vh;
-        }
-
+        /* ... (기존 스타일 동일) ... */
+        body { background-color: var(--bg-color); color: var(--text-main); font-family: 'Noto Sans KR', sans-serif; margin: 0; padding: 0; display: flex; justify-content: center; min-height: 100vh; }
         .wrapper { width: 100%; max-width: 900px; padding: 60px 20px; display: flex; flex-direction: column; gap: 20px; }
-
-        .header-card {
-            background: var(--card-bg);
-            border-radius: 16px;
-            padding: 30px;
-            border: 1px solid #2f2f35;
-            display: flex; justify-content: space-between; align-items: center;
-        }
+        .header-card { background: var(--card-bg); border-radius: 16px; padding: 30px; border: 1px solid #2f2f35; display: flex; justify-content: space-between; align-items: center; }
         .header-info h1 { margin: 0; font-size: 24px; color: var(--accent); }
-        
-        .back-btn {
-            padding: 8px 16px; background: #26262c; border-radius: 8px;
-            color: var(--text-main); text-decoration: none; font-size: 13px;
-            border: 1px solid #3a3a3d; transition: 0.3s;
-        }
+        .back-btn { padding: 8px 16px; background: #26262c; border-radius: 8px; color: var(--text-main); text-decoration: none; font-size: 13px; border: 1px solid #3a3a3d; transition: 0.3s; }
         .back-btn:hover { background: var(--accent); border-color: var(--accent); }
-
-        .search-input {
-            width: 100%; background: var(--card-bg); border: 1px solid #2f2f35;
-            padding: 15px 20px; border-radius: 12px; color: #fff; outline: none;
-            box-sizing: border-box; font-size: 15px;
-        }
+        .search-input { width: 100%; background: var(--card-bg); border: 1px solid #2f2f35; padding: 15px 20px; border-radius: 12px; color: #fff; outline: none; box-sizing: border-box; font-size: 15px; }
         .search-input:focus { border-color: var(--accent); }
-
-        .song-card {
-            background: var(--card-bg);
-            border-radius: 16px;
-            border: 1px solid #2f2f35;
-            overflow: hidden;
-        }
+        .song-card { background: var(--card-bg); border-radius: 16px; border: 1px solid #2f2f35; overflow: hidden; }
         table { width: 100%; border-collapse: collapse; }
-        th {
-            background: #1f1f23; padding: 15px 20px;
-            font-size: 13px; color: var(--text-sub); text-align: left;
-            border-bottom: 1px solid #2f2f35;
-        }
+        th { background: #1f1f23; padding: 15px 20px; font-size: 13px; color: var(--text-sub); text-align: left; border-bottom: 1px solid #2f2f35; }
         td { padding: 14px 20px; font-size: 14px; border-bottom: 1px solid #26262c; vertical-align: middle; }
         tr:hover { background: #1d1d21; }
-
         .title-container { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
         .song-title { font-weight: 500; font-size: 15px; }
         
         .song-tag {
-            background: var(--badge-bg);
-            color: var(--text-sub);
             padding: 2px 8px;
             border-radius: 6px;
             font-size: 11px;
             font-weight: bold;
-            border: 1px solid #3a3a3d;
+            color: #ffffff;
             white-space: nowrap;
         }
 
+        /* 태그별 색상 클래스 */
+        .tag-200 { background-color: var(--tag-200); }
+        .tag-300 { background-color: var(--tag-300); }
+        .tag-guitar { background-color: var(--tag-guitar); } /* 브라운 */
+        .tag-none { background-color: var(--tag-default); color: var(--text-sub); }
+
         .col-num { width: 60px; text-align: center; color: var(--text-sub); }
         .col-artist { width: 180px; color: var(--text-sub); }
-
         .footer { text-align: right; font-size: 11px; color: #5b5b63; margin-top: 10px; }
     </style>
 </head>
@@ -107,17 +80,16 @@
                 </tr>
             </thead>
             <tbody id="song-list-body">
-                </tbody>
+                <tr><td colspan="3" style="text-align:center; padding:50px; color:var(--text-sub);">목록을 불러오는 중...</td></tr>
+            </tbody>
         </table>
     </div>
     <div class="footer">마지막 업데이트: <span id="last-sync">--:--</span></div>
 </div>
 
 <script>
-    // 구글 시트 주소 (CSV 출력 모드)
     const sheetUrl = "https://docs.google.com/spreadsheets/d/1q_P96q2ZwvFRToZ4GAv_0EKVOcLRTR-Y392610eAV04/gviz/tq?tqx=out:csv";
 
-    // 페이지 로드 시 시트 데이터 가져오기
     window.onload = function() {
         fetch(sheetUrl)
             .then(response => response.text())
@@ -126,32 +98,25 @@
                 renderSongList(data);
             })
             .catch(error => {
-                console.error('데이터를 불러오는 중 오류 발생:', error);
-                document.getElementById('song-list-body').innerHTML = '<tr><td colspan="3" style="text-align:center; padding:50px;">데이터를 불러올 수 없습니다. 시트 공유 설정을 확인해주세요.</td></tr>';
+                console.error('Error:', error);
+                document.getElementById('song-list-body').innerHTML = '<tr><td colspan="3" style="text-align:center; padding:50px;">데이터 로드 실패. 공유 설정을 확인하세요.</td></tr>';
             });
     };
 
-    // CSV 파싱 (제목, 가수 분리)
     function parseCSV(csv) {
         const lines = csv.split('\n');
         const result = [];
-        
-        lines.forEach(line => {
-            // 따옴표 제거 및 쉼표 기준 분리
-            const cleanLine = line.replace(/"/g, ''); 
-            const parts = cleanLine.split(','); 
-            
+        for (let i = 1; i < lines.length; i++) {
+            const line = lines[i].replace(/"/g, '').trim();
+            if (!line) continue;
+            const parts = line.split(',');
             if (parts.length >= 2) {
-                result.push({
-                    title: parts[0].trim(),
-                    artist: parts[1].trim()
-                });
+                result.push({ title: parts[0].trim(), artist: parts[1].trim() });
             }
-        });
+        }
         return result;
     }
 
-    // [태그] 추출 및 UI 구성
     function formatTitleWithTags(rawTitle) {
         const tagRegex = /\[(.*?)\]/g;
         let tags = rawTitle.match(tagRegex) || [];
@@ -162,57 +127,56 @@
         
         tags.forEach(tag => {
             const tagName = tag.replace('[', '').replace(']', '');
-            html += `<span class="song-tag">${tagName}</span>`;
+            let colorClass = 'tag-none'; 
+
+            // ★ 태그 매칭 로직 수정
+            if (tagName.includes('200개')) {
+                colorClass = 'tag-200';
+            } else if (tagName.includes('300개')) {
+                colorClass = 'tag-300';
+            } else if (tagName.includes('기타')) {
+                colorClass = 'tag-guitar'; // 브라운 색상 적용
+            }
+
+            html += `<span class="song-tag ${colorClass}">${tagName}</span>`;
         });
         
         html += `</div>`;
         return html;
     }
 
-    // 화면 그리기
     function renderSongList(data) {
         const tbody = document.getElementById('song-list-body');
         tbody.innerHTML = ''; 
-
         let count = 1;
         data.forEach((item) => {
-            // 헤더(제목, 가수) 문자열이나 빈 줄 제외
-            if(!item.title || item.title === "제목" || item.title === "노래제목") return;
-
+            if(item.title.includes("노래제목") || !item.title) return;
             const tr = document.createElement('tr');
-            
             const noTd = document.createElement('td');
             noTd.className = 'col-num';
             noTd.textContent = count++;
-
             const titleTd = document.createElement('td');
             titleTd.innerHTML = formatTitleWithTags(item.title);
-
             const artistTd = document.createElement('td');
             artistTd.className = 'col-artist';
             artistTd.textContent = item.artist;
-
             tr.appendChild(noTd);
             tr.appendChild(titleTd);
             tr.appendChild(artistTd);
             tbody.appendChild(tr);
         });
-
         const now = new Date();
         document.getElementById('last-sync').textContent = `${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
     }
 
-    // 검색 기능
     document.getElementById('songSearch').addEventListener('keyup', function() {
         let filter = this.value.toUpperCase();
         let rows = document.querySelector("#song-list-body").rows;
-        
         for (let row of rows) {
             let text = row.textContent.toUpperCase();
             row.style.display = text.includes(filter) ? "" : "none";
         }
     });
 </script>
-
 </body>
 </html>
