@@ -85,28 +85,38 @@
             let total = 0, guitar = 0;
             window.allSongs = [];
 
-            for (let i = 1; i < lines.length; i++) {
-                // 단순 split(',') 대신 정규식을 사용하여 따옴표 안의 쉼표는 무시하고 분리합니다.
-                const parts = lines[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(item => item.replace(/"/g, '').trim());
-                
-                if (parts.length < 2 || !parts[0]) continue;
+           for (let i = 1; i < lines.length; i++) {
+    // 1. 따옴표 안의 쉼표를 무시하고 분할
+    const parts = lines[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(item => item.replace(/"/g, '').trim());
+    
+    if (parts.length < 2 || !parts[0]) continue;
 
-                total++;
-                let title = parts[0];
-                const artist = parts[1] || "Unknown";
+    total++;
+    let originalTitle = parts[0];
+    const artist = parts[1] || "Unknown";
 
-                // [기타] 태그 카운트 및 제목 유지
-                if (title.includes("[기타]")) {
-                    guitar++;
-                }
+    // 2. 제목 앞의 [태그] 추출 로직 (정규식 사용)
+    // ^\[([^\]]+)\] : 문자열 시작부분에서 [ ] 안에 있는 내용을 찾습니다.
+    const tagMatch = originalTitle.match(/^\[([^\]]+)\]/);
+    let displayTitle = originalTitle;
 
-                window.allSongs.push(title);
-                html += `<tr>
-                    <td>${total}</td>
-                    <td class="song-title">${title}</td>
-                    <td class="song-artist">${artist}</td>
-                </tr>`;
-            }
+    if (tagMatch) {
+        const tag = tagMatch[0]; // 예: "[기타]" 또는 "[200개]"
+        // 원본 제목에서 앞의 태그를 제거하고, 뒤에 다시 붙입니다.
+        const pureTitle = originalTitle.replace(tag, '').trim();
+        displayTitle = `${pureTitle} ${tag}`; 
+        
+        // [기타] 카운트 (태그 내용에 '기타'가 포함된 경우)
+        if (tag.includes("기타")) guitar++;
+    }
+
+    window.allSongs.push(displayTitle);
+    html += `<tr>
+        <td>${total}</td>
+        <td class="song-title">${displayTitle}</td>
+        <td class="song-artist">${artist}</td>
+    </tr>`;
+}
             
             tbody.innerHTML = html;
             document.getElementById('total-count').textContent = total;
