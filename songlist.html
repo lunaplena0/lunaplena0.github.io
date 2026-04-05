@@ -33,6 +33,22 @@
         table { width: 100%; border-collapse: collapse; }
         th { background: #1f1f23; padding: 15px 20px; font-size: 13px; color: var(--text-sub); text-align: left; }
         td { padding: 14px 20px; font-size: 14px; border-bottom: 1px solid #26262c; }
+
+        /* 태그 배지 디자인 추가 */
+        .tag-badge {
+            display: inline-block;
+            background-color: #2f2f35;
+            color: var(--accent);
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-left: 6px;
+            vertical-align: middle;
+            font-weight: bold;
+            border: 1px solid #444;
+            white-space: nowrap;
+        }
+        .song-title strong { font-size: 15px; }
     </style>
 </head>
 <body>
@@ -66,7 +82,6 @@
 </div>
 
 <script>
-    // 제공해주신 '웹에 게시' CSV 주소
     const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSIfrVC6MakrvA_D8rsQeTT6oaX_0w4bc8I_aaJuoQi4g_AuuvFi-nCP_lnHwvoSAsFKxagrzhoPy_J/pub?gid=0&single=true&output=csv";
     
     window.allSongs = [];
@@ -76,11 +91,9 @@
         fetch(sheetUrl)
             .then(res => res.text())
             .then(csv => {
-                // 줄바꿈으로 행 분리
                 const lines = csv.split('\n');
                 const tbody = document.getElementById('song-list-body');
                 
-                // 마지막 업데이트 시간 (현재 시간으로 표시)
                 const now = new Date();
                 document.getElementById('last-sync').textContent = 
                     `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
@@ -88,26 +101,42 @@
                 let html = ''; 
                 let total = 0, guitar = 0;
                 
-                // 데이터 파싱 (CSV의 첫 줄이 헤더일 경우 i=1부터 시작)
                 for (let i = 1; i < lines.length; i++) {
-                    if (!lines[i].trim()) continue; // 빈 줄 건너뛰기
+                    if (!lines[i].trim()) continue;
 
-                    // CSV 특유의 따옴표 제거 및 쉼표 분리
                     const row = lines[i].match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g)
-             .map(item => item.replace(/^"|"$/g, '').trim());
+                                 .map(item => item.replace(/^"|"$/g, '').trim());
                     
                     if (row.length < 2) continue;
 
                     total++;
-                    const title = row[0];
+                    let fullTitle = row[0]; // [기타] [200개] 제목 형태
                     const artist = row[1];
+
+                    // 1. 모든 [태그] 추출
+                    const tags = fullTitle.match(/\[.*?\]/g) || [];
                     
-                    if (title.includes("[기타]")) guitar++;
+                    // 2. 제목 본문에서 태그 제거 (깨끗한 제목 만들기)
+                    let cleanTitle = fullTitle;
+                    tags.forEach(t => {
+                        cleanTitle = cleanTitle.replace(t, "");
+                    });
+                    cleanTitle = cleanTitle.trim();
+
+                    // 3. 태그 HTML 생성 및 [기타] 카운트
+                    let tagHtml = "";
+                    tags.forEach(t => {
+                        tagHtml += `<span class="tag-badge">${t}</span>`;
+                        if (t === "[기타]") guitar++;
+                    });
+
+                    window.allSongs.push(fullTitle); // 검색 시 태그로도 검색 가능하도록 전체 제목 저장
                     
-                    window.allSongs.push(title);
                     html += `<tr>
                                 <td>${total}</td>
-                                <td class="song-title"><strong>${title}</strong></td>
+                                <td class="song-title">
+                                    <strong>${cleanTitle}</strong>${tagHtml}
+                                </td>
                                 <td class="song-artist">${artist}</td>
                              </tr>`;
                 }
@@ -122,12 +151,10 @@
             });
     };
 
-    // 관리창 열기
     function openManageWindow() {
         window.open("manage.html", "ManageWindow", "width=520,height=700");
     }
 
-    // 검색 필터 기능
     function filterSongs() {
         const filter = document.getElementById('songSearch').value.toUpperCase();
         const rows = document.querySelectorAll("#song-list-body tr");
@@ -144,7 +171,6 @@
         });
     }
 
-    // 신청곡 관리용 공통 함수 (기존 로직 유지)
     function saveToLocal() {
         localStorage.setItem('streamerRequests', JSON.stringify(window.requests));
     }
