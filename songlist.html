@@ -15,12 +15,12 @@
             --tag-200: #5c16ff; 
             --tag-300: #ff8c00;
             --tag-guitar: #8b572a; 
-            --tag-default: #2f2f35;
         }
 
         body { background-color: var(--bg-color); color: var(--text-main); font-family: 'Noto Sans KR', sans-serif; margin: 0; padding: 0; min-height: 100vh; }
         .wrapper { width: 100%; max-width: 900px; margin: 0 auto; padding: 60px 20px; display: flex; flex-direction: column; gap: 20px; }
         
+        /* 헤더 스타일 */
         .header-card { background: var(--card-bg); border-radius: 16px; padding: 30px; border: 1px solid #2f2f35; display: flex; justify-content: space-between; align-items: center; }
         .header-info h1 { margin: 0; font-size: 24px; color: var(--accent); display: flex; align-items: baseline; gap: 12px; }
         .song-count-info { font-size: 14px; color: var(--text-sub); font-weight: normal; }
@@ -31,29 +31,31 @@
         .special-btn { background: var(--accent); border-color: var(--accent); font-weight: bold; }
         .btn:hover { opacity: 0.8; transform: translateY(-1px); }
 
-        /* --- 팝업창 스타일 --- */
+        /* --- 팝업창 스타일 (높이 확장) --- */
         .modal-container {
-            position: fixed; top: 100px; left: 50px; z-index: 1000; display: none;
-            width: 380px; background: var(--card-bg); border: 1px solid var(--accent);
-            border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            position: fixed; top: 80px; left: 50px; z-index: 1000; display: none;
+            width: 400px; background: var(--card-bg); border: 1px solid var(--accent);
+            border-radius: 16px; box-shadow: 0 15px 40px rgba(0,0,0,0.6);
         }
-        .modal-header { background: #1f1f23; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #2f2f35; border-radius: 16px 16px 0 0; cursor: default; }
+        .modal-header { background: #1f1f23; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #2f2f35; border-radius: 16px 16px 0 0; cursor: default; }
         .modal-header h2 { margin: 0; font-size: 15px; color: var(--accent); }
 
         .modal-body { padding: 20px; position: relative; }
         .request-input-wrapper { position: relative; display: flex; gap: 8px; margin-bottom: 15px; }
         .request-input { flex: 1; background: #26262c; border: 1px solid #3a3a3d; border-radius: 6px; padding: 8px 12px; color: white; font-size: 13px; outline: none; }
         
+        /* 자동완성 */
         .autocomplete-list {
-            position: absolute; top: 38px; left: 0; width: calc(100% - 60px);
+            position: absolute; top: 38px; left: 0; width: calc(100% - 65px);
             background: #26262c; border: 1px solid var(--accent); border-radius: 0 0 8px 8px;
             max-height: 150px; overflow-y: auto; z-index: 1001; display: none;
         }
         .autocomplete-item { padding: 8px 12px; cursor: pointer; font-size: 12px; border-bottom: 1px solid #333; }
         .autocomplete-item:hover { background: #3a3a3d; color: var(--accent); }
 
-        #request-list { list-style: none; padding: 0; margin: 0; max-height: 250px; overflow-y: auto; }
-        .request-item { display: flex; align-items: center; padding: 10px; background: #1d1d21; border-radius: 8px; margin-bottom: 6px; font-size: 13px; border: 1px solid #2f2f35; }
+        /* 신청 리스트 (높이 10개 이상 확장) */
+        #request-list { list-style: none; padding: 0; margin: 0; max-height: 500px; overflow-y: auto; }
+        .request-item { display: flex; align-items: center; padding: 8px 12px; background: #1d1d21; border-radius: 8px; margin-bottom: 6px; font-size: 13px; border: 1px solid #2f2f35; }
         .req-num { width: 25px; font-weight: bold; color: var(--accent); }
         .req-title { flex: 1; margin-right: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .req-title.completed { text-decoration: line-through; color: var(--text-sub); }
@@ -61,9 +63,12 @@
         .req-btns { display: flex; gap: 4px; }
         .req-btn { padding: 4px 6px; font-size: 10px; background: #2f2f35; border: none; color: var(--text-main); border-radius: 4px; cursor: pointer; }
 
-        /* --- 메인 테이블 스타일 --- */
+        /* --- 검색창 섹션 (카테고리 복구) --- */
         .search-container { display: flex; gap: 10px; width: 100%; }
+        .search-select { background: var(--card-bg); color: #fff; border: 1px solid #2f2f35; border-radius: 12px; padding: 0 15px; outline: none; cursor: pointer; }
         .search-input { flex: 1; background: var(--card-bg); border: 1px solid #2f2f35; padding: 15px 20px; border-radius: 12px; color: #fff; outline: none; }
+
+        /* 테이블 스타일 */
         .song-card { background: var(--card-bg); border-radius: 16px; border: 1px solid #2f2f35; overflow: hidden; }
         table { width: 100%; border-collapse: collapse; }
         th { background: #1f1f23; padding: 15px 20px; font-size: 13px; color: var(--text-sub); text-align: left; }
@@ -110,7 +115,12 @@
     </div>
 
     <div class="search-container">
-        <input type="text" id="songSearch" class="search-input" placeholder="노래 제목이나 가수를 검색하세요..." onkeyup="filterSongs()">
+        <select id="searchType" class="search-select">
+            <option value="all">전체</option>
+            <option value="title">노래제목</option>
+            <option value="artist">가수</option>
+        </select>
+        <input type="text" id="songSearch" class="search-input" placeholder="검색어를 입력하세요..." onkeyup="filterSongs()">
     </div>
 
     <div class="song-card">
@@ -130,13 +140,10 @@
     function openModal() { document.getElementById('modal').style.display = 'block'; }
     function closeModal() { document.getElementById('modal').style.display = 'none'; }
 
-    // --- 시트 데이터 로드 및 통계 계산 ---
     window.onload = () => {
         fetch(sheetUrl).then(res => res.text()).then(csv => {
             const lines = csv.split('\n');
             const tbody = document.getElementById('song-list-body');
-            
-            // C1 셀에서 업데이트 시간 추출
             document.getElementById('last-sync').textContent = lines[0].split(',')[2]?.replace(/"/g,'') || "--:--";
             
             let html = '';
@@ -148,17 +155,16 @@
                 
                 const rawTitle = parts[0].trim();
                 const artist = parts[1].trim();
-                
                 if(!rawTitle) continue;
 
                 total++;
                 if (rawTitle.includes("[기타]")) guitar++;
-                allSongs.push(rawTitle); // 자동완성용 데이터 추가
+                allSongs.push(rawTitle);
 
-                html += `<tr data-is-guitar="${rawTitle.includes("[기타]")}">
+                html += `<tr>
                             <td>${total}</td>
-                            <td>${formatTitleWithTags(rawTitle)}</td>
-                            <td>${artist}</td>
+                            <td class="col-title">${formatTitleWithTags(rawTitle)}</td>
+                            <td class="col-artist">${artist}</td>
                          </tr>`;
             }
             tbody.innerHTML = html;
@@ -183,7 +189,7 @@
         return html + `</div>`;
     }
 
-    // --- 자동완성 로직 ---
+    // --- 자동완성 ---
     const reqInput = document.getElementById('reqInput');
     const autoBox = document.getElementById('autocompleteBox');
 
@@ -238,13 +244,26 @@
         renderRequests();
     }
 
-    // --- 검색 필터 ---
+    // --- 검색 필터 (카테고리 선택 기능 포함) ---
     function filterSongs() {
         const filter = document.getElementById('songSearch').value.toUpperCase();
+        const type = document.getElementById('searchType').value;
         const rows = document.querySelectorAll("#song-list-body tr");
+        
         rows.forEach(row => {
-            const text = row.textContent.toUpperCase();
-            row.style.display = text.includes(filter) ? "" : "none";
+            const titleText = row.querySelector(".col-title").textContent.toUpperCase();
+            const artistText = row.querySelector(".col-artist").textContent.toUpperCase();
+            let isMatch = false;
+
+            if (type === "all") {
+                isMatch = titleText.includes(filter) || artistText.includes(filter);
+            } else if (type === "title") {
+                isMatch = titleText.includes(filter);
+            } else if (type === "artist") {
+                isMatch = artistText.includes(filter);
+            }
+
+            row.style.display = isMatch ? "" : "none";
         });
     }
 
