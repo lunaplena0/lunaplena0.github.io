@@ -4,13 +4,29 @@
     <meta charset="UTF-8">
     <title>신청 목록 관리</title>
     <style>
-        /* 크로마키를 위한 기본 배경 설정 */
-        :root { --main-bg: #0e0e10; }
-        body.chromakey { --main-bg: #00ff00; } /* 크로마키 모드 시 배경 초록색 */
+        /* 크로마키 색상 정의 (너무 쨍하지 않은 표준 크로마키 그린) */
+        :root { 
+            --main-bg: #0e0e10; 
+            --chroma-bg: #00ff00; 
+        }
+        
+        body.chromakey { --main-bg: var(--chroma-bg); }
 
-        body { background: var(--main-bg); color: #efeff1; font-family: sans-serif; padding: 15px; margin: 0; display: flex; flex-direction: column; height: 100vh; box-sizing: border-box; transition: background 0.3s; }
+        body { 
+            background: var(--main-bg); 
+            color: #efeff1; 
+            font-family: sans-serif; 
+            padding: 15px; 
+            margin: 0; 
+            display: flex; 
+            flex-direction: column; 
+            height: 100vh; 
+            box-sizing: border-box; 
+            transition: background 0.3s; 
+        }
+
         h2 { color: #9147ff; font-size: 16px; margin: 0 0 15px 0; display: flex; justify-content: space-between; align-items: center; }
-        .head-btns { display: flex; gap: 10px; align-items: center; }
+        .head-btns { display: flex; gap: 8px; align-items: center; }
         
         #list { flex: 1; overflow-y: auto; list-style: none; padding: 0; margin: 0; }
         
@@ -24,7 +40,6 @@
         .btn { padding: 3px 6px; font-size: 10px; background: #3a3a3d; border: none; color: white; border-radius: 4px; cursor: pointer; }
         
         .in-area { position: relative; padding-top: 15px; border-top: 1px solid #2f2f35; display: flex; gap: 8px; }
-        /* 크로마키 모드일 때 입력창 가독성을 위해 배경 유지 */
         input { flex: 1; background: #18181b; border: 1px solid #3a3a3d; border-radius: 6px; padding: 10px; color: white; outline: none; font-size: 13px; }
         .add-v { background: #9147ff; border: none; padding: 0 15px; color: white; border-radius: 6px; font-weight: bold; cursor: pointer; }
         
@@ -32,16 +47,30 @@
         .a-item { padding: 8px 12px; cursor: pointer; font-size: 12px; border-bottom: 1px solid #333; }
         .a-item:hover { background: #3a3a3d; color: #9147ff; }
 
-        .util-btn { font-size: 10px; cursor: pointer; color: #adadb8; background: none; border: none; padding: 0; }
-        .util-btn.clear { color: #ff4b4b; font-weight: bold; }
-        .util-btn.green { color: #00ff00; }
+        /* 유틸리티 버튼 스타일 수정 (크로마키 배경에서도 잘 보이도록 상자 형태 추가) */
+        .util-btn { 
+            font-size: 11px; 
+            cursor: pointer; 
+            color: #efeff1; 
+            background: #26262c; 
+            border: 1px solid #3a3a3d; 
+            padding: 5px 8px; 
+            border-radius: 6px;
+            transition: 0.2s;
+        }
+        .util-btn:hover { background: #3a3a3d; }
+        
+        /* 크로마키 버튼이 활성화되었을 때의 스타일 */
+        .util-btn.active { background: #9147ff; border-color: #9147ff; font-weight: bold; }
+        .util-btn.clear { color: #ff4b4b; border-color: #442a2a; }
+        .util-btn.clear:hover { background: #442a2a; }
     </style>
 </head>
 <body>
     <h2>
         🎵 실시간 신청 관리
         <div class="head-btns">
-            <button class="util-btn green" onclick="toggleChroma()">🟢 크로마키</button>
+            <button id="chromaBtn" class="util-btn" onclick="toggleChroma()">🟢 크로마키 ON/OFF</button>
             <button class="util-btn" onclick="location.reload()">🔄 새로고침</button>
             <button class="util-btn clear" onclick="clearAll()">🗑️ 전체삭제</button>
         </div>
@@ -60,6 +89,7 @@
         const listEl = document.getElementById('list');
         const inEl = document.getElementById('in');
         const autoEl = document.getElementById('auto');
+        const chromaBtn = document.getElementById('chromaBtn');
 
         function getReqs() {
             if (p && p.requests) return p.requests;
@@ -113,7 +143,15 @@
         }
 
         function toggleChroma() {
-            document.body.classList.toggle('chromakey');
+            const isChroma = document.body.classList.toggle('chromakey');
+            // 버튼 상태 시각화 (활성화 시 보라색으로 강조)
+            if(isChroma) {
+                chromaBtn.classList.add('active');
+                chromaBtn.innerText = "🟣 크로마키 OFF";
+            } else {
+                chromaBtn.classList.remove('active');
+                chromaBtn.innerText = "🟢 크로마키 ON";
+            }
         }
 
         function toggle(i) { 
