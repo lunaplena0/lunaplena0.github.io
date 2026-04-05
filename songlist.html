@@ -12,7 +12,6 @@
             --accent: #9147ff;
             --text-main: #efeff1;
             --text-sub: #adadb8;
-            --tag-default: #2f2f35;
             --tag-200: #5c16ff; 
             --tag-300: #ff8c00;
             --tag-guitar: #8b572a; 
@@ -23,17 +22,28 @@
         
         .header-card { 
             background: var(--card-bg); border-radius: 16px; padding: 30px; border: 1px solid #2f2f35; 
-            display: flex; justify-content: space-between; align-items: center; position: relative;
+            display: flex; justify-content: space-between; align-items: center;
         }
         .header-info h1 { margin: 0; font-size: 24px; color: var(--accent); }
-        
-        /* 업데이트 문구 위치 수정 */
         .sync-info { font-size: 11px; color: #5b5b63; margin-top: 5px; }
 
         .back-btn { padding: 8px 16px; background: #26262c; border-radius: 8px; color: var(--text-main); text-decoration: none; font-size: 13px; border: 1px solid #3a3a3d; transition: 0.3s; }
         .back-btn:hover { background: var(--accent); border-color: var(--accent); }
 
-        .search-input { width: 100%; background: var(--card-bg); border: 1px solid #2f2f35; padding: 15px 20px; border-radius: 12px; color: #fff; outline: none; box-sizing: border-box; font-size: 15px; }
+        /* 검색 바 레이아웃 수정 */
+        .search-container { display: flex; gap: 10px; width: 100%; }
+        
+        .search-select {
+            background: var(--card-bg); border: 1px solid #2f2f35; color: #fff;
+            padding: 0 15px; border-radius: 12px; outline: none; cursor: pointer;
+            font-size: 14px; min-width: 80px;
+        }
+        .search-select:focus { border-color: var(--accent); }
+
+        .search-input { 
+            flex: 1; background: var(--card-bg); border: 1px solid #2f2f35; padding: 15px 20px; 
+            border-radius: 12px; color: #fff; outline: none; font-size: 15px; 
+        }
         .search-input:focus { border-color: var(--accent); }
 
         .song-card { background: var(--card-bg); border-radius: 16px; border: 1px solid #2f2f35; overflow: hidden; }
@@ -66,7 +76,14 @@
         <a href="index.html" class="back-btn">🏠 홈으로 돌아가기</a>
     </div>
 
-    <input type="text" id="songSearch" class="search-input" placeholder="곡 제목이나 가수를 검색하세요...">
+    <div class="search-container">
+        <select id="searchType" class="search-select">
+            <option value="all">전체</option>
+            <option value="title">제목</option>
+            <option value="artist">가수</option>
+        </select>
+        <input type="text" id="songSearch" class="search-input" placeholder="검색어를 입력하세요...">
+    </div>
 
     <div class="song-card">
         <table>
@@ -96,7 +113,7 @@
             })
             .catch(error => {
                 console.error('Error:', error);
-                document.getElementById('song-list-body').innerHTML = '<tr><td colspan="3" style="text-align:center; padding:50px;">데이터 로드 실패. 공유 설정을 확인하세요.</td></tr>';
+                document.getElementById('song-list-body').innerHTML = '<tr><td colspan="3" style="text-align:center; padding:50px;">데이터 로드 실패.</td></tr>';
             });
     };
 
@@ -140,48 +157,49 @@
         data.forEach((item) => {
             if(item.title.includes("노래제목") || !item.title) return;
             const tr = document.createElement('tr');
-            const noTd = document.createElement('td');
-            noTd.className = 'col-num';
-            noTd.textContent = count++; // 초기 번호 매기기
-
-            const titleTd = document.createElement('td');
-            titleTd.className = 'col-title'; // 검색용 클래스
-            titleTd.innerHTML = formatTitleWithTags(item.title);
-
-            const artistTd = document.createElement('td');
-            artistTd.className = 'col-artist';
-            artistTd.textContent = item.artist;
-
-            tr.appendChild(noTd);
-            tr.appendChild(titleTd);
-            tr.appendChild(artistTd);
+            tr.innerHTML = `
+                <td class="col-num">${count++}</td>
+                <td class="col-title">${formatTitleWithTags(item.title)}</td>
+                <td class="col-artist">${item.artist}</td>
+            `;
             tbody.appendChild(tr);
         });
         const now = new Date();
         document.getElementById('last-sync').textContent = `${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
     }
 
-    // 검색 및 번호 재정렬 기능
-    document.getElementById('songSearch').addEventListener('keyup', function() {
-        let filter = this.value.toUpperCase();
-        let rows = document.querySelectorAll("#song-list-body tr");
+    // 검색 로직 함수화
+    function filterSongs() {
+        const filter = document.getElementById('songSearch').value.toUpperCase();
+        const type = document.getElementById('searchType').value;
+        const rows = document.querySelectorAll("#song-list-body tr");
         let visibleCount = 1;
 
         rows.forEach(row => {
-            // 번호 열(td[0])을 제외하고 제목(td[1])과 가수(td[2])만 합쳐서 검색
-            let titleText = row.cells[1].textContent.toUpperCase();
-            let artistText = row.cells[2].textContent.toUpperCase();
-            let searchableText = titleText + " " + artistText;
+            const titleText = row.cells[1].textContent.toUpperCase();
+            const artistText = row.cells[2].textContent.toUpperCase();
+            let isVisible = false;
 
-            if (searchableText.includes(filter)) {
+            if (type === "all") {
+                isVisible = titleText.includes(filter) || artistText.includes(filter);
+            } else if (type === "title") {
+                isVisible = titleText.includes(filter);
+            } else if (type === "artist") {
+                isVisible = artistText.includes(filter);
+            }
+
+            if (isVisible) {
                 row.style.display = "";
-                // 보이는 행에 대해서만 번호를 새로 매김
                 row.cells[0].textContent = visibleCount++;
             } else {
                 row.style.display = "none";
             }
         });
-    });
+    }
+
+    // 입력창 입력 시 혹은 셀렉트 박스 변경 시 검색 실행
+    document.getElementById('songSearch').addEventListener('keyup', filterSongs);
+    document.getElementById('searchType').addEventListener('change', filterSongs);
 </script>
 </body>
 </html>
