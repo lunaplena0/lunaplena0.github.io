@@ -12,49 +12,47 @@
             --accent: #9147ff;
             --text-main: #efeff1;
             --text-sub: #adadb8;
-            
-            /* 태그별 색상 정의 */
             --tag-default: #2f2f35;
-            --tag-200: #5c16ff;   /* 200개: 보라색 */
-            --tag-300: #ff8c00;   /* 300개: 주황색 */
-            --tag-guitar: #8b572a; /* ★ 악기 기타: 나무색(브라운) */
+            --tag-200: #5c16ff; 
+            --tag-300: #ff8c00;
+            --tag-guitar: #8b572a; 
         }
 
-        /* ... (기존 스타일 동일) ... */
         body { background-color: var(--bg-color); color: var(--text-main); font-family: 'Noto Sans KR', sans-serif; margin: 0; padding: 0; display: flex; justify-content: center; min-height: 100vh; }
         .wrapper { width: 100%; max-width: 900px; padding: 60px 20px; display: flex; flex-direction: column; gap: 20px; }
-        .header-card { background: var(--card-bg); border-radius: 16px; padding: 30px; border: 1px solid #2f2f35; display: flex; justify-content: space-between; align-items: center; }
+        
+        .header-card { 
+            background: var(--card-bg); border-radius: 16px; padding: 30px; border: 1px solid #2f2f35; 
+            display: flex; justify-content: space-between; align-items: center; position: relative;
+        }
         .header-info h1 { margin: 0; font-size: 24px; color: var(--accent); }
+        
+        /* 업데이트 문구 위치 수정 */
+        .sync-info { font-size: 11px; color: #5b5b63; margin-top: 5px; }
+
         .back-btn { padding: 8px 16px; background: #26262c; border-radius: 8px; color: var(--text-main); text-decoration: none; font-size: 13px; border: 1px solid #3a3a3d; transition: 0.3s; }
         .back-btn:hover { background: var(--accent); border-color: var(--accent); }
+
         .search-input { width: 100%; background: var(--card-bg); border: 1px solid #2f2f35; padding: 15px 20px; border-radius: 12px; color: #fff; outline: none; box-sizing: border-box; font-size: 15px; }
         .search-input:focus { border-color: var(--accent); }
+
         .song-card { background: var(--card-bg); border-radius: 16px; border: 1px solid #2f2f35; overflow: hidden; }
         table { width: 100%; border-collapse: collapse; }
         th { background: #1f1f23; padding: 15px 20px; font-size: 13px; color: var(--text-sub); text-align: left; border-bottom: 1px solid #2f2f35; }
         td { padding: 14px 20px; font-size: 14px; border-bottom: 1px solid #26262c; vertical-align: middle; }
         tr:hover { background: #1d1d21; }
+
         .title-container { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
         .song-title { font-weight: 500; font-size: 15px; }
-        
-        .song-tag {
-            padding: 2px 8px;
-            border-radius: 6px;
-            font-size: 11px;
-            font-weight: bold;
-            color: #ffffff;
-            white-space: nowrap;
-        }
+        .song-tag { padding: 2px 8px; border-radius: 6px; font-size: 11px; font-weight: bold; color: #ffffff; white-space: nowrap; }
 
-        /* 태그별 색상 클래스 */
         .tag-200 { background-color: var(--tag-200); }
         .tag-300 { background-color: var(--tag-300); }
-        .tag-guitar { background-color: var(--tag-guitar); } /* 브라운 */
+        .tag-guitar { background-color: var(--tag-guitar); }
         .tag-none { background-color: var(--tag-default); color: var(--text-sub); }
 
-        .col-num { width: 60px; text-align: center; color: var(--text-sub); }
+        .col-num { width: 60px; text-align: center; color: var(--text-sub); font-weight: bold; }
         .col-artist { width: 180px; color: var(--text-sub); }
-        .footer { text-align: right; font-size: 11px; color: #5b5b63; margin-top: 10px; }
     </style>
 </head>
 <body>
@@ -63,7 +61,7 @@
     <div class="header-card">
         <div class="header-info">
             <h1>🎶 노래책</h1>
-            <p style="margin:5px 0 0; font-size:13px; color:var(--text-sub);">찾으시는 곡을 제목으로 검색해 보세요</p>
+            <div class="sync-info">마지막 업데이트: <span id="last-sync">--:--</span></div>
         </div>
         <a href="index.html" class="back-btn">🏠 홈으로 돌아가기</a>
     </div>
@@ -84,7 +82,6 @@
             </tbody>
         </table>
     </div>
-    <div class="footer">마지막 업데이트: <span id="last-sync">--:--</span></div>
 </div>
 
 <script>
@@ -124,23 +121,14 @@
 
         let html = `<div class="title-container">`;
         html += `<span class="song-title">${pureTitle}</span>`;
-        
         tags.forEach(tag => {
             const tagName = tag.replace('[', '').replace(']', '');
             let colorClass = 'tag-none'; 
-
-            // ★ 태그 매칭 로직 수정
-            if (tagName.includes('200개')) {
-                colorClass = 'tag-200';
-            } else if (tagName.includes('300개')) {
-                colorClass = 'tag-300';
-            } else if (tagName.includes('기타')) {
-                colorClass = 'tag-guitar'; // 브라운 색상 적용
-            }
-
+            if (tagName.includes('200개')) colorClass = 'tag-200';
+            else if (tagName.includes('300개')) colorClass = 'tag-300';
+            else if (tagName.includes('기타')) colorClass = 'tag-guitar';
             html += `<span class="song-tag ${colorClass}">${tagName}</span>`;
         });
-        
         html += `</div>`;
         return html;
     }
@@ -154,12 +142,16 @@
             const tr = document.createElement('tr');
             const noTd = document.createElement('td');
             noTd.className = 'col-num';
-            noTd.textContent = count++;
+            noTd.textContent = count++; // 초기 번호 매기기
+
             const titleTd = document.createElement('td');
+            titleTd.className = 'col-title'; // 검색용 클래스
             titleTd.innerHTML = formatTitleWithTags(item.title);
+
             const artistTd = document.createElement('td');
             artistTd.className = 'col-artist';
             artistTd.textContent = item.artist;
+
             tr.appendChild(noTd);
             tr.appendChild(titleTd);
             tr.appendChild(artistTd);
@@ -169,13 +161,26 @@
         document.getElementById('last-sync').textContent = `${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
     }
 
+    // 검색 및 번호 재정렬 기능
     document.getElementById('songSearch').addEventListener('keyup', function() {
         let filter = this.value.toUpperCase();
-        let rows = document.querySelector("#song-list-body").rows;
-        for (let row of rows) {
-            let text = row.textContent.toUpperCase();
-            row.style.display = text.includes(filter) ? "" : "none";
-        }
+        let rows = document.querySelectorAll("#song-list-body tr");
+        let visibleCount = 1;
+
+        rows.forEach(row => {
+            // 번호 열(td[0])을 제외하고 제목(td[1])과 가수(td[2])만 합쳐서 검색
+            let titleText = row.cells[1].textContent.toUpperCase();
+            let artistText = row.cells[2].textContent.toUpperCase();
+            let searchableText = titleText + " " + artistText;
+
+            if (searchableText.includes(filter)) {
+                row.style.display = "";
+                // 보이는 행에 대해서만 번호를 새로 매김
+                row.cells[0].textContent = visibleCount++;
+            } else {
+                row.style.display = "none";
+            }
+        });
     });
 </script>
 </body>
