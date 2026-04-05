@@ -25,9 +25,7 @@
             transition: background 0.3s; 
         }
 
-        h2 { color: var(--accent); font-size: 16px; margin: 0 0 15px 0; display: flex; justify-content: space-between; align-items: center; }
-        .head-btns { display: flex; gap: 8px; align-items: center; }
-        
+        /* 목록 영역을 최대한 키움 */
         #list { flex: 1; overflow-y: auto; list-style: none; padding: 0; margin: 0; }
         
         .item { display: flex; gap: 6px; margin-bottom: 8px; }
@@ -36,7 +34,6 @@
         .tit { font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; width: 100%; }
         .done { text-decoration: line-through; opacity: 0.4; }
         
-        /* ✨ 배지 스타일 추가 */
         .tag-badge {
             display: inline-block;
             padding: 1px 7px;
@@ -55,7 +52,17 @@
         .r-box { display: flex; gap: 4px; padding: 4px 8px; background: #26262c; border-radius: 6px; border: 1px solid #2f2f35; align-items: center; }
         .btn { padding: 3px 6px; font-size: 10px; background: #3a3a3d; border: none; color: white; border-radius: 4px; cursor: pointer; }
         
-        .in-area { position: relative; padding-top: 15px; border-top: 1px solid #2f2f35; display: flex; gap: 8px; }
+        /* 버튼들이 위치할 영역 스타일 */
+        .bottom-controls {
+            padding: 10px 0;
+            display: flex;
+            gap: 8px;
+            justify-content: flex-start;
+            border-top: 1px solid #2f2f35;
+            margin-top: 10px;
+        }
+
+        .in-area { position: relative; padding-top: 10px; display: flex; gap: 8px; }
         input { flex: 1; background: #18181b; border: 1px solid #3a3a3d; border-radius: 6px; padding: 10px; color: white; outline: none; font-size: 13px; }
         .add-v { background: var(--accent); border: none; padding: 0 15px; color: white; border-radius: 6px; font-weight: bold; cursor: pointer; }
         
@@ -63,7 +70,7 @@
         .a-item { padding: 8px 12px; cursor: pointer; font-size: 12px; border-bottom: 1px solid #333; }
         .a-item:hover { background: #3a3a3d; color: var(--accent); }
 
-        .util-btn { font-size: 11px; cursor: pointer; color: #efeff1; background: #26262c; border: 1px solid #3a3a3d; padding: 5px 8px; border-radius: 6px; transition: 0.2s; }
+        .util-btn { font-size: 11px; cursor: pointer; color: #efeff1; background: #26262c; border: 1px solid #3a3a3d; padding: 6px 10px; border-radius: 6px; transition: 0.2s; flex: 1; text-align: center; }
         .util-btn:hover { background: #3a3a3d; }
         .util-btn.active { background: var(--accent); border-color: var(--accent); font-weight: bold; }
         .util-btn.clear { color: #ff4b4b; border-color: #442a2a; }
@@ -71,16 +78,14 @@
     </style>
 </head>
 <body>
-    <h2>
-        🎵 실시간 신청 관리
-        <div class="head-btns">
-            <button id="chromaBtn" class="util-btn" onclick="toggleChroma()">🟢 크로마키 ON</button>
-            <button class="util-btn" onclick="location.reload()">🔄 새로고침</button>
-            <button class="util-btn clear" onclick="clearAll()">🗑️ 전체삭제</button>
-        </div>
-    </h2>
 
     <ul id="list"></ul>
+
+    <div class="bottom-controls">
+        <button id="chromaBtn" class="util-btn" onclick="toggleChroma()">🟢 크로마키 ON</button>
+        <button class="util-btn" onclick="location.reload()">🔄 새로고침</button>
+        <button class="util-btn clear" onclick="clearAll()">🗑️ 전체삭제</button>
+    </div>
 
     <div class="in-area">
         <div id="auto"></div>
@@ -111,7 +116,6 @@
             render();
         }
 
-        // ✨ 렌더링 시 태그를 배지로 변환하는 로직 추가
         function render() {
             const reqs = getReqs();
             listEl.innerHTML = reqs.map((r, i) => {
