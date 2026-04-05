@@ -5,10 +5,9 @@
     <title>신청 목록 관리</title>
     <style>
         body { background: #0e0e10; color: #efeff1; font-family: sans-serif; padding: 15px; margin: 0; display: flex; flex-direction: column; height: 100vh; box-sizing: border-box; }
-        h2 { color: #9147ff; font-size: 16px; margin: 0 0 15px 0; display: flex; justify-content: space-between; }
+        h2 { color: #9147ff; font-size: 16px; margin: 0 0 15px 0; display: flex; justify-content: space-between; align-items: center; }
         #list { flex: 1; overflow-y: auto; list-style: none; padding: 0; margin: 0; }
         
-        /* 요청하신 슬림한 상자 2개 구조 */
         .item { display: flex; gap: 6px; margin-bottom: 8px; }
         .l-box { flex: 1; display: flex; align-items: center; padding: 6px 10px; background: #26262c; border-radius: 6px; border: 1px solid #2f2f35; min-width: 0; }
         .num { width: 20px; font-size: 10px; font-weight: bold; color: #9147ff; flex-shrink: 0; }
@@ -18,34 +17,52 @@
         .r-box { display: flex; gap: 4px; padding: 4px 8px; background: #26262c; border-radius: 6px; border: 1px solid #2f2f35; align-items: center; }
         .btn { padding: 3px 6px; font-size: 10px; background: #3a3a3d; border: none; color: white; border-radius: 4px; cursor: pointer; }
         
-        /* 입력창 및 자동완성 아래로 */
         .in-area { position: relative; padding-top: 15px; border-top: 1px solid #2f2f35; display: flex; gap: 8px; }
         input { flex: 1; background: #18181b; border: 1px solid #3a3a3d; border-radius: 6px; padding: 10px; color: white; outline: none; font-size: 13px; }
         .add-v { background: #9147ff; border: none; padding: 0 15px; color: white; border-radius: 6px; font-weight: bold; cursor: pointer; }
         
-        #auto { position: absolute; top: 60px; left: 0; width: calc(100% - 80px); background: #26262c; border: 1px solid #9147ff; border-radius: 6px; max-height: 150px; overflow-y: auto; display: none; z-index: 10; }
+        /* 자동완성 창 위치 조정 (input 위로 띄움) */
+        #auto { position: absolute; bottom: 60px; left: 0; width: calc(100% - 80px); background: #26262c; border: 1px solid #9147ff; border-radius: 6px; max-height: 150px; overflow-y: auto; display: none; z-index: 10; }
         .a-item { padding: 8px 12px; cursor: pointer; font-size: 12px; border-bottom: 1px solid #333; }
         .a-item:hover { background: #3a3a3d; color: #9147ff; }
     </style>
 </head>
 <body>
-    <h2>🎵 실시간 신청 관리 <span style="font-size: 10px; cursor:pointer;" onclick="location.reload()">🔄 새로고침</span></h2>
+    <h2>🎵 실시간 신청 관리 <span style="font-size: 10px; cursor:pointer; color:#adadb8;" onclick="location.reload()">🔄 새로고침</span></h2>
     <ul id="list"></ul>
     <div class="in-area">
+        <div id="auto"></div>
         <input type="text" id="in" placeholder="곡 제목 입력..." autocomplete="off">
         <button class="add-v" onclick="addReq()">추가</button>
-        <div id="auto"></div>
     </div>
 
     <script>
-        const p = window.opener; // 부모 창 참조
+        const p = window.opener; 
         const listEl = document.getElementById('list');
         const inEl = document.getElementById('in');
         const autoEl = document.getElementById('auto');
 
+        // 데이터 가져오기 (부모 창 우선, 없으면 로컬스토리지)
+        function getReqs() {
+            if (p && p.requests) return p.requests;
+            return JSON.parse(localStorage.getItem('streamerRequests')) || [];
+        }
+
+        function getAllSongs() {
+            if (p && p.allSongs) return p.allSongs;
+            return JSON.parse(localStorage.getItem('allSongsCache')) || [];
+        }
+
+        // 데이터 저장 및 부모 창 동기화
+        function sync(newList) {
+            localStorage.setItem('streamerRequests', JSON.stringify(newList));
+            if (p) p.requests = newList; 
+            render();
+        }
+
         function render() {
-            if(!p) return;
-            listEl.innerHTML = p.requests.map((r, i) => `
+            const reqs = getReqs();
+            listEl.innerHTML = reqs.map((r, i) => `
                 <li class="item">
                     <div class="l-box">
                         <span class="num">${i+1}</span>
@@ -65,29 +82,41 @@
         function addReq() {
             const val = inEl.value.trim();
             if(!val) return;
-            p.requests.push({ title: val, completed: false });
+            const reqs = getReqs();
+            reqs.push({ title: val, completed: false });
             inEl.value = '';
             autoEl.style.display = 'none';
-            render();
+            sync(reqs);
         }
 
-        function toggle(i) { p.requests[i].completed = !p.requests[i].completed; render(); }
-        function remove(i) { p.requests.splice(i, 1); render(); }
+        function toggle(i) { 
+            const reqs = getReqs();
+            reqs[i].completed = !reqs[i].completed; 
+            sync(reqs);
+        }
+
+        function remove(i) { 
+            const reqs = getReqs();
+            reqs.splice(i, 1); 
+            sync(reqs);
+        }
+
         function move(i, dir) {
-            if (i + dir < 0 || i + dir >= p.requests.length) return;
-            [p.requests[i], p.requests[i + dir]] = [p.requests[i + dir], p.requests[i]];
-            render();
+            const reqs = getReqs();
+            if (i + dir < 0 || i + dir >= reqs.length) return;
+            [reqs[i], reqs[i + dir]] = [reqs[i + dir], reqs[i]];
+            sync(reqs);
         }
 
-        // 엔터 키 추가
         inEl.onkeypress = (e) => { if(e.keyCode === 13) addReq(); };
 
-        // 자동완성 (부모의 allSongs 데이터 활용)
         inEl.oninput = () => {
             const v = inEl.value.toUpperCase();
+            const songs = getAllSongs();
             autoEl.innerHTML = '';
-            if(!v || !p.allSongs) { autoEl.style.display = 'none'; return; }
-            const ms = p.allSongs.filter(s => s.toUpperCase().includes(v)).slice(0, 10);
+            if(!v || !songs.length) { autoEl.style.display = 'none'; return; }
+            
+            const ms = songs.filter(s => s.toUpperCase().includes(v)).slice(0, 10);
             if(ms.length > 0) {
                 ms.forEach(m => {
                     const d = document.createElement('div');
@@ -99,7 +128,9 @@
             } else autoEl.style.display = 'none';
         };
 
+        // 창이 켜질 때와 다시 포커스될 때 목록 갱신
         window.onload = render;
+        window.onfocus = render;
     </script>
 </body>
 </html>
