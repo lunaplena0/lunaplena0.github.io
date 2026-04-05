@@ -20,7 +20,6 @@
         body { background-color: var(--bg-color); color: var(--text-main); font-family: 'Noto Sans KR', sans-serif; margin: 0; padding: 0; min-height: 100vh; }
         .wrapper { width: 100%; max-width: 900px; margin: 0 auto; padding: 60px 20px; display: flex; flex-direction: column; gap: 20px; }
         
-        /* 헤더 */
         .header-card { background: var(--card-bg); border-radius: 16px; padding: 30px; border: 1px solid #2f2f35; display: flex; justify-content: space-between; align-items: center; }
         .header-info h1 { margin: 0; font-size: 24px; color: var(--accent); display: flex; align-items: baseline; gap: 12px; }
         .song-count-info { font-size: 14px; color: var(--text-sub); font-weight: normal; }
@@ -31,51 +30,65 @@
         .special-btn { background: var(--accent); border-color: var(--accent); font-weight: bold; }
         .btn:hover { opacity: 0.8; transform: translateY(-1px); }
 
-        /* --- 팝업창 (순서 변경 및 스크롤 최적화) --- */
+        /* --- 팝업창 (확장 및 좌우 분리 구조) --- */
         .modal-container {
-            position: fixed; top: 80px; left: 50px; z-index: 1000; display: none;
-            width: 420px; background: var(--card-bg); border: 1px solid var(--accent);
-            border-radius: 16px; box-shadow: 0 15px 40px rgba(0,0,0,0.6);
+            position: fixed; top: 50px; left: 50px; z-index: 1000; display: none;
+            width: 520px; /* 좌우 크기 대폭 확장 */
+            background: var(--card-bg); border: 1px solid var(--accent);
+            border-radius: 16px; box-shadow: 0 20px 50px rgba(0,0,0,0.7);
         }
         .modal-header { background: #1f1f23; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #2f2f35; border-radius: 16px 16px 0 0; cursor: default; }
-        .modal-header h2 { margin: 0; font-size: 15px; color: var(--accent); }
+        .modal-header h2 { margin: 0; font-size: 16px; color: var(--accent); }
 
-        .modal-body { padding: 20px; display: flex; flex-direction: column; gap: 15px; }
+        .modal-body { padding: 20px; display: flex; flex-direction: column; gap: 20px; }
 
-        /* 신청 리스트를 위로 배치 */
+        /* 신청 목록 영역 */
         #request-list { 
-            list-style: none; padding: 0 15px 0 0; margin: 0; 
-            max-height: 450px; overflow-y: auto; 
-            display: flex; flex-direction: column; gap: 6px;
+            list-style: none; padding: 0 10px 0 0; margin: 0; 
+            max-height: 550px; /* 높이 추가 확보 */
+            overflow-y: auto; 
+            display: flex; flex-direction: column; gap: 8px;
         }
         
-        /* 스크롤바 스타일 */
         #request-list::-webkit-scrollbar { width: 8px; }
         #request-list::-webkit-scrollbar-thumb { background: #3a3a3d; border-radius: 10px; }
         #request-list::-webkit-scrollbar-thumb:hover { background: var(--accent); }
-        #request-list::-webkit-scrollbar-track { background: transparent; }
 
-        .request-item { display: flex; align-items: center; padding: 10px 12px; background: #1d1d21; border-radius: 8px; font-size: 13px; border: 1px solid #2f2f35; }
-        .req-num { width: 25px; font-weight: bold; color: var(--accent); }
-        .req-title { flex: 1; margin-right: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .req-title.completed { text-decoration: line-through; color: var(--text-sub); opacity: 0.6; }
-        
-        .req-btns { display: flex; gap: 4px; }
-        .req-btn { padding: 4px 6px; font-size: 10px; background: #2f2f35; border: none; color: var(--text-main); border-radius: 4px; cursor: pointer; }
-
-        /* 입력창을 아래로 배치 */
-        .request-input-wrapper { position: relative; display: flex; gap: 8px; border-top: 1px solid #2f2f35; padding-top: 15px; }
-        .request-input { flex: 1; background: #26262c; border: 1px solid #3a3a3d; border-radius: 6px; padding: 10px 12px; color: white; font-size: 13px; outline: none; }
-        
-        .autocomplete-list {
-            position: absolute; bottom: 55px; left: 0; width: calc(100% - 70px);
-            background: #26262c; border: 1px solid var(--accent); border-radius: 8px;
-            max-height: 150px; overflow-y: auto; z-index: 1001; display: none;
+        /* 개별 아이템: 좌우 분리 */
+        .request-item { 
+            display: flex; justify-content: space-between; align-items: center; 
+            padding: 12px 15px; background: #1d1d21; border-radius: 10px; 
+            font-size: 14px; border: 1px solid #2f2f35; 
         }
-        .autocomplete-item { padding: 8px 12px; cursor: pointer; font-size: 12px; border-bottom: 1px solid #333; }
+        .req-left { display: flex; align-items: center; flex: 1; min-width: 0; }
+        .req-num { width: 30px; font-weight: bold; color: var(--accent); flex-shrink: 0; }
+        .req-title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 15px; }
+        .req-title.completed { text-decoration: line-through; color: var(--text-sub); opacity: 0.5; }
+        
+        /* 버튼 전용 오른쪽 상자 */
+        .req-right-box { 
+            display: flex; gap: 5px; padding-left: 15px; 
+            border-left: 1px solid #3a3a3d; /* 좌우 구분선 */
+            flex-shrink: 0;
+        }
+        .req-btn { padding: 5px 8px; font-size: 11px; background: #2f2f35; border: none; color: var(--text-main); border-radius: 5px; cursor: pointer; transition: 0.2s; }
+        .req-btn:hover { background: #3a3a3d; }
+
+        /* 하단 입력창 및 자동완성 */
+        .request-input-wrapper { position: relative; display: flex; gap: 10px; border-top: 1px solid #2f2f35; padding-top: 20px; }
+        .request-input { flex: 1; background: #26262c; border: 1px solid #3a3a3d; border-radius: 8px; padding: 12px 15px; color: white; font-size: 14px; outline: none; }
+        
+        /* 자동완성을 입력창 위로 띄움 (목록을 가리지 않음) */
+        .autocomplete-list {
+            position: absolute; bottom: 65px; left: 0; width: calc(100% - 85px);
+            background: #26262c; border: 1px solid var(--accent); border-radius: 8px;
+            max-height: 180px; overflow-y: auto; z-index: 1001; display: none;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.5);
+        }
+        .autocomplete-item { padding: 10px 15px; cursor: pointer; font-size: 13px; border-bottom: 1px solid #333; }
         .autocomplete-item:hover { background: #3a3a3d; color: var(--accent); }
 
-        /* 검색 및 테이블 */
+        /* 검색 및 테이블 기본 스타일 유지 */
         .search-container { display: flex; gap: 10px; width: 100%; }
         .search-select { background: var(--card-bg); color: #fff; border: 1px solid #2f2f35; border-radius: 12px; padding: 0 15px; outline: none; }
         .search-input { flex: 1; background: var(--card-bg); border: 1px solid #2f2f35; padding: 15px 20px; border-radius: 12px; color: #fff; outline: none; }
@@ -94,16 +107,17 @@
 
 <div id="modal" class="modal-container">
     <div class="modal-header" id="modalHeader">
-        <h2>🎵 노래 신청 목록</h2>
-        <span style="cursor:pointer;" onclick="closeModal()">&times;</span>
+        <h2>🎵 실시간 신청 곡 관리</h2>
+        <span style="cursor:pointer; font-size: 20px;" onclick="closeModal()">&times;</span>
     </div>
     <div class="modal-body">
-        <ul id="request-list"></ul>
+        <ul id="request-list">
+            </ul>
 
         <div class="request-input-wrapper">
-            <input type="text" id="reqInput" class="request-input" placeholder="신청할 노래 제목 입력..." autocomplete="off">
-            <button class="btn special-btn" style="padding: 5px 15px;" onclick="addRequest()">추가</button>
             <div id="autocompleteBox" class="autocomplete-list"></div>
+            <input type="text" id="reqInput" class="request-input" placeholder="노래 제목을 검색하여 추가하세요..." autocomplete="off">
+            <button class="btn special-btn" onclick="addRequest()">추가</button>
         </div>
     </div>
 </div>
@@ -111,16 +125,11 @@
 <div class="wrapper">
     <div class="header-card">
         <div class="header-info">
-            <h1>
-                🎶 노래책 
-                <span class="song-count-info">
-                    총 노래 : <span id="total-count">0</span>곡 | 기타 노래 : <span id="guitar-count">0</span>곡
-                </span>
-            </h1>
+            <h1>🎶 노래책 <span class="song-count-info">총 노래 : <span id="total-count">0</span>곡 | 기타 : <span id="guitar-count">0</span>곡</span></h1>
             <div class="sync-info">마지막 업데이트: <span id="last-sync">--:--</span></div>
         </div>
         <div class="header-btns">
-            <button class="btn special-btn" onclick="openModal()">💎 신청목록</button>
+            <button class="btn special-btn" onclick="openModal()">💎 신청목록 관리</button>
             <a href="index.html" class="btn">🏠 홈으로</a>
         </div>
     </div>
@@ -131,7 +140,7 @@
             <option value="title">노래제목</option>
             <option value="artist">가수</option>
         </select>
-        <input type="text" id="songSearch" class="search-input" placeholder="검색어를 입력하세요..." onkeyup="filterSongs()">
+        <input type="text" id="songSearch" class="search-input" placeholder="곡 제목이나 가수를 검색하세요..." onkeyup="filterSongs()">
     </div>
 
     <div class="song-card">
@@ -185,6 +194,7 @@
         return html + `</div>`;
     }
 
+    // 자동완성 로직 (입력창 위로 띄우기)
     const reqInput = document.getElementById('reqInput');
     const autoBox = document.getElementById('autocompleteBox');
 
@@ -218,9 +228,11 @@
         const list = document.getElementById('request-list');
         list.innerHTML = requests.map((req, i) => `
             <li class="request-item">
-                <span class="req-num">${i + 1}</span>
-                <span class="req-title ${req.completed ? 'completed' : ''}">${req.title}</span>
-                <div class="req-btns">
+                <div class="req-left">
+                    <span class="req-num">${i + 1}</span>
+                    <span class="req-title ${req.completed ? 'completed' : ''}">${req.title}</span>
+                </div>
+                <div class="req-right-box">
                     <button class="req-btn" onclick="moveReq(${i}, -1)">▲</button>
                     <button class="req-btn" onclick="moveReq(${i}, 1)">▼</button>
                     <button class="req-btn" style="color:#4caf50" onclick="toggleDone(${i})">V</button>
@@ -228,12 +240,11 @@
                 </div>
             </li>
         `).join('');
-        // 리스트 추가 시 가장 아래로 스크롤
         list.scrollTop = list.scrollHeight;
     }
 
     function toggleDone(i) { requests[i].completed = !requests[i].completed; renderRequests(); }
-    function removeReq(i) { requests.splice(i, 1); renderRequests(); }
+    function removeReq(i) { if(confirm("삭제하시겠습니까?")) { requests.splice(i, 1); renderRequests(); } }
     function moveReq(i, dir) {
         if (i + dir < 0 || i + dir >= requests.length) return;
         [requests[i], requests[i + dir]] = [requests[i + dir], requests[i]];
