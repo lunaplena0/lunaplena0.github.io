@@ -3,166 +3,153 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stream Dashboard</title>
+    <title>Streamer Profile</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --bg-color: #0e0e10;
             --card-bg: #18181b;
-            --accent-color: #9147ff; /* 보라색 포인트 */
-            --live-color: #eb0400;
+            --accent: #9147ff;
             --text-main: #efeff1;
             --text-sub: #adadb8;
+            --live: #eb0400;
         }
 
         body {
             background-color: var(--bg-color);
             color: var(--text-main);
             font-family: 'Noto Sans KR', sans-serif;
-            margin: 0;
+            margin: 0; padding: 0;
+        }
+
+        /* 1. 상단 배너 & 프로필 */
+        .banner {
+            height: 250px;
+            background: linear-gradient(45deg, #1f1f23, var(--accent));
+            position: relative;
+        }
+
+        .profile-section {
+            max-width: 1100px;
+            margin: -60px auto 30px;
+            padding: 0 20px;
             display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
+            align-items: flex-end;
+            gap: 20px;
         }
 
-        .dashboard-card {
-            width: 90%;
-            max-width: 450px;
+        .profile-img {
+            width: 150px; height: 150px;
+            border-radius: 50%;
+            border: 5px solid var(--bg-color);
+            background: #2f2f35;
+            object-fit: cover;
+        }
+
+        .profile-info h1 { margin: 0 0 5px; font-size: 32px; }
+        .profile-info p { color: var(--text-sub); margin: 0; }
+
+        /* 2. 메인 컨텐츠 레이아웃 (그리드) */
+        .main-container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 2fr 1fr; /* 좌측 2, 우측 1 비율 */
+            gap: 20px;
+        }
+
+        .card {
             background: var(--card-bg);
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-            border: 1px solid #2f2f35;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
         }
 
-        /* 상단 프로필 구역 */
-        .header {
-            padding: 30px 20px;
-            text-align: center;
-            background: linear-gradient(180deg, rgba(145, 71, 255, 0.1) 0%, rgba(24, 24, 27, 1) 100%);
-        }
+        h2 { font-size: 18px; margin-top: 0; color: var(--accent); border-bottom: 1px solid #2f2f35; padding-bottom: 10px; }
 
-        .status-badge {
+        /* 게시글 스타일 */
+        .post-item {
+            padding: 15px 0;
+            border-bottom: 1px solid #26262c;
+        }
+        .post-item:last-child { border: none; }
+        .post-date { font-size: 12px; color: var(--text-sub); }
+
+        /* 방송 상태 배지 (애니메이션) */
+        .badge {
             display: inline-block;
-            padding: 4px 12px;
-            border-radius: 20px;
+            padding: 4px 10px;
+            border-radius: 4px;
             font-size: 12px;
             font-weight: bold;
-            margin-bottom: 15px;
-            letter-spacing: 1px;
-        }
-
-        .status-badge.live {
-            background: var(--live-color);
-            color: white;
-            box-shadow: 0 0 15px var(--live-color);
-            animation: pulse 2s infinite;
-        }
-
-        .status-badge.offline {
-            background: #3a3a3d;
-            color: var(--text-sub);
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.05); opacity: 0.8; }
-            100% { transform: scale(1); opacity: 1; }
-        }
-
-        h1 { margin: 10px 0; font-size: 22px; font-weight: 700; }
-        .viewer-count { color: var(--text-sub); font-size: 14px; }
-
-        /* 중앙 구분선 */
-        .divider {
-            height: 1px;
-            background: #2f2f35;
-            margin: 0 20px;
-        }
-
-        /* 방송 기록 구역 */
-        .history-section {
-            padding: 20px;
-        }
-
-        .history-title {
-            font-size: 15px;
-            color: var(--accent-color);
-            margin-bottom: 15px;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-        }
-
-        .history-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .history-item {
-            background: #1f1f23;
-            padding: 12px 15px;
-            border-radius: 10px;
             margin-bottom: 10px;
-            border-left: 3px solid #3a3a3d;
-            transition: transform 0.2s;
         }
+        .badge.live { background: var(--live); animation: pulse 2s infinite; }
+        .badge.offline { background: #3a3a3d; }
 
-        .history-item:hover {
-            transform: translateX(5px);
-            background: #26262c;
-        }
+        /* 스케줄 표 */
+        .schedule-grid { font-size: 14px; }
+        .schedule-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #26262c; }
+        .day { font-weight: bold; color: var(--text-sub); }
 
-        .history-date {
-            font-size: 11px;
-            color: var(--text-sub);
-            display: block;
-            margin-bottom: 4px;
-        }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
 
-        .history-text {
-            font-size: 13px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        /* 하단 업데이트 시간 */
-        .footer {
-            padding: 15px;
-            text-align: center;
-            font-size: 11px;
-            color: #5b5b63;
+        /* 모바일 대응 */
+        @media (max-width: 768px) {
+            .main-container { grid-template-columns: 1fr; }
+            .profile-section { flex-direction: column; align-items: center; text-align: center; }
         }
     </style>
 </head>
 <body>
 
-<div class="dashboard-card">
-    <div class="header">
-        <div id="badge" class="status-badge offline">OFFLINE</div>
-        <h1 id="title">방송 정보를 불러오는 중...</h1>
-        <div id="viewers" class="viewer-count">수집된 데이터가 없습니다.</div>
-    </div>
+<div class="banner"></div>
 
-    <div class="divider"></div>
-
-    <div class="history-section">
-        <div class="history-title">🕒 최근 방송 기록</div>
-        <ul id="history-list" class="history-list">
-            </ul>
-    </div>
-
-    <div class="footer">
-        최근 업데이트: <span id="last-update">-</span>
+<div class="profile-section">
+    <div class="profile-img"></div>
+    <div class="profile-info">
+        <h1>닉네임</h1>
+        <p>여기에 한 줄 소개글을 적어보세요. (예: 종합 게임 스트리머입니다!)</p>
     </div>
 </div>
 
-<script>
-    // 자바스크립트는 나중에 공기계 데이터와 연결할 때 채울게요!
-</script>
+<div class="main-container">
+    <div class="content-left">
+        <div class="card">
+            <h2>📢 최근 게시글</h2>
+            <div class="post-item">
+                <div class="post-date">2026.04.05</div>
+                <div>오늘 방송은 저녁 8시에 시작합니다!</div>
+            </div>
+            <div class="post-item">
+                <div class="post-date">2026.04.03</div>
+                <div>어제 방송 다시보기가 업로드 되었습니다.</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="content-right">
+        <div class="card" style="text-align: center;">
+            <div class="badge offline" id="status-badge">OFFLINE</div>
+            <div id="stream-title" style="font-weight: bold; margin-bottom: 5px;">방송 준비 중</div>
+            <div id="viewer-count" style="font-size: 13px; color: var(--text-sub);">최근 업데이트: -</div>
+        </div>
+
+        <div class="card">
+            <h2>📅 방송 스케줄</h2>
+            <div class="schedule-grid">
+                <div class="schedule-row"><span class="day">월요일</span> <span>20:00 ~</span></div>
+                <div class="schedule-row"><span class="day">화요일</span> <span>휴방</span></div>
+                <div class="schedule-row"><span class="day">수요일</span> <span>20:00 ~</span></div>
+                <div class="schedule-row"><span class="day">목요일</span> <span>20:00 ~</span></div>
+                <div class="schedule-row"><span class="day">금요일</span> <span>22:00 ~</span></div>
+                <div class="schedule-row"><span class="day">토요일</span> <span>랜덤</span></div>
+                <div class="schedule-row"><span class="day">일요일</span> <span>휴방</span></div>
+            </div>
+        </div>
+    </div>
+</div>
 
 </body>
 </html>
