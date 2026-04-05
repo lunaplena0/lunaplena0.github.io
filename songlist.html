@@ -12,36 +12,38 @@
             --accent: #9147ff;
             --text-main: #efeff1;
             --text-sub: #adadb8;
+            --tag-200: #5c16ff; 
+            --tag-300: #ff8c00;
+            --tag-guitar: #8b572a; 
+            --tag-default: #2f2f35;
         }
 
-        body { background-color: var(--bg-color); color: var(--text-main); font-family: 'Noto Sans KR', sans-serif; margin: 0; padding: 0; min-height: 100vh; overflow-x: hidden; }
+        body { background-color: var(--bg-color); color: var(--text-main); font-family: 'Noto Sans KR', sans-serif; margin: 0; padding: 0; min-height: 100vh; }
         .wrapper { width: 100%; max-width: 900px; margin: 0 auto; padding: 60px 20px; display: flex; flex-direction: column; gap: 20px; }
         
-        /* 헤더 스타일 */
         .header-card { background: var(--card-bg); border-radius: 16px; padding: 30px; border: 1px solid #2f2f35; display: flex; justify-content: space-between; align-items: center; }
-        .header-info h1 { margin: 0; font-size: 24px; color: var(--accent); }
-        .header-btns { display: flex; gap: 8px; }
+        .header-info h1 { margin: 0; font-size: 24px; color: var(--accent); display: flex; align-items: baseline; gap: 12px; }
+        .song-count-info { font-size: 14px; color: var(--text-sub); font-weight: normal; }
+        .sync-info { font-size: 11px; color: #5b5b63; margin-top: 5px; }
 
+        .header-btns { display: flex; gap: 8px; }
         .btn { padding: 8px 16px; border-radius: 8px; color: var(--text-main); text-decoration: none; font-size: 13px; border: 1px solid #3a3a3d; cursor: pointer; transition: 0.3s; }
         .special-btn { background: var(--accent); border-color: var(--accent); font-weight: bold; }
         .btn:hover { opacity: 0.8; transform: translateY(-1px); }
 
-        /* --- 팝업 & 신청 목록 스타일 --- */
+        /* --- 팝업창 스타일 --- */
         .modal-container {
             position: fixed; top: 100px; left: 50px; z-index: 1000; display: none;
             width: 380px; background: var(--card-bg); border: 1px solid var(--accent);
             border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
-        .modal-header { background: #1f1f23; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #2f2f35; border-radius: 16px 16px 0 0; }
+        .modal-header { background: #1f1f23; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #2f2f35; border-radius: 16px 16px 0 0; cursor: default; }
         .modal-header h2 { margin: 0; font-size: 15px; color: var(--accent); }
 
         .modal-body { padding: 20px; position: relative; }
-        
-        /* 자동완성 입력창 그룹 */
         .request-input-wrapper { position: relative; display: flex; gap: 8px; margin-bottom: 15px; }
         .request-input { flex: 1; background: #26262c; border: 1px solid #3a3a3d; border-radius: 6px; padding: 8px 12px; color: white; font-size: 13px; outline: none; }
         
-        /* 자동완성 추천 리스트 박스 */
         .autocomplete-list {
             position: absolute; top: 38px; left: 0; width: calc(100% - 60px);
             background: #26262c; border: 1px solid var(--accent); border-radius: 0 0 8px 8px;
@@ -50,7 +52,6 @@
         .autocomplete-item { padding: 8px 12px; cursor: pointer; font-size: 12px; border-bottom: 1px solid #333; }
         .autocomplete-item:hover { background: #3a3a3d; color: var(--accent); }
 
-        /* 신청 리스트 */
         #request-list { list-style: none; padding: 0; margin: 0; max-height: 250px; overflow-y: auto; }
         .request-item { display: flex; align-items: center; padding: 10px; background: #1d1d21; border-radius: 8px; margin-bottom: 6px; font-size: 13px; border: 1px solid #2f2f35; }
         .req-num { width: 25px; font-weight: bold; color: var(--accent); }
@@ -59,13 +60,19 @@
         
         .req-btns { display: flex; gap: 4px; }
         .req-btn { padding: 4px 6px; font-size: 10px; background: #2f2f35; border: none; color: var(--text-main); border-radius: 4px; cursor: pointer; }
-        .btn-done { color: #4caf50; } .btn-del { color: #ff4b4b; }
 
-        /* 메인 테이블 스타일 */
+        /* --- 메인 테이블 스타일 --- */
+        .search-container { display: flex; gap: 10px; width: 100%; }
+        .search-input { flex: 1; background: var(--card-bg); border: 1px solid #2f2f35; padding: 15px 20px; border-radius: 12px; color: #fff; outline: none; }
         .song-card { background: var(--card-bg); border-radius: 16px; border: 1px solid #2f2f35; overflow: hidden; }
         table { width: 100%; border-collapse: collapse; }
         th { background: #1f1f23; padding: 15px 20px; font-size: 13px; color: var(--text-sub); text-align: left; }
         td { padding: 14px 20px; font-size: 14px; border-bottom: 1px solid #26262c; }
+        .title-container { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .song-tag { padding: 2px 8px; border-radius: 6px; font-size: 11px; font-weight: bold; color: #ffffff; }
+        .tag-200 { background-color: var(--tag-200); }
+        .tag-300 { background-color: var(--tag-300); }
+        .tag-guitar { background-color: var(--tag-guitar); }
     </style>
 </head>
 <body>
@@ -77,7 +84,7 @@
     </div>
     <div class="modal-body">
         <div class="request-input-wrapper">
-            <input type="text" id="reqInput" class="request-input" placeholder="제목을 입력하면 노래를 추천합니다..." autocomplete="off">
+            <input type="text" id="reqInput" class="request-input" placeholder="신청할 노래 제목 입력..." autocomplete="off">
             <button class="btn special-btn" style="padding: 5px 12px;" onclick="addRequest()">추가</button>
             <div id="autocompleteBox" class="autocomplete-list"></div>
         </div>
@@ -87,12 +94,25 @@
 
 <div class="wrapper">
     <div class="header-card">
-        <div class="header-info"><h1>🎶 노래책</h1></div>
+        <div class="header-info">
+            <h1>
+                🎶 노래책 
+                <span class="song-count-info">
+                    총 노래 : <span id="total-count">0</span>곡 | 기타 노래 : <span id="guitar-count">0</span>곡
+                </span>
+            </h1>
+            <div class="sync-info">마지막 업데이트: <span id="last-sync">--:--</span></div>
+        </div>
         <div class="header-btns">
             <button class="btn special-btn" onclick="openModal()">💎 신청목록</button>
             <a href="index.html" class="btn">🏠 홈으로</a>
         </div>
     </div>
+
+    <div class="search-container">
+        <input type="text" id="songSearch" class="search-input" placeholder="노래 제목이나 가수를 검색하세요..." onkeyup="filterSongs()">
+    </div>
+
     <div class="song-card">
         <table>
             <thead><tr><th style="width:60px;">번호</th><th>노래제목</th><th style="width:180px;">가수</th></tr></thead>
@@ -104,29 +124,64 @@
 <script>
     const sheetUrl = "https://docs.google.com/spreadsheets/d/1q_P96q2ZwvFRToZ4GAv_0EKVOcLRTR-Y392610eAV04/gviz/tq?tqx=out:csv";
     
-    let allSongs = []; // 시트에서 불러온 전체 노래 제목 저장용
-    let requests = []; // 신청 목록 저장용
+    let allSongs = []; 
+    let requests = [];
 
     function openModal() { document.getElementById('modal').style.display = 'block'; }
     function closeModal() { document.getElementById('modal').style.display = 'none'; }
 
-    // --- 데이터 로드 & 시트 노래 저장 ---
+    // --- 시트 데이터 로드 및 통계 계산 ---
     window.onload = () => {
         fetch(sheetUrl).then(res => res.text()).then(csv => {
             const lines = csv.split('\n');
             const tbody = document.getElementById('song-list-body');
+            
+            // C1 셀에서 업데이트 시간 추출
+            document.getElementById('last-sync').textContent = lines[0].split(',')[2]?.replace(/"/g,'') || "--:--";
+            
             let html = '';
+            let total = 0, guitar = 0;
+
             for (let i = 1; i < lines.length; i++) {
                 const parts = lines[i].replace(/"/g,'').split(',');
                 if (parts.length < 2) continue;
-                const title = parts[0].trim();
+                
+                const rawTitle = parts[0].trim();
                 const artist = parts[1].trim();
-                allSongs.push(title); // 자동완성용 데이터 수집
-                html += `<tr><td>${i}</td><td>${title}</td><td>${artist}</td></tr>`;
+                
+                if(!rawTitle) continue;
+
+                total++;
+                if (rawTitle.includes("[기타]")) guitar++;
+                allSongs.push(rawTitle); // 자동완성용 데이터 추가
+
+                html += `<tr data-is-guitar="${rawTitle.includes("[기타]")}">
+                            <td>${total}</td>
+                            <td>${formatTitleWithTags(rawTitle)}</td>
+                            <td>${artist}</td>
+                         </tr>`;
             }
             tbody.innerHTML = html;
+            document.getElementById('total-count').textContent = total;
+            document.getElementById('guitar-count').textContent = guitar;
         });
     };
+
+    function formatTitleWithTags(rawTitle) {
+        const tagRegex = /\[(.*?)\]/g;
+        let tags = rawTitle.match(tagRegex) || [];
+        let pureTitle = rawTitle.replace(tagRegex, '').trim();
+        let html = `<div class="title-container"><span class="song-title">${pureTitle}</span>`;
+        tags.forEach(tag => {
+            const tagName = tag.replace('[', '').replace(']', '');
+            let cls = 'tag-none';
+            if (tagName.includes('200개')) cls = 'tag-200';
+            else if (tagName.includes('300개')) cls = 'tag-300';
+            else if (tagName.includes('기타')) cls = 'tag-guitar';
+            html += `<span class="song-tag ${cls}">${tagName}</span>`;
+        });
+        return html + `</div>`;
+    }
 
     // --- 자동완성 로직 ---
     const reqInput = document.getElementById('reqInput');
@@ -136,7 +191,6 @@
         const val = this.value.toUpperCase();
         autoBox.innerHTML = '';
         if (!val) { autoBox.style.display = 'none'; return; }
-
         const matches = allSongs.filter(s => s.toUpperCase().includes(val)).slice(0, 10);
         if (matches.length > 0) {
             matches.forEach(m => {
@@ -147,24 +201,16 @@
                 autoBox.appendChild(div);
             });
             autoBox.style.display = 'block';
-        } else { autoBox.style.display = 'none'; }
+        } else autoBox.style.display = 'none';
     });
 
-    // --- 신청곡 관리 함수들 ---
+    // --- 신청 목록 관리 ---
     function addRequest() {
         const title = reqInput.value.trim();
         if (!title) return;
         requests.push({ title, completed: false });
         reqInput.value = '';
         autoBox.style.display = 'none';
-        renderRequests();
-    }
-
-    function toggleDone(i) { requests[i].completed = !requests[i].completed; renderRequests(); }
-    function removeReq(i) { requests.splice(i, 1); renderRequests(); }
-    function moveReq(i, dir) {
-        if (i + dir < 0 || i + dir >= requests.length) return;
-        [requests[i], requests[i + dir]] = [requests[i + dir], requests[i]];
         renderRequests();
     }
 
@@ -177,14 +223,32 @@
                 <div class="req-btns">
                     <button class="req-btn" onclick="moveReq(${i}, -1)">▲</button>
                     <button class="req-btn" onclick="moveReq(${i}, 1)">▼</button>
-                    <button class="req-btn btn-done" onclick="toggleDone(${i})">V</button>
-                    <button class="req-btn btn-del" onclick="removeReq(${i})">X</button>
+                    <button class="req-btn" style="color:#4caf50" onclick="toggleDone(${i})">V</button>
+                    <button class="req-btn" style="color:#ff4b4b" onclick="removeReq(${i})">X</button>
                 </div>
             </li>
         `).join('');
     }
 
-    // --- 드래그 기능 (마우스 기본 커서) ---
+    function toggleDone(i) { requests[i].completed = !requests[i].completed; renderRequests(); }
+    function removeReq(i) { requests.splice(i, 1); renderRequests(); }
+    function moveReq(i, dir) {
+        if (i + dir < 0 || i + dir >= requests.length) return;
+        [requests[i], requests[i + dir]] = [requests[i + dir], requests[i]];
+        renderRequests();
+    }
+
+    // --- 검색 필터 ---
+    function filterSongs() {
+        const filter = document.getElementById('songSearch').value.toUpperCase();
+        const rows = document.querySelectorAll("#song-list-body tr");
+        rows.forEach(row => {
+            const text = row.textContent.toUpperCase();
+            row.style.display = text.includes(filter) ? "" : "none";
+        });
+    }
+
+    // --- 드래그 기능 ---
     const modal = document.getElementById('modal');
     const header = document.getElementById('modalHeader');
     let isDragging = false, offset = { x: 0, y: 0 };
