@@ -4,8 +4,14 @@
     <meta charset="UTF-8">
     <title>신청 목록 관리</title>
     <style>
-        body { background: #0e0e10; color: #efeff1; font-family: sans-serif; padding: 15px; margin: 0; display: flex; flex-direction: column; height: 100vh; box-sizing: border-box; }
+        /* 크로마키를 위한 기본 배경 설정 */
+        :root { --main-bg: #0e0e10; }
+        body.chromakey { --main-bg: #00ff00; } /* 크로마키 모드 시 배경 초록색 */
+
+        body { background: var(--main-bg); color: #efeff1; font-family: sans-serif; padding: 15px; margin: 0; display: flex; flex-direction: column; height: 100vh; box-sizing: border-box; transition: background 0.3s; }
         h2 { color: #9147ff; font-size: 16px; margin: 0 0 15px 0; display: flex; justify-content: space-between; align-items: center; }
+        .head-btns { display: flex; gap: 10px; align-items: center; }
+        
         #list { flex: 1; overflow-y: auto; list-style: none; padding: 0; margin: 0; }
         
         .item { display: flex; gap: 6px; margin-bottom: 8px; }
@@ -18,18 +24,31 @@
         .btn { padding: 3px 6px; font-size: 10px; background: #3a3a3d; border: none; color: white; border-radius: 4px; cursor: pointer; }
         
         .in-area { position: relative; padding-top: 15px; border-top: 1px solid #2f2f35; display: flex; gap: 8px; }
+        /* 크로마키 모드일 때 입력창 가독성을 위해 배경 유지 */
         input { flex: 1; background: #18181b; border: 1px solid #3a3a3d; border-radius: 6px; padding: 10px; color: white; outline: none; font-size: 13px; }
         .add-v { background: #9147ff; border: none; padding: 0 15px; color: white; border-radius: 6px; font-weight: bold; cursor: pointer; }
         
-        /* 자동완성 창 위치 조정 (input 위로 띄움) */
         #auto { position: absolute; bottom: 60px; left: 0; width: calc(100% - 80px); background: #26262c; border: 1px solid #9147ff; border-radius: 6px; max-height: 150px; overflow-y: auto; display: none; z-index: 10; }
         .a-item { padding: 8px 12px; cursor: pointer; font-size: 12px; border-bottom: 1px solid #333; }
         .a-item:hover { background: #3a3a3d; color: #9147ff; }
+
+        .util-btn { font-size: 10px; cursor: pointer; color: #adadb8; background: none; border: none; padding: 0; }
+        .util-btn.clear { color: #ff4b4b; font-weight: bold; }
+        .util-btn.green { color: #00ff00; }
     </style>
 </head>
 <body>
-    <h2>🎵 실시간 신청 관리 <span style="font-size: 10px; cursor:pointer; color:#adadb8;" onclick="location.reload()">🔄 새로고침</span></h2>
+    <h2>
+        🎵 실시간 신청 관리
+        <div class="head-btns">
+            <button class="util-btn green" onclick="toggleChroma()">🟢 크로마키</button>
+            <button class="util-btn" onclick="location.reload()">🔄 새로고침</button>
+            <button class="util-btn clear" onclick="clearAll()">🗑️ 전체삭제</button>
+        </div>
+    </h2>
+
     <ul id="list"></ul>
+
     <div class="in-area">
         <div id="auto"></div>
         <input type="text" id="in" placeholder="곡 제목 입력..." autocomplete="off">
@@ -42,7 +61,6 @@
         const inEl = document.getElementById('in');
         const autoEl = document.getElementById('auto');
 
-        // 데이터 가져오기 (부모 창 우선, 없으면 로컬스토리지)
         function getReqs() {
             if (p && p.requests) return p.requests;
             return JSON.parse(localStorage.getItem('streamerRequests')) || [];
@@ -53,7 +71,6 @@
             return JSON.parse(localStorage.getItem('allSongsCache')) || [];
         }
 
-        // 데이터 저장 및 부모 창 동기화
         function sync(newList) {
             localStorage.setItem('streamerRequests', JSON.stringify(newList));
             if (p) p.requests = newList; 
@@ -89,6 +106,16 @@
             listEl.scrollTop = listEl.scrollHeight;
         }
 
+        function clearAll() {
+            if(confirm("정말로 모든 신청 목록을 삭제하시겠습니까?")) {
+                sync([]);
+            }
+        }
+
+        function toggleChroma() {
+            document.body.classList.toggle('chromakey');
+        }
+
         function toggle(i) { 
             const reqs = getReqs();
             reqs[i].completed = !reqs[i].completed; 
@@ -115,7 +142,6 @@
             const songs = getAllSongs();
             autoEl.innerHTML = '';
             if(!v || !songs.length) { autoEl.style.display = 'none'; return; }
-            
             const ms = songs.filter(s => s.toUpperCase().includes(v)).slice(0, 10);
             if(ms.length > 0) {
                 ms.forEach(m => {
@@ -128,7 +154,6 @@
             } else autoEl.style.display = 'none';
         };
 
-        // 창이 켜질 때와 다시 포커스될 때 목록 갱신
         window.onload = render;
         window.onfocus = render;
     </script>
