@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Streamer Songlist</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0e0e10;
+            --card-bg: #18181b;
+            --accent: #9147ff;
+            --text-main: #efeff1;
+            --text-sub: #adadb8;
+        }
+
+        body { 
+            background-color: var(--bg-color); 
+            color: var(--text-main); 
+            font-family: 'Noto Sans KR', sans-serif; 
+            margin: 0; 
+            display: flex; justify-content: center;
+            min-height: 100vh;
+        }
+
+        .wrapper { 
+            width: 100%; max-width: 900px; 
+            display: flex; flex-direction: column; 
+            gap: 20px; padding: 60px 20px;
+        }
+
+        /* 헤더 영역 */
+        .header-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 30px;
+            border: 1px solid #2f2f35;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-info h1 { margin: 0; font-size: 24px; color: var(--accent); }
+        .header-info p { margin: 5px 0 0; color: var(--text-sub); font-size: 14px; }
+
+        .back-btn {
+            padding: 8px 16px;
+            background: #26262c;
+            border-radius: 8px;
+            color: var(--text-main);
+            text-decoration: none;
+            font-size: 13px;
+            border: 1px solid #3a3a3d;
+            transition: 0.3s;
+        }
+        .back-btn:hover { background: var(--accent); border-color: var(--accent); }
+
+        /* 검색 및 필터 박스 */
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .search-input {
+            flex: 1;
+            background: #000;
+            border: 1px solid #2f2f35;
+            padding: 12px 20px;
+            border-radius: 8px;
+            color: #fff;
+            outline: none;
+        }
+        .search-input:focus { border-color: var(--accent); }
+
+        /* 노래 리스트 테이블 */
+        .song-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            border: 1px solid #2f2f35;
+            overflow: hidden;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th {
+            background: #1f1f23;
+            padding: 15px 20px;
+            font-size: 13px;
+            color: var(--text-sub);
+            border-bottom: 1px solid #2f2f35;
+        }
+
+        td {
+            padding: 15px 20px;
+            font-size: 14px;
+            border-bottom: 1px solid #26262c;
+        }
+
+        tr:hover { background: #1d1d21; }
+
+        .tag {
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: bold;
+            background: #2f2f35;
+            color: var(--text-sub);
+        }
+        .tag.jpop { color: #ff4785; background: rgba(255, 71, 133, 0.1); }
+        .tag.kpop { color: #47afff; background: rgba(71, 175, 255, 0.1); }
+
+        /* 하단 갱신 시간 */
+        .footer-info {
+            text-align: right;
+            font-size: 12px;
+            color: #5b5b63;
+        }
+    </style>
+</head>
+<body>
+
+<div class="wrapper">
+    <div class="header-card">
+        <div class="header-info">
+            <h1>🎶 노래책 리스트</h1>
+            <p>스트리머가 부를 수 있는 곡 목록입니다. (총 <span id="total-songs">0</span>곡)</p>
+        </div>
+        <a href="index.html" class="back-btn">🏠 홈으로 돌아가기</a>
+    </div>
+
+    <div class="search-box">
+        <input type="text" class="search-input" id="songSearch" placeholder="제목 또는 가수를 검색해 보세요...">
+    </div>
+
+    <div class="song-card">
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 10%;">번호</th>
+                    <th>제목</th>
+                    <th>가수</th>
+                    <th style="width: 15%;">장르</th>
+                </tr>
+            </thead>
+            <tbody id="song-list-body">
+                <tr>
+                    <td>1</td>
+                    <td>검색어를 입력하거나 데이터를 연결하세요</td>
+                    <td>-</td>
+                    <td><span class="tag">준비중</span></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="footer-info">
+        마지막 업데이트 : <span id="update-time">2026.04.05 19:00</span>
+    </div>
+</div>
+
+<script>
+    // 나중에 파이썬이 만든 json 데이터를 불러와서 테이블을 채우는 로직이 들어갈 자리입니다.
+    const searchInput = document.getElementById('songSearch');
+    searchInput.addEventListener('keyup', function() {
+        // 간단한 클라이언트 검색 기능을 나중에 추가할 수 있습니다.
+        console.log("검색어:", this.value);
+    });
+</script>
+
+</body>
+</html>
