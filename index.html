@@ -25,66 +25,91 @@
 
         .wrapper { width: 100%; max-width: 1200px; display: flex; flex-direction: column; gap: 20px; }
 
-        /* 상단 영역: 비율 조정 (7:3 정도로 왼쪽을 넓게 설정) */
-        .top-section { 
-            display: grid; 
-            grid-template-columns: 2.3fr 1fr; /* 왼쪽이 오른쪽보다 약 2.3배 넓음 */
-            gap: 20px; 
-        }
+        /* 상단 영역: 이제 하나의 넓은 카드로 통합 */
+        .top-section { width: 100%; }
 
-        /* 하단 영역: 1:1:1 3분할 */
+        /* 하단 영역: 3분할 유지 */
         .bottom-section { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
 
         /* 공통 카드 스타일 */
         .card { 
             background: var(--card-bg); 
-            border-radius: 12px; 
-            padding: 25px; 
+            border-radius: 16px; 
+            padding: 30px; 
             border: 1px solid #2f2f35; 
-            display: flex; flex-direction: column;
-            min-height: 180px; /* 상단 카드 높이 최소값 유지 */
+            display: flex; 
+            position: relative;
         }
         h2 { font-size: 15px; margin-top: 0; color: var(--accent); border-bottom: 1px solid #2f2f35; padding-bottom: 12px; margin-bottom: 15px; }
 
-        /* 상단 왼쪽: 프로필 공간 (더 넓어짐) */
-        .profile-box { flex-direction: row; align-items: center; gap: 30px; }
-        .profile-img { width: 120px; height: 120px; border-radius: 50%; background: #2f2f35; flex-shrink: 0; border: 3px solid var(--accent); }
-        .profile-info { flex: 1; } /* 남은 공간 모두 차지 */
-        .profile-info h1 { margin: 0 0 8px; font-size: 28px; font-weight: 700; }
-        .profile-info p { color: var(--text-sub); margin: 0 0 20px; font-size: 15px; line-height: 1.5; }
-        .social-links { display: flex; gap: 10px; }
-        .link-btn { padding: 6px 16px; background: #26262c; border-radius: 6px; color: var(--text-main); text-decoration: none; font-size: 13px; border: 1px solid #3a3a3d; transition: 0.2s; }
-        .link-btn:hover { background: var(--accent); border-color: var(--accent); }
-
-        /* 상단 오른쪽: 실시간 방송 상태 (컴팩트함) */
-        .status-box { 
-            text-align: center; 
-            justify-content: center; 
-            border: 1px solid var(--accent); 
-            background: linear-gradient(145deg, #18181b, #1f1f23);
+        /* 프로필 박스 내부 배치 */
+        .profile-box { 
+            align-items: center; 
+            gap: 30px; 
+            background: linear-gradient(145deg, #18181b, #1d1d21);
         }
-        .badge { display: inline-block; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: bold; margin-bottom: 12px; }
-        .badge.live { background: var(--live); animation: pulse 2s infinite; }
-        .badge.offline { background: #3a3a3d; color: var(--text-sub); }
-        #stream-title { font-size: 18px; font-weight: bold; margin-bottom: 8px; color: #fff; }
+        
+        .profile-img { 
+            width: 110px; height: 110px; 
+            border-radius: 50%; 
+            background: #2f2f35; 
+            flex-shrink: 0; 
+            border: 3px solid var(--accent);
+            box-shadow: 0 0 20px rgba(145, 71, 255, 0.2);
+        }
 
-        /* 하단 리스트 스타일 */
+        .profile-info { flex-grow: 1; }
+        .profile-info h1 { margin: 0 0 5px; font-size: 28px; font-weight: 700; }
+        .profile-info p { color: var(--text-sub); margin: 0 0 20px; font-size: 15px; max-width: 500px; line-height: 1.6; }
+
+        /* 노란색 상자: 링크 버튼 */
+        .social-links { display: flex; gap: 10px; }
+        .link-btn { padding: 7px 15px; background: #26262c; border-radius: 8px; color: var(--text-main); text-decoration: none; font-size: 13px; border: 1px solid #3a3a3d; transition: 0.3s; }
+        .link-btn:hover { background: var(--accent); border-color: var(--accent); transform: translateY(-2px); }
+
+        /* 핑크색 상자: 프로필 박스 안 오른쪽 끝 방송 상태 */
+        .live-status-inline {
+            margin-left: auto; /* 오른쪽 끝으로 밀기 */
+            text-align: right;
+            padding-left: 30px;
+            border-left: 1px solid #2f2f35;
+            min-width: 180px;
+        }
+
+        .badge { 
+            display: inline-block; 
+            padding: 5px 14px; 
+            border-radius: 6px; 
+            font-size: 11px; 
+            font-weight: bold; 
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+        .badge.live { background: var(--live); color: white; animation: pulse 2s infinite; }
+        .badge.offline { background: #3a3a3d; color: var(--text-sub); }
+
+        #stream-title-inline { font-size: 18px; font-weight: bold; margin-bottom: 5px; color: #fff; }
+        #update-time-inline { font-size: 11px; color: var(--text-sub); }
+
+        /* 하단 아이템 스타일 */
+        .bottom-section .card { flex-direction: column; padding: 25px; min-height: 250px; }
         .item-row { padding: 12px 0; border-bottom: 1px solid #26262c; font-size: 13px; }
         .item-row:last-child { border: none; }
-        .item-date { font-size: 11px; color: var(--text-sub); margin-bottom: 3px; }
-
+        .item-date { font-size: 11px; color: var(--text-sub); margin-bottom: 4px; }
+        
         .vod-row { display: flex; gap: 12px; align-items: center; }
         .vod-thumb { width: 70px; height: 40px; background: #2f2f35; border-radius: 4px; flex-shrink: 0; }
 
         .schedule-row { display: flex; justify-content: space-between; }
         .day { font-weight: bold; color: var(--text-sub); }
 
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
 
-        /* 반응형 설정 */
+        /* 모바일 대응 */
         @media (max-width: 900px) {
-            .top-section, .bottom-section { grid-template-columns: 1fr; }
             .profile-box { flex-direction: column; text-align: center; }
+            .live-status-inline { margin-left: 0; border-left: none; border-top: 1px solid #2f2f35; padding-left: 0; padding-top: 20px; width: 100%; text-align: center; }
+            .bottom-section { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -96,20 +121,19 @@
             <div class="profile-img"></div>
             <div class="profile-info">
                 <h1>닉네임</h1>
-                <p>스트리머의 개성이 드러나는 소개글을 입력하세요. <br>공간이 넓어져서 더 상세한 설명이 가능해졌습니다.</p>
+                <p>스트리머의 소개글이 들어가는 공간입니다. 방송 상태가 오른쪽 끝으로 이동하여 훨씬 깔끔해졌습니다.</p>
                 <div class="social-links">
                     <a href="#" class="link-btn">📡 SOOP 방송국</a>
                     <a href="#" class="link-btn">🎬 유튜브 채널</a>
                     <a href="#" class="link-btn">💬 소통 채널</a>
                 </div>
             </div>
-        </div>
 
-        <div class="card status-box">
-            <h2>📡 LIVE STATUS</h2>
-            <div class="badge offline" id="status-badge">OFFLINE</div>
-            <div id="stream-title">방송 준비 중</div>
-            <div id="update-time" style="font-size: 11px; color: var(--text-sub);">Last Update: -</div>
+            <div class="live-status-inline">
+                <div class="badge offline" id="status-badge">OFFLINE</div>
+                <div id="stream-title-inline">방송 준비 중</div>
+                <div id="update-time-inline">Last Update: -</div>
+            </div>
         </div>
     </div>
 
@@ -120,14 +144,14 @@
                 <div class="vod-thumb"></div>
                 <div>
                     <div class="item-date">2026.04.04</div>
-                    <div class="vod-title">최근 방송 다시보기 제목</div>
+                    <div>최근 방송 다시보기 제목</div>
                 </div>
             </div>
             <div class="item-row vod-row">
                 <div class="vod-thumb"></div>
                 <div>
                     <div class="item-date">2026.04.02</div>
-                    <div class="vod-title">지난 방송 다시보기 제목</div>
+                    <div>지난 방송 다시보기 제목</div>
                 </div>
             </div>
         </div>
@@ -140,7 +164,7 @@
             </div>
             <div class="item-row">
                 <div class="item-date">2026.04.03</div>
-                <div>중요한 소식을 이곳에 적어주세요.</div>
+                <div>중요한 소식을 확인하세요.</div>
             </div>
         </div>
 
