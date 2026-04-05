@@ -33,21 +33,6 @@
         table { width: 100%; border-collapse: collapse; }
         th { background: #1f1f23; padding: 15px 20px; font-size: 13px; color: var(--text-sub); text-align: left; }
         td { padding: 14px 20px; font-size: 14px; border-bottom: 1px solid #26262c; }
-
-        /* 태그 배지 스타일 */
-        .tag-badge {
-            display: inline-block;
-            background-color: #2f2f35;
-            color: var(--accent);
-            font-size: 11px;
-            padding: 2px 8px;
-            border-radius: 4px;
-            margin-left: 6px;
-            vertical-align: middle;
-            font-weight: bold;
-            border: 1px solid #444;
-            white-space: nowrap;
-        }
     </style>
 </head>
 <body>
@@ -81,93 +66,49 @@
 </div>
 
 <script>
-    // 1. 최신 구글 시트 CSV 주소
-    const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSIfrVC6MakrvA_D8rsQeTT6oaX_0w4bc8I_aaJuoQi4g_AuuvFi-nCP_lnHwvoSAsFKxagrzhoPy_J/pub?gid=0&single=true&output=csv";
+    const sheetUrl = "https://docs.google.com/spreadsheets/d/1q_P96q2ZwvFRToZ4GAv_0EKVOcLRTR-Y392610eAV04/gviz/tq?tqx=out:csv";
     
     window.allSongs = [];
+    // localStorage에서 데이터를 불러옵니다.
     window.requests = JSON.parse(localStorage.getItem('streamerRequests')) || []; 
 
     window.onload = () => {
-        fetch(sheetUrl)
-            .then(res => res.text())
-            .then(csv => {
-                const lines = csv.split('\n');
-                const tbody = document.getElementById('song-list-body');
+        fetch(sheetUrl).then(res => res.text()).then(csv => {
+            const lines = csv.split('\n');
+            const tbody = document.getElementById('song-list-body');
+            document.getElementById('last-sync').textContent = lines[0].split(',')[2]?.replace(/"/g,'') || "--:--";
+            let html = ''; let total = 0, guitar = 0;
+            
+            for (let i = 1; i < lines.length; i++) {
+                const parts = lines[i].replace(/"/g,'').split(',');
+                if (parts.length < 2) continue;
+                total++;
+                if (parts[0].includes("[기타]")) guitar++;
                 
-                // 업데이트 시간 표시
-                const now = new Date();
-                document.getElementById('last-sync').textContent = 
-                    `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-
-                let html = ''; 
-                let total = 0, guitar = 0;
+                const title = parts[0].trim();
+                const artist = parts[1].trim();
                 
-                // i=1 (헤더 제외)부터 시작
-                for (let i = 1; i < lines.length; i++) {
-                    if (!lines[i].trim()) continue;
+                window.allSongs.push(title);
+                html += `<tr><td>${total}</td><td class="song-title">${title}</td><td class="song-artist">${artist}</td></tr>`;
+            }
+            tbody.innerHTML = html;
+            document.getElementById('total-count').textContent = total;
+            document.getElementById('guitar-count').textContent = guitar;
 
-                    // 정규식을 사용하여 쉼표가 포함된 따옴표 데이터도 정확히 분리
-                    const row = lines[i].match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g)
-                                 .map(item => item.replace(/^"|"$/g, '').trim());
-                    
-                    if (row.length < 2) continue;
-
-                    total++;
-                    let fullTitle = row[0];
-                    const artist = row[1];
-
-                    // 태그([기타], [200개] 등) 추출 로직
-                    const tags = fullTitle.match(/\[.*?\]/g) || [];
-                    let cleanTitle = fullTitle;
-                    tags.forEach(t => { cleanTitle = cleanTitle.replace(t, ""); });
-                    cleanTitle = cleanTitle.trim();
-
-                    let tagHtml = "";
-                    tags.forEach(t => {
-                        tagHtml += `<span class="tag-badge">${t}</span>`;
-                        if (t === "[기타]") guitar++;
-                    });
-
-                    window.allSongs.push(fullTitle); 
-                    
-                    html += `<tr>
-                                <td>${total}</td>
-                                <td class="song-title">
-                                    <strong>${cleanTitle}</strong>${tagHtml}
-                                </td>
-                                <td class="song-artist">${artist}</td>
-                             </tr>`;
-                }
-                
-                tbody.innerHTML = html;
-                document.getElementById('total-count').textContent = total;
-                document.getElementById('guitar-count').textContent = guitar;
-                localStorage.setItem('allSongsCache', JSON.stringify(window.allSongs));
-            })
-            .catch(err => console.error("데이터 로드 실패:", err));
+            // 자동완성을 위해 제목 리스트를 로컬에 저장
+            localStorage.setItem('allSongsCache', JSON.stringify(window.allSongs));
+        });
     };
 
     function openManageWindow() {
         window.open("manage.html", "ManageWindow", "width=520,height=700");
     }
 
-    function filterSongs() {
-        const filter = document.getElementById('songSearch').value.toUpperCase();
-        const rows = document.querySelectorAll("#song-list-body tr");
-        
-        rows.forEach(row => {
-            const titleText = row.querySelector('.song-title').textContent.toUpperCase();
-            const artistText = row.querySelector('.song-artist').textContent.toUpperCase();
-            if (titleText.includes(filter) || artistText.includes(filter)) {
-                row.style.display = "";
-            } else {
-                row.style.display = "none";
-            }
-        });
+    // 데이터 변경 시 로컬 저장소에 저장하는 공통 함수
+    function saveToLocal() {
+        localStorage.setItem('streamerRequests', JSON.stringify(window.requests));
     }
 
-    // 신청곡 관리 함수들
-    function saveToLocal() { localStorage.setItem('streamerRequests', JSON.stringify(window.requests)); }
     window.addRequest = (title) => { window.requests.push({ title, completed: false }); saveToLocal(); };
     window.toggleDone = (i) => { window.requests[i].completed = !window.requests[i].completed; saveToLocal(); };
     window.removeReq = (i) => { window.requests.splice(i, 1); saveToLocal(); };
@@ -176,6 +117,24 @@
         [window.requests[i], window.requests[i + dir]] = [window.requests[i + dir], window.requests[i]];
         saveToLocal();
     };
+
+    // 검색 기능: 제목과 가수 열(td)을 모두 체크합니다.
+    function filterSongs() {
+        const filter = document.getElementById('songSearch').value.toUpperCase();
+        const rows = document.querySelectorAll("#song-list-body tr");
+        
+        rows.forEach(row => {
+            const titleText = row.querySelector('.song-title').textContent.toUpperCase();
+            const artistText = row.querySelector('.song-artist').textContent.toUpperCase();
+            
+            // 제목이나 가수 중 하나라도 검색어를 포함하면 표시
+            if (titleText.includes(filter) || artistText.includes(filter)) {
+                row.style.display = "";
+            } else {
+                row.style.display = "none";
+            }
+        });
+    }
 </script>
 </body>
 </html>
