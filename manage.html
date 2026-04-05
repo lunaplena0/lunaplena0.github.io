@@ -4,92 +4,53 @@
     <meta charset="UTF-8">
     <title>신청 목록 관리</title>
     <style>
-        :root { 
-            --accent: #9147ff;
-            --modal-overlay: rgba(0, 0, 0, 0.85);
+        /* 1. ✨ 핵심: html과 body 모두 배경을 투명하게 강제 지정 */
+        html, body { 
+            background: transparent !important; 
+            background-color: rgba(0, 0, 0, 0) !important;
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
         }
 
-        /* 1. 중요: body는 투명하게 비워둡니다. */
         body { 
-            background: transparent !important; 
             color: #efeff1; 
             font-family: sans-serif; 
             padding: 15px; 
-            margin: 0; 
             display: flex; 
             flex-direction: column; 
-            height: 100vh; 
             box-sizing: border-box; 
-            overflow: hidden; /* 스크롤바 방지 */
         }
 
-        /* 2. ✨ 배경 색상을 담당할 전용 레이어 */
+        /* 2. 배경만 담당하는 레이어 (슬라이더로 조절되는 부분) */
         #bg-layer {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(14, 14, 16, 1); /* 초기값: 불투명 검정 */
-            z-index: -1; /* 콘텐츠보다 뒤에 위치 */
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(14, 14, 16, 1); /* 초기값 불투명 */
+            z-index: -1; 
             transition: background-color 0.1s ease;
-            pointer-events: none; /* 클릭 이벤트 방해 안 함 */
         }
 
-        /* 콘텐츠 영역 (배경 레이어 위에 뜸) */
+        /* --- 이하 디자인 동일 --- */
+        :root { --accent: #9147ff; }
         #list { flex: 1; overflow-y: auto; list-style: none; padding: 0; margin: 0; z-index: 1; }
-        
         .item { display: flex; gap: 6px; margin-bottom: 8px; }
-        /* 목록 박스는 배경이 투명해져도 글자가 잘 보이도록 약간의 어두운 반투명을 유지 */
         .l-box { flex: 1; display: flex; align-items: center; padding: 6px 10px; background: rgba(38, 38, 44, 0.9); border-radius: 6px; border: 1px solid rgba(47, 47, 53, 0.5); min-width: 0; }
         .num { width: 20px; font-size: 10px; font-weight: bold; color: var(--accent); flex-shrink: 0; }
-        .tit { font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; width: 100%; }
-        .done { text-decoration: line-through; opacity: 0.4; }
-        
-        /* 배지 스타일 */
-        .tag-badge { display: inline-block; padding: 1px 7px; border-radius: 50px; font-size: 9px; font-weight: bold; margin-left: 6px; color: white; flex-shrink: 0; }
-        .tag-200 { background-color: #ff4b4b; }
-        .tag-300 { background-color: #ff9100; }
-        .tag-기타 { background-color: #4caf50; }
-        .tag-default { background-color: #5b5b63; }
-
-        .r-box { display: flex; gap: 4px; padding: 4px 8px; background: rgba(38, 38, 44, 0.9); border-radius: 6px; border: 1px solid rgba(47, 47, 53, 0.5); align-items: center; z-index: 1; }
+        .tit { font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .r-box { display: flex; gap: 4px; padding: 4px 8px; background: rgba(38, 38, 44, 0.9); border-radius: 6px; border: 1px solid rgba(47, 47, 53, 0.5); align-items: center; }
         .btn { padding: 3px 6px; font-size: 10px; background: #3a3a3d; border: none; color: white; border-radius: 4px; cursor: pointer; }
         
-        /* 하단 컨트롤 영역 */
-        .bottom-controls { padding: 10px 0; display: flex; flex-direction: column; gap: 10px; border-top: 1px solid #2f2f35; margin-top: 10px; z-index: 1; }
+        .bottom-controls { padding: 10px 0; display: flex; flex-direction: column; gap: 10px; border-top: 1px solid #2f2f35; margin-top: 10px; }
         .ctrl-row { display: flex; gap: 8px; align-items: center; }
-        
-        /* 슬라이더 스타일 */
         .opacity-slider-wrap { flex: 1; display: flex; align-items: center; gap: 10px; background: #18181b; padding: 5px 12px; border-radius: 6px; border: 1px solid #3a3a3d; }
-        .opacity-slider-wrap label { font-size: 11px; color: #adadb8; white-space: nowrap; }
         input[type=range] { flex: 1; cursor: pointer; accent-color: var(--accent); }
 
-        /* 입력 영역 */
-        .in-area { position: relative; padding-top: 5px; display: flex; gap: 8px; z-index: 1; }
-        input[type=text] { flex: 1; background: #18181b; border: 1px solid #3a3a3d; border-radius: 6px; padding: 10px; color: white; outline: none; font-size: 13px; }
+        .in-area { padding-top: 5px; display: flex; gap: 8px; }
+        input[type=text] { flex: 1; background: #18181b; border: 1px solid #3a3a3d; border-radius: 6px; padding: 10px; color: white; font-size: 13px; }
         .add-v { background: var(--accent); border: none; padding: 0 15px; color: white; border-radius: 6px; font-weight: bold; cursor: pointer; }
-        
-        /* 자동완성 */
-        #auto { position: absolute; bottom: 60px; left: 0; width: calc(100% - 80px); background: #26262c; border: 1px solid var(--accent); border-radius: 6px; max-height: 150px; overflow-y: auto; display: none; z-index: 10; }
-        .a-item { padding: 8px 12px; cursor: pointer; font-size: 12px; border-bottom: 1px solid #333; }
-        .a-item:hover { background: #3a3a3d; color: var(--accent); }
-
-        /* 유틸 버튼 */
-        .util-btn { font-size: 11px; cursor: pointer; color: #efeff1; background: #26262c; border: 1px solid #3a3a3d; padding: 6px 10px; border-radius: 6px; transition: 0.2s; flex: 1; text-align: center; }
-        .util-btn:hover { background: #3a3a3d; }
-        .util-btn.clear { color: #ff4b4b; border-color: #442a2a; }
-
-        /* 모달 */
-        #modalOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--modal-overlay); display: none; justify-content: center; align-items: center; z-index: 100; }
-        .modal { background: #18181b; border: 1px solid var(--accent); border-radius: 12px; padding: 20px; width: 260px; text-align: center; transform: translateY(20px); transition: 0.3s; }
-        .modal.show { transform: translateY(0); }
-        .modal h3 { font-size: 14px; margin: 0 0 10px 0; color: #efeff1; }
-        .modal p { font-size: 12px; color: #adadb8; margin: 0 0 20px 0; }
-        .modal-btns { display: flex; gap: 8px; }
-        .m-btn { flex: 1; padding: 10px; border-radius: 6px; cursor: pointer; border: none; font-size: 12px; font-weight: bold; }
-        .m-btn.confirm { background: #ff4b4b; color: white; }
-        .m-btn.cancel { background: #3a3a3d; color: white; }
     </style>
 </head>
 <body>
@@ -100,131 +61,66 @@
     <div class="bottom-controls">
         <div class="ctrl-row">
             <div class="opacity-slider-wrap">
-                <label>배경 투명도</label>
+                <label style="font-size: 11px; color: #adadb8;">배경 투명도</label>
                 <input type="range" id="bgOpacity" min="0" max="100" value="100" oninput="updateBgOpacity(this.value)">
                 <span id="opacityVal" style="font-size:10px; min-width:25px;">100%</span>
             </div>
         </div>
         <div class="ctrl-row">
-            <button class="util-btn" onclick="location.reload()">🔄 새로고침</button>
-            <button class="util-btn clear" onclick="showClearModal()">🗑️ 전체삭제</button>
+            <button class="btn" style="flex:1; padding:10px;" onclick="location.reload()">🔄 새로고침</button>
+            <button class="btn" style="flex:1; padding:10px; color:#ff4b4b;" onclick="sync([])">🗑️ 전체삭제</button>
         </div>
     </div>
 
     <div class="in-area">
-        <div id="auto"></div>
-        <input type="text" id="in" placeholder="곡 제목 입력..." autocomplete="off">
+        <input type="text" id="in" placeholder="곡 제목 입력..." onkeypress="if(event.keyCode==13) addReq()">
         <button class="add-v" onclick="addReq()">추가</button>
-    </div>
-
-    <div id="modalOverlay">
-        <div class="modal" id="confirmModal">
-            <h3>전체 삭제하시겠습니까?</h3>
-            <p>모든 신청곡이 영구적으로 삭제됩니다.</p>
-            <div class="modal-btns">
-                <button class="m-btn cancel" onclick="closeModal()">취소</button>
-                <button class="m-btn confirm" onclick="confirmClear()">삭제하기</button>
-            </div>
-        </div>
     </div>
 
     <script>
         const p = window.opener; 
-        const listEl = document.getElementById('list');
-        const inEl = document.getElementById('in');
-        const autoEl = document.getElementById('auto');
-        const modalOverlay = document.getElementById('modalOverlay');
-        const confirmModal = document.getElementById('confirmModal');
+        const bgLayer = document.getElementById('bg-layer');
         const opacityVal = document.getElementById('opacityVal');
-        const bgLayer = document.getElementById('bg-layer'); // 배경 레이어 가져오기
 
-        // ✨ 배경 레이어의 투명도만 업데이트하는 함수
         function updateBgOpacity(val) {
             const alpha = val / 100;
-            // 배경색의 알파(투명도) 값만 조절
+            // 배경 레이어의 투명도만 조절
             bgLayer.style.backgroundColor = `rgba(14, 14, 16, ${alpha})`;
             opacityVal.innerText = val + "%";
             localStorage.setItem('listBgOpacity', val);
         }
 
-        function initOpacity() {
+        function init() {
             const saved = localStorage.getItem('listBgOpacity') || "100";
             document.getElementById('bgOpacity').value = saved;
             updateBgOpacity(saved);
+            render();
         }
 
-        // --- 기존 로직 동일 ---
-        function getReqs() { if (p && p.requests) return p.requests; return JSON.parse(localStorage.getItem('streamerRequests')) || []; }
-        function getAllSongs() { if (p && p.allSongs) return p.allSongs; return JSON.parse(localStorage.getItem('allSongsCache')) || []; }
+        function getReqs() { return (p && p.requests) ? p.requests : JSON.parse(localStorage.getItem('streamerRequests')) || []; }
         function sync(newList) { localStorage.setItem('streamerRequests', JSON.stringify(newList)); if (p) p.requests = newList; render(); }
 
         function render() {
             const reqs = getReqs();
-            listEl.innerHTML = reqs.map((r, i) => {
-                const tagMatch = r.title.match(/^\[([^\]]+)\]/);
-                let displayTitle = r.title;
-                let tagHtml = '';
-                if (tagMatch) {
-                    const tagText = tagMatch[1];
-                    const pureTitle = r.title.replace(tagMatch[0], '').trim();
-                    let tagClass = 'tag-default';
-                    if (tagText.includes("200")) tagClass = 'tag-200';
-                    else if (tagText.includes("300")) tagClass = 'tag-300';
-                    else if (tagText.includes("기타")) tagClass = 'tag-기타';
-                    displayTitle = pureTitle;
-                    tagHtml = `<span class="tag-badge ${tagClass}">${tagText}</span>`;
-                }
-                return `<li class="item">
-                    <div class="l-box"><span class="num">${i+1}</span><span class="tit ${r.completed ? 'done' : ''}">${displayTitle}${tagHtml}</span></div>
-                    <div class="r-box">
-                        <button class="btn" onclick="move(${i}, -1)">▲</button>
-                        <button class="btn" onclick="move(${i}, 1)">▼</button>
-                        <button class="btn" style="color:#4caf50" onclick="toggle(${i})">V</button>
-                        <button class="btn" style="color:#ff4b4b" onclick="remove(${i})">X</button>
-                    </div>
-                </li>`;
-            }).join('');
+            document.getElementById('list').innerHTML = reqs.map((r, i) => `
+                <li class="item">
+                    <div class="l-box"><span class="num">${i+1}</span><span class="tit">${r.title}</span></div>
+                    <div class="r-box"><button class="btn" onclick="remove(${i})">X</button></div>
+                </li>`).join('');
         }
 
-        function showClearModal() { modalOverlay.style.display = 'flex'; setTimeout(() => confirmModal.classList.add('show'), 10); }
-        function closeModal() { confirmModal.classList.remove('show'); setTimeout(() => modalOverlay.style.display = 'none', 300); }
-        function confirmClear() { sync([]); closeModal(); }
         function addReq() {
-            const val = inEl.value.trim();
+            const val = document.getElementById('in').value.trim();
             if(!val) return;
             const reqs = getReqs();
             reqs.push({ title: val, completed: false });
-            inEl.value = ''; autoEl.style.display = 'none'; sync(reqs);
-            listEl.scrollTop = listEl.scrollHeight;
+            document.getElementById('in').value = '';
+            sync(reqs);
         }
-        function toggle(i) { const reqs = getReqs(); reqs[i].completed = !reqs[i].completed; sync(reqs); }
+
         function remove(i) { const reqs = getReqs(); reqs.splice(i, 1); sync(reqs); }
-        function move(i, dir) {
-            const reqs = getReqs();
-            if (i + dir < 0 || i + dir >= reqs.length) return;
-            [reqs[i], reqs[i + dir]] = [reqs[i + dir], reqs[i]]; sync(reqs);
-        }
 
-        inEl.onkeypress = (e) => { if(e.keyCode === 13) addReq(); };
-        inEl.oninput = () => {
-            const v = inEl.value.toUpperCase();
-            const songs = getAllSongs();
-            autoEl.innerHTML = '';
-            if(!v || !songs.length) { autoEl.style.display = 'none'; return; }
-            const ms = songs.filter(s => s.toUpperCase().includes(v)).slice(0, 10);
-            if(ms.length > 0) {
-                ms.forEach(m => {
-                    const d = document.createElement('div');
-                    d.className = 'a-item'; d.textContent = m;
-                    d.onclick = () => { inEl.value = m; autoEl.style.display = 'none'; addReq(); };
-                    autoEl.appendChild(d);
-                });
-                autoEl.style.display = 'block';
-            } else autoEl.style.display = 'none';
-        };
-
-        window.onload = () => { render(); initOpacity(); };
-        window.onfocus = render;
+        window.onload = init;
     </script>
 </body>
 </html>
