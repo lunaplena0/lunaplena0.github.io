@@ -5,13 +5,10 @@
     <title>신청 목록 관리</title>
     <style>
         :root { 
-            --main-bg: #0e0e10; 
-            --chroma-bg: #00ff00; 
+            --main-bg: rgba(14, 14, 16, 1); /* 기본 배경색 (불투명) */
             --accent: #9147ff;
             --modal-overlay: rgba(0, 0, 0, 0.85);
         }
-        
-        body.chromakey { --main-bg: var(--chroma-bg); }
 
         body { 
             background: var(--main-bg); 
@@ -23,13 +20,14 @@
             flex-direction: column; 
             height: 100vh; 
             box-sizing: border-box; 
-            transition: background 0.3s; 
+            transition: background 0.1s; 
         }
 
         #list { flex: 1; overflow-y: auto; list-style: none; padding: 0; margin: 0; }
         
         .item { display: flex; gap: 6px; margin-bottom: 8px; }
-        .l-box { flex: 1; display: flex; align-items: center; padding: 6px 10px; background: #26262c; border-radius: 6px; border: 1px solid #2f2f35; min-width: 0; }
+        /* 박스 배경에도 약간의 투명도를 주어 뒤가 살짝 비치게 함 */
+        .l-box { flex: 1; display: flex; align-items: center; padding: 6px 10px; background: rgba(38, 38, 44, 0.9); border-radius: 6px; border: 1px solid rgba(47, 47, 53, 0.5); min-width: 0; }
         .num { width: 20px; font-size: 10px; font-weight: bold; color: var(--accent); flex-shrink: 0; }
         .tit { font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; width: 100%; }
         .done { text-decoration: line-through; opacity: 0.4; }
@@ -43,16 +41,23 @@
         .tag-기타 { background-color: #4caf50; }
         .tag-default { background-color: #5b5b63; }
 
-        .r-box { display: flex; gap: 4px; padding: 4px 8px; background: #26262c; border-radius: 6px; border: 1px solid #2f2f35; align-items: center; }
+        .r-box { display: flex; gap: 4px; padding: 4px 8px; background: rgba(38, 38, 44, 0.9); border-radius: 6px; border: 1px solid rgba(47, 47, 53, 0.5); align-items: center; }
         .btn { padding: 3px 6px; font-size: 10px; background: #3a3a3d; border: none; color: white; border-radius: 4px; cursor: pointer; }
         
+        /* 하단 컨트롤 영역 */
         .bottom-controls {
-            padding: 10px 0; display: flex; gap: 8px; justify-content: flex-start;
+            padding: 10px 0; display: flex; flex-direction: column; gap: 10px;
             border-top: 1px solid #2f2f35; margin-top: 10px;
         }
+        .ctrl-row { display: flex; gap: 8px; align-items: center; }
+        
+        /* 투명도 슬라이더 스타일 */
+        .opacity-slider-wrap { flex: 1; display: flex; align-items: center; gap: 10px; background: #18181b; padding: 5px 12px; border-radius: 6px; border: 1px solid #3a3a3d; }
+        .opacity-slider-wrap label { font-size: 11px; color: #adadb8; white-space: nowrap; }
+        input[type=range] { flex: 1; cursor: pointer; accent-color: var(--accent); }
 
-        .in-area { position: relative; padding-top: 10px; display: flex; gap: 8px; }
-        input { flex: 1; background: #18181b; border: 1px solid #3a3a3d; border-radius: 6px; padding: 10px; color: white; outline: none; font-size: 13px; }
+        .in-area { position: relative; padding-top: 5px; display: flex; gap: 8px; }
+        input[type=text] { flex: 1; background: #18181b; border: 1px solid #3a3a3d; border-radius: 6px; padding: 10px; color: white; outline: none; font-size: 13px; }
         .add-v { background: var(--accent); border: none; padding: 0 15px; color: white; border-radius: 6px; font-weight: bold; cursor: pointer; }
         
         #auto { position: absolute; bottom: 60px; left: 0; width: calc(100% - 80px); background: #26262c; border: 1px solid var(--accent); border-radius: 6px; max-height: 150px; overflow-y: auto; display: none; z-index: 10; }
@@ -61,25 +66,19 @@
 
         .util-btn { font-size: 11px; cursor: pointer; color: #efeff1; background: #26262c; border: 1px solid #3a3a3d; padding: 6px 10px; border-radius: 6px; transition: 0.2s; flex: 1; text-align: center; }
         .util-btn:hover { background: #3a3a3d; }
-        .util-btn.active { background: var(--accent); border-color: var(--accent); font-weight: bold; }
         .util-btn.clear { color: #ff4b4b; border-color: #442a2a; }
         .util-btn.clear:hover { background: #442a2a; }
 
-        /* ✨ 커스텀 모달 스타일 */
+        /* 커스텀 모달 */
         #modalOverlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: var(--modal-overlay); display: none;
             justify-content: center; align-items: center; z-index: 100;
         }
-        .modal {
-            background: #18181b; border: 1px solid var(--accent); border-radius: 12px;
-            padding: 20px; width: 260px; text-align: center;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-            transform: translateY(20px); transition: 0.3s;
-        }
+        .modal { background: #18181b; border: 1px solid var(--accent); border-radius: 12px; padding: 20px; width: 260px; text-align: center; transform: translateY(20px); transition: 0.3s; }
         .modal.show { transform: translateY(0); }
-        .modal h3 { font-size: 14px; margin: 0 0 10px 0; color: #efeff1; }
-        .modal p { font-size: 12px; color: #adadb8; margin: 0 0 20px 0; line-height: 1.5; }
+        .modal h3 { font-size: 14px; margin: 0 0 10px 0; }
+        .modal p { font-size: 12px; color: #adadb8; margin: 0 0 20px 0; }
         .modal-btns { display: flex; gap: 8px; }
         .m-btn { flex: 1; padding: 10px; border-radius: 6px; cursor: pointer; border: none; font-size: 12px; font-weight: bold; }
         .m-btn.confirm { background: #ff4b4b; color: white; }
@@ -91,9 +90,17 @@
     <ul id="list"></ul>
 
     <div class="bottom-controls">
-        <button id="chromaBtn" class="util-btn" onclick="toggleChroma()">🟢 크로마키 ON</button>
-        <button class="util-btn" onclick="location.reload()">🔄 새로고침</button>
-        <button class="util-btn clear" onclick="showClearModal()">🗑️ 전체삭제</button>
+        <div class="ctrl-row">
+            <div class="opacity-slider-wrap">
+                <label>배경 투명도</label>
+                <input type="range" id="bgOpacity" min="0" max="100" value="100" oninput="updateOpacity(this.value)">
+                <span id="opacityVal" style="font-size:10px; min-width:25px;">100%</span>
+            </div>
+        </div>
+        <div class="ctrl-row">
+            <button class="util-btn" onclick="location.reload()">🔄 새로고침</button>
+            <button class="util-btn clear" onclick="showClearModal()">🗑️ 전체삭제</button>
+        </div>
     </div>
 
     <div class="in-area">
@@ -105,7 +112,7 @@
     <div id="modalOverlay">
         <div class="modal" id="confirmModal">
             <h3>전체 삭제하시겠습니까?</h3>
-            <p>현재 목록에 있는 모든 신청곡이<br>영구적으로 삭제됩니다.</p>
+            <p>모든 신청곡이 영구적으로 삭제됩니다.</p>
             <div class="modal-btns">
                 <button class="m-btn cancel" onclick="closeModal()">취소</button>
                 <button class="m-btn confirm" onclick="confirmClear()">삭제하기</button>
@@ -118,9 +125,25 @@
         const listEl = document.getElementById('list');
         const inEl = document.getElementById('in');
         const autoEl = document.getElementById('auto');
-        const chromaBtn = document.getElementById('chromaBtn');
         const modalOverlay = document.getElementById('modalOverlay');
         const confirmModal = document.getElementById('confirmModal');
+        const opacityVal = document.getElementById('opacityVal');
+
+        // 투명도 업데이트 함수
+        function updateOpacity(val) {
+            const alpha = val / 100;
+            document.body.style.background = `rgba(14, 14, 16, ${alpha})`;
+            opacityVal.innerText = val + "%";
+            // 투명도 값을 로컬스토리지에 저장 (새로고침해도 유지)
+            localStorage.setItem('listBgOpacity', val);
+        }
+
+        // 초기 투명도 설정 로드
+        function initOpacity() {
+            const savedOpacity = localStorage.getItem('listBgOpacity') || "100";
+            document.getElementById('bgOpacity').value = savedOpacity;
+            updateOpacity(savedOpacity);
+        }
 
         function getReqs() {
             if (p && p.requests) return p.requests;
@@ -171,7 +194,6 @@
             }).join('');
         }
 
-        // ✨ 모달 관련 로직
         function showClearModal() {
             modalOverlay.style.display = 'flex';
             setTimeout(() => confirmModal.classList.add('show'), 10);
@@ -196,12 +218,6 @@
             autoEl.style.display = 'none';
             sync(reqs);
             listEl.scrollTop = listEl.scrollHeight;
-        }
-
-        function toggleChroma() {
-            const isChroma = document.body.classList.toggle('chromakey');
-            chromaBtn.classList.toggle('active', isChroma);
-            chromaBtn.innerText = isChroma ? "🟣 크로마키 OFF" : "🟢 크로마키 ON";
         }
 
         function toggle(i) { 
@@ -241,7 +257,10 @@
             } else autoEl.style.display = 'none';
         };
 
-        window.onload = render;
+        window.onload = () => {
+            render();
+            initOpacity();
+        };
         window.onfocus = render;
     </script>
 </body>
