@@ -8,6 +8,7 @@
             --main-bg: #0e0e10; 
             --chroma-bg: #00ff00; 
             --accent: #9147ff;
+            --modal-overlay: rgba(0, 0, 0, 0.85);
         }
         
         body.chromakey { --main-bg: var(--chroma-bg); }
@@ -25,7 +26,6 @@
             transition: background 0.3s; 
         }
 
-        /* 목록 영역을 최대한 키움 */
         #list { flex: 1; overflow-y: auto; list-style: none; padding: 0; margin: 0; }
         
         .item { display: flex; gap: 6px; margin-bottom: 8px; }
@@ -35,14 +35,8 @@
         .done { text-decoration: line-through; opacity: 0.4; }
         
         .tag-badge {
-            display: inline-block;
-            padding: 1px 7px;
-            border-radius: 50px;
-            font-size: 9px;
-            font-weight: bold;
-            margin-left: 6px;
-            color: white;
-            flex-shrink: 0;
+            display: inline-block; padding: 1px 7px; border-radius: 50px; font-size: 9px;
+            font-weight: bold; margin-left: 6px; color: white; flex-shrink: 0;
         }
         .tag-200 { background-color: #ff4b4b; }
         .tag-300 { background-color: #ff9100; }
@@ -52,14 +46,9 @@
         .r-box { display: flex; gap: 4px; padding: 4px 8px; background: #26262c; border-radius: 6px; border: 1px solid #2f2f35; align-items: center; }
         .btn { padding: 3px 6px; font-size: 10px; background: #3a3a3d; border: none; color: white; border-radius: 4px; cursor: pointer; }
         
-        /* 버튼들이 위치할 영역 스타일 */
         .bottom-controls {
-            padding: 10px 0;
-            display: flex;
-            gap: 8px;
-            justify-content: flex-start;
-            border-top: 1px solid #2f2f35;
-            margin-top: 10px;
+            padding: 10px 0; display: flex; gap: 8px; justify-content: flex-start;
+            border-top: 1px solid #2f2f35; margin-top: 10px;
         }
 
         .in-area { position: relative; padding-top: 10px; display: flex; gap: 8px; }
@@ -75,6 +64,26 @@
         .util-btn.active { background: var(--accent); border-color: var(--accent); font-weight: bold; }
         .util-btn.clear { color: #ff4b4b; border-color: #442a2a; }
         .util-btn.clear:hover { background: #442a2a; }
+
+        /* ✨ 커스텀 모달 스타일 */
+        #modalOverlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--modal-overlay); display: none;
+            justify-content: center; align-items: center; z-index: 100;
+        }
+        .modal {
+            background: #18181b; border: 1px solid var(--accent); border-radius: 12px;
+            padding: 20px; width: 260px; text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            transform: translateY(20px); transition: 0.3s;
+        }
+        .modal.show { transform: translateY(0); }
+        .modal h3 { font-size: 14px; margin: 0 0 10px 0; color: #efeff1; }
+        .modal p { font-size: 12px; color: #adadb8; margin: 0 0 20px 0; line-height: 1.5; }
+        .modal-btns { display: flex; gap: 8px; }
+        .m-btn { flex: 1; padding: 10px; border-radius: 6px; cursor: pointer; border: none; font-size: 12px; font-weight: bold; }
+        .m-btn.confirm { background: #ff4b4b; color: white; }
+        .m-btn.cancel { background: #3a3a3d; color: white; }
     </style>
 </head>
 <body>
@@ -84,7 +93,7 @@
     <div class="bottom-controls">
         <button id="chromaBtn" class="util-btn" onclick="toggleChroma()">🟢 크로마키 ON</button>
         <button class="util-btn" onclick="location.reload()">🔄 새로고침</button>
-        <button class="util-btn clear" onclick="clearAll()">🗑️ 전체삭제</button>
+        <button class="util-btn clear" onclick="showClearModal()">🗑️ 전체삭제</button>
     </div>
 
     <div class="in-area">
@@ -93,12 +102,25 @@
         <button class="add-v" onclick="addReq()">추가</button>
     </div>
 
+    <div id="modalOverlay">
+        <div class="modal" id="confirmModal">
+            <h3>전체 삭제하시겠습니까?</h3>
+            <p>현재 목록에 있는 모든 신청곡이<br>영구적으로 삭제됩니다.</p>
+            <div class="modal-btns">
+                <button class="m-btn cancel" onclick="closeModal()">취소</button>
+                <button class="m-btn confirm" onclick="confirmClear()">삭제하기</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         const p = window.opener; 
         const listEl = document.getElementById('list');
         const inEl = document.getElementById('in');
         const autoEl = document.getElementById('auto');
         const chromaBtn = document.getElementById('chromaBtn');
+        const modalOverlay = document.getElementById('modalOverlay');
+        const confirmModal = document.getElementById('confirmModal');
 
         function getReqs() {
             if (p && p.requests) return p.requests;
@@ -124,21 +146,17 @@
                 let tagHtml = '';
 
                 if (tagMatch) {
-                    const fullTag = tagMatch[0];
                     const tagText = tagMatch[1];
-                    const pureTitle = r.title.replace(fullTag, '').trim();
-                    
+                    const pureTitle = r.title.replace(tagMatch[0], '').trim();
                     let tagClass = 'tag-default';
                     if (tagText.includes("200")) tagClass = 'tag-200';
                     else if (tagText.includes("300")) tagClass = 'tag-300';
                     else if (tagText.includes("기타")) tagClass = 'tag-기타';
-
                     displayTitle = pureTitle;
                     tagHtml = `<span class="tag-badge ${tagClass}">${tagText}</span>`;
                 }
 
-                return `
-                <li class="item">
+                return `<li class="item">
                     <div class="l-box">
                         <span class="num">${i+1}</span>
                         <span class="tit ${r.completed ? 'done' : ''}">${displayTitle}${tagHtml}</span>
@@ -153,6 +171,22 @@
             }).join('');
         }
 
+        // ✨ 모달 관련 로직
+        function showClearModal() {
+            modalOverlay.style.display = 'flex';
+            setTimeout(() => confirmModal.classList.add('show'), 10);
+        }
+
+        function closeModal() {
+            confirmModal.classList.remove('show');
+            setTimeout(() => modalOverlay.style.display = 'none', 300);
+        }
+
+        function confirmClear() {
+            sync([]);
+            closeModal();
+        }
+
         function addReq() {
             const val = inEl.value.trim();
             if(!val) return;
@@ -164,19 +198,10 @@
             listEl.scrollTop = listEl.scrollHeight;
         }
 
-        function clearAll() {
-            if(confirm("정말로 모든 신청 목록을 삭제하시겠습니까?")) sync([]);
-        }
-
         function toggleChroma() {
             const isChroma = document.body.classList.toggle('chromakey');
-            if(isChroma) {
-                chromaBtn.classList.add('active');
-                chromaBtn.innerText = "🟣 크로마키 OFF";
-            } else {
-                chromaBtn.classList.remove('active');
-                chromaBtn.innerText = "🟢 크로마키 ON";
-            }
+            chromaBtn.classList.toggle('active', isChroma);
+            chromaBtn.innerText = isChroma ? "🟣 크로마키 OFF" : "🟢 크로마키 ON";
         }
 
         function toggle(i) { 
@@ -199,7 +224,6 @@
         }
 
         inEl.onkeypress = (e) => { if(e.keyCode === 13) addReq(); };
-
         inEl.oninput = () => {
             const v = inEl.value.toUpperCase();
             const songs = getAllSongs();
