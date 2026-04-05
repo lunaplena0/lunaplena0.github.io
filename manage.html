@@ -9,9 +9,9 @@
             --modal-overlay: rgba(0, 0, 0, 0.85);
         }
 
-        /* 1. 중요: body는 투명하게 유지 */
+        /* 1. 중요: body는 투명하게 비워둡니다. */
         body { 
-            background: transparent; 
+            background: transparent !important; 
             color: #efeff1; 
             font-family: sans-serif; 
             padding: 15px; 
@@ -20,58 +20,71 @@
             flex-direction: column; 
             height: 100vh; 
             box-sizing: border-box; 
-            overflow: hidden;
+            overflow: hidden; /* 스크롤바 방지 */
         }
 
-        /* 2. 배경색을 담당할 레이어 추가 */
+        /* 2. ✨ 배경 색상을 담당할 전용 레이어 */
         #bg-layer {
             position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(14, 14, 16, 1);
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(14, 14, 16, 1); /* 초기값: 불투명 검정 */
             z-index: -1; /* 콘텐츠보다 뒤에 위치 */
-            transition: background 0.1s;
+            transition: background-color 0.1s ease;
+            pointer-events: none; /* 클릭 이벤트 방해 안 함 */
         }
 
-        #list { flex: 1; overflow-y: auto; list-style: none; padding: 0; margin: 0; }
+        /* 콘텐츠 영역 (배경 레이어 위에 뜸) */
+        #list { flex: 1; overflow-y: auto; list-style: none; padding: 0; margin: 0; z-index: 1; }
         
         .item { display: flex; gap: 6px; margin-bottom: 8px; }
+        /* 목록 박스는 배경이 투명해져도 글자가 잘 보이도록 약간의 어두운 반투명을 유지 */
         .l-box { flex: 1; display: flex; align-items: center; padding: 6px 10px; background: rgba(38, 38, 44, 0.9); border-radius: 6px; border: 1px solid rgba(47, 47, 53, 0.5); min-width: 0; }
         .num { width: 20px; font-size: 10px; font-weight: bold; color: var(--accent); flex-shrink: 0; }
         .tit { font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; width: 100%; }
         .done { text-decoration: line-through; opacity: 0.4; }
         
+        /* 배지 스타일 */
         .tag-badge { display: inline-block; padding: 1px 7px; border-radius: 50px; font-size: 9px; font-weight: bold; margin-left: 6px; color: white; flex-shrink: 0; }
         .tag-200 { background-color: #ff4b4b; }
         .tag-300 { background-color: #ff9100; }
         .tag-기타 { background-color: #4caf50; }
         .tag-default { background-color: #5b5b63; }
 
-        .r-box { display: flex; gap: 4px; padding: 4px 8px; background: rgba(38, 38, 44, 0.9); border-radius: 6px; border: 1px solid rgba(47, 47, 53, 0.5); align-items: center; }
+        .r-box { display: flex; gap: 4px; padding: 4px 8px; background: rgba(38, 38, 44, 0.9); border-radius: 6px; border: 1px solid rgba(47, 47, 53, 0.5); align-items: center; z-index: 1; }
         .btn { padding: 3px 6px; font-size: 10px; background: #3a3a3d; border: none; color: white; border-radius: 4px; cursor: pointer; }
         
-        .bottom-controls { padding: 10px 0; display: flex; flex-direction: column; gap: 10px; border-top: 1px solid #2f2f35; margin-top: 10px; }
+        /* 하단 컨트롤 영역 */
+        .bottom-controls { padding: 10px 0; display: flex; flex-direction: column; gap: 10px; border-top: 1px solid #2f2f35; margin-top: 10px; z-index: 1; }
         .ctrl-row { display: flex; gap: 8px; align-items: center; }
         
+        /* 슬라이더 스타일 */
         .opacity-slider-wrap { flex: 1; display: flex; align-items: center; gap: 10px; background: #18181b; padding: 5px 12px; border-radius: 6px; border: 1px solid #3a3a3d; }
         .opacity-slider-wrap label { font-size: 11px; color: #adadb8; white-space: nowrap; }
         input[type=range] { flex: 1; cursor: pointer; accent-color: var(--accent); }
 
-        .in-area { position: relative; padding-top: 5px; display: flex; gap: 8px; }
+        /* 입력 영역 */
+        .in-area { position: relative; padding-top: 5px; display: flex; gap: 8px; z-index: 1; }
         input[type=text] { flex: 1; background: #18181b; border: 1px solid #3a3a3d; border-radius: 6px; padding: 10px; color: white; outline: none; font-size: 13px; }
         .add-v { background: var(--accent); border: none; padding: 0 15px; color: white; border-radius: 6px; font-weight: bold; cursor: pointer; }
         
+        /* 자동완성 */
         #auto { position: absolute; bottom: 60px; left: 0; width: calc(100% - 80px); background: #26262c; border: 1px solid var(--accent); border-radius: 6px; max-height: 150px; overflow-y: auto; display: none; z-index: 10; }
         .a-item { padding: 8px 12px; cursor: pointer; font-size: 12px; border-bottom: 1px solid #333; }
         .a-item:hover { background: #3a3a3d; color: var(--accent); }
 
+        /* 유틸 버튼 */
         .util-btn { font-size: 11px; cursor: pointer; color: #efeff1; background: #26262c; border: 1px solid #3a3a3d; padding: 6px 10px; border-radius: 6px; transition: 0.2s; flex: 1; text-align: center; }
         .util-btn:hover { background: #3a3a3d; }
         .util-btn.clear { color: #ff4b4b; border-color: #442a2a; }
 
+        /* 모달 */
         #modalOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--modal-overlay); display: none; justify-content: center; align-items: center; z-index: 100; }
         .modal { background: #18181b; border: 1px solid var(--accent); border-radius: 12px; padding: 20px; width: 260px; text-align: center; transform: translateY(20px); transition: 0.3s; }
         .modal.show { transform: translateY(0); }
-        .modal h3 { font-size: 14px; margin: 0 0 10px 0; }
+        .modal h3 { font-size: 14px; margin: 0 0 10px 0; color: #efeff1; }
         .modal p { font-size: 12px; color: #adadb8; margin: 0 0 20px 0; }
         .modal-btns { display: flex; gap: 8px; }
         .m-btn { flex: 1; padding: 10px; border-radius: 6px; cursor: pointer; border: none; font-size: 12px; font-weight: bold; }
@@ -88,7 +101,7 @@
         <div class="ctrl-row">
             <div class="opacity-slider-wrap">
                 <label>배경 투명도</label>
-                <input type="range" id="bgOpacity" min="0" max="100" value="100" oninput="updateOpacity(this.value)">
+                <input type="range" id="bgOpacity" min="0" max="100" value="100" oninput="updateBgOpacity(this.value)">
                 <span id="opacityVal" style="font-size:10px; min-width:25px;">100%</span>
             </div>
         </div>
@@ -123,23 +136,24 @@
         const modalOverlay = document.getElementById('modalOverlay');
         const confirmModal = document.getElementById('confirmModal');
         const opacityVal = document.getElementById('opacityVal');
-        const bgLayer = document.getElementById('bg-layer');
+        const bgLayer = document.getElementById('bg-layer'); // 배경 레이어 가져오기
 
-        // 투명도 업데이트 함수 (배경 레이어를 조절)
-        function updateOpacity(val) {
+        // ✨ 배경 레이어의 투명도만 업데이트하는 함수
+        function updateBgOpacity(val) {
             const alpha = val / 100;
-            bgLayer.style.background = `rgba(14, 14, 16, ${alpha})`;
+            // 배경색의 알파(투명도) 값만 조절
+            bgLayer.style.backgroundColor = `rgba(14, 14, 16, ${alpha})`;
             opacityVal.innerText = val + "%";
             localStorage.setItem('listBgOpacity', val);
         }
 
         function initOpacity() {
-            const savedOpacity = localStorage.getItem('listBgOpacity') || "100";
-            document.getElementById('bgOpacity').value = savedOpacity;
-            updateOpacity(savedOpacity);
+            const saved = localStorage.getItem('listBgOpacity') || "100";
+            document.getElementById('bgOpacity').value = saved;
+            updateBgOpacity(saved);
         }
 
-        // --- 이하 로직 동일 ---
+        // --- 기존 로직 동일 ---
         function getReqs() { if (p && p.requests) return p.requests; return JSON.parse(localStorage.getItem('streamerRequests')) || []; }
         function getAllSongs() { if (p && p.allSongs) return p.allSongs; return JSON.parse(localStorage.getItem('allSongsCache')) || []; }
         function sync(newList) { localStorage.setItem('streamerRequests', JSON.stringify(newList)); if (p) p.requests = newList; render(); }
@@ -188,8 +202,7 @@
         function move(i, dir) {
             const reqs = getReqs();
             if (i + dir < 0 || i + dir >= reqs.length) return;
-            [reqs[i], reqs[i + dir]] = [reqs[i + dir], reqs[i]];
-            sync(reqs);
+            [reqs[i], reqs[i + dir]] = [reqs[i + dir], reqs[i]]; sync(reqs);
         }
 
         inEl.onkeypress = (e) => { if(e.keyCode === 13) addReq(); };
