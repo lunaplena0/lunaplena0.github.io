@@ -12,70 +12,56 @@
             --accent: #9147ff;
             --text-main: #efeff1;
             --text-sub: #adadb8;
-            --tag-200: #5c16ff; 
-            --tag-300: #ff8c00;
-            --tag-guitar: #8b572a; 
-            --tag-default: #2f2f35;
         }
 
-        body { background-color: var(--bg-color); color: var(--text-main); font-family: 'Noto Sans KR', sans-serif; margin: 0; padding: 0; display: flex; justify-content: center; min-height: 100vh; overflow-x: hidden; }
-        .wrapper { width: 100%; max-width: 900px; padding: 60px 20px; display: flex; flex-direction: column; gap: 20px; }
+        body { background-color: var(--bg-color); color: var(--text-main); font-family: 'Noto Sans KR', sans-serif; margin: 0; padding: 0; min-height: 100vh; overflow-x: hidden; }
+        .wrapper { width: 100%; max-width: 900px; margin: 0 auto; padding: 60px 20px; display: flex; flex-direction: column; gap: 20px; }
         
+        /* 헤더 스타일 */
         .header-card { background: var(--card-bg); border-radius: 16px; padding: 30px; border: 1px solid #2f2f35; display: flex; justify-content: space-between; align-items: center; }
-        .header-info h1 { margin: 0; font-size: 24px; color: var(--accent); display: flex; align-items: baseline; gap: 12px; }
+        .header-info h1 { margin: 0; font-size: 24px; color: var(--accent); }
         .header-btns { display: flex; gap: 8px; }
 
-        .btn { padding: 8px 16px; border-radius: 8px; color: var(--text-main); text-decoration: none; font-size: 13px; border: 1px solid #3a3a3d; transition: 0.3s; cursor: pointer; font-family: inherit; }
-        .back-btn { background: #26262c; }
+        .btn { padding: 8px 16px; border-radius: 8px; color: var(--text-main); text-decoration: none; font-size: 13px; border: 1px solid #3a3a3d; cursor: pointer; transition: 0.3s; }
         .special-btn { background: var(--accent); border-color: var(--accent); font-weight: bold; }
         .btn:hover { opacity: 0.8; transform: translateY(-1px); }
 
-        /* --- 움직이는 신청 목록 팝업 스타일 --- */
+        /* --- 팝업 & 신청 목록 스타일 --- */
         .modal-container {
-            position: fixed; top: 150px; left: 50px; z-index: 1000; display: none;
+            position: fixed; top: 100px; left: 50px; z-index: 1000; display: none;
             width: 380px; background: var(--card-bg); border: 1px solid var(--accent);
-            border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); overflow: hidden;
+            border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
-        
-        .modal-header {
-            background: #1f1f23; padding: 12px 20px; cursor: default; /* 십자표시 제거 */
-            display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #2f2f35;
-        }
+        .modal-header { background: #1f1f23; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #2f2f35; border-radius: 16px 16px 0 0; }
         .modal-header h2 { margin: 0; font-size: 15px; color: var(--accent); }
 
-        .modal-body { padding: 20px; }
+        .modal-body { padding: 20px; position: relative; }
         
-        /* 입력창 영역 */
-        .request-input-group { display: flex; gap: 8px; margin-bottom: 15px; }
-        .request-input { 
-            flex: 1; background: #26262c; border: 1px solid #3a3a3d; border-radius: 6px; 
-            padding: 8px 12px; color: white; font-size: 13px; outline: none;
+        /* 자동완성 입력창 그룹 */
+        .request-input-wrapper { position: relative; display: flex; gap: 8px; margin-bottom: 15px; }
+        .request-input { flex: 1; background: #26262c; border: 1px solid #3a3a3d; border-radius: 6px; padding: 8px 12px; color: white; font-size: 13px; outline: none; }
+        
+        /* 자동완성 추천 리스트 박스 */
+        .autocomplete-list {
+            position: absolute; top: 38px; left: 0; width: calc(100% - 60px);
+            background: #26262c; border: 1px solid var(--accent); border-radius: 0 0 8px 8px;
+            max-height: 150px; overflow-y: auto; z-index: 1001; display: none;
         }
-        .request-input:focus { border-color: var(--accent); }
+        .autocomplete-item { padding: 8px 12px; cursor: pointer; font-size: 12px; border-bottom: 1px solid #333; }
+        .autocomplete-item:hover { background: #3a3a3d; color: var(--accent); }
 
-        /* 리스트 영역 */
-        #request-list { list-style: none; padding: 0; margin: 0; max-height: 300px; overflow-y: auto; }
-        .request-item { 
-            display: flex; align-items: center; padding: 10px; background: #1d1d21; 
-            border-radius: 8px; margin-bottom: 6px; font-size: 13px; border: 1px solid #2f2f35;
-        }
+        /* 신청 리스트 */
+        #request-list { list-style: none; padding: 0; margin: 0; max-height: 250px; overflow-y: auto; }
+        .request-item { display: flex; align-items: center; padding: 10px; background: #1d1d21; border-radius: 8px; margin-bottom: 6px; font-size: 13px; border: 1px solid #2f2f35; }
         .req-num { width: 25px; font-weight: bold; color: var(--accent); }
         .req-title { flex: 1; margin-right: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .req-title.completed { text-decoration: line-through; color: var(--text-sub); }
         
-        /* 제어 버튼들 */
         .req-btns { display: flex; gap: 4px; }
-        .req-btn { 
-            padding: 4px 6px; font-size: 11px; background: #2f2f35; border: none; 
-            color: var(--text-main); border-radius: 4px; cursor: pointer;
-        }
-        .req-btn:hover { background: #3a3a3d; }
-        .btn-done { color: #4caf50; }
-        .btn-del { color: #ff4b4b; }
+        .req-btn { padding: 4px 6px; font-size: 10px; background: #2f2f35; border: none; color: var(--text-main); border-radius: 4px; cursor: pointer; }
+        .btn-done { color: #4caf50; } .btn-del { color: #ff4b4b; }
 
-        /* 기존 테이블 스타일 유지 */
-        .search-container { display: flex; gap: 10px; width: 100%; }
-        .search-input { flex: 1; background: var(--card-bg); border: 1px solid #2f2f35; padding: 15px 20px; border-radius: 12px; color: #fff; outline: none; }
+        /* 메인 테이블 스타일 */
         .song-card { background: var(--card-bg); border-radius: 16px; border: 1px solid #2f2f35; overflow: hidden; }
         table { width: 100%; border-collapse: collapse; }
         th { background: #1f1f23; padding: 15px 20px; font-size: 13px; color: var(--text-sub); text-align: left; }
@@ -87,37 +73,29 @@
 <div id="modal" class="modal-container">
     <div class="modal-header" id="modalHeader">
         <h2>🎵 노래 신청 목록</h2>
-        <span style="cursor:pointer; font-size: 18px;" onclick="closeModal()">&times;</span>
+        <span style="cursor:pointer;" onclick="closeModal()">&times;</span>
     </div>
     <div class="modal-body">
-        <div class="request-input-group">
-            <input type="text" id="reqInput" class="request-input" placeholder="신청 곡 제목을 입력하세요..." onkeypress="if(event.keyCode==13) addRequest()">
+        <div class="request-input-wrapper">
+            <input type="text" id="reqInput" class="request-input" placeholder="제목을 입력하면 노래를 추천합니다..." autocomplete="off">
             <button class="btn special-btn" style="padding: 5px 12px;" onclick="addRequest()">추가</button>
+            <div id="autocompleteBox" class="autocomplete-list"></div>
         </div>
-        <ul id="request-list">
-            </ul>
+        <ul id="request-list"></ul>
     </div>
 </div>
 
 <div class="wrapper">
     <div class="header-card">
-        <div class="header-info">
-            <h1>🎶 노래책 <span id="total-count" style="font-size:14px; color:var(--text-sub); font-weight:normal;">0곡</span></h1>
-            <div id="last-sync" style="font-size:11px; color:#5b5b63;">--:--</div>
-        </div>
+        <div class="header-info"><h1>🎶 노래책</h1></div>
         <div class="header-btns">
             <button class="btn special-btn" onclick="openModal()">💎 신청목록</button>
-            <a href="index.html" class="btn back-btn">🏠 홈으로</a>
+            <a href="index.html" class="btn">🏠 홈으로</a>
         </div>
     </div>
-
-    <div class="search-container">
-        <input type="text" id="songSearch" class="search-input" placeholder="노래 제목이나 가수를 검색하세요...">
-    </div>
-
     <div class="song-card">
         <table>
-            <thead><tr><th>번호</th><th>노래제목</th><th>가수</th></tr></thead>
+            <thead><tr><th style="width:60px;">번호</th><th>노래제목</th><th style="width:180px;">가수</th></tr></thead>
             <tbody id="song-list-body"></tbody>
         </table>
     </div>
@@ -125,46 +103,75 @@
 
 <script>
     const sheetUrl = "https://docs.google.com/spreadsheets/d/1q_P96q2ZwvFRToZ4GAv_0EKVOcLRTR-Y392610eAV04/gviz/tq?tqx=out:csv";
-
-    // --- 신청 목록 기능 ---
-    let requests = [];
+    
+    let allSongs = []; // 시트에서 불러온 전체 노래 제목 저장용
+    let requests = []; // 신청 목록 저장용
 
     function openModal() { document.getElementById('modal').style.display = 'block'; }
     function closeModal() { document.getElementById('modal').style.display = 'none'; }
 
+    // --- 데이터 로드 & 시트 노래 저장 ---
+    window.onload = () => {
+        fetch(sheetUrl).then(res => res.text()).then(csv => {
+            const lines = csv.split('\n');
+            const tbody = document.getElementById('song-list-body');
+            let html = '';
+            for (let i = 1; i < lines.length; i++) {
+                const parts = lines[i].replace(/"/g,'').split(',');
+                if (parts.length < 2) continue;
+                const title = parts[0].trim();
+                const artist = parts[1].trim();
+                allSongs.push(title); // 자동완성용 데이터 수집
+                html += `<tr><td>${i}</td><td>${title}</td><td>${artist}</td></tr>`;
+            }
+            tbody.innerHTML = html;
+        });
+    };
+
+    // --- 자동완성 로직 ---
+    const reqInput = document.getElementById('reqInput');
+    const autoBox = document.getElementById('autocompleteBox');
+
+    reqInput.addEventListener('input', function() {
+        const val = this.value.toUpperCase();
+        autoBox.innerHTML = '';
+        if (!val) { autoBox.style.display = 'none'; return; }
+
+        const matches = allSongs.filter(s => s.toUpperCase().includes(val)).slice(0, 10);
+        if (matches.length > 0) {
+            matches.forEach(m => {
+                const div = document.createElement('div');
+                div.className = 'autocomplete-item';
+                div.textContent = m;
+                div.onclick = () => { reqInput.value = m; autoBox.style.display = 'none'; };
+                autoBox.appendChild(div);
+            });
+            autoBox.style.display = 'block';
+        } else { autoBox.style.display = 'none'; }
+    });
+
+    // --- 신청곡 관리 함수들 ---
     function addRequest() {
-        const input = document.getElementById('reqInput');
-        if (!input.value.trim()) return;
-        requests.push({ title: input.value, completed: false });
-        input.value = '';
+        const title = reqInput.value.trim();
+        if (!title) return;
+        requests.push({ title, completed: false });
+        reqInput.value = '';
+        autoBox.style.display = 'none';
         renderRequests();
     }
 
-    function toggleDone(index) {
-        requests[index].completed = !requests[index].completed;
-        renderRequests();
-    }
-
-    function removeReq(index) {
-        requests.splice(index, 1);
-        renderRequests();
-    }
-
-    function moveReq(index, direction) {
-        if (index + direction < 0 || index + direction >= requests.length) return;
-        const temp = requests[index];
-        requests[index] = requests[index + direction];
-        requests[index + direction] = temp;
+    function toggleDone(i) { requests[i].completed = !requests[i].completed; renderRequests(); }
+    function removeReq(i) { requests.splice(i, 1); renderRequests(); }
+    function moveReq(i, dir) {
+        if (i + dir < 0 || i + dir >= requests.length) return;
+        [requests[i], requests[i + dir]] = [requests[i + dir], requests[i]];
         renderRequests();
     }
 
     function renderRequests() {
         const list = document.getElementById('request-list');
-        list.innerHTML = '';
-        requests.forEach((req, i) => {
-            const li = document.createElement('li');
-            li.className = 'request-item';
-            li.innerHTML = `
+        list.innerHTML = requests.map((req, i) => `
+            <li class="request-item">
                 <span class="req-num">${i + 1}</span>
                 <span class="req-title ${req.completed ? 'completed' : ''}">${req.title}</span>
                 <div class="req-btns">
@@ -173,46 +180,17 @@
                     <button class="req-btn btn-done" onclick="toggleDone(${i})">V</button>
                     <button class="req-btn btn-del" onclick="removeReq(${i})">X</button>
                 </div>
-            `;
-            list.appendChild(li);
-        });
+            </li>
+        `).join('');
     }
 
-    // --- 드래그 기능 (커서 십자가 제거됨) ---
+    // --- 드래그 기능 (마우스 기본 커서) ---
     const modal = document.getElementById('modal');
-    const modalHeader = document.getElementById('modalHeader');
+    const header = document.getElementById('modalHeader');
     let isDragging = false, offset = { x: 0, y: 0 };
-
-    modalHeader.onmousedown = function(e) {
-        isDragging = true;
-        const rect = modal.getBoundingClientRect();
-        offset.x = e.clientX - rect.left;
-        offset.y = e.clientY - rect.top;
-    };
-    document.onmousemove = function(e) {
-        if (!isDragging) return;
-        modal.style.left = (e.clientX - offset.x) + 'px';
-        modal.style.top = (e.clientY - offset.y) + 'px';
-    };
+    header.onmousedown = (e) => { isDragging = true; offset.x = e.clientX - modal.offsetLeft; offset.y = e.clientY - modal.offsetTop; };
+    document.onmousemove = (e) => { if (isDragging) { modal.style.left = (e.clientX - offset.x) + 'px'; modal.style.top = (e.clientY - offset.y) + 'px'; } };
     document.onmouseup = () => isDragging = false;
-
-    // --- 데이터 로드 ---
-    window.onload = () => {
-        fetch(sheetUrl).then(res => res.text()).then(csv => {
-            const lines = csv.split('\n');
-            const tbody = document.getElementById('song-list-body');
-            document.getElementById('last-sync').textContent = lines[0].split(',')[2]?.replace(/"/g,'') || "--:--";
-            
-            let html = '';
-            for (let i = 1; i < lines.length; i++) {
-                const parts = lines[i].replace(/"/g,'').split(',');
-                if (parts.length < 2) continue;
-                html += `<tr><td>${i}</td><td>${parts[0]}</td><td>${parts[1]}</td></tr>`;
-            }
-            tbody.innerHTML = html;
-            document.getElementById('total-count').textContent = (lines.length - 1) + "곡";
-        });
-    };
 </script>
 </body>
 </html>
