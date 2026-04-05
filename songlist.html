@@ -12,9 +12,6 @@
             --accent: #9147ff;
             --text-main: #efeff1;
             --text-sub: #adadb8;
-            --tag-200: #5c16ff; 
-            --tag-300: #ff8c00;
-            --tag-guitar: #8b572a; 
         }
 
         body { background-color: var(--bg-color); color: var(--text-main); font-family: 'Noto Sans KR', sans-serif; margin: 0; padding: 0; }
@@ -29,7 +26,6 @@
         .btn { padding: 8px 16px; border-radius: 8px; color: var(--text-main); text-decoration: none; font-size: 13px; border: 1px solid #3a3a3d; cursor: pointer; transition: 0.3s; }
         .special-btn { background: var(--accent); border-color: var(--accent); font-weight: bold; }
 
-        /* 메인 페이지 테이블 스타일 */
         .search-container { display: flex; gap: 10px; width: 100%; }
         .search-input { flex: 1; background: var(--card-bg); border: 1px solid #2f2f35; padding: 15px 20px; border-radius: 12px; color: #fff; outline: none; }
         .song-card { background: var(--card-bg); border-radius: 16px; border: 1px solid #2f2f35; overflow: hidden; }
@@ -70,8 +66,10 @@
 
 <script>
     const sheetUrl = "https://docs.google.com/spreadsheets/d/1q_P96q2ZwvFRToZ4GAv_0EKVOcLRTR-Y392610eAV04/gviz/tq?tqx=out:csv";
-    let allSongs = [];
-    let requests = []; // 전역 신청 목록
+    
+    // 자식 창에서 접근하기 쉽도록 window 객체에 할당
+    window.allSongs = [];
+    window.requests = []; 
 
     window.onload = () => {
         fetch(sheetUrl).then(res => res.text()).then(csv => {
@@ -84,7 +82,7 @@
                 if (parts.length < 2) continue;
                 total++;
                 if (parts[0].includes("[기타]")) guitar++;
-                allSongs.push(parts[0].trim());
+                window.allSongs.push(parts[0].trim());
                 html += `<tr><td>${total}</td><td>${parts[0].trim()}</td><td>${parts[1].trim()}</td></tr>`;
             }
             tbody.innerHTML = html;
@@ -93,110 +91,22 @@
         });
     };
 
+    // manage.html 파일을 새 창으로 여는 함수
     function openManageWindow() {
-        const win = window.open("", "ManageWindow", "width=520,height=700");
-        if (!win) { alert("팝업이 차단되었습니다. 허용해주세요!"); return; }
-
-        const htmlContent = `
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <title>신청 목록 관리</title>
-                <style>
-                    body { background: #0e0e10; color: #efeff1; font-family: sans-serif; padding: 15px; margin: 0; display: flex; flex-direction: column; height: 100vh; box-sizing: border-box; }
-                    h2 { color: #9147ff; font-size: 16px; margin: 0 0 15px 0; }
-                    #list { flex: 1; overflow-y: auto; list-style: none; padding: 0; margin: 0; }
-                    .item { display: flex; gap: 6px; margin-bottom: 8px; }
-                    .l-box { flex: 1; display: flex; align-items: center; padding: 6px 10px; background: #26262c; border-radius: 6px; border: 1px solid #2f2f35; min-width: 0; }
-                    .num { width: 20px; font-size: 11px; font-weight: bold; color: #9147ff; }
-                    .tit { font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-                    .done { text-decoration: line-through; opacity: 0.5; }
-                    .r-box { display: flex; gap: 4px; padding: 4px 8px; background: #26262c; border-radius: 6px; border: 1px solid #2f2f35; }
-                    .btn { padding: 3px 6px; font-size: 10px; background: #3a3a3d; border: none; color: white; border-radius: 4px; cursor: pointer; }
-                    
-                    .in-area { position: relative; padding-top: 15px; border-top: 1px solid #2f2f35; display: flex; gap: 8px; }
-                    input { flex: 1; background: #18181b; border: 1px solid #3a3a3d; border-radius: 6px; padding: 10px; color: white; outline: none; }
-                    .add-v { background: #9147ff; border: none; padding: 0 15px; color: white; border-radius: 6px; font-weight: bold; cursor: pointer; }
-                    
-                    #auto { position: absolute; bottom: 55px; left: 0; width: calc(100% - 75px); background: #26262c; border: 1px solid #9147ff; border-radius: 6px; max-height: 150px; overflow-y: auto; display: none; }
-                    .a-item { padding: 8px 12px; cursor: pointer; font-size: 12px; border-bottom: 1px solid #333; }
-                    .a-item:hover { background: #3a3a3d; }
-                </style>
-            </head>
-            <body>
-                <h2>🎵 신청 목록 관리</h2>
-                <ul id="list"></ul>
-                <div class="in-area">
-                    <div id="auto"></div>
-                    <input type="text" id="in" placeholder="노래 제목 입력..." autocomplete="off">
-                    <button class="add-v" id="addBtn">추가</button>
-                </div>
-
-                <script>
-                    const opener = window.opener;
-                    const listEl = document.getElementById('list');
-                    const inEl = document.getElementById('in');
-                    const autoEl = document.getElementById('auto');
-
-                    function render() {
-                        listEl.innerHTML = opener.requests.map((r, i) => \`
-                            <li class="item">
-                                <div class="l-box">
-                                    <span class="num">\${i+1}</span>
-                                    <span class="tit \${r.completed ? 'done' : ''}">\${r.title}</span>
-                                </div>
-                                <div class="r-box">
-                                    <button class="btn" onclick="opener.moveReq(\${i}, -1); location.reload();">▲</button>
-                                    <button class="btn" onclick="opener.moveReq(\${i}, 1); location.reload();">▼</button>
-                                    <button class="btn" style="color:#4caf50" onclick="opener.toggleDone(\${i}); location.reload();">V</button>
-                                    <button class="btn" style="color:#ff4b4b" onclick="opener.removeReq(\${i}); location.reload();">X</button>
-                                </div>
-                            </li>
-                        \`).join('');
-                        listEl.scrollTop = listEl.scrollHeight;
-                    }
-
-                    document.getElementById('addBtn').onclick = () => {
-                        const val = inEl.value.trim();
-                        if(val) { opener.addRequest(val); inEl.value = ''; autoEl.style.display = 'none'; render(); }
-                    };
-
-                    inEl.onkeyup = (e) => {
-                        if(e.key === 'Enter') document.getElementById('addBtn').click();
-                        const v = inEl.value.toUpperCase();
-                        autoEl.innerHTML = '';
-                        if(!v) { autoEl.style.display = 'none'; return; }
-                        const ms = opener.allSongs.filter(s => s.toUpperCase().includes(v)).slice(0, 10);
-                        if(ms.length > 0) {
-                            ms.forEach(m => {
-                                const d = document.createElement('div');
-                                d.className = 'a-item'; d.textContent = m;
-                                d.onclick = () => { inEl.value = m; autoEl.style.display = 'none'; document.getElementById('addBtn').click(); };
-                                autoEl.appendChild(d);
-                            });
-                            autoEl.style.display = 'block';
-                        } else autoEl.style.display = 'none';
-                    };
-
-                    render();
-                <\/script>
-            </body>
-            </html>
-        `;
-
-        win.document.open();
-        win.document.write(htmlContent);
-        win.document.close();
+        const win = window.open("manage.html", "ManageWindow", "width=520,height=700");
+        if (!win) { 
+            alert("팝업이 차단되었습니다. 브라우저 설정에서 팝업을 허용해주세요!"); 
+        }
     }
 
-    // 부모 창에서 관리하는 함수들
-    function addRequest(title) { requests.push({ title, completed: false }); }
-    function toggleDone(i) { requests[i].completed = !requests[i].completed; }
-    function removeReq(i) { requests.splice(i, 1); }
-    function moveReq(i, dir) {
-        if (i + dir < 0 || i + dir >= requests.length) return;
-        [requests[i], requests[i + dir]] = [requests[i + dir], requests[i]];
-    }
+    // 자식 창(manage.html)에서 호출할 데이터 관리 함수들
+    window.addRequest = (title) => { window.requests.push({ title, completed: false }); };
+    window.toggleDone = (i) => { window.requests[i].completed = !window.requests[i].completed; };
+    window.removeReq = (i) => { window.requests.splice(i, 1); };
+    window.moveReq = (i, dir) => {
+        if (i + dir < 0 || i + dir >= window.requests.length) return;
+        [window.requests[i], window.requests[i + dir]] = [window.requests[i + dir], window.requests[i]];
+    };
 
     function filterSongs() {
         const filter = document.getElementById('songSearch').value.toUpperCase();
