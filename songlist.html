@@ -1,187 +1,162 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Streamer Songlist</title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg-color: #0e0e10;
-            --card-bg: #18181b;
-            --accent: #9147ff;
-            --text-main: #efeff1;
-            --text-sub: #adadb8;
-        }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Streamer Songlist</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0e0e10;
+            --card-bg: #18181b;
+            --accent: #9147ff;
+            --text-main: #efeff1;
+            --text-sub: #adadb8;
+        }
 
-        body { background-color: var(--bg-color); color: var(--text-main); font-family: 'Noto Sans KR', sans-serif; margin: 0; padding: 0; }
-        .wrapper { width: 100%; max-width: 900px; margin: 0 auto; padding: 60px 20px; display: flex; flex-direction: column; gap: 20px; }
-        
-        .header-card { background: var(--card-bg); border-radius: 16px; padding: 30px; border: 1px solid #2f2f35; display: flex; justify-content: space-between; align-items: center; }
-        .header-info h1 { margin: 0; font-size: 24px; color: var(--accent); display: flex; align-items: baseline; gap: 12px; }
-        .song-count-info { font-size: 14px; color: var(--text-sub); font-weight: normal; }
-        .sync-info { font-size: 11px; color: #5b5b63; margin-top: 5px; }
+        body { background-color: var(--bg-color); color: var(--text-main); font-family: 'Noto Sans KR', sans-serif; margin: 0; padding: 0; }
+        .wrapper { width: 100%; max-width: 900px; margin: 0 auto; padding: 60px 20px; display: flex; flex-direction: column; gap: 20px; }
+        
+        .header-card { background: var(--card-bg); border-radius: 16px; padding: 30px; border: 1px solid #2f2f35; display: flex; justify-content: space-between; align-items: center; }
+        .header-info h1 { margin: 0; font-size: 24px; color: var(--accent); display: flex; align-items: baseline; gap: 12px; }
+        .song-count-info { font-size: 14px; color: var(--text-sub); font-weight: normal; }
+        .sync-info { font-size: 11px; color: #5b5b63; margin-top: 5px; }
 
-        .header-btns { display: flex; gap: 8px; }
-        .btn { padding: 8px 16px; border-radius: 8px; color: var(--text-main); text-decoration: none; font-size: 13px; border: 1px solid #3a3a3d; cursor: pointer; transition: 0.3s; }
-        .special-btn { background: var(--accent); border-color: var(--accent); font-weight: bold; }
+        .header-btns { display: flex; gap: 8px; }
+        .btn { padding: 8px 16px; border-radius: 8px; color: var(--text-main); text-decoration: none; font-size: 13px; border: 1px solid #3a3a3d; cursor: pointer; transition: 0.3s; }
+        .special-btn { background: var(--accent); border-color: var(--accent); font-weight: bold; }
 
-        .search-container { display: flex; gap: 10px; width: 100%; }
-        .search-input { flex: 1; background: var(--card-bg); border: 1px solid #2f2f35; padding: 15px 20px; border-radius: 12px; color: #fff; outline: none; }
-        
-        .song-card { background: var(--card-bg); border-radius: 16px; border: 1px solid #2f2f35; overflow: hidden; }
-        table { width: 100%; border-collapse: collapse; }
-        th { background: #1f1f23; padding: 15px 20px; font-size: 13px; color: var(--text-sub); text-align: left; }
-        td { padding: 14px 20px; font-size: 14px; border-bottom: 1px solid #26262c; }
-
-        /* 태그 배지 디자인 추가 */
-        .tag-badge {
-            display: inline-block;
-            background-color: #2f2f35;
-            color: var(--accent);
-            font-size: 11px;
-            padding: 2px 8px;
-            border-radius: 4px;
-            margin-left: 6px;
-            vertical-align: middle;
-            font-weight: bold;
-            border: 1px solid #444;
-            white-space: nowrap;
-        }
-        .song-title strong { font-size: 15px; }
-    </style>
+        .search-container { display: flex; gap: 10px; width: 100%; }
+        .search-input { flex: 1; background: var(--card-bg); border: 1px solid #2f2f35; padding: 15px 20px; border-radius: 12px; color: #fff; outline: none; }
+        
+        .song-card { background: var(--card-bg); border-radius: 16px; border: 1px solid #2f2f35; overflow: hidden; }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: #1f1f23; padding: 15px 20px; font-size: 13px; color: var(--text-sub); text-align: left; }
+        td { padding: 14px 20px; font-size: 14px; border-bottom: 1px solid #26262c; }
+    </style>
 </head>
 <body>
 
 <div class="wrapper">
-    <div class="header-card">
-        <div class="header-info">
-            <h1>🎶 노래책 
-                <span class="song-count-info">
-                    총 노래 : <span id="total-count">0</span>곡 | 기타 : <span id="guitar-count">0</span>곡
-                </span>
-            </h1>
-            <div class="sync-info">마지막 업데이트: <span id="last-sync">--:--</span></div>
-        </div>
-        <div class="header-btns">
-            <button class="btn special-btn" onclick="openManageWindow()">💎 신청목록 관리 (새 창)</button>
-            <a href="index.html" class="btn">🏠 홈으로</a>
-        </div>
-    </div>
+    <div class="header-card">
+        <div class="header-info">
+            <h1>🎶 노래책 
+                <span class="song-count-info">
+                    총 노래 : <span id="total-count">0</span>곡 | 기타 : <span id="guitar-count">0</span>곡
+                </span>
+            </h1>
+            <div class="sync-info">마지막 업데이트: <span id="last-sync">--:--</span></div>
+        </div>
+        <div class="header-btns">
+            <button class="btn special-btn" onclick="openManageWindow()">💎 신청목록 관리 (새 창)</button>
+            <a href="index.html" class="btn">🏠 홈으로</a>
+        </div>
+    </div>
 
-    <div class="search-container">
-        <input type="text" id="songSearch" class="search-input" placeholder="곡 제목이나 가수를 검색하세요..." onkeyup="filterSongs()">
-    </div>
+    <div class="search-container">
+        <input type="text" id="songSearch" class="search-input" placeholder="곡 제목이나 가수를 검색하세요..." onkeyup="filterSongs()">
+    </div>
 
-    <div class="song-card">
-        <table>
-            <thead><tr><th style="width:60px;">번호</th><th>노래제목</th><th style="width:180px;">가수</th></tr></thead>
-            <tbody id="song-list-body"></tbody>
-        </table>
-    </div>
+    <div class="song-card">
+        <table>
+            <thead><tr><th style="width:60px;">번호</th><th>노래제목</th><th style="width:180px;">가수</th></tr></thead>
+            <tbody id="song-list-body"></tbody>
+        </table>
+    </div>
 </div>
 
 <script>
-    const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSIfrVC6MakrvA_D8rsQeTT6oaX_0w4bc8I_aaJuoQi4g_AuuvFi-nCP_lnHwvoSAsFKxagrzhoPy_J/pub?gid=0&single=true&output=csv";
-    
-    window.allSongs = [];
-    window.requests = JSON.parse(localStorage.getItem('streamerRequests')) || []; 
+    // 제공해주신 '웹에 게시' CSV 주소
+    const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSIfrVC6MakrvA_D8rsQeTT6oaX_0w4bc8I_aaJuoQi4g_AuuvFi-nCP_lnHwvoSAsFKxagrzhoPy_J/pub?gid=0&single=true&output=csv";
+    
+    window.allSongs = [];
+    window.requests = JSON.parse(localStorage.getItem('streamerRequests')) || []; 
 
-    window.onload = () => {
-        fetch(sheetUrl)
-            .then(res => res.text())
-            .then(csv => {
-                const lines = csv.split('\n');
-                const tbody = document.getElementById('song-list-body');
-                
-                const now = new Date();
-                document.getElementById('last-sync').textContent = 
-                    `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+    window.onload = () => {
+        fetch(sheetUrl)
+            .then(res => res.text())
+            .then(csv => {
+                // 줄바꿈으로 행 분리
+                const lines = csv.split('\n');
+                const tbody = document.getElementById('song-list-body');
+                
+                // 마지막 업데이트 시간 (현재 시간으로 표시)
+                const now = new Date();
+                document.getElementById('last-sync').textContent = 
+                    `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
 
-                let html = ''; 
-                let total = 0, guitar = 0;
-                
-                for (let i = 1; i < lines.length; i++) {
-                    if (!lines[i].trim()) continue;
+                let html = ''; 
+                let total = 0, guitar = 0;
+                
+                // 데이터 파싱 (CSV의 첫 줄이 헤더일 경우 i=1부터 시작)
+                for (let i = 1; i < lines.length; i++) {
+                    if (!lines[i].trim()) continue; // 빈 줄 건너뛰기
 
-                    const row = lines[i].match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g)
-                                 .map(item => item.replace(/^"|"$/g, '').trim());
-                    
-                    if (row.length < 2) continue;
+                    // CSV 특유의 따옴표 제거 및 쉼표 분리
+                    const row = lines[i].match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g)
+             .map(item => item.replace(/^"|"$/g, '').trim());
+                    
+                    if (row.length < 2) continue;
 
-                    total++;
-                    let fullTitle = row[0]; // [기타] [200개] 제목 형태
-                    const artist = row[1];
+                    total++;
+                    const title = row[0];
+                    const artist = row[1];
+                    
+                    if (title.includes("[기타]")) guitar++;
+                    
+                    window.allSongs.push(title);
+                    html += `<tr>
+                                <td>${total}</td>
+                                <td class="song-title"><strong>${title}</strong></td>
+                                <td class="song-artist">${artist}</td>
+                             </tr>`;
+                }
+                
+                tbody.innerHTML = html;
+                document.getElementById('total-count').textContent = total;
+                document.getElementById('guitar-count').textContent = guitar;
+                localStorage.setItem('allSongsCache', JSON.stringify(window.allSongs));
+            })
+            .catch(err => {
+                console.error("데이터 로드 실패:", err);
+            });
+    };
 
-                    // 1. 모든 [태그] 추출
-                    const tags = fullTitle.match(/\[.*?\]/g) || [];
-                    
-                    // 2. 제목 본문에서 태그 제거 (깨끗한 제목 만들기)
-                    let cleanTitle = fullTitle;
-                    tags.forEach(t => {
-                        cleanTitle = cleanTitle.replace(t, "");
-                    });
-                    cleanTitle = cleanTitle.trim();
+    // 관리창 열기
+    function openManageWindow() {
+        window.open("manage.html", "ManageWindow", "width=520,height=700");
+    }
 
-                    // 3. 태그 HTML 생성 및 [기타] 카운트
-                    let tagHtml = "";
-                    tags.forEach(t => {
-                        tagHtml += `<span class="tag-badge">${t}</span>`;
-                        if (t === "[기타]") guitar++;
-                    });
+    // 검색 필터 기능
+    function filterSongs() {
+        const filter = document.getElementById('songSearch').value.toUpperCase();
+        const rows = document.querySelectorAll("#song-list-body tr");
+        
+        rows.forEach(row => {
+            const titleText = row.querySelector('.song-title').textContent.toUpperCase();
+            const artistText = row.querySelector('.song-artist').textContent.toUpperCase();
+            
+            if (titleText.includes(filter) || artistText.includes(filter)) {
+                row.style.display = "";
+            } else {
+                row.style.display = "none";
+            }
+        });
+    }
 
-                    window.allSongs.push(fullTitle); // 검색 시 태그로도 검색 가능하도록 전체 제목 저장
-                    
-                    html += `<tr>
-                                <td>${total}</td>
-                                <td class="song-title">
-                                    <strong>${cleanTitle}</strong>${tagHtml}
-                                </td>
-                                <td class="song-artist">${artist}</td>
-                             </tr>`;
-                }
-                
-                tbody.innerHTML = html;
-                document.getElementById('total-count').textContent = total;
-                document.getElementById('guitar-count').textContent = guitar;
-                localStorage.setItem('allSongsCache', JSON.stringify(window.allSongs));
-            })
-            .catch(err => {
-                console.error("데이터 로드 실패:", err);
-            });
-    };
-
-    function openManageWindow() {
-        window.open("manage.html", "ManageWindow", "width=520,height=700");
-    }
-
-    function filterSongs() {
-        const filter = document.getElementById('songSearch').value.toUpperCase();
-        const rows = document.querySelectorAll("#song-list-body tr");
-        
-        rows.forEach(row => {
-            const titleText = row.querySelector('.song-title').textContent.toUpperCase();
-            const artistText = row.querySelector('.song-artist').textContent.toUpperCase();
-            
-            if (titleText.includes(filter) || artistText.includes(filter)) {
-                row.style.display = "";
-            } else {
-                row.style.display = "none";
-            }
-        });
-    }
-
-    function saveToLocal() {
-        localStorage.setItem('streamerRequests', JSON.stringify(window.requests));
-    }
-    window.addRequest = (title) => { window.requests.push({ title, completed: false }); saveToLocal(); };
-    window.toggleDone = (i) => { window.requests[i].completed = !window.requests[i].completed; saveToLocal(); };
-    window.removeReq = (i) => { window.requests.splice(i, 1); saveToLocal(); };
-    window.moveReq = (i, dir) => {
-        if (i + dir < 0 || i + dir >= window.requests.length) return;
-        [window.requests[i], window.requests[i + dir]] = [window.requests[i + dir], window.requests[i]];
-        saveToLocal();
-    };
+    // 신청곡 관리용 공통 함수 (기존 로직 유지)
+    function saveToLocal() {
+        localStorage.setItem('streamerRequests', JSON.stringify(window.requests));
+    }
+    window.addRequest = (title) => { window.requests.push({ title, completed: false }); saveToLocal(); };
+    window.toggleDone = (i) => { window.requests[i].completed = !window.requests[i].completed; saveToLocal(); };
+    window.removeReq = (i) => { window.requests.splice(i, 1); saveToLocal(); };
+    window.moveReq = (i, dir) => {
+        if (i + dir < 0 || i + dir >= window.requests.length) return;
+        [window.requests[i], window.requests[i + dir]] = [window.requests[i + dir], window.requests[i]];
+        saveToLocal();
+    };
 </script>
 </body>
 </html>
+여기서 수정해줘
