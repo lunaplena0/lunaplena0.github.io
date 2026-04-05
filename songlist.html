@@ -15,6 +15,7 @@
             --tag-200: #5c16ff; 
             --tag-300: #ff8c00;
             --tag-guitar: #8b572a; 
+            --tag-default: #2f2f35;
         }
 
         body { background-color: var(--bg-color); color: var(--text-main); font-family: 'Noto Sans KR', sans-serif; margin: 0; padding: 0; display: flex; justify-content: center; min-height: 100vh; }
@@ -24,27 +25,25 @@
             background: var(--card-bg); border-radius: 16px; padding: 30px; border: 1px solid #2f2f35; 
             display: flex; justify-content: space-between; align-items: center;
         }
-        .header-info h1 { margin: 0; font-size: 24px; color: var(--accent); }
+        .header-info h1 { margin: 0; font-size: 24px; color: var(--accent); display: flex; align-items: baseline; gap: 12px; }
+        
+        /* 노래 개수 스타일 */
+        .song-count-info { font-size: 14px; color: var(--text-sub); font-weight: normal; }
         .sync-info { font-size: 11px; color: #5b5b63; margin-top: 5px; }
 
         .back-btn { padding: 8px 16px; background: #26262c; border-radius: 8px; color: var(--text-main); text-decoration: none; font-size: 13px; border: 1px solid #3a3a3d; transition: 0.3s; }
         .back-btn:hover { background: var(--accent); border-color: var(--accent); }
 
-        /* 검색 바 레이아웃 수정 */
         .search-container { display: flex; gap: 10px; width: 100%; }
-        
         .search-select {
             background: var(--card-bg); border: 1px solid #2f2f35; color: #fff;
             padding: 0 15px; border-radius: 12px; outline: none; cursor: pointer;
             font-size: 14px; min-width: 80px;
         }
-        .search-select:focus { border-color: var(--accent); }
-
         .search-input { 
             flex: 1; background: var(--card-bg); border: 1px solid #2f2f35; padding: 15px 20px; 
             border-radius: 12px; color: #fff; outline: none; font-size: 15px; 
         }
-        .search-input:focus { border-color: var(--accent); }
 
         .song-card { background: var(--card-bg); border-radius: 16px; border: 1px solid #2f2f35; overflow: hidden; }
         table { width: 100%; border-collapse: collapse; }
@@ -70,7 +69,12 @@
 <div class="wrapper">
     <div class="header-card">
         <div class="header-info">
-            <h1>🎶 노래책</h1>
+            <h1>
+                🎶 노래책 
+                <span class="song-count-info">
+                    총 노래 : <span id="total-count">0</span>곡 | 기타 노래 : <span id="guitar-count">0</span>곡
+                </span>
+            </h1>
             <div class="sync-info">마지막 업데이트: <span id="last-sync">--:--</span></div>
         </div>
         <a href="index.html" class="back-btn">🏠 홈으로 돌아가기</a>
@@ -154,9 +158,15 @@
         const tbody = document.getElementById('song-list-body');
         tbody.innerHTML = ''; 
         let count = 1;
+        
         data.forEach((item) => {
             if(item.title.includes("노래제목") || !item.title) return;
             const tr = document.createElement('tr');
+            // 기타 노래 판별을 위해 데이터 속성 추가
+            if (item.title.includes("[기타]")) {
+                tr.setAttribute('data-is-guitar', 'true');
+            }
+            
             tr.innerHTML = `
                 <td class="col-num">${count++}</td>
                 <td class="col-title">${formatTitleWithTags(item.title)}</td>
@@ -164,11 +174,31 @@
             `;
             tbody.appendChild(tr);
         });
+        
+        updateCounts(); // 갯수 업데이트 호출
         const now = new Date();
         document.getElementById('last-sync').textContent = `${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
     }
 
-    // 검색 로직 함수화
+    // 노래 갯수 계산 및 표시 함수
+    function updateCounts() {
+        const rows = document.querySelectorAll("#song-list-body tr");
+        let total = 0;
+        let guitar = 0;
+
+        rows.forEach(row => {
+            if (row.style.display !== "none") {
+                total++;
+                if (row.getAttribute('data-is-guitar') === 'true') {
+                    guitar++;
+                }
+            }
+        });
+
+        document.getElementById('total-count').textContent = total;
+        document.getElementById('guitar-count').textContent = guitar;
+    }
+
     function filterSongs() {
         const filter = document.getElementById('songSearch').value.toUpperCase();
         const type = document.getElementById('searchType').value;
@@ -195,9 +225,10 @@
                 row.style.display = "none";
             }
         });
+        
+        updateCounts(); // 검색 후에도 갯수 갱신
     }
 
-    // 입력창 입력 시 혹은 셀렉트 박스 변경 시 검색 실행
     document.getElementById('songSearch').addEventListener('keyup', filterSongs);
     document.getElementById('searchType').addEventListener('change', filterSongs);
 </script>
