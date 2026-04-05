@@ -25,24 +25,17 @@
 
         .wrapper { width: 100%; max-width: 1200px; display: flex; flex-direction: column; gap: 20px; }
 
-        /* 상단 영역: 이제 하나의 넓은 카드로 통합 */
-        .top-section { width: 100%; }
-
-        /* 하단 영역: 3분할 유지 */
-        .bottom-section { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
-
-        /* 공통 카드 스타일 */
+        /* 상단 영역 */
         .card { 
             background: var(--card-bg); 
             border-radius: 16px; 
             padding: 30px; 
             border: 1px solid #2f2f35; 
             display: flex; 
-            position: relative;
+            position: relative; /* 갱신 시간 배치를 위해 relative 설정 */
         }
-        h2 { font-size: 15px; margin-top: 0; color: var(--accent); border-bottom: 1px solid #2f2f35; padding-bottom: 12px; margin-bottom: 15px; }
 
-        /* 프로필 박스 내부 배치 */
+        /* 프로필 박스 통합형 */
         .profile-box { 
             align-items: center; 
             gap: 30px; 
@@ -60,20 +53,23 @@
 
         .profile-info { flex-grow: 1; }
         .profile-info h1 { margin: 0 0 5px; font-size: 28px; font-weight: 700; }
-        .profile-info p { color: var(--text-sub); margin: 0 0 20px; font-size: 15px; max-width: 500px; line-height: 1.6; }
+        .profile-info p { color: var(--text-sub); margin: 0 0 20px; font-size: 14px; max-width: 450px; line-height: 1.6; }
 
-        /* 노란색 상자: 링크 버튼 */
         .social-links { display: flex; gap: 10px; }
-        .link-btn { padding: 7px 15px; background: #26262c; border-radius: 8px; color: var(--text-main); text-decoration: none; font-size: 13px; border: 1px solid #3a3a3d; transition: 0.3s; }
-        .link-btn:hover { background: var(--accent); border-color: var(--accent); transform: translateY(-2px); }
+        .link-btn { padding: 7px 15px; background: #26262c; border-radius: 8px; color: var(--text-main); text-decoration: none; font-size: 12px; border: 1px solid #3a3a3d; transition: 0.3s; }
+        .link-btn:hover { background: var(--accent); border-color: var(--accent); }
 
-        /* 핑크색 상자: 프로필 박스 안 오른쪽 끝 방송 상태 */
+        /* 방송 상태: 중앙 정렬 및 영역 확보 */
         .live-status-inline {
-            margin-left: auto; /* 오른쪽 끝으로 밀기 */
-            text-align: right;
-            padding-left: 30px;
+            margin-left: auto;
+            text-align: center; /* 내부 요소 가운데 정렬 */
+            padding: 0 40px;
             border-left: 1px solid #2f2f35;
-            min-width: 180px;
+            min-width: 200px;
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* flex 기반 가운데 정렬 */
+            justify-content: center;
         }
 
         .badge { 
@@ -82,17 +78,28 @@
             border-radius: 6px; 
             font-size: 11px; 
             font-weight: bold; 
-            letter-spacing: 1px;
             margin-bottom: 10px;
         }
         .badge.live { background: var(--live); color: white; animation: pulse 2s infinite; }
         .badge.offline { background: #3a3a3d; color: var(--text-sub); }
 
-        #stream-title-inline { font-size: 18px; font-weight: bold; margin-bottom: 5px; color: #fff; }
-        #update-time-inline { font-size: 11px; color: var(--text-sub); }
+        #stream-title-inline { font-size: 18px; font-weight: bold; color: #fff; }
 
-        /* 하단 아이템 스타일 */
+        /* 갱신 시간: 오른쪽 아래 구석 고정 */
+        .last-update-text {
+            position: absolute;
+            right: 20px;
+            bottom: 15px;
+            font-size: 11px;
+            color: #5b5b63;
+            letter-spacing: 0.5px;
+        }
+
+        /* 하단 영역 (3분할) */
+        .bottom-section { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
         .bottom-section .card { flex-direction: column; padding: 25px; min-height: 250px; }
+        h2 { font-size: 14px; margin-top: 0; color: var(--accent); border-bottom: 1px solid #2f2f35; padding-bottom: 12px; margin-bottom: 15px; }
+
         .item-row { padding: 12px 0; border-bottom: 1px solid #26262c; font-size: 13px; }
         .item-row:last-child { border: none; }
         .item-date { font-size: 11px; color: var(--text-sub); margin-bottom: 4px; }
@@ -105,10 +112,9 @@
 
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
 
-        /* 모바일 대응 */
         @media (max-width: 900px) {
-            .profile-box { flex-direction: column; text-align: center; }
-            .live-status-inline { margin-left: 0; border-left: none; border-top: 1px solid #2f2f35; padding-left: 0; padding-top: 20px; width: 100%; text-align: center; }
+            .profile-box { flex-direction: column; padding-bottom: 40px; }
+            .live-status-inline { margin-left: 0; border-left: none; border-top: 1px solid #2f2f35; padding: 20px 0; width: 100%; }
             .bottom-section { grid-template-columns: 1fr; }
         }
     </style>
@@ -121,7 +127,7 @@
             <div class="profile-img"></div>
             <div class="profile-info">
                 <h1>닉네임</h1>
-                <p>스트리머의 소개글이 들어가는 공간입니다. 방송 상태가 오른쪽 끝으로 이동하여 훨씬 깔끔해졌습니다.</p>
+                <p>스트리머의 개성이 드러나는 소개글입니다. 이제 방송 상태가 중앙에 정렬되고 우측 하단에 갱신 시간이 표시됩니다.</p>
                 <div class="social-links">
                     <a href="#" class="link-btn">📡 SOOP 방송국</a>
                     <a href="#" class="link-btn">🎬 유튜브 채널</a>
@@ -132,7 +138,10 @@
             <div class="live-status-inline">
                 <div class="badge offline" id="status-badge">OFFLINE</div>
                 <div id="stream-title-inline">방송 준비 중</div>
-                <div id="update-time-inline">Last Update: -</div>
+            </div>
+
+            <div class="last-update-text">
+                페이지 갱신 시간 : <span id="update-time-display">00:00</span>
             </div>
         </div>
     </div>
@@ -160,7 +169,7 @@
             <h2>📢 최근 게시물</h2>
             <div class="item-row">
                 <div class="item-date">2026.04.05</div>
-                <div>공지사항 제목이 이곳에 표시됩니다.</div>
+                <div>공지사항 제목이 표시됩니다.</div>
             </div>
             <div class="item-row">
                 <div class="item-date">2026.04.03</div>
