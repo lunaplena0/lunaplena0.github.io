@@ -15,10 +15,9 @@
             --tag-200: #5c16ff; 
             --tag-300: #ff8c00;
             --tag-guitar: #8b572a; 
-            --box-bg: #26262c;
         }
 
-        body { background-color: var(--bg-color); color: var(--text-main); font-family: 'Noto Sans KR', sans-serif; margin: 0; padding: 0; min-height: 100vh; }
+        body { background-color: var(--bg-color); color: var(--text-main); font-family: 'Noto Sans KR', sans-serif; margin: 0; padding: 0; }
         .wrapper { width: 100%; max-width: 900px; margin: 0 auto; padding: 60px 20px; display: flex; flex-direction: column; gap: 20px; }
         
         .header-card { background: var(--card-bg); border-radius: 16px; padding: 30px; border: 1px solid #2f2f35; display: flex; justify-content: space-between; align-items: center; }
@@ -30,39 +29,7 @@
         .btn { padding: 8px 16px; border-radius: 8px; color: var(--text-main); text-decoration: none; font-size: 13px; border: 1px solid #3a3a3d; cursor: pointer; transition: 0.3s; }
         .special-btn { background: var(--accent); border-color: var(--accent); font-weight: bold; }
 
-        /* --- 신청 목록 아이템 스타일 (좌우 축소) --- */
-        .request-item { display: flex; gap: 6px; align-items: stretch; margin-bottom: 8px; }
-        
-        .req-left-box { 
-            flex: 1; display: flex; align-items: center; 
-            padding: 6px 10px; /* 상하좌우 여백 축소 */
-            background: var(--box-bg); 
-            border-radius: 6px; border: 1px solid #2f2f35; min-width: 0; 
-        }
-        .req-num { width: 18px; font-size: 10px; font-weight: bold; color: var(--accent); flex-shrink: 0; }
-        .req-title { font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .req-title.completed { text-decoration: line-through; color: var(--text-sub); opacity: 0.5; }
-        
-        .req-right-box { 
-            display: flex; gap: 3px; padding: 4px 8px; /* 버튼 상자 여백 축소 */
-            background: var(--box-bg); border-radius: 6px; 
-            border: 1px solid #2f2f35; flex-shrink: 0; align-items: center;
-        }
-        .req-btn { padding: 3px 5px; font-size: 10px; background: #3a3a3d; border: none; color: var(--text-main); border-radius: 4px; cursor: pointer; }
-
-        /* 입력 및 자동완성 */
-        .request-input-wrapper { position: relative; display: flex; gap: 8px; margin-top: 15px; }
-        .request-input { flex: 1; background: #26262c; border: 1px solid #3a3a3d; border-radius: 8px; padding: 10px 12px; color: white; font-size: 13px; outline: none; }
-        
-        .autocomplete-list {
-            position: absolute; top: 50px; left: 0; width: calc(100% - 80px);
-            background: #26262c; border: 1px solid var(--accent); border-radius: 8px;
-            max-height: 150px; overflow-y: auto; z-index: 1001; display: none;
-        }
-        .autocomplete-item { padding: 8px 12px; cursor: pointer; font-size: 12px; border-bottom: 1px solid #333; }
-        .autocomplete-item:hover { background: #3a3a3d; color: var(--accent); }
-
-        /* 검색 및 테이블 */
+        /* 메인 페이지 테이블 스타일 */
         .search-container { display: flex; gap: 10px; width: 100%; }
         .search-input { flex: 1; background: var(--card-bg); border: 1px solid #2f2f35; padding: 15px 20px; border-radius: 12px; color: #fff; outline: none; }
         .song-card { background: var(--card-bg); border-radius: 16px; border: 1px solid #2f2f35; overflow: hidden; }
@@ -104,6 +71,7 @@
 <script>
     const sheetUrl = "https://docs.google.com/spreadsheets/d/1q_P96q2ZwvFRToZ4GAv_0EKVOcLRTR-Y392610eAV04/gviz/tq?tqx=out:csv";
     let allSongs = [];
+    let requests = []; // 전역 신청 목록
 
     window.onload = () => {
         fetch(sheetUrl).then(res => res.text()).then(csv => {
@@ -125,87 +93,110 @@
         });
     };
 
-    // --- 새 창 띄우기 로직 ---
     function openManageWindow() {
-        const win = window.open("", "ManageWindow", "width=560,height=700,top=100,left=100,scrollbars=yes");
-        
-        // 새 창의 HTML 구조 생성
-        win.document.write(`
+        const win = window.open("", "ManageWindow", "width=520,height=700");
+        if (!win) { alert("팝업이 차단되었습니다. 허용해주세요!"); return; }
+
+        const htmlContent = `
+            <!DOCTYPE html>
             <html>
             <head>
                 <title>신청 목록 관리</title>
-                <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
                 <style>
-                    body { background-color: #0e0e10; color: #efeff1; font-family: 'Noto Sans KR', sans-serif; padding: 20px; }
-                    h2 { color: #9147ff; font-size: 18px; border-bottom: 1px solid #2f2f35; padding-bottom: 10px; }
-                    ul { list-style: none; padding: 0; margin-bottom: 20px; }
-                    .request-item { display: flex; gap: 6px; margin-bottom: 8px; }
-                    .req-left-box { flex: 1; display: flex; align-items: center; padding: 6px 10px; background: #26262c; border-radius: 6px; border: 1px solid #2f2f35; min-width: 0; }
-                    .req-num { width: 18px; font-size: 10px; font-weight: bold; color: #9147ff; }
-                    .req-title { font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-                    .req-title.completed { text-decoration: line-through; opacity: 0.5; }
-                    .req-right-box { display: flex; gap: 3px; padding: 4px 8px; background: #26262c; border-radius: 6px; border: 1px solid #2f2f35; align-items: center; }
-                    .req-btn { padding: 3px 5px; font-size: 10px; background: #3a3a3d; border: none; color: #efeff1; border-radius: 4px; cursor: pointer; }
-                    .input-wrapper { position: sticky; bottom: 0; background: #0e0e10; padding-top: 15px; border-top: 1px solid #2f2f35; display: flex; gap: 8px; }
+                    body { background: #0e0e10; color: #efeff1; font-family: sans-serif; padding: 15px; margin: 0; display: flex; flex-direction: column; height: 100vh; box-sizing: border-box; }
+                    h2 { color: #9147ff; font-size: 16px; margin: 0 0 15px 0; }
+                    #list { flex: 1; overflow-y: auto; list-style: none; padding: 0; margin: 0; }
+                    .item { display: flex; gap: 6px; margin-bottom: 8px; }
+                    .l-box { flex: 1; display: flex; align-items: center; padding: 6px 10px; background: #26262c; border-radius: 6px; border: 1px solid #2f2f35; min-width: 0; }
+                    .num { width: 20px; font-size: 11px; font-weight: bold; color: #9147ff; }
+                    .tit { font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+                    .done { text-decoration: line-through; opacity: 0.5; }
+                    .r-box { display: flex; gap: 4px; padding: 4px 8px; background: #26262c; border-radius: 6px; border: 1px solid #2f2f35; }
+                    .btn { padding: 3px 6px; font-size: 10px; background: #3a3a3d; border: none; color: white; border-radius: 4px; cursor: pointer; }
+                    
+                    .in-area { position: relative; padding-top: 15px; border-top: 1px solid #2f2f35; display: flex; gap: 8px; }
                     input { flex: 1; background: #18181b; border: 1px solid #3a3a3d; border-radius: 6px; padding: 10px; color: white; outline: none; }
-                    .add-btn { background: #9147ff; border: none; padding: 0 15px; color: white; border-radius: 6px; font-weight: bold; cursor: pointer; }
+                    .add-v { background: #9147ff; border: none; padding: 0 15px; color: white; border-radius: 6px; font-weight: bold; cursor: pointer; }
+                    
+                    #auto { position: absolute; bottom: 55px; left: 0; width: calc(100% - 75px); background: #26262c; border: 1px solid #9147ff; border-radius: 6px; max-height: 150px; overflow-y: auto; display: none; }
+                    .a-item { padding: 8px 12px; cursor: pointer; font-size: 12px; border-bottom: 1px solid #333; }
+                    .a-item:hover { background: #3a3a3d; }
                 </style>
             </head>
             <body>
-                <h2>🎵 실시간 신청 곡 관리</h2>
-                <ul id="win-list"></ul>
-                <div class="input-wrapper">
-                    <input type="text" id="winInput" placeholder="곡 추가...">
-                    <button class="add-btn" onclick="window.opener.addFromChild()">추가</button>
+                <h2>🎵 신청 목록 관리</h2>
+                <ul id="list"></ul>
+                <div class="in-area">
+                    <div id="auto"></div>
+                    <input type="text" id="in" placeholder="노래 제목 입력..." autocomplete="off">
+                    <button class="add-v" id="addBtn">추가</button>
                 </div>
+
+                <script>
+                    const opener = window.opener;
+                    const listEl = document.getElementById('list');
+                    const inEl = document.getElementById('in');
+                    const autoEl = document.getElementById('auto');
+
+                    function render() {
+                        listEl.innerHTML = opener.requests.map((r, i) => \`
+                            <li class="item">
+                                <div class="l-box">
+                                    <span class="num">\${i+1}</span>
+                                    <span class="tit \${r.completed ? 'done' : ''}">\${r.title}</span>
+                                </div>
+                                <div class="r-box">
+                                    <button class="btn" onclick="opener.moveReq(\${i}, -1); location.reload();">▲</button>
+                                    <button class="btn" onclick="opener.moveReq(\${i}, 1); location.reload();">▼</button>
+                                    <button class="btn" style="color:#4caf50" onclick="opener.toggleDone(\${i}); location.reload();">V</button>
+                                    <button class="btn" style="color:#ff4b4b" onclick="opener.removeReq(\${i}); location.reload();">X</button>
+                                </div>
+                            </li>
+                        \`).join('');
+                        listEl.scrollTop = listEl.scrollHeight;
+                    }
+
+                    document.getElementById('addBtn').onclick = () => {
+                        const val = inEl.value.trim();
+                        if(val) { opener.addRequest(val); inEl.value = ''; autoEl.style.display = 'none'; render(); }
+                    };
+
+                    inEl.onkeyup = (e) => {
+                        if(e.key === 'Enter') document.getElementById('addBtn').click();
+                        const v = inEl.value.toUpperCase();
+                        autoEl.innerHTML = '';
+                        if(!v) { autoEl.style.display = 'none'; return; }
+                        const ms = opener.allSongs.filter(s => s.toUpperCase().includes(v)).slice(0, 10);
+                        if(ms.length > 0) {
+                            ms.forEach(m => {
+                                const d = document.createElement('div');
+                                d.className = 'a-item'; d.textContent = m;
+                                d.onclick = () => { inEl.value = m; autoEl.style.display = 'none'; document.getElementById('addBtn').click(); };
+                                autoEl.appendChild(d);
+                            });
+                            autoEl.style.display = 'block';
+                        } else autoEl.style.display = 'none';
+                    };
+
+                    render();
+                <\/script>
             </body>
             </html>
-        `);
+        `;
 
-        // 부모 창의 함수를 자식 창에서 쓸 수 있게 연결
-        win.addFromChild = () => {
-            const val = win.document.getElementById('winInput').value.trim();
-            if(!val) return;
-            window.requests.push({ title: val, completed: false });
-            win.document.getElementById('winInput').value = '';
-            window.updateChildList(win);
-        };
-
-        window.currentChildWin = win;
-        window.updateChildList(win);
+        win.document.open();
+        win.document.write(htmlContent);
+        win.document.close();
     }
 
-    // 전역 요청 목록
-    window.requests = [];
-
-    // 자식 창 리스트 업데이트 함수
-    window.updateChildList = (win) => {
-        if (!win || win.closed) return;
-        const list = win.document.getElementById('win-list');
-        list.innerHTML = window.requests.map((req, i) => `
-            <li class="request-item">
-                <div class="req-left-box">
-                    <span class="req-num">${i + 1}</span>
-                    <span class="req-title ${req.completed ? 'completed' : ''}">${req.title}</span>
-                </div>
-                <div class="req-right-box">
-                    <button class="req-btn" onclick="window.opener.moveReqChild(${i}, -1)">▲</button>
-                    <button class="req-btn" onclick="window.opener.moveReqChild(${i}, 1)">▼</button>
-                    <button class="req-btn" style="color:#4caf50" onclick="window.opener.toggleChild(${i})">V</button>
-                    <button class="req-btn" style="color:#ff4b4b" onclick="window.opener.removeChild(${i})">X</button>
-                </div>
-            </li>
-        `).join('');
-    };
-
-    // 자식 창 제어용 함수들
-    window.toggleChild = (i) => { window.requests[i].completed = !window.requests[i].completed; window.updateChildList(window.currentChildWin); };
-    window.removeChild = (i) => { window.requests.splice(i, 1); window.updateChildList(window.currentChildWin); };
-    window.moveReqChild = (i, dir) => {
-        if (i + dir < 0 || i + dir >= window.requests.length) return;
-        [window.requests[i], window.requests[i + dir]] = [window.requests[i + dir], window.requests[i]];
-        window.updateChildList(window.currentChildWin);
-    };
+    // 부모 창에서 관리하는 함수들
+    function addRequest(title) { requests.push({ title, completed: false }); }
+    function toggleDone(i) { requests[i].completed = !requests[i].completed; }
+    function removeReq(i) { requests.splice(i, 1); }
+    function moveReq(i, dir) {
+        if (i + dir < 0 || i + dir >= requests.length) return;
+        [requests[i], requests[i + dir]] = [requests[i + dir], requests[i]];
+    }
 
     function filterSongs() {
         const filter = document.getElementById('songSearch').value.toUpperCase();
