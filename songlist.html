@@ -140,21 +140,65 @@
 </div>
 
 <script>
-    // 검색 기능 (임시)
+   <script>
+    // 데이터를 화면에 그리는 메인 함수
+    function renderSongList(data) {
+        const tbody = document.getElementById('song-list-body');
+        tbody.innerHTML = ''; // 기존 예시 데이터 삭제
+
+        data.forEach((item, index) => {
+            const tr = document.createElement('tr');
+            
+            // 1. 번호 (자동 부여)
+            const noTd = document.createElement('td');
+            noTd.className = 'col-num';
+            noTd.textContent = index + 1;
+
+            // 2. 노래제목 & 태그 분리
+            const titleTd = document.createElement('td');
+            titleTd.innerHTML = formatTitleWithTags(item.title);
+
+            // 3. 가수
+            const artistTd = document.createElement('td');
+            artistTd.className = 'col-artist';
+            artistTd.textContent = item.artist;
+
+            tr.appendChild(noTd);
+            tr.appendChild(titleTd);
+            tr.appendChild(artistTd);
+            tbody.appendChild(tr);
+        });
+    }
+
+    // 제목에서 [태그]를 찾아 뒤로 보내는 함수
+    function formatTitleWithTags(rawTitle) {
+        const tagRegex = /\[(.*?)\]/g;
+        let tags = rawTitle.match(tagRegex) || [];
+        let pureTitle = rawTitle.replace(tagRegex, '').trim();
+
+        let html = `<div class="title-container">`;
+        html += `<span class="song-title">${pureTitle}</span>`; // 제목 먼저
+        
+        tags.forEach(tag => {
+            const tagName = tag.replace('[', '').replace(']', '');
+            html += `<span class="song-tag">${tagName}</span>`; // 태그는 뒤로
+        });
+        
+        html += `</div>`;
+        return html;
+    }
+
+    // 검색 기능
     document.getElementById('songSearch').addEventListener('keyup', function() {
         let filter = this.value.toUpperCase();
         let rows = document.querySelector("#song-list-body").rows;
         
-        for (let i = 0; i < rows.length; i++) {
-            let title = rows[i].cells[1].textContent;
-            let artist = rows[i].cells[2].textContent;
-            if (title.toUpperCase().indexOf(filter) > -1 || artist.toUpperCase().indexOf(filter) > -1) {
-                rows[i].style.display = "";
-            } else {
-                rows[i].style.display = "none";
-            }      
+        for (let row of rows) {
+            let text = row.textContent.toUpperCase();
+            row.style.display = text.includes(filter) ? "" : "none";
         }
     });
+</script>
 </script>
 
 </body>
