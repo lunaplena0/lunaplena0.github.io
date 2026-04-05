@@ -28,6 +28,7 @@
 
         .search-container { display: flex; gap: 10px; width: 100%; }
         .search-input { flex: 1; background: var(--card-bg); border: 1px solid #2f2f35; padding: 15px 20px; border-radius: 12px; color: #fff; outline: none; }
+        
         .song-card { background: var(--card-bg); border-radius: 16px; border: 1px solid #2f2f35; overflow: hidden; }
         table { width: 100%; border-collapse: collapse; }
         th { background: #1f1f23; padding: 15px 20px; font-size: 13px; color: var(--text-sub); text-align: left; }
@@ -67,9 +68,9 @@
 <script>
     const sheetUrl = "https://docs.google.com/spreadsheets/d/1q_P96q2ZwvFRToZ4GAv_0EKVOcLRTR-Y392610eAV04/gviz/tq?tqx=out:csv";
     
-    // 자식 창에서 접근하기 쉽도록 window 객체에 할당
     window.allSongs = [];
-    window.requests = []; 
+    // localStorage에서 데이터를 불러옵니다.
+    window.requests = JSON.parse(localStorage.getItem('streamerRequests')) || []; 
 
     window.onload = () => {
         fetch(sheetUrl).then(res => res.text()).then(csv => {
@@ -77,43 +78,61 @@
             const tbody = document.getElementById('song-list-body');
             document.getElementById('last-sync').textContent = lines[0].split(',')[2]?.replace(/"/g,'') || "--:--";
             let html = ''; let total = 0, guitar = 0;
+            
             for (let i = 1; i < lines.length; i++) {
                 const parts = lines[i].replace(/"/g,'').split(',');
                 if (parts.length < 2) continue;
                 total++;
                 if (parts[0].includes("[기타]")) guitar++;
-                window.allSongs.push(parts[0].trim());
-                html += `<tr><td>${total}</td><td>${parts[0].trim()}</td><td>${parts[1].trim()}</td></tr>`;
+                
+                const title = parts[0].trim();
+                const artist = parts[1].trim();
+                
+                window.allSongs.push(title);
+                html += `<tr><td>${total}</td><td class="song-title">${title}</td><td class="song-artist">${artist}</td></tr>`;
             }
             tbody.innerHTML = html;
             document.getElementById('total-count').textContent = total;
             document.getElementById('guitar-count').textContent = guitar;
+
+            // 자동완성을 위해 제목 리스트를 로컬에 저장
+            localStorage.setItem('allSongsCache', JSON.stringify(window.allSongs));
         });
     };
 
-    // manage.html 파일을 새 창으로 여는 함수
     function openManageWindow() {
-        const win = window.open("manage.html", "ManageWindow", "width=520,height=700");
-        if (!win) { 
-            alert("팝업이 차단되었습니다. 브라우저 설정에서 팝업을 허용해주세요!"); 
-        }
+        window.open("manage.html", "ManageWindow", "width=520,height=700");
     }
 
-    // 자식 창(manage.html)에서 호출할 데이터 관리 함수들
-    window.addRequest = (title) => { window.requests.push({ title, completed: false }); };
-    window.toggleDone = (i) => { window.requests[i].completed = !window.requests[i].completed; };
-    window.removeReq = (i) => { window.requests.splice(i, 1); };
+    // 데이터 변경 시 로컬 저장소에 저장하는 공통 함수
+    function saveToLocal() {
+        localStorage.setItem('streamerRequests', JSON.stringify(window.requests));
+    }
+
+    window.addRequest = (title) => { window.requests.push({ title, completed: false }); saveToLocal(); };
+    window.toggleDone = (i) => { window.requests[i].completed = !window.requests[i].completed; saveToLocal(); };
+    window.removeReq = (i) => { window.requests.splice(i, 1); saveToLocal(); };
     window.moveReq = (i, dir) => {
         if (i + dir < 0 || i + dir >= window.requests.length) return;
         [window.requests[i], window.requests[i + dir]] = [window.requests[i + dir], window.requests[i]];
+        saveToLocal();
     };
 
+    // 검색 기능: 제목과 가수 열(td)을 모두 체크합니다.
     function filterSongs() {
         const filter = document.getElementById('songSearch').value.toUpperCase();
         const rows = document.querySelectorAll("#song-list-body tr");
+        
         rows.forEach(row => {
-            const text = row.innerText.toUpperCase();
-            row.style.display = text.includes(filter) ? "" : "none";
+            const titleText = row.querySelector('.song-title').textContent.toUpperCase();
+            const artistText = row.querySelector('.song-artist').textContent.toUpperCase();
+            
+            // 제목이나 가수 중 하나라도 검색어를 포함하면 표시
+            if (titleText.includes(filter) || artistText.includes(filter)) {
+                row.style.display = "";
+            } else {
+                row.style.display = "none";
+            }
         });
     }
 </script>
