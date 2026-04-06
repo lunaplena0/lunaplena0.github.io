@@ -166,24 +166,33 @@
                 });
             }
 
-            // 3. 최근 게시물 (9~12행) - 고정글(D열 'O') 최상단
+           // 3. 최근 게시물 (9~12행) - 고정글(D열 'O') 최상단
             const postBox = document.getElementById('post-container');
             const postData = rows.slice(8, 12).filter(p => p[1] && p[1].trim() !== "");
+            
+            // 고정글 정렬
             postData.sort((a, b) => (b[3]?.trim() === 'O' ? 1 : 0) - (a[3]?.trim() === 'O' ? 1 : 0));
 
-          postData.forEach(p => {
-    // '📌 ' 대신 뒤에 붙을 ' 📌'로 변경 (공백 위치 주의)
-    const isNotice = p[3]?.trim() === 'O' ? ' 📌' : ''; 
-    
-    postHtml += `
-        <div class="item-row" onclick="window.open('${p[2]}', '_blank')">
-            <div class="item-date">${p[0]}</div>
-            <div style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
-                ${p[1]}${isNotice}  </div>
-        </div>`;
-});
-            postBox.innerHTML = postHtml;
+            // [수정포인트 1] 변수 선언이 반드시 있어야 합니다.
+            let postHtml = '<h2>📢 최근 게시물</h2>'; 
 
+            postData.forEach(p => {
+                // [수정포인트 2] 📌 아이콘을 오른쪽 끝으로 보내기 위해 구조 변경
+                const isNotice = p[3]?.trim() === 'O' ? '<span style="margin-left: auto; flex-shrink: 0;">📌</span>' : ''; 
+                
+                postHtml += `
+                    <div class="item-row" onclick="window.open('${p[2]}', '_blank')" style="display: flex; align-items: center;">
+                        <div style="flex: 1; min-width: 0;">
+                            <div class="item-date">${p[0]}</div>
+                            <div style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size: 13px;">
+                                ${p[1]}
+                            </div>
+                        </div>
+                        ${isNotice}
+                    </div>`;
+            });
+            postBox.innerHTML = postHtml;
+            
             // 4. 다시보기 (17~20행) - 고정 VOD(E열 'O') 최상단
             const vodBox = document.getElementById('vod-container');
             const vodData = rows.slice(16, 20).filter(v => v[1] && v[1].trim() !== "");
