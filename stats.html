@@ -12,6 +12,7 @@
             --accent: #9147ff;
             --text-main: #efeff1;
             --text-sub: #adadb8;
+            --modal-overlay: rgba(0, 0, 0, 0.85);
         }
 
         body { 
@@ -29,33 +30,40 @@
 
         .section-title { font-size: 18px; font-weight: bold; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
 
-        /* 카드 스타일 */
         .stats-card { background: var(--card-bg); border-radius: 16px; border: 1px solid #2f2f35; padding: 20px; overflow: hidden; position: relative; }
 
-        /* 테이블 공통 */
         table { width: 100%; border-collapse: collapse; font-size: 14px; }
         th { background: #1f1f23; padding: 12px; text-align: left; color: var(--text-sub); font-weight: normal; border-bottom: 2px solid #2f2f35; }
-        td { padding: 12px; border-bottom: 1px solid #26262c; }
+        td { padding: 12px; border-bottom: 1px solid #26262c; cursor: pointer; transition: 0.2s; }
+        tr:hover td { background: #1f1f23; }
         
-        /* 배지 스타일 */
         .badge { padding: 3px 8px; border-radius: 4px; font-size: 11px; background: #2f2f35; color: var(--text-sub); }
         .count-text { color: var(--accent); font-weight: bold; }
 
-        /* 더보기/접기 버튼 스타일 */
         .toggle-btn {
-            width: 100%;
-            padding: 12px;
-            background: #1f1f23;
-            border: none;
-            color: var(--accent);
-            font-size: 13px;
-            font-weight: bold;
-            cursor: pointer;
-            border-top: 1px solid #2f2f35;
-            transition: 0.2s;
-            display: none;
+            width: 100%; padding: 12px; background: #1f1f23; border: none; color: var(--accent);
+            font-size: 13px; font-weight: bold; cursor: pointer; border-top: 1px solid #2f2f35; display: none;
         }
-        .toggle-btn:hover { background: #26262c; }
+
+        /* 팝업(모달) 스타일 */
+        .modal {
+            display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%;
+            background-color: var(--modal-overlay); align-items: center; justify-content: center; backdrop-filter: blur(5px);
+        }
+        .modal-content {
+            background: var(--card-bg); width: 90%; max-width: 500px; border-radius: 20px;
+            border: 1px solid #3a3a3d; position: relative; animation: slideUp 0.3s ease; max-height: 80vh; overflow-y: auto;
+        }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        
+        .modal-header { padding: 20px; border-bottom: 1px solid #2f2f35; position: sticky; top: 0; background: var(--card-bg); z-index: 10; }
+        .modal-header h2 { margin: 0; font-size: 18px; color: var(--accent); }
+        .modal-header .sub-info { font-size: 13px; color: var(--text-sub); margin-top: 5px; }
+        .close-modal { position: absolute; right: 20px; top: 20px; font-size: 24px; cursor: pointer; color: var(--text-sub); }
+        
+        .modal-body { padding: 20px; }
+        .detail-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #26262c; font-size: 14px; }
+        .detail-item:last-child { border-bottom: none; }
 
         @media (max-width: 600px) {
             th:nth-child(4), td:nth-child(4) { display: none; }
@@ -75,12 +83,7 @@
         <div class="stats-card">
             <table>
                 <thead>
-                    <tr>
-                        <th>가수명</th>
-                        <th>보유 곡 수</th>
-                        <th>누적 가창 횟수</th>
-                        <th>최근 가창일</th>
-                    </tr>
+                    <tr><th>가수명</th><th>보유 곡 수</th><th>누적 가창</th><th>최근 가창일</th></tr>
                 </thead>
                 <tbody id="artist-stats-body">
                     <tr><td colspan="4" style="text-align:center;">데이터를 불러오는 중...</td></tr>
@@ -95,17 +98,24 @@
         <div class="stats-card">
             <table>
                 <thead>
-                    <tr>
-                        <th>노래 제목</th>
-                        <th>가수</th>
-                        <th>가창 횟수</th>
-                        <th>마지막 기록</th>
-                    </tr>
+                    <tr><th>노래 제목</th><th>가수</th><th>가창 횟수</th><th>마지막 기록</th></tr>
                 </thead>
                 <tbody id="song-detail-body"></tbody>
             </table>
             <button id="song-toggle" class="toggle-btn" onclick="toggleDisplay('song')">▼ 더보기</button>
         </div>
+    </div>
+</div>
+
+<div id="detailModal" class="modal">
+    <div class="modal-content">
+        <span class="close-modal" onclick="closeModal()">&times;</span>
+        <div class="modal-header">
+            <h2 id="modal-title">-</h2>
+            <div id="modal-subtitle" class="sub-info">-</div>
+        </div>
+        <div class="modal-body" id="modal-list">
+            </div>
     </div>
 </div>
 
@@ -121,50 +131,37 @@
         try {
             const bookRes = await fetch(BOOK_SHEET_URL);
             const tsvText = await bookRes.text();
-            
-            // 줄바꿈으로 나누고 빈 줄 제거
-            const lines = tsvText.split('\n').filter(line => line.trim() !== "");
-            const dataLines = lines.slice(1); // 헤더 제외
+            const lines = tsvText.split(/\r?\n/).filter(line => line.trim() !== "");
+            const dataLines = lines.slice(1);
 
             const artistMap = new Map(); 
             const songArray = [];   
 
             dataLines.forEach((line) => {
                 const parts = line.split('\t').map(item => item.trim());
-
                 if (parts.length >= 2 && parts[0] !== "") {
                     const title = parts[0];
                     const artist = parts[1] || "Unknown";
 
-                    // 1. 노래 데이터 수집
-                    songArray.push({
-                        title: title,
-                        artist: artist,
-                        count: 0, // 나중에 RECORD_SHEET 데이터가 연결되면 이 값이 변합니다.
-                        lastDate: "-"
-                    });
+                    songArray.push({ title, artist, count: 0, lastDate: "-", history: [] });
                     
-                    // 2. 가수 데이터 수집
                     if (!artistMap.has(artist)) {
-                        artistMap.set(artist, { songCount: 0, totalSing: 0, lastSing: "-" });
+                        artistMap.set(artist, { songCount: 0, totalSing: 0, lastSing: "-", songs: [] });
                     }
-                    artistMap.get(artist).songCount++; 
+                    const aData = artistMap.get(artist);
+                    aData.songCount++;
+                    aData.songs.push(title);
                 }
             });
 
-            // [정렬 로직 추가]
-            // 가수별: 보유 곡 수(songCount)가 많은 순서대로 정렬
             fullArtistData = Array.from(artistMap.entries()).sort((a, b) => b[1].songCount - a[1].songCount);
-
-            // 노래별: 가창 횟수(count)가 많은 순서대로 정렬
             fullSongData = songArray.sort((a, b) => b.count - a.count);
 
             render('artist');
             render('song');
-
         } catch (e) {
-            console.error("데이터 로드 실패:", e);
-            document.getElementById('artist-stats-body').innerHTML = `<tr><td colspan="4" style="text-align:center; color:red;">데이터를 불러오는 중 오류가 발생했습니다.</td></tr>`;
+            console.error(e);
+            document.getElementById('artist-stats-body').innerHTML = `<tr><td colspan="4">오류 발생</td></tr>`;
         }
     }
 
@@ -175,15 +172,14 @@
         const btn = document.getElementById(`${type}-toggle`);
 
         const displayData = isExpanded ? data : data.slice(0, 5);
-        
         if (data.length > 5) {
             btn.style.display = 'block';
-            btn.innerText = isExpanded ? '▲ 접기' : `▼ 더보기 (${data.length - 5}개 더 있음)`;
+            btn.innerText = isExpanded ? '▲ 접기' : `▼ 더보기 (${data.length - 5}개)`;
         }
 
         if (type === 'artist') {
             tbody.innerHTML = displayData.map(([name, info]) => `
-                <tr>
+                <tr onclick="showArtistDetail('${name}')">
                     <td><strong>${name}</strong></td>
                     <td><span class="count-text">${info.songCount}</span> 곡</td>
                     <td>${info.totalSing} 회</td>
@@ -192,7 +188,7 @@
             `).join('');
         } else {
             tbody.innerHTML = displayData.map(song => `
-                <tr>
+                <tr onclick="showSongDetail('${song.title.replace(/'/g, "\\'")}')">
                     <td>${song.title}</td>
                     <td style="color:var(--text-sub);">${song.artist}</td>
                     <td><span class="count-text">${song.count}</span> 회</td>
@@ -200,6 +196,55 @@
                 </tr>
             `).join('');
         }
+    }
+
+    // 가수 클릭 시 팝업
+    function showArtistDetail(artistName) {
+        const info = fullArtistData.find(([name]) => name === artistName)[1];
+        document.getElementById('modal-title').innerText = `🎤 ${artistName}`;
+        document.getElementById('modal-subtitle').innerText = `보유 곡: ${info.songCount}곡 / 총 가창: ${info.totalSing}회`;
+        
+        // 해당 가수의 노래 목록을 찾아서 표시
+        const songsByArtist = fullSongData.filter(s => s.artist === artistName);
+        document.getElementById('modal-list').innerHTML = songsByArtist.map(s => `
+            <div class="detail-item">
+                <span>${s.title}</span>
+                <span class="count-text">${s.count}회</span>
+            </div>
+        `).join('');
+        
+        document.getElementById('detailModal').style.display = 'flex';
+    }
+
+    // 노래 클릭 시 팝업
+    function showSongDetail(songTitle) {
+        const song = fullSongData.find(s => s.title === songTitle);
+        document.getElementById('modal-title').innerText = `🎵 ${song.title}`;
+        document.getElementById('modal-subtitle').innerText = `가수: ${song.artist} / 총 ${song.count}회 가창`;
+        
+        // 가창 히스토리 표시 (나중에 기록 데이터가 쌓이면 이 부분이 날짜 리스트로 채워집니다)
+        if (song.history && song.history.length > 0) {
+            document.getElementById('modal-list').innerHTML = song.history.map(date => `
+                <div class="detail-item">
+                    <span>가창 기록</span>
+                    <span class="badge">${date}</span>
+                </div>
+            `).join('');
+        } else {
+            document.getElementById('modal-list').innerHTML = `<div style="text-align:center; padding:20px; color:var(--text-sub);">아직 가창 기록이 없습니다.</div>`;
+        }
+        
+        document.getElementById('detailModal').style.display = 'flex';
+    }
+
+    function closeModal() {
+        document.getElementById('detailModal').style.display = 'none';
+    }
+
+    // 모달 바깥쪽 클릭 시 닫기
+    window.onclick = function(event) {
+        const modal = document.getElementById('detailModal');
+        if (event.target == modal) closeModal();
     }
 
     function toggleDisplay(type) {
