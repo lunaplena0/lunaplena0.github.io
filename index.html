@@ -74,8 +74,8 @@
         .schedule-row:hover { background: none; }
         .day { font-weight: bold; color: var(--text-sub); }
 
-        .today-highlight { background: rgba(145, 71, 255, 0.15) !important; border: 1px solid var(--accent) !important; transform: scale(1.02); }
-        .today-highlight .day { color: var(--accent); }
+        /* 오늘 하이라이트 배경 제거, 테두리만 살짝 강조하거나 그대로 유지 */
+        .today-highlight { transform: scale(1.02); }
         .today-tag { font-size: 9px; background: var(--accent); color: white; padding: 2px 5px; border-radius: 4px; margin-left: 5px; vertical-align: middle; }
 
         @media (max-width: 900px) {
@@ -124,7 +124,6 @@
             const text = await response.text();
             const rows = text.split(/\r?\n/).map(row => row.split('\t'));
 
-            // 1. 프로필
             const profile = rows[2];
             if (profile) {
                 document.getElementById('user-nick').innerText = profile[0] || '닉네임';
@@ -134,7 +133,6 @@
                 document.getElementById('last-stream-time').innerText = lastTime ? `최근 방송: ${lastTime}` : "최근 방송 없음";
             }
 
-            // 2. 소셜 링크
             const linkBox = document.getElementById('social-links');
             linkBox.innerHTML = ''; 
             const songBtn = document.createElement('a');
@@ -159,7 +157,6 @@
                 });
             }
 
-            // 3. 최근 게시물
             const postBox = document.getElementById('post-container');
             const postData = rows.slice(8, 12).filter(p => p[1] && p[1].trim() !== "");
             postData.sort((a, b) => (b[3]?.trim() === 'O' ? 1 : 0) - (a[3]?.trim() === 'O' ? 1 : 0));
@@ -177,7 +174,6 @@
             });
             postBox.innerHTML = postHtml;
             
-            // 4. 다시보기
             const vodBox = document.getElementById('vod-container');
             const vodData = rows.slice(16, 20).filter(v => v[1] && v[1].trim() !== "");
             vodData.sort((a, b) => (b[4]?.trim() === 'O' ? 1 : 0) - (a[4]?.trim() === 'O' ? 1 : 0));
@@ -195,44 +191,43 @@
             });
             vodBox.innerHTML = vodHtml;
 
-            // 5. [추가된 부분] 방송 스케줄 (A25 ~ E29 행 사용)
-            // rows[24]부터 5줄(24, 25, 26, 27, 28)
+            // 스케줄 데이터 (A25 ~ E29 행)
             const scheduleRows = rows.slice(24, 29); 
             renderSchedule(scheduleRows);
 
         } catch (e) { console.error(e); }
     }
 
-    // 스케줄 렌더링 함수
     function renderSchedule(data) {
         const container = document.getElementById('schedule-container');
         if(!container) return;
         container.innerHTML = '';
 
-        // 오늘 날짜 구하기 (YYYY-MM-DD)
-        const todayStr = new Date().toLocaleDateString('en-CA'); // '2026-04-06' 형태
+        const todayStr = new Date().toLocaleDateString('en-CA'); 
 
         data.forEach(row => {
-            const date = row[0] ? row[0].trim() : '';   // 날짜
-            const day = row[1] ? row[1].trim() : '';    // 요일
-            const time = row[2] ? row[2].trim() : '';   // 시간
-            const content = row[3] ? row[3].trim() : ''; // 내용
-            const category = row[4] ? row[4].trim() : ''; // 분류 (합방 등)
+            const date = row[0] ? row[0].trim() : '';   
+            const day = row[1] ? row[1].trim() : '';    
+            const time = row[2] ? row[2].trim() : '';   
+            const content = row[3] ? row[3].trim() : ''; 
+            const category = row[4] ? row[4].trim() : ''; 
 
-            if(!date && !content) return; // 데이터 없으면 건너뜀
+            if(!date && !content) return; 
 
             const isToday = date === todayStr;
             const rowDiv = document.createElement('div');
+            // 오늘이어도 배경색 클래스는 유지하되, CSS에서 배경색 제거됨
             rowDiv.className = `item-row schedule-row ${isToday ? 'today-highlight' : ''}`;
 
-            // 시간과 제목 결합
             const timeInfo = time ? `<span style="color:var(--accent); font-weight:bold;">${time}</span>` : '';
             const contentInfo = content ? `<span style="margin-left:5px;">${content}</span>` : '휴방 또는 일정 없음';
 
             rowDiv.innerHTML = `
                 <div style="display:flex; flex-direction:column; gap:2px;">
                     <span class="day" style="font-size:11px;">${date} (${day})${isToday ? '<span class="today-tag">TODAY</span>' : ''}</span>
-                    <div style="font-size:13px;">${timeInfo} ${contentInfo}</div>
+                    <div style="font-size:13px; color:var(--text-main);">
+                        ${timeInfo} ${contentInfo}
+                    </div>
                 </div>
                 <div style="font-size:11px; color:var(--text-sub); align-self:flex-end;">${category}</div>
             `;
