@@ -56,6 +56,13 @@
         .badge { padding: 3px 8px; border-radius: 4px; font-size: 11px; background: #2f2f35; color: var(--text-sub); }
         .count-text { color: var(--accent); font-weight: bold; }
 
+        /* --- 태그 배지 스타일 추가 --- */
+        .tag-badge { display: inline-block; padding: 2px 9px; border-radius: 50px; font-size: 10px; font-weight: bold; margin-left: 8px; color: white; vertical-align: middle; }
+        .tag-200 { background-color: #ff4b4b; }
+        .tag-300 { background-color: #ff9100; }
+        .tag-기타 { background-color: #4caf50; }
+        .tag-default { background-color: #5b5b63; }
+
         .toggle-btn {
             width: 100%; padding: 12px; background: #1f1f23; border: none; color: var(--accent);
             font-size: 13px; font-weight: bold; cursor: pointer; border-top: 1px solid #2f2f35; display: none;
@@ -75,7 +82,7 @@
         .modal-header .sub-info { font-size: 13px; color: var(--text-sub); margin-top: 5px; }
         .close-modal { position: absolute; right: 20px; top: 20px; font-size: 24px; cursor: pointer; color: var(--text-sub); }
         .modal-body { padding: 20px; }
-        .detail-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #26262c; font-size: 14px; }
+        .detail-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #26262c; font-size: 14px; }
         .detail-item:last-child { border-bottom: none; }
 
         @media (max-width: 600px) {
@@ -147,6 +154,27 @@
     let artistSearchQuery = "";
     let songSearchQuery = "";
 
+    // --- 제목에서 [태그]를 추출하여 배지로 만드는 함수 ---
+    function parseTitleWithTag(originalTitle) {
+        const tagMatch = originalTitle.match(/^\[([^\]]+)\]/);
+        let displayTitle = originalTitle;
+        let tagHtml = '';
+
+        if (tagMatch) {
+            const fullTag = tagMatch[0]; // [기타]
+            const tagText = tagMatch[1]; // 기타
+            displayTitle = originalTitle.replace(fullTag, '').trim();
+            
+            let tagClass = 'tag-default';
+            if (tagText.includes("200")) tagClass = 'tag-200';
+            else if (tagText.includes("300")) tagClass = 'tag-300';
+            else if (tagText.includes("기타")) tagClass = 'tag-기타';
+            
+            tagHtml = `<span class="tag-badge ${tagClass}">${tagText}</span>`;
+        }
+        return `${displayTitle}${tagHtml}`;
+    }
+
     async function initStats() {
         try {
             const [bookRes, statRes] = await Promise.all([
@@ -166,45 +194,37 @@
             allLines.forEach((line) => {
                 const parts = line.split('\t').map(item => item.trim());
                 if (parts.length >= 2 && parts[0] !== "") {
-                    // 제목을 수정하지 않고 시트 그대로 사용 (기타 등이 붙어도 별개 처리)
                     const fullTitle = parts[0]; 
                     const artist = parts[1] || "Unknown";
                     const dateRaw = parts[2] || "";
                     const currentHistory = dateRaw ? dateRaw.split(',').map(d => d.trim()).filter(d => d !== "") : [];
 
-                    // 1. 노래 데이터 처리 (시트에 적힌 전체 제목을 기준으로 저장)
                     if (!songMap.has(fullTitle)) {
                         songMap.set(fullTitle, { title: fullTitle, artist, history: [] });
                     }
                     const sData = songMap.get(fullTitle);
-                    // 같은 제목이 여러 줄에 있을 경우를 대비해 날짜 합산
                     sData.history = [...sData.history, ...currentHistory].sort();
                     
-                    // 2. 가수 데이터 틀 생성
                     if (!artistMap.has(artist)) {
                         artistMap.set(artist, { songCount: 0, totalSing: 0, lastSing: "-", songs: new Set() });
                     }
                 }
             });
 
-            // 데이터 가공 및 통계 계산
             const songArray = Array.from(songMap.values()).map(song => {
                 const count = song.history.length;
                 const lastDate = count > 0 ? song.history[count - 1] : "-";
-                
                 const aData = artistMap.get(song.artist);
                 if (aData) {
-                    aData.songs.add(song.title); // '제목'과 '제목 (기타)'가 각각 추가됨
+                    aData.songs.add(song.title);
                     aData.totalSing += count;
                     if (lastDate !== "-" && (aData.lastSing === "-" || lastDate > aData.lastSing)) {
                         aData.lastSing = lastDate;
                     }
                 }
-                
                 return { ...song, count, lastDate };
             });
 
-            // 가수별 최종 데이터 정리
             fullArtistData = Array.from(artistMap.entries()).map(([name, data]) => {
                 return [name, { ...data, songCount: data.songs.size }];
             }).sort((a, b) => b[1].songCount - a[1].songCount);
@@ -270,7 +290,7 @@
         } else {
             tbody.innerHTML = displayData.map(song => `
                 <tr onclick="showSongDetail('${song.title.replace(/'/g, "\\'")}')">
-                    <td>${song.title}</td>
+                    <td>${parseTitleWithTag(song.title)}</td>
                     <td style="color:var(--text-sub);">${song.artist}</td>
                     <td><span class="count-text">${song.count}</span> 회</td>
                     <td style="font-size:12px; color:var(--text-sub);">${song.lastDate}</td>
@@ -287,7 +307,10 @@
         document.getElementById('modal-subtitle').innerText = `보유 곡: ${info.songCount}곡 / 총 가창: ${info.totalSing}회`;
         const songsByArtist = fullSongData.filter(s => s.artist === artistName);
         document.getElementById('modal-list').innerHTML = songsByArtist.map(s => `
-            <div class="detail-item"><span>${s.title}</span><span class="count-text">${s.count}회</span></div>
+            <div class="detail-item">
+                <span>${parseTitleWithTag(s.title)}</span>
+                <span class="count-text">${s.count}회</span>
+            </div>
         `).join('');
         document.getElementById('detailModal').style.display = 'flex';
     }
@@ -295,7 +318,7 @@
     function showSongDetail(songTitle) {
         const song = fullSongData.find(s => s.title === songTitle);
         if(!song) return;
-        document.getElementById('modal-title').innerText = `🎵 ${song.title}`;
+        document.getElementById('modal-title').innerHTML = `🎵 ${parseTitleWithTag(song.title)}`;
         document.getElementById('modal-subtitle').innerText = `가수: ${song.artist} / 총 ${song.count}회 가창`;
         if (song.history && song.history.length > 0) {
             document.getElementById('modal-list').innerHTML = song.history.map(date => `
