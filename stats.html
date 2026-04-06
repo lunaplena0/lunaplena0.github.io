@@ -124,9 +124,8 @@
             
             // 줄바꿈으로 나누고 빈 줄 제거
             const lines = tsvText.split('\n').filter(line => line.trim() !== "");
-            const dataLines = lines.slice(1); // 헤더(1행) 제외
+            const dataLines = lines.slice(1); // 헤더 제외
 
-            // 순서 보장을 위해 Map 사용
             const artistMap = new Map(); 
             const songArray = [];   
 
@@ -137,15 +136,15 @@
                     const title = parts[0];
                     const artist = parts[1] || "Unknown";
 
-                    // 1. 모든 노래를 각각 배열에 담음 (개수 100% 일치)
+                    // 1. 노래 데이터 수집
                     songArray.push({
                         title: title,
                         artist: artist,
-                        count: 0,
+                        count: 0, // 나중에 RECORD_SHEET 데이터가 연결되면 이 값이 변합니다.
                         lastDate: "-"
                     });
                     
-                    // 2. 가수별 카운팅 (등장 순서 보장)
+                    // 2. 가수 데이터 수집
                     if (!artistMap.has(artist)) {
                         artistMap.set(artist, { songCount: 0, totalSing: 0, lastSing: "-" });
                     }
@@ -153,9 +152,12 @@
                 }
             });
 
-            // 배열 변환
-            fullArtistData = Array.from(artistMap.entries());
-            fullSongData = songArray;
+            // [정렬 로직 추가]
+            // 가수별: 보유 곡 수(songCount)가 많은 순서대로 정렬
+            fullArtistData = Array.from(artistMap.entries()).sort((a, b) => b[1].songCount - a[1].songCount);
+
+            // 노래별: 가창 횟수(count)가 많은 순서대로 정렬
+            fullSongData = songArray.sort((a, b) => b.count - a.count);
 
             render('artist');
             render('song');
