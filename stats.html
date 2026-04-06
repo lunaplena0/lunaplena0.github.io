@@ -33,39 +33,49 @@
     </div>
 
     <script>
-        const sheetUrl = "https://docs.google.com/spreadsheets/d/1q_P96q2ZwvFRToZ4GAv_0EKVOcLRTR-Y392610eAV04/gviz/tq?tqx=out:csv";
+// 시트 주소 설정
+const BOOK_SHEET_URL = "https://docs.google.com/spreadsheets/d/1q_P96q2ZwvFRToZ4GAv_0EKVOcLRTR-Y392610eAV04/gviz/tq?tqx=out:csv";
+const RECORD_SHEET_URL = "나중에_만들_가창기록_시트_주소";
 
-        async function loadStats() {
-            const res = await fetch(sheetUrl);
-            const csv = await res.text();
-            const lines = csv.split('\n').slice(1); // 헤더 제외
+async function buildStats() {
+    // 1. 두 시트의 데이터를 동시에 가져옴
+    const [bookRes, recordRes] = await Promise.all([
+        fetch(BOOK_SHEET_URL).then(res => res.text()),
+        fetch(RECORD_SHEET_URL).then(res => res.text())
+    ]);
 
-            const artistMap = {};
+    const artistStats = {}; // { "가수명": { songs: [], totalSing: 0, lastDate: "" } }
 
-            lines.forEach(line => {
-                const parts = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(item => item.replace(/"/g, '').trim());
-                if (parts.length < 2) return;
-
-                const title = parts[0];
-                const artist = parts[1] || "Unknown";
-                const singCount = parseInt(parts[3]) || 0; // 시트의 4번째 열이 '횟수'라고 가정
-                const lastDate = parts[4] || "-";         // 시트의 5번째 열이 '날짜'라고 가정
-
-                if (!artistMap[artist]) {
-                    artistMap[artist] = { songCount: 0, totalSing: 0, lastSing: "-" };
-                }
-
-                artistMap[artist].songCount += 1;
-                artistMap[artist].totalSing += singCount;
-                
-                // 가장 최근 날짜 비교 (단순 문자열 비교 또는 날짜 객체 변환 필요)
-                if (lastDate !== "-" && (artistMap[artist].lastSing === "-" || lastDate > artistMap[artist].lastSing)) {
-                    artistMap[artist].lastSing = lastDate;
-                }
-            });
-
-            renderStats(artistMap);
+    // 2. 노래책 시트 분석 (가수별 보유 곡 목록 생성)
+    const bookRows = bookRes.split('\n').slice(1);
+    bookRows.forEach(row => {
+        const [title, artist] = parseRow(row); // 행 파싱 함수(쉼표/탭 구분)
+        if (!artistStats[artist]) {
+            artistStats[artist] = { songs: [], totalSing: 0, lastDate: "-" };
         }
+        artistStats[artist].songs.push(title);
+    });
+
+    // 3. 가창 기록 시트 분석 (곡 제목으로 가수 찾아서 횟수/날짜 누적)
+    const recordRows = recordRes.split('\n').slice(1);
+    recordRows.forEach(row => {
+        const [title, date, count] = parseRow(row); // 제목, 날짜, 횟수
+        
+        // 모든 가수를 돌며 해당 곡을 가진 가수를 찾음
+        for (const artist in artistStats) {
+            if (artistStats[artist].songs.includes(title)) {
+                artistStats[artist].totalSing += parseInt(count || 0);
+                // 최근 날짜 갱신
+                if (artistStats[artist].lastDate === "-" || date > artistStats[artist].lastDate) {
+                    artistStats[artist].lastDate = date;
+                }
+                break; 
+            }
+        }
+    });
+
+    renderTable(artistStats);
+}
 
         function renderStats(artistMap) {
             const tbody = document.getElementById('stats-body');
