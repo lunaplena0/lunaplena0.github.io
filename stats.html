@@ -134,27 +134,29 @@
             const songMap = {};   
 
             dataLines.forEach((line) => {
-                // 탭(\t)으로 구분하여 분리
-                const parts = line.split('\t').map(item => item.trim());
+    const parts = line.split('\t').map(item => item.trim());
 
-                // parts[0] = 노래제목(A열), parts[1] = 가수명(B열)
-                if (parts.length >= 2 && parts[0] !== "") {
-                    const title = parts[0];
-                    const artist = parts[1] || "Unknown";
+    if (parts.length >= 2 && parts[0] !== "") {
+        const title = parts[0];
+        const artist = parts[1] || "Unknown";
 
-                    // 1. 노래별 데이터 (태그 포함 제목 그대로 별개 곡 처리)
-                    // 만약 시트에 완전히 동일한 제목이 중복 있다면 1개로 합쳐서 카운트
-                    if (!songMap[title]) {
-                        songMap[title] = { artist: artist, count: 0, lastDate: "-" };
-                        
-                        // 2. 가수별 곡 수 누적
-                        if (!artistMap[artist]) {
-                            artistMap[artist] = { songCount: 0, totalSing: 0, lastSing: "-" };
-                        }
-                        artistMap[artist].songCount++; 
-                    }
-                }
-            });
+        // [수정 포인트] 중복 체크(if)를 없애거나, 제목에 고유 번호를 붙여서 저장합니다.
+        // 제목이 같아도 시트의 모든 행을 각각 보여주기 위해 고유 키를 만듭니다.
+        const uniqueKey = `${title}_${Math.random()}`; 
+
+        songMap.set(uniqueKey, { 
+            displayTitle: title, // 화면에 표시할 실제 제목
+            artist: artist, 
+            count: 0, 
+            lastDate: "-" 
+        });
+        
+        if (!artistMap.has(artist)) {
+            artistMap.set(artist, { songCount: 0, totalSing: 0, lastSing: "-" });
+        }
+        artistMap.get(artist).songCount++; 
+    }
+});
 
             // 데이터 배열 변환 및 정렬 (곡 수 많은 순)
             fullArtistData = Object.entries(artistMap).sort((a, b) => b[1].songCount - a[1].songCount);
