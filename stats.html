@@ -31,7 +31,6 @@
 
         .section-title { font-size: 18px; font-weight: bold; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
 
-        /* 검색창 스타일 */
         .search-container { margin-bottom: 15px; position: relative; }
         .search-input {
             width: 100%;
@@ -62,7 +61,6 @@
             font-size: 13px; font-weight: bold; cursor: pointer; border-top: 1px solid #2f2f35; display: none;
         }
 
-        /* 팝업(모달) 스타일 생략(동일) */
         .modal {
             display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%;
             background-color: var(--modal-overlay); align-items: center; justify-content: center; backdrop-filter: blur(5px);
@@ -141,7 +139,8 @@
 
 <script>
     const BOOK_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSIfrVC6MakrvA_D8rsQeTT6oaX_0w4bc8I_aaJuoQi4g_AuuvFi-nCP_lnHwvoSAsFKxagrzhoPy_J/pub?gid=0&single=true&output=tsv";
-    
+    const STAT_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSIfrVC6MakrvA_D8rsQeTT6oaX_0w4bc8I_aaJuoQi4g_AuuvFi-nCP_lnHwvoSAsFKxagrzhoPy_J/pub?gid=142777261&single=true&output=tsv";
+
     let fullArtistData = [];
     let fullSongData = [];
     let isArtistExpanded = false;
@@ -151,48 +150,73 @@
 
     async function initStats() {
         try {
-            const bookRes = await fetch(BOOK_SHEET_URL);
-            const tsvText = await bookRes.text();
-            const lines = tsvText.split(/\r?\n/).filter(line => line.trim() !== "");
-            const dataLines = lines.slice(1);
+            // 두 시트 데이터를 동시에 병렬로 가져옴
+            const [bookRes, statRes] = await Promise.all([
+                fetch(BOOK_SHEET_URL),
+                fetch(STAT_SHEET_URL)
+            ]);
+
+            const bookText = await bookRes.text();
+            const statText = await statRes.text();
+
+            const parseTSV = (text) => text.split(/\r?\n/).filter(line => line.trim() !== "").slice(1);
+            const allLines = [...parseTSV(bookText), ...parseTSV(statText)];
 
             const artistMap = new Map(); 
-            const songArray = [];   
+            const songMap = new Map(); // 중복 노래 합산을 위해 Map 사용
 
-            dataLines.forEach((line) => {
+            allLines.forEach((line) => {
                 const parts = line.split('\t').map(item => item.trim());
                 if (parts.length >= 2 && parts[0] !== "") {
                     const title = parts[0];
                     const artist = parts[1] || "Unknown";
                     const dateRaw = parts[2] || "";
-                    const history = dateRaw ? dateRaw.split(',').map(d => d.trim()) : [];
-                    const count = history.length;
-                    const lastDate = count > 0 ? history[count - 1] : "-";
+                    const currentHistory = dateRaw ? dateRaw.split(',').map(d => d.trim()).filter(d => d !== "") : [];
 
-                    songArray.push({ title, artist, count, lastDate, history });
-                    
-                    if (!artistMap.has(artist)) {
-                        artistMap.set(artist, { songCount: 0, totalSing: 0, lastSing: "-", songs: [] });
+                    // 1. 노래 데이터 통합 (Map을 사용하여 제목이 같으면 날짜 합산)
+                    if (!songMap.has(title)) {
+                        songMap.set(title, { title, artist, history: [] });
                     }
-                    const aData = artistMap.get(artist);
-                    aData.songCount++;
+                    const sData = songMap.get(title);
+                    sData.history = [...sData.history, ...currentHistory].sort(); // 날짜순 정렬
+                    
+                    // 2. 가수 데이터 통합
+                    if (!artistMap.has(artist)) {
+                        artistMap.set(artist, { songCount: 0, totalSing: 0, lastSing: "-", songs: new Set() });
+                    }
+                }
+            });
+
+            // 데이터 가공 (songArray 생성 및 artistMap 수치 계산)
+            const songArray = Array.from(songMap.values()).map(song => {
+                const count = song.history.length;
+                const lastDate = count > 0 ? song.history[count - 1] : "-";
+                
+                // 가수 데이터 업데이트
+                const aData = artistMap.get(song.artist);
+                if (aData) {
+                    aData.songs.add(song.title);
                     aData.totalSing += count;
                     if (lastDate !== "-" && (aData.lastSing === "-" || lastDate > aData.lastSing)) {
                         aData.lastSing = lastDate;
                     }
-                    aData.songs.push({title, count});
                 }
+                
+                return { ...song, count, lastDate };
             });
 
-            // 정렬: 가수(보유곡 많은 순), 노래(가창횟수 많은 순)
-            fullArtistData = Array.from(artistMap.entries()).sort((a, b) => b[1].songCount - a[1].songCount);
+            // artistMap 최종 정리
+            fullArtistData = Array.from(artistMap.entries()).map(([name, data]) => {
+                return [name, { ...data, songCount: data.songs.size }];
+            }).sort((a, b) => b[1].songCount - a[1].songCount);
+
             fullSongData = songArray.sort((a, b) => b.count - a.count);
 
             render('artist');
             render('song');
         } catch (e) {
-            console.error(e);
-            document.getElementById('artist-stats-body').innerHTML = `<tr><td colspan="4">오류 발생</td></tr>`;
+            console.error("Data Load Error:", e);
+            document.getElementById('artist-stats-body').innerHTML = `<tr><td colspan="4" style="text-align:center;">데이터 로딩 중 오류가 발생했습니다. (시트 설정을 확인하세요)</td></tr>`;
         }
     }
 
@@ -207,7 +231,6 @@
         const query = type === 'artist' ? artistSearchQuery : songSearchQuery;
         let data = type === 'artist' ? fullArtistData : fullSongData;
 
-        // 검색 필터링 로직
         if (query) {
             if (type === 'artist') {
                 data = data.filter(([name]) => name.toLowerCase().includes(query));
@@ -221,11 +244,8 @@
 
         const tbody = document.getElementById(`${type === 'artist' ? 'artist-stats-body' : 'song-detail-body'}`);
         const btn = document.getElementById(`${type}-toggle`);
-
-        // 검색 중이 아닐 때만 5개 제한 적용
         const displayData = (isExpanded || query) ? data : data.slice(0, 5);
         
-        // 더보기 버튼 표시 여부 (검색 중일 때는 숨김)
         if (data.length > 5 && !query) {
             btn.style.display = 'block';
             btn.innerText = isExpanded ? '▲ 접기' : `▼ 더보기 (${data.length - 5}개)`;
@@ -234,7 +254,7 @@
         }
 
         if (data.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:30px; color:var(--text-sub);">검색 결과가 없습니다.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:30px; color:var(--text-sub);">결과가 없습니다.</td></tr>`;
             return;
         }
 
@@ -259,9 +279,10 @@
         }
     }
 
-    // 모달 함수 (동일)
     function showArtistDetail(artistName) {
-        const info = fullArtistData.find(([name]) => name === artistName)[1];
+        const item = fullArtistData.find(([name]) => name === artistName);
+        if(!item) return;
+        const info = item[1];
         document.getElementById('modal-title').innerText = `🎤 ${artistName}`;
         document.getElementById('modal-subtitle').innerText = `보유 곡: ${info.songCount}곡 / 총 가창: ${info.totalSing}회`;
         const songsByArtist = fullSongData.filter(s => s.artist === artistName);
@@ -273,6 +294,7 @@
 
     function showSongDetail(songTitle) {
         const song = fullSongData.find(s => s.title === songTitle);
+        if(!song) return;
         document.getElementById('modal-title').innerText = `🎵 ${song.title}`;
         document.getElementById('modal-subtitle').innerText = `가수: ${song.artist} / 총 ${song.count}회 가창`;
         if (song.history && song.history.length > 0) {
