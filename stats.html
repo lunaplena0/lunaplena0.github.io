@@ -110,10 +110,10 @@
 </div>
 
 <script>
-    const BOOK_SHEET_URL = "https://docs.google.com/spreadsheets/d/1q_P96q2ZwvFRToZ4GAv_0EKVOcLRTR-Y392610eAV04/gviz/tq?tqx=out:csv";
+    // [설정] 제공해주신 TSV 주소로 교체
+    const BOOK_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSIfrVC6MakrvA_D8rsQeTT6oaX_0w4bc8I_aaJuoQi4g_AuuvFi-nCP_lnHwvoSAsFKxagrzhoPy_J/pub?gid=0&single=true&output=tsv";
     const RECORD_SHEET_URL = ""; 
 
-    // 데이터를 저장할 전역 변수
     let fullArtistData = [];
     let fullSongData = [];
     let isArtistExpanded = false;
@@ -122,49 +122,67 @@
     async function initStats() {
         try {
             const bookRes = await fetch(BOOK_SHEET_URL);
-            const bookCsv = await bookRes.text();
-            const bookLines = bookCsv.split('\n').slice(1);
+            const tsvText = await bookRes.text();
+            
+            // 줄바꿈으로 나누고 빈 줄 제거
+            const lines = tsvText.split('\n').filter(line => line.trim() !== "");
+            
+            // A2, B2부터 시작이므로 첫 번째 줄(헤더) 제외
+            const dataLines = lines.slice(1);
 
             const artistMap = {}; 
             const songMap = {};   
 
-            bookLines.forEach(line => {
-                const parts = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(item => item.replace(/"/g, '').trim());
-                if (parts.length < 2 || !parts[0]) return;
-                const title = parts[0], artist = parts[1] || "Unknown";
-                songMap[title] = { artist: artist, count: 0, lastDate: "-" };
-                if (!artistMap[artist]) artistMap[artist] = { songCount: 0, totalSing: 0, lastSing: "-" };
-                artistMap[artist].songCount++;
+            dataLines.forEach((line) => {
+                // 탭(\t)으로 구분하여 분리
+                const parts = line.split('\t').map(item => item.trim());
+
+                // parts[0] = 노래제목(A열), parts[1] = 가수명(B열)
+                if (parts.length >= 2 && parts[0] !== "") {
+                    const title = parts[0];
+                    const artist = parts[1] || "Unknown";
+
+                    // 1. 노래별 데이터 (태그 포함 제목 그대로 별개 곡 처리)
+                    // 만약 시트에 완전히 동일한 제목이 중복 있다면 1개로 합쳐서 카운트
+                    if (!songMap[title]) {
+                        songMap[title] = { artist: artist, count: 0, lastDate: "-" };
+                        
+                        // 2. 가수별 곡 수 누적
+                        if (!artistMap[artist]) {
+                            artistMap[artist] = { songCount: 0, totalSing: 0, lastSing: "-" };
+                        }
+                        artistMap[artist].songCount++; 
+                    }
+                }
             });
 
-            // 나중에 가창 기록 처리 로직 (생략 - 기존과 동일)
-
-            // 배열로 변환 및 정렬
+            // 데이터 배열 변환 및 정렬 (곡 수 많은 순)
             fullArtistData = Object.entries(artistMap).sort((a, b) => b[1].songCount - a[1].songCount);
             fullSongData = Object.entries(songMap).sort((a, b) => b[1].count - a[1].count);
 
             render('artist');
             render('song');
 
-        } catch (e) { console.error(e); }
+        } catch (e) {
+            console.error("TSV 데이터 로드 실패:", e);
+            document.getElementById('artist-stats-body').innerHTML = `<tr><td colspan="4" style="text-align:center; color:red;">데이터를 불러오지 못했습니다.</td></tr>`;
+        }
     }
 
+    // 렌더링 함수 (기존과 동일)
     function render(type) {
         const isExpanded = type === 'artist' ? isArtistExpanded : isSongExpanded;
         const data = type === 'artist' ? fullArtistData : fullSongData;
         const tbody = document.getElementById(`${type === 'artist' ? 'artist-stats-body' : 'song-detail-body'}`);
         const btn = document.getElementById(`${type}-toggle`);
 
-        // 상위 5개 또는 전체 데이터 결정
         const displayData = isExpanded ? data : data.slice(0, 5);
         
-        // 버튼 표시 여부
         if (data.length > 5) {
             btn.style.display = 'block';
             btn.innerText = isExpanded ? '▲ 접기' : `▼ 더보기 (${data.length - 5}개 더 있음)`;
         }
 
-        // HTML 생성
         if (type === 'artist') {
             tbody.innerHTML = displayData.map(([name, info]) => `
                 <tr>
