@@ -171,15 +171,19 @@
             const postData = rows.slice(8, 12).filter(p => p[1] && p[1].trim() !== "");
             postData.sort((a, b) => (b[3]?.trim() === 'O' ? 1 : 0) - (a[3]?.trim() === 'O' ? 1 : 0));
 
-            let postHtml = '<h2>📢 최근 게시물</h2>';
-            postData.forEach(p => {
-                const isNotice = p[3]?.trim() === 'O' ? ' 📌' : '';
-                postHtml += `
-                    <div class="item-row" onclick="window.open('${p[2]}', '_blank')">
-                        <div class="item-date">${p[0]}</div>
-                        <div style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${p[1]}${isNotice}</div>
-                    </div>`;
-            });
+           postData.forEach(p => {
+    // 1. 📌 아이콘 설정 (오른쪽 끝으로 밀기 위해 margin-left: auto 추가)
+    const isNotice = p[3]?.trim() === 'O' ? '<span style="margin-left: auto;">📌</span>' : '';
+    
+    postHtml += `
+        <div class="item-row" onclick="window.open('${p[2]}', '_blank')" style="display: flex; align-items: center;">
+            <div class="item-date">${p[0]}</div>
+            <div style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex: 1; margin-left: 10px;">
+                ${p[1]}
+            </div>
+            ${isNotice}
+        </div>`;
+});
             postBox.innerHTML = postHtml;
 
             // 4. 다시보기 (17~20행) - 고정 VOD(E열 'O') 최상단
