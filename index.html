@@ -39,9 +39,13 @@
             background-size: cover; background-position: center;
         }
 
-        .profile-info { flex-grow: 1; }
+        .profile-info { flex-grow: 1; min-width: 0; } /* min-width 추가 */
         .profile-info h1 { margin: 0 0 5px; font-size: 26px; font-weight: 700; }
-        .profile-info p { color: var(--text-sub); margin: 0 0 10px; font-size: 14px; max-width: 450px; line-height: 1.6; }
+        .profile-info p { 
+            color: var(--text-sub); margin: 0 0 10px; font-size: 14px; 
+            max-width: 450px; line-height: 1.6;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; /* 프로필 설명도 한줄처리 */
+        }
 
         .social-links { display: flex; gap: 10px; flex-wrap: wrap; }
         .link-btn { padding: 7px 15px; background: #26262c; border-radius: 8px; color: var(--text-main); text-decoration: none; font-size: 12px; border: 1px solid #3a3a3d; transition: 0.3s; }
@@ -63,11 +67,11 @@
             padding: 25px; 
             min-height: 480px; 
             box-sizing: border-box;
+            min-width: 0; /* 자식 요소의 말줄임표 작동을 위해 추가 */
         }
 
         h2 { font-size: 14px; margin-top: 0; color: var(--accent); border-bottom: 1px solid #2f2f35; padding-bottom: 12px; margin-bottom: 15px; }
 
-        /* 공통 항목 스타일 */
         .item-row { 
             padding: 10px; 
             border-bottom: 1px solid #26262c; 
@@ -75,17 +79,17 @@
             border-radius: 8px; 
             transition: 0.2s; 
             cursor: pointer;
-            min-height: 66px; /* 모든 칸의 높이를 다시보기 썸네일 기준으로 통일 */
+            min-height: 66px;
             display: flex;
             flex-direction: column;
             justify-content: center;
             box-sizing: border-box;
+            min-width: 0;
         }
         .item-row:hover { background: rgba(255, 255, 255, 0.05); }
         .item-row:last-child { border: none; }
         .item-date { font-size: 11px; color: var(--text-sub); margin-bottom: 4px; }
         
-        /* 다시보기 전용 레이아웃 보정 */
         .vod-row { 
             flex-direction: row !important; 
             align-items: center; 
@@ -101,7 +105,6 @@
             background-position: center; 
         }
 
-        /* 스케줄 전용 레이아웃 보정 */
         .schedule-row { 
             flex-direction: row !important; 
             justify-content: space-between; 
@@ -116,6 +119,13 @@
             transform: scale(1.02); 
         }
         .today-tag { font-size: 9px; background: var(--accent); color: white; padding: 2px 5px; border-radius: 4px; margin-left: 5px; vertical-align: middle; }
+
+        /* 말줄임표 공통 스타일 */
+        .ellipsis {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
 
         @media (max-width: 900px) {
             .profile-box { flex-direction: column; padding-bottom: 40px; }
@@ -201,12 +211,12 @@
             postData.sort((a, b) => (b[3]?.trim() === 'O' ? 1 : 0) - (a[3]?.trim() === 'O' ? 1 : 0));
             let postHtml = '<h2>📢 최근 게시물</h2>'; 
             postData.forEach(p => {
-                const isNotice = p[3]?.trim() === 'O' ? '<span style="margin-left: auto; flex-shrink: 0;">📌</span>' : ''; 
+                const isNotice = p[3]?.trim() === 'O' ? '<span style="margin-left: 8px; flex-shrink: 0;">📌</span>' : ''; 
                 postHtml += `
                     <div class="item-row" onclick="window.open('${p[2]}', '_blank')" style="display: flex; flex-direction: row; align-items: center;">
                         <div style="flex: 1; min-width: 0;">
                             <div class="item-date">${p[0]}</div>
-                            <div style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size: 13px;">${p[1]}</div>
+                            <div class="ellipsis" style="font-size: 13px;">${p[1]}</div>
                         </div>
                         ${isNotice}
                     </div>`;
@@ -224,7 +234,7 @@
                         <div class="vod-thumb" style="background-image:url('${v[3]}')"></div>
                         <div style="flex:1; min-width:0;">
                             <div class="item-date">${v[0]}</div>
-                            <div style="font-size:12px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">${isPin}${v[1]}</div>
+                            <div class="ellipsis" style="font-size:12px;">${isPin}${v[1]}</div>
                         </div>
                     </div>`;
             });
@@ -255,17 +265,17 @@
             const rowDiv = document.createElement('div');
             rowDiv.className = `item-row schedule-row ${isToday ? 'today-highlight' : ''}`;
 
-            const timeInfo = time ? `<span style="color:var(--accent); font-weight:bold;">${time}</span>` : '';
-            const contentInfo = content ? `<span style="margin-left:5px;">${content}</span>` : '휴방 또는 일정 없음';
+            const timeInfo = time ? `<span style="color:var(--accent); font-weight:bold; flex-shrink:0;">${time}</span>` : '';
+            const contentInfo = content ? `<span class="ellipsis" style="margin-left:5px; flex:1;">${content}</span>` : '<span style="margin-left:5px; flex:1;">휴방 또는 일정 없음</span>';
 
             rowDiv.innerHTML = `
-                <div style="display:flex; flex-direction:column; gap:2px;">
+                <div style="display:flex; flex-direction:column; gap:2px; flex:1; min-width:0;">
                     <span class="day" style="font-size:11px;">${date} (${day})${isToday ? '<span class="today-tag">TODAY</span>' : ''}</span>
-                    <div style="font-size:13px; color:var(--text-main);">
+                    <div style="font-size:13px; color:var(--text-main); display:flex; align-items:center;">
                         ${timeInfo} ${contentInfo}
                     </div>
                 </div>
-                <div style="font-size:11px; color:var(--text-sub); align-self:flex-end;">${category}</div>
+                <div style="font-size:11px; color:var(--text-sub); align-self:flex-end; flex-shrink:0; margin-left:10px;">${category}</div>
             `;
             container.appendChild(rowDiv);
         });
