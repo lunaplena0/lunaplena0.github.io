@@ -171,17 +171,15 @@
             const postData = rows.slice(8, 12).filter(p => p[1] && p[1].trim() !== "");
             postData.sort((a, b) => (b[3]?.trim() === 'O' ? 1 : 0) - (a[3]?.trim() === 'O' ? 1 : 0));
 
-           postData.forEach(p => {
-    // 1. 📌 아이콘 설정 (오른쪽 끝으로 밀기 위해 margin-left: auto 추가)
-    const isNotice = p[3]?.trim() === 'O' ? '<span style="margin-left: auto;">📌</span>' : '';
+          postData.forEach(p => {
+    // '📌 ' 대신 뒤에 붙을 ' 📌'로 변경 (공백 위치 주의)
+    const isNotice = p[3]?.trim() === 'O' ? ' 📌' : ''; 
     
     postHtml += `
-        <div class="item-row" onclick="window.open('${p[2]}', '_blank')" style="display: flex; align-items: center;">
+        <div class="item-row" onclick="window.open('${p[2]}', '_blank')">
             <div class="item-date">${p[0]}</div>
-            <div style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex: 1; margin-left: 10px;">
-                ${p[1]}
-            </div>
-            ${isNotice}
+            <div style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                ${p[1]}${isNotice}  </div>
         </div>`;
 });
             postBox.innerHTML = postHtml;
