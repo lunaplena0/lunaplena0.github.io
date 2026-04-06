@@ -2,97 +2,197 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>노래 통계 분석</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>바다비 노래 통계</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
     <style>
-        /* songlist.html과 유사한 다크 모드 스타일 적용 */
-        .stats-container { max-width: 900px; margin: 40px auto; padding: 20px; }
-        .stats-card { background: #18181b; border-radius: 16px; padding: 25px; border: 1px solid #2f2f35; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #26262c; color: #efeff1; }
-        th { color: #9147ff; font-size: 14px; }
-        .count-badge { background: #26262c; padding: 2px 8px; border-radius: 4px; font-size: 12px; }
+        :root {
+            --bg-color: #0e0e10;
+            --card-bg: #18181b;
+            --accent: #9147ff;
+            --text-main: #efeff1;
+            --text-sub: #adadb8;
+        }
+
+        body { 
+            background-color: var(--bg-color); 
+            color: var(--text-main); 
+            font-family: 'Noto Sans KR', sans-serif; 
+            margin: 0; padding: 20px;
+        }
+
+        .wrapper { width: 100%; max-width: 1000px; margin: 0 auto; display: flex; flex-direction: column; gap: 30px; }
+
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 20px 0; border-bottom: 1px solid #2f2f35; }
+        .header h1 { font-size: 24px; margin: 0; color: var(--accent); }
+        .back-btn { padding: 8px 16px; background: #26262c; border-radius: 8px; color: var(--text-main); text-decoration: none; font-size: 13px; border: 1px solid #3a3a3d; }
+
+        .section-title { font-size: 18px; font-weight: bold; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+
+        /* 카드 스타일 */
+        .stats-card { background: var(--card-bg); border-radius: 16px; border: 1px solid #2f2f35; padding: 20px; overflow: hidden; }
+
+        /* 테이블 공통 */
+        table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        th { background: #1f1f23; padding: 12px; text-align: left; color: var(--text-sub); font-weight: normal; border-bottom: 2px solid #2f2f35; }
+        td { padding: 12px; border-bottom: 1px solid #26262c; }
+        
+        /* 배지 스타일 */
+        .badge { padding: 3px 8px; border-radius: 4px; font-size: 11px; background: #2f2f35; color: var(--text-sub); }
+        .count-text { color: var(--accent); font-weight: bold; }
+
+        /* 정렬 기능용 커서 */
+        th.sortable { cursor: pointer; }
+        th.sortable:hover { color: var(--accent); }
+
+        @media (max-width: 600px) {
+            .grid-container { grid-template-columns: 1fr; }
+            th:nth-child(4), td:nth-child(4) { display: none; } /* 모바일에서 가창일 숨김 */
+        }
     </style>
 </head>
 <body>
-    <div class="stats-container">
+
+<div class="wrapper">
+    <div class="header">
+        <h1>📊 바다비 노래 통계</h1>
+        <a href="songlist.html" class="back-btn">⬅ 노래책으로</a>
+    </div>
+
+    <div>
+        <div class="section-title">🎤 가수별 보유 곡 현황</div>
         <div class="stats-card">
-            <h2>📊 가수별 가창 통계</h2>
             <table>
                 <thead>
                     <tr>
                         <th>가수명</th>
                         <th>보유 곡 수</th>
                         <th>누적 가창 횟수</th>
-                        <th>마지막 가창일</th>
+                        <th>최근 가창일</th>
                     </tr>
                 </thead>
-                <tbody id="stats-body">
-                    </tbody>
+                <tbody id="artist-stats-body">
+                    <tr><td colspan="4" style="text-align:center;">데이터를 불러오는 중...</td></tr>
+                </tbody>
             </table>
         </div>
     </div>
 
-    <script>
-// 시트 주소 설정
-const BOOK_SHEET_URL = "https://docs.google.com/spreadsheets/d/1q_P96q2ZwvFRToZ4GAv_0EKVOcLRTR-Y392610eAV04/gviz/tq?tqx=out:csv";
-const RECORD_SHEET_URL = "나중에_만들_가창기록_시트_주소";
+    <div>
+        <div class="section-title">🎵 노래별 상세 기록</div>
+        <div class="stats-card">
+            <table>
+                <thead>
+                    <tr>
+                        <th>노래 제목</th>
+                        <th>가수</th>
+                        <th>가창 횟수</th>
+                        <th>마지막 기록</th>
+                    </tr>
+                </thead>
+                <tbody id="song-detail-body">
+                    </tbody>
+            </table>
+        </div>
+    </div>
+</div>
 
-async function buildStats() {
-    // 1. 두 시트의 데이터를 동시에 가져옴
-    const [bookRes, recordRes] = await Promise.all([
-        fetch(BOOK_SHEET_URL).then(res => res.text()),
-        fetch(RECORD_SHEET_URL).then(res => res.text())
-    ]);
+<script>
+    // [설정] 시트 URL 주소
+    const BOOK_SHEET_URL = "https://docs.google.com/spreadsheets/d/1q_P96q2ZwvFRToZ4GAv_0EKVOcLRTR-Y392610eAV04/gviz/tq?tqx=out:csv";
+    // [알림] 나중에 가창 기록용 시트가 완성되면 아래 변수에 주소를 넣으세요.
+    const RECORD_SHEET_URL = ""; 
 
-    const artistStats = {}; // { "가수명": { songs: [], totalSing: 0, lastDate: "" } }
+    async function initStats() {
+        try {
+            // 1. 노래책 데이터 가져오기
+            const bookRes = await fetch(BOOK_SHEET_URL);
+            const bookCsv = await bookRes.text();
+            const bookLines = bookCsv.split('\n').slice(1);
 
-    // 2. 노래책 시트 분석 (가수별 보유 곡 목록 생성)
-    const bookRows = bookRes.split('\n').slice(1);
-    bookRows.forEach(row => {
-        const [title, artist] = parseRow(row); // 행 파싱 함수(쉼표/탭 구분)
-        if (!artistStats[artist]) {
-            artistStats[artist] = { songs: [], totalSing: 0, lastDate: "-" };
-        }
-        artistStats[artist].songs.push(title);
-    });
+            const artistData = {}; // 가수별 데이터 저장소
+            const songData = {};   // 곡별 데이터 저장소
 
-    // 3. 가창 기록 시트 분석 (곡 제목으로 가수 찾아서 횟수/날짜 누적)
-    const recordRows = recordRes.split('\n').slice(1);
-    recordRows.forEach(row => {
-        const [title, date, count] = parseRow(row); // 제목, 날짜, 횟수
-        
-        // 모든 가수를 돌며 해당 곡을 가진 가수를 찾음
-        for (const artist in artistStats) {
-            if (artistStats[artist].songs.includes(title)) {
-                artistStats[artist].totalSing += parseInt(count || 0);
-                // 최근 날짜 갱신
-                if (artistStats[artist].lastDate === "-" || date > artistStats[artist].lastDate) {
-                    artistStats[artist].lastDate = date;
+            bookLines.forEach(line => {
+                const parts = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(item => item.replace(/"/g, '').trim());
+                if (parts.length < 2 || !parts[0]) return;
+
+                const title = parts[0];
+                const artist = parts[1] || "Unknown";
+
+                // 곡 정보 초기화
+                songData[title] = { artist: artist, count: 0, lastDate: "-" };
+
+                // 가수 정보 누적
+                if (!artistData[artist]) {
+                    artistData[artist] = { songCount: 0, totalSing: 0, lastSing: "-" };
                 }
-                break; 
+                artistData[artist].songCount++;
+            });
+
+            // 2. 가창 기록 데이터 처리 (나중에 RECORD_SHEET_URL이 있을 때만 작동)
+            if (RECORD_SHEET_URL) {
+                const recordRes = await fetch(RECORD_SHEET_URL);
+                const recordCsv = await recordRes.text();
+                const recordLines = recordCsv.split('\n').slice(1);
+
+                recordLines.forEach(line => {
+                    const [rTitle, rDate, rCount] = line.split(',').map(s => s.trim());
+                    if (songData[rTitle]) {
+                        const countVal = parseInt(rCount) || 1;
+                        songData[rTitle].count += countVal;
+                        songData[rTitle].lastDate = rDate;
+
+                        const artistName = songData[rTitle].artist;
+                        artistData[artistName].totalSing += countVal;
+                        if (artistData[artistName].lastSing === "-" || rDate > artistData[artistName].lastSing) {
+                            artistData[artistName].lastSing = rDate;
+                        }
+                    }
+                });
             }
+
+            renderArtistTable(artistData);
+            renderSongTable(songData);
+
+        } catch (e) {
+            console.error("데이터 로드 실패:", e);
         }
-    });
+    }
 
-    renderTable(artistStats);
-}
+    // 가수 테이블 렌더링
+    function renderArtistTable(data) {
+        const body = document.getElementById('artist-stats-body');
+        // 보유 곡이 많은 순으로 정렬
+        const sorted = Object.entries(data).sort((a, b) => b[1].songCount - a[1].songCount);
+        
+        body.innerHTML = sorted.map(([name, info]) => `
+            <tr>
+                <td><strong>${name}</strong></td>
+                <td><span class="count-text">${info.songCount}</span> 곡</td>
+                <td>${info.totalSing} 회</td>
+                <td class="badge">${info.lastSing}</td>
+            </tr>
+        `).join('');
+    }
 
-        function renderStats(artistMap) {
-            const tbody = document.getElementById('stats-body');
-            // 가창 횟수 많은 순으로 정렬
-            const sortedArtists = Object.entries(artistMap).sort((a, b) => b[1].totalSing - a[1].totalSing);
+    // 노래 상세 테이블 렌더링
+    function renderSongTable(data) {
+        const body = document.getElementById('song-detail-body');
+        const sorted = Object.entries(data).sort((a, b) => b[1].count - a[1].count);
 
-            tbody.innerHTML = sortedArtists.map(([name, data]) => `
-                <tr>
-                    <td><strong>${name}</strong></td>
-                    <td><span class="count-badge">${data.songCount}곡</span></td>
-                    <td>${data.totalSing}회</td>
-                    <td style="color: #adadb8; font-size: 13px;">${data.lastSing}</td>
-                </tr>
-            `).join('');
-        }
+        body.innerHTML = sorted.map(([title, info]) => `
+            <tr>
+                <td>${title}</td>
+                <td style="color:var(--text-sub);">${info.artist}</td>
+                <td><span class="count-text">${info.count}</span> 회</td>
+                <td style="font-size:12px; color:var(--text-sub);">${info.lastDate}</td>
+            </tr>
+        `).join('');
+    }
 
-        window.onload = loadStats;
-    </script>
+    window.onload = initStats;
+</script>
+
 </body>
 </html>
