@@ -12,7 +12,6 @@
             --accent: #9147ff;
             --text-main: #efeff1;
             --text-sub: #adadb8;
-            --live: #eb0400;
         }
 
         body { 
@@ -62,22 +61,31 @@
         .bottom-section .card { 
             flex-direction: column; 
             padding: 25px; 
-            min-height: 480px; /* 5개 항목이 들어갔을 때의 넉넉한 높이 */
+            min-height: 480px; 
             box-sizing: border-box;
         }
+
         h2 { font-size: 14px; margin-top: 0; color: var(--accent); border-bottom: 1px solid #2f2f35; padding-bottom: 12px; margin-bottom: 15px; }
 
+        /* 공통 항목 스타일 */
         .item-row { 
-    padding: 10px; 
-    min-height: 66px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-}
+            padding: 10px; 
+            border-bottom: 1px solid #26262c; 
+            font-size: 13px; 
+            border-radius: 8px; 
+            transition: 0.2s; 
+            cursor: pointer;
+            min-height: 66px; /* 모든 칸의 높이를 다시보기 썸네일 기준으로 통일 */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            box-sizing: border-box;
+        }
         .item-row:hover { background: rgba(255, 255, 255, 0.05); }
         .item-row:last-child { border: none; }
         .item-date { font-size: 11px; color: var(--text-sub); margin-bottom: 4px; }
         
+        /* 다시보기 전용 레이아웃 보정 */
         .vod-row { 
             flex-direction: row !important; 
             align-items: center; 
@@ -93,6 +101,7 @@
             background-position: center; 
         }
 
+        /* 스케줄 전용 레이아웃 보정 */
         .schedule-row { 
             flex-direction: row !important; 
             justify-content: space-between; 
@@ -101,13 +110,11 @@
         .schedule-row:hover { background: none; }
         .day { font-weight: bold; color: var(--text-sub); }
 
-        /* 오늘 하이라이트 배경 제거, 테두리만 살짝 강조하거나 그대로 유지 */
         .today-highlight { 
-        background: rgba(145, 71, 255, 0.15) !important; 
-        border: 1px solid var(--accent) !important; 
-        transform: scale(1.02); 
+            background: rgba(145, 71, 255, 0.15) !important; 
+            border: 1px solid var(--accent) !important; 
+            transform: scale(1.02); 
         }
-        .today-highlight .day { color: var(--text-sub); }
         .today-tag { font-size: 9px; background: var(--accent); color: white; padding: 2px 5px; border-radius: 4px; margin-left: 5px; vertical-align: middle; }
 
         @media (max-width: 900px) {
@@ -196,7 +203,7 @@
             postData.forEach(p => {
                 const isNotice = p[3]?.trim() === 'O' ? '<span style="margin-left: auto; flex-shrink: 0;">📌</span>' : ''; 
                 postHtml += `
-                    <div class="item-row" onclick="window.open('${p[2]}', '_blank')" style="display: flex; align-items: center;">
+                    <div class="item-row" onclick="window.open('${p[2]}', '_blank')" style="display: flex; flex-direction: row; align-items: center;">
                         <div style="flex: 1; min-width: 0;">
                             <div class="item-date">${p[0]}</div>
                             <div style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size: 13px;">${p[1]}</div>
@@ -223,7 +230,6 @@
             });
             vodBox.innerHTML = vodHtml;
 
-            // 스케줄 데이터 (A25 ~ E29 행)
             const scheduleRows = rows.slice(24, 29); 
             renderSchedule(scheduleRows);
 
@@ -234,7 +240,6 @@
         const container = document.getElementById('schedule-container');
         if(!container) return;
         container.innerHTML = '';
-
         const todayStr = new Date().toLocaleDateString('en-CA'); 
 
         data.forEach(row => {
@@ -248,7 +253,6 @@
 
             const isToday = date === todayStr;
             const rowDiv = document.createElement('div');
-            // 오늘이어도 배경색 클래스는 유지하되, CSS에서 배경색 제거됨
             rowDiv.className = `item-row schedule-row ${isToday ? 'today-highlight' : ''}`;
 
             const timeInfo = time ? `<span style="color:var(--accent); font-weight:bold;">${time}</span>` : '';
