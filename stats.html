@@ -53,7 +53,7 @@
             cursor: pointer;
             border-top: 1px solid #2f2f35;
             transition: 0.2s;
-            display: none; /* 기본 숨김 */
+            display: none;
         }
         .toggle-btn:hover { background: #26262c; }
 
@@ -110,10 +110,8 @@
 </div>
 
 <script>
-    // [설정] 제공해주신 TSV 주소로 교체
     const BOOK_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSIfrVC6MakrvA_D8rsQeTT6oaX_0w4bc8I_aaJuoQi4g_AuuvFi-nCP_lnHwvoSAsFKxagrzhoPy_J/pub?gid=0&single=true&output=tsv";
-    const RECORD_SHEET_URL = ""; 
-
+    
     let fullArtistData = [];
     let fullSongData = [];
     let isArtistExpanded = false;
@@ -126,52 +124,48 @@
             
             // 줄바꿈으로 나누고 빈 줄 제거
             const lines = tsvText.split('\n').filter(line => line.trim() !== "");
-            
-            // A2, B2부터 시작이므로 첫 번째 줄(헤더) 제외
-            const dataLines = lines.slice(1);
+            const dataLines = lines.slice(1); // 헤더(1행) 제외
 
-            const artistMap = {}; 
-            const songMap = {};   
+            // 순서 보장을 위해 Map 사용
+            const artistMap = new Map(); 
+            const songArray = [];   
 
             dataLines.forEach((line) => {
-    const parts = line.split('\t').map(item => item.trim());
+                const parts = line.split('\t').map(item => item.trim());
 
-    if (parts.length >= 2 && parts[0] !== "") {
-        const title = parts[0];
-        const artist = parts[1] || "Unknown";
+                if (parts.length >= 2 && parts[0] !== "") {
+                    const title = parts[0];
+                    const artist = parts[1] || "Unknown";
 
-        // [수정 포인트] 중복 체크(if)를 없애거나, 제목에 고유 번호를 붙여서 저장합니다.
-        // 제목이 같아도 시트의 모든 행을 각각 보여주기 위해 고유 키를 만듭니다.
-        const uniqueKey = `${title}_${Math.random()}`; 
+                    // 1. 모든 노래를 각각 배열에 담음 (개수 100% 일치)
+                    songArray.push({
+                        title: title,
+                        artist: artist,
+                        count: 0,
+                        lastDate: "-"
+                    });
+                    
+                    // 2. 가수별 카운팅 (등장 순서 보장)
+                    if (!artistMap.has(artist)) {
+                        artistMap.set(artist, { songCount: 0, totalSing: 0, lastSing: "-" });
+                    }
+                    artistMap.get(artist).songCount++; 
+                }
+            });
 
-        songMap.set(uniqueKey, { 
-            displayTitle: title, // 화면에 표시할 실제 제목
-            artist: artist, 
-            count: 0, 
-            lastDate: "-" 
-        });
-        
-        if (!artistMap.has(artist)) {
-            artistMap.set(artist, { songCount: 0, totalSing: 0, lastSing: "-" });
-        }
-        artistMap.get(artist).songCount++; 
-    }
-});
-
-            // 데이터 배열 변환 및 정렬 (곡 수 많은 순)
-            fullArtistData = Object.entries(artistMap).sort((a, b) => b[1].songCount - a[1].songCount);
-            fullSongData = Object.entries(songMap).sort((a, b) => b[1].count - a[1].count);
+            // 배열 변환
+            fullArtistData = Array.from(artistMap.entries());
+            fullSongData = songArray;
 
             render('artist');
             render('song');
 
         } catch (e) {
-            console.error("TSV 데이터 로드 실패:", e);
-            document.getElementById('artist-stats-body').innerHTML = `<tr><td colspan="4" style="text-align:center; color:red;">데이터를 불러오지 못했습니다.</td></tr>`;
+            console.error("데이터 로드 실패:", e);
+            document.getElementById('artist-stats-body').innerHTML = `<tr><td colspan="4" style="text-align:center; color:red;">데이터를 불러오는 중 오류가 발생했습니다.</td></tr>`;
         }
     }
 
-    // 렌더링 함수 (기존과 동일)
     function render(type) {
         const isExpanded = type === 'artist' ? isArtistExpanded : isSongExpanded;
         const data = type === 'artist' ? fullArtistData : fullSongData;
@@ -195,12 +189,12 @@
                 </tr>
             `).join('');
         } else {
-            tbody.innerHTML = displayData.map(([title, info]) => `
+            tbody.innerHTML = displayData.map(song => `
                 <tr>
-                    <td>${title}</td>
-                    <td style="color:var(--text-sub);">${info.artist}</td>
-                    <td><span class="count-text">${info.count}</span> 회</td>
-                    <td style="font-size:12px; color:var(--text-sub);">${info.lastDate}</td>
+                    <td>${song.title}</td>
+                    <td style="color:var(--text-sub);">${song.artist}</td>
+                    <td><span class="count-text">${song.count}</span> 회</td>
+                    <td style="font-size:12px; color:var(--text-sub);">${song.lastDate}</td>
                 </tr>
             `).join('');
         }
@@ -214,6 +208,5 @@
 
     window.onload = initStats;
 </script>
-
 </body>
 </html>
