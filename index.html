@@ -1,172 +1,149 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>한눈에 모아보기</title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg-color: #0e0e10;
-            --card-bg: #18181b;
-            --accent: #9147ff;
-            --text-main: #efeff1;
-            --text-sub: #adadb8;
-        }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>한눈에 모아보기</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0e0e10;
+            --card-bg: #18181b;
+            --accent: #9147ff;
+            --text-main: #efeff1;
+            --text-sub: #adadb8;
+        }
 
-        body { 
-            background-color: var(--bg-color); 
-            color: var(--text-main); 
-            font-family: 'Noto Sans KR', sans-serif; 
-            margin: 0; padding: 20px;
-            display: flex; justify-content: center; align-items: center; 
-            min-height: 100vh; box-sizing: border-box;
-        }
+        body { 
+            background-color: var(--bg-color); 
+            color: var(--text-main); 
+            font-family: 'Noto Sans KR', sans-serif; 
+            margin: 0; padding: 20px;
+            display: flex; justify-content: center; align-items: center; 
+            min-height: 100vh; box-sizing: border-box;
+        }
 
-        .wrapper { width: 100%; max-width: 1100px; display: flex; flex-direction: column; gap: 20px; padding: 40px 0; }
+        .wrapper { width: 100%; max-width: 1100px; display: flex; flex-direction: column; gap: 20px; padding: 40px 0; }
 
-        .card { 
-            background: var(--card-bg); border-radius: 16px; padding: 30px; 
-            border: 1px solid #2f2f35; display: flex; position: relative;
-        }
+        .card { 
+            background: var(--card-bg); border-radius: 16px; padding: 30px; 
+            border: 1px solid #2f2f35; display: flex; position: relative;
+        }
 
-        .profile-box { align-items: center; gap: 30px; background: linear-gradient(145deg, #18181b, #1d1d21); }
-        
-        .profile-img { 
-            width: 110px; height: 110px; border-radius: 50%; background: #2f2f35; 
-            flex-shrink: 0; border: 3px solid var(--accent);
-            box-shadow: 0 0 20px rgba(145, 71, 255, 0.2);
-            background-size: cover; background-position: center;
-        }
+        .profile-box { align-items: center; gap: 30px; background: linear-gradient(145deg, #18181b, #1d1d21); }
+        
+        .profile-img { 
+            width: 110px; height: 110px; border-radius: 50%; background: #2f2f35; 
+            flex-shrink: 0; border: 3px solid var(--accent);
+            box-shadow: 0 0 20px rgba(145, 71, 255, 0.2);
+            background-size: cover; background-position: center;
+        }
 
-        .profile-info { flex-grow: 1; min-width: 0; } /* min-width 추가 */
-        .profile-info h1 { margin: 0 0 5px; font-size: 26px; font-weight: 700; }
-        .profile-info p { 
-            color: var(--text-sub); margin: 0 0 10px; font-size: 14px; 
-            max-width: 450px; line-height: 1.6;
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; /* 프로필 설명도 한줄처리 */
-        }
+        .profile-info { flex-grow: 1; min-width: 0; }
+        .profile-info h1 { margin: 0 0 5px; font-size: 26px; font-weight: 700; }
+        .profile-info p { 
+            color: var(--text-sub); margin: 0 0 10px; font-size: 14px; 
+            max-width: 450px; line-height: 1.6;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
 
-        .social-links { display: flex; gap: 10px; flex-wrap: wrap; }
-        .link-btn { padding: 7px 15px; background: #26262c; border-radius: 8px; color: var(--text-main); text-decoration: none; font-size: 12px; border: 1px solid #3a3a3d; transition: 0.3s; }
-        .link-btn:hover { background: var(--accent); border-color: var(--accent); }
+        .social-links { display: flex; gap: 10px; flex-wrap: wrap; }
+        .link-btn { padding: 7px 15px; background: #26262c; border-radius: 8px; color: var(--text-main); text-decoration: none; font-size: 12px; border: 1px solid #3a3a3d; transition: 0.3s; }
+        .link-btn:hover { background: var(--accent); border-color: var(--accent); }
 
-        .live-status-inline {
-            margin-left: auto; text-align: center; padding: 0 40px; border-left: 1px solid #2f2f35; 
-            min-width: 220px; display: flex; flex-direction: column; align-items: center; justify-content: center;
-        }
+        .live-status-inline {
+            margin-left: auto; text-align: center; padding: 0 40px; border-left: 1px solid #2f2f35; 
+            min-width: 220px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
 
-        .badge { display: inline-block; padding: 5px 14px; border-radius: 6px; font-size: 11px; font-weight: bold; margin-bottom: 8px; }
-        .badge.offline { background: #3a3a3d; color: var(--text-sub); }
-        #stream-title-inline { font-size: 18px; font-weight: bold; margin-bottom: 4px; }
-        #last-stream-time { font-size: 12px; color: var(--text-sub); }
+        .badge { display: inline-block; padding: 5px 14px; border-radius: 6px; font-size: 11px; font-weight: bold; margin-bottom: 8px; }
+        .badge.offline { background: #3a3a3d; color: var(--text-sub); }
+        #stream-title-inline { font-size: 18px; font-weight: bold; margin-bottom: 4px; }
+        #last-stream-time { font-size: 12px; color: var(--text-sub); }
 
-        .bottom-section { 
-            display: grid; 
-            grid-template-columns: 1fr 1fr 1fr; 
-            gap: 20px; 
-            align-items: stretch; /* 내용에 맞춰 늘어나되, 카드끼리 높이 통일 */
-        }
-        .bottom-section .card { 
-            flex-direction: column; 
-            padding: 25px; 
-            min-height: 0; /* 고정 높이 제거 */
-            height: auto;  /* 내용물만큼만 차지 */
-            box-sizing: border-box;
-            min-width: 0;
-        }
+        .bottom-section { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr 1fr; 
+            gap: 20px; 
+            align-items: stretch;
+        }
+        .bottom-section .card { 
+            flex-direction: column; 
+            padding: 25px; 
+            height: auto; 
+            box-sizing: border-box;
+            min-width: 0;
+        }
 
-        h2 { font-size: 14px; margin-top: 0; color: var(--accent); border-bottom: 1px solid #2f2f35; padding-bottom: 12px; margin-bottom: 15px; }
+        h2 { font-size: 14px; margin-top: 0; color: var(--accent); border-bottom: 1px solid #2f2f35; padding-bottom: 12px; margin-bottom: 15px; }
 
-        .item-row { 
-            padding: 10px; 
-            border-bottom: 1px solid #26262c; 
-            font-size: 13px; 
-            border-radius: 8px; 
-            transition: 0.2s; 
-            cursor: pointer;
-            min-height: 66px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            box-sizing: border-box;
-            min-width: 0;
-        }
-        .item-row:hover { background: rgba(255, 255, 255, 0.05); }
-        .item-row:last-child { border: none; }
-        .item-date { font-size: 11px; color: var(--text-sub); margin-bottom: 4px; }
-        
-        .vod-row { 
-            flex-direction: row !important; 
-            align-items: center; 
-            gap: 12px; 
-        }
-        .vod-thumb { 
-            width: 80px; 
-            height: 45px; 
-            background: #2f2f35; 
-            border-radius: 4px; 
-            flex-shrink: 0; 
-            background-size: cover; 
-            background-position: center; 
-        }
+        .item-row { 
+            padding: 10px; 
+            border-bottom: 1px solid #26262c; 
+            font-size: 13px; 
+            border-radius: 8px; 
+            transition: 0.2s; 
+            cursor: pointer;
+            min-height: 66px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            box-sizing: border-box;
+        }
+        .item-row:hover { background: rgba(255, 255, 255, 0.05); }
+        .item-row:last-child { border: none; }
+        .item-date { font-size: 11px; color: var(--text-sub); margin-bottom: 4px; }
+        
+        .vod-row { flex-direction: row !important; align-items: center; gap: 12px; }
+        .vod-thumb { width: 80px; height: 45px; background: #2f2f35; border-radius: 4px; flex-shrink: 0; background-size: cover; background-position: center; }
 
-        .schedule-row { 
-            flex-direction: row !important; 
-            justify-content: space-between; 
-            cursor: default; 
-        }
-        .schedule-row:hover { background: none; }
-        .day { font-weight: bold; color: var(--text-sub); }
+        .schedule-row { flex-direction: row !important; justify-content: space-between; cursor: default; }
+        .schedule-row:hover { background: none; }
+        .day { font-weight: bold; color: var(--text-sub); }
 
-        .today-highlight { 
-            background: rgba(145, 71, 255, 0.15) !important; 
-            border: 1px solid var(--accent) !important; 
-            transform: scale(1.02); 
-        }
-        .today-tag { font-size: 9px; background: var(--accent); color: white; padding: 2px 5px; border-radius: 4px; margin-left: 5px; vertical-align: middle; }
+        .today-highlight { 
+            background: rgba(145, 71, 255, 0.15) !important; 
+            border: 1px solid var(--accent) !important; 
+            transform: scale(1.02); 
+        }
+        .today-tag { font-size: 9px; background: var(--accent); color: white; padding: 2px 5px; border-radius: 4px; margin-left: 5px; vertical-align: middle; }
 
-        /* 말줄임표 공통 스타일 */
-        .ellipsis {
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
+        .ellipsis { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-        @media (max-width: 900px) {
-            .profile-box { flex-direction: column; padding-bottom: 40px; }
-            .live-status-inline { margin-left: 0; border-left: none; border-top: 1px solid #2f2f35; padding: 20px 0; width: 100%; }
-            .bottom-section { grid-template-columns: 1fr; }
-        }
-    </style>
+        @media (max-width: 900px) {
+            .profile-box { flex-direction: column; padding-bottom: 40px; }
+            .live-status-inline { margin-left: 0; border-left: none; border-top: 1px solid #2f2f35; padding: 20px 0; width: 100%; }
+            .bottom-section { grid-template-columns: 1fr; }
+        }
+    </style>
 </head>
 <body>
 
 <div class="wrapper">
-    <div class="top-section">
-        <div class="card profile-box">
-            <div class="profile-img"></div>
-            <div class="profile-info">
-                <h1 id="user-nick">로딩 중...</h1>
-                <p id="user-desc">정보를 불러오고 있습니다.</p>
-                <div class="social-links" id="social-links"></div>
-            </div>
-            <div class="live-status-inline">
-                <div class="badge offline">OFFLINE</div>
-                <div id="stream-title-inline">방송 준비 중</div>
-                <div id="last-stream-time">최근 방송: 확인 중</div>
-            </div>
-        </div>
-    </div>
+    <div class="top-section">
+        <div class="card profile-box">
+            <div class="profile-img"></div>
+            <div class="profile-info">
+                <h1 id="user-nick">로딩 중...</h1>
+                <p id="user-desc">정보를 불러오고 있습니다.</p>
+                <div class="social-links" id="social-links"></div>
+            </div>
+            <div class="live-status-inline">
+                <div class="badge offline">OFFLINE</div>
+                <div id="stream-title-inline">방송 준비 중</div>
+                <div id="last-stream-time">최근 방송: 확인 중</div>
+            </div>
+        </div>
+    </div>
 
-    <div class="bottom-section">
-        <div class="card">
-            <h2>📅 방송 스케줄</h2>
-            <div id="schedule-container"></div>
-        </div>
-        <div class="card" id="post-container"><h2>📢 최근 게시물</h2></div>
-        <div class="card" id="vod-container"><h2>🎬 방송 다시보기</h2></div>
-    </div>
+    <div class="bottom-section">
+        <div class="card">
+            <h2>📅 방송 스케줄</h2>
+            <div id="schedule-container"></div>
+        </div>
+        <div class="card" id="post-container"><h2>📢 최근 게시물</h2></div>
+        <div class="card" id="vod-container"><h2>🎬 방송 다시보기</h2></div>
+    </div>
 </div>
 
 <script>
@@ -179,9 +156,8 @@
             const text = await response.text();
             const rows = text.split(/\r?\n/).map(row => row.split('\t'));
 
-            // 1. 프로필 및 업데이트 시간 설정
             const profile = rows[2];
-            const updateTimeData = rows[1] ? rows[1][5] : null; // F2 셀 데이터
+            const updateTimeData = rows[1] ? rows[1][5] : null;
 
             if (profile) {
                 document.getElementById('user-nick').innerText = profile[0] || '닉네임';
@@ -191,7 +167,6 @@
                 document.getElementById('last-stream-time').innerText = lastTime ? `최근 방송: ${lastTime}` : "최근 방송 없음";
             }
 
-            // 방송 상태 박스 하단에 업데이트 시간 추가
             if (updateTimeData) {
                 const statusBox = document.querySelector('.live-status-inline');
                 let updateEl = document.getElementById('update-time');
@@ -204,11 +179,9 @@
                 updateEl.innerText = `페이지 정보 갱신 시간 : ${updateTimeData}`;
             }
 
-            // 2. 소셜 링크 버튼 설정 (오류 수정됨)
             const linkBox = document.getElementById('social-links');
             linkBox.innerHTML = '';
 
-            // 방송국 버튼
             const broadcastBtn = document.createElement('a');
             broadcastBtn.className = 'link-btn';
             broadcastBtn.href = 'https://www.sooplive.com/station/bababi';
@@ -217,7 +190,6 @@
             broadcastBtn.style.borderColor = 'var(--accent)';
             linkBox.appendChild(broadcastBtn);
 
-            // 노래책 버튼
             const songBtn = document.createElement('a');
             songBtn.className = 'link-btn';
             songBtn.href = SONG_BOOK_URL;
@@ -225,7 +197,6 @@
             songBtn.style.borderColor = 'var(--accent)';
             linkBox.appendChild(songBtn);
 
-            // 추가 링크 (기타 링크)
             const extraLinks = rows[5];
             if (extraLinks) {
                 extraLinks.forEach(l => {
@@ -241,7 +212,6 @@
                 });
             }
 
-            // 3. 최근 게시물 설정
             const postBox = document.getElementById('post-container');
             const postData = rows.slice(8, 13).filter(p => p[1] && p[1].trim() !== "");
             postData.sort((a, b) => (b[3]?.trim() === 'O' ? 1 : 0) - (a[3]?.trim() === 'O' ? 1 : 0));
@@ -259,7 +229,6 @@
             });
             postBox.innerHTML = postHtml;
             
-            // 4. VOD 설정
             const vodBox = document.getElementById('vod-container');
             const vodData = rows.slice(16, 21).filter(v => v[1] && v[1].trim() !== "");
             vodData.sort((a, b) => (b[4]?.trim() === 'O' ? 1 : 0) - (a[4]?.trim() === 'O' ? 1 : 0));
@@ -277,13 +246,10 @@
             });
             vodBox.innerHTML = vodHtml;
 
-            // 5. 스케줄 설정
             const scheduleRows = rows.slice(24, 29); 
             renderSchedule(scheduleRows);
 
-        } catch (e) { 
-            console.error("데이터 로드 중 오류 발생:", e); 
-        }
+        } catch (e) { console.error(e); }
     }
 
     function renderSchedule(data) {
