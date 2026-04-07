@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💧 울보노트 (Crying Archive)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0e0e10;
+            --card-bg: #18181b;
+            --accent: #58a6ff; /* 노래책의 보라색 대신 울보 느낌의 하늘색 */
+            --text-main: #efeff1;
+            --text-sub: #adadb8;
+            --border: #2f2f35;
+        }
+
+        * { box-sizing: border-box; }
+
+        body { 
+            background-color: var(--bg-color); 
+            color: var(--text-main); 
+            font-family: 'Noto Sans KR', sans-serif; 
+            margin: 0; padding: 0; 
+            overflow-x: hidden;
+        }
+
+        .wrapper { 
+            width: 100%; 
+            max-width: 800px; 
+            margin: 0 auto; 
+            padding: 40px 20px; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 25px; 
+        }
+
+        /* 헤더 디자인 */
+        .header-card { 
+            background: var(--card-bg); 
+            border-radius: 16px; 
+            padding: 30px; 
+            border: 1px solid var(--border); 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+        }
+        .header-info h1 { margin: 0; font-size: 24px; color: var(--accent); display: flex; align-items: baseline; gap: 12px; }
+        .cry-count-info { font-size: 14px; color: var(--text-sub); font-weight: normal; }
+        .sync-info { font-size: 11px; color: #5b5b63; margin-top: 5px; }
+
+        /* 검색바 */
+        .search-container { width: 100%; }
+        .search-input { 
+            width: 100%;
+            background: var(--card-bg); 
+            border: 1px solid var(--border); 
+            padding: 15px 20px; 
+            border-radius: 12px; 
+            color: #fff; 
+            outline: none;
+            transition: 0.3s;
+        }
+        .search-input:focus { border-color: var(--accent); }
+
+        /* 년도/월 섹션 */
+        .year-section { margin-top: 20px; }
+        .year-title { 
+            font-size: 28px; 
+            font-weight: 700; 
+            color: var(--accent); 
+            margin-bottom: 15px;
+            padding-left: 10px;
+            border-left: 4px solid var(--accent);
+        }
+        .month-group { margin-bottom: 30px; }
+        .month-title { 
+            font-size: 18px; 
+            color: var(--text-sub); 
+            margin: 20px 0 10px 10px;
+            font-weight: bold;
+        }
+
+        /* 울음 기록 카드 리스트 */
+        .cry-list { display: flex; flex-direction: column; gap: 10px; }
+        .cry-item { 
+            background: var(--card-bg); 
+            border-radius: 12px; 
+            border: 1px solid var(--border); 
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: inherit;
+            transition: transform 0.2s, background 0.2s;
+        }
+        .cry-item:hover { 
+            transform: translateX(5px);
+            background: #1f1f23;
+            border-color: var(--accent);
+        }
+
+        .cry-date { width: 60px; font-weight: bold; color: var(--accent); font-size: 14px; }
+        .cry-content { flex: 1; padding: 0 15px; border-left: 1px solid #333; }
+        .cry-desc { font-size: 15px; margin-bottom: 4px; }
+        .cry-time { font-size: 12px; color: var(--text-sub); }
+        .link-icon { color: #5b5b63; font-size: 12px; }
+
+        @media (max-width: 600px) {
+            .header-card { flex-direction: column; align-items: flex-start; gap: 15px; }
+            .cry-item { padding: 12px 15px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="wrapper">
+    <div class="header-card">
+        <div class="header-info">
+            <h1>💧 울보노트 
+                <span class="cry-count-info">총 <span id="total-count">0</span>번의 기록</span>
+            </h1>
+            <div class="sync-info">데이터 동기화 중...</div>
+        </div>
+    </div>
+
+    <div class="search-container">
+        <input type="text" id="crySearch" class="search-input" placeholder="사건이나 날짜로 검색..." onkeyup="filterCries()">
+    </div>
+
+    <div id="main-content">
+        <div style="text-align:center; padding:50px; color:var(--text-sub);">기록을 불러오는 중...</div>
+    </div>
+</div>
+
+<script>
+    // 요청하신 구글 시트 TSV 주소
+    const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQsvaqEEGjtHB20R3qPkIAXyAySm8FnLzcs0rIsZevLuLP65D43gSuoRzYVU0pmhRbvyg5AW-Ce1cmL/pub?gid=0&single=true&output=tsv";
+
+    window.onload = () => {
+        fetch(sheetUrl)
+            .then(res => res.text())
+            .then(tsv => {
+                const lines = tsv.split(/\r?\n/).filter(line => line.trim() !== "");
+                const mainContent = document.getElementById('main-content');
+                
+                let cries = [];
+                let total = 0;
+
+                // 헤더(1행) 제외하고 데이터 가공
+                for (let i = 1; i < lines.length; i++) {
+                    const parts = lines[i].split('\t').map(item => item.trim());
+                    if (parts.length < 3) continue;
+
+                    const [yearMonth, date, desc, time, link] = parts;
+                    cries.push({ yearMonth, date, desc, time, link });
+                    total++;
+                }
+
+                renderList(cries);
+                document.getElementById('total-count').textContent = total;
+                const now = new Date();
+                document.querySelector('.sync-info').textContent = `최근 업데이트: ${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
+            })
+            .catch(err => {
+                document.getElementById('main-content').innerHTML = `<div style="text-align:center; color:#ff4b4b;">데이터 로드 실패.</div>`;
+            });
+    };
+
+    function renderList(data) {
+        const container = document.getElementById('main-content');
+        container.innerHTML = '';
+
+        // 년도/월별 그룹화
+        const groups = {};
+        data.forEach(item => {
+            if (!groups[item.yearMonth]) groups[item.yearMonth] = [];
+            groups[item.yearMonth].push(item);
+        });
+
+        // 그룹별 출력 (최신순 정렬을 위해 keys.reverse())
+        const sortedGroups = Object.keys(groups).sort().reverse();
+
+        sortedGroups.forEach(groupName => {
+            const section = document.createElement('div');
+            section.className = 'month-group';
+            
+            // "2024년 12월" 같은 형식에서 년도만 추출하여 년도 타이틀 표시 (필요시)
+            const year = groupName.split('.')[0] || groupName;
+            
+            section.innerHTML = `
+                <div class="month-title">${groupName}</div>
+                <div class="cry-list">
+                    ${groups[groupName].map(cry => `
+                        <a href="${cry.link || '#'}" target="_blank" class="cry-item">
+                            <div class="cry-date">${cry.date}</div>
+                            <div class="cry-content">
+                                <div class="cry-desc">${cry.desc}</div>
+                                <div class="cry-time">⏱ ${cry.time}</div>
+                            </div>
+                            <div class="link-icon">↗</div>
+                        </a>
+                    `).join('')}
+                </div>
+            `;
+            container.appendChild(section);
+        });
+    }
+
+    function filterCries() {
+        const filter = document.getElementById('crySearch').value.toUpperCase();
+        const items = document.querySelectorAll(".cry-item");
+        
+        items.forEach(item => {
+            const text = item.textContent.toUpperCase();
+            if (text.includes(filter)) {
+                item.style.display = "flex";
+            } else {
+                item.style.display = "none";
+            }
+        });
+
+        // 검색 결과 없을 때 월별 타이틀 숨기기 처리
+        const groups = document.querySelectorAll(".month-group");
+        groups.forEach(group => {
+            const hasVisible = Array.from(group.querySelectorAll(".cry-item")).some(i => i.style.display !== "none");
+            group.style.display = hasVisible ? "block" : "none";
+        });
+    }
+</script>
+</body>
+</html>
