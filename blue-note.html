@@ -18,33 +18,27 @@
         * { box-sizing: border-box; }
         body { background-color: var(--bg-color); color: var(--text-main); font-family: 'Noto Sans KR', sans-serif; margin: 0; padding: 0; }
 
-        .wrapper { width: 100%; max-width: 800px; margin: 0 auto; padding: 40px 20px; display: flex; flex-direction: column; gap: 20px; }
+        .wrapper { width: 100%; max-width: 800px; margin: 0 auto; padding: 40px 20px; display: flex; flex-direction: column; gap: 15px; }
 
+        /* 헤더 상자 */
         .header-card { 
             background: var(--card-bg); 
             border-radius: 16px; 
-            padding: 25px 30px; 
+            padding: 20px 25px; 
             border: 1px solid var(--border); 
             display: flex; 
-            flex-direction: column;
-            gap: 15px;
-            position: relative;
-        }
-        
-        .header-top {
-            display: flex;
             justify-content: space-between;
-            align-items: flex-start;
+            align-items: center;
         }
 
-        .header-info h1 { margin: 0; font-size: 26px; color: var(--accent); }
+        .header-info h1 { margin: 0; font-size: 24px; color: var(--accent); }
+        .update-now { font-size: 11px; color: #5b5b63; margin-top: 4px; }
         
-        /* 메인으로 돌아가기 버튼 */
         .btn-home {
             text-decoration: none;
             color: var(--text-main);
             background: #26262c;
-            padding: 8px 16px;
+            padding: 8px 14px;
             border-radius: 8px;
             font-size: 13px;
             border: 1px solid var(--border);
@@ -52,26 +46,23 @@
         }
         .btn-home:hover { background: #3f3f46; border-color: var(--accent); }
 
-        .update-now { 
-            font-size: 12px; 
-            color: #5b5b63; 
+        /* 통계 상자 (헤더 아래로 분리) */
+        .stats-container {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 18px 22px;
+            border: 1px solid var(--border);
+            line-height: 1.6;
             margin-top: 5px;
         }
-        
-        /* 통계 섹션 스타일 */
-        .stats-container {
-            background: rgba(88, 166, 255, 0.05);
-            border-radius: 12px;
-            padding: 15px 20px;
-            border: 1px dashed var(--border);
-            line-height: 1.6;
-        }
-        .stats-total { font-weight: bold; color: var(--accent); font-size: 16px; margin-bottom: 5px; display: block; }
-        .stats-detail { font-size: 14px; color: var(--text-sub); }
-        .year-block { margin-bottom: 4px; }
+        .stats-total { font-weight: bold; color: var(--accent); font-size: 15px; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+        .stats-total::before { content: '📊'; font-size: 14px; }
+        .stats-detail { font-size: 13px; color: var(--text-sub); }
+        .year-block { margin-bottom: 6px; padding-left: 5px; border-left: 2px solid #2f2f35; }
 
-        .month-group { margin-bottom: 40px; }
-        .month-title { font-size: 20px; font-weight: bold; color: var(--accent); margin: 20px 0 15px 5px; display: flex; align-items: center; }
+        /* 리스트 스타일 */
+        .month-group { margin-top: 30px; margin-bottom: 30px; }
+        .month-title { font-size: 19px; font-weight: bold; color: var(--accent); margin: 0 0 15px 5px; display: flex; align-items: center; }
         .month-title::before { content: '📅'; margin-right: 8px; font-size: 16px; }
 
         .cry-list { display: flex; flex-direction: column; gap: 6px; }
@@ -107,37 +98,20 @@
         }
 
         .cry-content { 
-            flex: 1; 
-            min-width: 0; 
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            padding: 2px 0;
+            flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; padding: 2px 0;
         }
 
         .cry-desc { 
-            font-size: 15px; 
-            font-weight: 500; 
-            margin-bottom: 6px; 
-            color: #fff; 
-            white-space: nowrap; 
-            overflow: hidden; 
-            text-overflow: ellipsis; 
-            line-height: 1.2;
+            font-size: 15px; font-weight: 500; margin-bottom: 6px; color: #fff; 
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2;
         }
 
-        .cry-time { 
-            font-size: 12px; 
-            color: var(--text-sub); 
-            display: flex; 
-            align-items: center; 
-            gap: 5px; 
-            line-height: 1; 
-        }
+        .cry-time { font-size: 12px; color: var(--text-sub); display: flex; align-items: center; gap: 5px; line-height: 1; }
         .link-hint { color: var(--accent); font-size: 11px; margin-left: 10px; padding: 2px 6px; border: 1px solid rgba(88, 166, 255, 0.3); border-radius: 4px; }
 
         @media (max-width: 600px) {
-            .header-info h1 { font-size: 22px; }
+            .header-card { flex-direction: column; align-items: flex-start; gap: 12px; }
+            .btn-home { align-self: stretch; text-align: center; }
             .cry-item { padding: 4px 10px; min-height: 45px; }
             .cry-date { width: 70px; margin-right: 10px; font-size: 11px; }
             .cry-desc { font-size: 13px; }
@@ -148,17 +122,15 @@
 
 <div class="wrapper">
     <div class="header-card">
-        <div class="header-top">
-            <div class="header-info">
-                <h1>바다비 울보노트</h1>
-                <div id="update-time" class="update-now">데이터를 가져오는 중...</div>
-            </div>
-            <a href="index.html" class="btn-home">🏠 메인으로 돌아가기</a>
+        <div class="header-info">
+            <h1>바다비 울보노트</h1>
+            <div id="update-time" class="update-now">데이터 로드 중...</div>
         </div>
-        
-        <div class="stats-container" id="stats-area">
-            통계를 계산하고 있습니다...
-        </div>
+        <a href="index.html" class="btn-home">🏠 메인으로 돌아가기</a>
+    </div>
+    
+    <div class="stats-container" id="stats-area">
+        데이터를 분석하고 있습니다...
     </div>
 
     <div id="main-content"></div>
@@ -206,36 +178,28 @@
     function renderStats(data) {
         const statsArea = document.getElementById('stats-area');
         const total = data.length;
-        
-        // 데이터 구조화: { 연도: { 월: 횟수, total: 연도합계 } }
         const stats = {};
+
         data.forEach(item => {
             const [y, m] = item.rawMonth.split(',').map(Number);
             const year = `20${y}년`;
             const month = `${m}월`;
-            
             if (!stats[year]) stats[year] = { months: {}, yearTotal: 0 };
             if (!stats[year].months[month]) stats[year].months[month] = 0;
-            
             stats[year].months[month]++;
             stats[year].yearTotal++;
         });
 
-        // HTML 생성
-        let statsHtml = `<span class="stats-total">총 ${total}회 기록됨</span>`;
+        let statsHtml = `<span class="stats-total">전체 기록: ${total}회</span>`;
         statsHtml += `<div class="stats-detail">`;
-        
-        // 연도 내림차순 정렬 (최신 연도부터)
         Object.keys(stats).sort((a, b) => b.localeCompare(a)).forEach(year => {
             const yearData = stats[year];
             const monthDetails = Object.keys(yearData.months)
-                .sort((a, b) => parseInt(a) - parseInt(b)) // 월 오름차순
+                .sort((a, b) => parseInt(a) - parseInt(b))
                 .map(m => `${m} ${yearData.months[m]}회`)
                 .join(', ');
-            
-            statsHtml += `<div class="year-block"><strong>${year} 총 ${yearData.yearTotal}회</strong> (${monthDetails})</div>`;
+            statsHtml += `<div class="year-block"><strong>${year} 합계 ${yearData.yearTotal}회</strong> (${monthDetails})</div>`;
         });
-        
         statsHtml += `</div>`;
         statsArea.innerHTML = statsHtml;
     }
