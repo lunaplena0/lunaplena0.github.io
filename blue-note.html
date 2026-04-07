@@ -192,18 +192,23 @@
 
         let statsHtml = `<span class="stats-total">전체 기록: ${total}회</span>`;
         statsHtml += `<div class="stats-detail">`;
-        Object.keys(stats).sort((a, b) => b.localeCompare(a)).forEach(year => {
+        
+        // 연도 정렬: a.localeCompare(b)를 사용하여 2026년이 2027년보다 먼저 나오게 수정
+        Object.keys(stats).sort((a, b) => a.localeCompare(b)).forEach(year => {
             const yearData = stats[year];
+            
+            // 월 정렬: 숫자 크기대로 (9월, 10월, 1월...) 오름차순 정렬
             const monthDetails = Object.keys(yearData.months)
                 .sort((a, b) => parseInt(a) - parseInt(b))
                 .map(m => `${m} ${yearData.months[m]}회`)
                 .join(', ');
+                
             statsHtml += `<div class="year-block"><strong>${year} 합계 ${yearData.yearTotal}회</strong> (${monthDetails})</div>`;
         });
+        
         statsHtml += `</div>`;
         statsArea.innerHTML = statsHtml;
     }
-
     function renderList(data) {
         const container = document.getElementById('main-content');
         container.innerHTML = '';
