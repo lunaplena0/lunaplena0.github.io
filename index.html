@@ -157,14 +157,61 @@
             const rows = text.split(/\r?\n/).map(row => row.split('\t'));
 
             const profile = rows[2];
+            // --- [실시간 방송 정보 업데이트 로직] ---
+            const liveData = rows[6]; // F7:J7 라인 (TSV의 7번째 줄)
+            const statusBox = document.querySelector('.live-status-inline');
+            
+            if (liveData && liveData[5] !== "방송 정보 없음" && liveData[5] !== undefined) {
+                // 데이터 매핑: F(5)=제목, G(6)=시간, H(7)=등급, I(8)=구독여부, J(9)=비번
+                const bTitle = liveData[5];
+                const bTime = liveData[6];
+                const bGrade = liveData[7];
+                const bSubOnly = liveData[8];
+                const bPwd = liveData[9];
+
+                // 태그 생성
+                let tagsHtml = `<div class="badge" style="background:#eb0400; color:white; margin-right:5px;">LIVE</div>`;
+                
+                // 19금 방송 체크 (H7이 19인 경우)
+                if (bGrade == "19") {
+                    tagsHtml += `<span class="badge" style="background:#d32f2f; color:white;">19</span> `;
+                }
+                // 구독자 전용 체크 (I7이 X가 아닌 경우)
+                if (bSubOnly !== "X") {
+                    tagsHtml += `<span class="badge" style="background:#9147ff; color:white;">구독+</span> `;
+                }
+                // 비밀번호 방송 체크 (J7이 X가 아닌 경우)
+                if (bPwd !== "X") {
+                    tagsHtml += `<span class="badge" style="background:#3a3a3d; color:white;">🔒 PW</span> `;
+                }
+
+                statusBox.innerHTML = `
+                    <div style="margin-bottom:8px;">${tagsHtml}</div>
+                    <div id="stream-title-inline" class="ellipsis" style="max-width:200px; color:white;">${bTitle}</div>
+                    <div id="last-stream-time" style="color:var(--accent); font-weight:bold;">시작: ${bTime}</div>
+                `;
+            } else {
+                // 오프라인 상태일 때
+                statusBox.innerHTML = `
+                    <div class="badge offline">OFFLINE</div>
+                    <div id="stream-title-inline">방송 준비 중</div>
+                    <div id="last-stream-time">최근 방송: ${profile[3] || '확인 중'}</div>
+                `;
+            }
             const updateTimeData = rows[1] ? rows[1][5] : null;
 
+            // --- 하단부 if (profile) 섹션을 이렇게 수정해 주세요 ---
             if (profile) {
                 document.getElementById('user-nick').innerText = profile[0] || '닉네임';
                 document.getElementById('user-desc').innerText = profile[1] || '';
                 if(profile[2]) document.querySelector('.profile-img').style.backgroundImage = `url('${profile[2]}')`;
-                const lastTime = profile[3] ? profile[3].trim() : "";
-                document.getElementById('last-stream-time').innerText = lastTime ? `최근 방송: ${lastTime}` : "최근 방송 없음";
+                
+                // [수정 포인트] 방송 중(ONLINE)이 아닐 때만 '최근 방송' 시간을 업데이트합니다.
+                const isOnline = liveData && liveData[5] !== "방송 정보 없음" && liveData[5] !== undefined;
+                if (!isOnline) {
+                    const lastTime = profile[3] ? profile[3].trim() : "";
+                    document.getElementById('last-stream-time').innerText = lastTime ? `최근 방송: ${lastTime}` : "최근 방송 없음";
+                }
             }
 
             if (updateTimeData) {
