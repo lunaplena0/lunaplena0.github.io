@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>💧 울보노트 (Tears Log)</title>
+    <title>바다비 울보노트</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -81,7 +81,7 @@
     <div class="header-card">
         <div class="header-top">
             <div class="header-info">
-                <h1>💧 울보노트 <span class="cry-count-info">총 <span id="total-count">0</span>건</span></h1>
+                <h1>바다비 울보노트<span class="cry-count-info">총 <span id="total-count">0</span>건</span></h1>
             </div>
             <div id="update-time" class="update-now">데이터를 가져오는 중...</div>
         </div>
@@ -136,14 +136,43 @@
     function renderList(data) {
         const container = document.getElementById('main-content');
         container.innerHTML = '';
-        const groups = {};
 
+        // 1. 데이터 정렬 로직 (년도 -> 월 -> 날짜 -> 시간 순)
+        data.sort((a, b) => {
+            // 년도와 월 비교 (rawMonth: "26,9")
+            const [yearA, monthA] = a.rawMonth.split(',').map(Number);
+            const [yearB, monthB] = b.rawMonth.split(',').map(Number);
+
+            if (yearA !== yearB) return yearB - yearA; // 년도 내림차순 (최신년도 먼저)
+            if (monthA !== monthB) return monthB - monthA; // 월 내림차순 (최신월 먼저)
+
+            // 날짜 비교 (date: "9.24~9.25" 에서 앞의 날짜인 9.24 추출)
+            const getDateNum = (dateStr) => parseFloat(dateStr.split('~')[0]);
+            const dateA = getDateNum(a.date);
+            const dateB = getDateNum(b.date);
+            if (dateA !== dateB) return dateB - dateA; // 날짜 내림차순
+
+            // 시간 비교 (time: "0:45:45")
+            return b.time.localeCompare(a.time); // 시간 내림차순
+        });
+
+        // 2. 화면에 그리기
+        const groups = {};
         data.forEach(item => {
             if (!groups[item.formattedMonth]) groups[item.formattedMonth] = [];
             groups[item.formattedMonth].push(item);
         });
 
-        Object.keys(groups).sort().reverse().forEach(month => {
+        // 그룹(월)별로 출력 (이미 위에서 정렬했으므로 그룹 순서만 잡아줌)
+        const sortedMonths = Object.keys(groups).sort((a, b) => {
+            const parseM = (s) => {
+                const m = s.match(/(\d+)년\s+(\d+)월/);
+                return parseInt(m[1]) * 100 + parseInt(m[2]);
+            };
+            return parseM(b) - parseM(a);
+        });
+
+        sortedMonths.forEach(month => {
             const groupDiv = document.createElement('div');
             groupDiv.className = 'month-group';
             groupDiv.innerHTML = `
