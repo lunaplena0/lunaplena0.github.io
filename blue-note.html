@@ -20,35 +20,55 @@
 
         .wrapper { width: 100%; max-width: 800px; margin: 0 auto; padding: 40px 20px; display: flex; flex-direction: column; gap: 20px; }
 
-        /* 헤더 디자인 수정 */
         .header-card { 
             background: var(--card-bg); 
             border-radius: 16px; 
-            padding: 30px; 
+            padding: 25px 30px; 
             border: 1px solid var(--border); 
             display: flex; 
-            flex-direction: column; /* 세로 배치로 변경하여 정보 정렬 */
-            gap: 10px;
+            flex-direction: column;
+            gap: 15px;
+            position: relative;
         }
+        
         .header-top {
             display: flex;
             justify-content: space-between;
-            align-items: baseline;
+            align-items: flex-start;
         }
-        .header-info h1 { margin: 0; font-size: 26px; color: var(--accent); display: flex; align-items: center; gap: 10px; }
-        .cry-count-info { font-size: 15px; color: var(--text-sub); font-weight: normal; }
+
+        .header-info h1 { margin: 0; font-size: 26px; color: var(--accent); }
         
+        /* 메인으로 돌아가기 버튼 */
+        .btn-home {
+            text-decoration: none;
+            color: var(--text-main);
+            background: #26262c;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            border: 1px solid var(--border);
+            transition: 0.2s;
+        }
+        .btn-home:hover { background: #3f3f46; border-color: var(--accent); }
+
         .update-now { 
             font-size: 12px; 
             color: #5b5b63; 
-            background: #26262c;
-            padding: 4px 10px;
-            border-radius: 20px;
-            display: inline-block;
+            margin-top: 5px;
         }
         
-        .search-input { width: 100%; background: var(--card-bg); border: 1px solid var(--border); padding: 15px 20px; border-radius: 12px; color: #fff; outline: none; transition: 0.3s; }
-        .search-input:focus { border-color: var(--accent); box-shadow: 0 0 10px rgba(88, 166, 255, 0.1); }
+        /* 통계 섹션 스타일 */
+        .stats-container {
+            background: rgba(88, 166, 255, 0.05);
+            border-radius: 12px;
+            padding: 15px 20px;
+            border: 1px dashed var(--border);
+            line-height: 1.6;
+        }
+        .stats-total { font-weight: bold; color: var(--accent); font-size: 16px; margin-bottom: 5px; display: block; }
+        .stats-detail { font-size: 14px; color: var(--text-sub); }
+        .year-block { margin-bottom: 4px; }
 
         .month-group { margin-bottom: 40px; }
         .month-title { font-size: 20px; font-weight: bold; color: var(--accent); margin: 20px 0 15px 5px; display: flex; align-items: center; }
@@ -59,32 +79,31 @@
             background: var(--card-bg); 
             border-radius: 8px; 
             border: 1px solid var(--border); 
-            /* 위아래 여백을 5px로 최소화, 좌우는 15px */
             padding: 5px 15px; 
             display: flex; 
-            align-items: stretch; /* 내부 요소들이 상자 높이에 꽉 차게 */
+            align-items: stretch; 
             text-decoration: none; 
             color: inherit; 
             transition: 0.2s;
-            min-height: 50px; /* 너무 납작해지지 않게 최소 높이만 지정 */
+            min-height: 50px;
         }
         .cry-item:hover { background: #1f1f23; border-color: var(--accent); transform: translateY(-2px); }
 
         .cry-date { 
-            width: 75px; /* 폭을 90px -> 75px로 줄여서 두 줄 유도 */
+            width: 75px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: bold; 
             color: var(--text-main); 
-            font-size: 12px; /* 폰트 크기를 살짝 줄여 균형 유지 */
+            font-size: 12px;
             line-height: 1.3; 
             border-right: 1px solid #333; 
             margin-right: 15px; 
             padding: 8px 0;
             flex-shrink: 0; 
             text-align: center;
-            white-space: pre-line; /* \n 코드를 줄바꿈으로 인식 */
+            white-space: pre-line;
         }
 
         .cry-content { 
@@ -93,13 +112,12 @@
             display: flex;
             flex-direction: column;
             justify-content: center;
-            padding: 2px 0; /* 상하 미세 여백 */
+            padding: 2px 0;
         }
 
         .cry-desc { 
             font-size: 15px; 
             font-weight: 500; 
-            /* 내용과 시간 사이의 간격을 2px -> 6px로 늘림 */
             margin-bottom: 6px; 
             color: #fff; 
             white-space: nowrap; 
@@ -114,15 +132,14 @@
             display: flex; 
             align-items: center; 
             gap: 5px; 
-            /* 시간 표시 줄의 높이를 살짝 잡아줌 */
             line-height: 1; 
         }
         .link-hint { color: var(--accent); font-size: 11px; margin-left: 10px; padding: 2px 6px; border: 1px solid rgba(88, 166, 255, 0.3); border-radius: 4px; }
 
-        /* 모바일 대응도 함께 수정 */
         @media (max-width: 600px) {
+            .header-info h1 { font-size: 22px; }
             .cry-item { padding: 4px 10px; min-height: 45px; }
-            .cry-date { width: 75px; margin-right: 10px; font-size: 11px; }
+            .cry-date { width: 70px; margin-right: 10px; font-size: 11px; }
             .cry-desc { font-size: 13px; }
         }
     </style>
@@ -133,14 +150,16 @@
     <div class="header-card">
         <div class="header-top">
             <div class="header-info">
-                <h1>바다비 울보노트<span class="cry-count-info">총 <span id="total-count">0</span>건</span></h1>
+                <h1>바다비 울보노트</h1>
+                <div id="update-time" class="update-now">데이터를 가져오는 중...</div>
             </div>
-            <div id="update-time" class="update-now">데이터를 가져오는 중...</div>
+            <a href="index.html" class="btn-home">🏠 메인으로 돌아가기</a>
         </div>
-        <div style="font-size: 11px; color: #5b5b63;">방송 중 감동의 순간을 기록합니다.</div>
+        
+        <div class="stats-container" id="stats-area">
+            통계를 계산하고 있습니다...
+        </div>
     </div>
-
-    <input type="text" id="crySearch" class="search-input" placeholder="내용이나 날짜로 검색해 보세요..." onkeyup="filterCries()">
 
     <div id="main-content"></div>
 </div>
@@ -176,59 +195,85 @@
                 }
 
                 renderList(cries);
-                document.getElementById('total-count').textContent = cries.length;
+                renderStats(cries);
                 
-                // 갱신 시간 표시 로직
                 const now = new Date();
                 const timeString = now.toLocaleTimeString('ko-KR', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
                 document.getElementById('update-time').textContent = `최근 업데이트: ${timeString}`;
             });
     };
 
+    function renderStats(data) {
+        const statsArea = document.getElementById('stats-area');
+        const total = data.length;
+        
+        // 데이터 구조화: { 연도: { 월: 횟수, total: 연도합계 } }
+        const stats = {};
+        data.forEach(item => {
+            const [y, m] = item.rawMonth.split(',').map(Number);
+            const year = `20${y}년`;
+            const month = `${m}월`;
+            
+            if (!stats[year]) stats[year] = { months: {}, yearTotal: 0 };
+            if (!stats[year].months[month]) stats[year].months[month] = 0;
+            
+            stats[year].months[month]++;
+            stats[year].yearTotal++;
+        });
+
+        // HTML 생성
+        let statsHtml = `<span class="stats-total">총 ${total}회 기록됨</span>`;
+        statsHtml += `<div class="stats-detail">`;
+        
+        // 연도 내림차순 정렬 (최신 연도부터)
+        Object.keys(stats).sort((a, b) => b.localeCompare(a)).forEach(year => {
+            const yearData = stats[year];
+            const monthDetails = Object.keys(yearData.months)
+                .sort((a, b) => parseInt(a) - parseInt(b)) // 월 오름차순
+                .map(m => `${m} ${yearData.months[m]}회`)
+                .join(', ');
+            
+            statsHtml += `<div class="year-block"><strong>${year} 총 ${yearData.yearTotal}회</strong> (${monthDetails})</div>`;
+        });
+        
+        statsHtml += `</div>`;
+        statsArea.innerHTML = statsHtml;
+    }
+
     function renderList(data) {
         const container = document.getElementById('main-content');
         container.innerHTML = '';
 
-        // 1. 데이터 정렬 로직 (빠른 날짜 기준: 년도 -> 월 -> 날짜 -> 시간 순)
         data.sort((a, b) => {
-            // 년도와 월 비교 (rawMonth: "26,9")
             const [yearA, monthA] = a.rawMonth.split(',').map(Number);
             const [yearB, monthB] = b.rawMonth.split(',').map(Number);
-
-            if (yearA !== yearB) return yearA - yearB; // 년도 오름차순 (과거년도 먼저)
-            if (monthA !== monthB) return monthA - monthB; // 월 오름차순 (과거월 먼저)
-
-            // 날짜 비교 (date: "9.24~9.25" 에서 앞의 날짜인 9.24 추출)
+            if (yearA !== yearB) return yearA - yearB;
+            if (monthA !== monthB) return monthA - monthB;
             const getDateNum = (dateStr) => {
-                const firstDate = dateStr.split('~')[0]; // "9.24"
+                const firstDate = dateStr.split('~')[0];
                 return parseFloat(firstDate);
             };
             const dateA = getDateNum(a.date);
             const dateB = getDateNum(b.date);
-            if (dateA !== dateB) return dateA - dateB; // 날짜 오름차순
-
-            // 시간 비교 (time: "0:45:45")
-            return a.time.localeCompare(b.time); // 시간 오름차순
+            if (dateA !== dateB) return dateA - dateB;
+            return a.time.localeCompare(b.time);
         });
 
-        // 2. 그룹화 (월별)
         const groups = {};
         data.forEach(item => {
             if (!groups[item.formattedMonth]) groups[item.formattedMonth] = [];
             groups[item.formattedMonth].push(item);
         });
 
-        // 3. 그룹(월) 출력 순서 결정 (과거 월부터 정렬)
         const sortedMonthKeys = Object.keys(groups).sort((a, b) => {
             const parseM = (s) => {
                 const match = s.match(/(\d+)년\s+(\d+)월/);
                 if (!match) return 0;
                 return parseInt(match[1]) * 100 + parseInt(match[2]);
             };
-            return parseM(a) - parseM(b); // 과거 월이 위로
+            return parseM(a) - parseM(b);
         });
 
-        // 4. 화면에 출력
         sortedMonthKeys.forEach(month => {
             const groupDiv = document.createElement('div');
             groupDiv.className = 'month-group';
@@ -247,17 +292,6 @@
                 </div>
             `;
             container.appendChild(groupDiv);
-        });
-    }
-
-    function filterCries() {
-        const val = document.getElementById('crySearch').value.toUpperCase();
-        document.querySelectorAll('.cry-item').forEach(item => {
-            item.style.display = item.textContent.toUpperCase().includes(val) ? "flex" : "none";
-        });
-        document.querySelectorAll('.month-group').forEach(group => {
-            const hasVisible = Array.from(group.querySelectorAll('.cry-item')).some(i => i.style.display !== 'none');
-            group.style.display = hasVisible ? "block" : "none";
         });
     }
 </script>
