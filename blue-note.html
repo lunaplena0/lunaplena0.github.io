@@ -20,12 +20,35 @@
 
         .wrapper { width: 100%; max-width: 800px; margin: 0 auto; padding: 40px 20px; display: flex; flex-direction: column; gap: 20px; }
 
-        .header-card { background: var(--card-bg); border-radius: 16px; padding: 30px; border: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-        .header-info h1 { margin: 0; font-size: 24px; color: var(--accent); }
-        .cry-count-info { font-size: 14px; color: var(--text-sub); font-weight: normal; margin-left: 10px; }
+        /* 헤더 디자인 수정 */
+        .header-card { 
+            background: var(--card-bg); 
+            border-radius: 16px; 
+            padding: 30px; 
+            border: 1px solid var(--border); 
+            display: flex; 
+            flex-direction: column; /* 세로 배치로 변경하여 정보 정렬 */
+            gap: 10px;
+        }
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+        }
+        .header-info h1 { margin: 0; font-size: 26px; color: var(--accent); display: flex; align-items: center; gap: 10px; }
+        .cry-count-info { font-size: 15px; color: var(--text-sub); font-weight: normal; }
         
-        .search-input { width: 100%; background: var(--card-bg); border: 1px solid var(--border); padding: 15px 20px; border-radius: 12px; color: #fff; outline: none; }
-        .search-input:focus { border-color: var(--accent); }
+        .update-now { 
+            font-size: 12px; 
+            color: #5b5b63; 
+            background: #26262c;
+            padding: 4px 10px;
+            border-radius: 20px;
+            display: inline-block;
+        }
+        
+        .search-input { width: 100%; background: var(--card-bg); border: 1px solid var(--border); padding: 15px 20px; border-radius: 12px; color: #fff; outline: none; transition: 0.3s; }
+        .search-input:focus { border-color: var(--accent); box-shadow: 0 0 10px rgba(88, 166, 255, 0.1); }
 
         .month-group { margin-bottom: 40px; }
         .month-title { font-size: 20px; font-weight: bold; color: var(--accent); margin: 20px 0 15px 5px; display: flex; align-items: center; }
@@ -42,9 +65,10 @@
         .cry-content { flex: 1; }
         .cry-desc { font-size: 16px; font-weight: 500; margin-bottom: 4px; color: #fff; }
         .cry-time { font-size: 13px; color: var(--text-sub); display: flex; align-items: center; gap: 5px; }
-        .link-hint { color: var(--accent); font-size: 12px; margin-left: 10px; opacity: 0.7; }
+        .link-hint { color: var(--accent); font-size: 11px; margin-left: 10px; padding: 2px 6px; border: 1px solid rgba(88, 166, 255, 0.3); border-radius: 4px; }
 
         @media (max-width: 600px) {
+            .header-top { flex-direction: column; gap: 5px; }
             .cry-item { padding: 15px; }
             .cry-date { width: 70px; margin-right: 15px; font-size: 13px; }
             .cry-desc { font-size: 14px; }
@@ -55,10 +79,13 @@
 
 <div class="wrapper">
     <div class="header-card">
-        <div class="header-info">
-            <h1>💧 울보노트 <span class="cry-count-info">총 <span id="total-count">0</span>건</span></h1>
-            <div style="font-size: 11px; color: #5b5b63; margin-top: 5px;" id="update-time">데이터 로드 중...</div>
+        <div class="header-top">
+            <div class="header-info">
+                <h1>💧 울보노트 <span class="cry-count-info">총 <span id="total-count">0</span>건</span></h1>
+            </div>
+            <div id="update-time" class="update-now">데이터를 가져오는 중...</div>
         </div>
+        <div style="font-size: 11px; color: #5b5b63;">방송 중 감동의 순간을 기록합니다.</div>
     </div>
 
     <input type="text" id="crySearch" class="search-input" placeholder="내용이나 날짜로 검색해 보세요..." onkeyup="filterCries()">
@@ -80,7 +107,6 @@
                     const parts = lines[i].split('\t').map(item => item.trim());
                     if (parts.length < 3) continue;
                     
-                    // '26,9' -> '2026년 9월' 변환 로직
                     let displayMonth = parts[0];
                     if (displayMonth.includes(',')) {
                         const [y, m] = displayMonth.split(',');
@@ -99,7 +125,11 @@
 
                 renderList(cries);
                 document.getElementById('total-count').textContent = cries.length;
-                document.getElementById('update-time').textContent = `최근 업데이트: ${new Date().toLocaleTimeString()}`;
+                
+                // 갱신 시간 표시 로직
+                const now = new Date();
+                const timeString = now.toLocaleTimeString('ko-KR', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                document.getElementById('update-time').textContent = `최근 업데이트: ${timeString}`;
             });
     };
 
