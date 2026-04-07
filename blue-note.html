@@ -137,42 +137,47 @@
         const container = document.getElementById('main-content');
         container.innerHTML = '';
 
-        // 1. 데이터 정렬 로직 (년도 -> 월 -> 날짜 -> 시간 순)
+        // 1. 데이터 정렬 로직 (빠른 날짜 기준: 년도 -> 월 -> 날짜 -> 시간 순)
         data.sort((a, b) => {
             // 년도와 월 비교 (rawMonth: "26,9")
             const [yearA, monthA] = a.rawMonth.split(',').map(Number);
             const [yearB, monthB] = b.rawMonth.split(',').map(Number);
 
-            if (yearA !== yearB) return yearB - yearA; // 년도 내림차순 (최신년도 먼저)
-            if (monthA !== monthB) return monthB - monthA; // 월 내림차순 (최신월 먼저)
+            if (yearA !== yearB) return yearA - yearB; // 년도 오름차순 (과거년도 먼저)
+            if (monthA !== monthB) return monthA - monthB; // 월 오름차순 (과거월 먼저)
 
             // 날짜 비교 (date: "9.24~9.25" 에서 앞의 날짜인 9.24 추출)
-            const getDateNum = (dateStr) => parseFloat(dateStr.split('~')[0]);
+            const getDateNum = (dateStr) => {
+                const firstDate = dateStr.split('~')[0]; // "9.24"
+                return parseFloat(firstDate);
+            };
             const dateA = getDateNum(a.date);
             const dateB = getDateNum(b.date);
-            if (dateA !== dateB) return dateB - dateA; // 날짜 내림차순
+            if (dateA !== dateB) return dateA - dateB; // 날짜 오름차순
 
             // 시간 비교 (time: "0:45:45")
-            return b.time.localeCompare(a.time); // 시간 내림차순
+            return a.time.localeCompare(b.time); // 시간 오름차순
         });
 
-        // 2. 화면에 그리기
+        // 2. 그룹화 (월별)
         const groups = {};
         data.forEach(item => {
             if (!groups[item.formattedMonth]) groups[item.formattedMonth] = [];
             groups[item.formattedMonth].push(item);
         });
 
-        // 그룹(월)별로 출력 (이미 위에서 정렬했으므로 그룹 순서만 잡아줌)
-        const sortedMonths = Object.keys(groups).sort((a, b) => {
+        // 3. 그룹(월) 출력 순서 결정 (과거 월부터 정렬)
+        const sortedMonthKeys = Object.keys(groups).sort((a, b) => {
             const parseM = (s) => {
-                const m = s.match(/(\d+)년\s+(\d+)월/);
-                return parseInt(m[1]) * 100 + parseInt(m[2]);
+                const match = s.match(/(\d+)년\s+(\d+)월/);
+                if (!match) return 0;
+                return parseInt(match[1]) * 100 + parseInt(match[2]);
             };
-            return parseM(b) - parseM(a);
+            return parseM(a) - parseM(b); // 과거 월이 위로
         });
 
-        sortedMonths.forEach(month => {
+        // 4. 화면에 출력
+        sortedMonthKeys.forEach(month => {
             const groupDiv = document.createElement('div');
             groupDiv.className = 'month-group';
             groupDiv.innerHTML = `
