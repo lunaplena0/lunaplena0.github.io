@@ -208,36 +208,44 @@
         const container = document.getElementById('main-content');
         container.innerHTML = '';
 
+        // 1. 데이터 정렬: 최신순 (년도 내림차순 -> 월 내림차순 -> 날짜 내림차순 -> 시간 내림차순)
         data.sort((a, b) => {
             const [yearA, monthA] = a.rawMonth.split(',').map(Number);
             const [yearB, monthB] = b.rawMonth.split(',').map(Number);
-            if (yearA !== yearB) return yearA - yearB;
-            if (monthA !== monthB) return monthA - monthB;
+
+            if (yearA !== yearB) return yearB - yearA; // 년도 내림차순
+            if (monthA !== monthB) return monthB - monthA; // 월 내림차순
+
             const getDateNum = (dateStr) => {
                 const firstDate = dateStr.split('~')[0];
                 return parseFloat(firstDate);
             };
             const dateA = getDateNum(a.date);
             const dateB = getDateNum(b.date);
-            if (dateA !== dateB) return dateA - dateB;
-            return a.time.localeCompare(b.time);
+            
+            if (dateA !== dateB) return dateB - dateA; // 날짜 내림차순
+            return b.time.localeCompare(a.time); // 시간 내림차순
         });
 
+        // 2. 그룹화 (월별)
         const groups = {};
         data.forEach(item => {
             if (!groups[item.formattedMonth]) groups[item.formattedMonth] = [];
             groups[item.formattedMonth].push(item);
         });
 
+        // 3. 그룹(월) 타이틀 출력 순서: 최신 월이 위로 오도록 정렬
         const sortedMonthKeys = Object.keys(groups).sort((a, b) => {
             const parseM = (s) => {
                 const match = s.match(/(\d+)년\s+(\d+)월/);
                 if (!match) return 0;
+                // 2027년 01월 -> 202701 숫자로 변환
                 return parseInt(match[1]) * 100 + parseInt(match[2]);
             };
-            return parseM(a) - parseM(b);
+            return parseM(b) - parseM(a); // 큰 숫자(최신)가 위로
         });
 
+        // 4. 화면 출력
         sortedMonthKeys.forEach(month => {
             const groupDiv = document.createElement('div');
             groupDiv.className = 'month-group';
