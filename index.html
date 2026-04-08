@@ -188,23 +188,34 @@
             // --- [1] 실시간 방송 상태 업데이트 ---
             const isOnline = liveData && liveData[5] !== "방송 정보 없음" && liveData[5] !== undefined;
 
-            if (isOnline) {
+           if (isOnline) {
                 const bTitle = liveData[5];
                 const bTime = liveData[6];
                 const bGrade = liveData[7];
                 const bSubOnly = liveData[8];
                 const bPwd = liveData[9];
 
-                let tagsHtml = `<div class="badge" style="background:#d32f2f; color:white;">ONLINE</div>`;
-                if (!["X", "-"].includes(bGrade)) tagsHtml += ` <span class="badge" style="background:#2f2f35; color:#FFAB91;">${bGrade}</span>`;
-                if (!["X", "-"].includes(bSubOnly)) tagsHtml += ` <span class="badge" style="background:#2f2f35; color:#B39DDB;">구독+</span>`;
-                if (!["X", "-"].includes(bPwd)) tagsHtml += ` <span class="badge" style="background:#2f2f35; color:#90A4AE;">비밀번호</span>`;
+                // 1. 메인 ONLINE 배지
+                let onlineBadge = `<div class="badge" style="background:#d32f2f; color:white; margin-bottom:0;">ONLINE</div>`;
+                
+                // 2. 하단 서브 태그들 (19, 구독+, 비밀번호)
+                let subTagsHtml = '';
+                if (!["X", "-"].includes(bGrade)) subTagsHtml += `<span class="badge" style="background:#2f2f35; color:#FFAB91; margin:0;">${bGrade}</span>`;
+                if (!["X", "-"].includes(bSubOnly)) subTagsHtml += `<span class="badge" style="background:#2f2f35; color:#B39DDB; margin:0;">구독+</span>`;
+                if (!["X", "-"].includes(bPwd)) subTagsHtml += `<span class="badge" style="background:#2f2f35; color:#90A4AE; margin:0;">비밀번호</span>`;
 
                 statusBox.innerHTML = `
-                    <div style="margin-bottom:8px;">${tagsHtml}</div>
+                    <div style="display: flex; flex-direction: column; align-items: center; gap: 6px; margin-bottom: 12px;">
+                        ${onlineBadge}
+                        <div style="display: flex; gap: 4px; flex-wrap: wrap; justify-content: center;">
+                            ${subTagsHtml}
+                        </div>
+                    </div>
                     <div id="stream-title-inline" class="ellipsis" style="max-width:200px; color:white;">${bTitle}</div>
                     <div id="last-stream-time" style="color:white; font-weight:bold;">시작: ${bTime}</div>
                 `;
+            }
+            
             } else {
                 const lastTime = (profile && profile[3]) ? profile[3].trim() : "확인 중";
                 statusBox.innerHTML = `
