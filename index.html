@@ -192,24 +192,26 @@
                 const bSubOnly = liveData[8];
                 const bPwd = liveData[9];
 
-                let onlineBadge = `<div class="badge" style="background:#d32f2f; color:white; margin-bottom:0;">ONLINE</div>`;
+                // 메인 배지: 폰트와 패딩을 줄여 높이 차지 최소화
+                let onlineBadge = `<div class="badge" style="background:#d32f2f; color:white; margin-bottom:0; padding: 3px 10px; font-size: 10px;">ONLINE</div>`;
                 
+                // 서브 배지들: 높이에 영향을 주지 않도록 아주 작게 설정
                 let subTagsHtml = '';
-                const subStyle = `padding: 3px 8px; font-size: 9px; margin: 0; background:#2f2f35;`; // 공통 스타일
+                const subStyle = `padding: 2px 6px; font-size: 9px; margin: 0; background:#2f2f35; line-height: 1;`;
 
-    if (!["X", "-"].includes(bGrade)) subTagsHtml += `<span class="badge" style="${subStyle} color:#FFAB91;">${bGrade}</span>`;
-    if (!["X", "-"].includes(bSubOnly)) subTagsHtml += `<span class="badge" style="${subStyle} color:#B39DDB;">구독+</span>`;
-    if (!["X", "-"].includes(bPwd)) subTagsHtml += `<span class="badge" style="${subStyle} color:#90A4AE;">비밀번호</span>`;
+                if (!["X", "-"].includes(bGrade)) subTagsHtml += `<span class="badge" style="${subStyle} color:#FFAB91;">${bGrade}</span>`;
+                if (!["X", "-"].includes(bSubOnly)) subTagsHtml += `<span class="badge" style="${subStyle} color:#B39DDB;">구독+</span>`;
+                if (!["X", "-"].includes(bPwd)) subTagsHtml += `<span class="badge" style="${subStyle} color:#90A4AE;">비번</span>`;
 
                 statusBox.innerHTML = `
-                    <div style="display: flex; flex-direction: column; align-items: center; gap: 6px; margin-bottom: 12px;">
+                    <div style="display: flex; flex-direction: column; align-items: center; gap: 4px; margin-bottom: 8px;">
                         ${onlineBadge}
-                        <div style="display: flex; gap: 4px; flex-wrap: wrap; justify-content: center;">
+                        <div style="display: flex; gap: 3px; flex-wrap: wrap; justify-content: center;">
                             ${subTagsHtml}
                         </div>
                     </div>
-                    <div id="stream-title-inline" class="ellipsis" style="max-width:200px; color:white;">${bTitle}</div>
-                    <div id="last-stream-time" style="color:white; font-weight:bold;">시작: ${bTime}</div>
+                    <div id="stream-title-inline" class="ellipsis" style="max-width:200px; color:white; font-size:16px; margin-bottom:2px;">${bTitle}</div>
+                    <div id="last-stream-time" style="color:var(--text-sub); font-size:11px;">시작: ${bTime}</div>
                 `;
             } else {
                 const lastTime = (profile && profile[3]) ? profile[3].trim() : "확인 중";
