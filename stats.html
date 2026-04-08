@@ -151,13 +151,13 @@
 <script>
     const BOOK_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSIfrVC6MakrvA_D8rsQeTT6oaX_0w4bc8I_aaJuoQi4g_AuuvFi-nCP_lnHwvoSAsFKxagrzhoPy_J/pub?gid=0&single=true&output=tsv";
     const STAT_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vReuzG6rmwJOtpxrYtHJELuVxn3BJcW_YWhIrW27Ad5W2W6t__IxlPomhGw5c1j6z8GAPKYz7QCEsYx/pub?gid=1357240589&single=true&output=tsv";
+    
     let fullArtistData = [];
     let fullSongData = [];
     let isArtistExpanded = false;
     let isSongExpanded = false;
     let artistSearchQuery = "";
     let songSearchQuery = "";
-    // 정렬 기준 상태 (기본값: 곡 수)
     let artistSortTarget = 'songCount';
 
     function parseTitleWithTag(originalTitle) {
@@ -180,7 +180,6 @@
         return `${displayTitle}${tagHtml}`;
     }
 
-    // 가수 정렬 변경 함수
     function setArtistSort(target) {
         artistSortTarget = target;
         document.getElementById('sort-icon-count').innerText = target === 'songCount' ? '▼' : '';
@@ -190,9 +189,20 @@
 
     async function initStats() {
         try {
+            // [수정] 캐시 방지 타임스탬프 생성
+            const cacheBuster = `&t=${new Date().getTime()}`;
+            const fetchOptions = {
+                cache: 'no-store',
+                headers: {
+                    'Pragma': 'no-cache',
+                    'Cache-Control': 'no-cache'
+                }
+            };
+
+            // 두 시트 모두 최신 데이터로 호출
             const [bookRes, statRes] = await Promise.all([
-                fetch(BOOK_SHEET_URL),
-                fetch(STAT_SHEET_URL)
+                fetch(BOOK_SHEET_URL + cacheBuster, fetchOptions),
+                fetch(STAT_SHEET_URL + cacheBuster, fetchOptions)
             ]);
 
             const bookText = await bookRes.text();
@@ -291,7 +301,6 @@
             }
         }
 
-        // 가수 데이터 정렬 적용
         if (type === 'artist') {
             data.sort((a, b) => {
                 const valA = a[1][artistSortTarget];
