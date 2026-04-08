@@ -192,10 +192,10 @@
                 const bSubOnly = liveData[8];
                 const bPwd = liveData[9];
 
-                // 메인 배지: 폰트와 패딩을 줄여 높이 차지 최소화
+                // 메인 배지
                 let onlineBadge = `<div class="badge" style="background:#d32f2f; color:white; margin-bottom:0; padding: 3px 10px; font-size: 10px;">ONLINE</div>`;
                 
-                // 서브 배지들: 높이에 영향을 주지 않도록 아주 작게 설정
+                // 서브 배지들
                 let subTagsHtml = '';
                 const subStyle = `padding: 2px 6px; font-size: 9px; margin: 0; background:#2f2f35; line-height: 1;`;
 
@@ -210,9 +210,18 @@
                             ${subTagsHtml}
                         </div>
                     </div>
-                    <div id="stream-title-inline" class="ellipsis" style="max-width:200px; color:white; font-size:16px; margin-bottom:2px;">${bTitle}</div>
+                    <a href="https://play.sooplive.com/bababi" target="_blank" id="stream-title-inline" class="ellipsis" 
+                       style="max-width:200px; color:white; font-size:16px; margin-bottom:2px; text-decoration:none; display:block; cursor:pointer;">
+                       ${bTitle}
+                    </a>
                     <div id="last-stream-time" style="color:var(--text-sub); font-size:11px;">시작: ${bTime}</div>
                 `;
+                
+                // 마우스 호버 시 제목 밑줄 효과 (선택 사항)
+                const titleLink = statusBox.querySelector('#stream-title-inline');
+                titleLink.onmouseover = () => titleLink.style.textDecoration = 'underline';
+                titleLink.onmouseout = () => titleLink.style.textDecoration = 'none';
+
             } else {
                 const lastTime = (profile && profile[3]) ? profile[3].trim() : "확인 중";
                 statusBox.innerHTML = `
