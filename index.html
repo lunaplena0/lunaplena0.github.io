@@ -14,21 +14,38 @@
             --text-sub: #adadb8;
         }
 
+        /* 1. 스크롤 제거 및 중앙 정렬 강화 */
+        html, body { 
+            height: 100%; 
+            margin: 0; 
+            padding: 0; 
+            overflow: hidden; /* 스크롤 차단 */
+        }
+
         body { 
             background-color: var(--bg-color); 
             color: var(--text-main); 
             font-family: 'Noto Sans KR', sans-serif; 
-            margin: 0; padding: 20px;
-            display: flex; justify-content: center; align-items: center; 
-            min-height: 100vh; box-sizing: border-box;
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
         }
 
-        .wrapper { width: 100%; max-width: 1100px; display: flex; flex-direction: column; gap: 20px; padding: 40px 0; }
+        /* 2. 컨텐츠 박스 여백 최적화 */
+        .wrapper { 
+            width: 100%; 
+            max-width: 1100px; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 20px; 
+            padding: 20px; /* 내부 여백만 유지 */
+            box-sizing: border-box;
+        }
 
         .card { 
             background: var(--card-bg); border-radius: 16px; padding: 30px; 
             border: 1px solid #2f2f35; display: flex; position: relative;
-            flex-direction: column; /* 기본 방향 설정 */
+            flex-direction: column;
         }
 
         .profile-box { flex-direction: row; align-items: center; gap: 30px; background: linear-gradient(145deg, #18181b, #1d1d21); }
@@ -89,6 +106,7 @@
         .ellipsis { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
         @media (max-width: 900px) {
+            body { overflow-y: auto; } /* 모바일처럼 세로로 길어지면 스크롤 허용 */
             .profile-box { flex-direction: column; padding-bottom: 40px; }
             .live-status-inline { margin-left: 0; border-left: none; border-top: 1px solid #2f2f35; padding: 20px 0; width: 100%; }
             .bottom-section { grid-template-columns: 1fr; }
@@ -146,14 +164,12 @@
             const liveData = rows[6]; 
             const statusBox = document.getElementById('live-status-area');
 
-            // 1. 프로필 업데이트
             if (profile) {
                 document.getElementById('user-nick').innerText = profile[0] || '닉네임';
                 document.getElementById('user-desc').innerText = profile[1] || '';
                 if(profile[2]) document.querySelector('.profile-img').style.backgroundImage = `url('${profile[2]}')`;
             }
 
-            // 2. 라이브 상태 업데이트
             const isOnline = liveData && liveData[5] && !["방송 정보 없음", "X", "-"].includes(liveData[5]);
             if (isOnline) {
                 let tagsHtml = `<div class="badge" style="background:#d32f2f; color:white;">ONLINE</div>`;
@@ -167,11 +183,10 @@
                 statusBox.innerHTML = `
                     <div class="badge offline">OFFLINE</div>
                     <div id="stream-title-inline">방송 준비 중</div>
-                    <div id="last-stream-time">최근 방송: ${profile[3] || '확인 중'}</div>
+                    <div id="last-stream-time">최근 방송: ${profile ? profile[3] : '확인 중'}</div>
                 `;
             }
 
-            // 3. 리스트 렌더링 (구조 유지형)
             renderLinks(rows[5]);
             renderPosts(rows.slice(8, 13));
             renderVODs(rows.slice(16, 21));
@@ -184,14 +199,12 @@
         const linkBox = document.getElementById('social-links');
         linkBox.innerHTML = '';
         const btns = [{ name: '📺 방송국', url: 'https://www.sooplive.com/station/bababi' }, { name: '📖 노래책', url: SONG_BOOK_URL }];
-        
         btns.forEach(btn => {
             const a = document.createElement('a');
             a.className = 'link-btn'; a.href = btn.url; a.innerText = btn.name;
             a.target = btn.name.includes('노래책') ? '_self' : '_blank';
             linkBox.appendChild(a);
         });
-
         if (extraLinks) {
             extraLinks.forEach(l => {
                 if (l && l.includes(': ')) {
@@ -238,7 +251,6 @@
         const container = document.getElementById('schedule-container');
         container.innerHTML = '';
         const todayStr = new Date().toLocaleDateString('en-CA');
-
         data.forEach(row => {
             if(!row[0] && !row[3]) return;
             const isToday = row[0] === todayStr;
