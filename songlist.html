@@ -98,76 +98,80 @@
 </div>
 
 <script>
-    // 제공해주신 TSV(탭 구분) 주소
     const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSIfrVC6MakrvA_D8rsQeTT6oaX_0w4bc8I_aaJuoQi4g_AuuvFi-nCP_lnHwvoSAsFKxagrzhoPy_J/pub?gid=0&single=true&output=tsv";
     
     window.allSongs = [];
 
     window.onload = () => {
-        fetch(sheetUrl)
-            .then(res => res.text())
-            .then(tsv => {
-                const lines = tsv.split(/\r?\n/).filter(line => line.trim() !== "");
-                const tbody = document.getElementById('song-list-body');
-                
-                let html = ''; 
-                let total = 0;
-                let guitar = 0;
-                window.allSongs = [];
+        // [수정] 캐시 방지를 위한 타임스탬프와 fetch 옵션 추가
+        const cacheBuster = `&t=${new Date().getTime()}`;
+        const finalUrl = sheetUrl + cacheBuster;
 
-                // 첫 줄(헤더) 제외하고 2행(index 1)부터 시작
-                for (let i = 1; i < lines.length; i++) {
-                    // 탭(\t)으로 구분
-                    const parts = lines[i].split('\t').map(item => item.trim());
+        fetch(finalUrl, {
+            cache: 'no-store', // 브라우저 캐시 무시
+            headers: {
+                'Pragma': 'no-cache',
+                'Cache-Control': 'no-cache'
+            }
+        })
+        .then(res => res.text())
+        .then(tsv => {
+            const lines = tsv.split(/\r?\n/).filter(line => line.trim() !== "");
+            const tbody = document.getElementById('song-list-body');
+            
+            let html = ''; 
+            let total = 0;
+            let guitar = 0;
+            window.allSongs = [];
+
+            for (let i = 1; i < lines.length; i++) {
+                const parts = lines[i].split('\t').map(item => item.trim());
+                if (parts.length < 2 || !parts[0]) continue;
+
+                total++;
+                const originalTitle = parts[0]; 
+                const artist = parts[1] || "Unknown"; 
+
+                // 태그 추출 및 배지 생성 로직
+                const tagMatch = originalTitle.match(/^\[([^\]]+)\]/);
+                let displayTitle = originalTitle;
+                let tagHtml = '';
+
+                if (tagMatch) {
+                    const fullTag = tagMatch[0];
+                    const tagText = tagMatch[1];
+                    displayTitle = originalTitle.replace(fullTag, '').trim();
                     
-                    if (parts.length < 2 || !parts[0]) continue;
-
-                    total++;
-                    const originalTitle = parts[0]; // A열: 제목
-                    const artist = parts[1] || "Unknown"; // B열: 가수
-
-                    // 태그 추출 및 배지 생성
-                    const tagMatch = originalTitle.match(/^\[([^\]]+)\]/);
-                    let displayTitle = originalTitle;
-                    let tagHtml = '';
-
-                    if (tagMatch) {
-                        const fullTag = tagMatch[0]; // [기타]
-                        const tagText = tagMatch[1]; // 기타
-                        displayTitle = originalTitle.replace(fullTag, '').trim();
-                        
-                        let tagClass = 'tag-default';
-                        if (tagText.includes("200")) tagClass = 'tag-200';
-                        else if (tagText.includes("300")) tagClass = 'tag-300';
-                        else if (tagText.includes("기타")) {
-                            tagClass = 'tag-기타';
-                            guitar++;
-                        }
-                        tagHtml = `<span class="tag-badge ${tagClass}">${tagText}</span>`;
+                    let tagClass = 'tag-default';
+                    if (tagText.includes("200")) tagClass = 'tag-200';
+                    else if (tagText.includes("300")) tagClass = 'tag-300';
+                    else if (tagText.includes("기타")) {
+                        tagClass = 'tag-기타';
+                        guitar++;
                     }
-
-                    // 검색 및 캐시용 데이터 저장
-                    window.allSongs.push({ originalTitle, artist });
-
-                    html += `<tr>
-                        <td>${total}</td>
-                        <td class="song-title">${displayTitle}${tagHtml}</td>
-                        <td class="song-artist">${artist}</td>
-                    </tr>`;
+                    tagHtml = `<span class="tag-badge ${tagClass}">${tagText}</span>`;
                 }
-                
-                tbody.innerHTML = html;
-                document.getElementById('total-count').textContent = total;
-                document.getElementById('guitar-count').textContent = guitar;
-                
-                // 마지막 업데이트 시간 표시 (현재 시간 기준)
-                const now = new Date();
-                document.querySelector('.sync-info').textContent = `마지막 업데이트: ${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
-            })
-            .catch(err => {
-                console.error("데이터 로드 실패:", err);
-                document.getElementById('song-list-body').innerHTML = `<tr><td colspan="3" style="text-align:center; color:red;">시트 데이터를 불러오지 못했습니다. 게시 설정을 확인해주세요.</td></tr>`;
-            });
+
+                window.allSongs.push({ originalTitle, artist });
+
+                html += `<tr>
+                    <td>${total}</td>
+                    <td class="song-title">${displayTitle}${tagHtml}</td>
+                    <td class="song-artist">${artist}</td>
+                </tr>`;
+            }
+            
+            tbody.innerHTML = html;
+            document.getElementById('total-count').textContent = total;
+            document.getElementById('guitar-count').textContent = guitar;
+            
+            const now = new Date();
+            document.querySelector('.sync-info').textContent = `마지막 업데이트: ${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
+        })
+        .catch(err => {
+            console.error("데이터 로드 실패:", err);
+            document.getElementById('song-list-body').innerHTML = `<tr><td colspan="3" style="text-align:center; color:red;">시트 데이터를 불러오지 못했습니다. 게시 설정을 확인해주세요.</td></tr>`;
+        });
     };
 
     function filterSongs() {
