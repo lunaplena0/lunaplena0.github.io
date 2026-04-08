@@ -46,7 +46,7 @@
         }
         .btn-home:hover { background: #3f3f46; border-color: var(--accent); }
 
-        /* 통계 상자 (헤더 아래로 분리) */
+        /* 통계 상자 */
         .stats-container {
             background: var(--card-bg);
             border-radius: 12px;
@@ -137,10 +137,21 @@
 </div>
 
 <script>
+    // [수정됨] 구글 시트 URL
     const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQsvaqEEGjtHB20R3qPkIAXyAySm8FnLzcs0rIsZevLuLP65D43gSuoRzYVU0pmhRbvyg5AW-Ce1cmL/pub?gid=0&single=true&output=tsv";
+    const startDate = new Date("2025-09-04"); 
 
     window.onload = () => {
-        fetch(sheetUrl)
+        // [수정됨] 캐시 방지용 타임스탬프 추가 및 fetch 옵션 설정
+        const cacheBuster = `&t=${new Date().getTime()}`;
+        
+        fetch(sheetUrl + cacheBuster, {
+            cache: 'no-store',
+            headers: {
+                'Pragma': 'no-cache',
+                'Cache-Control': 'no-cache'
+            }
+        })
             .then(res => res.text())
             .then(tsv => {
                 const lines = tsv.split(/\r?\n/).filter(line => line.trim() !== "");
@@ -175,100 +186,83 @@
             });
     };
 
-    // 1. 기준 날짜 설정 (원하는 시작 날짜로 변경하세요)
-const startDate = new Date("2025-09-04"); 
+    function renderStats(data) {
+        const statsArea = document.getElementById('stats-area');
+        const total = data.length;
+        const stats = {};
 
-function renderStats(data) {
-    const statsArea = document.getElementById('stats-area');
-    const total = data.length;
-    const stats = {};
+        const today = new Date();
+        const diffTime = Math.abs(today - startDate);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+        const averageCycle = (diffDays / total).toFixed(1);
 
-    // 오늘 날짜와 시작 날짜 차이 계산
-    const today = new Date();
-    const diffTime = Math.abs(today - startDate);
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); // 총 일수
-    
-    // 평균 주기 계산 (소수점 첫째자리까지)
-    const averageCycle = (diffDays / total).toFixed(1);
+        data.forEach(item => {
+            const [y, m] = item.rawMonth.split(',').map(Number);
+            const year = `20${y}년`;
+            const month = `${m}월`;
+            if (!stats[year]) stats[year] = { months: {}, yearTotal: 0 };
+            if (!stats[year].months[month]) stats[year].months[month] = 0;
+            stats[year].months[month]++;
+            stats[year].yearTotal++;
+        });
 
-    data.forEach(item => {
-        const [y, m] = item.rawMonth.split(',').map(Number);
-        const year = `20${y}년`;
-        const month = `${m}월`;
-        if (!stats[year]) stats[year] = { months: {}, yearTotal: 0 };
-        if (!stats[year].months[month]) stats[year].months[month] = 0;
-        stats[year].months[month]++;
-        stats[year].yearTotal++;
-    });
-
-    // 상단 요약 텍스트 수정
-    let statsHtml = `
-        <div class="stats-summary" style="margin-bottom: 12px;">
-            <span class="stats-total" style="margin-bottom: 4px;">전체 기록: ${total}회</span>
-            <div style="font-size: 13px; color: var(--text-sub);">
-                📅 <strong>${startDate.toLocaleDateString()}</strong>로부터 <strong>${diffDays}일</strong>째 기록 중<br>
-                📉 약 <strong>${averageCycle}일</strong>에 한 번 꼴로 울고 계시네요!
+        let statsHtml = `
+            <div class="stats-summary" style="margin-bottom: 12px;">
+                <span class="stats-total" style="margin-bottom: 4px;">전체 기록: ${total}회</span>
+                <div style="font-size: 13px; color: var(--text-sub);">
+                    📅 <strong>${startDate.toLocaleDateString()}</strong>로부터 <strong>${diffDays}일</strong>째 기록 중<br>
+                    📉 약 <strong>${averageCycle}일</strong>에 한 번 꼴로 울고 계시네요!
+                </div>
             </div>
-        </div>
-    `;
-    
-    statsHtml += `<div class="stats-detail" style="border-top: 1px solid var(--border); padding-top: 10px;">`;
-    
-    // 연도 정렬
-    Object.keys(stats).sort((a, b) => a.localeCompare(b)).forEach(year => {
-        const yearData = stats[year];
-        const monthDetails = Object.keys(yearData.months)
-            .sort((a, b) => parseInt(a) - parseInt(b))
-            .map(m => `${m} ${yearData.months[m]}회`)
-            .join(', ');
-            
-        statsHtml += `<div class="year-block"><strong>${year} 합계 ${yearData.yearTotal}회</strong> (${monthDetails})</div>`;
-    });
-    
-    statsHtml += `</div>`;
-    statsArea.innerHTML = statsHtml;
-}
+        `;
+        
+        statsHtml += `<div class="stats-detail" style="border-top: 1px solid var(--border); padding-top: 10px;">`;
+        
+        Object.keys(stats).sort((a, b) => a.localeCompare(b)).forEach(year => {
+            const yearData = stats[year];
+            const monthDetails = Object.keys(yearData.months)
+                .sort((a, b) => parseInt(a) - parseInt(b))
+                .map(m => `${m} ${yearData.months[m]}회`)
+                .join(', ');
+                
+            statsHtml += `<div class="year-block"><strong>${year} 합계 ${yearData.yearTotal}회</strong> (${monthDetails})</div>`;
+        });
+        
+        statsHtml += `</div>`;
+        statsArea.innerHTML = statsHtml;
+    }
+
     function renderList(data) {
         const container = document.getElementById('main-content');
         container.innerHTML = '';
 
-        // 1. 데이터 정렬: 과거순 (2026년 -> 2027년 순서)
         data.sort((a, b) => {
             const [yearA, monthA] = a.rawMonth.split(',').map(Number);
             const [yearB, monthB] = b.rawMonth.split(',').map(Number);
-
-            if (yearA !== yearB) return yearA - yearB; // 년도 오름차순
-            if (monthA !== monthB) return monthA - monthB; // 월 오름차순
-
-            const getDateNum = (dateStr) => {
-                const firstDate = dateStr.split('~')[0];
-                return parseFloat(firstDate);
-            };
+            if (yearA !== yearB) return yearA - yearB;
+            if (monthA !== monthB) return monthA - monthB;
+            const getDateNum = (dateStr) => parseFloat(dateStr.split('~')[0]);
             const dateA = getDateNum(a.date);
             const dateB = getDateNum(b.date);
-            
-            if (dateA !== dateB) return dateA - dateB; // 날짜 오름차순
-            return a.time.localeCompare(b.time); // 시간 오름차순
+            if (dateA !== dateB) return dateA - dateB;
+            return a.time.localeCompare(b.time);
         });
 
-        // 2. 그룹화 (월별)
         const groups = {};
         data.forEach(item => {
             if (!groups[item.formattedMonth]) groups[item.formattedMonth] = [];
             groups[item.formattedMonth].push(item);
         });
 
-        // 3. 그룹(월) 타이틀 출력 순서: 과거 월이 위로 오도록 정렬
         const sortedMonthKeys = Object.keys(groups).sort((a, b) => {
             const parseM = (s) => {
                 const match = s.match(/(\d+)년\s+(\d+)월/);
                 if (!match) return 0;
                 return parseInt(match[1]) * 100 + parseInt(match[2]);
             };
-            return parseM(a) - parseM(b); // 작은 숫자(과거)가 위로
+            return parseM(a) - parseM(b);
         });
 
-        // 4. 화면 출력
         sortedMonthKeys.forEach(month => {
             const groupDiv = document.createElement('div');
             groupDiv.className = 'month-group';
