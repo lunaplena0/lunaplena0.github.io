@@ -156,209 +156,176 @@
 </div>
 
 <script>
-    const TSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTQ3nX6onmaf-ZHhXGox2s4ChGos7ki7iFjQ_47lArZR6dV935gCIbLbvlDDAS65rTEnswSLIk_7v3R/pub?gid=0&single=true&output=tsv';
-    const SONG_BOOK_URL = 'https://lunaplena0.github.io/songlist.html'; 
+    const TSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTQ3nX6onmaf-ZHhXGox2s4ChGos7ki7iFjQ_47lArZR6dV935gCIbLbvlDDAS65rTEnswSLIk_7v3R/pub?gid=0&single=true&output=tsv';
+    const SONG_BOOK_URL = 'https://lunaplena0.github.io/songlist.html'; 
 
-    async function init() {
-        try {
-            // 1. 캐시 방지를 위한 타임스탬프 추가
-            const cacheBuster = `&t=${new Date().getTime()}`;
-            const finalUrl = TSV_URL + cacheBuster;
+    async function init() {
+        try {
+            // 1. 캐시 방지: URL에 이미 파라미터가 있으므로 &로 연결해야 합니다.
+            // 타임스탬프와 랜덤값을 섞어 확실하게 캐시를 방지합니다.
+            const finalUrl = `${TSV_URL}&t=${Date.now()}&ord=${Math.floor(Math.random() * 1e6)}`;
 
-            // 2. 데이터 호출 (강력한 캐시 무시 옵션)
-            const response = await fetch(finalUrl, {
-                cache: 'no-store',
-                headers: {
-                    'Pragma': 'no-cache',
-                    'Cache-Control': 'no-cache'
-                }
-            });
+            console.log("요청 URL:", finalUrl);
 
-            if (!response.ok) throw new Error('네트워크 응답에 문제가 있습니다.');
+            const response = await fetch(finalUrl, {
+                cache: 'no-store'
+            });
 
-            const text = await response.text();
-            const rows = text.split(/\r?\n/).map(row => row.split('\t'));
+            if (!response.ok) throw new Error('네트워크 응답 에러');
 
-            // 데이터 할당
-            const profile = rows[2];
-            const liveData = rows[6]; 
-            const updateTimeData = rows[1] ? rows[1][5] : null; 
-            const statusBox = document.querySelector('.live-status-inline');
+            const text = await response.text();
+            if (!text || text.trim() === "") throw new Error('데이터가 비어있습니다.');
 
-            // --- [1] 실시간 방송 상태 업데이트 ---
-            const isOnline = liveData && liveData[5] !== "방송 정보 없음" && liveData[5] !== undefined;
+            const rows = text.split(/\r?\n/).map(row => row.split('\t'));
+            
+            // UI 업데이트 함수 호출
+            updateUI(rows);
 
-            if (isOnline) {
-                const bTitle = liveData[5];
-                const bTime = liveData[6];
-                const bGrade = liveData[7];
-                const bSubOnly = liveData[8];
-                const bPwd = liveData[9];
+        } catch (e) { 
+            console.error("데이터 로드 에러:", e);
+            document.getElementById('user-nick').innerText = "데이터 로드 실패";
+        }
+    }
 
-                let tagsHtml = `<div class="badge" style="background:#d32f2f; color:white;">ONLINE</div>`;
-                if (!["X", "-"].includes(bGrade)) tagsHtml += ` <span class="badge" style="background:#2f2f35; color:#FFAB91;">${bGrade}</span>`;
-                if (!["X", "-"].includes(bSubOnly)) tagsHtml += ` <span class="badge" style="background:#2f2f35; color:#B39DDB;">구독+</span>`;
-                if (!["X", "-"].includes(bPwd)) tagsHtml += ` <span class="badge" style="background:#2f2f35; color:#90A4AE;">비밀번호</span>`;
+    function updateUI(rows) {
+        const profile = rows[2];
+        const liveData = rows[6]; 
+        const updateTimeData = rows[1] ? rows[1][5] : null; 
+        const statusBox = document.querySelector('.live-status-inline');
 
-                statusBox.innerHTML = `
-                    <div style="margin-bottom:8px;">${tagsHtml}</div>
-                    <div id="stream-title-inline" class="ellipsis" style="max-width:200px; color:white;">${bTitle}</div>
-                    <div id="last-stream-time" style="color:white; font-weight:bold;">시작: ${bTime}</div>
-                `;
-            } else {
-                const lastTime = (profile && profile[3]) ? profile[3].trim() : "확인 중";
-                statusBox.innerHTML = `
-                    <div class="badge offline">OFFLINE</div>
-                    <div id="stream-title-inline">방송 준비 중</div>
-                    <div id="last-stream-time">최근 방송: ${lastTime}</div>
-                `;
-            }
+        // --- [1] 실시간 방송 상태 업데이트 ---
+        const isOnline = liveData && liveData[5] && liveData[5] !== "방송 정보 없음";
 
-            // --- [2] 프로필 및 기타 정보 업데이트 ---
-            if (profile) {
-                document.getElementById('user-nick').innerText = profile[0] || '닉네임';
-                document.getElementById('user-desc').innerText = profile[1] || '';
-                if(profile[2]) document.querySelector('.profile-img').style.backgroundImage = `url('${profile[2]}')`;
-            }
+        if (isOnline) {
+            const bTitle = liveData[5];
+            const bTime = liveData[6];
+            const bGrade = liveData[7];
+            const bSubOnly = liveData[8];
+            const bPwd = liveData[9];
 
-            if (updateTimeData) {
-                let updateEl = document.getElementById('update-time');
-                if (!updateEl) {
-                    updateEl = document.createElement('div');
-                    updateEl.id = 'update-time';
-                    updateEl.style.cssText = "font-size: 10px; color: var(--text-sub); margin-top: 12px; opacity: 0.7;";
-                    statusBox.appendChild(updateEl);
-                }
-                updateEl.innerText = `페이지 정보 갱신 시간 : ${updateTimeData}`;
-            }
+            let tagsHtml = `<div class="badge" style="background:#d32f2f; color:white;">ONLINE</div>`;
+            if (bGrade && !["X", "-"].includes(bGrade)) tagsHtml += ` <span class="badge" style="background:#2f2f35; color:#FFAB91;">${bGrade}</span>`;
+            if (bSubOnly && !["X", "-"].includes(bSubOnly)) tagsHtml += ` <span class="badge" style="background:#2f2f35; color:#B39DDB;">구독+</span>`;
+            if (bPwd && !["X", "-"].includes(bPwd)) tagsHtml += ` <span class="badge" style="background:#2f2f35; color:#90A4AE;">비밀번호</span>`;
 
-            // --- [3] 소셜 링크/게시물/VOD/스케줄 렌더링 (기존 로직과 동일) ---
-            renderLinks(rows[5]);
-            renderPosts(rows.slice(8, 13));
-            renderVODs(rows.slice(16, 21));
-            renderSchedule(rows.slice(24, 29));
+            statusBox.innerHTML = `
+                <div style="margin-bottom:8px;">${tagsHtml}</div>
+                <div id="stream-title-inline" class="ellipsis" style="max-width:200px; color:white;">${bTitle}</div>
+                <div id="last-stream-time" style="color:white; font-weight:bold;">시작: ${bTime}</div>
+            `;
+        } else {
+            const lastTime = (profile && profile[3]) ? profile[3].trim() : "확인 중";
+            statusBox.innerHTML = `
+                <div class="badge offline">OFFLINE</div>
+                <div id="stream-title-inline">방송 준비 중</div>
+                <div id="last-stream-time">최근 방송: ${lastTime}</div>
+            `;
+        }
 
-        } catch (e) { 
-            console.error("데이터 로드 에러:", e); 
-        }
-    }
+        // --- [2] 프로필 업데이트 ---
+        if (profile) {
+            document.getElementById('user-nick').innerText = profile[0] || '닉네임';
+            document.getElementById('user-desc').innerText = profile[1] || '';
+            if(profile[2]) document.querySelector('.profile-img').style.backgroundImage = `url('${profile[2]}')`;
+        }
 
-    // 코드 가독성을 위해 렌더링 함수 분리
-    function renderLinks(extraLinks) {
-        const linkBox = document.getElementById('social-links');
-        linkBox.innerHTML = '';
-        
-        const basicBtns = [
-            { name: '📺 방송국', url: 'https://www.sooplive.com/station/bababi' },
-            { name: '📖 노래책', url: SONG_BOOK_URL }
-        ];
+        // 하단 렌더링 호출
+        renderLinks(rows[5]);
+        renderPosts(rows.slice(8, 13));
+        renderVODs(rows.slice(16, 21));
+        renderSchedule(rows.slice(24, 31)); // 7일치를 위해 범위를 살짝 늘림
+    }
 
-        basicBtns.forEach(btn => {
-            const a = document.createElement('a');
-            a.className = 'link-btn';
-            a.href = btn.url;
-            a.target = btn.name === '📖 노래책' ? '_self' : '_blank';
-            a.innerText = btn.name;
-            a.style.borderColor = 'var(--accent)';
-            linkBox.appendChild(a);
-        });
+    function renderLinks(extraLinks) {
+        const linkBox = document.getElementById('social-links');
+        linkBox.innerHTML = '';
+        const basicBtns = [{ name: '📺 방송국', url: 'https://www.sooplive.com/station/bababi' }, { name: '📖 노래책', url: SONG_BOOK_URL }];
+        basicBtns.forEach(btn => {
+            const a = document.createElement('a');
+            a.className = 'link-btn';
+            a.href = btn.url;
+            a.target = btn.name === '📖 노래책' ? '_self' : '_blank';
+            a.innerText = btn.name;
+            a.style.borderColor = 'var(--accent)';
+            linkBox.appendChild(a);
+        });
+        if (extraLinks) {
+            extraLinks.forEach(l => {
+                if (l && l.includes(': ')) {
+                    const [name, ...urlParts] = l.split(': ');
+                    const a = document.createElement('a');
+                    a.className = 'link-btn';
+                    a.href = urlParts.join(': ').trim();
+                    a.target = '_blank';
+                    a.innerText = name.trim();
+                    linkBox.appendChild(a);
+                }
+            });
+        }
+    }
 
-        if (extraLinks) {
-            extraLinks.forEach(l => {
-                if (l && l.includes(': ')) {
-                    const [name, ...urlParts] = l.split(': ');
-                    const a = document.createElement('a');
-                    a.className = 'link-btn';
-                    a.href = urlParts.join(': ').trim();
-                    a.target = '_blank';
-                    a.innerText = name.trim();
-                    linkBox.appendChild(a);
-                }
-            });
-        }
-    }
+    function renderPosts(data) {
+        const postBox = document.getElementById('post-container');
+        const postData = data.filter(p => p[1] && p[1].trim() !== "");
+        let html = '<h2>📢 최근 게시물</h2>';
+        postData.forEach(p => {
+            const isNotice = p[3]?.trim() === 'O' ? '📌' : ''; 
+            html += `<div class="item-row" onclick="window.open('${p[2]}', '_blank')" style="display: flex; flex-direction: row; align-items: center; justify-content: space-between;">
+                        <div style="flex: 1; min-width: 0;"><div class="item-date">${p[0]}</div><div class="ellipsis">${p[1]}</div></div>
+                        <span style="margin-left:8px;">${isNotice}</span>
+                    </div>`;
+        });
+        postBox.innerHTML = html;
+    }
 
-    function renderPosts(data) {
-        const postBox = document.getElementById('post-container');
-        const postData = data.filter(p => p[1] && p[1].trim() !== "");
-        postData.sort((a, b) => (b[3]?.trim() === 'O' ? 1 : 0) - (a[3]?.trim() === 'O' ? 1 : 0));
-        
-        let html = '<h2>📢 최근 게시물</h2>';
-        postData.forEach(p => {
-            const isNotice = p[3]?.trim() === 'O' ? '<span style="margin-left: 8px; flex-shrink: 0;">📌</span>' : ''; 
-            html += `
-                <div class="item-row" onclick="window.open('${p[2]}', '_blank')" style="display: flex; flex-direction: row; align-items: center;">
-                    <div style="flex: 1; min-width: 0;">
-                        <div class="item-date">${p[0]}</div>
-                        <div class="ellipsis" style="font-size: 13px;">${p[1]}</div>
-                    </div>
-                    ${isNotice}
-                </div>`;
-        });
-        postBox.innerHTML = html;
-    }
+    function renderVODs(data) {
+        const vodBox = document.getElementById('vod-container');
+        const vodData = data.filter(v => v[1] && v[1].trim() !== "");
+        let html = '<h2>🎬 방송 다시보기</h2>';
+        vodData.forEach(v => {
+            html += `<div class="item-row vod-row" onclick="window.open('${v[2]}', '_blank')">
+                        <div class="vod-thumb" style="background-image:url('${v[3]}')"></div>
+                        <div style="flex:1; min-width:0;"><div class="item-date">${v[0]}</div><div class="ellipsis" style="font-size:12px;">${v[1]}</div></div>
+                    </div>`;
+        });
+        vodBox.innerHTML = html;
+    }
 
-    function renderVODs(data) {
-        const vodBox = document.getElementById('vod-container');
-        const vodData = data.filter(v => v[1] && v[1].trim() !== "");
-        vodData.sort((a, b) => (b[4]?.trim() === 'O' ? 1 : 0) - (a[4]?.trim() === 'O' ? 1 : 0));
-        
-        let html = '<h2>🎬 방송 다시보기</h2>';
-        vodData.forEach(v => {
-            const isPin = v[4]?.trim() === 'O' ? '📌 ' : '';
-            html += `
-                <div class="item-row vod-row" onclick="window.open('${v[2]}', '_blank')">
-                    <div class="vod-thumb" style="background-image:url('${v[3]}')"></div>
-                    <div style="flex:1; min-width:0;">
-                        <div class="item-date">${v[0]}</div>
-                        <div class="ellipsis" style="font-size:12px;">${isPin}${v[1]}</div>
-                    </div>
-                </div>`;
-        });
-        vodBox.innerHTML = html;
-    }
+    function renderSchedule(data) {
+        const container = document.getElementById('schedule-container');
+        if(!container) return;
+        container.innerHTML = '';
+        const todayStr = new Date().toLocaleDateString('en-CA'); 
 
-    function renderSchedule(data) {
-        const container = document.getElementById('schedule-container');
-        if(!container) return;
-        container.innerHTML = '';
-        const todayStr = new Date().toLocaleDateString('en-CA'); 
+        data.forEach(row => {
+            const date = row[0]?.trim() || '';   
+            const day = row[1]?.trim() || '';    
+            const time = row[2]?.trim() || '';   
+            const content = row[3]?.trim() || ''; 
+            const category = row[4]?.trim() || ''; 
 
-        data.forEach(row => {
-            const date = row[0] ? row[0].trim() : '';   
-            const day = row[1] ? row[1].trim() : '';    
-            const time = row[2] ? row[2].trim() : '';   
-            const content = row[3] ? row[3].trim() : ''; 
-            const category = row[4] ? row[4].trim() : ''; 
+            if(!date && !content) return; 
 
-            if(!date && !content) return; 
+            const isToday = date === todayStr;
+            const rowDiv = document.createElement('div');
+            rowDiv.className = `item-row schedule-row ${isToday ? 'today-highlight' : ''}`;
+            rowDiv.innerHTML = `
+                <div style="display:flex; flex-direction:column; gap:2px; flex:1; min-width:0;">
+                    <span class="day" style="font-size:11px;">${date} (${day})${isToday ? '<span class="today-tag">TODAY</span>' : ''}</span>
+                    <div style="font-size:13px; color:var(--text-main); display:flex; align-items:center;">
+                        <span style="color:var(--accent); font-weight:bold;">${time}</span>
+                        <span class="ellipsis" style="margin-left:5px;">${content || '휴방 또는 일정 없음'}</span>
+                    </div>
+                </div>
+                <div style="font-size:11px; color:var(--text-sub); align-self:flex-end;">${category}</div>`;
+            container.appendChild(rowDiv);
+        });
+    }
 
-            const isToday = date === todayStr;
-            const rowDiv = document.createElement('div');
-            rowDiv.className = `item-row schedule-row ${isToday ? 'today-highlight' : ''}`;
-
-            const timeInfo = time ? `<span style="color:var(--accent); font-weight:bold; flex-shrink:0;">${time}</span>` : '';
-            const contentInfo = content ? `<span class="ellipsis" style="margin-left:5px; flex:1;">${content}</span>` : '<span style="margin-left:5px; flex:1;">휴방 또는 일정 없음</span>';
-
-            rowDiv.innerHTML = `
-                <div style="display:flex; flex-direction:column; gap:2px; flex:1; min-width:0;">
-                    <span class="day" style="font-size:11px;">${date} (${day})${isToday ? '<span class="today-tag">TODAY</span>' : ''}</span>
-                    <div style="font-size:13px; color:var(--text-main); display:flex; align-items:center;">
-                        ${timeInfo} ${contentInfo}
-                    </div>
-                </div>
-                <div style="font-size:11px; color:var(--text-sub); align-self:flex-end; flex-shrink:0; margin-left:10px;">${category}</div>
-            `;
-            container.appendChild(rowDiv);
-        });
-    }
-
-    // 초기 실행
-    window.onload = () => {
-        init();
-        // 1분(60000ms)마다 자동으로 데이터를 새로 불러옴 (페이지 새로고침 불필요)
-        setInterval(init, 60000);
-    };
+    window.onload = () => {
+        init();
+        setInterval(init, 60000);
+    };
 </script>
 </body>
 </html>
