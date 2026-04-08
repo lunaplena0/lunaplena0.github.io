@@ -160,24 +160,31 @@
     const SONG_BOOK_URL = 'https://lunaplena0.github.io/songlist.html'; 
 
     async function init() {
-        try {
-            // 1. 캐시 방지를 위한 타임스탬프 추가
-            const cacheBuster = `&t=${new Date().getTime()}`;
-            const finalUrl = TSV_URL + cacheBuster;
+    try {
+        // 1. 브라우저 캐시 방지 (시간 기반)
+        const cacheBuster = `&t=${new Date().getTime()}`;
+        
+        // 2. 구글 서버 내부 캐시 방지 (무작위 숫자 기반) - 추가된 부분
+        const randomSeed = `&ord=${Math.round(Math.random() * 100000)}`; 
+        
+        // 두 값을 합쳐서 최종 URL 생성
+        const finalUrl = TSV_URL + cacheBuster + randomSeed;
 
-            // 2. 데이터 호출 (강력한 캐시 무시 옵션)
-            const response = await fetch(finalUrl, {
-                cache: 'no-store',
-                headers: {
-                    'Pragma': 'no-cache',
-                    'Cache-Control': 'no-cache'
-                }
-            });
+        // 3. 데이터 호출 (강력한 캐시 무시 헤더 포함)
+        const response = await fetch(finalUrl, {
+            method: 'GET',
+            cache: 'no-store',
+            headers: {
+                'Pragma': 'no-cache',
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Expires': '0'
+            }
+        });
 
-            if (!response.ok) throw new Error('네트워크 응답에 문제가 있습니다.');
+        if (!response.ok) throw new Error('네트워크 응답에 문제가 있습니다.');
 
-            const text = await response.text();
-            const rows = text.split(/\r?\n/).map(row => row.split('\t'));
+        const text = await response.text();
+        const rows = text.split(/\r?\n/).map(row => row.split('\t'));
 
             // 데이터 할당
             const profile = rows[2];
