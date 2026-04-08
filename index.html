@@ -1,151 +1,158 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>한눈에 모아보기</title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg-color: #0e0e10;
-            --card-bg: #18181b;
-            --accent: #9147ff;
-            --text-main: #efeff1;
-            --text-sub: #adadb8;
-        }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>한눈에 모아보기</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0e0e10;
+            --card-bg: #18181b;
+            --accent: #9147ff;
+            --text-main: #efeff1;
+            --text-sub: #adadb8;
+        }
 
-        /* 1. 스크롤 제거 및 중앙 정렬 강화 */
-        html, body { 
-            height: 100%; 
-            margin: 0; 
-            padding: 0; 
-            overflow: hidden; /* 스크롤 차단 */
-        }
+        body { 
+            background-color: var(--bg-color); 
+            color: var(--text-main); 
+            font-family: 'Noto Sans KR', sans-serif; 
+            margin: 0; padding: 20px;
+            display: flex; justify-content: center; align-items: center; 
+            min-height: 100vh; box-sizing: border-box;
+        }
 
-        body { 
-            background-color: var(--bg-color); 
-            color: var(--text-main); 
-            font-family: 'Noto Sans KR', sans-serif; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-        }
+        .wrapper { width: 100%; max-width: 1100px; display: flex; flex-direction: column; gap: 20px; padding: 40px 0; }
 
-        /* 2. 컨텐츠 박스 여백 최적화 */
-        .wrapper { 
-            width: 100%; 
-            max-width: 1100px; 
-            display: flex; 
-            flex-direction: column; 
-            gap: 20px; 
-            padding: 20px; /* 내부 여백만 유지 */
-            box-sizing: border-box;
-        }
+        .card { 
+            background: var(--card-bg); border-radius: 16px; padding: 30px; 
+            border: 1px solid #2f2f35; display: flex; position: relative;
+        }
 
-        .card { 
-            background: var(--card-bg); border-radius: 16px; padding: 30px; 
-            border: 1px solid #2f2f35; display: flex; position: relative;
-            flex-direction: column;
-        }
+        .profile-box { align-items: center; gap: 30px; background: linear-gradient(145deg, #18181b, #1d1d21); }
+        
+        .profile-img { 
+            width: 110px; height: 110px; border-radius: 50%; background: #2f2f35; 
+            flex-shrink: 0; border: 3px solid var(--accent);
+            box-shadow: 0 0 20px rgba(145, 71, 255, 0.2);
+            background-size: cover; background-position: center;
+            /* 커서 모양을 기본 화살표로 유지 */
+            cursor: default; 
+            transition: none; /* 애니메이션 효과 제거 */
+        }
 
-        .profile-box { flex-direction: row; align-items: center; gap: 30px; background: linear-gradient(145deg, #18181b, #1d1d21); }
-        
-        .profile-img { 
-            width: 110px; height: 110px; border-radius: 50%; background: #2f2f35; 
-            flex-shrink: 0; border: 3px solid var(--accent);
-            box-shadow: 0 0 20px rgba(145, 71, 255, 0.2);
-            background-size: cover; background-position: center;
-            cursor: pointer; 
-        }
+        /* 호버 시 효과가 나타나지 않도록 호버 설정은 삭제하거나 비워둡니다. */
+        .profile-img:hover {
+            transform: none;
+            filter: none;
+        }
 
-        .profile-info { flex-grow: 1; min-width: 0; }
-        .profile-info h1 { margin: 0 0 5px; font-size: 26px; font-weight: 700; }
-        .profile-info p { 
-            color: var(--text-sub); margin: 0 0 10px; font-size: 14px; 
-            max-width: 450px; line-height: 1.6;
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-        }
+        .profile-info { flex-grow: 1; min-width: 0; }
+        .profile-info h1 { margin: 0 0 5px; font-size: 26px; font-weight: 700; }
+        .profile-info p { 
+            color: var(--text-sub); margin: 0 0 10px; font-size: 14px; 
+            max-width: 450px; line-height: 1.6;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
 
-        .social-links { display: flex; gap: 10px; flex-wrap: wrap; }
-        .link-btn { padding: 7px 15px; background: #26262c; border-radius: 8px; color: var(--text-main); text-decoration: none; font-size: 12px; border: 1px solid #3a3a3d; transition: 0.3s; }
-        .link-btn:hover { background: var(--accent); border-color: var(--accent); }
+        .social-links { display: flex; gap: 10px; flex-wrap: wrap; }
+        .link-btn { padding: 7px 15px; background: #26262c; border-radius: 8px; color: var(--text-main); text-decoration: none; font-size: 12px; border: 1px solid #3a3a3d; transition: 0.3s; }
+        .link-btn:hover { background: var(--accent); border-color: var(--accent); }
 
-        .live-status-inline {
-            margin-left: auto; text-align: center; padding: 0 40px; border-left: 1px solid #2f2f35; 
-            min-width: 220px; display: flex; flex-direction: column; align-items: center; justify-content: center;
-        }
+        .live-status-inline {
+            margin-left: auto; text-align: center; padding: 0 40px; border-left: 1px solid #2f2f35; 
+            min-width: 220px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
 
-        .badge { display: inline-block; padding: 5px 14px; border-radius: 6px; font-size: 11px; font-weight: bold; margin-bottom: 8px; }
-        .badge.offline { background: #3a3a3d; color: var(--text-sub); }
-        #stream-title-inline { font-size: 18px; font-weight: bold; margin-bottom: 4px; }
-        #last-stream-time { font-size: 12px; color: var(--text-sub); }
+        .badge { display: inline-block; padding: 5px 14px; border-radius: 6px; font-size: 11px; font-weight: bold; margin-bottom: 8px; }
+        .badge.offline { background: #3a3a3d; color: var(--text-sub); }
+        #stream-title-inline { font-size: 18px; font-weight: bold; margin-bottom: 4px; }
+        #last-stream-time { font-size: 12px; color: var(--text-sub); }
 
-        .bottom-section { 
-            display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; align-items: stretch;
-        }
+        .bottom-section { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr 1fr; 
+            gap: 20px; 
+            align-items: stretch;
+        }
+        .bottom-section .card { 
+            flex-direction: column; 
+            padding: 25px; 
+            height: auto; 
+            box-sizing: border-box;
+            min-width: 0;
+        }
 
-        h2 { font-size: 14px; margin-top: 0; color: var(--accent); border-bottom: 1px solid #2f2f35; padding-bottom: 12px; margin-bottom: 15px; }
+        h2 { font-size: 14px; margin-top: 0; color: var(--accent); border-bottom: 1px solid #2f2f35; padding-bottom: 12px; margin-bottom: 15px; }
 
-        .content-list { display: flex; flex-direction: column; gap: 0; }
+        .item-row { 
+            padding: 10px; 
+            border-bottom: 1px solid #26262c; 
+            font-size: 13px; 
+            border-radius: 8px; 
+            transition: 0.2s; 
+            cursor: pointer;
+            min-height: 66px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            box-sizing: border-box;
+        }
+        .item-row:hover { background: rgba(255, 255, 255, 0.05); }
+        .item-row:last-child { border: none; }
+        .item-date { font-size: 11px; color: var(--text-sub); margin-bottom: 4px; }
+        
+        .vod-row { flex-direction: row !important; align-items: center; gap: 12px; }
+        .vod-thumb { width: 80px; height: 45px; background: #2f2f35; border-radius: 4px; flex-shrink: 0; background-size: cover; background-position: center; }
 
-        .item-row { 
-            padding: 10px; border-bottom: 1px solid #26262c; font-size: 13px; 
-            border-radius: 8px; transition: 0.2s; cursor: pointer;
-            min-height: 66px; display: flex; flex-direction: column; justify-content: center;
-        }
-        .item-row:hover { background: rgba(255, 255, 255, 0.05); }
-        .item-row:last-child { border: none; }
-        
-        .item-date { font-size: 11px; color: var(--text-sub); margin-bottom: 4px; }
-        .vod-row { flex-direction: row !important; align-items: center; gap: 12px; }
-        .vod-thumb { width: 80px; height: 45px; background: #2f2f35; border-radius: 4px; flex-shrink: 0; background-size: cover; background-position: center; }
+        .schedule-row { flex-direction: row !important; justify-content: space-between; cursor: default; }
+        .schedule-row:hover { background: none; }
+        .day { font-weight: bold; color: var(--text-sub); }
 
-        .schedule-row { flex-direction: row !important; justify-content: space-between; cursor: default; }
-        .today-highlight { background: rgba(145, 71, 255, 0.15) !important; border: 1px solid var(--accent) !important; transform: scale(1.02); }
-        .today-tag { font-size: 9px; background: var(--accent); color: white; padding: 2px 5px; border-radius: 4px; margin-left: 5px; vertical-align: middle; }
-        .ellipsis { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .today-highlight { 
+            background: rgba(145, 71, 255, 0.15) !important; 
+            border: 1px solid var(--accent) !important; 
+            transform: scale(1.02); 
+        }
+        .today-tag { font-size: 9px; background: var(--accent); color: white; padding: 2px 5px; border-radius: 4px; margin-left: 5px; vertical-align: middle; }
 
-        @media (max-width: 900px) {
-            body { overflow-y: auto; } /* 모바일처럼 세로로 길어지면 스크롤 허용 */
-            .profile-box { flex-direction: column; padding-bottom: 40px; }
-            .live-status-inline { margin-left: 0; border-left: none; border-top: 1px solid #2f2f35; padding: 20px 0; width: 100%; }
-            .bottom-section { grid-template-columns: 1fr; }
-        }
-    </style>
+        .ellipsis { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        @media (max-width: 900px) {
+            .profile-box { flex-direction: column; padding-bottom: 40px; }
+            .live-status-inline { margin-left: 0; border-left: none; border-top: 1px solid #2f2f35; padding: 20px 0; width: 100%; }
+            .bottom-section { grid-template-columns: 1fr; }
+        }
+    </style>
 </head>
 <body>
 
 <div class="wrapper">
-    <div class="top-section">
-        <div class="card profile-box">
-            <div class="profile-img" onclick="location.href='blue-note.html'"></div>
-            <div class="profile-info">
-                <h1 id="user-nick">로딩 중...</h1>
-                <p id="user-desc">정보를 불러오고 있습니다.</p>
-                <div class="social-links" id="social-links"></div>
-            </div>
-            <div class="live-status-inline" id="live-status-area">
-                <div class="badge offline">OFFLINE</div>
-                <div id="stream-title-inline">방송 준비 중</div>
-                <div id="last-stream-time">최근 방송: 확인 중</div>
-            </div>
-        </div>
-    </div>
+    <div class="top-section">
+        <div class="card profile-box">
+            <div class="profile-img" onclick="location.href='blue-note.html'"></div>
+            <div class="profile-info">
+                <h1 id="user-nick">로딩 중...</h1>
+                <p id="user-desc">정보를 불러오고 있습니다.</p>
+                <div class="social-links" id="social-links"></div>
+            </div>
+            <div class="live-status-inline">
+                <div class="badge offline">OFFLINE</div>
+                <div id="stream-title-inline">방송 준비 중</div>
+                <div id="last-stream-time">최근 방송: 확인 중</div>
+            </div>
+        </div>
+    </div>
 
-    <div class="bottom-section">
-        <div class="card">
-            <h2>📅 방송 스케줄</h2>
-            <div id="schedule-container" class="content-list"></div>
-        </div>
-        <div class="card">
-            <h2>📢 최근 게시물</h2>
-            <div id="post-container" class="content-list"></div>
-        </div>
-        <div class="card">
-            <h2>🎬 방송 다시보기</h2>
-            <div id="vod-container" class="content-list"></div>
-        </div>
-    </div>
+    <div class="bottom-section">
+        <div class="card">
+            <h2>📅 방송 스케줄</h2>
+            <div id="schedule-container"></div>
+        </div>
+        <div class="card" id="post-container"><h2>📢 최근 게시물</h2></div>
+        <div class="card" id="vod-container"><h2>🎬 방송 다시보기</h2></div>
+    </div>
 </div>
 
 <script>
@@ -154,63 +161,117 @@
 
     async function init() {
         try {
-            const response = await fetch(`${TSV_URL}&t=${new Date().getTime()}`, { cache: 'no-store' });
-            if (!response.ok) throw new Error('Network response was not ok');
-            
+            // 1. 캐시 방지를 위한 타임스탬프 추가
+            const cacheBuster = `&t=${new Date().getTime()}`;
+            const finalUrl = TSV_URL + cacheBuster;
+
+            // 2. 데이터 호출 (강력한 캐시 무시 옵션)
+            const response = await fetch(finalUrl, {
+                cache: 'no-store',
+                headers: {
+                    'Pragma': 'no-cache',
+                    'Cache-Control': 'no-cache'
+                }
+            });
+
+            if (!response.ok) throw new Error('네트워크 응답에 문제가 있습니다.');
+
             const text = await response.text();
             const rows = text.split(/\r?\n/).map(row => row.split('\t'));
 
+            // 데이터 할당
             const profile = rows[2];
             const liveData = rows[6]; 
-            const statusBox = document.getElementById('live-status-area');
+            const updateTimeData = rows[1] ? rows[1][5] : null; 
+            const statusBox = document.querySelector('.live-status-inline');
 
+            // --- [1] 실시간 방송 상태 업데이트 ---
+            const isOnline = liveData && liveData[5] !== "방송 정보 없음" && liveData[5] !== undefined;
+
+            if (isOnline) {
+                const bTitle = liveData[5];
+                const bTime = liveData[6];
+                const bGrade = liveData[7];
+                const bSubOnly = liveData[8];
+                const bPwd = liveData[9];
+
+                let tagsHtml = `<div class="badge" style="background:#d32f2f; color:white;">ONLINE</div>`;
+                if (!["X", "-"].includes(bGrade)) tagsHtml += ` <span class="badge" style="background:#2f2f35; color:#FFAB91;">${bGrade}</span>`;
+                if (!["X", "-"].includes(bSubOnly)) tagsHtml += ` <span class="badge" style="background:#2f2f35; color:#B39DDB;">구독+</span>`;
+                if (!["X", "-"].includes(bPwd)) tagsHtml += ` <span class="badge" style="background:#2f2f35; color:#90A4AE;">비밀번호</span>`;
+
+                statusBox.innerHTML = `
+                    <div style="margin-bottom:8px;">${tagsHtml}</div>
+                    <div id="stream-title-inline" class="ellipsis" style="max-width:200px; color:white;">${bTitle}</div>
+                    <div id="last-stream-time" style="color:white; font-weight:bold;">시작: ${bTime}</div>
+                `;
+            } else {
+                const lastTime = (profile && profile[3]) ? profile[3].trim() : "확인 중";
+                statusBox.innerHTML = `
+                    <div class="badge offline">OFFLINE</div>
+                    <div id="stream-title-inline">방송 준비 중</div>
+                    <div id="last-stream-time">최근 방송: ${lastTime}</div>
+                `;
+            }
+
+            // --- [2] 프로필 및 기타 정보 업데이트 ---
             if (profile) {
                 document.getElementById('user-nick').innerText = profile[0] || '닉네임';
                 document.getElementById('user-desc').innerText = profile[1] || '';
                 if(profile[2]) document.querySelector('.profile-img').style.backgroundImage = `url('${profile[2]}')`;
             }
 
-            const isOnline = liveData && liveData[5] && !["방송 정보 없음", "X", "-"].includes(liveData[5]);
-            if (isOnline) {
-                let tagsHtml = `<div class="badge" style="background:#d32f2f; color:white;">ONLINE</div>`;
-                if (!["X", "-"].includes(liveData[7])) tagsHtml += ` <span class="badge" style="background:#2f2f35; color:#FFAB91;">${liveData[7]}</span>`;
-                statusBox.innerHTML = `
-                    <div style="margin-bottom:8px;">${tagsHtml}</div>
-                    <div id="stream-title-inline" class="ellipsis" style="max-width:200px; color:white;">${liveData[5]}</div>
-                    <div id="last-stream-time" style="color:white; font-weight:bold;">시작: ${liveData[6]}</div>
-                `;
-            } else {
-                statusBox.innerHTML = `
-                    <div class="badge offline">OFFLINE</div>
-                    <div id="stream-title-inline">방송 준비 중</div>
-                    <div id="last-stream-time">최근 방송: ${profile ? profile[3] : '확인 중'}</div>
-                `;
+            if (updateTimeData) {
+                let updateEl = document.getElementById('update-time');
+                if (!updateEl) {
+                    updateEl = document.createElement('div');
+                    updateEl.id = 'update-time';
+                    updateEl.style.cssText = "font-size: 10px; color: var(--text-sub); margin-top: 12px; opacity: 0.7;";
+                    statusBox.appendChild(updateEl);
+                }
+                updateEl.innerText = `페이지 정보 갱신 시간 : ${updateTimeData}`;
             }
 
+            // --- [3] 소셜 링크/게시물/VOD/스케줄 렌더링 (기존 로직과 동일) ---
             renderLinks(rows[5]);
             renderPosts(rows.slice(8, 13));
             renderVODs(rows.slice(16, 21));
-            renderSchedule(rows.slice(24, 30));
+            renderSchedule(rows.slice(24, 29));
 
-        } catch (e) { console.error("Data Load Error:", e); }
+        } catch (e) { 
+            console.error("데이터 로드 에러:", e); 
+        }
     }
 
+    // 코드 가독성을 위해 렌더링 함수 분리
     function renderLinks(extraLinks) {
         const linkBox = document.getElementById('social-links');
         linkBox.innerHTML = '';
-        const btns = [{ name: '📺 방송국', url: 'https://www.sooplive.com/station/bababi' }, { name: '📖 노래책', url: SONG_BOOK_URL }];
-        btns.forEach(btn => {
+        
+        const basicBtns = [
+            { name: '📺 방송국', url: 'https://www.sooplive.com/station/bababi' },
+            { name: '📖 노래책', url: SONG_BOOK_URL }
+        ];
+
+        basicBtns.forEach(btn => {
             const a = document.createElement('a');
-            a.className = 'link-btn'; a.href = btn.url; a.innerText = btn.name;
-            a.target = btn.name.includes('노래책') ? '_self' : '_blank';
+            a.className = 'link-btn';
+            a.href = btn.url;
+            a.target = btn.name === '📖 노래책' ? '_self' : '_blank';
+            a.innerText = btn.name;
+            a.style.borderColor = 'var(--accent)';
             linkBox.appendChild(a);
         });
+
         if (extraLinks) {
             extraLinks.forEach(l => {
                 if (l && l.includes(': ')) {
-                    const [name, url] = l.split(': ');
+                    const [name, ...urlParts] = l.split(': ');
                     const a = document.createElement('a');
-                    a.className = 'link-btn'; a.href = url.trim(); a.innerText = name.trim(); a.target = '_blank';
+                    a.className = 'link-btn';
+                    a.href = urlParts.join(': ').trim();
+                    a.target = '_blank';
+                    a.innerText = name.trim();
                     linkBox.appendChild(a);
                 }
             });
@@ -218,57 +279,86 @@
     }
 
     function renderPosts(data) {
-        const container = document.getElementById('post-container');
-        container.innerHTML = '';
-        data.filter(p => p[1]).forEach(p => {
-            const pin = p[3] === 'O' ? '📌 ' : '';
-            const div = document.createElement('div');
-            div.className = 'item-row';
-            div.onclick = () => window.open(p[2], '_blank');
-            div.innerHTML = `<div class="item-date">${p[0]}</div><div class="ellipsis">${pin}${p[1]}</div>`;
-            container.appendChild(div);
+        const postBox = document.getElementById('post-container');
+        const postData = data.filter(p => p[1] && p[1].trim() !== "");
+        postData.sort((a, b) => (b[3]?.trim() === 'O' ? 1 : 0) - (a[3]?.trim() === 'O' ? 1 : 0));
+        
+        let html = '<h2>📢 최근 게시물</h2>';
+        postData.forEach(p => {
+            const isNotice = p[3]?.trim() === 'O' ? '<span style="margin-left: 8px; flex-shrink: 0;">📌</span>' : ''; 
+            html += `
+                <div class="item-row" onclick="window.open('${p[2]}', '_blank')" style="display: flex; flex-direction: row; align-items: center;">
+                    <div style="flex: 1; min-width: 0;">
+                        <div class="item-date">${p[0]}</div>
+                        <div class="ellipsis" style="font-size: 13px;">${p[1]}</div>
+                    </div>
+                    ${isNotice}
+                </div>`;
         });
+        postBox.innerHTML = html;
     }
 
     function renderVODs(data) {
-        const container = document.getElementById('vod-container');
-        container.innerHTML = '';
-        data.filter(v => v[1]).forEach(v => {
-            const div = document.createElement('div');
-            div.className = 'item-row vod-row';
-            div.onclick = () => window.open(v[2], '_blank');
-            div.innerHTML = `
-                <div class="vod-thumb" style="background-image:url('${v[3]}')"></div>
-                <div style="flex:1; min-width:0;">
-                    <div class="item-date">${v[0]}</div>
-                    <div class="ellipsis" style="font-size:12px;">${v[1]}</div>
+        const vodBox = document.getElementById('vod-container');
+        const vodData = data.filter(v => v[1] && v[1].trim() !== "");
+        vodData.sort((a, b) => (b[4]?.trim() === 'O' ? 1 : 0) - (a[4]?.trim() === 'O' ? 1 : 0));
+        
+        let html = '<h2>🎬 방송 다시보기</h2>';
+        vodData.forEach(v => {
+            const isPin = v[4]?.trim() === 'O' ? '📌 ' : '';
+            html += `
+                <div class="item-row vod-row" onclick="window.open('${v[2]}', '_blank')">
+                    <div class="vod-thumb" style="background-image:url('${v[3]}')"></div>
+                    <div style="flex:1; min-width:0;">
+                        <div class="item-date">${v[0]}</div>
+                        <div class="ellipsis" style="font-size:12px;">${isPin}${v[1]}</div>
+                    </div>
                 </div>`;
-            container.appendChild(div);
         });
+        vodBox.innerHTML = html;
     }
 
     function renderSchedule(data) {
         const container = document.getElementById('schedule-container');
+        if(!container) return;
         container.innerHTML = '';
-        const todayStr = new Date().toLocaleDateString('en-CA');
+        const todayStr = new Date().toLocaleDateString('en-CA'); 
+
         data.forEach(row => {
-            if(!row[0] && !row[3]) return;
-            const isToday = row[0] === todayStr;
-            const div = document.createElement('div');
-            div.className = `item-row schedule-row ${isToday ? 'today-highlight' : ''}`;
-            div.innerHTML = `
-                <div style="flex:1; min-width:0;">
-                    <span class="item-date" style="font-weight:bold;">${row[0]} (${row[1]})${isToday ? '<span class="today-tag">TODAY</span>' : ''}</span>
-                    <div class="ellipsis" style="color:var(--text-main); font-size:13px;">
-                        <span style="color:var(--accent); font-weight:bold;">${row[2] || ''}</span> ${row[3] || '일정 없음'}
+            const date = row[0] ? row[0].trim() : '';   
+            const day = row[1] ? row[1].trim() : '';    
+            const time = row[2] ? row[2].trim() : '';   
+            const content = row[3] ? row[3].trim() : ''; 
+            const category = row[4] ? row[4].trim() : ''; 
+
+            if(!date && !content) return; 
+
+            const isToday = date === todayStr;
+            const rowDiv = document.createElement('div');
+            rowDiv.className = `item-row schedule-row ${isToday ? 'today-highlight' : ''}`;
+
+            const timeInfo = time ? `<span style="color:var(--accent); font-weight:bold; flex-shrink:0;">${time}</span>` : '';
+            const contentInfo = content ? `<span class="ellipsis" style="margin-left:5px; flex:1;">${content}</span>` : '<span style="margin-left:5px; flex:1;">휴방 또는 일정 없음</span>';
+
+            rowDiv.innerHTML = `
+                <div style="display:flex; flex-direction:column; gap:2px; flex:1; min-width:0;">
+                    <span class="day" style="font-size:11px;">${date} (${day})${isToday ? '<span class="today-tag">TODAY</span>' : ''}</span>
+                    <div style="font-size:13px; color:var(--text-main); display:flex; align-items:center;">
+                        ${timeInfo} ${contentInfo}
                     </div>
                 </div>
-                <div style="font-size:11px; color:var(--text-sub); align-self:center;">${row[4] || ''}</div>`;
-            container.appendChild(div);
+                <div style="font-size:11px; color:var(--text-sub); align-self:flex-end; flex-shrink:0; margin-left:10px;">${category}</div>
+            `;
+            container.appendChild(rowDiv);
         });
     }
 
-    window.onload = () => { init(); setInterval(init, 60000); };
+    // 초기 실행
+    window.onload = () => {
+        init();
+        // 1분(60000ms)마다 자동으로 데이터를 새로 불러옴 (페이지 새로고침 불필요)
+        setInterval(init, 60000);
+    };
 </script>
 </body>
 </html>
