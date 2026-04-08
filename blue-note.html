@@ -158,25 +158,31 @@
                 let cries = [];
                 
                 for (let i = 1; i < lines.length; i++) {
-                    const parts = lines[i].split('\t').map(item => item.trim());
-                    if (parts.length < 3) continue;
-                    
-                    let displayMonth = parts[0];
-                    if (displayMonth.includes(',')) {
-                        const [y, m] = displayMonth.split(',');
-                        displayMonth = `20${y}년 ${m}월`;
-                    }
+    const parts = lines[i].split('\t').map(item => item.trim());
+    
+    // [수정] 데이터가 유효한지 엄격하게 검사 (연월 정보와 내용이 반드시 있어야 함)
+    if (!parts[0] || !parts[2] || parts[0] === "" || parts[2] === "") continue;
+    
+    let displayMonth = parts[0];
+    if (displayMonth.includes(',')) {
+        const [y, m] = displayMonth.split(',');
+        // y나 m이 정상적인 숫자인지도 체크하면 더 안전합니다.
+        if (!y || !m) continue; 
+        displayMonth = `20${y}년 ${m}월`;
+    } else {
+        // 형식에 맞지 않는 데이터(예: 콤마가 없는 빈 값 등)는 건너뜁니다.
+        continue;
+    }
 
-                    cries.push({ 
-                        rawMonth: parts[0], 
-                        formattedMonth: displayMonth,
-                        date: parts[1], 
-                        desc: parts[2], 
-                        time: parts[3] || '--:--:--', 
-                        link: parts[4] || '#' 
-                    });
-                }
-
+    cries.push({ 
+        rawMonth: parts[0], 
+        formattedMonth: displayMonth,
+        date: parts[1] || '', 
+        desc: parts[2], 
+        time: parts[3] || '--:--:--', 
+        link: parts[4] || '#' 
+    });
+}
                 renderList(cries);
                 renderStats(cries);
                 
