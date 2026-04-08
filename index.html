@@ -160,37 +160,48 @@
     const SONG_BOOK_URL = 'https://lunaplena0.github.io/songlist.html'; 
 
     async function init() {
-    try {
-        // 1. 브라우저 캐시 방지 (시간 기반)
-        const cacheBuster = `&t=${new Date().getTime()}`;
-        
-        // 2. 구글 서버 내부 캐시 방지 (무작위 숫자 기반) - 추가된 부분
-        const randomSeed = `&ord=${Math.round(Math.random() * 100000)}`; 
-        
-        // 두 값을 합쳐서 최종 URL 생성
-        const finalUrl = TSV_URL + cacheBuster + randomSeed;
+        try {
+            // 1. URL 파라미터를 안전하게 생성
+            const cacheBuster = `t=${Date.now()}`;
+            const randomSeed = `ord=${Math.floor(Math.random() * 1000000)}`;
+            
+            // 2. 기존 URL 뒤에 &를 사용하여 파라미터 연결
+            const finalUrl = `${TSV_URL}&${cacheBuster}&${randomSeed}`;
 
-        // 3. 데이터 호출 (강력한 캐시 무시 헤더 포함)
-        const response = await fetch(finalUrl, {
-            method: 'GET',
-            cache: 'no-store',
-            headers: {
-                'Pragma': 'no-cache',
-                'Cache-Control': 'no-cache, no-store, must-revalidate',
-                'Expires': '0'
+            console.log("요청 URL:", finalUrl);
+
+            const response = await fetch(finalUrl, {
+                method: 'GET',
+                // cache: 'no-store' 옵션은 일부 브라우저에서 오류를 일으킬 수 있으니 
+                // 주소 자체를 바꾸는(캐시 버스터) 방식만으로도 충분합니다.
+            });
+
+            if (!response.ok) throw new Error('네트워크 응답 에러');
+
+            const text = await response.text();
+            
+            // 데이터가 비어있는지 확인
+            if (!text || text.trim() === "") {
+                throw new Error('받아온 데이터가 비어있습니다.');
             }
-        });
 
-        if (!response.ok) throw new Error('네트워크 응답에 문제가 있습니다.');
+            const rows = text.split(/\r?\n/).map(row => row.split('\t'));
+            
+            // 데이터 로드 성공 시 화면 그리기
+            updateUI(rows);
 
-        const text = await response.text();
-        const rows = text.split(/\r?\n/).map(row => row.split('\t'));
+        } catch (e) { 
+            console.error("데이터 로드 에러:", e);
+            document.getElementById('user-nick').innerText = "데이터 로드 실패";
+        }
+    }
 
-            // 데이터 할당
-            const profile = rows[2];
-            const liveData = rows[6]; 
-            const updateTimeData = rows[1] ? rows[1][5] : null; 
-            const statusBox = document.querySelector('.live-status-inline');
+    // 가독성을 위해 UI 업데이트 로직을 분리하는 것이 좋습니다.
+    function updateUI(rows) {
+        const profile = rows[2];
+        const liveData = rows[6]; 
+        const updateTimeData = rows[1] ? rows[1][5] : null; 
+        const statusBox = document.querySelector('.live-status-inline');
 
             // --- [1] 실시간 방송 상태 업데이트 ---
             const isOnline = liveData && liveData[5] !== "방송 정보 없음" && liveData[5] !== undefined;
