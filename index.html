@@ -3,108 +3,129 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>바다비 정보메인 (Enhanced Visual)</title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <title>바다비 정보메인</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-color: #02050a;
-            --card-bg: #0b1424;          /* 조금 더 밝은 네이비로 시인성 확보 */
-            --accent: #0047ab;           /* 깊은 코발트 블루 */
-            --accent-bright: #4da3ff;    /* 더 밝고 선명한 하늘색 */
-            --accent-glow: rgba(77, 163, 255, 0.3);
-            --text-main: #ffffff;
-            --text-sub: #8da2b5;         /* 서브 텍스트를 살짝 더 밝게 */
-            --border: #1e2d45;           /* 경계선 명도 대비 증가 */
+            /* 기존 트위치 테마색을 깊은 바다 테마색으로 변경 */
+            --bg-color: #02050a;          /* 깊은 바다 블랙 배경 */
+            --card-bg: #051020;            /* 미드나잇 블루 카드 배경 */
+            --accent: #003366;           /* 메인 감청색 (링크 테두리 등) */
+            --accent-bright: #3385ff;    /* 강조 포인트 블루 (제목, 텍스트) */
+            --accent-glow: rgba(0, 51, 102, 0.7);
+            --text-main: #f0faff;         /* 아이스 화이트 메인 텍스트 */
+            --text-sub: #5c7285;          /* 차분한 블루 그레이 서브 텍스트 */
+            --border: #121f33;            /* 어두운 네이비 테두리 */
         }
 
         body { 
             background-color: var(--bg-color); 
-            background-image: radial-gradient(circle at 50% 0%, #0c1a32 0%, #02050a 100%);
+            /* 타이머와 동일한 배경 그라데이션 적용 */
+            background-image: radial-gradient(circle at center, #051020 0%, #02050a 100%);
             color: var(--text-main); 
             font-family: 'Noto Sans KR', sans-serif; 
-            margin: 0; padding: 40px 20px;
-            display: flex; justify-content: center; 
+            margin: 0; padding: 10px;
+            display: flex; justify-content: center; align-items: center; 
             min-height: 100vh; box-sizing: border-box;
+            overflow: hidden;
         }
 
-        .wrapper { width: 100%; max-width: 1200px; display: flex; flex-direction: column; gap: 25px; }
+        .wrapper { width: 100%; max-width: 1100px; display: flex; flex-direction: column; gap: 15px; padding: 10px 0; }
 
-        /* 카드 디자인 시각적 강화 */
         .card { 
             background: var(--card-bg); 
-            border-radius: 16px; padding: 25px; 
+            border-radius: 12px; padding: 20px; 
             border: 1px solid var(--border); 
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-            transition: transform 0.3s ease;
+            display: flex; position: relative;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
         }
 
-        .profile-box { align-items: center; gap: 30px; display: flex; }
+        .profile-box { align-items: center; gap: 20px; background: linear-gradient(145deg, #051020, #02050a); }
         
         .profile-img { 
-            width: 120px; height: 120px; border-radius: 50%; 
-            border: 4px solid var(--accent-bright);
-            box-shadow: 0 0 20px var(--accent-glow);
+            width: 90px; height: 90px; border-radius: 50%; background: #0a1a30; 
+            flex-shrink: 0; 
+            border: 3px solid var(--accent-bright); /* 보라색 테두리를 블루로 변경 */
+            box-shadow: 0 0 15px var(--accent-glow);
             background-size: cover; background-position: center;
+            cursor: default; 
         }
 
-        .profile-info h1 { margin: 0 0 10px; font-size: 32px; font-weight: 700; letter-spacing: -1px; }
+        .profile-info { flex-grow: 1; min-width: 0; }
+        .profile-info h1 { margin: 0 0 2px; font-size: 22px; font-weight: 700; color: var(--text-main); }
         .profile-info p { 
-            color: var(--text-sub); margin: 0 0 20px; font-size: 16px; 
-            line-height: 1.6; max-width: 600px;
+            color: var(--text-sub); margin: 0 0 8px; font-size: 13px; 
+            max-width: 450px; line-height: 1.4;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
 
-        /* 버튼 시각성 강화 */
-        .social-links { display: flex; gap: 12px; }
+        .social-links { display: flex; gap: 8px; flex-wrap: wrap; }
         .link-btn { 
-            padding: 10px 20px; background: rgba(77, 163, 255, 0.1); border-radius: 8px; 
-            color: var(--accent-bright); text-decoration: none; font-size: 14px; font-weight: 500;
-            border: 1px solid var(--accent-bright); transition: 0.2s;
+            padding: 5px 12px; background: #0a1a30; border-radius: 6px; 
+            color: var(--text-main); text-decoration: none; font-size: 11px; 
+            border: 1px solid var(--accent); transition: 0.3s; 
         }
-        .link-btn:hover { background: var(--accent-bright); color: #fff; transform: translateY(-2px); }
+        .link-btn:hover { background: var(--accent-bright); border-color: var(--accent-bright); color: #fff; } /* 호버 시 블루로 변경 */
 
-        /* 우측 라이브 상태창 강조 */
         .live-status-inline {
-            margin-left: auto; text-align: center; padding: 10px 40px; 
-            border-left: 2px solid var(--border);
-            min-width: 220px;
+            margin-left: auto; text-align: center; padding: 0 25px; 
+            border-left: 1px solid var(--border); /* 보라색 실선을 블루 실선으로 변경 */
+            min-width: 180px; display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
 
-        .badge { padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 800; letter-spacing: 1px; }
-        #stream-title-inline { font-size: 20px; font-weight: 700; margin: 10px 0; color: var(--accent-bright); text-decoration: none; display: block; }
+        .badge { display: inline-block; padding: 4px 10px; border-radius: 5px; font-size: 10px; font-weight: bold; margin-bottom: 5px; }
+        .offline { background: #1a2638; color: var(--text-sub); } /* 오프라인 배지 어둡게 조정 */
+        #stream-title-inline { font-size: 16px; font-weight: bold; margin-bottom: 2px; color: var(--accent-bright); } /* 방송 중일 때 블루로 강조 */
+        #last-stream-time { font-size: 11px; color: var(--text-sub); }
 
-        /* 하단 3열 구성 (PC 시각성 최적화) */
-        .bottom-section { display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 20px; }
-
-        h2 { 
-            font-size: 18px; color: var(--accent-bright); margin-bottom: 20px; 
-            display: flex; align-items: center; gap: 8px;
-            border-bottom: 2px solid var(--accent); padding-bottom: 10px;
+        .bottom-section { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr 1fr; 
+            gap: 15px; 
+            align-items: stretch;
+        }
+        .bottom-section .card { 
+            flex-direction: column; padding: 15px; height: auto; box-sizing: border-box; min-width: 0;
         }
 
-        /* 리스트 아이템 가시성 개선 */
+        h2 { font-size: 13px; margin-top: 0; color: var(--accent-bright); border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; } /* 제목을 블루로 강조 */
+
         .item-row { 
-            padding: 15px; border-bottom: 1px solid var(--border); 
-            border-radius: 10px; margin-bottom: 5px; cursor: pointer;
+            padding: 8px; 
+            border-bottom: 1px solid var(--border); /* 보라색 하단선을 블루로 변경 */
+            font-size: 12px; 
+            border-radius: 6px; transition: 0.2s; cursor: pointer;
+            min-height: 65px; display: flex; flex-direction: column; justify-content: center; box-sizing: border-box;
         }
-        .item-row:hover { background: rgba(255, 255, 255, 0.03); border-color: var(--accent-bright); }
-        .item-date { font-size: 12px; color: var(--text-sub); margin-bottom: 5px; }
+        .item-row:hover { background: rgba(51, 133, 255, 0.05); } /* 호버 시 블루 틴트 효과 */
+        .item-date { font-size: 10px; color: var(--text-sub); margin-bottom: 2px; }
         
-        /* 스케줄 강조 디자인 */
-        .schedule-row { background: rgba(255,255,255,0.01); border: 1px solid transparent; }
-        .today-highlight { 
-            background: linear-gradient(90deg, rgba(77,163,255,0.1) 0%, transparent 100%) !important;
-            border-left: 4px solid var(--accent-bright) !important;
-        }
-
+        .vod-row { flex-direction: row !important; align-items: center; gap: 10px; }
         .vod-thumb { 
-            width: 100px; height: 56px; border-radius: 8px; 
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            width: 70px; height: 40px; background: #0a1a30; border-radius: 4px; 
+            flex-shrink: 0; background-size: cover; background-position: center; 
+            border: 1px solid var(--border); /* 썸네일 테두리 추가 */
         }
 
-        @media (max-width: 1024px) {
+        .schedule-row { flex-direction: row !important; justify-content: space-between; cursor: default; }
+        .day { font-weight: bold; color: var(--text-sub); }
+
+        .today-highlight { 
+            background: rgba(51, 133, 255, 0.08) !important; /* 오늘 일정 하이라이트를 보라색에서 블루 틴트로 변경 */
+            border: 1px solid var(--accent-bright) !important; 
+            transform: scale(1.01); 
+            box-shadow: 0 0 10px rgba(51, 133, 255, 0.15);
+        }
+
+        .today-tag { background: var(--accent-bright); color: #fff; border-radius: 3px; margin-left: 4px; } /* 오늘 태그 블루로 변경 */
+
+        .ellipsis { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        @media (max-width: 900px) {
+            body { overflow: auto; }
+            .profile-box { flex-direction: column; padding-bottom: 20px; }
+            .live-status-inline { margin-left: 0; border-left: none; border-top: 1px solid var(--border); padding: 15px 0; width: 100%; }
             .bottom-section { grid-template-columns: 1fr; }
-            .profile-box { flex-direction: column; text-align: center; }
-            .live-status-inline { margin: 0; border-left: none; border-top: 1px solid var(--border); width: 100%; padding: 20px 0; }
         }
     </style>
 </head>
@@ -113,16 +134,16 @@
 <div class="wrapper">
     <div class="top-section">
         <div class="card profile-box">
-            <div class="profile-img" style="background-image: url('https://via.placeholder.com/120');"></div>
+            <div class="profile-img" onclick="location.href='blue-note.html'"></div>
             <div class="profile-info">
                 <h1 id="user-nick">로딩 중...</h1>
-                <p id="user-desc">정보를 불러오고 있습니다. 잠시만 기다려주세요.</p>
+                <p id="user-desc">정보를 불러오고 있습니다.</p>
                 <div class="social-links" id="social-links"></div>
             </div>
             <div class="live-status-inline">
                 <div class="badge offline">OFFLINE</div>
-                <a href="#" id="stream-title-inline">방송 준비 중</a>
-                <div id="last-stream-time" style="font-size: 13px; color: var(--text-sub);">최근 방송 데이터 로딩 중</div>
+                <div id="stream-title-inline">방송 준비 중</div>
+                <div id="last-stream-time">최근 방송: 확인 중</div>
             </div>
         </div>
     </div>
@@ -132,15 +153,14 @@
             <h2>📅 방송 스케줄</h2>
             <div id="schedule-container"></div>
         </div>
-        <div class="card">
-            <h2>📢 최근 게시물</h2>
-            <div id="post-container"></div>
-        </div>
-        <div class="card">
-            <h2>🎬 다시보기</h2>
-            <div id="vod-container"></div>
-        </div>
+        <div class="card" id="post-container"><h2>📢 최근 게시물</h2></div>
+        <div class="card" id="vod-container"><h2>🎬 방송 다시보기</h2></div>
     </div>
+
+    <footer style="text-align: center; padding: 15px 20px; color: var(--text-sub); font-size: 11px; border-top: 1px solid var(--border); margin-top: 5px;">
+        <p style="margin: 0; opacity: 0.7;">© 2026 바다비 Information Center <br>
+        모든 정보는 공개 데이터를 바탕으로 하며, 클릭 시 공식 방송국으로 연결됩니다.</p>
+    </footer>
 </div>
 
 <script>
@@ -332,6 +352,5 @@
 
     window.onload = () => { init(); setInterval(init, 60000); };
 </script>
-
 </body>
 </html>
