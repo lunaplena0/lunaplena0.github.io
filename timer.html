@@ -22,7 +22,7 @@
             height: 100vh; overflow: hidden;
         }
 
-        .timer-wrapper { text-align: center; }
+        .timer-wrapper { text-align: center; width: 100%; }
 
         .label {
             font-size: 14px; color: var(--accent);
@@ -31,50 +31,44 @@
         }
 
         #timer {
-            font-size: clamp(40px, 10vw, 80px); /* 화면 크기에 따라 폰트 조절 */
+            font-size: clamp(40px, 10vw, 80px);
             font-weight: 700;
             font-variant-numeric: tabular-nums;
             text-shadow: 0 0 30px rgba(145, 71, 255, 0.3);
             margin-bottom: 10px;
+            transition: all 0.5s ease; /* 부드러운 확대 효과 */
+        }
+
+        /* 5분 전 강조 애니메이션 */
+        .highlight {
+            color: var(--accent) !important;
+            transform: scale(1.2);
+            text-shadow: 0 0 50px rgba(145, 71, 255, 0.6) !important;
         }
 
         .target-date { font-size: 14px; color: var(--text-sub); opacity: 0.8; }
-
-        /* 뒤로가기 버튼 (필요 시 주석 해제) */
-        .back-link {
-            margin-top: 40px; display: inline-block;
-            color: var(--text-sub); text-decoration: none;
-            font-size: 13px; border-bottom: 1px solid var(--text-sub);
-            padding-bottom: 2px; transition: 0.3s;
-        }
-        .back-link:hover { color: var(--accent); border-color: var(--accent); }
     </style>
 </head>
 <body>
 
 <div class="timer-wrapper">
     <div class="label">BADABI Coming Soon</div>
-    <div id="timer">00d 00:00:00</div>
+    <div id="timer">로드 중...</div>
     <div class="target-date" id="target-display">2026.04.20 16:00:00</div>
 </div>
 
 <script>
     // 목표 시간 설정
-    const TARGET_DATE = new Date("2026-04-09T15:45:00").getTime();
+    const TARGET_DATE = new Date("2026-04-20T16:00:00").getTime();
 
     function updateTimer() {
         const now = new Date().getTime();
         const diff = TARGET_DATE - now;
-
         const timerEl = document.getElementById('timer');
 
-        // 시간이 다 되었을 때
         if (diff <= 0) {
-            timerEl.innerText = "0일 00시간 00분 00초";
-            timerEl.style.color = "var(--accent)";
-            
-            // 히스토리를 남기지 않고 이동 (뒤로가기 방지)
-            window.location.href ="https://www.sooplive.com/"; 
+            timerEl.innerText = "0초";
+            window.location.replace("https://www.sooplive.com/"); 
             return;
         }
 
@@ -83,11 +77,21 @@
         const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
         const secs = Math.floor((diff % (1000 * 60)) / 1000);
 
-        timerEl.innerText = 
-            `${String(days).padStart(1, '0')}일 ` +
-            `${String(hours).padStart(2, '0')}시간 ` +
-            `${String(mins).padStart(2, '0')}분 ` +
-            `${String(secs).padStart(2, '0')}초`;
+        // 1. 단위 생략 로직
+        let timeString = "";
+        if (days > 0) timeString += `${days}일 `;
+        if (days > 0 || hours > 0) timeString += `${String(hours).padStart(2, '0')}시간 `;
+        if (days > 0 || hours > 0 || mins > 0) timeString += `${String(mins).padStart(2, '0')}분 `;
+        timeString += `${String(secs).padStart(2, '0')}초`;
+
+        timerEl.innerText = timeString;
+
+        // 2. 확대 카운트다운 연출 (5분 = 300,000ms 이하일 때)
+        if (diff <= 300000) {
+            timerEl.classList.add('highlight');
+        } else {
+            timerEl.classList.remove('highlight');
+        }
     }
 
     setInterval(updateTimer, 1000);
