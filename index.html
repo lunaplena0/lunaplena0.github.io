@@ -7,45 +7,49 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-color: #0e0e10;
-            --card-bg: #18181b;
-            --accent: #9147ff;
-            --text-main: #efeff1;
-            --text-sub: #adadb8;
+            /* D-Day 타이머와 통일된 컬러 스킴 */
+            --bg-color: #02050a;
+            --card-bg: #051020;
+            --accent: #003366;           /* 메인 감청색 */
+            --accent-bright: #3385ff;    /* 강조 포인트 블루 */
+            --accent-glow: rgba(0, 51, 102, 0.7);
+            --text-main: #f0faff;
+            --text-sub: #5c7285;
+            --border: #121f33;
         }
 
         body { 
             background-color: var(--bg-color); 
+            background-image: radial-gradient(circle at center, #051020 0%, #02050a 100%);
             color: var(--text-main); 
             font-family: 'Noto Sans KR', sans-serif; 
-            margin: 0; padding: 10px; /* 패딩 축소 */
+            margin: 0; padding: 10px;
             display: flex; justify-content: center; align-items: center; 
             min-height: 100vh; box-sizing: border-box;
-            overflow: hidden; /* 강제로 스크롤 방지 (선택 사항) */
         }
 
-        /* 래퍼 패딩 축소 */
         .wrapper { width: 100%; max-width: 1100px; display: flex; flex-direction: column; gap: 15px; padding: 10px 0; }
 
-        /* 카드 패딩 축소 */
         .card { 
-            background: var(--card-bg); border-radius: 12px; padding: 20px; 
-            border: 1px solid #2f2f35; display: flex; position: relative;
+            background: var(--card-bg); 
+            border-radius: 12px; padding: 20px; 
+            border: 1px solid var(--border); 
+            display: flex; position: relative;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
         }
 
-        .profile-box { align-items: center; gap: 20px; background: linear-gradient(145deg, #18181b, #1d1d21); }
+        .profile-box { align-items: center; gap: 20px; background: linear-gradient(145deg, #051020, #02050a); }
         
-        /* 프로필 이미지 크기 축소 */
         .profile-img { 
-            width: 90px; height: 90px; border-radius: 50%; background: #2f2f35; 
-            flex-shrink: 0; border: 3px solid var(--accent);
-            box-shadow: 0 0 15px rgba(145, 71, 255, 0.2);
+            width: 90px; height: 90px; border-radius: 50%; background: #0a1a30; 
+            flex-shrink: 0; border: 3px solid var(--accent-bright);
+            box-shadow: 0 0 15px var(--accent-glow);
             background-size: cover; background-position: center;
             cursor: default; 
         }
 
         .profile-info { flex-grow: 1; min-width: 0; }
-        .profile-info h1 { margin: 0 0 2px; font-size: 22px; font-weight: 700; }
+        .profile-info h1 { margin: 0 0 2px; font-size: 22px; font-weight: 700; color: var(--text-main); }
         .profile-info p { 
             color: var(--text-sub); margin: 0 0 8px; font-size: 13px; 
             max-width: 450px; line-height: 1.4;
@@ -53,16 +57,21 @@
         }
 
         .social-links { display: flex; gap: 8px; flex-wrap: wrap; }
-        .link-btn { padding: 5px 12px; background: #26262c; border-radius: 6px; color: var(--text-main); text-decoration: none; font-size: 11px; border: 1px solid #3a3a3d; transition: 0.3s; }
-        .link-btn:hover { background: var(--accent); border-color: var(--accent); }
+        .link-btn { 
+            padding: 5px 12px; background: #0a1a30; border-radius: 6px; 
+            color: var(--text-main); text-decoration: none; font-size: 11px; 
+            border: 1px solid var(--accent); transition: 0.3s; 
+        }
+        .link-btn:hover { background: var(--accent-bright); border-color: var(--accent-bright); color: #fff; }
 
         .live-status-inline {
-            margin-left: auto; text-align: center; padding: 0 25px; border-left: 1px solid #2f2f35; 
+            margin-left: auto; text-align: center; padding: 0 25px; border-left: 1px solid var(--border); 
             min-width: 180px; display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
 
         .badge { display: inline-block; padding: 4px 10px; border-radius: 5px; font-size: 10px; font-weight: bold; margin-bottom: 5px; }
-        #stream-title-inline { font-size: 16px; font-weight: bold; margin-bottom: 2px; }
+        .offline { background: #1a2638; color: var(--text-sub); }
+        #stream-title-inline { font-size: 16px; font-weight: bold; margin-bottom: 2px; color: var(--accent-bright); }
         #last-stream-time { font-size: 11px; color: var(--text-sub); }
 
         .bottom-section { 
@@ -72,50 +81,42 @@
             align-items: stretch;
         }
         .bottom-section .card { 
-            flex-direction: column; 
-            padding: 15px; 
-            height: auto; 
-            box-sizing: border-box;
-            min-width: 0;
+            flex-direction: column; padding: 15px; height: auto; box-sizing: border-box; min-width: 0;
         }
 
-        h2 { font-size: 13px; margin-top: 0; color: var(--accent); border-bottom: 1px solid #2f2f35; padding-bottom: 8px; margin-bottom: 10px; }
+        h2 { font-size: 13px; margin-top: 0; color: var(--accent-bright); border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; }
 
-        /* 행 높이 축소 */
         .item-row { 
-            padding: 8px; 
-            border-bottom: 1px solid #26262c; 
-            font-size: 12px; 
-            border-radius: 6px; 
-            transition: 0.2s; 
-            cursor: pointer;
-            min-height: 65px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            box-sizing: border-box;
+            padding: 8px; border-bottom: 1px solid var(--border); font-size: 12px; 
+            border-radius: 6px; transition: 0.2s; cursor: pointer;
+            min-height: 65px; display: flex; flex-direction: column; justify-content: center; box-sizing: border-box;
         }
-        .item-row:hover { background: rgba(255, 255, 255, 0.05); }
+        .item-row:hover { background: rgba(51, 133, 255, 0.05); }
         .item-date { font-size: 10px; color: var(--text-sub); margin-bottom: 2px; }
         
         .vod-row { flex-direction: row !important; align-items: center; gap: 10px; }
-        .vod-thumb { width: 70px; height: 40px; background: #2f2f35; border-radius: 4px; flex-shrink: 0; background-size: cover; background-position: center; }
+        .vod-thumb { width: 70px; height: 40px; background: #0a1a30; border-radius: 4px; flex-shrink: 0; background-size: cover; background-position: center; border: 1px solid var(--border); }
 
         .schedule-row { flex-direction: row !important; justify-content: space-between; cursor: default; }
         .day { font-weight: bold; color: var(--text-sub); }
 
         .today-highlight { 
-            background: rgba(145, 71, 255, 0.12) !important; 
-            border: 1px solid var(--accent) !important; 
+            background: rgba(51, 133, 255, 0.08) !important; 
+            border: 1px solid var(--accent-bright) !important; 
             transform: scale(1.01); 
+            box-shadow: 0 0 10px rgba(51, 133, 255, 0.15);
         }
+
+        .today-tag { background: var(--accent-bright); color: #fff; border-radius: 3px; margin-left: 4px; }
 
         .ellipsis { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
+        footer { text-align: center; padding: 15px 20px; color: var(--text-sub); font-size: 11px; border-top: 1px solid var(--border); margin-top: 5px; }
+
         @media (max-width: 900px) {
-            body { overflow: auto; } /* 모바일은 스크롤 허용 */
+            body { overflow: auto; }
             .profile-box { flex-direction: column; padding-bottom: 20px; }
-            .live-status-inline { margin-left: 0; border-left: none; border-top: 1px solid #2f2f35; padding: 15px 0; width: 100%; }
+            .live-status-inline { margin-left: 0; border-left: none; border-top: 1px solid var(--border); padding: 15px 0; width: 100%; }
             .bottom-section { grid-template-columns: 1fr; }
         }
     </style>
@@ -125,7 +126,7 @@
 <div class="wrapper">
     <div class="top-section">
         <div class="card profile-box">
-            <div class="profile-img" onclick="location.href='blue-note.html'"></div>
+            <div class="profile-img"></div>
             <div class="profile-info">
                 <h1 id="user-nick">로딩 중...</h1>
                 <p id="user-desc">정보를 불러오고 있습니다.</p>
@@ -148,33 +149,21 @@
         <div class="card" id="vod-container"><h2>🎬 방송 다시보기</h2></div>
     </div>
 
-    <footer style="text-align: center; padding: 15px 20px; color: var(--text-sub); font-size: 11px; border-top: 1px solid #2f2f35; margin-top: 5px;">
-        <p style="margin: 0; opacity: 0.7;">© 2026 바다비 Information Center <br>
-모든 정보는 공개 데이터를 바탕으로 하며, 클릭 시 공식 방송국으로 연결됩니다.</p>
+    <footer>
+        <p>© 2026 바다비 Information Center <br>
+        모든 정보는 공개 데이터를 바탕으로 하며, 클릭 시 공식 방송국으로 연결됩니다.</p>
     </footer>
-    
 </div>
 
 <script>
-    // 스크립트 내용은 동일하므로 유지합니다.
     const TSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTQ3nX6onmaf-ZHhXGox2s4ChGos7ki7iFjQ_47lArZR6dV935gCIbLbvlDDAS65rTEnswSLIk_7v3R/pub?gid=0&single=true&output=tsv';
     const SONG_BOOK_URL = 'https://lunaplena0.github.io/songlist.html'; 
 
     async function init() {
         try {
             const cacheBuster = `&t=${new Date().getTime()}`;
-            const finalUrl = TSV_URL + cacheBuster;
-
-            const response = await fetch(finalUrl, {
-                cache: 'no-store',
-                headers: {
-                    'Pragma': 'no-cache',
-                    'Cache-Control': 'no-cache'
-                }
-            });
-
-            if (!response.ok) throw new Error('네트워크 응답에 문제가 있습니다.');
-
+            const response = await fetch(TSV_URL + cacheBuster, { cache: 'no-store' });
+            if (!response.ok) throw new Error('Network error');
             const text = await response.text();
             const rows = text.split(/\r?\n/).map(row => row.split('\t'));
 
@@ -194,7 +183,7 @@
 
                 let onlineBadge = `<div class="badge" style="background:#d32f2f; color:white; margin-bottom:0; padding: 2px 8px; font-size: 9px;">ONLINE</div>`;
                 let subTagsHtml = '';
-                const subStyle = `padding: 1px 5px; font-size: 8px; margin: 0; background:#2f2f35; line-height: 1;`;
+                const subStyle = `padding: 1px 5px; font-size: 8px; margin: 0; background:#121f33; line-height: 1; border: 1px solid var(--border);`;
 
                 if (!["X", "-"].includes(bGrade)) subTagsHtml += `<span class="badge" style="${subStyle} color:#FFAB91;">19</span>`;
                 if (!["X", "-"].includes(bSubOnly)) subTagsHtml += `<span class="badge" style="${subStyle} color:#B39DDB;">구독+</span>`;
@@ -208,22 +197,22 @@
                         </div>
                     </div>
                     <a href="https://play.sooplive.com/bababi" target="_blank" id="stream-title-inline" class="ellipsis" 
-                       style="max-width:180px; color:white; font-size:15px; margin-bottom:1px; text-decoration:none; display:block; cursor:pointer;">
+                       style="max-width:180px; color:var(--accent-bright); font-size:15px; margin-bottom:1px; text-decoration:none; display:block;">
                        ${bTitle}
                     </a>
-                    <div id="last-stream-time" style="color:var(--text-sub); font-size:10px;">시작: ${bTime}</div>
+                    <div id="last-stream-time">시작: ${bTime}</div>
                 `;
             } else {
                 const lastTime = (profile && profile[3]) ? profile[3].trim() : "확인 중";
                 statusBox.innerHTML = `
                     <div class="badge offline">OFFLINE</div>
-                    <div id="stream-title-inline">방송 준비 중</div>
+                    <div id="stream-title-inline" style="color: var(--text-sub);">방송 준비 중</div>
                     <div id="last-stream-time">최근 방송: ${lastTime}</div>
                 `;
             }
 
             if (profile) {
-                document.getElementById('user-nick').innerText = profile[0] || '닉네임';
+                document.getElementById('user-nick').innerText = profile[0] || '바다비';
                 document.getElementById('user-desc').innerText = profile[1] || '';
                 if(profile[2]) document.querySelector('.profile-img').style.backgroundImage = `url('${profile[2]}')`;
             }
@@ -233,7 +222,7 @@
                 if (!updateEl) {
                     updateEl = document.createElement('div');
                     updateEl.id = 'update-time';
-                    updateEl.style.cssText = "font-size: 9px; color: var(--text-sub); margin-top: 8px; opacity: 0.6;";
+                    updateEl.style.cssText = "font-size: 9px; color: var(--text-sub); margin-top: 8px; opacity: 0.5;";
                     statusBox.appendChild(updateEl);
                 }
                 updateEl.innerText = `갱신: ${updateTimeData}`;
@@ -244,9 +233,7 @@
             renderVODs(rows.slice(16, 21));
             renderSchedule(rows.slice(24, 29));
 
-        } catch (e) { 
-            console.error("데이터 로드 에러:", e); 
-        }
+        } catch (e) { console.error("Data Load Error:", e); }
     }
 
     function renderLinks(extraLinks) {
@@ -262,7 +249,7 @@
             a.href = btn.url;
             a.target = btn.name === '📖 노래책' ? '_self' : '_blank';
             a.innerText = btn.name;
-            a.style.borderColor = 'var(--accent)';
+            a.style.borderColor = 'var(--accent-bright)';
             linkBox.appendChild(a);
         });
         if (extraLinks) {
@@ -283,14 +270,13 @@
     function renderPosts(data) {
         const postBox = document.getElementById('post-container');
         const postData = data.filter(p => p[1] && p[1].trim() !== "");
-        postData.sort((a, b) => (b[3]?.trim() === 'O' ? 1 : 0) - (a[3]?.trim() === 'O' ? 1 : 0));
         let html = '<h2>📢 최근 게시물</h2>';
         postData.forEach(p => {
-            const isNotice = p[3]?.trim() === 'O' ? '<span style="margin-left: 5px; flex-shrink: 0;">📌</span>' : ''; 
-            html += `<div class="item-row" onclick="window.open('${p[2]}', '_blank')" style="display: flex; flex-direction: row; align-items: center;">
+            const isNotice = p[3]?.trim() === 'O' ? '<span style="color:var(--accent-bright); margin-left:5px;">📌</span>' : ''; 
+            html += `<div class="item-row" onclick="window.open('${p[2]}', '_blank')" style="flex-direction: row; align-items: center;">
                         <div style="flex: 1; min-width: 0;">
                             <div class="item-date">${p[0]}</div>
-                            <div class="ellipsis" style="font-size: 12px;">${p[1]}</div>
+                            <div class="ellipsis">${p[1]}</div>
                         </div>
                         ${isNotice}
                     </div>`;
@@ -301,7 +287,6 @@
     function renderVODs(data) {
         const vodBox = document.getElementById('vod-container');
         const vodData = data.filter(v => v[1] && v[1].trim() !== "");
-        vodData.sort((a, b) => (b[4]?.trim() === 'O' ? 1 : 0) - (a[4]?.trim() === 'O' ? 1 : 0));
         let html = '<h2>🎬 방송 다시보기</h2>';
         vodData.forEach(v => {
             const isPin = v[4]?.trim() === 'O' ? '📌 ' : '';
@@ -322,34 +307,30 @@
         container.innerHTML = '';
         const todayStr = new Date().toLocaleDateString('en-CA'); 
         data.forEach(row => {
-            const date = row[0] ? row[0].trim() : '';   
-            const day = row[1] ? row[1].trim() : '';    
-            const time = row[2] ? row[2].trim() : '';   
-            const content = row[3] ? row[3].trim() : ''; 
-            const category = row[4] ? row[4].trim() : ''; 
+            const date = row[0]?.trim() || '';   
+            const day = row[1]?.trim() || '';    
+            const time = row[2]?.trim() || '';   
+            const content = row[3]?.trim() || ''; 
+            const category = row[4]?.trim() || ''; 
             if(!date && !content) return; 
             const isToday = date === todayStr;
             const rowDiv = document.createElement('div');
             rowDiv.className = `item-row schedule-row ${isToday ? 'today-highlight' : ''}`;
-            const timeInfo = time ? `<span style="color:var(--accent); font-weight:bold; flex-shrink:0;">${time}</span>` : '';
-            const contentInfo = content ? `<span class="ellipsis" style="margin-left:5px; flex:1;">${content}</span>` : '<span style="margin-left:5px; flex:1;">휴방 또는 일정 없음</span>';
+            const timeInfo = time ? `<span style="color:var(--accent-bright); font-weight:bold;">${time}</span>` : '';
             rowDiv.innerHTML = `
                 <div style="display:flex; flex-direction:column; gap:1px; flex:1; min-width:0;">
-                    <span class="day" style="font-size:10px;">${date} (${day})${isToday ? '<span class="today-tag" style="font-size:8px; padding:1px 4px;">TODAY</span>' : ''}</span>
-                    <div style="font-size:12px; color:var(--text-main); display:flex; align-items:center;">
-                        ${timeInfo} ${contentInfo}
+                    <span class="day" style="font-size:10px;">${date} (${day})${isToday ? '<span class="badge today-tag" style="padding:1px 4px; font-size:8px;">TODAY</span>' : ''}</span>
+                    <div style="font-size:12px; display:flex; align-items:center; gap:5px;">
+                        ${timeInfo} <span class="ellipsis">${content || '일정 없음'}</span>
                     </div>
                 </div>
-                <div style="font-size:10px; color:var(--text-sub); align-self:flex-end; flex-shrink:0; margin-left:8px;">${category}</div>
+                <div style="font-size:10px; color:var(--text-sub);">${category}</div>
             `;
             container.appendChild(rowDiv);
         });
     }
 
-    window.onload = () => {
-        init();
-        setInterval(init, 60000);
-    };
+    window.onload = () => { init(); setInterval(init, 60000); };
 </script>
 </body>
 </html>
