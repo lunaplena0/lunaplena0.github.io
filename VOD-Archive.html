@@ -14,7 +14,7 @@
             --text-sub: #5c7285;
             --border: #0a1425;
             --plus-color: #ffcc00;
-            --modal-bg: rgba(0, 0, 0, 0.85);
+            --modal-bg: rgba(0, 0, 0, 0.9);
         }
 
         * { box-sizing: border-box; }
@@ -26,11 +26,10 @@
             margin: 0; padding: 0; 
             min-height: 100vh;
         }
-        body.modal-open { overflow: hidden; } /* 팝업 열릴 때 스크롤 방지 */
+        body.modal-open { overflow: hidden; }
 
         .wrapper { width: 100%; max-width: 900px; margin: 0 auto; padding: 40px 20px; display: flex; flex-direction: column; gap: 20px; }
 
-        /* 헤더 & 통계 */
         .header-card { 
             background: var(--card-bg); border-radius: 16px; padding: 25px; border: 1px solid var(--border); 
             display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 20px rgba(0,0,0,0.3);
@@ -45,7 +44,6 @@
         .stat-value { display: block; font-size: 18px; font-weight: bold; color: var(--accent); }
         .stat-label { font-size: 11px; color: var(--text-sub); }
 
-        /* 리스트 스타일 */
         .date-group { margin-top: 30px; }
         .date-header { font-size: 18px; font-weight: bold; color: var(--accent); margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }
         .date-header::after { content: ''; flex: 1; height: 1px; background: var(--border); }
@@ -68,37 +66,41 @@
         .tag-song { background: rgba(255, 51, 133, 0.2); color: #ff88aa; }
         .tag-plus { background: var(--plus-color); color: #000; }
 
-        /* 팝업(모달) 스타일 */
+        /* 팝업 모달 */
         #modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: var(--modal-bg); display: none; justify-content: center; align-items: center;
-            z-index: 1000; padding: 20px; backdrop-filter: blur(5px);
+            z-index: 1000; padding: 20px; backdrop-filter: blur(8px);
         }
         #modal-content {
-            background: var(--card-bg); width: 100%; max-width: 500px; border-radius: 20px;
-            border: 1px solid var(--accent); overflow: hidden; position: relative;
-            animation: slideUp 0.3s ease-out;
+            background: var(--card-bg); width: 100%; max-width: 450px; border-radius: 24px;
+            border: 1px solid var(--border); overflow: hidden; position: relative;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            animation: modalFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
-        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        @keyframes modalFadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
 
-        .modal-header-img { width: 100%; height: 200px; object-fit: cover; border-bottom: 1px solid var(--border); }
+        .modal-header-img { width: 100%; height: 220px; object-fit: cover; }
         .modal-body { padding: 25px; }
-        .modal-title { font-size: 20px; font-weight: bold; color: var(--text-main); margin-bottom: 15px; line-height: 1.4; }
+        .modal-title { font-size: 19px; font-weight: bold; color: var(--text-main); margin-bottom: 20px; line-height: 1.5; }
         
-        .modal-info-grid { display: flex; flex-direction: column; gap: 15px; margin-bottom: 25px; }
-        .info-row { border-left: 3px solid var(--accent); padding-left: 12px; }
-        .info-label { font-size: 11px; color: var(--text-sub); display: block; margin-bottom: 4px; }
-        .info-value { font-size: 14px; color: var(--text-main); }
+        .modal-info-grid { display: flex; flex-direction: column; gap: 18px; margin-bottom: 30px; }
+        .info-row { border-left: 3px solid var(--accent); padding-left: 15px; display: none; } /* 기본적으로 숨김 */
+        .info-row.is-active { display: block; } /* 값이 있을 때만 표시 */
+        
+        .info-label { font-size: 11px; color: var(--text-sub); display: block; margin-bottom: 5px; font-weight: bold; }
+        .info-value { font-size: 14px; color: var(--text-main); line-height: 1.6; }
 
         .modal-footer { display: flex; gap: 10px; }
-        .btn-action { flex: 1; padding: 12px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; font-size: 14px; text-align: center; text-decoration: none; }
-        .btn-go { background: var(--accent); color: white; }
+        .btn-action { flex: 1; padding: 14px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; font-size: 14px; text-align: center; text-decoration: none; }
+        .btn-go { background: var(--accent); color: white; transition: 0.2s; }
+        .btn-go:hover { background: #5599ff; }
         .btn-close { background: #1a202c; color: var(--text-sub); }
 
         @media (max-width: 600px) {
-            .vod-thumb { width: 100px; min-width: 100px; height: 60px; }
-            .vod-title { font-size: 14px; }
-            .modal-header-img { height: 150px; }
+            .vod-thumb { width: 110px; min-width: 110px; height: 65px; }
+            .modal-header-img { height: 180px; }
+            .modal-title { font-size: 17px; }
         }
     </style>
 </head>
@@ -128,26 +130,26 @@
         <div class="modal-body">
             <div id="m-title" class="modal-title">제목</div>
             <div class="modal-info-grid">
-                <div class="info-row">
-                    <span class="info-label">📅 방송 일시</span>
-                    <span id="m-date" class="info-value">-</span>
+                <div class="info-row is-active">
+                    <span class="info-label">📅 방송 정보</span>
+                    <span id="m-date" class="info-value"></span>
                 </div>
-                <div id="m-game-area" class="info-row">
+                <div id="row-game" class="info-row">
                     <span class="info-label">🎮 플레이 게임</span>
-                    <span id="m-game" class="info-value">-</span>
+                    <span id="m-game" class="info-value"></span>
                 </div>
-                <div id="m-song-area" class="info-row">
-                    <span class="info-label">🎵 노래 정보</span>
-                    <span id="m-song" class="info-value">-</span>
+                <div id="row-song" class="info-row">
+                    <span class="info-label">🎵 노래 목록</span>
+                    <span id="m-song" class="info-value"></span>
                 </div>
-                <div class="info-row">
+                <div id="row-category" class="info-row">
                     <span class="info-label">📝 컨텐츠 분류</span>
-                    <span id="m-category" class="info-value">-</span>
+                    <span id="m-category" class="info-value"></span>
                 </div>
             </div>
             <div class="modal-footer">
                 <button class="btn-action btn-close" onclick="closeModal()">닫기</button>
-                <a id="m-link" href="#" target="_blank" class="btn-action btn-go">영상 보러가기 ↗</a>
+                <a id="m-link" href="#" target="_blank" class="btn-action btn-go">영상 시청하기 ↗</a>
             </div>
         </div>
     </div>
@@ -155,27 +157,29 @@
 
 <script>
     const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTfTHMy1hImniay9QEPDcMq5C4Yo5yFpmRtBlWo6UXK-FNxABQYbtfGpEsKom2O-OIJPnEi8LLy1Qqx/pub?gid=0&single=true&output=tsv";
-    let allVods = [];
+    
+    // 데이터 유무 체크 함수 (비어있거나 '-' 인 경우 체크)
+    const hasValue = (val) => val && val.trim() !== "" && val !== "-";
 
     window.onload = () => {
         fetch(sheetUrl + `&t=${new Date().getTime()}`)
             .then(res => res.text())
             .then(tsv => {
                 const lines = tsv.split(/\r?\n/).filter(line => line.trim() !== "");
-                allVods = [];
+                let vods = [];
 
                 for (let i = 1; i < lines.length; i++) {
                     const p = lines[i].split('\t').map(item => item.trim());
                     if(!p[0]) continue;
-                    allVods.push({
-                        id: i, date: p[0], title: p[1], link: p[2], thumb: p[3], totalTime: p[4],
+                    vods.push({
+                        date: p[0], title: p[1], link: p[2], thumb: p[3], totalTime: p[4],
                         isPlus: p[5] === '예', gameName: p[6], gameTime: p[7],
                         songName: p[8], songTime: p[9], category: p[10]
                     });
                 }
-                allVods.sort((a, b) => new Date(b.date) - new Date(a.date));
-                renderList(allVods);
-                updateStats(allVods);
+                vods.sort((a, b) => new Date(b.date) - new Date(a.date));
+                renderList(vods);
+                updateStats(vods);
                 document.getElementById('update-time').textContent = `최근 업데이트: ${new Date().toLocaleTimeString()}`;
             });
     };
@@ -195,15 +199,17 @@
                 const item = document.createElement('div');
                 item.className = 'vod-item';
                 item.onclick = () => openModal(vod);
+                
+                // 리스트 아이콘 표시 조건
+                const gameIcon = hasValue(vod.gameName) ? '<span class="tag tag-game">🎮</span>' : '';
+                const songIcon = hasValue(vod.songName) ? '<span class="tag tag-song">🎵</span>' : '';
+                const plusTag = vod.isPlus ? '<span class="tag tag-plus">구독+</span>' : '';
+
                 item.innerHTML = `
                     <div class="vod-thumb"><img src="${vod.thumb}"><span class="duration">${vod.totalTime}</span></div>
                     <div class="vod-body">
                         <div class="vod-title">${vod.title}</div>
-                        <div>
-                            ${vod.isPlus ? '<span class="tag tag-plus">구독+</span>' : ''}
-                            ${vod.gameName !== '-' ? `<span class="tag tag-game">🎮</span>` : ''}
-                            ${vod.songName !== '-' ? `<span class="tag tag-song">🎵</span>` : ''}
-                        </div>
+                        <div>${plusTag}${gameIcon}${songIcon}</div>
                     </div>`;
                 groupDiv.querySelector('.vod-list').appendChild(item);
             });
@@ -215,11 +221,23 @@
         document.getElementById('m-thumb').src = vod.thumb;
         document.getElementById('m-title').textContent = vod.title;
         document.getElementById('m-date').textContent = `${vod.date} (${vod.totalTime})`;
-        document.getElementById('m-game').innerHTML = vod.gameName !== '-' ? `<strong>${vod.gameName}</strong><br>${vod.gameTime}` : '정보 없음';
-        document.getElementById('m-song').innerHTML = vod.songName !== '-' ? `<strong>노래 목록</strong><br>${vod.songName}<br><small>(${vod.songTime})</small>` : '정보 없음';
-        document.getElementById('m-category').textContent = vod.category;
         document.getElementById('m-link').href = vod.link;
-        
+
+        // 조건별 표시 로직
+        const toggleRow = (id, valueId, value, displayFunc) => {
+            const row = document.getElementById(id);
+            if (hasValue(value)) {
+                row.classList.add('is-active');
+                document.getElementById(valueId).innerHTML = displayFunc ? displayFunc() : value;
+            } else {
+                row.classList.remove('is-active');
+            }
+        };
+
+        toggleRow('row-game', 'm-game', vod.gameName, () => `<strong>${vod.gameName}</strong><br><small>${vod.gameTime}</small>`);
+        toggleRow('row-song', 'm-song', vod.songName, () => vod.songName.replace(/,/g, '<br>')); // 콤마를 줄바꿈으로
+        toggleRow('row-category', 'm-category', vod.category);
+
         document.getElementById('modal-overlay').style.display = 'flex';
         document.body.classList.add('modal-open');
     }
@@ -229,15 +247,12 @@
         document.body.classList.remove('modal-open');
     }
 
-    // 배경 클릭 시 닫기
-    document.getElementById('modal-overlay').onclick = (e) => {
-        if(e.target.id === 'modal-overlay') closeModal();
-    };
+    document.getElementById('modal-overlay').onclick = (e) => { if(e.target.id === 'modal-overlay') closeModal(); };
 
     function updateStats(data) {
         document.getElementById('stat-total').textContent = data.length;
-        document.getElementById('stat-game').textContent = data.filter(d => d.gameName !== '-').length;
-        document.getElementById('stat-song').textContent = data.filter(d => d.songName !== '-').length;
+        document.getElementById('stat-game').textContent = data.filter(d => hasValue(d.gameName)).length;
+        document.getElementById('stat-song').textContent = data.filter(d => hasValue(d.songName)).length;
     }
 </script>
 </body>
