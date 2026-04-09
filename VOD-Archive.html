@@ -14,16 +14,12 @@
             --text-sub: #5c7285;
             --border: #0a1425;
             --modal-bg: rgba(0, 0, 0, 0.9);
+            --plus-color: #ffcc00; /* 구독 플러스 황금색 */
             
-            /* 분류별 확장 색상 */
-            --c-game: #4a33ff;    /* 게임 */
-            --c-song: #ff3385;    /* 노래 */
-            --c-talk: #33cc85;    /* 소통 */
-            --c-asmr: #9d56ff;    /* ASMR */
-            --c-full: #ff8800;    /* 풀트 */
-            --c-event: #ff3333;   /* 대회/합방 */
-            --c-cine: #00d4ff;    /* 시네티 */
-            --c-etc: #7a8aa7;     /* 기타 */
+            /* 분류별 컬러 */
+            --c-game: #4a33ff; --c-song: #ff3385; --c-talk: #33cc85;
+            --c-asmr: #9d56ff; --c-full: #ff8800; --c-event: #ff3333;
+            --c-cine: #00d4ff; --c-etc: #7a8aa7;
         }
 
         * { box-sizing: border-box; }
@@ -36,7 +32,7 @@
 
         .wrapper { width: 100%; max-width: 900px; margin: 0 auto; padding: 40px 20px; display: flex; flex-direction: column; gap: 20px; }
 
-        /* 헤더 */
+        /* 헤더 상자 */
         .header-card { 
             background: var(--card-bg); border-radius: 16px; padding: 25px; border: 1px solid var(--border); 
             display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 20px rgba(0,0,0,0.3);
@@ -71,17 +67,23 @@
         .label-item { display: flex; align-items: center; gap: 4px; }
         .dot { width: 7px; height: 7px; border-radius: 2px; }
 
-        /* 리스트 */
+        /* 리스트 태그 스타일 */
         .date-header { font-size: 16px; font-weight: bold; color: var(--accent); margin: 30px 0 12px; border-bottom: 1px solid var(--border); padding-bottom: 5px; }
-        .vod-item { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; display: flex; cursor: pointer; transition: 0.2s; overflow: hidden; margin-bottom: 8px; }
+        .vod-item { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; display: flex; cursor: pointer; transition: 0.2s; overflow: hidden; margin-bottom: 10px; }
         .vod-item:hover { border-color: var(--accent); transform: translateY(-2px); }
+        
         .vod-thumb { width: 140px; height: 80px; position: relative; min-width: 140px; }
         .vod-thumb img { width: 100%; height: 100%; object-fit: cover; }
         .duration { position: absolute; bottom: 5px; right: 5px; background: rgba(0,0,0,0.8); font-size: 10px; padding: 2px 5px; border-radius: 4px; }
-        .vod-body { padding: 12px 15px; display: flex; flex-direction: column; justify-content: center; }
-        .vod-title { font-size: 14px; font-weight: bold; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        
+        .vod-body { padding: 12px 15px; display: flex; flex-direction: column; justify-content: center; flex: 1; min-width: 0; }
+        .vod-title { font-size: 14px; font-weight: bold; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 6px; }
+        
+        /* 배지 공통 */
+        .tag-plus { background: var(--plus-color); color: #000; font-size: 9px; padding: 1px 4px; border-radius: 3px; font-weight: 800; line-height: 1; }
+        .cat-dot { font-size: 10px; margin-right: 4px; }
 
-        /* 모달 상세 */
+        /* 모달 팝업 */
         #modal-overlay { position: fixed; inset: 0; background: var(--modal-bg); display: none; justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(8px); padding: 20px; }
         #modal-content { background: var(--card-bg); width: 100%; max-width: 450px; border-radius: 20px; border: 1px solid var(--border); overflow: hidden; }
         .modal-body { padding: 20px; }
@@ -90,7 +92,6 @@
         .info-label { font-size: 10px; color: var(--text-sub); display: block; font-weight: bold; margin-bottom: 4px; }
         .info-value { font-size: 14px; line-height: 1.8; }
         
-        /* 팝업 내부 강조 문구 */
         .prefix-tag { color: var(--accent); font-weight: bold; margin-right: 5px; font-size: 13px; }
         .time-badge { color: var(--text-sub); font-family: monospace; font-size: 12px; margin-left: 4px; }
         .cat-badge { padding: 2px 8px; border-radius: 4px; color: white; font-size: 11px; font-weight: bold; }
@@ -143,7 +144,10 @@
     <div id="modal-content">
         <img id="m-thumb" style="width:100%; height:180px; object-fit:cover;" src="">
         <div class="modal-body">
-            <div id="m-title" style="font-weight:bold; font-size:16px; margin-bottom:15px; line-height:1.4;"></div>
+            <div id="m-title-area" style="margin-bottom:15px;">
+                <div id="m-title" style="font-weight:bold; font-size:16px; color:var(--text-main); line-height:1.4;"></div>
+                <div id="m-plus-badge" style="margin-top:5px;"></div>
+            </div>
             <div class="modal-info-grid">
                 <div class="info-row is-active"><span class="info-label">📅 방송 정보</span><span id="m-date" class="info-value"></span></div>
                 <div id="row-cat" class="info-row"><span class="info-label">🔖 컨텐츠 분류</span><span id="m-cat-val" class="info-value"></span></div>
@@ -159,7 +163,6 @@
 <script>
     const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTfTHMy1hImniay9QEPDcMq5C4Yo5yFpmRtBlWo6UXK-FNxABQYbtfGpEsKom2O-OIJPnEi8LLy1Qqx/pub?gid=0&single=true&output=tsv";
     
-    // 분류별 색상 매핑
     function getCatColor(cat) {
         if(cat.includes('게임')) return 'var(--c-game)';
         if(cat.includes('노래')) return 'var(--c-song)';
@@ -195,7 +198,8 @@
                     if(!p[0]) continue;
                     vods.push({
                         date: p[0], title: p[1], link: p[2], thumb: p[3], 
-                        totalTime: p[4], isPlus: p[5]==='예', gName: p[6], gTime: p[7], sName: p[8], sTime: p[9], category: p[10]
+                        totalTime: p[4], isPlus: p[5] === '예', // F열: 구독플러스
+                        gName: p[6], gTime: p[7], sName: p[8], sTime: p[9], category: p[10]
                     });
                 }
                 vods.sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -246,12 +250,16 @@
                 const item = document.createElement('div');
                 item.className = 'vod-item';
                 item.onclick = () => openModal(v);
+                
+                // 구독 플러스 태그 처리
+                const plusTag = v.isPlus ? `<span class="tag-plus">구독+</span>` : '';
+
                 item.innerHTML = `
                     <div class="vod-thumb"><img src="${v.thumb}"><span class="duration">${v.totalTime}</span></div>
                     <div class="vod-body">
-                        <div class="vod-title">${v.title}</div>
+                        <div class="vod-title">${v.title} ${plusTag}</div>
                         <div style="font-size:10px; color:var(--text-sub);">
-                            <span style="color:${getCatColor(v.category)}; font-weight:bold;">●</span> ${v.category}
+                            <span class="cat-dot" style="color:${getCatColor(v.category)};">●</span>${v.category}
                         </div>
                     </div>`;
                 groupDiv.querySelector('.vod-list').appendChild(item);
@@ -263,15 +271,14 @@
     function openModal(v) {
         document.getElementById('m-thumb').src = v.thumb;
         document.getElementById('m-title').textContent = v.title;
+        document.getElementById('m-plus-badge').innerHTML = v.isPlus ? `<span class="tag-plus" style="font-size:11px; padding:3px 6px;">구독 플러스 전용 다시보기</span>` : '';
         document.getElementById('m-date').textContent = `${v.date} (${v.totalTime})`;
         document.getElementById('m-link').href = v.link;
         
-        // 분류 배지 적용
         const rowCat = document.getElementById('row-cat');
         rowCat.classList.add('is-active');
         document.getElementById('m-cat-val').innerHTML = `<span class="cat-badge" style="background:${getCatColor(v.category)}">${v.category}</span>`;
 
-        // 상세 내용 표시 (접두어 포함)
         const setRow = (id, valId, prefix, name, time) => {
             const row = document.getElementById(id);
             if(name && name !== "-") {
