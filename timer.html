@@ -8,10 +8,10 @@
     <style>
         :root {
             --bg-color: #050a10;
-            --accent: #0097a7;   /* 글씨: 기존보다 명도를 낮춘 깊은 푸른색 */
-            --accent-light: #00e5ff; /* 광채: 대비를 위해 밝게 유지 */
+            --text-white: #ffffff;    /* 메인 글씨색: 흰색 */
+            --outline-blue: #004d61;  /* 글씨 외곽선: 어두운 푸른색 */
+            --accent-light: #00e5ff;  /* 박동 시 강조 컬러 */
             --accent-glow: rgba(0, 229, 255, 0.3);
-            --text-main: #00b8d4; /* 기본 글씨색도 어두운 청록/푸른 계열 */
             --text-sub: #455a64;  
             --scale: 1; 
             --blur: 30px;
@@ -20,7 +20,7 @@
         body {
             margin: 0; padding: 0;
             background-color: var(--bg-color);
-            color: var(--text-main);
+            color: var(--text-white);
             font-family: 'Noto Sans KR', sans-serif;
             display: flex; justify-content: center; align-items: center;
             height: 100vh; overflow: hidden;
@@ -30,10 +30,11 @@
         .timer-wrapper { text-align: center; width: 100%; }
 
         .label {
-            font-size: 14px; color: var(--accent);
+            font-size: 14px; color: var(--accent-light);
             font-weight: bold; letter-spacing: 5px;
             margin-bottom: 20px; text-transform: uppercase;
             opacity: 0.8;
+            text-shadow: 0 0 10px var(--accent-glow);
         }
 
         #timer {
@@ -42,37 +43,46 @@
             font-variant-numeric: tabular-nums;
             margin-bottom: 10px;
             transform: scale(var(--scale));
+            color: var(--text-white);
             
-            /* 초기 광채 설정 */
-            text-shadow: 0 0 var(--blur) var(--accent-glow);
-            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), text-shadow 0.3s ease, color 0.5s ease;
+            /* 1. 어두운 푸른색 외곽선 + 2. 기본 배후 광채 */
+            text-shadow: 
+                -1.5px -1.5px 0 var(--outline-blue),  
+                 1.5px -1.5px 0 var(--outline-blue),
+                -1.5px  1.5px 0 var(--outline-blue),
+                 1.5px  1.5px 0 var(--outline-blue),
+                0 0 var(--blur) var(--accent-glow);
+
+            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), text-shadow 0.3s ease;
             will-change: transform, text-shadow;
         }
 
         /* 1분 전: 은은한 광채 박동 */
         .glow-pulse { animation: glowPulse 1.5s infinite ease-in-out; }
         @keyframes glowPulse {
-            0%, 100% { text-shadow: 0 0 var(--blur) var(--accent-glow); }
-            50% { text-shadow: 0 0 calc(var(--blur) * 1.5) rgba(0, 229, 255, 0.6); }
+            0%, 100% { text-shadow: -1.5px -1.5px 0 var(--outline-blue), 1.5px -1.5px 0 var(--outline-blue), -1.5px 1.5px 0 var(--outline-blue), 1.5px 1.5px 0 var(--outline-blue), 0 0 var(--blur) var(--accent-glow); }
+            50% { text-shadow: -1.5px -1.5px 0 var(--outline-blue), 1.5px -1.5px 0 var(--outline-blue), -1.5px 1.5px 0 var(--outline-blue), 1.5px 1.5px 0 var(--outline-blue), 0 0 calc(var(--blur) * 1.5) rgba(0, 229, 255, 0.6); }
         }
 
-        /* 마지막 10초: 글씨 + 광채 + 크기 통합 박동 */
+        /* 마지막 10초: 흰 글씨 유지하며 외곽선과 광채가 함께 폭발 */
         .final-pulse { animation: finalPulse 0.8s infinite cubic-bezier(0.4, 0, 0.2, 1); }
         @keyframes finalPulse {
             0%, 100% { 
                 transform: scale(var(--scale));
-                text-shadow: 0 0 var(--blur) var(--accent-glow);
-                opacity: 1;
+                text-shadow: -1.5px -1.5px 0 var(--outline-blue), 1.5px -1.5px 0 var(--outline-blue), -1.5px 1.5px 0 var(--outline-blue), 1.5px 1.5px 0 var(--outline-blue), 0 0 var(--blur) var(--accent-glow);
             }
             50% { 
-                transform: scale(calc(var(--scale) * 1.1)); /* 크기 확대 */
-                text-shadow: 0 0 calc(var(--blur) * 2.5) rgba(0, 229, 255, 0.9); /* 광채 폭발 */
-                color: var(--accent-light); /* 글씨도 순간적으로 밝아짐 */
-                opacity: 0.9;
+                transform: scale(calc(var(--scale) * 1.1));
+                /* 박동 시 외곽선도 더 밝은 색으로 번쩍이며 광채 확장 */
+                text-shadow: 
+                    -1.5px -1.5px 0 var(--accent-light), 
+                     1.5px -1.5px 0 var(--accent-light),
+                    -1.5px  1.5px 0 var(--accent-light),
+                     1.5px  1.5px 0 var(--accent-light),
+                    0 0 calc(var(--blur) * 2.5) rgba(0, 229, 255, 0.9);
             }
         }
 
-        .coming-soon { color: var(--accent) !important; }
         .target-date { font-size: 14px; color: var(--text-sub); opacity: 0.6; }
     </style>
 </head>
@@ -94,9 +104,9 @@
 
         if (diff <= 0) {
             timerEl.innerText = "OPEN";
-            timerEl.style.color = "var(--accent-light)";
+            timerEl.style.textShadow = "0 0 50px var(--accent-light)";
             timerEl.style.setProperty('--scale', '1.4');
-            timerEl.classList.remove('final-pulse');
+            timerEl.classList.remove('final-pulse', 'glow-pulse');
             return;
         }
 
@@ -127,14 +137,12 @@
         document.documentElement.style.setProperty('--scale', scale);
 
         // 연출 제어
-        if (diff <= 300000) timerEl.classList.add('coming-soon');
-
         if (diff <= 59000 && diff > 10000) {
             timerEl.classList.add('glow-pulse');
             timerEl.classList.remove('final-pulse');
         } else if (diff <= 10000) {
             timerEl.classList.remove('glow-pulse');
-            timerEl.classList.add('final-pulse'); // 10초 전: 글씨+광채 통합 박동
+            timerEl.classList.add('final-pulse'); 
         }
     }
 
