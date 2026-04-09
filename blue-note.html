@@ -7,16 +7,24 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-color: #0e0e10;
-            --card-bg: #18181b;
-            --accent: #58a6ff; 
-            --text-main: #efeff1;
-            --text-sub: #adadb8;
-            --border: #2f2f35;
+            /* 통계 페이지와 동일한 색상 변수 적용 */
+            --bg-color: #010306;          /* 깊은 바다 블랙 */
+            --card-bg: #030812;           /* 미드나잇 블루 카드 */
+            --accent: #3385ff;            /* 강조 포인트 블루 */
+            --text-main: #f0faff;         /* 아이스 화이트 */
+            --text-sub: #5c7285;          /* 블루 그레이 서브 텍스트 */
+            --border: #0a1425;            /* 네이비 테두리 */
         }
 
         * { box-sizing: border-box; }
-        body { background-color: var(--bg-color); color: var(--text-main); font-family: 'Noto Sans KR', sans-serif; margin: 0; padding: 0; }
+        body { 
+            background-color: var(--bg-color); 
+            background-image: radial-gradient(circle at center, #051020 0%, #010306 100%);
+            color: var(--text-main); 
+            font-family: 'Noto Sans KR', sans-serif; 
+            margin: 0; padding: 0; 
+            min-height: 100vh;
+        }
 
         .wrapper { width: 100%; max-width: 800px; margin: 0 auto; padding: 40px 20px; display: flex; flex-direction: column; gap: 15px; }
 
@@ -29,22 +37,23 @@
             display: flex; 
             justify-content: space-between;
             align-items: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
         }
 
         .header-info h1 { margin: 0; font-size: 24px; color: var(--accent); }
-        .update-now { font-size: 11px; color: #5b5b63; margin-top: 4px; }
+        .update-now { font-size: 11px; color: var(--text-sub); margin-top: 4px; }
         
         .btn-home {
             text-decoration: none;
             color: var(--text-main);
-            background: #26262c;
+            background: #0a1a30;
             padding: 8px 14px;
             border-radius: 8px;
             font-size: 13px;
             border: 1px solid var(--border);
-            transition: 0.2s;
+            transition: 0.3s;
         }
-        .btn-home:hover { background: #3f3f46; border-color: var(--accent); }
+        .btn-home:hover { background: var(--accent); border-color: var(--accent); color: #fff; }
 
         /* 통계 상자 */
         .stats-container {
@@ -54,31 +63,32 @@
             border: 1px solid var(--border);
             line-height: 1.6;
             margin-top: 5px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
         .stats-total { font-weight: bold; color: var(--accent); font-size: 15px; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
         .stats-total::before { content: '📊'; font-size: 14px; }
         .stats-detail { font-size: 13px; color: var(--text-sub); }
-        .year-block { margin-bottom: 6px; padding-left: 5px; border-left: 2px solid #2f2f35; }
+        .year-block { margin-bottom: 6px; padding-left: 10px; border-left: 2px solid var(--accent); color: var(--text-main); }
+        .year-block strong { color: var(--accent); }
 
         /* 리스트 스타일 */
         .month-group { margin-top: 15px; margin-bottom: 15px; }
-        .month-title { font-size: 19px; font-weight: bold; color: var(--accent); margin: 0 0 15px 5px; display: flex; align-items: center; }
-        .month-title::before { content: '📅'; margin-right: 8px; font-size: 16px; }
+        .month-title { font-size: 19px; font-weight: bold; color: var(--accent); margin: 0 0 15px 5px; display: flex; align-items: center; border-left: 4px solid var(--accent); padding-left: 10px; }
 
-        .cry-list { display: flex; flex-direction: column; gap: 6px; }
+        .cry-list { display: flex; flex-direction: column; gap: 8px; }
         .cry-item { 
             background: var(--card-bg); 
-            border-radius: 8px; 
+            border-radius: 12px; 
             border: 1px solid var(--border); 
-            padding: 5px 15px; 
+            padding: 8px 15px; 
             display: flex; 
             align-items: stretch; 
             text-decoration: none; 
             color: inherit; 
             transition: 0.2s;
-            min-height: 50px;
+            min-height: 60px;
         }
-        .cry-item:hover { background: #1f1f23; border-color: var(--accent); transform: translateY(-2px); }
+        .cry-item:hover { background: rgba(255, 255, 255, 0.03); border-color: var(--accent); transform: translateY(-2px); }
 
         .cry-date { 
             width: 75px;
@@ -86,10 +96,10 @@
             align-items: center;
             justify-content: center;
             font-weight: bold; 
-            color: var(--text-main); 
+            color: var(--text-main); /* 날짜를 더 밝게 */
             font-size: 12px;
             line-height: 1.3; 
-            border-right: 1px solid #333; 
+            border-right: 1px solid var(--border); 
             margin-right: 15px; 
             padding: 8px 0;
             flex-shrink: 0; 
@@ -102,30 +112,31 @@
         }
 
         .cry-desc { 
-            font-size: 15px; font-weight: 500; margin-bottom: 6px; color: #fff; 
+            font-size: 15px; font-weight: 500; margin-bottom: 6px; color: var(--text-main); /* 아이스 화이트 적용 */
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2;
         }
 
         .cry-time { font-size: 12px; color: var(--text-sub); display: flex; align-items: center; gap: 5px; line-height: 1; }
-        .link-hint { color: var(--accent); font-size: 11px; margin-left: 10px; padding: 2px 6px; border: 1px solid rgba(88, 166, 255, 0.3); border-radius: 4px; }
+        .link-hint { color: var(--accent); font-size: 11px; margin-left: 10px; padding: 2px 6px; border: 1px solid rgba(51, 133, 255, 0.3); border-radius: 4px; font-weight: bold; }
+        
         .cry-item.no-link {
-        cursor: default; /* 손가락 모양 대신 기본 화살표 */
-        pointer-events: none; /* 클릭 이벤트 비활성화 */
+            cursor: default;
+            pointer-events: none;
         }
         .cry-item.no-link:hover {
-        transform: none; /* 호버 애니메이션 제거 */
-        border-color: var(--border);
+            transform: none;
+            border-color: var(--border);
         }
         .cry-item.no-link .link-hint {
-        display: none; /* 다시보기 버튼 숨김 */
+            display: none;
         }
 
         @media (max-width: 600px) {
             .header-card { flex-direction: column; align-items: flex-start; gap: 12px; }
             .btn-home { align-self: stretch; text-align: center; }
-            .cry-item { padding: 4px 10px; min-height: 45px; }
+            .cry-item { padding: 8px 10px; min-height: 55px; }
             .cry-date { width: 70px; margin-right: 10px; font-size: 11px; }
-            .cry-desc { font-size: 13px; }
+            .cry-desc { font-size: 14px; }
         }
     </style>
 </head>
@@ -145,15 +156,17 @@
     </div>
 
     <div id="main-content"></div>
+    <footer style="text-align: center; padding: 15px 20px; color: var(--text-sub); font-size: 11px; border-top: 1px solid var(--border); margin-top: 5px;">
+        <p style="margin: 0; opacity: 0.7;">© 2026 바다비 Information Center</p>
+    </footer>
 </div>
 
 <script>
-    // [수정됨] 구글 시트 URL
+    // 스크립트 부분은 기존 로직을 그대로 유지하되, 렌더링 시 클래스명 등이 동일하므로 문제없이 작동합니다.
     const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQsvaqEEGjtHB20R3qPkIAXyAySm8FnLzcs0rIsZevLuLP65D43gSuoRzYVU0pmhRbvyg5AW-Ce1cmL/pub?gid=0&single=true&output=tsv";
     const startDate = new Date("2025-09-04"); 
 
     window.onload = () => {
-        // [수정됨] 캐시 방지용 타임스탬프 추가 및 fetch 옵션 설정
         const cacheBuster = `&t=${new Date().getTime()}`;
         
         fetch(sheetUrl + cacheBuster, {
@@ -169,31 +182,27 @@
                 let cries = [];
                 
                 for (let i = 1; i < lines.length; i++) {
-    const parts = lines[i].split('\t').map(item => item.trim());
-    
-    // [수정] 데이터가 유효한지 엄격하게 검사 (연월 정보와 내용이 반드시 있어야 함)
-    if (!parts[0] || !parts[2] || parts[0] === "" || parts[2] === "") continue;
-    
-    let displayMonth = parts[0];
-    if (displayMonth.includes(',')) {
-        const [y, m] = displayMonth.split(',');
-        // y나 m이 정상적인 숫자인지도 체크하면 더 안전합니다.
-        if (!y || !m) continue; 
-        displayMonth = `20${y}년 ${m}월`;
-    } else {
-        // 형식에 맞지 않는 데이터(예: 콤마가 없는 빈 값 등)는 건너뜁니다.
-        continue;
-    }
+                    const parts = lines[i].split('\t').map(item => item.trim());
+                    if (!parts[0] || !parts[2] || parts[0] === "" || parts[2] === "") continue;
+                    
+                    let displayMonth = parts[0];
+                    if (displayMonth.includes(',')) {
+                        const [y, m] = displayMonth.split(',');
+                        if (!y || !m) continue; 
+                        displayMonth = `20${y}년 ${m}월`;
+                    } else {
+                        continue;
+                    }
 
-    cries.push({ 
-        rawMonth: parts[0], 
-        formattedMonth: displayMonth,
-        date: parts[1] || '', 
-        desc: parts[2], 
-        time: parts[3] || '--:--:--', 
-        link: parts[4] || '#' 
-    });
-}
+                    cries.push({ 
+                        rawMonth: parts[0], 
+                        formattedMonth: displayMonth,
+                        date: parts[1] || '', 
+                        desc: parts[2], 
+                        time: parts[3] || '--:--:--', 
+                        link: parts[4] || '#' 
+                    });
+                }
                 renderList(cries);
                 renderStats(cries);
                 
@@ -281,36 +290,33 @@
         });
 
         sortedMonthKeys.forEach(month => {
-    const groupDiv = document.createElement('div');
-    groupDiv.className = 'month-group';
-    groupDiv.innerHTML = `
-        <div class="month-title">${month}</div>
-        <div class="cry-list">
-            ${groups[month].map(cry => {
-                // 링크가 유효한지 확인 (비어있거나, #이거나, 공백인 경우 체크)
-                const hasLink = cry.link && cry.link !== '#' && cry.link.trim() !== '';
-                
-                // 링크가 없으면 a태그 속성을 비우고 no-link 클래스 부여
-                const linkAttr = hasLink ? `href="${cry.link}" target="_blank"` : `href="javascript:void(0)"`;
-                const noLinkClass = hasLink ? "" : "no-link";
+            const groupDiv = document.createElement('div');
+            groupDiv.className = 'month-group';
+            groupDiv.innerHTML = `
+                <div class="month-title">${month}</div>
+                <div class="cry-list">
+                    ${groups[month].map(cry => {
+                        const hasLink = cry.link && cry.link !== '#' && cry.link.trim() !== '';
+                        const linkAttr = hasLink ? `href="${cry.link}" target="_blank"` : `href="javascript:void(0)"`;
+                        const noLinkClass = hasLink ? "" : "no-link";
 
-                return `
-                    <a ${linkAttr} class="cry-item ${noLinkClass}">
-                        <div class="cry-date">${cry.date.replace(' ~ ', '\n').replace('~', '\n')}</div>
-                        <div class="cry-content">
-                            <div class="cry-desc">${cry.desc}</div>
-                            <div class="cry-time">
-                                🕒 ${cry.time} 
-                                ${hasLink ? '<span class="link-hint">다시보기 ↗</span>' : ''}
-                            </div>
-                        </div>
-                    </a>
-                `;
-            }).join('')}
-        </div>
-    `;
-    container.appendChild(groupDiv);
-});
+                        return `
+                            <a ${linkAttr} class="cry-item ${noLinkClass}">
+                                <div class="cry-date">${cry.date.replace(' ~ ', '\n').replace('~', '\n')}</div>
+                                <div class="cry-content">
+                                    <div class="cry-desc">${cry.desc}</div>
+                                    <div class="cry-time">
+                                        🕒 ${cry.time} 
+                                        ${hasLink ? '<span class="link-hint">다시보기 ↗</span>' : ''}
+                                    </div>
+                                </div>
+                            </a>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+            container.appendChild(groupDiv);
+        });
     }
 </script>
 </body>
