@@ -108,6 +108,17 @@
 
         .cry-time { font-size: 12px; color: var(--text-sub); display: flex; align-items: center; gap: 5px; line-height: 1; }
         .link-hint { color: var(--accent); font-size: 11px; margin-left: 10px; padding: 2px 6px; border: 1px solid rgba(88, 166, 255, 0.3); border-radius: 4px; }
+        .cry-item.no-link {
+        cursor: default; /* 손가락 모양 대신 기본 화살표 */
+        pointer-events: none; /* 클릭 이벤트 비활성화 */
+        }
+        .cry-item.no-link:hover {
+        transform: none; /* 호버 애니메이션 제거 */
+        border-color: var(--border);
+        }
+        .cry-item.no-link .link-hint {
+        display: none; /* 다시보기 버튼 숨김 */
+        }
 
         @media (max-width: 600px) {
             .header-card { flex-direction: column; align-items: flex-start; gap: 12px; }
@@ -270,24 +281,36 @@
         });
 
         sortedMonthKeys.forEach(month => {
-            const groupDiv = document.createElement('div');
-            groupDiv.className = 'month-group';
-            groupDiv.innerHTML = `
-                <div class="month-title">${month}</div>
-                <div class="cry-list">
-                    ${groups[month].map(cry => `
-                        <a href="${cry.link}" target="_blank" class="cry-item">
-                            <div class="cry-date">${cry.date.replace(' ~ ', '\n').replace('~', '\n')}</div>
-                            <div class="cry-content">
-                                <div class="cry-desc">${cry.desc}</div>
-                                <div class="cry-time">🕒 ${cry.time} <span class="link-hint">다시보기 ↗</span></div>
+    const groupDiv = document.createElement('div');
+    groupDiv.className = 'month-group';
+    groupDiv.innerHTML = `
+        <div class="month-title">${month}</div>
+        <div class="cry-list">
+            ${groups[month].map(cry => {
+                // 링크가 유효한지 확인 (비어있거나, #이거나, 공백인 경우 체크)
+                const hasLink = cry.link && cry.link !== '#' && cry.link.trim() !== '';
+                
+                // 링크가 없으면 a태그 속성을 비우고 no-link 클래스 부여
+                const linkAttr = hasLink ? `href="${cry.link}" target="_blank"` : `href="javascript:void(0)"`;
+                const noLinkClass = hasLink ? "" : "no-link";
+
+                return `
+                    <a ${linkAttr} class="cry-item ${noLinkClass}">
+                        <div class="cry-date">${cry.date.replace(' ~ ', '\n').replace('~', '\n')}</div>
+                        <div class="cry-content">
+                            <div class="cry-desc">${cry.desc}</div>
+                            <div class="cry-time">
+                                🕒 ${cry.time} 
+                                ${hasLink ? '<span class="link-hint">다시보기 ↗</span>' : ''}
                             </div>
-                        </a>
-                    `).join('')}
-                </div>
-            `;
-            container.appendChild(groupDiv);
-        });
+                        </div>
+                    </a>
+                `;
+            }).join('')}
+        </div>
+    `;
+    container.appendChild(groupDiv);
+});
     }
 </script>
 </body>
