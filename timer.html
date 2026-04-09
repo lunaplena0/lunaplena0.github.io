@@ -8,10 +8,11 @@
     <style>
         :root {
             --bg-color: #050a10;
-            --accent: #00e5ff;
-            --accent-glow: rgba(0, 229, 255, 0.4);
-            --text-main: #f0faff;
-            --text-sub: #8da2b5;
+            --accent: #0097a7;   /* 글씨: 기존보다 명도를 낮춘 깊은 푸른색 */
+            --accent-light: #00e5ff; /* 광채: 대비를 위해 밝게 유지 */
+            --accent-glow: rgba(0, 229, 255, 0.3);
+            --text-main: #00b8d4; /* 기본 글씨색도 어두운 청록/푸른 계열 */
+            --text-sub: #455a64;  
             --scale: 1; 
             --blur: 30px;
         }
@@ -23,7 +24,7 @@
             font-family: 'Noto Sans KR', sans-serif;
             display: flex; justify-content: center; align-items: center;
             height: 100vh; overflow: hidden;
-            background-image: radial-gradient(circle at center, #0a1420 0%, #050a10 100%);
+            background-image: radial-gradient(circle at center, #07121d 0%, #050a10 100%);
         }
 
         .timer-wrapper { text-align: center; width: 100%; }
@@ -32,36 +33,47 @@
             font-size: 14px; color: var(--accent);
             font-weight: bold; letter-spacing: 5px;
             margin-bottom: 20px; text-transform: uppercase;
-            text-shadow: 0 0 10px var(--accent-glow);
+            opacity: 0.8;
         }
 
         #timer {
-            font-size: clamp(30px, 8vw, 80px); /* 일/시간이 추가되어 기본 크기를 살짝 조절 */
+            font-size: clamp(30px, 8vw, 80px);
             font-weight: 700;
             font-variant-numeric: tabular-nums;
             margin-bottom: 10px;
             transform: scale(var(--scale));
+            
+            /* 초기 광채 설정 */
             text-shadow: 0 0 var(--blur) var(--accent-glow);
-            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), text-shadow 0.3s ease;
+            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), text-shadow 0.3s ease, color 0.5s ease;
             will-change: transform, text-shadow;
         }
 
-        .glow-pulse { animation: glowPulse 1s infinite; }
+        /* 1분 전: 은은한 광채 박동 */
+        .glow-pulse { animation: glowPulse 1.5s infinite ease-in-out; }
         @keyframes glowPulse {
-            0% { text-shadow: 0 0 var(--blur) var(--accent-glow); }
-            50% { text-shadow: 0 0 calc(var(--blur) * 2) rgba(0, 229, 255, 0.8); }
-            100% { text-shadow: 0 0 var(--blur) var(--accent-glow); }
+            0%, 100% { text-shadow: 0 0 var(--blur) var(--accent-glow); }
+            50% { text-shadow: 0 0 calc(var(--blur) * 1.5) rgba(0, 229, 255, 0.6); }
         }
 
-        .final-pulse { animation: finalPulse 0.5s infinite; }
+        /* 마지막 10초: 글씨 + 광채 + 크기 통합 박동 */
+        .final-pulse { animation: finalPulse 0.8s infinite cubic-bezier(0.4, 0, 0.2, 1); }
         @keyframes finalPulse {
-            0% { transform: scale(var(--scale)); }
-            50% { transform: scale(calc(var(--scale) * 1.05)); }
-            100% { transform: scale(var(--scale)); }
+            0%, 100% { 
+                transform: scale(var(--scale));
+                text-shadow: 0 0 var(--blur) var(--accent-glow);
+                opacity: 1;
+            }
+            50% { 
+                transform: scale(calc(var(--scale) * 1.1)); /* 크기 확대 */
+                text-shadow: 0 0 calc(var(--blur) * 2.5) rgba(0, 229, 255, 0.9); /* 광채 폭발 */
+                color: var(--accent-light); /* 글씨도 순간적으로 밝아짐 */
+                opacity: 0.9;
+            }
         }
 
         .coming-soon { color: var(--accent) !important; }
-        .target-date { font-size: 14px; color: var(--text-sub); opacity: 0.8; }
+        .target-date { font-size: 14px; color: var(--text-sub); opacity: 0.6; }
     </style>
 </head>
 <body>
@@ -82,36 +94,30 @@
 
         if (diff <= 0) {
             timerEl.innerText = "OPEN";
-            timerEl.classList.add('coming-soon');
+            timerEl.style.color = "var(--accent-light)";
             timerEl.style.setProperty('--scale', '1.4');
-            // window.location.replace("https://www.sooplive.com/"); 
+            timerEl.classList.remove('final-pulse');
             return;
         }
 
-        // 전체 시간 계산
         const days = Math.floor(diff / (1000 * 60 * 60 * 24));
         const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
         const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
         const secs = Math.floor((diff % (1000 * 60)) / 1000);
 
-        // 1. 유연한 단위 출력 로직
         let timeString = "";
-        
         if (days > 0) {
             timeString += `${days} : ${String(hours).padStart(2, '0')} : ${String(mins).padStart(2, '0')} : ${String(secs).padStart(2, '0')}`;
         } else if (hours > 0) {
             timeString += `${hours} : ${String(mins).padStart(2, '0')} : ${String(secs).padStart(2, '0')}`;
         } else if (mins > 0) {
-            // 1분 이상일 때는 '00 : 00' 스타일 유지 (원하셨던 스타일)
             timeString += `${mins} : ${String(secs).padStart(2, '0')}`;
         } else {
-            // 1분 미만일 때는 숫자만 (0초 형식)
             timeString += `${secs}`;
         }
-        
         timerEl.innerText = timeString;
 
-        // 2. 단계별 확대 (5분~1분)
+        // 단계별 확대
         let scale = 1;
         if (diff <= 300000) scale = 1.05; 
         if (diff <= 240000) scale = 1.1;  
@@ -120,7 +126,7 @@
         if (diff <= 60000)  scale = 1.25; 
         document.documentElement.style.setProperty('--scale', scale);
 
-        // 3. 연출 제어
+        // 연출 제어
         if (diff <= 300000) timerEl.classList.add('coming-soon');
 
         if (diff <= 59000 && diff > 10000) {
@@ -128,7 +134,7 @@
             timerEl.classList.remove('final-pulse');
         } else if (diff <= 10000) {
             timerEl.classList.remove('glow-pulse');
-            timerEl.classList.add('final-pulse');
+            timerEl.classList.add('final-pulse'); // 10초 전: 글씨+광채 통합 박동
         }
     }
 
