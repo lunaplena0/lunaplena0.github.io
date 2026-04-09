@@ -85,21 +85,20 @@
         .modal-title { font-size: 19px; font-weight: bold; color: var(--text-main); margin-bottom: 20px; line-height: 1.5; }
         
         .modal-info-grid { display: flex; flex-direction: column; gap: 18px; margin-bottom: 30px; }
-        .info-row { border-left: 3px solid var(--accent); padding-left: 15px; display: none; } /* 기본적으로 숨김 */
-        .info-row.is-active { display: block; } /* 값이 있을 때만 표시 */
+        .info-row { border-left: 3px solid var(--accent); padding-left: 15px; display: none; }
+        .info-row.is-active { display: block; }
         
         .info-label { font-size: 11px; color: var(--text-sub); display: block; margin-bottom: 5px; font-weight: bold; }
-        .info-value { font-size: 14px; color: var(--text-main); line-height: 1.6; }
+        .info-value { font-size: 14px; color: var(--text-main); line-height: 1.7; }
+        .time-badge { color: var(--accent); font-family: monospace; font-weight: normal; font-size: 13px; }
 
         .modal-footer { display: flex; gap: 10px; }
         .btn-action { flex: 1; padding: 14px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; font-size: 14px; text-align: center; text-decoration: none; }
         .btn-go { background: var(--accent); color: white; transition: 0.2s; }
-        .btn-go:hover { background: #5599ff; }
         .btn-close { background: #1a202c; color: var(--text-sub); }
 
         @media (max-width: 600px) {
             .vod-thumb { width: 110px; min-width: 110px; height: 65px; }
-            .modal-header-img { height: 180px; }
             .modal-title { font-size: 17px; }
         }
     </style>
@@ -157,9 +156,21 @@
 
 <script>
     const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTfTHMy1hImniay9QEPDcMq5C4Yo5yFpmRtBlWo6UXK-FNxABQYbtfGpEsKom2O-OIJPnEi8LLy1Qqx/pub?gid=0&single=true&output=tsv";
-    
-    // 데이터 유무 체크 함수 (비어있거나 '-' 인 경우 체크)
     const hasValue = (val) => val && val.trim() !== "" && val !== "-";
+
+    // 핵심: 텍스트 줄바꿈 및 포맷팅 함수
+    function formatDetailText(text) {
+        if (!hasValue(text)) return "";
+        
+        // 1. 콤마(,)를 기준으로 먼저 나누기
+        let parts = text.split(',');
+
+        return parts.map(part => {
+            // 2. 시간 형식(00:00:00)을 찾아서 그 앞에 줄바꿈 추가 및 강조
+            // 숫자:숫자:숫자 패턴을 찾아냅니다.
+            return part.trim().replace(/(\d{1,2}:\d{2}:\d{2})/g, '<br><span class="time-badge">$1</span>');
+        }).join('<br>');
+    }
 
     window.onload = () => {
         fetch(sheetUrl + `&t=${new Date().getTime()}`)
@@ -167,7 +178,6 @@
             .then(tsv => {
                 const lines = tsv.split(/\r?\n/).filter(line => line.trim() !== "");
                 let vods = [];
-
                 for (let i = 1; i < lines.length; i++) {
                     const p = lines[i].split('\t').map(item => item.trim());
                     if(!p[0]) continue;
@@ -199,8 +209,6 @@
                 const item = document.createElement('div');
                 item.className = 'vod-item';
                 item.onclick = () => openModal(vod);
-                
-                // 리스트 아이콘 표시 조건
                 const gameIcon = hasValue(vod.gameName) ? '<span class="tag tag-game">🎮</span>' : '';
                 const songIcon = hasValue(vod.songName) ? '<span class="tag tag-song">🎵</span>' : '';
                 const plusTag = vod.isPlus ? '<span class="tag tag-plus">구독+</span>' : '';
@@ -223,19 +231,18 @@
         document.getElementById('m-date').textContent = `${vod.date} (${vod.totalTime})`;
         document.getElementById('m-link').href = vod.link;
 
-        // 조건별 표시 로직
-        const toggleRow = (id, valueId, value, displayFunc) => {
+        const toggleRow = (id, valueId, rawValue) => {
             const row = document.getElementById(id);
-            if (hasValue(value)) {
+            if (hasValue(rawValue)) {
                 row.classList.add('is-active');
-                document.getElementById(valueId).innerHTML = displayFunc ? displayFunc() : value;
+                document.getElementById(valueId).innerHTML = formatDetailText(rawValue);
             } else {
                 row.classList.remove('is-active');
             }
         };
 
-        toggleRow('row-game', 'm-game', vod.gameName, () => `<strong>${vod.gameName}</strong><br><small>${vod.gameTime}</small>`);
-        toggleRow('row-song', 'm-song', vod.songName, () => vod.songName.replace(/,/g, '<br>')); // 콤마를 줄바꿈으로
+        toggleRow('row-game', 'm-game', vod.gameName);
+        toggleRow('row-song', 'm-song', vod.songName);
         toggleRow('row-category', 'm-category', vod.category);
 
         document.getElementById('modal-overlay').style.display = 'flex';
