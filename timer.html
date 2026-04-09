@@ -7,13 +7,15 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-color: #050a10;
-            --accent: #00e5ff;
-            --accent-glow: rgba(0, 229, 255, 0.4);
+            /* 캐릭터 테마에 맞춘 심해의 감청색 설정 */
+            --bg-color: #02050a;
+            --accent: #003366; 
+            --accent-glow: rgba(0, 51, 102, 0.7); /* 광채 효과를 위한 투명도 조절 */
+            --accent-bright: #3385ff; /* 글자가 너무 어두우면 가독성을 위해 사용하는 보조 밝은 파랑 */
             --text-main: #f0faff;
-            --text-sub: #8da2b5;
+            --text-sub: #5c7285;
             --scale: 1; 
-            --blur: 30px;
+            --blur: 25px;
         }
 
         body {
@@ -23,44 +25,48 @@
             font-family: 'Noto Sans KR', sans-serif;
             display: flex; justify-content: center; align-items: center;
             height: 100vh; overflow: hidden;
-            background-image: radial-gradient(circle at center, #0a1420 0%, #050a10 100%);
+            /* 배경 그라데이션도 캐릭터 톤에 맞춰 조정 */
+            background-image: radial-gradient(circle at center, #051020 0%, #02050a 100%);
         }
 
         .timer-wrapper { text-align: center; width: 100%; }
 
         .label {
-            font-size: 14px; color: var(--accent);
+            font-size: 14px; 
+            color: var(--accent-bright); /* 라벨은 가독성을 위해 조금 더 밝게 */
             font-weight: bold; letter-spacing: 5px;
             margin-bottom: 20px; text-transform: uppercase;
-            text-shadow: 0 0 10px var(--accent-glow);
+            text-shadow: 0 0 15px var(--accent-glow);
         }
 
         #timer {
-            font-size: clamp(30px, 8vw, 80px); /* 일/시간이 추가되어 기본 크기를 살짝 조절 */
+            font-size: clamp(30px, 8vw, 80px);
             font-weight: 700;
             font-variant-numeric: tabular-nums;
             margin-bottom: 10px;
             transform: scale(var(--scale));
-            text-shadow: 0 0 var(--blur) var(--accent-glow);
+            /* 요청하신 #003366 기반의 진한 광채 */
+            text-shadow: 0 0 var(--blur) var(--accent-glow), 0 0 calc(var(--blur) / 2) var(--accent);
             transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), text-shadow 0.3s ease;
             will-change: transform, text-shadow;
         }
 
-        .glow-pulse { animation: glowPulse 1s infinite; }
+        .glow-pulse { animation: glowPulse 1.5s infinite; }
         @keyframes glowPulse {
             0% { text-shadow: 0 0 var(--blur) var(--accent-glow); }
-            50% { text-shadow: 0 0 calc(var(--blur) * 2) rgba(0, 229, 255, 0.8); }
+            50% { text-shadow: 0 0 calc(var(--blur) * 2.5) var(--accent); }
             100% { text-shadow: 0 0 var(--blur) var(--accent-glow); }
         }
 
         .final-pulse { animation: finalPulse 0.5s infinite; }
         @keyframes finalPulse {
-            0% { transform: scale(var(--scale)); }
-            50% { transform: scale(calc(var(--scale) * 1.05)); }
-            100% { transform: scale(var(--scale)); }
+            0% { transform: scale(var(--scale)); text-shadow: 0 0 var(--blur) var(--accent-glow); }
+            50% { transform: scale(calc(var(--scale) * 1.05)); text-shadow: 0 0 50px var(--accent); }
+            100% { transform: scale(var(--scale)); text-shadow: 0 0 var(--blur) var(--accent-glow); }
         }
 
-        .coming-soon { color: var(--accent) !important; }
+        /* 강조 색상 변경 */
+        .coming-soon { color: var(--accent-bright) !important; }
         .target-date { font-size: 14px; color: var(--text-sub); opacity: 0.8; }
     </style>
 </head>
@@ -84,34 +90,27 @@
             timerEl.innerText = "OPEN";
             timerEl.classList.add('coming-soon');
             timerEl.style.setProperty('--scale', '1.4');
-            // window.location.replace("https://www.sooplive.com/"); 
             return;
         }
 
-        // 전체 시간 계산
         const days = Math.floor(diff / (1000 * 60 * 60 * 24));
         const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
         const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
         const secs = Math.floor((diff % (1000 * 60)) / 1000);
 
-        // 1. 유연한 단위 출력 로직
         let timeString = "";
-        
         if (days > 0) {
             timeString += `${days} : ${String(hours).padStart(2, '0')} : ${String(mins).padStart(2, '0')} : ${String(secs).padStart(2, '0')}`;
         } else if (hours > 0) {
             timeString += `${hours} : ${String(mins).padStart(2, '0')} : ${String(secs).padStart(2, '0')}`;
         } else if (mins > 0) {
-            // 1분 이상일 때는 '00 : 00' 스타일 유지 (원하셨던 스타일)
             timeString += `${mins} : ${String(secs).padStart(2, '0')}`;
         } else {
-            // 1분 미만일 때는 숫자만 (0초 형식)
             timeString += `${secs}`;
         }
         
         timerEl.innerText = timeString;
 
-        // 2. 단계별 확대 (5분~1분)
         let scale = 1;
         if (diff <= 300000) scale = 1.05; 
         if (diff <= 240000) scale = 1.1;  
@@ -120,7 +119,6 @@
         if (diff <= 60000)  scale = 1.25; 
         document.documentElement.style.setProperty('--scale', scale);
 
-        // 3. 연출 제어
         if (diff <= 300000) timerEl.classList.add('coming-soon');
 
         if (diff <= 59000 && diff > 10000) {
