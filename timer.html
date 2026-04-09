@@ -7,11 +7,13 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-color: #0e0e10;
-            --accent: #9147ff;
-            --text-main: #efeff1;
-            --text-sub: #adadb8;
-            /* 실시간 제어를 위한 CSS 변수 */
+            --bg-color: #050a10; /* 깊은 바다색 */
+            --accent: #00e5ff;   /* 사이언 블루 */
+            --accent-glow: rgba(0, 229, 255, 0.4);
+            --text-main: #f0faff;
+            --text-sub: #8da2b5;
+            
+            /* 제어용 변수 */
             --scale: 1; 
             --blur: 30px;
         }
@@ -23,6 +25,7 @@
             font-family: 'Noto Sans KR', sans-serif;
             display: flex; justify-content: center; align-items: center;
             height: 100vh; overflow: hidden;
+            background-image: radial-gradient(circle at center, #0a1420 0%, #050a10 100%);
         }
 
         .timer-wrapper { text-align: center; width: 100%; }
@@ -31,35 +34,37 @@
             font-size: 14px; color: var(--accent);
             font-weight: bold; letter-spacing: 5px;
             margin-bottom: 20px; text-transform: uppercase;
+            text-shadow: 0 0 10px var(--accent-glow);
         }
 
         #timer {
-            /* 기본 크기는 유지하되, scale로 조절 */
             font-size: clamp(40px, 10vw, 80px);
             font-weight: 700;
             font-variant-numeric: tabular-nums;
             margin-bottom: 10px;
-            
-            /* 자바스크립트가 제어하는 변수 적용 */
             transform: scale(var(--scale));
-            text-shadow: 0 0 var(--blur) rgba(145, 71, 255, 0.4);
-            
-            /* 수치가 바뀔 때 미세하게 흔들리는 느낌 방지 */
-            transition: transform 0.2s ease-out, text-shadow 0.2s ease-out, color 0.5s ease; 
-            will-change: transform, text-shadow; /* 성능 최적화 */
+            text-shadow: 0 0 var(--blur) var(--accent-glow);
+            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), text-shadow 0.3s ease;
+            will-change: transform, text-shadow;
         }
 
-        /* 5분 전부터 색상 강조 */
+        /* 1분 전: 배경 광채 심장 박동 */
+        .glow-pulse { animation: glowPulse 1s infinite; }
+        @keyframes glowPulse {
+            0% { text-shadow: 0 0 var(--blur) var(--accent-glow); }
+            50% { text-shadow: 0 0 calc(var(--blur) * 2) rgba(0, 229, 255, 0.8); }
+            100% { text-shadow: 0 0 var(--blur) var(--accent-glow); }
+        }
+
+        /* 10초 전: 전체 박동 */
+        .final-pulse { animation: finalPulse 0.5s infinite; }
+        @keyframes finalPulse {
+            0% { transform: scale(var(--scale)); }
+            50% { transform: scale(calc(var(--scale) * 1.05)); }
+            100% { transform: scale(var(--scale)); }
+        }
+
         .coming-soon { color: var(--accent) !important; }
-
-        /* 마지막 10초: 심장 박동 애니메이션 */
-        .pulse { animation: pulse 1s infinite; }
-        @keyframes pulse {
-            0% { transform: scale(var(--scale)); opacity: 1; }
-            50% { transform: scale(calc(var(--scale) * 1.05)); opacity: 0.8; }
-            100% { transform: scale(var(--scale)); opacity: 1; }
-        }
-
         .target-date { font-size: 14px; color: var(--text-sub); opacity: 0.8; }
     </style>
 </head>
@@ -68,13 +73,11 @@
 <div class="timer-wrapper">
     <div class="label">BADABI Coming Soon</div>
     <div id="timer">로드 중...</div>
-    <div class="target-date" id="target-display">2026.04.09 15:58:00</div>
+    <div class="target-date" id="target-display">2026.04.09 16:01:00</div>
 </div>
 
 <script>
-    
-    // 실제 카운트 되는 시간:
-     const TARGET_DATE = new Date("2026-04-09T15:58:00").getTime();
+    const TARGET_DATE = new Date("2026-04-09T16:01:00").getTime();
 
     function updateTimer() {
         const now = new Date().getTime();
@@ -83,55 +86,52 @@
 
         if (diff <= 0) {
             timerEl.innerText = "OPEN";
-            // 이동 로직 (테스트 시 주석 처리)
-            // window.location.replace("https://www.sooplive.com/"); 
+            timerEl.classList.add('coming-soon');
+            timerEl.style.setProperty('--scale', '1.4');
             return;
         }
 
-        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
         const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
         const secs = Math.floor((diff % (1000 * 60)) / 1000);
 
-        // 1. 단위 생략 로직
+        // 1. 단위 생략 및 초 단위 처리 (한 자릿수일 때 0 제거)
         let timeString = "";
-        if (days > 0) timeString += `${days}일 `;
-        if (days > 0 || hours > 0) timeString += `${String(hours).padStart(2, '0')}시간 `;
-        if (days > 0 || hours > 0 || mins > 0) timeString += `${String(mins).padStart(2, '0')}분 `;
-        timeString += `${String(secs).padStart(2, '0')}초`;
+        if (mins > 0) {
+            timeString += `${mins}: `;
+            timeString += `${String(secs).padStart(2, '0')}초`;
+        } else {
+            // 1분 미만일 때: 한 자릿수면 0초 형식으로 출력
+            timeString += `${secs}`;
+        }
         timerEl.innerText = timeString;
 
-        // 2. "다가오는 압박감" 실시간 연출 (5분 전부터 작동)
-        const fiveMinutes = 5 * 60 * 1000;
+        // 2. 단계별 확대 로직 (5분~1분)
+        let scale = 1;
+        if (diff <= 300000) scale = 1.05; // 5분
+        if (diff <= 240000) scale = 1.1;  // 4분
+        if (diff <= 180000) scale = 1.15; // 3분
+        if (diff <= 120000) scale = 1.2;  // 2분
+        if (diff <= 60000)  scale = 1.25; // 1분
         
-        if (diff <= fiveMinutes) {
+        document.documentElement.style.setProperty('--scale', scale);
+
+        // 3. 연출 추가 (광채 박동 및 컬러 변경)
+        if (diff <= 300000) {
             timerEl.classList.add('coming-soon');
-            
-            // 시간이 줄어들수록 0 -> 1 사이의 값이 됨
-            const progress = (fiveMinutes - diff) / fiveMinutes; 
-            
-            // [비율 조절] 5분 동안 서서히 커짐 (1배 -> 1.3배)
-            const scale = 1 + (progress * 0.3); 
-            // [빛 조절] 서서히 강해짐 (30px -> 60px)
-            const blur = 30 + (progress * 30); 
-            
-            // CSS 변수 실시간 업데이트
-            document.documentElement.style.setProperty('--scale', scale);
-            document.documentElement.style.setProperty('--blur', blur + 'px');
-            
-            // 3. 마지막 10초: 심장 박동 효과 추가
-            if (diff <= 10000) {
-                timerEl.classList.add('pulse');
-            }
-        } else {
-            // 5분 전에는 기본값 유지
-            timerEl.classList.remove('coming-soon', 'pulse');
-            document.documentElement.style.setProperty('--scale', '1');
-            document.documentElement.style.setProperty('--blur', '30px');
+        }
+
+        // 59초 전부터 광채 박동 시작
+        if (diff <= 59000 && diff > 10000) {
+            timerEl.classList.add('glow-pulse');
+            timerEl.classList.remove('final-pulse');
+        } 
+        // 10초 전부터는 전체 박동으로 전환
+        else if (diff <= 10000) {
+            timerEl.classList.remove('glow-pulse');
+            timerEl.classList.add('final-pulse');
         }
     }
 
-    // 1초마다 업데이트 (마지막 10초 박동 효과를 위해 0.1초 단위로 업데이트해도 좋지만 성능상 1초 유지)
     setInterval(updateTimer, 1000);
     updateTimer();
 </script>
