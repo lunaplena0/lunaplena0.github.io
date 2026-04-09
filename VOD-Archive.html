@@ -90,7 +90,7 @@
         
         .info-label { font-size: 11px; color: var(--text-sub); display: block; margin-bottom: 5px; font-weight: bold; }
         .info-value { font-size: 14px; color: var(--text-main); line-height: 1.7; }
-        .time-badge { color: var(--accent); font-family: monospace; font-weight: normal; font-size: 13px; }
+        .time-badge { color: var(--accent); font-family: monospace; font-weight: bold; }
 
         .modal-footer { display: flex; gap: 10px; }
         .btn-action { flex: 1; padding: 14px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; font-size: 14px; text-align: center; text-decoration: none; }
@@ -158,17 +158,14 @@
     const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTfTHMy1hImniay9QEPDcMq5C4Yo5yFpmRtBlWo6UXK-FNxABQYbtfGpEsKom2O-OIJPnEi8LLy1Qqx/pub?gid=0&single=true&output=tsv";
     const hasValue = (val) => val && val.trim() !== "" && val !== "-";
 
-    // 핵심: 텍스트 줄바꿈 및 포맷팅 함수
+    // 텍스트에서 시간을 감지해 괄호를 씌우고 줄바꿈 처리하는 함수
     function formatDetailText(text) {
         if (!hasValue(text)) return "";
-        
-        // 1. 콤마(,)를 기준으로 먼저 나누기
-        let parts = text.split(',');
-
-        return parts.map(part => {
-            // 2. 시간 형식(00:00:00)을 찾아서 그 앞에 줄바꿈 추가 및 강조
-            // 숫자:숫자:숫자 패턴을 찾아냅니다.
-            return part.trim().replace(/(\d{1,2}:\d{2}:\d{2})/g, '<br><span class="time-badge">$1</span>');
+        let items = text.split(',');
+        return items.map(item => {
+            let trimmed = item.trim();
+            // 시간 패턴을 찾아 괄호를 씌움
+            return trimmed.replace(/(\d{1,2}:\d{2}(?::\d{2})?)/g, ' <span class="time-badge">($1)</span>');
         }).join('<br>');
     }
 
