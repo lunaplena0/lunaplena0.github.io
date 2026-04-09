@@ -57,7 +57,7 @@
         .legend-percent { color: var(--text-main); font-weight: bold; margin-left: 2px; }
         .dot { width: 8px; height: 8px; border-radius: 2px; }
 
-        /* 리스트 */
+        /* 리스트 관련 */
         .date-header { font-size: 16px; font-weight: bold; color: var(--accent); margin: 35px 0 15px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
         .vod-item { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; display: flex; cursor: pointer; transition: 0.2s; overflow: hidden; margin-bottom: 12px; }
         .vod-thumb { width: 140px; height: 80px; position: relative; min-width: 140px; }
@@ -82,21 +82,21 @@
             flex: 1;
         }
 
-        /* 태그 디자인 통일 */
+        /* [핵심] 모든 태그 디자인 강제 통일 */
         .tag-common {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            height: 20px;
-            padding: 0 6px;
+            height: 22px !important; /* 높이 고정 */
+            padding: 0 8px !important;
             border-radius: 4px;
-            font-size: 10px;
+            font-size: 11px !important; /* 글자 크기 고정 */
             font-weight: 800;
             white-space: nowrap;
             line-height: 1;
         }
         .tag-plus { background: var(--plus-color); color: #000; flex-shrink: 0; }
-        .cat-badge { color: white; margin-right: 4px; margin-bottom: 4px; height: 24px; padding: 0 10px; font-size: 12px; }
+        .cat-badge { color: white; margin-right: 6px; margin-bottom: 6px; }
 
         /* 모달 상세 */
         #modal-overlay { position: fixed; inset: 0; background: var(--modal-bg); display: none; justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(8px); padding: 20px; }
@@ -113,6 +113,7 @@
         .btn-go { background: var(--accent); color: white; }
         .btn-close { background: #1a202c; color: var(--text-sub); }
 
+        /* 모바일 최적화 */
         @media (max-width: 650px) { 
             .dashboard-grid { grid-template-columns: 1fr; } 
             .header-info h1 { font-size: 18px; }
@@ -120,18 +121,13 @@
             .vod-thumb { width: 110px; height: 65px; min-width: 110px; }
             .vod-title { font-size: 13px; }
             .m-val-text { font-size: 13px; }
+            
+            /* 모바일에서는 태그를 아주 살짝만 줄임 */
             .tag-common {
-        height: 20px !important; /* 모바일 전용 높이 */
-        font-size: 10px !important;
-        padding: 0 6px;
-    }
-    
-    /* 리스트 내의 태그와 팝업 내의 태그 크기가 다르지 않도록 간격 조정 */
-    .cat-badge {
-        margin-right: 4px;
-        margin-bottom: 6px;
-        height: 22px !important; /* 팝업 내 카테고리 태그 높이도 통일 */
-    }
+                height: 20px !important;
+                font-size: 10px !important;
+                padding: 0 6px !important;
+            }
         }
     </style>
 </head>
@@ -315,7 +311,9 @@
         document.getElementById('m-title').textContent = v.title;
         document.getElementById('m-date').textContent = `${v.date} (${v.totalTime})`;
         document.getElementById('m-link').href = v.link;
-        document.getElementById('m-plus').innerHTML = v.isPlus ? `<span class="tag-common tag-plus" style="height:24px; font-size:12px; padding:0 10px;">구독 플러스 전용 다시보기</span>` : '';
+        
+        // 팝업 내 구독 태그 (인라인 스타일 제거)
+        document.getElementById('m-plus').innerHTML = v.isPlus ? `<span class="tag-common tag-plus">구독 플러스 전용 다시보기</span>` : '';
         
         const catContainer = document.getElementById('m-cat-val');
         catContainer.innerHTML = v.category.split(/[,/ ]+/).map(c => 
