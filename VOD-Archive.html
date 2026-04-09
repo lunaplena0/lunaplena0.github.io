@@ -14,6 +14,7 @@
             --text-sub: #5c7285;
             --border: #0a1425;
             --plus-color: #ffcc00;
+            --modal-bg: rgba(0, 0, 0, 0.85);
         }
 
         * { box-sizing: border-box; }
@@ -25,111 +26,79 @@
             margin: 0; padding: 0; 
             min-height: 100vh;
         }
+        body.modal-open { overflow: hidden; } /* 팝업 열릴 때 스크롤 방지 */
 
         .wrapper { width: 100%; max-width: 900px; margin: 0 auto; padding: 40px 20px; display: flex; flex-direction: column; gap: 20px; }
 
-        /* 헤더 섹션 */
+        /* 헤더 & 통계 */
         .header-card { 
-            background: var(--card-bg); 
-            border-radius: 16px; 
-            padding: 25px; 
-            border: 1px solid var(--border); 
-            display: flex; 
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            background: var(--card-bg); border-radius: 16px; padding: 25px; border: 1px solid var(--border); 
+            display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 20px rgba(0,0,0,0.3);
         }
         .header-info h1 { margin: 0; font-size: 24px; color: var(--accent); }
         .update-now { font-size: 11px; color: var(--text-sub); margin-top: 4px; }
-        
-        .btn-home {
-            text-decoration: none;
-            color: var(--text-main);
-            background: #0a1a30;
-            padding: 8px 14px;
-            border-radius: 8px;
-            font-size: 13px;
-            border: 1px solid var(--border);
-            transition: 0.3s;
-        }
+        .btn-home { text-decoration: none; color: var(--text-main); background: #0a1a30; padding: 8px 14px; border-radius: 8px; font-size: 13px; border: 1px solid var(--border); transition: 0.3s; }
         .btn-home:hover { background: var(--accent); color: #fff; }
 
-        /* 통계 섹션 */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-        }
-        .stat-item {
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            padding: 15px;
-            border-radius: 12px;
-            text-align: center;
-        }
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .stat-item { background: var(--card-bg); border: 1px solid var(--border); padding: 15px; border-radius: 12px; text-align: center; }
         .stat-value { display: block; font-size: 18px; font-weight: bold; color: var(--accent); }
-        .stat-label { font-size: 11px; color: var(--text-sub); text-transform: uppercase; }
+        .stat-label { font-size: 11px; color: var(--text-sub); }
 
-        /* 리스트 형식 스타일 */
+        /* 리스트 스타일 */
         .date-group { margin-top: 30px; }
-        .date-header { 
-            font-size: 18px; 
-            font-weight: bold; 
-            color: var(--accent); 
-            margin-bottom: 12px; 
-            display: flex; 
-            align-items: center; 
-            gap: 10px;
-        }
+        .date-header { font-size: 18px; font-weight: bold; color: var(--accent); margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }
         .date-header::after { content: ''; flex: 1; height: 1px; background: var(--border); }
-
-        .vod-list { display: flex; flex-direction: column; gap: 12px; }
+        .vod-list { display: flex; flex-direction: column; gap: 10px; }
 
         .vod-item {
-            background: var(--card-bg);
-            border-radius: 12px;
-            border: 1px solid var(--border);
-            text-decoration: none;
-            color: inherit;
-            display: flex;
-            overflow: hidden;
-            transition: 0.2s;
+            background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border);
+            display: flex; overflow: hidden; transition: 0.2s; cursor: pointer;
         }
-        .vod-item:hover { transform: translateX(5px); border-color: var(--accent); background: rgba(51, 133, 255, 0.05); }
+        .vod-item:hover { border-color: var(--accent); background: rgba(51, 133, 255, 0.05); }
 
-        /* 썸네일 (왼쪽 고정) */
-        .vod-thumb {
-            width: 180px;
-            min-width: 180px;
-            height: 100px;
-            position: relative;
-            background: #000;
-        }
-        .vod-thumb img { width: 100%; height: 100%; object-fit: cover; opacity: 0.9; }
-        .duration { 
-            position: absolute; bottom: 5px; right: 5px; 
-            background: rgba(0,0,0,0.7); font-size: 10px; padding: 2px 4px; border-radius: 3px; 
-        }
+        .vod-thumb { width: 160px; min-width: 160px; height: 90px; position: relative; }
+        .vod-thumb img { width: 100%; height: 100%; object-fit: cover; opacity: 0.8; }
+        .duration { position: absolute; bottom: 5px; right: 5px; background: rgba(0,0,0,0.7); font-size: 10px; padding: 2px 4px; border-radius: 3px; }
 
-        /* 정보 (오른쪽) */
         .vod-body { padding: 12px 15px; flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; }
-        .vod-title { 
-            font-size: 15px; font-weight: bold; margin-bottom: 8px; 
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; 
-        }
-        
-        .vod-tags { display: flex; gap: 6px; flex-wrap: wrap; }
-        .tag { font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
-        .tag-game { background: rgba(74, 51, 255, 0.2); color: #88aaff; border: 1px solid #4a33ff; }
-        .tag-song { background: rgba(255, 51, 133, 0.2); color: #ff88aa; border: 1px solid #ff3385; }
+        .vod-title { font-size: 15px; font-weight: bold; margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .tag { font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: bold; margin-right: 5px; }
+        .tag-game { background: rgba(74, 51, 255, 0.2); color: #88aaff; }
+        .tag-song { background: rgba(255, 51, 133, 0.2); color: #ff88aa; }
         .tag-plus { background: var(--plus-color); color: #000; }
-        .tag-category { background: rgba(92, 114, 133, 0.2); color: var(--text-sub); border: 1px solid var(--border); }
+
+        /* 팝업(모달) 스타일 */
+        #modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--modal-bg); display: none; justify-content: center; align-items: center;
+            z-index: 1000; padding: 20px; backdrop-filter: blur(5px);
+        }
+        #modal-content {
+            background: var(--card-bg); width: 100%; max-width: 500px; border-radius: 20px;
+            border: 1px solid var(--accent); overflow: hidden; position: relative;
+            animation: slideUp 0.3s ease-out;
+        }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        .modal-header-img { width: 100%; height: 200px; object-fit: cover; border-bottom: 1px solid var(--border); }
+        .modal-body { padding: 25px; }
+        .modal-title { font-size: 20px; font-weight: bold; color: var(--text-main); margin-bottom: 15px; line-height: 1.4; }
+        
+        .modal-info-grid { display: flex; flex-direction: column; gap: 15px; margin-bottom: 25px; }
+        .info-row { border-left: 3px solid var(--accent); padding-left: 12px; }
+        .info-label { font-size: 11px; color: var(--text-sub); display: block; margin-bottom: 4px; }
+        .info-value { font-size: 14px; color: var(--text-main); }
+
+        .modal-footer { display: flex; gap: 10px; }
+        .btn-action { flex: 1; padding: 12px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; font-size: 14px; text-align: center; text-decoration: none; }
+        .btn-go { background: var(--accent); color: white; }
+        .btn-close { background: #1a202c; color: var(--text-sub); }
 
         @media (max-width: 600px) {
-            .vod-thumb { width: 120px; min-width: 120px; height: 70px; }
+            .vod-thumb { width: 100px; min-width: 100px; height: 60px; }
             .vod-title { font-size: 14px; }
-            .stats-grid { grid-template-columns: 1fr 1fr 1fr; }
-            .stat-value { font-size: 15px; }
+            .modal-header-img { height: 150px; }
         }
     </style>
 </head>
@@ -144,106 +113,131 @@
         <a href="index.html" class="btn-home">🏠 홈으로</a>
     </div>
 
-    <div class="stats-grid" id="stats-area">
+    <div class="stats-grid">
         <div class="stat-item"><span class="stat-value" id="stat-total">0</span><span class="stat-label">Total</span></div>
         <div class="stat-item"><span class="stat-value" id="stat-game">0</span><span class="stat-label">Game</span></div>
         <div class="stat-item"><span class="stat-value" id="stat-song">0</span><span class="stat-label">Song</span></div>
     </div>
 
-    <div id="vod-content">
-        </div>
+    <div id="vod-content"></div>
+</div>
 
-    <footer style="text-align: center; padding: 40px 20px; color: var(--text-sub); font-size: 11px; opacity: 0.6;">
-        © 2026 바다비 Information Center
-    </footer>
+<div id="modal-overlay">
+    <div id="modal-content">
+        <img id="m-thumb" class="modal-header-img" src="" alt="Thumbnail">
+        <div class="modal-body">
+            <div id="m-title" class="modal-title">제목</div>
+            <div class="modal-info-grid">
+                <div class="info-row">
+                    <span class="info-label">📅 방송 일시</span>
+                    <span id="m-date" class="info-value">-</span>
+                </div>
+                <div id="m-game-area" class="info-row">
+                    <span class="info-label">🎮 플레이 게임</span>
+                    <span id="m-game" class="info-value">-</span>
+                </div>
+                <div id="m-song-area" class="info-row">
+                    <span class="info-label">🎵 노래 정보</span>
+                    <span id="m-song" class="info-value">-</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">📝 컨텐츠 분류</span>
+                    <span id="m-category" class="info-value">-</span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-action btn-close" onclick="closeModal()">닫기</button>
+                <a id="m-link" href="#" target="_blank" class="btn-action btn-go">영상 보러가기 ↗</a>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
     const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTfTHMy1hImniay9QEPDcMq5C4Yo5yFpmRtBlWo6UXK-FNxABQYbtfGpEsKom2O-OIJPnEi8LLy1Qqx/pub?gid=0&single=true&output=tsv";
+    let allVods = [];
 
     window.onload = () => {
-        const cacheBuster = `&t=${new Date().getTime()}`;
-        fetch(sheetUrl + cacheBuster)
+        fetch(sheetUrl + `&t=${new Date().getTime()}`)
             .then(res => res.text())
             .then(tsv => {
                 const lines = tsv.split(/\r?\n/).filter(line => line.trim() !== "");
-                let vods = [];
+                allVods = [];
 
                 for (let i = 1; i < lines.length; i++) {
                     const p = lines[i].split('\t').map(item => item.trim());
                     if(!p[0]) continue;
-                    
-                    vods.push({
-                        date: p[0], title: p[1], link: p[2], thumb: p[3], totalTime: p[4],
-                        isPlus: p[5] === '예',
-                        gameName: p[6], gameTime: p[7],
-                        songName: p[8], songTime: p[9],
-                        category: p[10]
+                    allVods.push({
+                        id: i, date: p[0], title: p[1], link: p[2], thumb: p[3], totalTime: p[4],
+                        isPlus: p[5] === '예', gameName: p[6], gameTime: p[7],
+                        songName: p[8], songTime: p[9], category: p[10]
                     });
                 }
-                
-                // 날짜 기준 내림차순 정렬 (최신순)
-                vods.sort((a, b) => new Date(b.date) - new Date(a.date));
-                
-                renderList(vods);
-                updateStats(vods);
-                
-                const now = new Date();
-                document.getElementById('update-time').textContent = `최근 업데이트: ${now.toLocaleTimeString()}`;
-            })
-            .catch(err => {
-                document.getElementById('vod-content').innerHTML = "<p style='text-align:center;'>데이터 로딩 실패</p>";
+                allVods.sort((a, b) => new Date(b.date) - new Date(a.date));
+                renderList(allVods);
+                updateStats(allVods);
+                document.getElementById('update-time').textContent = `최근 업데이트: ${new Date().toLocaleTimeString()}`;
             });
     };
-
-    function updateStats(data) {
-        document.getElementById('stat-total').textContent = data.length;
-        document.getElementById('stat-game').textContent = data.filter(d => d.gameName && d.gameName !== '-').length;
-        document.getElementById('stat-song').textContent = data.filter(d => d.songName && d.songName !== '-').length;
-    }
 
     function renderList(data) {
         const container = document.getElementById('vod-content');
         container.innerHTML = '';
-
-        // 날짜별로 그룹화
         const groups = {};
-        data.forEach(vod => {
-            if (!groups[vod.date]) groups[vod.date] = [];
-            groups[vod.date].push(vod);
-        });
+        data.forEach(v => { if(!groups[v.date]) groups[v.date] = []; groups[v.date].push(v); });
 
-        // 정렬된 날짜 키 가져오기 (이미 위에서 vods가 정렬되었으므로 순서대로 나옴)
-        const sortedDates = Object.keys(groups).sort((a, b) => new Date(b) - new Date(a));
-
-        sortedDates.forEach(date => {
+        Object.keys(groups).sort((a,b) => new Date(b) - new Date(a)).forEach(date => {
             const groupDiv = document.createElement('div');
             groupDiv.className = 'date-group';
+            groupDiv.innerHTML = `<div class="date-header">${date}</div><div class="vod-list"></div>`;
             
-            let itemsHtml = groups[date].map(vod => `
-                <a href="${vod.link}" target="_blank" class="vod-item">
-                    <div class="vod-thumb">
-                        <img src="${vod.thumb}" loading="lazy">
-                        <span class="duration">${vod.totalTime}</span>
-                    </div>
+            groups[date].forEach(vod => {
+                const item = document.createElement('div');
+                item.className = 'vod-item';
+                item.onclick = () => openModal(vod);
+                item.innerHTML = `
+                    <div class="vod-thumb"><img src="${vod.thumb}"><span class="duration">${vod.totalTime}</span></div>
                     <div class="vod-body">
                         <div class="vod-title">${vod.title}</div>
-                        <div class="vod-tags">
+                        <div>
                             ${vod.isPlus ? '<span class="tag tag-plus">구독+</span>' : ''}
-                            ${vod.gameName && vod.gameName !== '-' ? `<span class="tag tag-game">🎮 ${vod.gameName}</span>` : ''}
-                            ${vod.songName && vod.songName !== '-' ? `<span class="tag tag-song">🎵 SONG</span>` : ''}
-                            <span class="tag tag-category">${vod.category}</span>
+                            ${vod.gameName !== '-' ? `<span class="tag tag-game">🎮</span>` : ''}
+                            ${vod.songName !== '-' ? `<span class="tag tag-song">🎵</span>` : ''}
                         </div>
-                    </div>
-                </a>
-            `).join('');
-
-            groupDiv.innerHTML = `
-                <div class="date-header">${date}</div>
-                <div class="vod-list">${itemsHtml}</div>
-            `;
+                    </div>`;
+                groupDiv.querySelector('.vod-list').appendChild(item);
+            });
             container.appendChild(groupDiv);
         });
+    }
+
+    function openModal(vod) {
+        document.getElementById('m-thumb').src = vod.thumb;
+        document.getElementById('m-title').textContent = vod.title;
+        document.getElementById('m-date').textContent = `${vod.date} (${vod.totalTime})`;
+        document.getElementById('m-game').innerHTML = vod.gameName !== '-' ? `<strong>${vod.gameName}</strong><br>${vod.gameTime}` : '정보 없음';
+        document.getElementById('m-song').innerHTML = vod.songName !== '-' ? `<strong>노래 목록</strong><br>${vod.songName}<br><small>(${vod.songTime})</small>` : '정보 없음';
+        document.getElementById('m-category').textContent = vod.category;
+        document.getElementById('m-link').href = vod.link;
+        
+        document.getElementById('modal-overlay').style.display = 'flex';
+        document.body.classList.add('modal-open');
+    }
+
+    function closeModal() {
+        document.getElementById('modal-overlay').style.display = 'none';
+        document.body.classList.remove('modal-open');
+    }
+
+    // 배경 클릭 시 닫기
+    document.getElementById('modal-overlay').onclick = (e) => {
+        if(e.target.id === 'modal-overlay') closeModal();
+    };
+
+    function updateStats(data) {
+        document.getElementById('stat-total').textContent = data.length;
+        document.getElementById('stat-game').textContent = data.filter(d => d.gameName !== '-').length;
+        document.getElementById('stat-song').textContent = data.filter(d => d.songName !== '-').length;
     }
 </script>
 </body>
