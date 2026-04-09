@@ -59,8 +59,8 @@
 </div>
 
 <script>
-    // 목표 시간 설정 (2026년 4월 15일 16시)
-    const TARGET_DATE = new Date("2026-04-20T16:00:00").getTime();
+    // 목표 시간 설정
+    const TARGET_DATE = new Date("2026-04-09T15:35:00").getTime();
 
     function updateTimer() {
         const now = new Date().getTime();
@@ -68,9 +68,13 @@
 
         const timerEl = document.getElementById('timer');
 
+        // 시간이 다 되었을 때
         if (diff <= 0) {
-            timerEl.innerText = "00d 00:00:00";
+            timerEl.innerText = "0일 00시간 00분 00초";
             timerEl.style.color = "var(--accent)";
+            
+            // 히스토리를 남기지 않고 이동 (뒤로가기 방지)
+            window.location.replace("https://lunaplena0.github.io/"); 
             return;
         }
 
@@ -79,7 +83,6 @@
         const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
         const secs = Math.floor((diff % (1000 * 60)) / 1000);
 
-        // 출력 형식: 00d 00:00:00
         timerEl.innerText = 
             `${String(days).padStart(1, '0')}일 ` +
             `${String(hours).padStart(2, '0')}시간 ` +
@@ -87,9 +90,8 @@
             `${String(secs).padStart(2, '0')}초`;
     }
 
-    // 1초마다 업데이트
     setInterval(updateTimer, 1000);
-    updateTimer(); // 즉시 실행
+    updateTimer();
 </script>
 
 </body>
