@@ -7,36 +7,41 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-color: #0e0e10;
-            --card-bg: #18181b;
-            --accent: #9147ff;
-            --text-main: #efeff1;
-            --text-sub: #adadb8;
-            --modal-overlay: rgba(0, 0, 0, 0.85);
-            --input-bg: #26262c;
+            /* 메인 및 노래책과 동일한 색상 변수 */
+            --bg-color: #010306;          /* 깊은 바다 블랙 */
+            --card-bg: #030812;           /* 미드나잇 블루 카드 */
+            --accent-bright: #3385ff;    /* 강조 포인트 블루 */
+            --text-main: #f0faff;        /* 아이스 화이트 */
+            --text-sub: #5c7285;         /* 블루 그레이 서브 텍스트 */
+            --border: #0a1425;           /* 네이비 테두리 */
+            --modal-overlay: rgba(0, 0, 0, 0.9);
+            --input-bg: #0a1a30;         /* 입력창 배경 */
         }
 
         body { 
             background-color: var(--bg-color); 
+            background-image: radial-gradient(circle at center, #051020 0%, #010306 100%);
             color: var(--text-main); 
             font-family: 'Noto Sans KR', sans-serif; 
             margin: 0; padding: 20px;
+            min-height: 100vh;
         }
 
         .wrapper { width: 100%; max-width: 1000px; margin: 0 auto; display: flex; flex-direction: column; gap: 30px; }
 
-        .header { display: flex; justify-content: space-between; align-items: center; padding: 20px 0; border-bottom: 1px solid #2f2f35; }
-        .header h1 { font-size: 24px; margin: 0; color: var(--accent); }
-        .back-btn { padding: 8px 16px; background: #26262c; border-radius: 8px; color: var(--text-main); text-decoration: none; font-size: 13px; border: 1px solid #3a3a3d; }
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 20px 0; border-bottom: 1px solid var(--border); }
+        .header h1 { font-size: 24px; margin: 0; color: var(--accent-bright); }
+        .back-btn { padding: 8px 16px; background: #0a1a30; border-radius: 8px; color: var(--text-main); text-decoration: none; font-size: 13px; border: 1px solid var(--border); transition: 0.3s; }
+        .back-btn:hover { background: var(--accent-bright); border-color: var(--accent-bright); color: #fff; }
 
-        .section-title { font-size: 18px; font-weight: bold; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+        .section-title { font-size: 18px; font-weight: bold; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; color: var(--accent-bright); border-left: 4px solid var(--accent-bright); padding-left: 10px; }
 
         .search-container { margin-bottom: 15px; position: relative; }
         .search-input {
             width: 100%;
             padding: 12px 15px;
             background: var(--input-bg);
-            border: 1px solid #3a3a3d;
+            border: 1px solid var(--border);
             border-radius: 10px;
             color: var(--text-main);
             font-size: 14px;
@@ -44,44 +49,47 @@
             outline: none;
             transition: 0.2s;
         }
-        .search-input:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(145, 71, 255, 0.2); }
+        .search-input:focus { border-color: var(--accent-bright); box-shadow: 0 0 10px rgba(51, 133, 255, 0.2); }
 
-        .stats-card { background: var(--card-bg); border-radius: 16px; border: 1px solid #2f2f35; padding: 20px; overflow: hidden; position: relative; }
+        .stats-card { background: var(--card-bg); border-radius: 16px; border: 1px solid var(--border); padding: 20px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
 
         table { width: 100%; border-collapse: collapse; font-size: 14px; }
-        th { background: #1f1f23; padding: 12px; text-align: left; color: var(--text-sub); font-weight: normal; border-bottom: 2px solid #2f2f35; }
-        td { padding: 12px; border-bottom: 1px solid #26262c; cursor: pointer; transition: 0.2s; }
-        tr:hover td { background: #1f1f23; }
+        th { background: #0a1425; padding: 12px; text-align: left; color: var(--accent-bright); font-weight: bold; border-bottom: 2px solid var(--border); text-transform: uppercase; letter-spacing: 1px; }
+        td { padding: 12px; border-bottom: 1px solid var(--border); cursor: pointer; transition: 0.2s; }
+        tr:hover td { background: rgba(255, 255, 255, 0.03); }
         
-        .badge { padding: 3px 8px; border-radius: 4px; font-size: 11px; background: #2f2f35; color: var(--text-sub); }
-        .count-text { color: var(--accent); font-weight: bold; }
+        .badge { padding: 3px 8px; border-radius: 4px; font-size: 11px; background: #0a1a30; color: var(--text-sub); border: 1px solid var(--border); }
+        .count-text { color: var(--accent-bright); font-weight: bold; }
 
         .tag-badge { display: inline-block; padding: 2px 9px; border-radius: 50px; font-size: 10px; font-weight: bold; margin-left: 8px; color: white; vertical-align: middle; }
-        .tag-200 { background-color: #ff4b4b; }
-        .tag-300 { background-color: #ff9100; }
-        .tag-기타 { background-color: #4caf50; }
-        .tag-default { background-color: #5b5b63; }
+        .tag-200 { background-color: #d32f2f; }
+        .tag-300 { background-color: #f57c00; }
+        .tag-기타 { background-color: #2e7d32; }
+        .tag-default { background-color: #455a64; }
 
         .toggle-btn {
-            width: 100%; padding: 12px; background: #1f1f23; border: none; color: var(--accent);
-            font-size: 13px; font-weight: bold; cursor: pointer; border-top: 1px solid #2f2f35; display: none;
+            width: 100%; padding: 12px; background: #0a1425; border: none; color: var(--accent-bright);
+            font-size: 13px; font-weight: bold; cursor: pointer; border-top: 1px solid var(--border); display: none; transition: 0.3s;
         }
+        .toggle-btn:hover { background: #0a1a30; color: #fff; }
 
         .modal {
             display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%;
-            background-color: var(--modal-overlay); align-items: center; justify-content: center; backdrop-filter: blur(5px);
+            background-color: var(--modal-overlay); align-items: center; justify-content: center; backdrop-filter: blur(8px);
         }
         .modal-content {
             background: var(--card-bg); width: 90%; max-width: 500px; border-radius: 20px;
-            border: 1px solid #3a3a3d; position: relative; animation: slideUp 0.3s ease; max-height: 80vh; overflow-y: auto;
+            border: 1px solid var(--border); position: relative; animation: slideUp 0.3s ease; max-height: 80vh; overflow-y: auto;
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
         }
         @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        .modal-header { padding: 20px; border-bottom: 1px solid #2f2f35; position: sticky; top: 0; background: var(--card-bg); z-index: 10; }
-        .modal-header h2 { margin: 0; font-size: 18px; color: var(--accent); }
+        .modal-header { padding: 20px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--card-bg); z-index: 10; }
+        .modal-header h2 { margin: 0; font-size: 18px; color: var(--accent-bright); }
         .modal-header .sub-info { font-size: 13px; color: var(--text-sub); margin-top: 5px; }
-        .close-modal { position: absolute; right: 20px; top: 20px; font-size: 24px; cursor: pointer; color: var(--text-sub); }
+        .close-modal { position: absolute; right: 20px; top: 20px; font-size: 24px; cursor: pointer; color: var(--text-sub); transition: 0.3s; }
+        .close-modal:hover { color: #fff; }
         .modal-body { padding: 20px; }
-        .detail-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #26262c; font-size: 14px; }
+        .detail-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
         .detail-item:last-child { border-bottom: none; }
 
         @media (max-width: 600px) {
@@ -107,8 +115,8 @@
                 <thead>
                     <tr>
                         <th>가수명</th>
-                        <th onclick="setArtistSort('songCount')" style="cursor:pointer; color:var(--accent);">보유 곡 수 <span id="sort-icon-count">▼</span></th>
-                        <th onclick="setArtistSort('totalSing')" style="cursor:pointer; color:var(--accent);">누적 가창 <span id="sort-icon-sing"></span></th>
+                        <th onclick="setArtistSort('songCount')" style="cursor:pointer; color:var(--accent-bright);">보유 곡 수 <span id="sort-icon-count">▼</span></th>
+                        <th onclick="setArtistSort('totalSing')" style="cursor:pointer; color:var(--accent-bright);">누적 가창 <span id="sort-icon-sing"></span></th>
                         <th>최근 가창일</th>
                     </tr>
                 </thead>
@@ -149,6 +157,7 @@
 </div>
 
 <script>
+    /* 스크립트 로직은 이전과 동일하게 유지 (통계 연산 최적화 적용) */
     const BOOK_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSIfrVC6MakrvA_D8rsQeTT6oaX_0w4bc8I_aaJuoQi4g_AuuvFi-nCP_lnHwvoSAsFKxagrzhoPy_J/pub?gid=0&single=true&output=tsv";
     const STAT_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vReuzG6rmwJOtpxrYtHJELuVxn3BJcW_YWhIrW27Ad5W2W6t__IxlPomhGw5c1j6z8GAPKYz7QCEsYx/pub?gid=1357240589&single=true&output=tsv";
     
@@ -189,27 +198,16 @@
 
     async function initStats() {
         try {
-            // [수정] 캐시 방지 타임스탬프 생성
             const cacheBuster = `&t=${new Date().getTime()}`;
-            const fetchOptions = {
-                cache: 'no-store',
-                headers: {
-                    'Pragma': 'no-cache',
-                    'Cache-Control': 'no-cache'
-                }
-            };
-
-            // 두 시트 모두 최신 데이터로 호출
             const [bookRes, statRes] = await Promise.all([
-                fetch(BOOK_SHEET_URL + cacheBuster, fetchOptions),
-                fetch(STAT_SHEET_URL + cacheBuster, fetchOptions)
+                fetch(BOOK_SHEET_URL + cacheBuster),
+                fetch(STAT_SHEET_URL + cacheBuster)
             ]);
 
             const bookText = await bookRes.text();
             const statText = await statRes.text();
 
             const parseTSV = (text) => text.split(/\r?\n/).filter(line => line.trim() !== "").slice(1);
-            
             const bookLines = parseTSV(bookText);
             const statLines = parseTSV(statText);
 
@@ -224,12 +222,8 @@
                     const dateRaw = parts[2] || "";
                     const history = dateRaw ? dateRaw.split(',').map(d => d.trim()).filter(d => d !== "") : [];
                     
-                    const songId = `book-${index}`;
-                    songMap.set(songId, {
-                        title,
-                        artist,
-                        history: [...history],
-                        count: history.length
+                    songMap.set(title + artist, {
+                        title, artist, history: [...history], count: history.length
                     });
                 }
             });
@@ -237,45 +231,31 @@
             statLines.forEach((line) => {
                 const parts = line.split('\t').map(item => item.trim());
                 if (parts.length >= 2) {
-                    const sTitle = parts[0];
-                    const sArtist = parts[1];
-                    const sDateRaw = parts[2] || "";
-                    const sHistory = sDateRaw ? sDateRaw.split(',').map(d => d.trim()).filter(d => d !== "") : [];
-
-                    for (let [id, song] of songMap) {
-                        if (song.title === sTitle && song.artist === sArtist) {
-                            song.history = [...new Set([...song.history, ...sHistory])].sort();
-                            song.count = song.history.length;
-                        }
+                    const key = parts[0] + parts[1];
+                    const sHistory = parts[2] ? parts[2].split(',').map(d => d.trim()).filter(d => d !== "") : [];
+                    if (songMap.has(key)) {
+                        const song = songMap.get(key);
+                        song.history = [...new Set([...song.history, ...sHistory])].sort();
+                        song.count = song.history.length;
                     }
                 }
             });
 
-            const songArray = Array.from(songMap.values()).map(song => {
+            fullSongData = Array.from(songMap.values()).map(song => {
                 const lastDate = song.count > 0 ? song.history[song.history.length - 1] : "-";
-                
-                if (!artistMap.has(song.artist)) {
-                    artistMap.set(song.artist, { songCount: 0, totalSing: 0, lastSing: "-" });
-                }
+                if (!artistMap.has(song.artist)) artistMap.set(song.artist, { songCount: 0, totalSing: 0, lastSing: "-" });
                 const aData = artistMap.get(song.artist);
                 aData.songCount += 1;
                 aData.totalSing += song.count;
-                if (lastDate !== "-" && (aData.lastSing === "-" || lastDate > aData.lastSing)) {
-                    aData.lastSing = lastDate;
-                }
-                
+                if (lastDate !== "-" && (aData.lastSing === "-" || lastDate > aData.lastSing)) aData.lastSing = lastDate;
                 return { ...song, lastDate };
-            });
+            }).sort((a, b) => b.count - a.count);
 
             fullArtistData = Array.from(artistMap.entries());
-            fullSongData = songArray.sort((a, b) => b.count - a.count);
-
             render('artist');
             render('song');
         } catch (e) {
-            console.error("Data Load Error:", e);
-            document.getElementById('artist-stats-body').innerHTML = 
-                `<tr><td colspan="4" style="text-align:center;">데이터 로딩 오류</td></tr>`;
+            document.getElementById('artist-stats-body').innerHTML = `<tr><td colspan="4" style="text-align:center;">오류 발생</td></tr>`;
         }
     }
 
@@ -291,94 +271,68 @@
         let data = type === 'artist' ? [...fullArtistData] : [...fullSongData];
 
         if (query) {
-            if (type === 'artist') {
-                data = data.filter(([name]) => name.toLowerCase().includes(query));
-            } else {
-                data = data.filter(song => 
-                    song.title.toLowerCase().includes(query) || 
-                    song.artist.toLowerCase().includes(query)
-                );
-            }
+            if (type === 'artist') data = data.filter(([name]) => name.toLowerCase().includes(query));
+            else data = data.filter(s => s.title.toLowerCase().includes(query) || s.artist.toLowerCase().includes(query));
         }
 
-        if (type === 'artist') {
-            data.sort((a, b) => {
-                const valA = a[1][artistSortTarget];
-                const valB = b[1][artistSortTarget];
-                return valB - valA;
-            });
-        }
+        if (type === 'artist') data.sort((a, b) => b[1][artistSortTarget] - a[1][artistSortTarget]);
 
-        const tbody = document.getElementById(`${type === 'artist' ? 'artist-stats-body' : 'song-detail-body'}`);
+        const tbody = document.getElementById(type === 'artist' ? 'artist-stats-body' : 'song-detail-body');
         const btn = document.getElementById(`${type}-toggle`);
         const displayData = (isExpanded || query) ? data : data.slice(0, 5);
         
-        if (data.length > 5 && !query) {
-            btn.style.display = 'block';
-            btn.innerText = isExpanded ? '▲ 접기' : `▼ 더보기 (${data.length - 5}개)`;
-        } else {
-            btn.style.display = 'none';
-        }
+        btn.style.display = (data.length > 5 && !query) ? 'block' : 'none';
+        if (btn.style.display === 'block') btn.innerText = isExpanded ? '▲ 접기' : `▼ 더보기 (${data.length - 5}개)`;
 
         if (data.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:30px; color:var(--text-sub);">결과가 없습니다.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--text-sub); padding:30px;">결과가 없습니다.</td></tr>`;
             return;
         }
 
-        if (type === 'artist') {
-            tbody.innerHTML = displayData.map(([name, info]) => `
-                <tr onclick="showArtistDetail('${name.replace(/'/g, "\\'")}')">
+        tbody.innerHTML = displayData.map(item => {
+            if (type === 'artist') {
+                const [name, info] = item;
+                return `<tr onclick="showArtistDetail('${name.replace(/'/g, "\\'")}')">
                     <td><strong>${name}</strong></td>
                     <td><span class="count-text">${info.songCount}</span> 곡</td>
                     <td>${info.totalSing} 회</td>
                     <td><span class="badge">${info.lastSing}</span></td>
-                </tr>
-            `).join('');
-        } else {
-            tbody.innerHTML = displayData.map(song => `
-                <tr onclick="showSongDetail('${song.title.replace(/'/g, "\\'")}')">
-                    <td>${parseTitleWithTag(song.title)}</td>
-                    <td style="color:var(--text-sub);">${song.artist}</td>
-                    <td><span class="count-text">${song.count}</span> 회</td>
-                    <td style="font-size:12px; color:var(--text-sub);">${song.lastDate}</td>
-                </tr>
-            `).join('');
-        }
+                </tr>`;
+            } else {
+                return `<tr onclick="showSongDetail('${item.title.replace(/'/g, "\\'")}', '${item.artist.replace(/'/g, "\\'")}')">
+                    <td>${parseTitleWithTag(item.title)}</td>
+                    <td style="color:var(--text-sub);">${item.artist}</td>
+                    <td><span class="count-text">${item.count}</span> 회</td>
+                    <td style="font-size:12px; color:var(--text-sub);">${item.lastDate}</td>
+                </tr>`;
+            }
+        }).join('');
     }
 
-    function showArtistDetail(artistName) {
-        const item = fullArtistData.find(([name]) => name === artistName);
+    function showArtistDetail(name) {
+        const item = fullArtistData.find(a => a[0] === name);
         if(!item) return;
-        const info = item[1];
-        document.getElementById('modal-title').innerText = `🎤 ${artistName}`;
-        document.getElementById('modal-subtitle').innerText = `보유 곡: ${info.songCount}곡 / 총 가창: ${info.totalSing}회`;
-        const songsByArtist = fullSongData.filter(s => s.artist === artistName);
-        document.getElementById('modal-list').innerHTML = songsByArtist.map(s => `
-            <div class="detail-item">
-                <span>${parseTitleWithTag(s.title)}</span>
-                <span class="count-text">${s.count}회</span>
-            </div>
+        document.getElementById('modal-title').innerText = `🎤 ${name}`;
+        document.getElementById('modal-subtitle').innerText = `보유: ${item[1].songCount}곡 / 총 가창: ${item[1].totalSing}회`;
+        document.getElementById('modal-list').innerHTML = fullSongData.filter(s => s.artist === name).map(s => `
+            <div class="detail-item"><span>${parseTitleWithTag(s.title)}</span><span class="count-text">${s.count}회</span></div>
         `).join('');
         document.getElementById('detailModal').style.display = 'flex';
     }
 
-    function showSongDetail(songTitle) {
-        const song = fullSongData.find(s => s.title === songTitle);
+    function showSongDetail(title, artist) {
+        const song = fullSongData.find(s => s.title === title && s.artist === artist);
         if(!song) return;
         document.getElementById('modal-title').innerHTML = `🎵 ${parseTitleWithTag(song.title)}`;
         document.getElementById('modal-subtitle').innerText = `가수: ${song.artist} / 총 ${song.count}회 가창`;
-        if (song.history && song.history.length > 0) {
-            document.getElementById('modal-list').innerHTML = song.history.map(date => `
-                <div class="detail-item"><span>가창 기록</span><span class="badge">${date}</span></div>
-            `).join('');
-        } else {
-            document.getElementById('modal-list').innerHTML = `<div style="text-align:center; padding:20px; color:var(--text-sub);">기록 없음</div>`;
-        }
+        document.getElementById('modal-list').innerHTML = song.history.length > 0 ? song.history.map(d => `
+            <div class="detail-item"><span>가창 기록</span><span class="badge">${d}</span></div>
+        `).join('') : `<div style="text-align:center; padding:20px; color:var(--text-sub);">기록 없음</div>`;
         document.getElementById('detailModal').style.display = 'flex';
     }
 
     function closeModal() { document.getElementById('detailModal').style.display = 'none'; }
-    window.onclick = function(e) { if (e.target == document.getElementById('detailModal')) closeModal(); }
+    window.onclick = e => { if (e.target == document.getElementById('detailModal')) closeModal(); }
     function toggleDisplay(type) {
         if (type === 'artist') isArtistExpanded = !isArtistExpanded;
         else isSongExpanded = !isSongExpanded;
