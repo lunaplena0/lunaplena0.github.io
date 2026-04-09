@@ -78,19 +78,68 @@
             background-color: var(--modal-overlay); align-items: center; justify-content: center; backdrop-filter: blur(8px);
         }
         .modal-content {
-            background: var(--card-bg); width: 90%; max-width: 500px; border-radius: 20px;
-            border: 1px solid var(--border); position: relative; animation: slideUp 0.3s ease; max-height: 80vh; overflow-y: auto;
+            background: var(--card-bg); 
+            width: 90%; 
+            max-width: 500px; 
+            border-radius: 20px;
+            border: 1px solid var(--border); 
+            position: relative; 
+            animation: slideUp 0.3s ease; 
+            max-height: 80vh; 
+            display: flex;         /* 헤더 고정을 위한 flex 설정 */
+            flex-direction: column; 
+            overflow: hidden;      /* 자식 요소의 스크롤 제어 */
             box-shadow: 0 0 30px rgba(0,0,0,0.5);
         }
         @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        .modal-header { padding: 20px; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--card-bg); z-index: 10; }
+        .modal-header { 
+            padding: 20px; 
+            border-bottom: 1px solid var(--border); 
+            background: var(--card-bg); 
+            z-index: 10; 
+            display: flex;
+            justify-content: space-between; 
+            align-items: flex-start;
+            flex-shrink: 0;        /* 헤더가 찌그러지지 않게 고정 */
+        }
         .modal-header h2 { margin: 0; font-size: 18px; color: var(--accent-bright); }
         .modal-header .sub-info { font-size: 13px; color: var(--text-sub); margin-top: 5px; }
-        .close-modal { position: absolute; right: 20px; top: 20px; font-size: 24px; cursor: pointer; color: var(--text-sub); transition: 0.3s; }
+        .close-modal { display: none; }
         .close-modal:hover { color: #fff; }
-        .modal-body { padding: 20px; }
+        .modal-body { 
+            padding: 20px; 
+            overflow-y: auto; 
+            flex-grow: 1; 
+            /* Firefox, IE용 스크롤 숨김 */
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* Chrome, Safari용 스크롤바 숨김 */
+        .modal-body::-webkit-scrollbar {
+            display: none;
+        }
         .detail-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
         .detail-item:last-child { border-bottom: none; }
+        .top-close-btn {
+            padding: 6px 14px;
+            background: #0a1a30;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-sub);
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-left: 15px;
+            white-space: nowrap;
+        }
+
+        .top-close-btn:hover {
+            background: #d32f2f;
+            border-color: #d32f2f;
+            color: #fff;
+        }
 
         @media (max-width: 600px) {
             th:nth-child(4), td:nth-child(4) { display: none; }
@@ -147,10 +196,12 @@
 
 <div id="detailModal" class="modal">
     <div class="modal-content">
-        <span class="close-modal" onclick="closeModal()">&times;</span>
         <div class="modal-header">
-            <h2 id="modal-title">-</h2>
-            <div id="modal-subtitle" class="sub-info">-</div>
+            <div>
+                <h2 id="modal-title">-</h2>
+                <div id="modal-subtitle" class="sub-info">-</div>
+            </div>
+            <button class="top-close-btn" onclick="closeModal()">닫기</button>
         </div>
         <div class="modal-body" id="modal-list"></div>
     </div>
