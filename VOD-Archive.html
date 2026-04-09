@@ -14,13 +14,18 @@
             --text-sub: #5c7285;
             --border: #0a1425;
             --modal-bg: rgba(0, 0, 0, 0.9);
-            --plus-color: #ffcc00; /* 구독 플러스 황금색 */
-            
-            /* 분류별 컬러 */
-            --c-game: #4a33ff; --c-song: #ff3385; --c-talk: #33cc85;
-            --c-asmr: #9d56ff; --c-full: #ff8800; --c-event: #ff3333;
-            --c-cine: #00d4ff; --c-etc: #7a8aa7;
+            --plus-color: #ffcc00;
         }
+
+        /* 카테고리별 고정 색상 */
+        .c-game { --cat-color: #4a33ff; }
+        .c-song { --cat-color: #ff3385; }
+        .c-talk { --cat-color: #33cc85; }
+        .c-asmr { --cat-color: #9d56ff; }
+        .c-full { --cat-color: #ff8800; }
+        .c-event { --cat-color: #ff3333; }
+        .c-cine { --cat-color: #00d4ff; }
+        .c-etc { --cat-color: #7a8aa7; }
 
         * { box-sizing: border-box; }
         body { 
@@ -32,17 +37,13 @@
 
         .wrapper { width: 100%; max-width: 900px; margin: 0 auto; padding: 40px 20px; display: flex; flex-direction: column; gap: 20px; }
 
-        /* 헤더 상자 */
         .header-card { 
             background: var(--card-bg); border-radius: 16px; padding: 25px; border: 1px solid var(--border); 
             display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 20px rgba(0,0,0,0.3);
         }
         .header-info h1 { margin: 0; font-size: 22px; color: var(--accent); }
-        .update-now { font-size: 11px; color: var(--text-sub); margin-top: 4px; }
         .btn-home { text-decoration: none; color: var(--text-main); background: #0a1a30; padding: 8px 14px; border-radius: 8px; font-size: 13px; border: 1px solid var(--border); transition: 0.3s; }
-        .btn-home:hover { background: var(--accent); color: #fff; }
 
-        /* 대시보드 */
         .dashboard-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 15px; }
         .stat-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: flex; flex-direction: column; justify-content: center; }
         .total-info h2 { font-size: 24px; margin: 5px 0 0 0; color: var(--accent); }
@@ -50,53 +51,38 @@
         .sub-val { font-size: 14px; font-weight: bold; color: #fff; }
         .sub-lbl { font-size: 10px; color: var(--text-sub); }
 
-        /* 차트 */
-        .chart-box { align-items: center; }
-        .pie-chart {
-            width: 110px; height: 110px; border-radius: 50%;
-            background: conic-gradient(
-                var(--c-game) 0% var(--p-game, 0%), 
-                var(--c-song) var(--p-game, 0%) var(--p-song, 0%), 
-                var(--c-talk) var(--p-song, 0%) var(--p-talk, 0%),
-                var(--c-etc) var(--p-talk, 0%) 100%
-            );
-            position: relative; margin-bottom: 12px;
+        /* 차트 영역 */
+        .chart-box { align-items: center; text-align: center; }
+        #category-chart {
+            width: 120px; height: 120px; border-radius: 50%;
+            position: relative; margin-bottom: 15px;
+            background: conic-gradient(#333 0% 100%);
         }
-        .pie-chart::after { content: ""; position: absolute; inset: 18px; background: var(--card-bg); border-radius: 50%; }
-        .chart-label { font-size: 10px; color: var(--text-sub); display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
-        .label-item { display: flex; align-items: center; gap: 4px; }
-        .dot { width: 7px; height: 7px; border-radius: 2px; }
+        #category-chart::after { content: ""; position: absolute; inset: 20px; background: var(--card-bg); border-radius: 50%; }
+        .chart-legend { font-size: 10px; color: var(--text-sub); display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+        .legend-item { display: flex; align-items: center; gap: 4px; }
+        .dot { width: 8px; height: 8px; border-radius: 2px; }
 
-        /* 리스트 태그 스타일 */
+        /* 리스트 스타일 */
         .date-header { font-size: 16px; font-weight: bold; color: var(--accent); margin: 30px 0 12px; border-bottom: 1px solid var(--border); padding-bottom: 5px; }
         .vod-item { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; display: flex; cursor: pointer; transition: 0.2s; overflow: hidden; margin-bottom: 10px; }
-        .vod-item:hover { border-color: var(--accent); transform: translateY(-2px); }
-        
         .vod-thumb { width: 140px; height: 80px; position: relative; min-width: 140px; }
         .vod-thumb img { width: 100%; height: 100%; object-fit: cover; }
         .duration { position: absolute; bottom: 5px; right: 5px; background: rgba(0,0,0,0.8); font-size: 10px; padding: 2px 5px; border-radius: 4px; }
-        
         .vod-body { padding: 12px 15px; display: flex; flex-direction: column; justify-content: center; flex: 1; min-width: 0; }
         .vod-title { font-size: 14px; font-weight: bold; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 6px; }
-        
-        /* 배지 공통 */
-        .tag-plus { background: var(--plus-color); color: #000; font-size: 9px; padding: 1px 4px; border-radius: 3px; font-weight: 800; line-height: 1; }
-        .cat-dot { font-size: 10px; margin-right: 4px; }
+        .tag-plus { background: var(--plus-color); color: #000; font-size: 9px; padding: 1px 4px; border-radius: 3px; font-weight: 800; }
 
-        /* 모달 팝업 */
+        /* 모달 스타일 */
         #modal-overlay { position: fixed; inset: 0; background: var(--modal-bg); display: none; justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(8px); padding: 20px; }
         #modal-content { background: var(--card-bg); width: 100%; max-width: 450px; border-radius: 20px; border: 1px solid var(--border); overflow: hidden; }
         .modal-body { padding: 20px; }
         .info-row { border-left: 3px solid var(--border); padding-left: 12px; margin-bottom: 15px; display: none; }
         .info-row.is-active { display: block; }
-        .info-label { font-size: 10px; color: var(--text-sub); display: block; font-weight: bold; margin-bottom: 4px; }
-        .info-value { font-size: 14px; line-height: 1.8; }
-        
         .prefix-tag { color: var(--accent); font-weight: bold; margin-right: 5px; font-size: 13px; }
-        .time-badge { color: var(--text-sub); font-family: monospace; font-size: 12px; margin-left: 4px; }
-        .cat-badge { padding: 2px 8px; border-radius: 4px; color: white; font-size: 11px; font-weight: bold; }
+        .cat-badge { padding: 2px 8px; border-radius: 4px; color: white; font-size: 11px; font-weight: bold; margin-right: 4px; display: inline-block; margin-bottom: 4px; }
 
-        .btn-action { display: block; width: 100%; padding: 12px; text-align: center; border-radius: 10px; font-weight: bold; text-decoration: none; margin-top: 10px; cursor: pointer; font-size: 14px; border: none; }
+        .btn-action { display: block; width: 100%; padding: 12px; text-align: center; border-radius: 10px; font-weight: bold; text-decoration: none; margin-top: 10px; cursor: pointer; border: none; }
         .btn-go { background: var(--accent); color: white; }
         .btn-close { background: #1a202c; color: var(--text-sub); }
 
@@ -109,7 +95,7 @@
     <div class="header-card">
         <div class="header-info">
             <h1>바다비 다시보기 아카이브</h1>
-            <div id="update-time" class="update-now">Loading...</div>
+            <div id="update-time" style="font-size:11px; color:var(--text-sub); margin-top:4px;">불러오는 중...</div>
         </div>
         <a href="index.html" class="btn-home">🏠 홈으로</a>
     </div>
@@ -117,7 +103,7 @@
     <div class="dashboard-grid">
         <div class="stat-card">
             <div class="total-info">
-                <span class="sub-lbl">전체 영상 누적 시청 시간</span>
+                <span style="font-size:10px; color:var(--text-sub);">전체 영상 누적 시간</span>
                 <h2 id="total-hour">0시간 0분</h2>
             </div>
             <div class="sub-grid">
@@ -127,13 +113,8 @@
             </div>
         </div>
         <div class="stat-card chart-box">
-            <div class="pie-chart" id="category-chart"></div>
-            <div class="chart-label">
-                <div class="label-item"><span class="dot" style="background:var(--c-game)"></span>게임</div>
-                <div class="label-item"><span class="dot" style="background:var(--c-song)"></span>노래</div>
-                <div class="label-item"><span class="dot" style="background:var(--c-talk)"></span>소통</div>
-                <div class="label-item"><span class="dot" style="background:var(--c-etc)"></span>기타</div>
-            </div>
+            <div id="category-chart"></div>
+            <div id="legend" class="chart-legend"></div>
         </div>
     </div>
 
@@ -142,17 +123,17 @@
 
 <div id="modal-overlay" onclick="if(event.target === this) closeModal()">
     <div id="modal-content">
-        <img id="m-thumb" style="width:100%; height:180px; object-fit:cover;" src="">
+        <img id="m-thumb" style="width:100%; height:180px; object-fit:cover;">
         <div class="modal-body">
             <div id="m-title-area" style="margin-bottom:15px;">
-                <div id="m-title" style="font-weight:bold; font-size:16px; color:var(--text-main); line-height:1.4;"></div>
-                <div id="m-plus-badge" style="margin-top:5px;"></div>
+                <div id="m-title" style="font-weight:bold; font-size:16px; color:var(--text-main);"></div>
+                <div id="m-plus" style="margin-top:5px;"></div>
             </div>
             <div class="modal-info-grid">
-                <div class="info-row is-active"><span class="info-label">📅 방송 정보</span><span id="m-date" class="info-value"></span></div>
-                <div id="row-cat" class="info-row"><span class="info-label">🔖 컨텐츠 분류</span><span id="m-cat-val" class="info-value"></span></div>
-                <div id="row-game" class="info-row"><span class="info-label">🎮 게임 리스트</span><span id="m-game" class="info-value"></span></div>
-                <div id="row-song" class="info-row"><span class="info-label">🎵 노래 리스트</span><span id="m-song" class="info-value"></span></div>
+                <div class="info-row is-active"><span style="font-size:10px; color:var(--text-sub); display:block; font-weight:bold;">📅 방송 정보</span><span id="m-date" style="font-size:14px;"></span></div>
+                <div id="row-cat" class="info-row is-active"><span style="font-size:10px; color:var(--text-sub); display:block; font-weight:bold;">🔖 컨텐츠 분류</span><span id="m-cat-val"></span></div>
+                <div id="row-game" class="info-row"><span style="font-size:10px; color:var(--text-sub); display:block; font-weight:bold;">🎮 게임 리스트</span><span id="m-game" style="font-size:14px;"></span></div>
+                <div id="row-song" class="info-row"><span style="font-size:10px; color:var(--text-sub); display:block; font-weight:bold;">🎵 노래 리스트</span><span id="m-song" style="font-size:14px;"></span></div>
             </div>
             <a id="m-link" href="#" target="_blank" class="btn-action btn-go">영상 시청하기 ↗</a>
             <button class="btn-action btn-close" onclick="closeModal()">닫기</button>
@@ -163,15 +144,15 @@
 <script>
     const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTfTHMy1hImniay9QEPDcMq5C4Yo5yFpmRtBlWo6UXK-FNxABQYbtfGpEsKom2O-OIJPnEi8LLy1Qqx/pub?gid=0&single=true&output=tsv";
     
-    function getCatColor(cat) {
-        if(cat.includes('게임')) return 'var(--c-game)';
-        if(cat.includes('노래')) return 'var(--c-song)';
-        if(cat.includes('소통')) return 'var(--c-talk)';
-        if(cat.includes('ASMR')) return 'var(--c-asmr)';
-        if(cat.includes('풀트')) return 'var(--c-full)';
-        if(cat.includes('시네티')) return 'var(--c-cine)';
-        if(cat.includes('대회') || cat.includes('합방')) return 'var(--c-event)';
-        return 'var(--c-etc)';
+    // 분류별 컬러 매핑 데이터
+    const catColors = {
+        '게임': '#4a33ff', '노래': '#ff3385', '소통': '#33cc85', 'ASMR': '#9d56ff',
+        '풀트': '#ff8800', '시네티': '#00d4ff', '대회': '#ff3333', '합방': '#ff3333', '기타': '#7a8aa7'
+    };
+
+    function getColor(name) {
+        for(let key in catColors) { if(name.includes(key)) return catColors[key]; }
+        return catColors['기타'];
     }
 
     function timeToSeconds(t) {
@@ -198,42 +179,57 @@
                     if(!p[0]) continue;
                     vods.push({
                         date: p[0], title: p[1], link: p[2], thumb: p[3], 
-                        totalTime: p[4], isPlus: p[5] === '예', // F열: 구독플러스
+                        totalTime: p[4], isPlus: p[5] === '예',
                         gName: p[6], gTime: p[7], sName: p[8], sTime: p[9], category: p[10]
                     });
                 }
                 vods.sort((a, b) => new Date(b.date) - new Date(a.date));
                 renderList(vods);
-                calculateStats(vods);
+                calculateAllStats(vods);
                 document.getElementById('update-time').textContent = `최근 업데이트: ${new Date().toLocaleTimeString()}`;
             });
     };
 
-    function calculateStats(data) {
-        let totalSec = 0, maxSec = 0, minSec = Infinity, catCount = {게임:0, 노래:0, 소통:0, 기타:0};
+    function calculateAllStats(data) {
+        let totalSec = 0, maxSec = 0, minSec = Infinity;
+        let catMap = {}; // 모든 단어 수집용
+
         data.forEach(v => {
             const s = timeToSeconds(v.totalTime);
             if(s > 0) { totalSec += s; maxSec = Math.max(maxSec, s); minSec = Math.min(minSec, s); }
-            if(v.category.includes('게임')) catCount.게임++;
-            else if(v.category.includes('노래')) catCount.노래++;
-            else if(v.category.includes('소통')) catCount.소통++;
-            else catCount.기타++;
+            
+            // 카테고리 쪼개서 수집 (쉼표나 공백 기준)
+            const cats = v.category.split(/[,/ ]+/).filter(c => c.trim() !== "");
+            cats.forEach(c => {
+                catMap[c] = (catMap[c] || 0) + 1;
+            });
         });
 
+        // 시간 텍스트 업데이트
         document.getElementById('total-hour').textContent = `${Math.floor(totalSec / 3600)}시간 ${Math.floor((totalSec % 3600) / 60)}분`;
         document.getElementById('max-time').textContent = secondsToTime(maxSec);
         document.getElementById('min-time').textContent = secondsToTime(minSec);
         document.getElementById('avg-time').textContent = secondsToTime(Math.floor(totalSec / data.length));
 
-        const total = data.length;
-        const pGame = (catCount.게임 / total) * 100;
-        const pSong = pGame + (catCount.노래 / total) * 100;
-        const pTalk = pSong + (catCount.소통 / total) * 100;
+        // 그래프 그리기
+        const sortedCats = Object.entries(catMap).sort((a, b) => b[1] - a[1]);
+        const totalCount = Object.values(catMap).reduce((a, b) => a + b, 0);
+        
+        let currentPos = 0;
+        const gradientParts = sortedCats.map(([name, count]) => {
+            const start = currentPos;
+            const end = currentPos + (count / totalCount * 100);
+            currentPos = end;
+            return `${getColor(name)} ${start}% ${end}%`;
+        });
 
-        const chart = document.getElementById('category-chart');
-        chart.style.setProperty('--p-game', `${pGame}%`);
-        chart.style.setProperty('--p-song', `${pSong}%`);
-        chart.style.setProperty('--p-talk', `${pTalk}%`);
+        document.getElementById('category-chart').style.background = `conic-gradient(${gradientParts.join(', ')})`;
+
+        // 범례(Legend) 생성
+        const legend = document.getElementById('legend');
+        legend.innerHTML = sortedCats.map(([name]) => `
+            <div class="legend-item"><span class="dot" style="background:${getColor(name)}"></span>${name}</div>
+        `).join('');
     }
 
     function renderList(data) {
@@ -250,16 +246,13 @@
                 const item = document.createElement('div');
                 item.className = 'vod-item';
                 item.onclick = () => openModal(v);
-                
-                // 구독 플러스 태그 처리
                 const plusTag = v.isPlus ? `<span class="tag-plus">구독+</span>` : '';
-
                 item.innerHTML = `
                     <div class="vod-thumb"><img src="${v.thumb}"><span class="duration">${v.totalTime}</span></div>
                     <div class="vod-body">
                         <div class="vod-title">${v.title} ${plusTag}</div>
-                        <div style="font-size:10px; color:var(--text-sub);">
-                            <span class="cat-dot" style="color:${getCatColor(v.category)};">●</span>${v.category}
+                        <div style="font-size:10px; color:var(--text-sub); display:flex; gap:5px; flex-wrap:wrap;">
+                            ${v.category.split(/[,/ ]+/).map(c => `<span style="color:${getColor(c)}">● ${c}</span>`).join('')}
                         </div>
                     </div>`;
                 groupDiv.querySelector('.vod-list').appendChild(item);
@@ -271,13 +264,14 @@
     function openModal(v) {
         document.getElementById('m-thumb').src = v.thumb;
         document.getElementById('m-title').textContent = v.title;
-        document.getElementById('m-plus-badge').innerHTML = v.isPlus ? `<span class="tag-plus" style="font-size:11px; padding:3px 6px;">구독 플러스 전용 다시보기</span>` : '';
+        document.getElementById('m-plus').innerHTML = v.isPlus ? `<span class="tag-plus" style="font-size:11px; padding:3px 6px;">구독 플러스 전용</span>` : '';
         document.getElementById('m-date').textContent = `${v.date} (${v.totalTime})`;
         document.getElementById('m-link').href = v.link;
         
-        const rowCat = document.getElementById('row-cat');
-        rowCat.classList.add('is-active');
-        document.getElementById('m-cat-val').innerHTML = `<span class="cat-badge" style="background:${getCatColor(v.category)}">${v.category}</span>`;
+        const catContainer = document.getElementById('m-cat-val');
+        catContainer.innerHTML = v.category.split(/[,/ ]+/).map(c => 
+            `<span class="cat-badge" style="background:${getColor(c)}">${c}</span>`
+        ).join('');
 
         const setRow = (id, valId, prefix, name, time) => {
             const row = document.getElementById(id);
@@ -285,9 +279,9 @@
                 row.classList.add('is-active');
                 const names = name.split(',');
                 const times = time.split(',');
-                document.getElementById(valId).innerHTML = names.map((n, i) => {
-                    return `<span class="prefix-tag">${prefix}</span> ${n.trim()} <span class="time-badge">(${times[i]?.trim() || ''})</span>`;
-                }).join('<br>');
+                document.getElementById(valId).innerHTML = names.map((n, i) => 
+                    `<span class="prefix-tag">${prefix}</span> ${n.trim()} <span class="time-badge">(${times[i]?.trim() || ''})</span>`
+                ).join('<br>');
             } else row.classList.remove('is-active');
         };
 
