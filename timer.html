@@ -7,13 +7,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-color: #050a10; /* 깊은 바다색 */
-            --accent: #00e5ff;   /* 사이언 블루 */
+            --bg-color: #050a10;
+            --accent: #00e5ff;
             --accent-glow: rgba(0, 229, 255, 0.4);
             --text-main: #f0faff;
             --text-sub: #8da2b5;
-            
-            /* 제어용 변수 */
             --scale: 1; 
             --blur: 30px;
         }
@@ -38,7 +36,7 @@
         }
 
         #timer {
-            font-size: clamp(40px, 10vw, 80px);
+            font-size: clamp(30px, 8vw, 80px); /* 일/시간이 추가되어 기본 크기를 살짝 조절 */
             font-weight: 700;
             font-variant-numeric: tabular-nums;
             margin-bottom: 10px;
@@ -48,7 +46,6 @@
             will-change: transform, text-shadow;
         }
 
-        /* 1분 전: 배경 광채 심장 박동 */
         .glow-pulse { animation: glowPulse 1s infinite; }
         @keyframes glowPulse {
             0% { text-shadow: 0 0 var(--blur) var(--accent-glow); }
@@ -56,7 +53,6 @@
             100% { text-shadow: 0 0 var(--blur) var(--accent-glow); }
         }
 
-        /* 10초 전: 전체 박동 */
         .final-pulse { animation: finalPulse 0.5s infinite; }
         @keyframes finalPulse {
             0% { transform: scale(var(--scale)); }
@@ -73,11 +69,11 @@
 <div class="timer-wrapper">
     <div class="label">BADABI Coming Soon</div>
     <div id="timer">로드 중...</div>
-    <div class="target-date" id="target-display">2026.04.09 16:10:00</div>
+    <div class="target-date" id="target-display">2026.04.20 16:00:00</div>
 </div>
 
 <script>
-    const TARGET_DATE = new Date("2026-04-09T16:10:00").getTime();
+    const TARGET_DATE = new Date("2026-04-20T16:00:00").getTime();
 
     function updateTimer() {
         const now = new Date().getTime();
@@ -88,45 +84,49 @@
             timerEl.innerText = "OPEN";
             timerEl.classList.add('coming-soon');
             timerEl.style.setProperty('--scale', '1.4');
+            // window.location.replace("https://www.sooplive.com/"); 
             return;
         }
 
+        // 전체 시간 계산
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
         const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
         const secs = Math.floor((diff % (1000 * 60)) / 1000);
 
-        // 1. 단위 생략 및 초 단위 처리 (한 자릿수일 때 0 제거)
+        // 1. 유연한 단위 출력 로직
         let timeString = "";
-        if (mins > 0) {
-            timeString += `${mins} : `;
-            timeString += `${String(secs).padStart(2, '0')}`;
+        
+        if (days > 0) {
+            timeString += `${days} : ${String(hours).padStart(2, '0')} : ${String(mins).padStart(2, '0')} : ${String(secs).padStart(2, '0')}`;
+        } else if (hours > 0) {
+            timeString += `${hours} : ${String(mins).padStart(2, '0')} : ${String(secs).padStart(2, '0')}`;
+        } else if (mins > 0) {
+            // 1분 이상일 때는 '00 : 00' 스타일 유지 (원하셨던 스타일)
+            timeString += `${mins} : ${String(secs).padStart(2, '0')}`;
         } else {
-            // 1분 미만일 때: 한 자릿수면 0초 형식으로 출력
+            // 1분 미만일 때는 숫자만 (0초 형식)
             timeString += `${secs}`;
         }
+        
         timerEl.innerText = timeString;
 
-        // 2. 단계별 확대 로직 (5분~1분)
+        // 2. 단계별 확대 (5분~1분)
         let scale = 1;
-        if (diff <= 300000) scale = 1.05; // 5분
-        if (diff <= 240000) scale = 1.1;  // 4분
-        if (diff <= 180000) scale = 1.15; // 3분
-        if (diff <= 120000) scale = 1.2;  // 2분
-        if (diff <= 60000)  scale = 1.25; // 1분
-        
+        if (diff <= 300000) scale = 1.05; 
+        if (diff <= 240000) scale = 1.1;  
+        if (diff <= 180000) scale = 1.15; 
+        if (diff <= 120000) scale = 1.2;  
+        if (diff <= 60000)  scale = 1.25; 
         document.documentElement.style.setProperty('--scale', scale);
 
-        // 3. 연출 추가 (광채 박동 및 컬러 변경)
-        if (diff <= 300000) {
-            timerEl.classList.add('coming-soon');
-        }
+        // 3. 연출 제어
+        if (diff <= 300000) timerEl.classList.add('coming-soon');
 
-        // 59초 전부터 광채 박동 시작
         if (diff <= 59000 && diff > 10000) {
             timerEl.classList.add('glow-pulse');
             timerEl.classList.remove('final-pulse');
-        } 
-        // 10초 전부터는 전체 박동으로 전환
-        else if (diff <= 10000) {
+        } else if (diff <= 10000) {
             timerEl.classList.remove('glow-pulse');
             timerEl.classList.add('final-pulse');
         }
