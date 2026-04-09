@@ -75,17 +75,19 @@
 
 <script>
     const TARGET_DATE = new Date("2026-04-20T16:00:00").getTime();
+    let isRedirecting = false; // 중복 실행 방지 플래그
 
     function updateTimer() {
+        if (isRedirecting) return; // 이동 중이면 실행 중단
+
         const now = new Date().getTime();
         const diff = TARGET_DATE - now;
         const timerEl = document.getElementById('timer');
 
         if (diff <= 0) {
-            timerEl.innerText = "OPEN";
-            timerEl.classList.remove('dynamic-pulse');
-            timerEl.classList.add('coming-soon');
-            timerEl.style.setProperty('--scale', '1.4');
+            isRedirecting = true;
+            timerEl.innerText = "이동 중..."; 
+            window.location.href = "https://play.sooplive.com/bababi";
             return;
         }
 
@@ -94,11 +96,12 @@
         const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
         const secs = Math.floor((diff % (1000 * 60)) / 1000);
 
+        // 텍스트 업데이트
         timerEl.innerText = (days > 0) ? `${days} : ${String(hours).padStart(2, '0')} : ${String(mins).padStart(2, '0')} : ${String(secs).padStart(2, '0')}` :
                            (hours > 0) ? `${hours} : ${String(mins).padStart(2, '0')} : ${String(secs).padStart(2, '0')}` :
                            (mins > 0) ? `${mins} : ${String(secs).padStart(2, '0')}` : `${secs}`;
 
-        // 기본 배경 크기 단계별 확대 (이전 설정 유지)
+        // 스케일 및 애니메이션 로직
         let scale = 1;
         if (diff <= 300000) scale = 1.05; 
         if (diff <= 240000) scale = 1.1;  
@@ -107,45 +110,25 @@
         if (diff <= 60000)  scale = 1.25; 
         document.documentElement.style.setProperty('--scale', scale);
 
-        // [사용자 요청 로직 통합] 2분 전부터 박동 시작
         if (diff <= 120000) {
             timerEl.classList.add('dynamic-pulse');
             timerEl.classList.add('coming-soon');
 
             let duration, amount;
-
-            if (diff > 90000) {
-                // [2분 ~ 1분 30초] 아주 천천히
-                duration = "2.0s";
-                amount = 1.02;
-            } else if (diff > 60000) {
-                // [1분 30초 ~ 1분]
-                duration = "1.5s";
-                amount = 1.03;
-            } else if (diff > 30000) {
-                // [1분 ~ 30초]
-                duration = "1.2s";
-                amount = 1.04;
-            } else if (diff > 15000) {
-                // [30초 ~ 15초]
-                duration = "0.7s";
-                amount = 1.05;
-            } else if (diff > 10000) {
-                // [15초 ~ 10초]
-                duration = "0.6s";
-                amount = 1.06;
-            } else {
-                // [10초 미만] 가장 강력하고 빠른 박동
-                duration = "0.5s";
-                amount = 1.07;
-            }
+            if (diff > 90000) { duration = "2.0s"; amount = 1.02; }
+            else if (diff > 60000) { duration = "1.5s"; amount = 1.03; }
+            else if (diff > 30000) { duration = "1.2s"; amount = 1.04; }
+            else if (diff > 15000) { duration = "0.7s"; amount = 1.05; }
+            else if (diff > 10000) { duration = "0.6s"; amount = 1.06; }
+            else { duration = "0.5s"; amount = 1.07; }
 
             document.documentElement.style.setProperty('--pulse-duration', duration);
             document.documentElement.style.setProperty('--pulse-amount', amount);
         }
     }
 
-    setInterval(updateTimer, 1000);
+    // 0.1초마다 체크하여 더 정밀하게 반응
+    const timerInterval = setInterval(updateTimer, 100);
     updateTimer();
 </script>
 
