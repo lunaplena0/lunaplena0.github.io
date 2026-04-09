@@ -31,14 +31,31 @@
 
         .wrapper { width: 100%; max-width: 900px; margin: 0 auto; padding: 40px 20px; display: flex; flex-direction: column; gap: 20px; }
 
-        /* 대시보드 스타일 통계 레이아웃 */
-        .dashboard-grid { display: grid; grid-template-columns: 1fr 1.5fr; gap: 15px; }
-        .stat-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        /* 헤더 상자 복구 */
+        .header-card { 
+            background: var(--card-bg); border-radius: 16px; padding: 25px; border: 1px solid var(--border); 
+            display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+        .header-info h1 { margin: 0; font-size: 24px; color: var(--accent); }
+        .update-now { font-size: 11px; color: var(--text-sub); margin-top: 4px; }
+        .btn-home { text-decoration: none; color: var(--text-main); background: #0a1a30; padding: 8px 14px; border-radius: 8px; font-size: 13px; border: 1px solid var(--border); transition: 0.3s; }
+        .btn-home:hover { background: var(--accent); color: #fff; }
+
+        /* 대시보드 배치 변경 (시간 분석이 왼쪽, 차트가 오른쪽) */
+        .dashboard-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 15px; }
+        .stat-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: flex; flex-direction: column; justify-content: center; }
         
+        /* 시간 분석 데이터 */
+        .total-info { border-bottom: 1px solid var(--border); padding-bottom: 15px; margin-bottom: 15px; }
+        .total-info h2 { font-size: 24px; margin: 5px 0 0 0; color: var(--accent); }
+        .sub-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .sub-val { font-size: 15px; font-weight: bold; color: #fff; margin-top: 2px; display: block; }
+        .sub-lbl { font-size: 11px; color: var(--text-sub); display: block; }
+
         /* 원형 그래프 스타일 */
-        .chart-box { display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
+        .chart-box { align-items: center; }
         .pie-chart {
-            width: 140px; height: 140px; border-radius: 50%;
+            width: 120px; height: 120px; border-radius: 50%;
             background: conic-gradient(
                 var(--c-game) 0% var(--p-game, 0%), 
                 var(--c-song) var(--p-game, 0%) var(--p-song, 0%), 
@@ -47,35 +64,24 @@
             );
             position: relative; margin-bottom: 15px;
         }
-        .pie-chart::after {
-            content: ""; position: absolute; inset: 25px; background: var(--card-bg); border-radius: 50%;
-        }
-        .chart-label { font-size: 11px; color: var(--text-sub); display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+        .pie-chart::after { content: ""; position: absolute; inset: 20px; background: var(--card-bg); border-radius: 50%; }
+        .chart-label { font-size: 10px; color: var(--text-sub); display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
         .label-item { display: flex; align-items: center; gap: 4px; }
-        .dot { width: 8px; height: 8px; border-radius: 50%; }
+        .dot { width: 7px; height: 7px; border-radius: 50%; }
 
-        /* 시간 분석 데이터 */
-        .time-stats { display: flex; flex-direction: column; gap: 12px; justify-content: center; }
-        .total-info { border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 5px; }
-        .total-info h2 { font-size: 20px; margin: 0; color: var(--accent); }
-        .sub-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-        .sub-item span { display: block; }
-        .sub-val { font-size: 15px; font-weight: bold; color: #fff; margin-top: 2px; }
-        .sub-lbl { font-size: 10px; color: var(--text-sub); }
-
-        /* 리스트 & 팝업 스타일 (이전과 동일) */
+        /* 리스트 스타일 */
         .date-group { margin-top: 30px; }
         .date-header { font-size: 16px; font-weight: bold; color: var(--accent); margin-bottom: 12px; border-bottom: 1px solid var(--border); padding-bottom: 5px; }
-        .vod-list { display: flex; flex-direction: column; gap: 8px; }
-        .vod-item { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; display: flex; cursor: pointer; transition: 0.2s; }
-        .vod-item:hover { border-color: var(--accent); transform: scale(1.01); }
-        .vod-thumb { width: 140px; height: 80px; position: relative; }
-        .vod-thumb img { width: 100%; height: 100%; object-fit: cover; border-radius: 12px 0 0 12px; }
+        .vod-list { display: flex; flex-direction: column; gap: 10px; }
+        .vod-item { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; display: flex; cursor: pointer; transition: 0.2s; overflow: hidden; }
+        .vod-item:hover { border-color: var(--accent); transform: translateY(-2px); }
+        .vod-thumb { width: 140px; height: 80px; position: relative; min-width: 140px; }
+        .vod-thumb img { width: 100%; height: 100%; object-fit: cover; }
         .duration { position: absolute; bottom: 5px; right: 5px; background: rgba(0,0,0,0.8); font-size: 10px; padding: 2px 5px; border-radius: 4px; }
         .vod-body { padding: 12px 15px; display: flex; flex-direction: column; justify-content: center; overflow: hidden; }
-        .vod-title { font-size: 14px; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .vod-title { font-size: 14px; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 5px; }
         
-        /* 팝업 모달 */
+        /* 모달 스타일 생략(이전과 동일) */
         #modal-overlay { position: fixed; inset: 0; background: var(--modal-bg); display: none; justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(8px); padding: 20px; }
         #modal-content { background: var(--card-bg); width: 100%; max-width: 450px; border-radius: 20px; border: 1px solid var(--border); overflow: hidden; }
         .modal-body { padding: 20px; }
@@ -83,48 +89,58 @@
         .info-row.is-active { display: block; }
         .info-label { font-size: 10px; color: var(--text-sub); display: block; font-weight: bold; }
         .info-value { font-size: 14px; line-height: 1.6; }
-        .btn-action { display: block; width: 100%; padding: 12px; text-align: center; border-radius: 10px; font-weight: bold; text-decoration: none; margin-top: 10px; cursor: pointer; }
+        .time-badge { color: var(--accent); font-weight: bold; font-family: monospace; }
+        .btn-action { display: block; width: 100%; padding: 12px; text-align: center; border-radius: 10px; font-weight: bold; text-decoration: none; margin-top: 10px; cursor: pointer; font-size: 14px; border: none; }
         .btn-go { background: var(--accent); color: white; }
-        .btn-close { background: #1a202c; color: var(--text-sub); border: none; }
+        .btn-close { background: #1a202c; color: var(--text-sub); }
 
         @media (max-width: 650px) {
             .dashboard-grid { grid-template-columns: 1fr; }
-            .vod-thumb { width: 100px; height: 60px; }
+            .header-card { padding: 15px; }
+            .header-info h1 { font-size: 18px; }
         }
     </style>
 </head>
 <body>
 
 <div class="wrapper">
-    <div class="dashboard-grid">
-        <div class="stat-card chart-box">
-            <div class="pie-chart" id="category-chart"></div>
-            <div class="chart-label" id="chart-legend">
-                <div class="label-item"><span class="dot" style="background:var(--c-game)"></span>게임</div>
-                <div class="label-item"><span class="dot" style="background:var(--c-song)"></span>노래</div>
-                <div class="label-item"><span class="dot" style="background:var(--c-talk)"></span>소통</div>
-                <div class="label-item"><span class="dot" style="background:var(--c-etc)"></span>기타</div>
-            </div>
+    <div class="header-card">
+        <div class="header-info">
+            <h1>바다비 다시보기 아카이브</h1>
+            <div id="update-time" class="update-now">Loading...</div>
         </div>
-        
-        <div class="stat-card time-stats">
+        <a href="index.html" class="btn-home">🏠 홈으로</a>
+    </div>
+
+    <div class="dashboard-grid">
+        <div class="stat-card">
             <div class="total-info">
-                <span class="sub-lbl">전체 영상 누적 시간</span>
+                <span class="sub-lbl">전체 영상 누적 시청 시간</span>
                 <h2 id="total-hour">0시간 0분</h2>
             </div>
             <div class="sub-grid">
                 <div class="sub-item">
                     <span class="sub-lbl">최장 방송</span>
-                    <span class="sub-val" id="max-time">0:00</span>
+                    <span class="sub-val" id="max-time">0:00:00</span>
                 </div>
                 <div class="sub-item">
                     <span class="sub-lbl">최단 방송</span>
-                    <span class="sub-val" id="min-time">0:00</span>
+                    <span class="sub-val" id="min-time">0:00:00</span>
                 </div>
                 <div class="sub-item">
                     <span class="sub-lbl">평균 시간</span>
-                    <span class="sub-val" id="avg-time">0:00</span>
+                    <span class="sub-val" id="avg-time">0:00:00</span>
                 </div>
+            </div>
+        </div>
+
+        <div class="stat-card chart-box">
+            <div class="pie-chart" id="category-chart"></div>
+            <div class="chart-label">
+                <div class="label-item"><span class="dot" style="background:var(--c-game)"></span>게임</div>
+                <div class="label-item"><span class="dot" style="background:var(--c-song)"></span>노래</div>
+                <div class="label-item"><span class="dot" style="background:var(--c-talk)"></span>소통</div>
+                <div class="label-item"><span class="dot" style="background:var(--c-etc)"></span>기타</div>
             </div>
         </div>
     </div>
@@ -136,13 +152,13 @@
     <div id="modal-content">
         <img id="m-thumb" style="width:100%; height:200px; object-fit:cover;" src="">
         <div class="modal-body">
-            <div id="m-title" style="font-weight:bold; font-size:16px; margin-bottom:15px;"></div>
+            <div id="m-title" style="font-weight:bold; font-size:16px; margin-bottom:15px; color:var(--accent);"></div>
             <div class="modal-info-grid">
-                <div class="info-row is-active"><span class="info-label">📅 방송 일시</span><span id="m-date" class="info-value"></span></div>
-                <div id="row-game" class="info-row"><span class="info-label">🎮 게임 정보</span><span id="m-game" class="info-value"></span></div>
-                <div id="row-song" class="info-row"><span class="info-label">🎵 노래 정보</span><span id="m-song" class="info-value"></span></div>
+                <div class="info-row is-active"><span class="info-label">📅 방송 정보</span><span id="m-date" class="info-value"></span></div>
+                <div id="row-game" class="info-row"><span class="info-label">🎮 플레이 게임</span><span id="m-game" class="info-value"></span></div>
+                <div id="row-song" class="info-row"><span class="info-label">🎵 노래 목록</span><span id="m-song" class="info-value"></span></div>
             </div>
-            <a id="m-link" href="#" target="_blank" class="btn-action btn-go">영상 시청하기</a>
+            <a id="m-link" href="#" target="_blank" class="btn-action btn-go">영상 시청하기 ↗</a>
             <button class="btn-action btn-close" onclick="closeModal()">닫기</button>
         </div>
     </div>
@@ -151,14 +167,12 @@
 <script>
     const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTfTHMy1hImniay9QEPDcMq5C4Yo5yFpmRtBlWo6UXK-FNxABQYbtfGpEsKom2O-OIJPnEi8LLy1Qqx/pub?gid=0&single=true&output=tsv";
     
-    // 시간 문자열(HH:MM:SS)을 초 단위로 변환
     function timeToSeconds(t) {
         if(!t || t === '-') return 0;
         const p = t.split(':').map(Number);
         return (p[0] * 3600) + (p[1] * 60) + (p[2] || 0);
     }
 
-    // 초 단위를 HH:MM:SS 형식으로 변환
     function secondsToTime(s) {
         const h = Math.floor(s / 3600);
         const m = Math.floor((s % 3600) / 60);
@@ -180,37 +194,33 @@
                         totalTime: p[4], gName: p[6], gTime: p[7], sName: p[8], sTime: p[9], category: p[10]
                     });
                 }
+                vods.sort((a, b) => new Date(b.date) - new Date(a.date));
                 renderList(vods);
                 calculateStats(vods);
+                document.getElementById('update-time').textContent = `최근 업데이트: ${new Date().toLocaleTimeString()}`;
             });
     };
 
     function calculateStats(data) {
         let totalSec = 0, maxSec = 0, minSec = Infinity, catCount = {게임:0, 노래:0, 소통:0, 기타:0};
-        const timeList = [];
-
         data.forEach(v => {
             const s = timeToSeconds(v.totalTime);
             if(s > 0) {
                 totalSec += s;
                 maxSec = Math.max(maxSec, s);
                 minSec = Math.min(minSec, s);
-                timeList.push(s);
             }
-            // 카테고리 집계 (여러개일 경우 첫번째 기준)
             if(v.category.includes('게임')) catCount.게임++;
             else if(v.category.includes('노래')) catCount.노래++;
             else if(v.category.includes('소통')) catCount.소통++;
             else catCount.기타++;
         });
 
-        // 상단 텍스트 업데이트
         document.getElementById('total-hour').textContent = `${Math.floor(totalSec / 3600)}시간 ${Math.floor((totalSec % 3600) / 60)}분`;
         document.getElementById('max-time').textContent = secondsToTime(maxSec);
-        document.getElementById('min-time').textContent = secondsToTime(minSec);
+        document.getElementById('min-time').textContent = (minSec === Infinity) ? "0:00:00" : secondsToTime(minSec);
         document.getElementById('avg-time').textContent = secondsToTime(Math.floor(totalSec / data.length));
 
-        // 차트 비율 계산
         const total = data.length;
         const pGame = (catCount.게임 / total) * 100;
         const pSong = pGame + (catCount.노래 / total) * 100;
