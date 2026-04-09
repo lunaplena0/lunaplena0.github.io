@@ -17,26 +17,16 @@
             --plus-color: #ffcc00;
         }
 
-        /* 카테고리별 고정 색상 */
-        .c-game { --cat-color: #4a33ff; }
-        .c-song { --cat-color: #ff3385; }
-        .c-talk { --cat-color: #33cc85; }
-        .c-asmr { --cat-color: #9d56ff; }
-        .c-full { --cat-color: #ff8800; }
-        .c-event { --cat-color: #ff3333; }
-        .c-cine { --cat-color: #00d4ff; }
-        .c-etc { --cat-color: #7a8aa7; }
-
         * { box-sizing: border-box; }
         body { 
             background-color: var(--bg-color); 
             background-image: radial-gradient(circle at top right, #051020 0%, #010306 100%);
             color: var(--text-main); font-family: 'Noto Sans KR', sans-serif; margin: 0; padding: 0; 
         }
-        body.modal-open { overflow: hidden; }
 
         .wrapper { width: 100%; max-width: 900px; margin: 0 auto; padding: 40px 20px; display: flex; flex-direction: column; gap: 20px; }
 
+        /* 헤더 */
         .header-card { 
             background: var(--card-bg); border-radius: 16px; padding: 25px; border: 1px solid var(--border); 
             display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 20px rgba(0,0,0,0.3);
@@ -44,28 +34,38 @@
         .header-info h1 { margin: 0; font-size: 22px; color: var(--accent); }
         .btn-home { text-decoration: none; color: var(--text-main); background: #0a1a30; padding: 8px 14px; border-radius: 8px; font-size: 13px; border: 1px solid var(--border); transition: 0.3s; }
 
+        /* 대시보드 */
         .dashboard-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 15px; }
         .stat-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: flex; flex-direction: column; justify-content: center; }
-        .total-info h2 { font-size: 24px; margin: 5px 0 0 0; color: var(--accent); }
-        .sub-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 15px; }
-        .sub-val { font-size: 14px; font-weight: bold; color: #fff; }
-        .sub-lbl { font-size: 10px; color: var(--text-sub); }
+        
+        .total-info h2 { font-size: 26px; margin: 5px 0 0 0; color: var(--accent); }
+        
+        /* 구분선 스타일 */
+        .divider { border: 0; height: 1px; background: var(--border); margin: 20px 0; }
 
-        /* 차트 영역 */
+        .sub-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .sub-val { font-size: 14px; font-weight: bold; color: #fff; display: block; margin-top: 2px; }
+        .sub-lbl { font-size: 10px; color: var(--text-sub); display: block; }
+
+        /* 차트 */
         .chart-box { align-items: center; text-align: center; }
         #category-chart {
             width: 120px; height: 120px; border-radius: 50%;
-            position: relative; margin-bottom: 15px;
+            position: relative; margin-bottom: 20px;
             background: conic-gradient(#333 0% 100%);
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
         }
-        #category-chart::after { content: ""; position: absolute; inset: 20px; background: var(--card-bg); border-radius: 50%; }
-        .chart-legend { font-size: 10px; color: var(--text-sub); display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
-        .legend-item { display: flex; align-items: center; gap: 4px; }
+        #category-chart::after { content: ""; position: absolute; inset: 22px; background: var(--card-bg); border-radius: 50%; }
+        
+        .chart-legend { font-size: 11px; color: var(--text-sub); display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+        .legend-item { display: flex; align-items: center; gap: 5px; background: rgba(255,255,255,0.03); padding: 4px 8px; border-radius: 6px; }
+        .legend-percent { color: var(--text-main); font-weight: bold; font-family: monospace; margin-left: 2px; }
         .dot { width: 8px; height: 8px; border-radius: 2px; }
 
-        /* 리스트 스타일 */
-        .date-header { font-size: 16px; font-weight: bold; color: var(--accent); margin: 30px 0 12px; border-bottom: 1px solid var(--border); padding-bottom: 5px; }
-        .vod-item { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; display: flex; cursor: pointer; transition: 0.2s; overflow: hidden; margin-bottom: 10px; }
+        /* VOD 리스트 */
+        .date-header { font-size: 16px; font-weight: bold; color: var(--accent); margin: 35px 0 15px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+        .vod-item { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; display: flex; cursor: pointer; transition: 0.2s; overflow: hidden; margin-bottom: 12px; }
+        .vod-item:hover { border-color: var(--accent); transform: translateY(-2px); }
         .vod-thumb { width: 140px; height: 80px; position: relative; min-width: 140px; }
         .vod-thumb img { width: 100%; height: 100%; object-fit: cover; }
         .duration { position: absolute; bottom: 5px; right: 5px; background: rgba(0,0,0,0.8); font-size: 10px; padding: 2px 5px; border-radius: 4px; }
@@ -73,15 +73,12 @@
         .vod-title { font-size: 14px; font-weight: bold; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 6px; }
         .tag-plus { background: var(--plus-color); color: #000; font-size: 9px; padding: 1px 4px; border-radius: 3px; font-weight: 800; }
 
-        /* 모달 스타일 */
+        /* 모달 (생략 - 이전과 동일) */
         #modal-overlay { position: fixed; inset: 0; background: var(--modal-bg); display: none; justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(8px); padding: 20px; }
         #modal-content { background: var(--card-bg); width: 100%; max-width: 450px; border-radius: 20px; border: 1px solid var(--border); overflow: hidden; }
         .modal-body { padding: 20px; }
         .info-row { border-left: 3px solid var(--border); padding-left: 12px; margin-bottom: 15px; display: none; }
         .info-row.is-active { display: block; }
-        .prefix-tag { color: var(--accent); font-weight: bold; margin-right: 5px; font-size: 13px; }
-        .cat-badge { padding: 2px 8px; border-radius: 4px; color: white; font-size: 11px; font-weight: bold; margin-right: 4px; display: inline-block; margin-bottom: 4px; }
-
         .btn-action { display: block; width: 100%; padding: 12px; text-align: center; border-radius: 10px; font-weight: bold; text-decoration: none; margin-top: 10px; cursor: pointer; border: none; }
         .btn-go { background: var(--accent); color: white; }
         .btn-close { background: #1a202c; color: var(--text-sub); }
@@ -103,10 +100,11 @@
     <div class="dashboard-grid">
         <div class="stat-card">
             <div class="total-info">
-                <span style="font-size:10px; color:var(--text-sub);">전체 영상 누적 시간</span>
+                <span style="font-size:11px; color:var(--text-sub);">전체 영상 누적 시청 시간</span>
                 <h2 id="total-hour">0시간 0분</h2>
             </div>
-            <div class="sub-grid">
+            
+            <hr class="divider"> <div class="sub-grid">
                 <div class="sub-item"><span class="sub-lbl">최장 방송</span><span class="sub-val" id="max-time">0:00:00</span></div>
                 <div class="sub-item"><span class="sub-lbl">최단 방송</span><span class="sub-val" id="min-time">0:00:00</span></div>
                 <div class="sub-item"><span class="sub-lbl">평균 시간</span><span class="sub-val" id="avg-time">0:00:00</span></div>
@@ -126,12 +124,12 @@
         <img id="m-thumb" style="width:100%; height:180px; object-fit:cover;">
         <div class="modal-body">
             <div id="m-title-area" style="margin-bottom:15px;">
-                <div id="m-title" style="font-weight:bold; font-size:16px; color:var(--text-main);"></div>
+                <div id="m-title" style="font-weight:bold; font-size:16px;"></div>
                 <div id="m-plus" style="margin-top:5px;"></div>
             </div>
             <div class="modal-info-grid">
                 <div class="info-row is-active"><span style="font-size:10px; color:var(--text-sub); display:block; font-weight:bold;">📅 방송 정보</span><span id="m-date" style="font-size:14px;"></span></div>
-                <div id="row-cat" class="info-row is-active"><span style="font-size:10px; color:var(--text-sub); display:block; font-weight:bold;">🔖 컨텐츠 분류</span><span id="m-cat-val"></span></div>
+                <div id="row-cat" class="info-row is-active"><span style="font-size:10px; color:var(--text-sub); display:block; font-weight:bold;">🔖 컨텐츠 분류</span><div id="m-cat-val"></div></div>
                 <div id="row-game" class="info-row"><span style="font-size:10px; color:var(--text-sub); display:block; font-weight:bold;">🎮 게임 리스트</span><span id="m-game" style="font-size:14px;"></span></div>
                 <div id="row-song" class="info-row"><span style="font-size:10px; color:var(--text-sub); display:block; font-weight:bold;">🎵 노래 리스트</span><span id="m-song" style="font-size:14px;"></span></div>
             </div>
@@ -144,7 +142,6 @@
 <script>
     const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTfTHMy1hImniay9QEPDcMq5C4Yo5yFpmRtBlWo6UXK-FNxABQYbtfGpEsKom2O-OIJPnEi8LLy1Qqx/pub?gid=0&single=true&output=tsv";
     
-    // 분류별 컬러 매핑 데이터
     const catColors = {
         '게임': '#4a33ff', '노래': '#ff3385', '소통': '#33cc85', 'ASMR': '#9d56ff',
         '풀트': '#ff8800', '시네티': '#00d4ff', '대회': '#ff3333', '합방': '#ff3333', '기타': '#7a8aa7'
@@ -192,26 +189,20 @@
 
     function calculateAllStats(data) {
         let totalSec = 0, maxSec = 0, minSec = Infinity;
-        let catMap = {}; // 모든 단어 수집용
+        let catMap = {};
 
         data.forEach(v => {
             const s = timeToSeconds(v.totalTime);
             if(s > 0) { totalSec += s; maxSec = Math.max(maxSec, s); minSec = Math.min(minSec, s); }
-            
-            // 카테고리 쪼개서 수집 (쉼표나 공백 기준)
             const cats = v.category.split(/[,/ ]+/).filter(c => c.trim() !== "");
-            cats.forEach(c => {
-                catMap[c] = (catMap[c] || 0) + 1;
-            });
+            cats.forEach(c => { catMap[c] = (catMap[c] || 0) + 1; });
         });
 
-        // 시간 텍스트 업데이트
         document.getElementById('total-hour').textContent = `${Math.floor(totalSec / 3600)}시간 ${Math.floor((totalSec % 3600) / 60)}분`;
         document.getElementById('max-time').textContent = secondsToTime(maxSec);
         document.getElementById('min-time').textContent = secondsToTime(minSec);
         document.getElementById('avg-time').textContent = secondsToTime(Math.floor(totalSec / data.length));
 
-        // 그래프 그리기
         const sortedCats = Object.entries(catMap).sort((a, b) => b[1] - a[1]);
         const totalCount = Object.values(catMap).reduce((a, b) => a + b, 0);
         
@@ -222,14 +213,14 @@
             currentPos = end;
             return `${getColor(name)} ${start}% ${end}%`;
         });
-
         document.getElementById('category-chart').style.background = `conic-gradient(${gradientParts.join(', ')})`;
 
-        // 범례(Legend) 생성
+        // 범례에 % 수치 추가 표시
         const legend = document.getElementById('legend');
-        legend.innerHTML = sortedCats.map(([name]) => `
-            <div class="legend-item"><span class="dot" style="background:${getColor(name)}"></span>${name}</div>
-        `).join('');
+        legend.innerHTML = sortedCats.map(([name, count]) => {
+            const percent = Math.round((count / totalCount) * 100);
+            return `<div class="legend-item"><span class="dot" style="background:${getColor(name)}"></span>${name}<span class="legend-percent">${percent}%</span></div>`;
+        }).join('');
     }
 
     function renderList(data) {
@@ -267,27 +258,19 @@
         document.getElementById('m-plus').innerHTML = v.isPlus ? `<span class="tag-plus" style="font-size:11px; padding:3px 6px;">구독 플러스 전용</span>` : '';
         document.getElementById('m-date').textContent = `${v.date} (${v.totalTime})`;
         document.getElementById('m-link').href = v.link;
-        
         const catContainer = document.getElementById('m-cat-val');
-        catContainer.innerHTML = v.category.split(/[,/ ]+/).map(c => 
-            `<span class="cat-badge" style="background:${getColor(c)}">${c}</span>`
-        ).join('');
-
+        catContainer.innerHTML = v.category.split(/[,/ ]+/).map(c => `<span style="padding: 2px 8px; border-radius: 4px; color: white; font-size: 11px; font-weight: bold; margin-right: 4px; background:${getColor(c)}">${c}</span>`).join('');
         const setRow = (id, valId, prefix, name, time) => {
             const row = document.getElementById(id);
             if(name && name !== "-") {
                 row.classList.add('is-active');
                 const names = name.split(',');
                 const times = time.split(',');
-                document.getElementById(valId).innerHTML = names.map((n, i) => 
-                    `<span class="prefix-tag">${prefix}</span> ${n.trim()} <span class="time-badge">(${times[i]?.trim() || ''})</span>`
-                ).join('<br>');
+                document.getElementById(valId).innerHTML = names.map((n, i) => `<span style="color:var(--accent); font-weight:bold; margin-right:5px;">${prefix}</span> ${n.trim()} <span style="color:var(--text-sub); font-family:monospace; font-size:12px;">(${times[i]?.trim() || ''})</span>`).join('<br>');
             } else row.classList.remove('is-active');
         };
-
         setRow('row-game', 'm-game', '게임', v.gName, v.gTime);
         setRow('row-song', 'm-song', '노래', v.sName, v.sTime);
-
         document.getElementById('modal-overlay').style.display = 'flex';
         document.body.classList.add('modal-open');
     }
