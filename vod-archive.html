@@ -62,10 +62,50 @@
 
         /* 분석 리포트 레이아웃 최적화 */
         .analysis-content { max-width: 1000px; display: flex; flex-direction: column; }
-        .analysis-layout { display: grid; grid-template-columns: 5.5fr 4.5fr; gap: 25px; align-items: start; animation: fadeIn 0.3s ease; }
+        .analysis-layout {
+        display: grid;
+        grid-template-columns: 5.5fr 4.5fr; /* 55% : 45% 고정 */
+        gap: 25px;
+        align-items: start;
+        animation: fadeIn 0.3s ease;
+        min-width: 0; /* 내부 요소의 오버플로우 방지 핵심 */
+    }
         #analysis-result { flex: 1; overflow-y: auto; padding: 20px; }
         .report-vod-list { display: flex; flex-direction: column; gap: 12px; }
 
+        .report-item {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 12px;
+        padding: 10px;
+        cursor: pointer;
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        transition: 0.2s;
+        min-width: 0; /* 제목 줄임표 작동을 위해 필수 */
+    }
+
+    .report-item:hover {
+        background: rgba(255, 255, 255, 0.08);
+        border-color: var(--accent);
+    }
+
+    .report-item-info {
+        flex: 1;
+        min-width: 0; /* 텍스트 줄임표가 작동하도록 공간 제한 */
+    }
+
+    /* 3. 제목 말줄임표(...) 처리 */
+    .side-list-title {
+        font-size: 13px;
+        color: #eee;
+        font-weight: 500;
+        margin-bottom: 2px;
+        white-space: nowrap;      /* 줄바꿈 금지 */
+        overflow: hidden;         /* 넘치는 부분 숨김 */
+        text-overflow: ellipsis;  /* 말줄임표 표시 */
+    }
         @media (max-width: 850px) {
             .analysis-layout { grid-template-columns: 1fr; }
             .dashboard-grid { grid-template-columns: 1fr; }
@@ -349,11 +389,33 @@
     function displaySelectedReport() {
         const key = document.getElementById('month-select').value;
         const container = document.getElementById('report-container');
+        
         if (window.currentStats && window.currentStats[key]) {
             container.innerHTML = generateReportHtml(key, window.currentStats[key]);
-            const sideList = document.getElementById(`report-side-list-${key.replace('-','')}`);
+            
+            // 고유한 ID를 가진 사이드 리스트 컨테이너 찾기
+            const sideList = document.getElementById(`report-side-list-${key.replace('-', '')}`);
             const filtered = allVods.filter(v => v.date.startsWith(key));
-            sideList.innerHTML = `<div style="font-size:14px; font-weight:bold; color:var(--text-sub); margin-bottom:12px;">📅 해당 기간 기록 (${filtered.length}개)</div>` + filtered.map(v => `<div onclick="closeAnalysisModal(); openModalById(${v.id})" style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.05); border-radius:12px; padding:10px; cursor:pointer; display:flex; gap:12px; align-items:center; transition: 0.2s;"><div style="width:80px; height:45px; min-width:80px; border-radius:6px; overflow:hidden;"><img src="${v.thumb}" style="width:100%; height:100%; object-fit:cover;"></div><div style="flex:1; min-width:0;"><div style="font-size:13px; color:#eee; font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; margin-bottom:2px;">${v.title}</div><div style="font-size:11px; color:var(--text-sub);">${v.date.split('-')[2]}일 기록</div></div></div>`).join('');
+            
+            sideList.innerHTML = `
+                <div style="font-size:14px; font-weight:bold; color:var(--text-sub); margin-bottom:12px; display:flex; justify-content:space-between;">
+                    <span>📅 해당 기간 기록</span>
+                    <span>${filtered.length}개</span>
+                </div>
+                <div class="report-vod-list">
+                    ${filtered.map(v => `
+                        <div class="report-item" onclick="closeAnalysisModal(); openModalById(${v.id})">
+                            <div style="width:80px; height:45px; min-width:80px; border-radius:6px; overflow:hidden;">
+                                <img src="${v.thumb}" style="width:100%; height:100%; object-fit:cover;">
+                            </div>
+                            <div class="report-item-info">
+                                <div class="side-list-title">${v.title}</div>
+                                <div style="font-size:11px; color:var(--text-sub);">${v.date.split('-')[2]}일 기록</div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
         }
     }
 </script>
