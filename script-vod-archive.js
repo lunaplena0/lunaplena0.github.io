@@ -122,7 +122,7 @@
         // openModalById 내부의 배지 영역 (간격 조절 버전)
 let badgeHtml = '';
 if (v.isPlus) {
-    badgeHtml += `<span class="tag-common tag-plus" style="padding: 2px 8px; height: auto; font-size: 11px; margin-top:8px; margin-right:6px;">구독플러스 전용</span>`;
+    badgeHtml += `<span class="tag-common tag-plus" style="padding: 2px 8px; height: auto; font-size: 11px; margin-top:8px; margin-right:2px;">구독플러스 전용</span>`;
 }
 if (v.isAdult) {
     badgeHtml += `<span class="tag-common" style="padding: 2px 8px; height: auto; font-size: 11px; margin-top:8px; background:#121f33; color:#ff4757; border:1px solid #ff4757;">19</span>`;
