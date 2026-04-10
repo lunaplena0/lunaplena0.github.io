@@ -244,13 +244,21 @@
                 <div id="m-cat-val"></div>
             </div>
             <div id="row-game" class="info-row">
-                <span class="sub-lbl" style="margin-bottom:5px;">🎮 게임 리스트</span>
-                <div id="m-game" class="m-val-text"></div>
-            </div>
-            <div id="row-song" class="info-row">
-                <span class="sub-lbl" style="margin-bottom:5px;">🎵 노래 리스트</span>
-                <div id="m-song" class="m-val-text"></div>
-            </div>
+    <span class="sub-lbl" style="margin-bottom:5px;">🎮 게임 리스트</span>
+    <div id="m-game" class="m-val-text"></div>
+</div>
+<div id="row-song" class="info-row">
+    <span class="sub-lbl" style="margin-bottom:5px;">🎵 노래 리스트</span>
+    <div id="m-song" class="m-val-text"></div>
+</div>
+<div id="row-talk" class="info-row">
+    <span class="sub-lbl" style="margin-bottom:5px;">💬 소통 섹션</span>
+    <div id="m-talk" class="m-val-text"></div>
+</div>
+<div id="row-content" class="info-row">
+    <span class="sub-lbl" style="margin-bottom:5px;">✨ 기타 컨텐츠</span>
+    <div id="m-content" class="m-val-text"></div>
+</div>
             <a id="m-link" href="#" target="_blank" class="btn-action btn-go">영상 시청하기 ↗</a>
             <button class="btn-action btn-close" onclick="closeModal()">닫기</button>
         </div>
@@ -292,11 +300,79 @@
                 for (let i = 1; i < lines.length; i++) {
                     const p = lines[i].split('\t').map(v => v.trim());
                     if(!p[0]) continue;
-                    vods.push({
-                        date: p[0], title: p[1], link: p[2], thumb: p[3], 
-                        totalTime: p[4], isPlus: p[5] === '예',
-                        gName: p[6], gTime: p[7], sName: p[8], sTime: p[9], category: p[10]
-                    });
+                    // 1. 시트 데이터를 객체로 변환하는 부분 (인덱스 체크하세요!)
+vods.push({
+    date: p[0], title: p[1], link: p[2], thumb: p[3], 
+    totalTime: p[4], isPlus: p[5] === '예' || p[5] === 'O',
+    gData: p[6], // 게임명(시간)
+    sData: p[7], // 노래명(시간)
+    tData: p[8], // 소통(시간)
+    cData: p[9], // 컨텐츠(시간)
+    category: p[10]
+});
+
+// 2. 텍스트 파싱 함수 (괄호 안의 내용을 정확히 추출)
+function parseEntry(str) {
+    if (!str || str === "-") return [];
+    // 쉼표로 먼저 나누고 각 항목 처리
+    return str.split(',').map(item => {
+        const match = item.match(/(.+?)\((.+?)\)/);
+        if (match) {
+            return { name: match[1].trim(), time: match[2].trim() };
+        }
+        return { name: item.trim(), time: "" };
+    });
+}
+
+// 3. 모달 오픈 함수 수정
+function openModal(v) {
+    document.getElementById('m-thumb').src = v.thumb;
+    document.getElementById('m-title').textContent = v.title;
+    document.getElementById('m-date').textContent = `${v.date} (${v.totalTime})`;
+    document.getElementById('m-link').href = v.link;
+    
+    // Premium 태그
+    document.getElementById('m-plus').innerHTML = v.isPlus ? 
+        `<span class="tag-common tag-plus" style="padding: 2px 10px; height: auto; font-size: 11px;">Premium Archive (구독플러스 전용)</span>` : '';
+
+    // 컨텐츠 분류 태그 (정보메인 스타일)
+    const catContainer = document.getElementById('m-cat-val');
+    const tagBaseStyle = `display:inline-block; padding:2px 8px; font-size:10px; font-weight:bold; border-radius:5px; background:#121f33; line-height:1.2; margin-right:5px; margin-bottom:5px; border:1px solid;`;
+    
+    catContainer.innerHTML = v.category.split(/[,/ ]+/).filter(c => c.trim() !== "").map(c => {
+        const color = getColor(c);
+        return `<span style="${tagBaseStyle} color:${color}; border-color:${color}80;">${c}</span>`;
+    }).join('');
+
+    // 공통 렌더링 함수
+    const renderSection = (rowId, valId, data, prefix) => {
+        const row = document.getElementById(rowId);
+        const val = document.getElementById(valId);
+        const items = parseEntry(data);
+        const color = getColor(prefix);
+
+        if (items.length > 0) {
+            row.classList.add('is-active');
+            val.innerHTML = items.map(item => `
+                <div style="margin-bottom:6px; font-size:13px;">
+                    <span style="display:inline-block; padding:1px 6px; font-size:10px; font-weight:bold; border-radius:4px; background:#121f33; color:${color}; border:1px solid ${color}60; margin-right:6px;">${prefix}</span>
+                    <span style="color:var(--text-main);">${item.name}</span>
+                    <span style="color:var(--text-sub); font-size:11px; margin-left:5px; font-family:monospace;">(${item.time})</span>
+                </div>
+            `).join('');
+        } else {
+            row.classList.remove('is-active');
+        }
+    };
+    // 각 섹션 실행
+    renderSection('row-game', 'm-game', v.gData, '게임');
+    renderSection('row-song', 'm-song', v.sData, '노래');
+    renderSection('row-talk', 'm-talk', v.tData, '소통');
+    renderSection('row-content', 'm-content', v.cData, '컨텐츠');
+
+    document.getElementById('modal-overlay').style.display = 'flex';
+    document.body.classList.add('modal-open');
+}
                 }
                 vods.sort((a, b) => new Date(b.date) - new Date(a.date));
                 renderList(vods);
