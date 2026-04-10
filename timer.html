@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>D-Day Timer</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
     <style>
@@ -19,36 +19,57 @@
             --pulse-amount: 1.02; 
         }
 
-        body {
+        /* 모바일 스크롤 방지 및 높이 최적화 */
+        html, body {
             margin: 0; padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
             background-color: var(--bg-color);
-            color: var(--text-main);
-            font-family: 'Noto Sans KR', sans-serif;
-            display: flex; justify-content: center; align-items: center;
-            height: 100vh; overflow: hidden;
-            background-image: radial-gradient(circle at center, #051020 0%, #02050a 100%);
         }
 
-        .timer-wrapper { text-align: center; width: 100%; }
+        body {
+            color: var(--text-main);
+            font-family: 'Noto Sans KR', sans-serif;
+            display: flex; 
+            justify-content: center; 
+            align-items: center;
+            /* 100vh 대신 dvh(Dynamic Viewport Height) 사용으로 모바일 상단바 대응 */
+            height: 100dvh; 
+            background-image: radial-gradient(circle at center, #051020 0%, #02050a 100%);
+            /* 모바일 텍스트 크기 보정 방지 */
+            -webkit-text-size-adjust: none;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .timer-wrapper { 
+            text-align: center; 
+            width: 100%; 
+            padding: 20px;
+            box-sizing: border-box;
+        }
 
         .label {
             font-size: 14px; 
             color: var(--accent-bright);
-            font-weight: bold; letter-spacing: 5px;
-            margin-bottom: 20px; text-transform: uppercase;
+            font-weight: bold; 
+            letter-spacing: 5px;
+            margin-bottom: 20px; 
+            text-transform: uppercase;
             text-shadow: 0 0 15px var(--accent-glow);
         }
 
         #timer {
-            font-size: clamp(30px, 8vw, 80px);
+            /* clamp를 통해 모바일에서도 너무 커지지 않게 조정 */
+            font-size: clamp(32px, 12vw, 80px);
             font-weight: 700;
             font-variant-numeric: tabular-nums;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
             transform: scale(var(--scale));
             text-shadow: 0 0 var(--blur) var(--accent-glow), 0 0 calc(var(--blur) / 2) var(--accent);
-            /* 박동이 빨라질 때 끊기지 않도록 transition 최적화 */
             transition: transform 0.15s ease-out, text-shadow 0.3s ease;
             will-change: transform, text-shadow;
+            line-height: 1.2;
         }
 
         .dynamic-pulse {
@@ -62,23 +83,28 @@
         }
 
         .coming-soon { color: var(--accent-bright) !important; }
-        .target-date { font-size: 14px; color: var(--text-sub); opacity: 0.8; }
+        .target-date { 
+            font-size: 13px; 
+            color: var(--text-sub); 
+            opacity: 0.8; 
+            letter-spacing: 1px;
+        }
     </style>
 </head>
 <body>
 
 <div class="timer-wrapper">
     <div class="label">BADABI Coming Soon</div>
-    <div id="timer">로드 중...</div>
+    <div id="timer">00 : 00 : 00 : 00</div>
     <div class="target-date" id="target-display">2026.04.20 16:00:00</div>
 </div>
 
 <script>
     const TARGET_DATE = new Date("2026-04-20T16:00:00").getTime();
-    let isRedirecting = false; // 중복 실행 방지 플래그
+    let isRedirecting = false;
 
     function updateTimer() {
-        if (isRedirecting) return; // 이동 중이면 실행 중단
+        if (isRedirecting) return;
 
         const now = new Date().getTime();
         const diff = TARGET_DATE - now;
@@ -87,7 +113,7 @@
         if (diff <= 0) {
             isRedirecting = true;
             timerEl.innerText = "이동 중..."; 
-            window.location.href = "https://play.sooplive.com/bababi";
+            window.location.replace("https://play.sooplive.com/bababi");
             return;
         }
 
@@ -96,18 +122,17 @@
         const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
         const secs = Math.floor((diff % (1000 * 60)) / 1000);
 
-        // 텍스트 업데이트
-        timerEl.innerText = (days > 0) ? `${days} : ${String(hours).padStart(2, '0')} : ${String(mins).padStart(2, '0')} : ${String(secs).padStart(2, '0')}` :
-                           (hours > 0) ? `${hours} : ${String(mins).padStart(2, '0')} : ${String(secs).padStart(2, '0')}` :
-                           (mins > 0) ? `${mins} : ${String(secs).padStart(2, '0')}` : `${secs}`;
+        // 표시 형식 최적화
+        const dStr = days > 0 ? `${days} : ` : "";
+        const hStr = (days > 0 || hours > 0) ? `${String(hours).padStart(2, '0')} : ` : "";
+        const mStr = (days > 0 || hours > 0 || mins > 0) ? `${String(mins).padStart(2, '0')} : ` : "";
+        const sStr = String(secs).padStart(2, '0');
 
-        // 스케일 및 애니메이션 로직
+        timerEl.innerText = dStr + hStr + mStr + sStr;
+
         let scale = 1;
         if (diff <= 300000) scale = 1.05; 
-        if (diff <= 240000) scale = 1.1;  
-        if (diff <= 180000) scale = 1.15; 
-        if (diff <= 120000) scale = 1.2;  
-        if (diff <= 60000)  scale = 1.25; 
+        if (diff <= 60000)  scale = 1.1; 
         document.documentElement.style.setProperty('--scale', scale);
 
         if (diff <= 120000) {
@@ -115,20 +140,16 @@
             timerEl.classList.add('coming-soon');
 
             let duration, amount;
-            if (diff > 90000) { duration = "2.0s"; amount = 1.02; }
-            else if (diff > 60000) { duration = "1.5s"; amount = 1.03; }
-            else if (diff > 20000) { duration = "1.2s"; amount = 1.04; }
-            else if (diff > 13000) { duration = "1.0s"; amount = 1.05; }
-            else if (diff > 10000) { duration = "0.8s"; amount = 1.06; }
-            else { duration = "0.5s"; amount = 1.07; }
+            if (diff > 60000) { duration = "1.5s"; amount = 1.03; }
+            else if (diff > 20000) { duration = "1.0s"; amount = 1.05; }
+            else { duration = "0.6s"; amount = 1.08; }
 
             document.documentElement.style.setProperty('--pulse-duration', duration);
             document.documentElement.style.setProperty('--pulse-amount', amount);
         }
     }
 
-    // 0.1초마다 체크하여 더 정밀하게 반응
-    const timerInterval = setInterval(updateTimer, 100);
+    setInterval(updateTimer, 100);
     updateTimer();
 </script>
 
