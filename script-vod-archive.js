@@ -98,21 +98,52 @@
     }
 
     function openModalById(id) {
-        const v = allVods.find(item => String(item.id) === String(id));
-        if(!v) return;
-        document.getElementById('m-thumb').src = v.thumb;
-        document.getElementById('m-title').textContent = v.title;
-        document.getElementById('m-date').textContent = `${v.date} (${v.totalTime})`;
-        document.getElementById('m-link').href = v.link;
-        document.getElementById('m-plus').innerHTML = v.isPlus ? `<span class="tag-common tag-plus" style="padding: 2px 8px; font-size: 11px;">구독플러스 전용</span>` : '';
-        const setSec = (id, rowId, data) => {
-            const row = document.getElementById(rowId);
-            const box = document.getElementById(id);
-            if (data && data !== '-') { row.style.display = 'block'; box.innerHTML = data.split('\n').map(l => `<div style="font-size:13px; margin-bottom:4px; color:#ccc;">• ${l}</div>`).join(''); } else { row.style.display = 'none'; }
-        };
-        setSec('m-game', 'row-game', v.gData); setSec('m-song', 'row-song', v.sData); setSec('m-talk', 'row-talk', v.tData);
-        document.getElementById('modal-overlay').style.display = 'flex'; document.body.classList.add('modal-open');
-    }
+    const v = allVods.find(item => String(item.id) === String(id));
+    if(!v) return;
+
+    // 썸네일 및 제목
+    document.getElementById('m-thumb').src = v.thumb;
+    document.getElementById('m-title').textContent = v.title;
+
+    // [핵심 수정] 방송 정보 구역 채우기 (m-date)
+    // 날짜는 강조하고, 방송 시간은 아래에 소제목과 함께 표시합니다.
+    document.getElementById('m-date').innerHTML = `
+        <div style="font-size: 15px; font-weight: bold; color: var(--text-main); margin-bottom: 4px;">${v.date}</div>
+        <div style="font-size: 13px; color: var(--text-sub);">
+            총 방송 시간: <span style="color: var(--accent); font-weight: bold;">${v.totalTime}</span>
+        </div>
+    `;
+
+    document.getElementById('m-link').href = v.link;
+
+    // 구독 플러스 태그 표시
+    document.getElementById('m-plus').innerHTML = v.isPlus 
+        ? `<span class="tag-common tag-plus" style="padding: 2px 8px; height: auto; font-size: 11px; margin-top:8px;">구독플러스 전용</span>` 
+        : '';
+
+    // 섹션별 데이터 (게임, 노래, 소통) 출력 로직
+    const setSec = (id, rowId, data) => {
+        const row = document.getElementById(rowId);
+        const box = document.getElementById(id);
+        if (data && data !== '-') {
+            row.style.display = 'block';
+            // 줄바꿈으로 구분된 리스트를 깔끔한 불렛 포인트로 변환
+            box.innerHTML = data.split('\n').filter(l => l.trim()).map(l => 
+                `<div style="font-size:13px; margin-bottom:6px; color:var(--text-main); opacity:0.9;">• ${l.trim()}</div>`
+            ).join('');
+        } else {
+            row.style.display = 'none';
+        }
+    };
+
+    setSec('m-game', 'row-game', v.gData);
+    setSec('m-song', 'row-song', v.sData);
+    setSec('m-talk', 'row-talk', v.tData);
+
+    // 모달 활성화
+    document.getElementById('modal-overlay').style.display = 'flex';
+    document.body.classList.add('modal-open');
+}
     function closeModal() { document.getElementById('modal-overlay').style.display = 'none'; document.body.classList.remove('modal-open'); }
 
     function openAnalysisModal() {
