@@ -16,7 +16,6 @@
         .loader-circle { width: 50px; height: 50px; border: 3px solid #0a1425; border-top: 3px solid #3385ff; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 15px; }
         .loader-text { color: #3385ff; font-size: 14px; letter-spacing: 2px; font-weight: bold; animation: pulse 1.5s infinite; }
         
-        /* fadeIn 애니메이션 추가 */
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
@@ -60,68 +59,20 @@
         .btn-go { background: var(--accent); color: white; }
         .btn-close { background: #1a202c; color: #a0aec0; }
 
-        /* 분석 리포트 레이아웃 최적화 */
         .analysis-content { max-width: 1000px; display: flex; flex-direction: column; }
-        .analysis-layout {
-        display: grid;
-        grid-template-columns: 5.5fr 4.5fr; /* 55% : 45% 고정 */
-        gap: 25px;
-        align-items: start;
-        animation: fadeIn 0.3s ease;
-        min-width: 0; /* 내부 요소의 오버플로우 방지 핵심 */
-    }
+        .analysis-layout { display: grid; grid-template-columns: 5.5fr 4.5fr; gap: 25px; align-items: start; animation: fadeIn 0.3s ease; min-width: 0; }
         #analysis-result { flex: 1; overflow-y: auto; padding: 20px; }
-        .report-vod-list {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    /* 추가: 리스트가 너무 길어지면 내부 스크롤 발생 */
-    max-height: 600px; 
-    overflow-y: auto;
-    padding-right: 8px; /* 스크롤바 공간 */
-}
-        /* 스크롤바 커스텀 (디자인 통일감) */
-.report-vod-list::-webkit-scrollbar {
-    width: 4px;
-}
-.report-vod-list::-webkit-scrollbar-thumb {
-    background: var(--border);
-    border-radius: 10px;
-}
+        .report-vod-list { display: flex; flex-direction: column; gap: 12px; max-height: 600px; overflow-y: auto; padding-right: 8px; }
+        .report-vod-list::-webkit-scrollbar { width: 4px; }
+        .report-vod-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
 
-        .report-item {
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px solid rgba(255, 255, 255, 0.05);
-        border-radius: 12px;
-        padding: 10px;
-        cursor: pointer;
-        display: flex;
-        gap: 12px;
-        align-items: center;
-        transition: 0.2s;
-        min-width: 0; /* 제목 줄임표 작동을 위해 필수 */
-    }
+        .report-item { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 10px; cursor: pointer; display: flex; gap: 12px; align-items: center; transition: 0.2s; min-width: 0; }
+        .report-item:hover { background: rgba(255, 255, 255, 0.08); border-color: var(--accent); }
+        .report-item-info { flex: 1; min-width: 0; }
+        .side-list-title { font-size: 13px; color: #eee; font-weight: 500; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-    .report-item:hover {
-        background: rgba(255, 255, 255, 0.08);
-        border-color: var(--accent);
-    }
+        #tag-filter-container { margin: 10px 0 20px; padding: 10px; background: rgba(255,255,255,0.02); border-radius: 12px; display: flex; flex-wrap: wrap; gap: 8px; border: 1px solid var(--border); }
 
-    .report-item-info {
-        flex: 1;
-        min-width: 0; /* 텍스트 줄임표가 작동하도록 공간 제한 */
-    }
-
-    /* 3. 제목 말줄임표(...) 처리 */
-    .side-list-title {
-        font-size: 13px;
-        color: #eee;
-        font-weight: 500;
-        margin-bottom: 2px;
-        white-space: nowrap;      /* 줄바꿈 금지 */
-        overflow: hidden;         /* 넘치는 부분 숨김 */
-        text-overflow: ellipsis;  /* 말줄임표 표시 */
-    }
         @media (max-width: 850px) {
             .analysis-layout { grid-template-columns: 1fr; }
             .dashboard-grid { grid-template-columns: 1fr; }
@@ -174,6 +125,7 @@
         </div>
     </div>
 
+    <div id="tag-filter-container"></div>
     <div id="vod-content"></div>
 </div>
 
@@ -223,10 +175,11 @@
 <script>
     const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTfTHMy1hImniay9QEPDcMq5C4Yo5yFpmRtBlWo6UXK-FNxABQYbtfGpEsKom2O-OIJPnEi8LLy1Qqx/pub?gid=0&single=true&output=tsv";
     let allVods = [];
+    let selectedTags = [];
     const catColors = { '게임': '#70a1ff', '노래': '#ff7eb9', '소통': '#2ed573', 'ASMR': '#cd84f1', '풀트': '#ffbe76', '시네티': '#00d8ff', '대회': '#ff4757', '합방': '#fffa65', '기타': '#d2dae2' };
 
     function getColor(name) { for (let key in catColors) { if (name.includes(key)) return catColors[key]; } return catColors['기타']; }
-    function timeToSeconds(t) { if (!t || t === '-') return 0; const p = t.split(':').map(Number); return (p[0] * 3600) + (p[1] * 60) + (p[2] || 0); }
+    function timeToSeconds(t) { if (!t || t === '-' || t === '0') return 0; const p = t.split(':').map(Number); if(p.length === 2) return (p[0] * 60) + p[1]; return (p[0] * 3600) + (p[1] * 60) + (p[2] || 0); }
     function secondsToTime(s) { const h = Math.floor(s / 3600); const m = Math.floor((s % 3600) / 60); const sec = s % 60; return `${h}:${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`; }
 
     window.onload = () => {
@@ -240,7 +193,7 @@
                     const p = lines[i].split('\t').map(v => v.trim());
                     if (!p[0]) continue;
                     allVods.push({
-                        id: i-1, // 안전한 모달 호출을 위한 고유 ID 추가
+                        id: i - 1,
                         date: p[0], title: p[1], link: p[2], thumb: p[3], totalTime: p[4],
                         isPlus: p[5] === '예' || p[5] === 'O',
                         isAdult: p[6] === '예' || p[6] === 'O',
@@ -251,6 +204,7 @@
                 allVods.sort((a, b) => new Date(b.date) - new Date(a.date));
                 renderList(allVods);
                 calculateAllStats(allVods);
+                renderTagButtons();
                 document.getElementById('update-time').textContent = `최근 업데이트: ${new Date().toLocaleTimeString()}`;
                 setTimeout(() => { overlay.style.opacity = '0'; setTimeout(()=>overlay.style.display='none', 500); document.body.classList.remove('loading'); }, 800);
             });
@@ -259,6 +213,10 @@
     function renderList(data) {
         const container = document.getElementById('vod-content');
         container.innerHTML = '';
+        if (data.length === 0) {
+            container.innerHTML = '<div style="text-align:center; padding:50px; color:var(--text-sub);">조건에 맞는 기록이 없습니다.</div>';
+            return;
+        }
         const groups = {};
         data.forEach(v => { if (!groups[v.date]) groups[v.date] = []; groups[v.date].push(v); });
         Object.keys(groups).sort((a, b) => new Date(b) - new Date(a)).forEach(date => {
@@ -274,7 +232,12 @@
                     <div class="vod-body">
                         <div class="vod-title"><span class="title-text">${v.title}</span>${plusTag}</div>
                         <div style="display:flex; flex-wrap:wrap; gap:4px;">
-                            ${v.category.split(/[,/ ]+/).filter(c => c.trim()).map(c => `<span style="font-size:10px; color:${getColor(c)}; border:1px solid ${getColor(c)}60; padding:1px 5px; border-radius:4px;">${c}</span>`).join('')}
+                            ${v.category.split(/[,/ ]+/).filter(c => c.trim()).map(c => `
+                                <span onclick="event.stopPropagation(); toggleTagFilter('${c}')" 
+                                      style="cursor:pointer; font-size:10px; color:${getColor(c)}; border:1px solid ${getColor(c)}60; padding:1px 5px; border-radius:4px;">
+                                    ${c}
+                                </span>
+                            `).join('')}
                         </div>
                     </div>`;
                 groupDiv.querySelector('.vod-list').appendChild(item);
@@ -283,9 +246,45 @@
         });
     }
 
-    // ID로 모달을 여는 안전한 방식
+    function toggleTagFilter(tagName) {
+        const index = selectedTags.indexOf(tagName);
+        if (index > -1) { selectedTags.splice(index, 1); } 
+        else { selectedTags.push(tagName); }
+        applyFilters();
+    }
+
+    function applyFilters() {
+        let filtered = allVods;
+        if (selectedTags.length > 0) {
+            filtered = allVods.filter(vod => selectedTags.every(tag => vod.category.includes(tag)));
+        }
+        renderList(filtered);
+        renderTagButtons();
+        // 필터 적용 시 상단으로 부드럽게 이동 (선택 사항)
+        if(selectedTags.length > 0) document.getElementById('tag-filter-container').scrollIntoView({behavior: 'smooth', block: 'start'});
+    }
+
+    function renderTagButtons() {
+        const container = document.getElementById('tag-filter-container');
+        if (!container) return;
+        const allUniqueTags = [...new Set(allVods.flatMap(v => v.category.split(/[,/ ]+/).filter(c => c.trim())))].sort();
+        
+        let html = `<div style="width:100%; font-size:11px; color:var(--text-sub); margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
+                        <span>🏷️ 태그 필터 (다중 선택 가능)</span>
+                        ${selectedTags.length > 0 ? `<span onclick="selectedTags=[]; applyFilters();" style="cursor:pointer; color:var(--accent);">초기화</span>` : ''}
+                    </div>`;
+        html += allUniqueTags.map(tag => {
+            const isActive = selectedTags.includes(tag);
+            const color = getColor(tag);
+            return `<button onclick="toggleTagFilter('${tag}')" style="cursor:pointer; border:1px solid ${color}; background:${isActive ? color : 'transparent'}; color:${isActive ? '#000' : color}; padding:5px 12px; border-radius:20px; font-size:12px; font-weight:bold; transition:0.2s; margin-bottom:4px;">
+                        ${tag}${isActive ? ' ✕' : ''}
+                    </button>`;
+        }).join('');
+        container.innerHTML = html;
+    }
+
     function openModalById(id) {
-        const v = allVods.find(item => item.id === id);
+        const v = allVods.find(item => item.id == id); // id 타입 호환을 위해 == 사용
         if(!v) return;
         document.getElementById('m-thumb').src = v.thumb;
         document.getElementById('m-title').textContent = v.title;
@@ -316,7 +315,12 @@
         let catMap = {};
         data.forEach(v => {
             const s = timeToSeconds(v.totalTime);
-            if (s > 0) { totalSec += s; if (v.isPlus) plusSec += s; maxSec = Math.max(maxSec, s); minSec = Math.min(minSec, s); }
+            if (s > 0) { 
+                totalSec += s; 
+                if (v.isPlus) plusSec += s; 
+                maxSec = Math.max(maxSec, s); 
+                minSec = Math.min(minSec, s); 
+            }
             v.category.split(/[,/ ]+/).filter(c => c.trim()).forEach(c => { catMap[c] = (catMap[c] || 0) + 1; });
         });
         document.getElementById('total-hour').textContent = `${Math.floor(totalSec / 3600)}시간 ${Math.floor((totalSec % 3600) / 60)}분`;
@@ -329,9 +333,11 @@
         const sorted = Object.entries(catMap).sort((a,b) => b[1]-a[1]);
         const totalC = Object.values(catMap).reduce((a,b)=>a+b, 0);
         let curr = 0;
-        const grad = sorted.map(([n, c]) => { const s=curr; curr+= (c/totalC*100); return `${getColor(n)} ${s}% ${curr}%`; });
-        document.getElementById('category-chart').style.background = `conic-gradient(${grad.join(', ')})`;
-        document.getElementById('legend').innerHTML = sorted.map(([n, c]) => `<div class="legend-item"><span class="dot" style="background:${getColor(n)}"></span>${n} ${Math.round(c/totalC*100)}%</div>`).join('');
+        if(totalC > 0) {
+            const grad = sorted.map(([n, c]) => { const s=curr; curr+= (c/totalC*100); return `${getColor(n)} ${s}% ${curr}%`; });
+            document.getElementById('category-chart').style.background = `conic-gradient(${grad.join(', ')})`;
+            document.getElementById('legend').innerHTML = sorted.map(([n, c]) => `<div class="legend-item"><span class="dot" style="background:${getColor(n)}"></span>${n} ${Math.round(c/totalC*100)}%</div>`).join('');
+        }
     }
 
     function openAnalysisModal() {
@@ -405,14 +411,10 @@
     function displaySelectedReport() {
         const key = document.getElementById('month-select').value;
         const container = document.getElementById('report-container');
-        
         if (window.currentStats && window.currentStats[key]) {
             container.innerHTML = generateReportHtml(key, window.currentStats[key]);
-            
-            // 고유한 ID를 가진 사이드 리스트 컨테이너 찾기
             const sideList = document.getElementById(`report-side-list-${key.replace('-', '')}`);
             const filtered = allVods.filter(v => v.date.startsWith(key));
-            
             sideList.innerHTML = `
                 <div style="font-size:14px; font-weight:bold; color:var(--text-sub); margin-bottom:12px; display:flex; justify-content:space-between;">
                     <span>📅 해당 기간 기록</span>
@@ -430,8 +432,7 @@
                             </div>
                         </div>
                     `).join('')}
-                </div>
-            `;
+                </div>`;
         }
     }
 </script>
