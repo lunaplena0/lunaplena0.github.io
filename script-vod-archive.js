@@ -65,24 +65,26 @@
         <span class="duration" style="position: absolute; bottom: 4px; right: 4px; background: rgba(0,0,0,0.8); color: #fff; font-size: 11px; padding: 2px 4px; border-radius: 4px;">${v.totalTime}</span>
     </div>
     
-    <div class="vod-info" style="display: flex; flex-direction: column; justify-content: space-evenly; flex: 1; min-width: 0; padding: 5px 0 5px 15px;">
-        <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 10px;">
-            <span class="title-text" style="font-weight: bold; font-size: 15px; color: #fff; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1;">
+    <div class="vod-info" style="display: flex; flex-direction: column; justify-content: center; flex: 1; min-width: 0; padding: 5px 0 5px 15px; gap: 10px;">
+        
+        <div style="display: flex; align-items: flex-start; width: 100%; position: relative;">
+            <span class="title-text" style="font-weight: bold; font-size: 15px; color: #fff; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; padding-right: 10px;">
                 ${v.title}
             </span>
-            <div class="badge-group" style="display: flex; gap: 4px; flex-shrink: 0; margin-left: auto;">
+            <div class="badge-group" style="display: flex; gap: 4px; flex-shrink: 0; align-items: center; height: 20px;">
                 ${plusTag}
                 ${adultTag}
             </div>
         </div>
         
-        <div class="vod-tags" style="display: flex; flex-wrap: wrap; gap: 4px; align-items: center;">
+        <div class="vod-tags" style="display: flex; flex-wrap: wrap; gap: 5px; width: fit-content;">
             ${v.category.split(/[,/ ]+/).filter(c => c.trim()).map(c => 
-                `<span style="font-size: 10px; color: ${getColor(c)}; border: 1px solid ${getColor(c)}40; padding: 1px 6px; border-radius: 4px; background: rgba(255,255,255,0.05); height: 18px; display: inline-flex; align-items: center;">
+                `<span style="font-size: 10px; color: ${getColor(c)}; border: 1px solid ${getColor(c)}40; padding: 2px 6px; border-radius: 4px; background: rgba(0,0,0,0.2); height: 18px; display: inline-flex; align-items: center; white-space: nowrap;">
                     ${c}
                 </span>`
             ).join('')}
         </div>
+
     </div>
         
         <div class="vod-tags" style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center;">
