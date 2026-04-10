@@ -275,7 +275,14 @@ document.getElementById('m-plus').innerHTML = badgeHtml;
                 <span>${filtered.length}개</span>
             </div>
             <div class="report-vod-list">
-                ${filtered.map(v => `<div class="report-item" onclick="handleAnalysisItemClick('${v.id}')"><div style="width:80px; height:45px; min-width:80px; border-radius:6px; overflow:hidden;"><img src="${v.thumb}" style="width:100%; height:100%; object-fit:cover;"></div><div class="report-item-info"><div class="side-list-title">${v.title}</div><div style="font-size:11px; color:var(--text-sub);">${v.date}</div></div></div>`).join('')}
+                ${filtered.map(v => `<div class="report-item" onclick="handleAnalysisItemClick('${v.id}')"><div style="width:80px; height:45px; min-width:80px; border-radius:6px; overflow:hidden;"><img src="${v.thumb}" style="width:100%; height:100%; object-fit:cover;"></div>
+                <div class="report-item-info">
+                <div class="side-list-title">
+    ${v.title} 
+    ${v.isPlus ? '<span style="color:#ffae00; font-size:9px; margin-left:4px;">[+]</span>' : ''}
+    ${v.isAdult ? '<span style="color:#ff4757; font-size:9px; margin-left:4px;">[19]</span>' : ''}
+</div>
+                <div style="font-size:11px; color:var(--text-sub);">${v.date}</div></div></div>`).join('')}
             </div>`;
     }
 
