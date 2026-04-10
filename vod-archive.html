@@ -6,107 +6,61 @@
     <title>바다비 다시보기 기록함</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
     <style>
-        /* [기존 스타일 유지...] */
-        #loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(1, 3, 6, 0.98); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; transition: opacity 0.5s ease; }
-        .loader-circle { width: 50px; height: 50px; border: 3px solid #0a1425; border-top: 3px solid #3385ff; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 15px; box-shadow: 0 0 15px rgba(51, 133, 255, 0.2); }
-        .loader-text { color: #3385ff; font-size: 14px; letter-spacing: 2px; font-weight: bold; animation: pulse 1.5s infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-
         :root { --bg-color: #010306; --card-bg: #030812; --accent: #3385ff; --text-main: #f0faff; --text-sub: #5c7285; --border: #0a1425; --modal-bg: rgba(0, 0, 0, 0.9); }
         * { box-sizing: border-box; }
         body { background-color: var(--bg-color); background-image: radial-gradient(circle at top right, #051020 0%, #010306 100%); color: var(--text-main); font-family: 'Noto Sans KR', sans-serif; margin: 0; padding: 0; overflow-x: hidden; }
         body.modal-open { overflow: hidden; }
         body.loading { overflow: hidden; }
 
-        .wrapper { width: 100%; max-width: 900px; margin: 0 auto; padding: 40px 20px; display: flex; flex-direction: column; gap: 20px; }
-        .header-card { background: var(--card-bg); border-radius: 16px; padding: 25px; border: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
-        .header-info h1 { margin: 0; font-size: 22px; color: var(--accent); }
-        .btn-home { text-decoration: none; color: var(--text-main); background: #0a1a30; padding: 8px 14px; border-radius: 8px; font-size: 13px; border: 1px solid var(--border); transition: 0.3s; }
+        #loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(1, 3, 6, 0.98); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; transition: opacity 0.5s ease; }
+        .loader-circle { width: 50px; height: 50px; border: 3px solid #0a1425; border-top: 3px solid #3385ff; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 15px; }
+        .loader-text { color: #3385ff; font-size: 14px; letter-spacing: 2px; font-weight: bold; animation: pulse 1.5s infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
 
-        /* 대시보드 & 차트 */
+        .wrapper { width: 100%; max-width: 900px; margin: 0 auto; padding: 40px 20px; display: flex; flex-direction: column; gap: 20px; }
+        .header-card { background: var(--card-bg); border-radius: 16px; padding: 25px; border: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .header-info h1 { margin: 0; font-size: 22px; color: var(--accent); }
+        .btn-home { text-decoration: none; color: var(--text-main); background: #0a1a30; padding: 8px 14px; border-radius: 8px; font-size: 13px; border: 1px solid var(--border); }
+
         .dashboard-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 15px; }
-        .stat-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: flex; flex-direction: column; justify-content: center; }
-        .total-info h2 { font-size: 26px; margin: 5px 0 0 0; color: var(--accent); }
+        .stat-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         .divider { border: 0; height: 1px; background: var(--border); margin: 20px 0; }
         .sub-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
         .sub-val { font-size: 14px; font-weight: bold; color: #fff; display: block; margin-top: 2px; }
         .sub-lbl { font-size: 10px; color: var(--text-sub); display: block; }
-        .chart-box { align-items: center; text-align: center; }
-        #category-chart { width: 120px; height: 120px; border-radius: 50%; position: relative; margin-bottom: 20px; background: conic-gradient(#333 0% 100%); }
+
+        .chart-box { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+        #category-chart { width: 120px; height: 120px; border-radius: 50%; position: relative; margin-bottom: 20px; }
         #category-chart::after { content: ""; position: absolute; inset: 22px; background: var(--card-bg); border-radius: 50%; }
         .chart-legend { font-size: 11px; color: var(--text-sub); display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
         .legend-item { display: flex; align-items: center; gap: 4px; background: rgba(255,255,255,0.03); padding: 4px 8px; border-radius: 6px; }
         .dot { width: 8px; height: 8px; border-radius: 2px; }
 
-        /* 리스트 관련 */
         .date-header { font-size: 16px; font-weight: bold; color: var(--accent); margin: 35px 0 15px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
         .vod-item { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; display: flex; cursor: pointer; transition: 0.2s; overflow: hidden; margin-bottom: 12px; }
         .vod-thumb { width: 140px; height: 80px; position: relative; min-width: 140px; }
         .vod-thumb img { width: 100%; height: 100%; object-fit: cover; }
         .duration { position: absolute; bottom: 5px; right: 5px; background: rgba(0,0,0,0.8); font-size: 10px; padding: 2px 5px; border-radius: 4px; }
         .vod-body { padding: 12px 15px; display: flex; flex-direction: column; justify-content: center; flex: 1; min-width: 0; }
-        .vod-title { font-size: 14px; font-weight: bold; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; gap: 8px; width: 100%; }
-        .title-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+        .vod-title { font-size: 14px; font-weight: bold; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+        .title-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-        .tag-common { display: inline-flex; align-items: center; justify-content: center; height: 22px; padding: 0 10px; border-radius: 6px; font-size: 11px; font-weight: 800; white-space: nowrap; line-height: 1; box-sizing: border-box; }
-        /* 수정된 스타일: 다른 태그들과 이질감 없게 변경 */
-        .tag-plus { 
-        background: #121f33;      /* 다른 태그들과 같은 어두운 배경 */
-        color: #e6e02e;           /* 아까 설정한 합방 태그 같은 밝은 노란색 */
-        border: 2px solid #e6e02e; /* 노란색 테두리 */
-        }
+        .tag-common { display: inline-flex; align-items: center; justify-content: center; height: 22px; padding: 0 10px; border-radius: 6px; font-size: 11px; font-weight: 800; white-space: nowrap; line-height: 1; }
+        .tag-plus { background: #121f33; color: #e6e02e; border: 2px solid #e6e02e; }
 
-        /* 모달 상세 (스크롤 숨기기 포함) */
-        #modal-overlay { position: fixed; inset: 0; background: var(--modal-bg); display: none; justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(8px); padding: 20px; }
-        #modal-content { 
-            background: var(--card-bg); width: 100%; max-width: 450px; border-radius: 20px; border: 1px solid var(--border); overflow: hidden; 
-            max-height: 90vh; overflow-y: auto; 
-            -ms-overflow-style: none; /* IE, Edge */
-            scrollbar-width: none; /* Firefox */
-        }
-        #modal-content::-webkit-scrollbar { display: none; /* Chrome, Safari, Opera */ }
-        
-        .modal-body { padding: 20px; }
-        .info-row { border-left: 3px solid var(--border); padding-left: 12px; margin-bottom: 18px; display: none; }
-        .info-row.is-active { display: block; }
-        .m-val-text { font-size: 14px; line-height: 1.8; color: var(--text-main); }
-        .sub-lbl { font-size: 11px; color: var(--text-sub); display: block; margin-bottom: 5px; }
+        #modal-overlay, #analysis-overlay { position: fixed; inset: 0; background: var(--modal-bg); display: none; justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(8px); padding: 20px; }
+        #modal-content, .analysis-content { background: var(--card-bg); width: 100%; max-width: 450px; border-radius: 20px; border: 1px solid var(--border); overflow-y: auto; max-height: 90vh; scrollbar-width: none; }
+        #modal-content::-webkit-scrollbar { display: none; }
 
-        /* 버튼 가로 배치 스타일 */
-        .modal-footer { display: flex; gap: 10px; margin-top: 20px; }
-        .btn-action { flex: 1; padding: 14px; text-align: center; border-radius: 12px; font-weight: bold; text-decoration: none; cursor: pointer; border: none; font-size: 14px; transition: 0.2s; }
+        .btn-action { flex: 1; padding: 14px; text-align: center; border-radius: 12px; font-weight: bold; text-decoration: none; cursor: pointer; border: none; font-size: 14px; }
         .btn-go { background: var(--accent); color: white; }
         .btn-close { background: #1a202c; color: #a0aec0; }
-        .btn-action:hover { opacity: 0.8; }
 
-       /* 모바일: 더 콤팩트하고 깔끔한 리스트 스타일 */
-        @media (max-width: 650px) { 
-            .vod-item { 
-                height: 80px; /* 전체 높이를 줄여서 한 화면에 더 많이 보이게 함 */
-                margin-bottom: 8px; /* 아이템 간격도 살짝 줄임 */
-            }
-            .vod-thumb { 
-                width: 135px; /* 썸네일 크기를 적당히 축소 */
-                height: 100%; 
-                min-width: 135px; 
-            }
-            .vod-body { 
-                padding: 8px 10px; 
-                overflow: hidden;
-            }
-            .vod-title { 
-                font-size: 12.5px; /* 제목 크기 살짝 조절 */
-                margin-bottom: 4px;
-            }
-            .tag-common {
-                height: 17px;
-                font-size: 9px;
-                padding: 0 5px;
-            }
-            .dashboard-grid { 
-                grid-template-columns: 1fr; 
-            } 
+        @media (max-width: 650px) {
+            .vod-item { height: 80px; margin-bottom: 8px; }
+            .vod-thumb { width: 135px; min-width: 135px; }
+            .dashboard-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -127,108 +81,84 @@
     </div>
 
     <div class="dashboard-grid">
-    <div class="stat-card">
-        <div style="display: flex; justify-content: space-around; align-items: center; padding: 10px 0;">
-            <div style="text-align: center; flex: 1;">
-                <span style="font-size:11px; color:var(--text-sub); display:block; margin-bottom:6px;">전체 영상 누적 시청 시간</span>
-                <h2 id="total-hour" style="margin: 0; font-size: 24px; font-weight: 700; color: var(--accent);">0시간 0분</h2>
-            </div>
-
-            <div style="width: 1px; height: 40px; background: var(--border);"></div>
-
-            <div style="text-align: center; flex: 1;">
-                <span style="font-size:11px; color:#e6e02e; font-weight: bold; display:block; margin-bottom:6px;">⭐ 구독플러스 비중</span>
-                <div style="display: flex; flex-direction: column; align-items: center; gap: 2px;">
-                    <span id="plus-hour" style="font-size: 18px; font-weight: bold; color: #fff;">0시간 0분</span>
+        <div class="stat-card">
+            <div style="display: flex; justify-content: space-around; align-items: center; padding: 10px 0;">
+                <div style="text-align: center; flex: 1;">
+                    <span style="font-size:11px; color:var(--text-sub); display:block; margin-bottom:6px;">전체 누적 시간</span>
+                    <h2 id="total-hour" style="margin: 0; font-size: 24px; font-weight: 700; color: var(--accent);">0시간 0분</h2>
+                </div>
+                <div style="width: 1px; height: 40px; background: var(--border);"></div>
+                <div style="text-align: center; flex: 1;">
+                    <span style="font-size:11px; color:#e6e02e; font-weight: bold; display:block; margin-bottom:6px;">⭐ 구독플러스 비중</span>
+                    <span id="plus-hour" style="font-size: 18px; font-weight: bold; color: #fff; display:block;">0시간 0분</span>
                     <span id="plus-ratio" style="font-size: 11px; color: #e6e02e; font-weight: bold; opacity: 0.9;">(0.0%)</span>
                 </div>
             </div>
+            <hr class="divider">
+            <div class="sub-grid">
+                <div style="text-align: center;"><span class="sub-lbl">최장 방송</span><span class="sub-val" id="max-time">0:00:00</span></div>
+                <div style="text-align: center;"><span class="sub-lbl">최단 방송</span><span class="sub-val" id="min-time">0:00:00</span></div>
+                <div style="text-align: center;"><span class="sub-lbl">평균 시간</span><span class="sub-val" id="avg-time">0:00:00</span></div>
+            </div>
+            <button onclick="openAnalysisModal()" style="margin-top: 20px; width: 100%; padding: 12px; background: rgba(51, 133, 255, 0.1); border: 1px dashed var(--accent); color: var(--accent); border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: bold;">📊 기간별 상세 분석 리포트 보기</button>
         </div>
 
-        <hr class="divider" style="margin: 20px 0;">
-
-        <div class="sub-grid">
-            <div class="sub-item" style="text-align: center;">
-                <span class="sub-lbl">최장 방송</span>
-                <span class="sub-val" id="max-time" style="font-size: 16px;">0:00:00</span>
-            </div>
-            <div class="sub-item" style="text-align: center;">
-                <span class="sub-lbl">최단 방송</span>
-                <span class="sub-val" id="min-time" style="font-size: 16px;">0:00:00</span>
-            </div>
-            <div class="sub-item" style="text-align: center;">
-                <span class="sub-lbl">평균 시간</span>
-                <span class="sub-val" id="avg-time" style="font-size: 16px;">0:00:00</span>
-            </div>
+        <div class="stat-card chart-box">
+            <div id="category-chart"></div>
+            <div id="legend" class="chart-legend"></div>
         </div>
-
-        <button onclick="openAnalysisModal()" style="margin-top: 20px; width: 100%; padding: 10px; background: rgba(51, 133, 255, 0.1); border: 1px dashed var(--accent); color: var(--accent); border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: bold; transition: 0.3s;">
-            📊 기간별 상세 분석 리포트 보기
-        </button>
     </div>
 
-    <div class="stat-card chart-box">
-        <div id="category-chart"></div>
-        <div id="legend" class="chart-legend"></div>
-    </div>
-</div>
     <div id="vod-content"></div>
 </div>
 
 <div id="modal-overlay" onclick="if(event.target === this) closeModal()">
     <div id="modal-content">
         <img id="m-thumb" style="width:100%; height:200px; object-fit:cover;">
-        <div class="modal-body">
+        <div style="padding: 20px;">
             <div id="m-title-area" style="margin-bottom:20px;">
                 <div id="m-title" style="font-weight:bold; font-size:17px; line-height:1.4;"></div>
                 <div id="m-plus" style="margin-top:8px;"></div>
             </div>
-            <div class="info-row is-active">
-                <span class="sub-lbl">📅 방송 정보</span>
-                <span id="m-date" class="m-val-text"></span>
+            <div style="border-left: 3px solid var(--border); padding-left: 12px; margin-bottom: 18px;">
+                <span style="font-size:11px; color:var(--text-sub); display:block; margin-bottom:5px;">📅 방송 정보</span>
+                <span id="m-date" style="font-size:14px; color:var(--text-main);"></span>
             </div>
-            <div id="row-cat" class="info-row is-active">
-                <span class="sub-lbl">🔖 컨텐츠 분류</span>
-                <div id="m-cat-val"></div>
-            </div>
-            <div id="row-game" class="info-row"><span class="sub-lbl">🎮 게임 리스트</span><div id="m-game" class="m-val-text"></div></div>
-            <div id="row-song" class="info-row"><span class="sub-lbl">🎵 노래 리스트</span><div id="m-song" class="m-val-text"></div></div>
-            <div id="row-talk" class="info-row"><span class="sub-lbl">💬 소통 섹션</span><div id="m-talk" class="m-val-text"></div></div>
-            <div id="row-content" class="info-row"><span class="sub-lbl">✨ 기타 컨텐츠</span><div id="m-content" class="m-val-text"></div></div>
+            <div id="row-game" style="display:none; margin-bottom:15px;"><span style="font-size:11px; color:var(--text-sub); display:block; margin-bottom:5px;">🎮 게임</span><div id="m-game"></div></div>
+            <div id="row-song" style="display:none; margin-bottom:15px;"><span style="font-size:11px; color:var(--text-sub); display:block; margin-bottom:5px;">🎵 노래</span><div id="m-song"></div></div>
+            <div id="row-talk" style="display:none; margin-bottom:15px;"><span style="font-size:11px; color:var(--text-sub); display:block; margin-bottom:5px;">💬 소통</span><div id="m-talk"></div></div>
             
-            <div class="modal-footer">
+            <div style="display:flex; gap:10px; margin-top:20px;">
                 <a id="m-link" href="#" target="_blank" class="btn-action btn-go">시청하기 ↗</a>
                 <button class="btn-action btn-close" onclick="closeModal()">닫기</button>
             </div>
         </div>
     </div>
 </div>
-<div id="analysis-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.9); z-index:2000; backdrop-filter:blur(10px); padding:20px; justify-content:center; align-items:center;">
-    <div style="background:var(--card-bg); width:100%; max-width:500px; max-height:85vh; border-radius:24px; border:1px solid var(--border); display:flex; flex-direction:column; overflow:hidden; box-shadow:0 20px 50px rgba(0,0,0,0.5);">
+
+<div id="analysis-overlay">
+    <div class="analysis-content" style="max-width:500px; display:flex; flex-direction:column;">
         <div style="padding:20px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
             <h3 style="margin:0; font-size:18px; color:var(--accent);">📊 기간별 상세 분석</h3>
             <div style="display:flex; gap:8px;">
-                <select id="analysis-year" onchange="renderAnalysis()" style="background:#0a1a30; color:#fff; border:1px solid var(--border); border-radius:6px; padding:4px 8px; font-size:12px;"></select>
-                <select id="analysis-type" onchange="renderAnalysis()" style="background:#0a1a30; color:#fff; border:1px solid var(--border); border-radius:6px; padding:4px 8px; font-size:12px;">
+                <select id="analysis-year" onchange="renderAnalysis()" style="background:#0a1a30; color:#fff; border:1px solid var(--border); border-radius:6px; padding:4px 8px;"></select>
+                <select id="analysis-type" onchange="renderAnalysis()" style="background:#0a1a30; color:#fff; border:1px solid var(--border); border-radius:6px; padding:4px 8px;">
                     <option value="month">월별 보기</option>
                     <option value="year">연도별 요약</option>
                 </select>
             </div>
         </div>
-        <div id="analysis-result" style="flex:1; overflow-y:auto; padding:20px; -ms-overflow-style:none; scrollbar-width:none;">
-            </div>
-        <div style="padding:15px; border-top:1px solid var(--border); text-align:center;">
+        <div id="analysis-result" style="flex:1; overflow-y:auto; padding:20px;"></div>
+        <div style="padding:15px; border-top:1px solid var(--border);">
             <button onclick="closeAnalysisModal()" style="width:100%; padding:12px; background:#1a202c; color:#a0aec0; border:none; border-radius:12px; font-weight:bold; cursor:pointer;">창 닫기</button>
         </div>
     </div>
 </div>
+
 <script>
     const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTfTHMy1hImniay9QEPDcMq5C4Yo5yFpmRtBlWo6UXK-FNxABQYbtfGpEsKom2O-OIJPnEi8LLy1Qqx/pub?gid=0&single=true&output=tsv";
-   
-    // 전역 변수로 선언하여 어디서든 접근 가능하게 합니다.
     let allVods = [];
-    
-    /* 태그 외곽선, 색상수정 */
+     /* 태그 외곽선, 색상수정 */
     const catColors = { 
         '게임': '#70a1ff',  // 밝은 스카이블루 (기존보다 밝음)
         '노래': '#ff7eb9',  // 선명한 핑크
@@ -240,19 +170,11 @@
         '합방': '#fffa65',  // 밝은 노란색 (눈에 확 띔)
         '기타': '#d2dae2'   // 밝은 그레이
     };
-    const tagBaseStyle = `display:inline-flex; align-items:center; padding:2px 7px; border-radius:4px; font-size:10px; font-weight:bold; background:#121f33; line-height:1.2; margin-right:4px; margin-top:4px; border:2px solid;`;
+
 
     function getColor(name) { for (let key in catColors) { if (name.includes(key)) return catColors[key]; } return catColors['기타']; }
     function timeToSeconds(t) { if (!t || t === '-') return 0; const p = t.split(':').map(Number); return (p[0] * 3600) + (p[1] * 60) + (p[2] || 0); }
     function secondsToTime(s) { const h = Math.floor(s / 3600); const m = Math.floor((s % 3600) / 60); const sec = s % 60; return `${h}:${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`; }
-    
-    function parseEntry(data) {
-        if (!data || data === '-') return [];
-        return data.split('\n').filter(line => line.trim() !== "").map(line => {
-            const match = line.match(/^(.*?)\((.*?)\)$/);
-            return match ? { name: match[1].trim(), time: match[2].trim() } : { name: line.trim(), time: "" };
-        });
-    }
 
     window.onload = () => {
         const overlay = document.getElementById('loading-overlay');
@@ -275,13 +197,9 @@
                 allVods.sort((a, b) => new Date(b.date) - new Date(a.date));
                 renderList(allVods);
                 calculateAllStats(allVods);
-                
                 document.getElementById('update-time').textContent = `최근 업데이트: ${new Date().toLocaleTimeString()}`;
-                setTimeout(() => {
-                    overlay.style.opacity = '0';
-                    setTimeout(() => { overlay.style.display = 'none'; document.body.classList.remove('loading'); }, 500);
-                }, 800);
-            }).catch(err => { console.error(err); overlay.style.display = 'none'; });
+                setTimeout(() => { overlay.style.display = 'none'; document.body.classList.remove('loading'); }, 800);
+            });
     };
 
     function renderList(data) {
@@ -291,26 +209,18 @@
         data.forEach(v => { if (!groups[v.date]) groups[v.date] = []; groups[v.date].push(v); });
         Object.keys(groups).sort((a, b) => new Date(b) - new Date(a)).forEach(date => {
             const groupDiv = document.createElement('div');
-            groupDiv.className = 'date-group';
             groupDiv.innerHTML = `<div class="date-header">${date}</div><div class="vod-list"></div>`;
             groups[date].forEach(v => {
                 const item = document.createElement('div');
                 item.className = 'vod-item';
                 item.onclick = () => openModal(v);
-                const plusTag = v.isPlus ? `<span class="tag-common tag-plus" style="height:18px; line-height:18px; font-size:9px; padding:0 6px;">구독+</span>` : '';
-                const adultTag = v.isAdult ? `<span class="tag-common" style="height:18px; line-height:18px; font-size:9px; padding:0 6px; background:#121f33; color:#ff4757; border:2px solid #ff4757;">19</span>` : '';
+                const plusTag = v.isPlus ? `<span class="tag-common tag-plus" style="height:18px; font-size:9px; margin-left:5px;">구독+</span>` : '';
                 item.innerHTML = `
                     <div class="vod-thumb"><img src="${v.thumb}"><span class="duration">${v.totalTime}</span></div>
                     <div class="vod-body">
-                        <div class="vod-title">
-                            <span class="title-text">${v.title}</span>
-                            <div style="display:flex; gap:3px; flex-shrink:0;">${plusTag}${adultTag}</div>
-                        </div>
-                        <div style="display:flex; flex-wrap:wrap;">
-                            ${v.category.split(/[,/ ]+/).filter(c => c.trim() !== "").map(c => {
-                                const color = getColor(c);
-                                return `<span style="${tagBaseStyle} color:${color}; border-color:${color}60;">${c}</span>`;
-                            }).join('')}
+                        <div class="vod-title"><span class="title-text">${v.title}</span>${plusTag}</div>
+                        <div style="display:flex; flex-wrap:wrap; gap:4px;">
+                            ${v.category.split(/[,/ ]+/).filter(c => c.trim()).map(c => `<span style="font-size:10px; color:${getColor(c)}; border:1px solid ${getColor(c)}60; padding:1px 5px; border-radius:4px;">${c}</span>`).join('')}
                         </div>
                     </div>`;
                 groupDiv.querySelector('.vod-list').appendChild(item);
@@ -324,30 +234,20 @@
         document.getElementById('m-title').textContent = v.title;
         document.getElementById('m-date').textContent = `${v.date} (${v.totalTime})`;
         document.getElementById('m-link').href = v.link;
-        let badgeHtml = v.isPlus ? `<span class="tag-common tag-plus" style="padding: 2px 8px; height: auto; font-size: 11px; margin-right:4px;">구독플러스 전용</span>` : '';
-        if(v.isAdult) badgeHtml += `<span class="tag-common" style="padding: 2px 8px; height: auto; font-size: 11px; background:#121f33; color:#ff4757; border:2px solid #ff4757;">19</span>`;
-        document.getElementById('m-plus').innerHTML = badgeHtml;
-
-        const renderSection = (rowId, valId, data, prefix) => {
+        document.getElementById('m-plus').innerHTML = v.isPlus ? `<span class="tag-common tag-plus" style="padding: 2px 8px; font-size: 11px;">구독플러스 전용</span>` : '';
+        
+        const setSec = (id, rowId, data, label) => {
             const row = document.getElementById(rowId);
-            const val = document.getElementById(valId);
-            const items = parseEntry(data);
-            const color = getColor(prefix);
-            if (items.length > 0) {
-                row.classList.add('is-active');
-                val.innerHTML = items.map(item => `
-                    <div style="margin-bottom:6px; font-size:13px;">
-                        <span style="display:inline-block; padding:1px 6px; font-size:10px; font-weight:bold; border-radius:4px; background:#121f33; color:${color}; border:1px solid ${color}60; margin-right:6px;">${prefix}</span>
-                        <span style="color:var(--text-main);">${item.name}</span>
-                        ${item.time ? `<span style="color:var(--text-sub); font-size:11px; margin-left:5px;">(${item.time})</span>` : ""}
-                    </div>`).join('');
-            } else { row.classList.remove('is-active'); }
+            const box = document.getElementById(id);
+            if (data && data !== '-') {
+                row.style.display = 'block';
+                box.innerHTML = data.split('\n').map(l => `<div style="font-size:13px; margin-bottom:4px; color:#ccc;">• ${l}</div>`).join('');
+            } else { row.style.display = 'none'; }
         };
+        setSec('m-game', 'row-game', v.gData);
+        setSec('m-song', 'row-song', v.sData);
+        setSec('m-talk', 'row-talk', v.tData);
 
-        renderSection('row-game', 'm-game', v.gData, '게임');
-        renderSection('row-song', 'm-song', v.sData, '노래');
-        renderSection('row-talk', 'm-talk', v.tData, '소통');
-        renderSection('row-content', 'm-content', v.cData, '컨텐츠');
         document.getElementById('modal-overlay').style.display = 'flex';
         document.body.classList.add('modal-open');
     }
@@ -360,133 +260,61 @@
         data.forEach(v => {
             const s = timeToSeconds(v.totalTime);
             if (s > 0) { totalSec += s; if (v.isPlus) plusSec += s; maxSec = Math.max(maxSec, s); minSec = Math.min(minSec, s); }
-            v.category.split(/[,/ ]+/).filter(c => c.trim() !== "").forEach(c => { catMap[c] = (catMap[c] || 0) + 1; });
+            v.category.split(/[,/ ]+/).filter(c => c.trim()).forEach(c => { catMap[c] = (catMap[c] || 0) + 1; });
         });
         document.getElementById('total-hour').textContent = `${Math.floor(totalSec / 3600)}시간 ${Math.floor((totalSec % 3600) / 60)}분`;
-        const plusRatio = totalSec > 0 ? ((plusSec / totalSec) * 100).toFixed(1) : 0;
         document.getElementById('plus-hour').textContent = `${Math.floor(plusSec / 3600)}시간 ${Math.floor((plusSec % 3600) / 60)}분`;
-        document.getElementById('plus-ratio').textContent = `(${plusRatio}%)`;
+        document.getElementById('plus-ratio').textContent = `(${(totalSec > 0 ? (plusSec / totalSec * 100) : 0).toFixed(1)}%)`;
         document.getElementById('max-time').textContent = secondsToTime(maxSec);
-        document.getElementById('min-time').textContent = minSec === Infinity ? "0:00:00" : secondsToTime(minSec);
+        document.getElementById('min-time').textContent = secondsToTime(minSec === Infinity ? 0 : minSec);
         document.getElementById('avg-time').textContent = secondsToTime(Math.floor(totalSec / (data.length || 1)));
 
-        const sortedCats = Object.entries(catMap).sort((a, b) => b[1] - a[1]);
-        const totalCount = Object.values(catMap).reduce((a, b) => a + b, 0);
-        let currentPos = 0;
-        const gradientParts = sortedCats.map(([name, count]) => {
-            const start = currentPos; const end = currentPos + (count / totalCount * 100);
-            currentPos = end; return `${getColor(name)} ${start}% ${end}%`;
-        });
-        document.getElementById('category-chart').style.background = `conic-gradient(${gradientParts.join(', ')})`;
-        document.getElementById('legend').innerHTML = sortedCats.map(([name, count]) => {
-            const percent = Math.round((count / totalCount) * 100);
-            return `<div class="legend-item"><span class="dot" style="background:${getColor(name)}"></span>${name} <span style="opacity:0.6; font-size:10px; margin-left:2px;">${percent}%</span></div>`;
-        }).join('');
+        const sorted = Object.entries(catMap).sort((a,b) => b[1]-a[1]);
+        const totalC = Object.values(catMap).reduce((a,b)=>a+b, 0);
+        let curr = 0;
+        const grad = sorted.map(([n, c]) => { const s=curr; curr+= (c/totalC*100); return `${getColor(n)} ${s}% ${curr}%`; });
+        document.getElementById('category-chart').style.background = `conic-gradient(${grad.join(', ')})`;
+        document.getElementById('legend').innerHTML = sorted.map(([n, c]) => `<div class="legend-item"><span class="dot" style="background:${getColor(n)}"></span>${n} ${Math.round(c/totalC*100)}%</div>`).join('');
     }
 
     function openAnalysisModal() {
         document.getElementById('analysis-overlay').style.display = 'flex';
-        document.body.style.overflow = 'hidden';
         const years = [...new Set(allVods.map(v => v.date.split('-')[0]))].sort().reverse();
-        const yearSelect = document.getElementById('analysis-year');
-        yearSelect.innerHTML = years.map(y => `<option value="${y}">${y}년</option>`).join('');
+        document.getElementById('analysis-year').innerHTML = years.map(y => `<option value="${y}">${y}년</option>`).join('');
         renderAnalysis();
     }
-
-    function closeAnalysisModal() {
-        document.getElementById('analysis-overlay').style.display = 'none';
-        document.body.style.overflow = 'auto';
-    }
+    function closeAnalysisModal() { document.getElementById('analysis-overlay').style.display = 'none'; }
 
     function renderAnalysis() {
-    const targetYear = document.getElementById('analysis-year').value;
-    const viewType = document.getElementById('analysis-type').value;
-    const resultDiv = document.getElementById('analysis-result');
-    const filtered = allVods.filter(v => v.date.startsWith(targetYear));
-    const stats = {};
-
-    filtered.forEach(v => {
-        const key = viewType === 'month' ? v.date.substring(0, 7) : v.date.substring(0, 4);
-        if (!stats[key]) {
-            stats[key] = { 
-                time: 0, count: 0, maxSec: 0, minSec: Infinity,
-                maxTitle: "", minTitle: "",
-                adultCount: 0, plusCount: 0,
-                cats: {} 
-            };
-        }
+        const year = document.getElementById('analysis-year').value;
+        const type = document.getElementById('analysis-type').value;
+        const res = document.getElementById('analysis-result');
+        const filtered = allVods.filter(v => v.date.startsWith(year));
         
-        const sec = timeToSeconds(v.totalTime);
-        const s = stats[key];
-        
-        s.time += sec;
-        s.count++;
-        
-        // 최장/최단 방송 기록 및 제목 저장
-        if (sec > s.maxSec) { s.maxSec = sec; s.maxTitle = v.title; }
-        if (sec > 0 && sec < s.minSec) { s.minSec = sec; s.minTitle = v.title; }
-        
-        // 특수 방송 카운트
-        if (v.isAdult) s.adultCount++;
-        if (v.isPlus) s.plusCount++;
-        
-        // 컨텐츠별 횟수 계산
-        v.category.split(/[,/ ]+/).forEach(c => { 
-            if(c.trim()) s.cats[c] = (s.cats[c] || 0) + 1; 
+        let stats = {};
+        filtered.forEach(v => {
+            const key = type === 'month' ? v.date.substring(0, 7) : v.date.substring(0, 4);
+            if (!stats[key]) stats[key] = { time: 0, count: 0, plus: 0, maxSec: 0, maxTitle: "" };
+            const s = timeToSeconds(v.totalTime);
+            stats[key].time += s;
+            stats[key].count++;
+            if (v.isPlus) stats[key].plus++;
+            if (s > stats[key].maxSec) { stats[key].maxSec = s; stats[key].maxTitle = v.title; }
         });
-    });
 
-    let html = "";
-    Object.keys(stats).sort().reverse().forEach(key => {
-        const s = stats[key];
-        const sortedCats = Object.entries(s.cats).sort((a, b) => b[1] - a[1]);
-        
-        html += `
-            <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:20px; padding:20px; margin-bottom:20px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
-                <div style="display:flex; justify-content:space-between; align-items:flex-end; border-bottom:1px solid rgba(51,133,255,0.2); padding-bottom:12px; margin-bottom:15px;">
-                    <span style="font-size:20px; font-weight:bold; color:var(--accent);">${key} 리포트</span>
-                    <span style="font-size:13px; color:var(--text-sub);">${s.count}회 방송 완료</span>
+        res.innerHTML = Object.keys(stats).sort().reverse().map(k => `
+            <div style="background:rgba(255,255,255,0.03); padding:15px; border-radius:15px; margin-bottom:15px; border:1px solid var(--border);">
+                <div style="color:var(--accent); font-weight:bold; margin-bottom:10px;">${k} 리포트 (${stats[k].count}회)</div>
+                <div style="font-size:13px; display:grid; grid-template-columns:1fr 1fr; gap:5px;">
+                    <span>누적: ${Math.floor(stats[k].time/3600)}시간</span>
+                    <span>구독+: ${stats[k].plus}회</span>
                 </div>
-
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:15px;">
-                    <div style="background:rgba(0,0,0,0.2); padding:10px; border-radius:10px;">
-                        <div style="font-size:11px; color:var(--text-sub);">총 시청 시간</div>
-                        <div style="font-size:15px; font-weight:bold; color:#fff;">${Math.floor(s.time/3600)}시간 ${Math.floor((s.time%3600)/60)}분</div>
-                    </div>
-                    <div style="background:rgba(0,0,0,0.2); padding:10px; border-radius:10px;">
-                        <div style="font-size:11px; color:var(--text-sub);">평균 방송 시간</div>
-                        <div style="font-size:15px; font-weight:bold; color:#fff;">${secondsToTime(Math.floor(s.time/s.count))}</div>
-                    </div>
+                <div style="margin-top:10px; font-size:11px; color:var(--text-sub); border-top:1px solid var(--border); padding-top:8px;">
+                    🏆 최장: ${stats[k].maxTitle} (${secondsToTime(stats[k].maxSec)})
                 </div>
-
-                <div style="font-size:13px; line-height:1.8; margin-bottom:15px; color:var(--text-main);">
-                    <div style="display:flex; justify-content:space-between;">
-                        <span>🔞 성인 인증 방송</span> <span><b>${s.adultCount}회</b></span>
-                    </div>
-                    <div style="display:flex; justify-content:space-between;">
-                        <span>⭐ 구독플러스 전용</span> <span><b>${s.plusCount}회</b></span>
-                    </div>
-                    <div style="margin-top:8px; padding:8px; background:rgba(51,133,255,0.05); border-radius:8px; font-size:12px;">
-                        <div style="color:var(--accent); font-weight:bold; margin-bottom:4px;">🏆 주요 기록</div>
-                        <div style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">최장: ${secondsToTime(s.maxSec)} (${s.maxTitle})</div>
-                        <div style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">최단: ${s.minSec === Infinity ? '-' : secondsToTime(s.minSec)} (${s.minTitle})</div>
-                    </div>
-                </div>
-
-                <div style="border-top:1px dashed var(--border); padding-top:12px;">
-                    <div style="font-size:12px; color:var(--text-sub); margin-bottom:8px;">📊 컨텐츠별 수행 횟수</div>
-                    <div style="display:flex; flex-wrap:wrap; gap:6px;">
-                        ${sortedCats.map(([name, count]) => `
-                            <span style="background:#0a1a30; border:1px solid ${getColor(name)}60; color:${getColor(name)}; padding:3px 8px; border-radius:6px; font-size:11px; font-weight:bold;">
-                                ${name} ${count}회
-                            </span>
-                        `).join('')}
-                    </div>
-                </div>
-            </div>`;
-    });
-    resultDiv.innerHTML = html || "<div style='text-align:center; padding:40px; color:var(--text-sub);'>데이터가 없습니다.</div>";
-}
+            </div>
+        `).join('');
+    }
 </script>
 </body>
 </html>
