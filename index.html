@@ -6,6 +6,25 @@
     <title>바다비 정보메인</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
     <style>
+        /* 로딩 바 컨테이너 */
+.loading-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    z-index: 1000;
+    background: transparent;
+}
+
+/* 실제 움직이는 바 */
+.loading-bar {
+    width: 0%;
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent-bright));
+    box-shadow: 0 0 10px var(--accent-glow);
+    transition: width 0.3s ease;
+}
         :root {
             /* 기존 트위치 테마색을 깊은 바다 테마색으로 변경 */
             --bg-color: #010306;          /* 깊은 바다 블랙 배경 */
@@ -133,7 +152,11 @@
 </head>
 <body>
 
-<div class="wrapper">
+<div class="loading-container">
+        <div id="loading-bar" class="loading-bar"></div>
+    </div>
+    
+    <div class="wrapper">
     <div class="top-section">
         <div class="card profile-box">
             <div class="profile-img" onclick="location.href='blue-note.html'"></div>
@@ -172,22 +195,26 @@
     const SONG_BOOK_URL = 'https://lunaplena0.github.io/songlist.html'; 
 
     async function init() {
-        try {
-            const cacheBuster = `&t=${new Date().getTime()}`;
-            const finalUrl = TSV_URL + cacheBuster;
+        const loader = document.getElementById('loading-bar');
+    try {
+        // 1. 로딩 시작 (약 30%까지 먼저 채움)
+        loader.style.opacity = '1';
+        loader.style.width = '30%';
 
-            const response = await fetch(finalUrl, {
-                cache: 'no-store',
-                headers: {
-                    'Pragma': 'no-cache',
-                    'Cache-Control': 'no-cache'
-                }
-            });
+        const cacheBuster = `&t=${new Date().getTime()}`;
+        const finalUrl = TSV_URL + cacheBuster;
+
+        const response = await fetch(finalUrl, {
+            cache: 'no-store',
+            headers: { 'Pragma': 'no-cache', 'Cache-Control': 'no-cache' }
+        });
+        // 2. 응답 받음 (70%까지 이동)
+        loader.style.width = '70%';
 
             if (!response.ok) throw new Error('Network error');
 
-            const text = await response.text();
-            const rows = text.split(/\r?\n/).map(row => row.split('\t'));
+        const text = await response.text();
+        const rows = text.split(/\r?\n/).map(row => row.split('\t'));
 
             const profile = rows[2];
             const liveData = rows[6]; 
@@ -255,8 +282,19 @@
             renderVODs(rows.slice(16, 21));
             renderSchedule(rows.slice(24, 29));
 
-        } catch (e) { console.error("Data Load Error:", e); }
+        // 3. 렌더링 완료 (100% 채우기)
+        loader.style.width = '100%';
+
+        } catch (e) { console.error("Data Load Error:", e);
+                    loader.style.backgroundColor = '#ff4b4b';}
+        finally {
+        // 4. 잠시 후 부드럽게 사라짐
+        setTimeout(() => {
+            loader.style.opacity = '0';
+            setTimeout(() => { loader.style.width = '0%'; }, 300);
+        }, 500);
     }
+    } 
 
     // 렌더링 함수 내의 보라색 강조 효과들도 블루로 교체합니다.
     function renderLinks(extraLinks) {
