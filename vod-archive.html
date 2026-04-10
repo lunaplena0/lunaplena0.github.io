@@ -63,38 +63,57 @@
             .dashboard-grid { grid-template-columns: 1fr; }
         }
         /* 리포트 모달 내의 레이아웃 */
-.analysis-layout { 
-    display: grid; 
-    grid-template-columns: 5.5fr 4.5fr; /* 숫자로 비율을 더 확실하게 조정 */
-    gap: 25px; 
-    align-items: start;
+/* 분석 모달 컨테이너 수정 */
+.analysis-content {
+    background: var(--card-bg);
     width: 100%;
-}
-/* 왼쪽 리포트 카드 너비 강제 */
-.analysis-layout > div:first-child {
-    width: 100%;
-    min-width: 0; /* 그리드 내부에서 요소가 삐져나가지 않도록 설정 */
-}
-        
-/* 모바일 대응: 650px 이하일 때 1컬럼으로 변경 */
-@media (max-width: 850px) {
-    .analysis-layout { 
-        grid-template-columns: 1fr; /* 모바일은 다시 1컬럼 */
-    }
+    max-width: 1000px;
+    border-radius: 24px;
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    max-height: 90vh; /* 화면의 90% */
 }
 
-/* 리포트 내의 미니 리스트 스타일 */
+/* 내부 결과 영역: 개별 스크롤 제거, 전체 스크롤 활성화 */
+#analysis-result {
+    flex: 1;
+    overflow-y: auto; /* 여기가 메인 스크롤이 됩니다 */
+    padding: 20px;
+    scrollbar-width: thin;
+}
+
+#analysis-result::-webkit-scrollbar { width: 6px; }
+#analysis-result::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+
+/* 레이아웃 구조 변경 */
+.analysis-layout {
+    display: grid;
+    grid-template-columns: 5.5fr 4.5fr;
+    gap: 25px;
+    align-items: start; /* 위쪽 정렬 */
+}
+
+/* 왼쪽 리포트 카드 */
+.analysis-layout > div:first-child {
+    width: 100%;
+}
+
+/* 오른쪽 리스트 영역: max-height와 개별 스크롤 제거 */
 .report-vod-list {
     display: flex;
     flex-direction: column;
     gap: 12px;
-    /* 고정 650px 대신, 화면 높이의 60% 정도로 설정하여 유동적으로 조절 */
-    max-height: 60vh; 
-    overflow-y: auto;
-    padding-right: 10px;
+    max-height: none !important; /* 개별 스크롤 해제 */
+    overflow-y: visible !important;
 }
-.report-vod-list::-webkit-scrollbar { width: 4px; }
-.report-vod-list::-webkit-scrollbar-thumb { background: rgba(51, 133, 255, 0.3); border-radius: 10px; }
+
+/* 모바일 대응 */
+@media (max-width: 850px) {
+    .analysis-layout {
+        grid-template-columns: 1fr;
+    }
+}
     </style>
 </head>
 <body class="loading">
@@ -425,8 +444,8 @@ function generateReportHtml(key, s) {
     ).join('');
 
     return `
-        <div class="analysis-layout" style="animation: fadeIn 0.3s ease; max-height: 70vh;">
-            <div style="overflow-y: auto; padding-right: 5px; max-height: 70vh; scrollbar-width: none;">
+        <div class="analysis-layout" style="animation: fadeIn 0.3s ease;">
+            <div>
                 <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:20px; padding:20px; margin-bottom:15px;">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:1px solid rgba(51,133,255,0.2); padding-bottom:10px;">
                         <div style="font-size:18px; font-weight:bold; color:var(--accent);">${key.split('-')[0]}년 리포트</div>
@@ -459,12 +478,12 @@ function generateReportHtml(key, s) {
                 </div>
             </div>
 
-            <div style="display: flex; flex-direction: column; max-height: 70vh;">
-                <div style="font-size:14px; font-weight:bold; color:var(--text-sub); margin-bottom:12px; display:flex; justify-content:space-between;">
+            <div style="display: flex; flex-direction: column;">
+                <div style="font-size:14px; font-weight:bold; color:var(--text-sub); margin-bottom:12px; display:flex; justify-content:space-between; position: sticky; top: 0; background: var(--card-bg); z-index: 10; padding-bottom: 5px;">
                     <span>📅 해당 기간 기록</span>
                     <span>${s.count}개</span>
                 </div>
-                <div id="report-side-list" class="report-vod-list" style="flex: 1; max-height: calc(70vh - 40px);">
+                <div id="report-side-list" class="report-vod-list">
                     </div>
             </div>
         </div>`;
