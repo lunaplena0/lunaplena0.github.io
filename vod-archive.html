@@ -337,21 +337,32 @@
     if (viewType === 'month') {
         resultDiv.innerHTML = `
             <div style="margin-bottom:20px;">
-                <select id="month-select" onchange="displaySelectedReport()" style="width:100%; background:#0a1a30; color:#fff; border:1px solid var(--border); border-radius:12px; padding:12px; font-size:14px; font-weight:bold; outline:none; cursor:pointer;">
+                <select id="month-select" onchange="displaySelectedReport()" ...>
                     ${availableKeys.map(k => `<option value="${k}">${k.split('-')[1]}월 상세 리포트 보기</option>`).join('')}
                 </select>
             </div>
             <div id="report-container"></div>
         `;
-        window.currentStats = stats;
-        displaySelectedReport();
+        window.currentStats = stats; // 데이터를 전역에 저장
+        displaySelectedReport();    // 첫 화면 렌더링 호출
     } else {
         let html = "";
         availableKeys.forEach(key => { html += generateReportHtml(key, stats[key]); });
         resultDiv.innerHTML = html;
     }
 }
-
+function displaySelectedReport() {
+    const monthSelect = document.getElementById('month-select');
+    if (!monthSelect) return;
+    
+    const selectedKey = monthSelect.value;
+    const stats = window.currentStats;
+    const container = document.getElementById('report-container');
+    
+    if (stats && stats[selectedKey]) {
+        container.innerHTML = generateReportHtml(selectedKey, stats[selectedKey]);
+    }
+}
 function generateReportHtml(key, s) {
     const sortedCats = Object.entries(s.cats).sort((a, b) => b[1] - a[1]);
     
