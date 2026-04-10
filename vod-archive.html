@@ -216,11 +216,21 @@
                 for (let i = 1; i < lines.length; i++) {
                     const p = lines[i].split('\t').map(v => v.trim());
                     if (!p[0]) continue;
+                    
+                    // G열(성인인증)이 추가되면서 p[6] 이후 번호가 하나씩 밀립니다.
                     vods.push({
-                        date: p[0], title: p[1], link: p[2], thumb: p[3],
-                        totalTime: p[4], isPlus: p[5] === '예' || p[5] === 'O',
-                        gData: p[6], sData: p[7], tData: p[8], cData: p[9],
-                        category: p[10] || "기타"
+                        date: p[0],      // A
+                        title: p[1],     // B
+                        link: p[2],      // C
+                        thumb: p[3],     // D
+                        totalTime: p[4], // E
+                        isPlus: p[5] === '예' || p[5] === 'O',  // F
+                        isAdult: p[6] === '예' || p[6] === 'O', // G (새로 추가!)
+                        gData: p[7],     // H (기존 6에서 변경)
+                        sData: p[8],     // I (기존 7에서 변경)
+                        tData: p[9],     // J (기존 8에서 변경)
+                        cData: p[10],    // K (기존 9에서 변경)
+                        category: p[11] || "기타" // L (기존 10에서 변경)
                     });
                 }
                 vods.sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -247,11 +257,18 @@
                 const item = document.createElement('div');
                 item.className = 'vod-item';
                 item.onclick = () => openModal(v);
+                
+                // 태그 생성 (구독+ 및 19 태그 나란히 배치)
                 const plusTag = v.isPlus ? `<span class="tag-common tag-plus" style="height:18px; line-height:18px; font-size:9px; padding:0 6px;">구독+</span>` : '';
+                const adultTag = v.isAdult ? `<span class="tag-common" style="height:18px; line-height:18px; font-size:9px; padding:0 6px; background:#ff4757; color:#fff; border:none;">19</span>` : '';
+                
                 item.innerHTML = `
                     <div class="vod-thumb"><img src="${v.thumb}"><span class="duration">${v.totalTime}</span></div>
                     <div class="vod-body">
-                        <div class="vod-title"><span class="title-text">${v.title}</span>${plusTag}</div>
+                        <div class="vod-title">
+                            <span class="title-text">${v.title}</span>
+                            <div style="display:flex; gap:3px; flex-shrink:0;">${plusTag}${adultTag}</div>
+                        </div>
                         <div style="display:flex; flex-wrap:wrap;">
                             ${v.category.split(/[,/ ]+/).filter(c => c.trim() !== "").map(c => {
                                 const color = getColor(c);
@@ -270,7 +287,14 @@
         document.getElementById('m-title').textContent = v.title;
         document.getElementById('m-date').textContent = `${v.date} (${v.totalTime})`;
         document.getElementById('m-link').href = v.link;
-        document.getElementById('m-plus').innerHTML = v.isPlus ? `<span class="tag-common tag-plus" style="padding: 2px 10px; height: auto; font-size: 11px;">구독플러스 전용 다시보기</span>` : '';
+        
+        // 모달 내 배지 표시 (나란히 배치)
+        let badgeHtml = '';
+        if(v.isPlus) badgeHtml += `<span class="tag-common tag-plus" style="padding: 2px 8px; height: auto; font-size: 11px; margin-right:4px;">구독플러스 전용</span>`;
+        if(v.isAdult) badgeHtml += `<span class="tag-common" style="padding: 2px 8px; height: auto; font-size: 11px; background:#ff4757; color:#fff; border:none;">19</span>`;
+        document.getElementById('m-plus').innerHTML = badgeHtml;
+
+        // [이하 기존 openModal 코드와 동일...]
         const catContainer = document.getElementById('m-cat-val');
         catContainer.innerHTML = v.category.split(/[,/ ]+/).filter(c => c.trim() !== "").map(c => {
             const color = getColor(c);
