@@ -67,13 +67,13 @@
                     <span class="duration" style="position: absolute; bottom: 4px; right: 4px; background: rgba(0,0,0,0.8); color: #fff; font-size: 11px; padding: 2px 4px; border-radius: 4px;">${v.totalTime}</span>
                 </div>
                 
-                <div class="vod-info" style="display: flex; flex-direction: column; justify-content: center; flex: 1; min-width: 0; padding: 5px 0 5px 15px; gap: 8px;">
+                <div class="vod-info" style="display: flex; flex-direction: column; justify-content: center; flex: 1; min-width: 0; padding: 5px 15px 5px 15px; gap: 8px;">
         
         <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
-            <span class="title-text" style="font-weight: bold; font-size: 15px; color: #fff; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; padding-right: 10px;">
+            <span class="title-text" style="font-weight: bold; font-size: 15px; color: #fff; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; padding-right: 15px;">
                 ${v.title}
             </span>
-            <div class="badge-group" style="display: flex; gap: 4px; flex-shrink: 0;">
+            <div class="badge-group" style="display: flex; gap: 4px; flex-shrink: 0; margin-right: 10px;">
                 ${plusTag}
                 ${adultTag}
             </div>
