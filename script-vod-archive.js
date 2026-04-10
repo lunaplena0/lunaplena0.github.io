@@ -65,21 +65,22 @@
         <span class="duration" style="position: absolute; bottom: 4px; right: 4px; background: rgba(0,0,0,0.8); color: #fff; font-size: 11px; padding: 2px 4px; border-radius: 4px;">${v.totalTime}</span>
     </div>
     
-    <div class="vod-info" style="display: flex; flex-direction: column; justify-content: center; flex: 1; min-width: 0; padding: 5px 0 5px 15px; gap: 10px;">
+    <div class="vod-info" style="display: flex; flex-direction: column; flex: 1; min-width: 0; padding: 5px 0 5px 15px; gap: 8px; align-items: flex-start;">
         
-        <div style="display: flex; align-items: flex-start; width: 100%; position: relative;">
-            <span class="title-text" style="font-weight: bold; font-size: 15px; color: #fff; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; padding-right: 10px;">
+        <div style="display: flex; width: 100%; align-items: center; justify-content: space-between;">
+            <div class="title-text" style="font-weight: bold; font-size: 15px; color: #fff; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex-grow: 1;">
                 ${v.title}
-            </span>
-            <div class="badge-group" style="display: flex; gap: 4px; flex-shrink: 0; align-items: center; height: 20px;">
+            </div>
+            
+            <div class="badge-group" style="display: flex; gap: 4px; flex-shrink: 0; margin-left: 10px;">
                 ${plusTag}
                 ${adultTag}
             </div>
         </div>
         
-        <div class="vod-tags" style="display: flex; flex-wrap: wrap; gap: 5px; width: fit-content;">
+        <div class="vod-tags" style="display: flex; flex-wrap: wrap; gap: 4px;">
             ${v.category.split(/[,/ ]+/).filter(c => c.trim()).map(c => 
-                `<span style="font-size: 10px; color: ${getColor(c)}; border: 1px solid ${getColor(c)}40; padding: 2px 6px; border-radius: 4px; background: rgba(0,0,0,0.2); height: 18px; display: inline-flex; align-items: center; white-space: nowrap;">
+                `<span style="font-size: 10px; color: ${getColor(c)}; border: 1px solid ${getColor(c)}40; padding: 1px 6px; border-radius: 4px; background: rgba(0,0,0,0.2); height: 18px; display: inline-flex; align-items: center; white-space: nowrap;">
                     ${c}
                 </span>`
             ).join('')}
