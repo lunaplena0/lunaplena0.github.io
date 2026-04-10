@@ -96,11 +96,11 @@
 <div class="timer-wrapper">
     <div class="label">BADABI Coming Soon</div>
     <div id="timer">00 : 00 : 00 : 00</div>
-    <div class="target-date" id="target-display">2026.04.10 16:00:00</div>
+    <div class="target-date" id="target-display">2026.04.10 16:05:00</div>
 </div>
 
 <script>
-    const TARGET_DATE = new Date("2026-04-10T11:21:00").getTime();
+    const TARGET_DATE = new Date("2026-04-10T11:25:00").getTime();
     let isRedirecting = false;
 
     function updateTimer() {
@@ -122,17 +122,18 @@
         const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
         const secs = Math.floor((diff % (1000 * 60)) / 1000);
 
-        // 표시 형식 최적화
-        const dStr = days > 0 ? `${days} : ` : "";
-        const hStr = (days > 0 || hours > 0) ? `${String(hours).padStart(2, '0')} : ` : "";
-        const mStr = (days > 0 || hours > 0 || mins > 0) ? `${String(mins).padStart(2, '0')} : ` : "";
-        const sStr = String(secs).padStart(2, '0');
+        // 텍스트 업데이트
+        timerEl.innerText = (days > 0) ? `${days} : ${String(hours).padStart(2, '0')} : ${String(mins).padStart(2, '0')} : ${String(secs).padStart(2, '0')}` :
+                           (hours > 0) ? `${hours} : ${String(mins).padStart(2, '0')} : ${String(secs).padStart(2, '0')}` :
+                           (mins > 0) ? `${mins} : ${String(secs).padStart(2, '0')}` : `${secs}`;
 
-        timerEl.innerText = dStr + hStr + mStr + sStr;
-
+        // 스케일 및 애니메이션 로직
         let scale = 1;
         if (diff <= 300000) scale = 1.05; 
-        if (diff <= 60000)  scale = 1.1; 
+        if (diff <= 240000) scale = 1.1;  
+        if (diff <= 180000) scale = 1.15; 
+        if (diff <= 120000) scale = 1.2;  
+        if (diff <= 60000)  scale = 1.25; 
         document.documentElement.style.setProperty('--scale', scale);
 
         if (diff <= 120000) {
@@ -140,18 +141,21 @@
             timerEl.classList.add('coming-soon');
 
             let duration, amount;
-            if (diff > 60000) { duration = "1.5s"; amount = 1.03; }
-            else if (diff > 20000) { duration = "1.0s"; amount = 1.05; }
-            else { duration = "0.6s"; amount = 1.08; }
+            if (diff > 90000) { duration = "2.0s"; amount = 1.02; }
+            else if (diff > 60000) { duration = "1.5s"; amount = 1.03; }
+            else if (diff > 20000) { duration = "1.2s"; amount = 1.04; }
+            else if (diff > 13000) { duration = "1.0s"; amount = 1.05; }
+            else if (diff > 10000) { duration = "0.8s"; amount = 1.06; }
+            else { duration = "0.5s"; amount = 1.07; }
 
             document.documentElement.style.setProperty('--pulse-duration', duration);
             document.documentElement.style.setProperty('--pulse-amount', amount);
         }
     }
 
-    setInterval(updateTimer, 100);
+    // 0.1초마다 체크하여 더 정밀하게 반응
+    const timerInterval = setInterval(updateTimer, 100);
     updateTimer();
 </script>
-
 </body>
 </html>
