@@ -1,69 +1,68 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>바다비 다시보기 기록함</title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
-    <style>
-        :root { --bg-color: #010306; --card-bg: #030812; --accent: #3385ff; --text-main: #f0faff; --text-sub: #5c7285; --border: #0a1425; --modal-bg: rgba(0, 0, 0, 0.9); }
-        * { box-sizing: border-box; }
-        body { background-color: var(--bg-color); background-image: radial-gradient(circle at top right, #051020 0%, #010306 100%); color: var(--text-main); font-family: 'Noto Sans KR', sans-serif; margin: 0; padding: 0; overflow-x: hidden; }
-        body.modal-open { overflow: hidden; }
-        body.loading { overflow: hidden; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>바다비 다시보기 기록함</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg-color: #010306; --card-bg: #030812; --accent: #3385ff; --text-main: #f0faff; --text-sub: #5c7285; --border: #0a1425; --modal-bg: rgba(0, 0, 0, 0.9); }
+        * { box-sizing: border-box; }
+        body { background-color: var(--bg-color); background-image: radial-gradient(circle at top right, #051020 0%, #010306 100%); color: var(--text-main); font-family: 'Noto Sans KR', sans-serif; margin: 0; padding: 0; overflow-x: hidden; }
+        body.modal-open { overflow: hidden; }
+        body.loading { overflow: hidden; }
 
-        #loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(1, 3, 6, 0.98); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; transition: opacity 0.5s ease; }
-        .loader-circle { width: 50px; height: 50px; border: 3px solid #0a1425; border-top: 3px solid #3385ff; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 15px; }
-        .loader-text { color: #3385ff; font-size: 14px; letter-spacing: 2px; font-weight: bold; animation: pulse 1.5s infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+        #loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(1, 3, 6, 0.98); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; transition: opacity 0.5s ease; }
+        .loader-circle { width: 50px; height: 50px; border: 3px solid #0a1425; border-top: 3px solid #3385ff; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 15px; }
+        .loader-text { color: #3385ff; font-size: 14px; letter-spacing: 2px; font-weight: bold; animation: pulse 1.5s infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
 
-        .wrapper { width: 100%; max-width: 900px; margin: 0 auto; padding: 40px 20px; display: flex; flex-direction: column; gap: 20px; }
-        .header-card { background: var(--card-bg); border-radius: 16px; padding: 25px; border: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-        .header-info h1 { margin: 0; font-size: 22px; color: var(--accent); }
-        .btn-home { text-decoration: none; color: var(--text-main); background: #0a1a30; padding: 8px 14px; border-radius: 8px; font-size: 13px; border: 1px solid var(--border); }
+        .wrapper { width: 100%; max-width: 900px; margin: 0 auto; padding: 40px 20px; display: flex; flex-direction: column; gap: 20px; }
+        .header-card { background: var(--card-bg); border-radius: 16px; padding: 25px; border: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .header-info h1 { margin: 0; font-size: 22px; color: var(--accent); }
+        .btn-home { text-decoration: none; color: var(--text-main); background: #0a1a30; padding: 8px 14px; border-radius: 8px; font-size: 13px; border: 1px solid var(--border); }
 
-        .dashboard-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 15px; }
-        .stat-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        .divider { border: 0; height: 1px; background: var(--border); margin: 20px 0; }
-        .sub-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-        .sub-val { font-size: 14px; font-weight: bold; color: #fff; display: block; margin-top: 2px; }
-        .sub-lbl { font-size: 10px; color: var(--text-sub); display: block; }
+        .dashboard-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 15px; }
+        .stat-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .divider { border: 0; height: 1px; background: var(--border); margin: 20px 0; }
+        .sub-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .sub-val { font-size: 14px; font-weight: bold; color: #fff; display: block; margin-top: 2px; }
+        .sub-lbl { font-size: 10px; color: var(--text-sub); display: block; }
 
-        .chart-box { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
-        #category-chart { width: 120px; height: 120px; border-radius: 50%; position: relative; margin-bottom: 20px; }
-        #category-chart::after { content: ""; position: absolute; inset: 22px; background: var(--card-bg); border-radius: 50%; }
-        .chart-legend { font-size: 11px; color: var(--text-sub); display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
-        .legend-item { display: flex; align-items: center; gap: 4px; background: rgba(255,255,255,0.03); padding: 4px 8px; border-radius: 6px; }
-        .dot { width: 8px; height: 8px; border-radius: 2px; }
+        .chart-box { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+        #category-chart { width: 120px; height: 120px; border-radius: 50%; position: relative; margin-bottom: 20px; }
+        #category-chart::after { content: ""; position: absolute; inset: 22px; background: var(--card-bg); border-radius: 50%; }
+        .chart-legend { font-size: 11px; color: var(--text-sub); display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+        .legend-item { display: flex; align-items: center; gap: 4px; background: rgba(255,255,255,0.03); padding: 4px 8px; border-radius: 6px; }
+        .dot { width: 8px; height: 8px; border-radius: 2px; }
 
-        .date-header { font-size: 16px; font-weight: bold; color: var(--accent); margin: 35px 0 15px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
-        .vod-item { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; display: flex; cursor: pointer; transition: 0.2s; overflow: hidden; margin-bottom: 12px; }
-        .vod-thumb { width: 140px; height: 80px; position: relative; min-width: 140px; }
-        .vod-thumb img { width: 100%; height: 100%; object-fit: cover; }
-        .duration { position: absolute; bottom: 5px; right: 5px; background: rgba(0,0,0,0.8); font-size: 10px; padding: 2px 5px; border-radius: 4px; }
-        .vod-body { padding: 12px 15px; display: flex; flex-direction: column; justify-content: center; flex: 1; min-width: 0; }
-        .vod-title { font-size: 14px; font-weight: bold; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
-        .title-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .date-header { font-size: 16px; font-weight: bold; color: var(--accent); margin: 35px 0 15px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+        .vod-item { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; display: flex; cursor: pointer; transition: 0.2s; overflow: hidden; margin-bottom: 12px; }
+        .vod-thumb { width: 140px; height: 80px; position: relative; min-width: 140px; }
+        .vod-thumb img { width: 100%; height: 100%; object-fit: cover; }
+        .duration { position: absolute; bottom: 5px; right: 5px; background: rgba(0,0,0,0.8); font-size: 10px; padding: 2px 5px; border-radius: 4px; }
+        .vod-body { padding: 12px 15px; display: flex; flex-direction: column; justify-content: center; flex: 1; min-width: 0; }
+        .vod-title { font-size: 14px; font-weight: bold; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+        .title-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-        .tag-common { display: inline-flex; align-items: center; justify-content: center; height: 22px; padding: 0 10px; border-radius: 6px; font-size: 11px; font-weight: 800; white-space: nowrap; line-height: 1; }
-        .tag-plus { background: #121f33; color: #e6e02e; border: 2px solid #e6e02e; }
+        .tag-common { display: inline-flex; align-items: center; justify-content: center; height: 22px; padding: 0 10px; border-radius: 6px; font-size: 11px; font-weight: 800; white-space: nowrap; line-height: 1; }
+        .tag-plus { background: #121f33; color: #e6e02e; border: 2px solid #e6e02e; }
 
-        #modal-overlay, #analysis-overlay { position: fixed; inset: 0; background: var(--modal-bg); display: none; justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(8px); padding: 20px; }
-        #modal-content, .analysis-content { background: var(--card-bg); width: 100%; max-width: 450px; border-radius: 20px; border: 1px solid var(--border); overflow-y: auto; max-height: 90vh; scrollbar-width: none; }
-        #modal-content::-webkit-scrollbar { display: none; }
+        #modal-overlay, #analysis-overlay { position: fixed; inset: 0; background: var(--modal-bg); display: none; justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(8px); padding: 20px; }
+        #modal-content, .analysis-content { background: var(--card-bg); width: 100%; max-width: 450px; border-radius: 20px; border: 1px solid var(--border); overflow-y: auto; max-height: 90vh; scrollbar-width: none; }
+        #modal-content::-webkit-scrollbar { display: none; }
 
-        .btn-action { flex: 1; padding: 14px; text-align: center; border-radius: 12px; font-weight: bold; text-decoration: none; cursor: pointer; border: none; font-size: 14px; }
-        .btn-go { background: var(--accent); color: white; }
-        .btn-close { background: #1a202c; color: #a0aec0; }
+        .btn-action { flex: 1; padding: 14px; text-align: center; border-radius: 12px; font-weight: bold; text-decoration: none; cursor: pointer; border: none; font-size: 14px; }
+        .btn-go { background: var(--accent); color: white; }
+        .btn-close { background: #1a202c; color: #a0aec0; }
 
-        @media (max-width: 650px) {
-            .vod-item { height: 80px; margin-bottom: 8px; }
-            .vod-thumb { width: 135px; min-width: 135px; }
-            .dashboard-grid { grid-template-columns: 1fr; }
-        }
-        /* 리포트 모달 내의 레이아웃 */
-/* 분석 모달 컨테이너 수정 */
+        @media (max-width: 650px) {
+            .vod-item { height: 80px; margin-bottom: 8px; }
+            .vod-thumb { width: 135px; min-width: 135px; }
+            .dashboard-grid { grid-template-columns: 1fr; }
+        }
+        /* 리포트 모달 내의 레이아웃 */
 .analysis-content {
     background: var(--card-bg);
     width: 100%;
@@ -87,12 +86,11 @@
 #analysis-result::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
 
 /* 레이아웃 구조 변경 */
-.analysis-layout { 
-    display: grid; 
-    grid-template-columns: 5.5fr 4.5fr; 
-    gap: 25px; 
-    align-items: start;
-    width: 100%;
+.analysis-layout {
+    display: grid;
+    grid-template-columns: 5.5fr 4.5fr;
+    gap: 25px;
+    align-items: start; /* 위쪽 정렬 */
 }
 
 /* 왼쪽 리포트 카드 */
@@ -109,377 +107,353 @@
     overflow-y: visible !important;
 }
 
-/* 2. 분석 리포트 모달 가로폭 확장 */
+/* 모바일 대응 */
 @media (max-width: 850px) {
-    #analysis-overlay {
-        padding: 10px; /* 모달 바깥 여백 최소화 */
-    }
-
-    .analysis-content {
-        width: 100% !important; /* 가로를 꽉 채움 */
-        max-width: none;
-        height: 95vh; /* 높이를 키워 시원하게 배치 */
-        border-radius: 16px;
-    }
-
-    #analysis-result {
-        padding: 15px 8px; /* 리포트 내부 좌우 여백을 8px까지 줄임 */
-    }
-
-    /* 통계 카드 내부 여백 및 폰트 조정 */
-    .analysis-layout > div:first-child > div {
-        padding: 12px !important;
-        margin-bottom: 10px;
-    }
-
-    /* 테마별 분포 칩 크기 조정 */
-    .analysis-layout span {
-        font-size: 10px !important;
-        padding: 2px 6px !important;
+    .analysis-layout {
+        grid-template-columns: 1fr;
     }
 }
-    </style>
+    </style>
 </head>
 <body class="loading">
 
 <div id="loading-overlay">
-    <div class="loader-circle"></div>
-    <div class="loader-text">소중한 기록들을 꺼내오고 있어요 . . .</div>
+    <div class="loader-circle"></div>
+    <div class="loader-text">소중한 기록들을 꺼내오고 있어요 . . .</div>
 </div>
 
 <div class="wrapper">
-    <div class="header-card">
-        <div class="header-info">
-            <h1>바다비 다시보기 기록함</h1>
-            <div id="update-time" style="font-size:11px; color:var(--text-sub); margin-top:4px;">불러오는 중...</div>
-        </div>
-        <a href="index.html" class="btn-home">🏠 홈으로</a>
-    </div>
+    <div class="header-card">
+        <div class="header-info">
+            <h1>바다비 다시보기 기록함</h1>
+            <div id="update-time" style="font-size:11px; color:var(--text-sub); margin-top:4px;">불러오는 중...</div>
+        </div>
+        <a href="index.html" class="btn-home">🏠 홈으로</a>
+    </div>
 
-    <div class="dashboard-grid">
-        <div class="stat-card">
-            <div style="display: flex; justify-content: space-around; align-items: center; padding: 10px 0;">
-                <div style="text-align: center; flex: 1;">
-                    <span style="font-size:11px; color:var(--text-sub); display:block; margin-bottom:6px;">전체 누적 시간</span>
-                    <h2 id="total-hour" style="margin: 0; font-size: 24px; font-weight: 700; color: var(--accent);">0시간 0분</h2>
-                </div>
-                <div style="width: 1px; height: 40px; background: var(--border);"></div>
-                <div style="text-align: center; flex: 1;">
-                    <span style="font-size:11px; color:#e6e02e; font-weight: bold; display:block; margin-bottom:6px;">⭐ 구독플러스 비중</span>
-                    <span id="plus-hour" style="font-size: 18px; font-weight: bold; color: #fff; display:block;">0시간 0분</span>
-                    <span id="plus-ratio" style="font-size: 11px; color: #e6e02e; font-weight: bold; opacity: 0.9;">(0.0%)</span>
-                </div>
-            </div>
-            <hr class="divider">
-            <div class="sub-grid">
-                <div style="text-align: center;"><span class="sub-lbl">최장 방송</span><span class="sub-val" id="max-time">0:00:00</span></div>
-                <div style="text-align: center;"><span class="sub-lbl">최단 방송</span><span class="sub-val" id="min-time">0:00:00</span></div>
-                <div style="text-align: center;"><span class="sub-lbl">평균 시간</span><span class="sub-val" id="avg-time">0:00:00</span></div>
-            </div>
-            <button onclick="openAnalysisModal()" style="margin-top: 20px; width: 100%; padding: 12px; background: rgba(51, 133, 255, 0.1); border: 1px dashed var(--accent); color: var(--accent); border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: bold;">📊 기간별 상세 분석 리포트 보기</button>
-        </div>
+    <div class="dashboard-grid">
+        <div class="stat-card">
+            <div style="display: flex; justify-content: space-around; align-items: center; padding: 10px 0;">
+                <div style="text-align: center; flex: 1;">
+                    <span style="font-size:11px; color:var(--text-sub); display:block; margin-bottom:6px;">전체 누적 시간</span>
+                    <h2 id="total-hour" style="margin: 0; font-size: 24px; font-weight: 700; color: var(--accent);">0시간 0분</h2>
+                </div>
+                <div style="width: 1px; height: 40px; background: var(--border);"></div>
+                <div style="text-align: center; flex: 1;">
+                    <span style="font-size:11px; color:#e6e02e; font-weight: bold; display:block; margin-bottom:6px;">⭐ 구독플러스 비중</span>
+                    <span id="plus-hour" style="font-size: 18px; font-weight: bold; color: #fff; display:block;">0시간 0분</span>
+                    <span id="plus-ratio" style="font-size: 11px; color: #e6e02e; font-weight: bold; opacity: 0.9;">(0.0%)</span>
+                </div>
+            </div>
+            <hr class="divider">
+            <div class="sub-grid">
+                <div style="text-align: center;"><span class="sub-lbl">최장 방송</span><span class="sub-val" id="max-time">0:00:00</span></div>
+                <div style="text-align: center;"><span class="sub-lbl">최단 방송</span><span class="sub-val" id="min-time">0:00:00</span></div>
+                <div style="text-align: center;"><span class="sub-lbl">평균 시간</span><span class="sub-val" id="avg-time">0:00:00</span></div>
+            </div>
+            <button onclick="openAnalysisModal()" style="margin-top: 20px; width: 100%; padding: 12px; background: rgba(51, 133, 255, 0.1); border: 1px dashed var(--accent); color: var(--accent); border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: bold;">📊 기간별 상세 분석 리포트 보기</button>
+        </div>
 
-        <div class="stat-card chart-box">
-            <div id="category-chart"></div>
-            <div id="legend" class="chart-legend"></div>
-        </div>
-    </div>
+        <div class="stat-card chart-box">
+            <div id="category-chart"></div>
+            <div id="legend" class="chart-legend"></div>
+        </div>
+    </div>
 
-    <div id="vod-content"></div>
+    <div id="vod-content"></div>
 </div>
 
 <div id="modal-overlay" onclick="if(event.target === this) closeModal()">
-    <div id="modal-content">
-        <img id="m-thumb" style="width:100%; height:200px; object-fit:cover;">
-        <div style="padding: 20px;">
-            <div id="m-title-area" style="margin-bottom:20px;">
-                <div id="m-title" style="font-weight:bold; font-size:17px; line-height:1.4;"></div>
-                <div id="m-plus" style="margin-top:8px;"></div>
-            </div>
-            <div style="border-left: 3px solid var(--border); padding-left: 12px; margin-bottom: 18px;">
-                <span style="font-size:11px; color:var(--text-sub); display:block; margin-bottom:5px;">📅 방송 정보</span>
-                <span id="m-date" style="font-size:14px; color:var(--text-main);"></span>
-            </div>
-            <div id="row-game" style="display:none; margin-bottom:15px;"><span style="font-size:11px; color:var(--text-sub); display:block; margin-bottom:5px;">🎮 게임</span><div id="m-game"></div></div>
-            <div id="row-song" style="display:none; margin-bottom:15px;"><span style="font-size:11px; color:var(--text-sub); display:block; margin-bottom:5px;">🎵 노래</span><div id="m-song"></div></div>
-            <div id="row-talk" style="display:none; margin-bottom:15px;"><span style="font-size:11px; color:var(--text-sub); display:block; margin-bottom:5px;">💬 소통</span><div id="m-talk"></div></div>
-            
-            <div style="display:flex; gap:10px; margin-top:20px;">
-                <a id="m-link" href="#" target="_blank" class="btn-action btn-go">시청하기 ↗</a>
-                <button class="btn-action btn-close" onclick="closeModal()">닫기</button>
-            </div>
-        </div>
-    </div>
+    <div id="modal-content">
+        <img id="m-thumb" style="width:100%; height:200px; object-fit:cover;">
+        <div style="padding: 20px;">
+            <div id="m-title-area" style="margin-bottom:20px;">
+                <div id="m-title" style="font-weight:bold; font-size:17px; line-height:1.4;"></div>
+                <div id="m-plus" style="margin-top:8px;"></div>
+            </div>
+            <div style="border-left: 3px solid var(--border); padding-left: 12px; margin-bottom: 18px;">
+                <span style="font-size:11px; color:var(--text-sub); display:block; margin-bottom:5px;">📅 방송 정보</span>
+                <span id="m-date" style="font-size:14px; color:var(--text-main);"></span>
+            </div>
+            <div id="row-game" style="display:none; margin-bottom:15px;"><span style="font-size:11px; color:var(--text-sub); display:block; margin-bottom:5px;">🎮 게임</span><div id="m-game"></div></div>
+            <div id="row-song" style="display:none; margin-bottom:15px;"><span style="font-size:11px; color:var(--text-sub); display:block; margin-bottom:5px;">🎵 노래</span><div id="m-song"></div></div>
+            <div id="row-talk" style="display:none; margin-bottom:15px;"><span style="font-size:11px; color:var(--text-sub); display:block; margin-bottom:5px;">💬 소통</span><div id="m-talk"></div></div>
+            
+            <div style="display:flex; gap:10px; margin-top:20px;">
+                <a id="m-link" href="#" target="_blank" class="btn-action btn-go">시청하기 ↗</a>
+                <button class="btn-action btn-close" onclick="closeModal()">닫기</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <div id="analysis-overlay">
-    <div class="analysis-content" style="max-width:1000px; width:95%; background: var(--card-bg); border-radius: 24px; border: 1px solid var(--border); display:flex; flex-direction:column;">
-        <div style="padding:20px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
-            <h3 style="margin:0; font-size:18px; color:var(--accent);">📊 기간별 상세 분석</h3>
-            <div style="display:flex; gap:8px;">
-                <select id="analysis-year" onchange="renderAnalysis()" style="background:#0a1a30; color:#fff; border:1px solid var(--border); border-radius:6px; padding:4px 8px;"></select>
-                <select id="analysis-type" onchange="renderAnalysis()" style="background:#0a1a30; color:#fff; border:1px solid var(--border); border-radius:6px; padding:4px 8px;">
-                    <option value="month">월별 보기</option>
-                    <option value="year">연도별 요약</option>
-                </select>
-            </div>
-        </div>
-        <div id="analysis-result" style="flex:1; overflow-y:auto; padding:20px;"></div>
-        <div style="padding:15px; border-top:1px solid var(--border);">
-            <button onclick="closeAnalysisModal()" style="width:100%; padding:12px; background:#1a202c; color:#a0aec0; border:none; border-radius:12px; font-weight:bold; cursor:pointer;">창 닫기</button>
-        </div>
-    </div>
+    <div class="analysis-content" style="max-width:1000px; width:95%; background: var(--card-bg); border-radius: 24px; border: 1px solid var(--border); display:flex; flex-direction:column;">
+        <div style="padding:20px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
+            <h3 style="margin:0; font-size:18px; color:var(--accent);">📊 기간별 상세 분석</h3>
+            <div style="display:flex; gap:8px;">
+                <select id="analysis-year" onchange="renderAnalysis()" style="background:#0a1a30; color:#fff; border:1px solid var(--border); border-radius:6px; padding:4px 8px;"></select>
+                <select id="analysis-type" onchange="renderAnalysis()" style="background:#0a1a30; color:#fff; border:1px solid var(--border); border-radius:6px; padding:4px 8px;">
+                    <option value="month">월별 보기</option>
+                    <option value="year">연도별 요약</option>
+                </select>
+            </div>
+        </div>
+        <div id="analysis-result" style="flex:1; overflow-y:auto; padding:20px;"></div>
+        <div style="padding:15px; border-top:1px solid var(--border);">
+            <button onclick="closeAnalysisModal()" style="width:100%; padding:12px; background:#1a202c; color:#a0aec0; border:none; border-radius:12px; font-weight:bold; cursor:pointer;">창 닫기</button>
+        </div>
+    </div>
 </div>
 
 <script>
-    const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTfTHMy1hImniay9QEPDcMq5C4Yo5yFpmRtBlWo6UXK-FNxABQYbtfGpEsKom2O-OIJPnEi8LLy1Qqx/pub?gid=0&single=true&output=tsv";
-    let allVods = [];
-     /* 태그 외곽선, 색상수정 */
-    const catColors = { 
-        '게임': '#70a1ff',  // 밝은 스카이블루 (기존보다 밝음)
-        '노래': '#ff7eb9',  // 선명한 핑크
-        '소통': '#2ed573',  // 활기찬 그린
-        'ASMR': '#cd84f1', // 부드러운 연보라
-        '풀트': '#ffbe76',  // 따뜻한 오렌지
-        '시네티': '#00d8ff', // 선명한 하늘색
-        '대회': '#ff4757',  // 강렬한 레드 (코랄빛)
-        '합방': '#fffa65',  // 밝은 노란색 (눈에 확 띔)
-        '기타': '#d2dae2'   // 밝은 그레이
-    };
+    const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTfTHMy1hImniay9QEPDcMq5C4Yo5yFpmRtBlWo6UXK-FNxABQYbtfGpEsKom2O-OIJPnEi8LLy1Qqx/pub?gid=0&single=true&output=tsv";
+    let allVods = [];
+     /* 태그 외곽선, 색상수정 */
+    const catColors = { 
+        '게임': '#70a1ff',  // 밝은 스카이블루 (기존보다 밝음)
+        '노래': '#ff7eb9',  // 선명한 핑크
+        '소통': '#2ed573',  // 활기찬 그린
+        'ASMR': '#cd84f1', // 부드러운 연보라
+        '풀트': '#ffbe76',  // 따뜻한 오렌지
+        '시네티': '#00d8ff', // 선명한 하늘색
+        '대회': '#ff4757',  // 강렬한 레드 (코랄빛)
+        '합방': '#fffa65',  // 밝은 노란색 (눈에 확 띔)
+        '기타': '#d2dae2'   // 밝은 그레이
+    };
 
 
-    function getColor(name) { for (let key in catColors) { if (name.includes(key)) return catColors[key]; } return catColors['기타']; }
-    function timeToSeconds(t) { if (!t || t === '-') return 0; const p = t.split(':').map(Number); return (p[0] * 3600) + (p[1] * 60) + (p[2] || 0); }
-    function secondsToTime(s) { const h = Math.floor(s / 3600); const m = Math.floor((s % 3600) / 60); const sec = s % 60; return `${h}:${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`; }
+    function getColor(name) { for (let key in catColors) { if (name.includes(key)) return catColors[key]; } return catColors['기타']; }
+    function timeToSeconds(t) { if (!t || t === '-') return 0; const p = t.split(':').map(Number); return (p[0] * 3600) + (p[1] * 60) + (p[2] || 0); }
+    function secondsToTime(s) { const h = Math.floor(s / 3600); const m = Math.floor((s % 3600) / 60); const sec = s % 60; return `${h}:${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`; }
 
-    window.onload = () => {
-        const overlay = document.getElementById('loading-overlay');
-        fetch(sheetUrl + `&t=${new Date().getTime()}`)
-            .then(res => res.text())
-            .then(tsv => {
-                const lines = tsv.split(/\r?\n/).filter(l => l.trim() !== "");
-                allVods = [];
-                for (let i = 1; i < lines.length; i++) {
-                    const p = lines[i].split('\t').map(v => v.trim());
-                    if (!p[0]) continue;
-                    allVods.push({
-                        date: p[0], title: p[1], link: p[2], thumb: p[3], totalTime: p[4],
-                        isPlus: p[5] === '예' || p[5] === 'O',
-                        isAdult: p[6] === '예' || p[6] === 'O',
-                        gData: p[7], sData: p[8], tData: p[9], cData: p[10],
-                        category: p[11] || "기타"
-                    });
-                }
-                allVods.sort((a, b) => new Date(b.date) - new Date(a.date));
-                renderList(allVods);
-                calculateAllStats(allVods);
-                document.getElementById('update-time').textContent = `최근 업데이트: ${new Date().toLocaleTimeString()}`;
-                setTimeout(() => { overlay.style.display = 'none'; document.body.classList.remove('loading'); }, 800);
-            });
-    };
+    window.onload = () => {
+        const overlay = document.getElementById('loading-overlay');
+        fetch(sheetUrl + `&t=${new Date().getTime()}`)
+            .then(res => res.text())
+            .then(tsv => {
+                const lines = tsv.split(/\r?\n/).filter(l => l.trim() !== "");
+                allVods = [];
+                for (let i = 1; i < lines.length; i++) {
+                    const p = lines[i].split('\t').map(v => v.trim());
+                    if (!p[0]) continue;
+                    allVods.push({
+                        date: p[0], title: p[1], link: p[2], thumb: p[3], totalTime: p[4],
+                        isPlus: p[5] === '예' || p[5] === 'O',
+                        isAdult: p[6] === '예' || p[6] === 'O',
+                        gData: p[7], sData: p[8], tData: p[9], cData: p[10],
+                        category: p[11] || "기타"
+                    });
+                }
+                allVods.sort((a, b) => new Date(b.date) - new Date(a.date));
+                renderList(allVods);
+                calculateAllStats(allVods);
+                document.getElementById('update-time').textContent = `최근 업데이트: ${new Date().toLocaleTimeString()}`;
+                setTimeout(() => { overlay.style.display = 'none'; document.body.classList.remove('loading'); }, 800);
+            });
+    };
 
-    function renderList(data) {
-        const container = document.getElementById('vod-content');
-        container.innerHTML = '';
-        const groups = {};
-        data.forEach(v => { if (!groups[v.date]) groups[v.date] = []; groups[v.date].push(v); });
-        Object.keys(groups).sort((a, b) => new Date(b) - new Date(a)).forEach(date => {
-            const groupDiv = document.createElement('div');
-            groupDiv.innerHTML = `<div class="date-header">${date}</div><div class="vod-list"></div>`;
-            groups[date].forEach(v => {
-                const item = document.createElement('div');
-                item.className = 'vod-item';
-                item.onclick = () => openModal(v);
-                const plusTag = v.isPlus ? `<span class="tag-common tag-plus" style="height:18px; font-size:9px; margin-left:5px;">구독+</span>` : '';
-                item.innerHTML = `
-                    <div class="vod-thumb"><img src="${v.thumb}"><span class="duration">${v.totalTime}</span></div>
-                    <div class="vod-body">
-                        <div class="vod-title"><span class="title-text">${v.title}</span>${plusTag}</div>
-                        <div style="display:flex; flex-wrap:wrap; gap:4px;">
-                            ${v.category.split(/[,/ ]+/).filter(c => c.trim()).map(c => `<span style="font-size:10px; color:${getColor(c)}; border:1px solid ${getColor(c)}60; padding:1px 5px; border-radius:4px;">${c}</span>`).join('')}
-                        </div>
-                    </div>`;
-                groupDiv.querySelector('.vod-list').appendChild(item);
-            });
-            container.appendChild(groupDiv);
-        });
-    }
+    function renderList(data) {
+        const container = document.getElementById('vod-content');
+        container.innerHTML = '';
+        const groups = {};
+        data.forEach(v => { if (!groups[v.date]) groups[v.date] = []; groups[v.date].push(v); });
+        Object.keys(groups).sort((a, b) => new Date(b) - new Date(a)).forEach(date => {
+            const groupDiv = document.createElement('div');
+            groupDiv.innerHTML = `<div class="date-header">${date}</div><div class="vod-list"></div>`;
+            groups[date].forEach(v => {
+                const item = document.createElement('div');
+                item.className = 'vod-item';
+                item.onclick = () => openModal(v);
+                const plusTag = v.isPlus ? `<span class="tag-common tag-plus" style="height:18px; font-size:9px; margin-left:5px;">구독+</span>` : '';
+                item.innerHTML = `
+                    <div class="vod-thumb"><img src="${v.thumb}"><span class="duration">${v.totalTime}</span></div>
+                    <div class="vod-body">
+                        <div class="vod-title"><span class="title-text">${v.title}</span>${plusTag}</div>
+                        <div style="display:flex; flex-wrap:wrap; gap:4px;">
+                            ${v.category.split(/[,/ ]+/).filter(c => c.trim()).map(c => `<span style="font-size:10px; color:${getColor(c)}; border:1px solid ${getColor(c)}60; padding:1px 5px; border-radius:4px;">${c}</span>`).join('')}
+                        </div>
+                    </div>`;
+                groupDiv.querySelector('.vod-list').appendChild(item);
+            });
+            container.appendChild(groupDiv);
+        });
+    }
 
-    function openModal(v) {
-        document.getElementById('m-thumb').src = v.thumb;
-        document.getElementById('m-title').textContent = v.title;
-        document.getElementById('m-date').textContent = `${v.date} (${v.totalTime})`;
-        document.getElementById('m-link').href = v.link;
-        document.getElementById('m-plus').innerHTML = v.isPlus ? `<span class="tag-common tag-plus" style="padding: 2px 8px; font-size: 11px;">구독플러스 전용</span>` : '';
-        
-        const setSec = (id, rowId, data, label) => {
-            const row = document.getElementById(rowId);
-            const box = document.getElementById(id);
-            if (data && data !== '-') {
-                row.style.display = 'block';
-                box.innerHTML = data.split('\n').map(l => `<div style="font-size:13px; margin-bottom:4px; color:#ccc;">• ${l}</div>`).join('');
-            } else { row.style.display = 'none'; }
-        };
-        setSec('m-game', 'row-game', v.gData);
-        setSec('m-song', 'row-song', v.sData);
-        setSec('m-talk', 'row-talk', v.tData);
+    function openModal(v) {
+        document.getElementById('m-thumb').src = v.thumb;
+        document.getElementById('m-title').textContent = v.title;
+        document.getElementById('m-date').textContent = `${v.date} (${v.totalTime})`;
+        document.getElementById('m-link').href = v.link;
+        document.getElementById('m-plus').innerHTML = v.isPlus ? `<span class="tag-common tag-plus" style="padding: 2px 8px; font-size: 11px;">구독플러스 전용</span>` : '';
+        
+        const setSec = (id, rowId, data, label) => {
+            const row = document.getElementById(rowId);
+            const box = document.getElementById(id);
+            if (data && data !== '-') {
+                row.style.display = 'block';
+                box.innerHTML = data.split('\n').map(l => `<div style="font-size:13px; margin-bottom:4px; color:#ccc;">• ${l}</div>`).join('');
+            } else { row.style.display = 'none'; }
+        };
+        setSec('m-game', 'row-game', v.gData);
+        setSec('m-song', 'row-song', v.sData);
+        setSec('m-talk', 'row-talk', v.tData);
 
-        document.getElementById('modal-overlay').style.display = 'flex';
-        document.body.classList.add('modal-open');
-    }
+        document.getElementById('modal-overlay').style.display = 'flex';
+        document.body.classList.add('modal-open');
+    }
 
-    function closeModal() { document.getElementById('modal-overlay').style.display = 'none'; document.body.classList.remove('modal-open'); }
+    function closeModal() { document.getElementById('modal-overlay').style.display = 'none'; document.body.classList.remove('modal-open'); }
 
-    function calculateAllStats(data) {
-        let totalSec = 0, plusSec = 0, maxSec = 0, minSec = Infinity;
-        let catMap = {};
-        data.forEach(v => {
-            const s = timeToSeconds(v.totalTime);
-            if (s > 0) { totalSec += s; if (v.isPlus) plusSec += s; maxSec = Math.max(maxSec, s); minSec = Math.min(minSec, s); }
-            v.category.split(/[,/ ]+/).filter(c => c.trim()).forEach(c => { catMap[c] = (catMap[c] || 0) + 1; });
-        });
-        document.getElementById('total-hour').textContent = `${Math.floor(totalSec / 3600)}시간 ${Math.floor((totalSec % 3600) / 60)}분`;
-        document.getElementById('plus-hour').textContent = `${Math.floor(plusSec / 3600)}시간 ${Math.floor((plusSec % 3600) / 60)}분`;
-        document.getElementById('plus-ratio').textContent = `(${(totalSec > 0 ? (plusSec / totalSec * 100) : 0).toFixed(1)}%)`;
-        document.getElementById('max-time').textContent = secondsToTime(maxSec);
-        document.getElementById('min-time').textContent = secondsToTime(minSec === Infinity ? 0 : minSec);
-        document.getElementById('avg-time').textContent = secondsToTime(Math.floor(totalSec / (data.length || 1)));
+    function calculateAllStats(data) {
+        let totalSec = 0, plusSec = 0, maxSec = 0, minSec = Infinity;
+        let catMap = {};
+        data.forEach(v => {
+            const s = timeToSeconds(v.totalTime);
+            if (s > 0) { totalSec += s; if (v.isPlus) plusSec += s; maxSec = Math.max(maxSec, s); minSec = Math.min(minSec, s); }
+            v.category.split(/[,/ ]+/).filter(c => c.trim()).forEach(c => { catMap[c] = (catMap[c] || 0) + 1; });
+        });
+        document.getElementById('total-hour').textContent = `${Math.floor(totalSec / 3600)}시간 ${Math.floor((totalSec % 3600) / 60)}분`;
+        document.getElementById('plus-hour').textContent = `${Math.floor(plusSec / 3600)}시간 ${Math.floor((plusSec % 3600) / 60)}분`;
+        document.getElementById('plus-ratio').textContent = `(${(totalSec > 0 ? (plusSec / totalSec * 100) : 0).toFixed(1)}%)`;
+        document.getElementById('max-time').textContent = secondsToTime(maxSec);
+        document.getElementById('min-time').textContent = secondsToTime(minSec === Infinity ? 0 : minSec);
+        document.getElementById('avg-time').textContent = secondsToTime(Math.floor(totalSec / (data.length || 1)));
 
-        const sorted = Object.entries(catMap).sort((a,b) => b[1]-a[1]);
-        const totalC = Object.values(catMap).reduce((a,b)=>a+b, 0);
-        let curr = 0;
-        const grad = sorted.map(([n, c]) => { const s=curr; curr+= (c/totalC*100); return `${getColor(n)} ${s}% ${curr}%`; });
-        document.getElementById('category-chart').style.background = `conic-gradient(${grad.join(', ')})`;
-        document.getElementById('legend').innerHTML = sorted.map(([n, c]) => `<div class="legend-item"><span class="dot" style="background:${getColor(n)}"></span>${n} ${Math.round(c/totalC*100)}%</div>`).join('');
-    }
+        const sorted = Object.entries(catMap).sort((a,b) => b[1]-a[1]);
+        const totalC = Object.values(catMap).reduce((a,b)=>a+b, 0);
+        let curr = 0;
+        const grad = sorted.map(([n, c]) => { const s=curr; curr+= (c/totalC*100); return `${getColor(n)} ${s}% ${curr}%`; });
+        document.getElementById('category-chart').style.background = `conic-gradient(${grad.join(', ')})`;
+        document.getElementById('legend').innerHTML = sorted.map(([n, c]) => `<div class="legend-item"><span class="dot" style="background:${getColor(n)}"></span>${n} ${Math.round(c/totalC*100)}%</div>`).join('');
+    }
 
-    function openAnalysisModal() {
-        document.getElementById('analysis-overlay').style.display = 'flex';
-        const years = [...new Set(allVods.map(v => v.date.split('-')[0]))].sort().reverse();
-        document.getElementById('analysis-year').innerHTML = years.map(y => `<option value="${y}">${y}년</option>`).join('');
-        renderAnalysis();
-    }
-    function closeAnalysisModal() { document.getElementById('analysis-overlay').style.display = 'none'; }
+    function openAnalysisModal() {
+        document.getElementById('analysis-overlay').style.display = 'flex';
+        const years = [...new Set(allVods.map(v => v.date.split('-')[0]))].sort().reverse();
+        document.getElementById('analysis-year').innerHTML = years.map(y => `<option value="${y}">${y}년</option>`).join('');
+        renderAnalysis();
+    }
+    function closeAnalysisModal() { document.getElementById('analysis-overlay').style.display = 'none'; }
 
-    function renderAnalysis() {
-    const targetYear = document.getElementById('analysis-year').value;
-    const viewType = document.getElementById('analysis-type').value;
-    const resultDiv = document.getElementById('analysis-result');
-    
-    const yearFiltered = allVods.filter(v => v.date.startsWith(targetYear));
-    if (yearFiltered.length === 0) {
-        resultDiv.innerHTML = "<div style='text-align:center; padding:40px; color:var(--text-sub);'>데이터가 없습니다.</div>";
-        return;
-    }
+    function renderAnalysis() {
+    const targetYear = document.getElementById('analysis-year').value;
+    const viewType = document.getElementById('analysis-type').value;
+    const resultDiv = document.getElementById('analysis-result');
+    
+    const yearFiltered = allVods.filter(v => v.date.startsWith(targetYear));
+    if (yearFiltered.length === 0) {
+        resultDiv.innerHTML = "<div style='text-align:center; padding:40px; color:var(--text-sub);'>데이터가 없습니다.</div>";
+        return;
+    }
 
-    const stats = {};
-    yearFiltered.forEach(v => {
-        const key = viewType === 'month' ? v.date.substring(0, 7) : v.date.substring(0, 4);
-        if (!stats[key]) {
-            stats[key] = { 
-                time: 0, count: 0, maxSec: 0, minSec: Infinity,
-                maxTitle: "", minTitle: "", adultCount: 0, plusCount: 0,
-                cats: {}, 
-                // 이 부분을 꼭 확인하세요! '콘텐츠'가 추가되었습니다.
-                subItems: { '게임': {}, '노래': {}, '콘텐츠': {} } 
-            };
-        }
-        
-        const sec = timeToSeconds(v.totalTime);
-        const s = stats[key];
-        s.time += sec; s.count++;
-        if (sec > s.maxSec) { s.maxSec = sec; s.maxTitle = v.title; }
-        if (sec > 0 && sec < s.minSec) { s.minSec = sec; s.minTitle = v.title; }
-        if (v.isAdult) s.adultCount++;
-        if (v.isPlus) s.plusCount++;
+    const stats = {};
+    yearFiltered.forEach(v => {
+        const key = viewType === 'month' ? v.date.substring(0, 7) : v.date.substring(0, 4);
+        if (!stats[key]) {
+            stats[key] = { 
+                time: 0, count: 0, maxSec: 0, minSec: Infinity,
+                maxTitle: "", minTitle: "", adultCount: 0, plusCount: 0,
+                cats: {}, 
+                // 이 부분을 꼭 확인하세요! '콘텐츠'가 추가되었습니다.
+                subItems: { '게임': {}, '노래': {}, '콘텐츠': {} } 
+            };
+        }
+        
+        const sec = timeToSeconds(v.totalTime);
+        const s = stats[key];
+        s.time += sec; s.count++;
+        if (sec > s.maxSec) { s.maxSec = sec; s.maxTitle = v.title; }
+        if (sec > 0 && sec < s.minSec) { s.minSec = sec; s.minTitle = v.title; }
+        if (v.isAdult) s.adultCount++;
+        if (v.isPlus) s.plusCount++;
 
-        // 테마 카운팅
-        v.category.split(/[,/ ]+/).forEach(c => { if(c.trim()) s.cats[c] = (s.cats[c] || 0) + 1; });
+        // 테마 카운팅
+        v.category.split(/[,/ ]+/).forEach(c => { if(c.trim()) s.cats[c] = (s.cats[c] || 0) + 1; });
 
-        // 상세 콘텐츠 수집 함수
-        const collectSub = (data, type) => {
-            if (data && data !== '-') {
-                data.split(/[\n,/]+/).forEach(item => {
-                    let cleanItem = item.trim();
-                    if (cleanItem) {
-                        // 시간 범위 정규식 적용
-                        cleanItem = cleanItem.replace(/\s*\([\d\s:~]+\)/g, "").trim();
-                        if (cleanItem) {
-                            // 해당 타입 저장소가 있는지 확인 후 기록
-                            if (!s.subItems[type]) s.subItems[type] = {};
-                            s.subItems[type][cleanItem] = (s.subItems[type][cleanItem] || 0) + 1;
-                        }
-                    }
-                });
-            }
-        };
+        // 상세 콘텐츠 수집 함수
+        const collectSub = (data, type) => {
+            if (data && data !== '-') {
+                data.split(/[\n,/]+/).forEach(item => {
+                    let cleanItem = item.trim();
+                    if (cleanItem) {
+                        // 시간 범위 정규식 적용
+                        cleanItem = cleanItem.replace(/\s*\([\d\s:~]+\)/g, "").trim();
+                        if (cleanItem) {
+                            // 해당 타입 저장소가 있는지 확인 후 기록
+                            if (!s.subItems[type]) s.subItems[type] = {};
+                            s.subItems[type][cleanItem] = (s.subItems[type][cleanItem] || 0) + 1;
+                        }
+                    }
+                });
+            }
+        };
 
-        collectSub(v.gData, '게임');
-        collectSub(v.sData, '노래');
-        collectSub(v.cData, '콘텐츠'); // 시네티, 합방 등 11번째 열 데이터 수집
-    });
+        collectSub(v.gData, '게임');
+        collectSub(v.sData, '노래');
+        collectSub(v.cData, '콘텐츠'); // 시네티, 합방 등 11번째 열 데이터 수집
+    });
 
-    const availableKeys = Object.keys(stats).sort().reverse();
+    const availableKeys = Object.keys(stats).sort().reverse();
 
-    if (viewType === 'month') {
-        resultDiv.innerHTML = `
-            <div style="margin-bottom:20px;">
-                <select id="month-select" onchange="displaySelectedReport()" style="width:100%; background:#0a1a30; color:#fff; border:1px solid var(--border); border-radius:12px; padding:12px; font-size:14px; font-weight:bold; outline:none; cursor:pointer;">
-                    ${availableKeys.map(k => `<option value="${k}">${k.split('-')[1]}월 상세 리포트 보기</option>`).join('')}
-                </select>
-            </div>
-            <div id="report-container"></div>
-        `;
-        window.currentStats = stats;
-        displaySelectedReport();
-    } else {
-        let html = "";
-        availableKeys.forEach(key => { html += generateReportHtml(key, stats[key]); });
-        resultDiv.innerHTML = html;
-    }
+    if (viewType === 'month') {
+        resultDiv.innerHTML = `
+            <div style="margin-bottom:20px;">
+                <select id="month-select" onchange="displaySelectedReport()" style="width:100%; background:#0a1a30; color:#fff; border:1px solid var(--border); border-radius:12px; padding:12px; font-size:14px; font-weight:bold; outline:none; cursor:pointer;">
+                    ${availableKeys.map(k => `<option value="${k}">${k.split('-')[1]}월 상세 리포트 보기</option>`).join('')}
+                </select>
+            </div>
+            <div id="report-container"></div>
+        `;
+        window.currentStats = stats;
+        displaySelectedReport();
+    } else {
+        let html = "";
+        availableKeys.forEach(key => { html += generateReportHtml(key, stats[key]); });
+        resultDiv.innerHTML = html;
+    }
 }
 
 function generateReportHtml(key, s) {
-    const sortedCats = Object.entries(s.cats).sort((a, b) => b[1] - a[1]);
-    
-    const renderContentList = (title, items, color) => {
-    const sortedItems = Object.entries(items).sort((a, b) => b[1] - a[1]);
-    if (sortedItems.length === 0) return "";
-    return `
-        <div style="margin-top:20px; width: 100%;">
-            <div style="font-size:13px; color:${color}; font-weight:bold; margin-bottom:10px; display:flex; align-items:center; gap:6px;">
-                <span style="width:4px; height:14px; background:${color}; border-radius:2px;"></span>
-                ${title} 기록 (${sortedItems.length}종)
-            </div>
-            <div style="display:grid; grid-template-columns: 1fr; gap:6px;">
-                ${sortedItems.map(([name, count]) => `
-                    <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.04); padding:10px 14px; border-radius:10px; border:1px solid rgba(255,255,255,0.06);">
-                        <span style="color:#eee; font-size:13px; font-weight:500;">${name}</span>
-                        <span style="color:${color}; font-size:13px; font-weight:800;">${count}회</span>
-                    </div>
-                `).join('')}
-            </div>
-        </div>
-    `;
+    const sortedCats = Object.entries(s.cats).sort((a, b) => b[1] - a[1]);
+    
+    const renderContentList = (title, items, color) => {
+    const sortedItems = Object.entries(items).sort((a, b) => b[1] - a[1]);
+    if (sortedItems.length === 0) return "";
+    return `
+        <div style="margin-top:20px; width: 100%;">
+            <div style="font-size:13px; color:${color}; font-weight:bold; margin-bottom:10px; display:flex; align-items:center; gap:6px;">
+                <span style="width:4px; height:14px; background:${color}; border-radius:2px;"></span>
+                ${title} 기록 (${sortedItems.length}종)
+            </div>
+            <div style="display:grid; grid-template-columns: 1fr; gap:6px;">
+                ${sortedItems.map(([name, count]) => `
+                    <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.04); padding:10px 14px; border-radius:10px; border:1px solid rgba(255,255,255,0.06);">
+                        <span style="color:#eee; font-size:13px; font-weight:500;">${name}</span>
+                        <span style="color:${color}; font-size:13px; font-weight:800;">${count}회</span>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    `;
 };
 
-    const monthOptions = Object.keys(window.currentStats || {}).sort().reverse().map(k => 
-        `<option value="${k}" ${k === key ? 'selected' : ''}>${k.split('-')[1]}월</option>`
-    ).join('');
+    const monthOptions = Object.keys(window.currentStats || {}).sort().reverse().map(k => 
+        `<option value="${k}" ${k === key ? 'selected' : ''}>${k.split('-')[1]}월</option>`
+    ).join('');
 
-    return `
+    return `
         <div class="analysis-layout" style="animation: fadeIn 0.3s ease;">
             <div>
                 <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:20px; padding:20px; margin-bottom:15px;">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:1px solid rgba(51,133,255,0.2); padding-bottom:10px;">
-                        <div style="font-size:18px; font-weight:bold; color:var(--accent);">${key.split('-')[1]}월 리포트</div>
+                        <div style="font-size:18px; font-weight:bold; color:var(--accent);">${key.split('-')[0]}년 리포트</div>
                         <select onchange="document.getElementById('month-select').value = this.value; displaySelectedReport();" 
                                 style="background:#0a1a30; color:#fff; border:1px solid var(--border); border-radius:8px; padding:4px 8px; font-size:13px; font-weight:bold; outline:none;">
                             ${Object.keys(window.currentStats || {}).sort().reverse().map(k => `<option value="${k}" ${k === key ? 'selected' : ''}>${k.split('-')[1]}월</option>`).join('')}
                         </select>
                     </div>
-                    
-                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:20px;">
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:25px;">
                         <div style="background:rgba(0,0,0,0.2); padding:12px; border-radius:12px;">
                             <div style="font-size:10px; color:var(--text-sub);">총 방송 시간</div>
                             <div style="font-size:15px; font-weight:bold; color:#fff;">${Math.floor(s.time/3600)}시간 ${Math.floor((s.time%3600)/60)}분</div>
@@ -489,8 +463,7 @@ function generateReportHtml(key, s) {
                             <div style="font-size:15px; font-weight:bold; color:#fff;">${secondsToTime(Math.floor(s.time/s.count))}</div>
                         </div>
                     </div>
-
-                    <div style="background:rgba(0,0,0,0.15); border-radius:16px; padding:15px;">
+                    <div style="background:rgba(0,0,0,0.15); border-radius:16px; padding:20px;">
                         <div style="margin-bottom:15px;">
                             <div style="font-size:11px; color:var(--text-sub); margin-bottom:10px;">📊 테마별 분포</div>
                             <div style="display:flex; flex-wrap:wrap; gap:6px;">
@@ -504,8 +477,8 @@ function generateReportHtml(key, s) {
                 </div>
             </div>
 
-            <div style="display: flex; flex-direction: column; padding-bottom: 20px;">
-                <div style="font-size:14px; font-weight:bold; color:var(--text-sub); margin:10px 0 12px; display:flex; justify-content:space-between;">
+            <div style="display: flex; flex-direction: column;">
+                <div style="font-size:14px; font-weight:bold; color:var(--text-sub); margin-bottom:12px; display:flex; justify-content:space-between; position: sticky; top: 0; background: var(--card-bg); z-index: 10; padding-bottom: 5px;">
                     <span>📅 해당 기간 기록</span>
                     <span>${s.count}개</span>
                 </div>
@@ -514,30 +487,31 @@ function generateReportHtml(key, s) {
             </div>
         </div>`;
 }
-    function displaySelectedReport() {
-    const key = document.getElementById('month-select').value;
-    const container = document.getElementById('report-container');
-    
-    if (window.currentStats && window.currentStats[key]) {
-        container.innerHTML = generateReportHtml(key, window.currentStats[key]);
-        
-        const sideList = document.getElementById('report-side-list');
-        const filtered = allVods.filter(v => v.date.startsWith(key));
-        
-        sideList.innerHTML = filtered.map(v => `
-            <div onclick="closeAnalysisModal(); openModal(${JSON.stringify(v).replace(/"/g, '&quot;')})" 
-                 style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.05); border-radius:12px; padding:10px; cursor:pointer; display:flex; gap:12px; align-items:center; transition: 0.2s;">
-                <div style="width:80px; height:45px; min-width:80px; border-radius:6px; overflow:hidden;">
-                    <img src="${v.thumb}" style="width:100%; height:100%; object-fit:cover;">
-                </div>
-                <div style="flex:1; min-width:0;">
-                    <div style="font-size:13px; color:#eee; font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; margin-bottom:2px;">${v.title}</div>
-                    <div style="font-size:11px; color:var(--text-sub);">${v.date.split('-')[2]}일 기록</div>
-                </div>
-            </div>
-        `).join('');
-    }
+    function displaySelectedReport() {
+    const key = document.getElementById('month-select').value;
+    const container = document.getElementById('report-container');
+    
+    if (window.currentStats && window.currentStats[key]) {
+        container.innerHTML = generateReportHtml(key, window.currentStats[key]);
+        
+        const sideList = document.getElementById('report-side-list');
+        const filtered = allVods.filter(v => v.date.startsWith(key));
+        
+        sideList.innerHTML = filtered.map(v => `
+            <div onclick="closeAnalysisModal(); openModal(${JSON.stringify(v).replace(/"/g, '&quot;')})" 
+                 style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.05); border-radius:12px; padding:10px; cursor:pointer; display:flex; gap:12px; align-items:center; transition: 0.2s;">
+                <div style="width:80px; height:45px; min-width:80px; border-radius:6px; overflow:hidden;">
+                    <img src="${v.thumb}" style="width:100%; height:100%; object-fit:cover;">
+                </div>
+                <div style="flex:1; min-width:0;">
+                    <div style="font-size:13px; color:#eee; font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; margin-bottom:2px;">${v.title}</div>
+                    <div style="font-size:11px; color:var(--text-sub);">${v.date.split('-')[2]}일 기록</div>
+                </div>
+            </div>
+        `).join('');
+    }
 }
 </script>
 </body>
 </html>
+그 스크롤 기준을 왼쪽 상태에 따라 하게 하고 싶어 왼쪽이 전체적인 파업 스크롤로 내리고 그래도 오른쪽이 내용이 있으면 그떄 스크롤로 내리고
