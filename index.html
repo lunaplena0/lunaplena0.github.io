@@ -7,26 +7,45 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
     <style>
         /* 로딩 바 컨테이너 */
-/* 실제 움직이는 바 - 두께와 그림자 강화 버전 */
-.loading-bar {
-    width: 0%;
-    height: 100%; /* 높이를 100%로 유지 (부모가 4~5px이면 적당합니다) */
-    background: linear-gradient(90deg, #003366, #3385ff, #003366); /* 중앙 강조형 그라데이션 */
-    background-size: 200% 100%; /* 애니메이션 효과를 위해 확장 */
-    box-shadow: 0 0 15px #3385ff, 0 0 5px #ffffff; /* 푸른 광채와 흰색 미세광 */
-    transition: width 0.4s cubic-bezier(0.1, 0.7, 1.0, 0.1); /* 더 생동감 있는 움직임 */
+/* 화면 전체를 덮는 로딩 레이어 */
+#loading-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(1, 3, 6, 0.8); /* 배경을 약간 어둡게 */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    transition: opacity 0.5s ease;
+    visibility: visible;
 }
 
-/* 컨테이너 두께 살짝 조절 */
-.loading-container {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 4px; /* 3px에서 4px로 살짝 두껍게 */
-    z-index: 1000;
-    background: rgba(0, 0, 0, 0.2); /* 바 뒤에 아주 연한 그림자 */
+/* 로딩 애니메이션 (원형 스피너) */
+.loader-circle {
+    width: 50px;
+    height: 50px;
+    border: 3px solid var(--accent);
+    border-top: 3px solid var(--accent-bright);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 15px;
+    box-shadow: 0 0 15px var(--accent-glow);
 }
+
+/* 로딩 글자 애니메이션 */
+.loader-text {
+    color: var(--accent-bright);
+    font-size: 14px;
+    letter-spacing: 2px;
+    font-weight: bold;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+        
         :root {
             /* 기존 트위치 테마색을 깊은 바다 테마색으로 변경 */
             --bg-color: #010306;          /* 깊은 바다 블랙 배경 */
@@ -154,9 +173,10 @@
 </head>
 <body>
 
-<div class="loading-container">
-        <div id="loading-bar" class="loading-bar"></div>
-    </div>
+<div id="loading-overlay">
+    <div class="loader-circle"></div>
+    <div class="loader-text">LOADING . . .</div>
+</div>
     
     <div class="wrapper">
     <div class="top-section">
@@ -197,11 +217,12 @@
     const SONG_BOOK_URL = 'https://lunaplena0.github.io/songlist.html'; 
 
     async function init() {
-        const loader = document.getElementById('loading-bar');
+    const overlay = document.getElementById('loading-overlay');
+    
     try {
-        // 1. 로딩 시작 (약 30%까지 먼저 채움)
-        loader.style.opacity = '1';
-        loader.style.width = '30%';
+        // 로딩창 표시
+        overlay.style.opacity = '1';
+        overlay.style.visibility = 'visible';
 
         const cacheBuster = `&t=${new Date().getTime()}`;
         const finalUrl = TSV_URL + cacheBuster;
@@ -210,10 +231,8 @@
             cache: 'no-store',
             headers: { 'Pragma': 'no-cache', 'Cache-Control': 'no-cache' }
         });
-        // 2. 응답 받음 (70%까지 이동)
-        loader.style.width = '70%';
 
-            if (!response.ok) throw new Error('Network error');
+        if (!response.ok) throw new Error('Network error');
 
         const text = await response.text();
         const rows = text.split(/\r?\n/).map(row => row.split('\t'));
@@ -284,19 +303,20 @@
             renderVODs(rows.slice(16, 21));
             renderSchedule(rows.slice(24, 29));
 
-        // 3. 렌더링 완료 (100% 채우기)
-        loader.style.width = '100%';
-
-        } catch (e) { console.error("Data Load Error:", e);
-                    loader.style.backgroundColor = '#ff4b4b';}
-        finally {
-        // 4. 잠시 후 부드럽게 사라짐
+        } catch (e) { 
+        console.error("Data Load Error:", e);
+        const textEl = document.querySelector('.loader-text');
+        if(textEl) textEl.innerText = "ERROR LOADING DATA";
+    } finally {
         setTimeout(() => {
-            loader.style.opacity = '0';
-            setTimeout(() => { loader.style.width = '0%'; }, 300);
-        }, 500);
+            overlay.style.opacity = '0';
+            setTimeout(() => {
+                overlay.style.visibility = 'hidden';
+                document.body.style.overflow = 'auto'; // 스크롤 다시 허용
+            }, 500);
+        }, 800);
     }
-    } 
+}
 
     // 렌더링 함수 내의 보라색 강조 효과들도 블루로 교체합니다.
     function renderLinks(extraLinks) {
