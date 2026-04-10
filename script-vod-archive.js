@@ -46,9 +46,10 @@
     // 날짜별 그룹화
     data.forEach(v => { if (!groups[v.date]) groups[v.date] = []; groups[v.date].push(v); });
     
-    // 날짜 내림차순 정렬 및 렌더링
+    // 날짜 내림차순 정렬
     Object.keys(groups).sort((a, b) => new Date(b) - new Date(a)).forEach(date => {
         const groupDiv = document.createElement('div');
+        groupDiv.className = 'date-group'; // 클래스 추가
         groupDiv.innerHTML = `<div class="date-header">${date}</div><div class="vod-list"></div>`;
         
         groups[date].forEach(v => {
@@ -56,48 +57,37 @@
             item.className = 'vod-item'; 
             item.onclick = () => openModalById(v.id);
 
-            // 배지 생성 (구독+, 19)
-            const plusTag = v.isPlus ? `<span class="tag-common tag-plus" style="height:18px; font-size:10px; padding: 0 6px; display: inline-flex; align-items: center; border-radius:3px; border: 1px solid #e6e02e; color: #e6e02e; font-weight: bold; background: rgba(230, 224, 46, 0.1);">구독+</span>` : '';
-            const adultTag = v.isAdult ? `<span class="tag-common" style="height:18px; font-size:10px; padding: 0 6px; display: inline-flex; align-items: center; border-radius:3px; border: 1px solid #ff4757; color: #ff4757; font-weight: bold; background: rgba(255, 71, 87, 0.1);">19</span>` : '';
-            item.innerHTML = `
-    <div class="vod-thumb" style="position: relative; width: 160px; min-width: 160px; height: 90px; border-radius: 8px; overflow: hidden;">
-        <img src="${v.thumb}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover;">
-        <span class="duration" style="position: absolute; bottom: 4px; right: 4px; background: rgba(0,0,0,0.8); color: #fff; font-size: 11px; padding: 2px 4px; border-radius: 4px;">${v.totalTime}</span>
-    </div>
-    
-    <div class="vod-info" style="display: flex; flex-direction: column; justify-content: center; flex: 1; min-width: 0; padding: 5px 0 5px 15px; position: relative;">
-        
-        <div class="badge-group" style="position: absolute; top: 10px; right: 10px; display: flex; gap: 4px; z-index: 10;">
-            ${plusTag}
-            ${adultTag}
-        </div>
-
-        <div style="width: 100%; padding-right: 80px; box-sizing: border-box;">
-            <span class="title-text" style="font-weight: bold; font-size: 15px; color: #fff; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block;">
-                ${v.title}
-            </span>
-        </div>
-        
-        <div class="vod-tags" style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px;">
-            ${v.category.split(/[,/ ]+/).filter(c => c.trim()).map(c => 
-                `<span style="font-size: 10px; color: ${getColor(c)}; border: 1px solid ${getColor(c)}40; padding: 1px 6px; border-radius: 4px; background: rgba(0,0,0,0.2); height: 18px; display: inline-flex; align-items: center; white-space: nowrap;">
-                    ${c}
-                </span>`
-            ).join('')}
-        </div>
-
-    </div>
-        
-        <div class="vod-tags" style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center;">
-            ${v.category.split(/[,/ ]+/).filter(c => c.trim()).map(c => 
-                `<span style="font-size: 10px; color: ${getColor(c)}; border: 1px solid ${getColor(c)}60; padding: 2px 8px; border-radius: 4px; background: rgba(0,0,0,0.3); white-space: nowrap; height: 18px; display: flex; align-items: center;">
-                    ${c}
-                </span>`
-            ).join('')}
-        </div>
-    </div>
-`;
+            // 배지 생성 (구독+, 19) - 스타일 통일
+            const plusTag = v.isPlus ? `<span class="tag-common tag-plus" style="height:18px; font-size:10px; padding: 0 6px; display: inline-flex; align-items: center; border-radius:3px; border: 1px solid #e6e02e; color: #e6e02e; font-weight: bold; background: rgba(230, 224, 46, 0.1); white-space: nowrap;">구독+</span>` : '';
+            const adultTag = v.isAdult ? `<span class="tag-common" style="height:18px; font-size:10px; padding: 0 6px; display: inline-flex; align-items: center; border-radius:3px; border: 1px solid #ff4757; color: #ff4757; font-weight: bold; background: rgba(255, 71, 87, 0.1); white-space: nowrap;">19</span>` : '';
             
+            item.innerHTML = `
+                <div class="vod-thumb" style="position: relative; width: 160px; min-width: 160px; height: 90px; border-radius: 8px; overflow: hidden; flex-shrink: 0;">
+                    <img src="${v.thumb}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover;">
+                    <span class="duration" style="position: absolute; bottom: 4px; right: 4px; background: rgba(0,0,0,0.8); color: #fff; font-size: 11px; padding: 2px 4px; border-radius: 4px;">${v.totalTime}</span>
+                </div>
+                
+                <div class="vod-info" style="display: flex; flex-direction: column; justify-content: center; flex: 1; min-width: 0; padding: 5px 0 5px 15px; position: relative;">
+                    <div class="badge-group" style="position: absolute; top: 5px; right: 0; display: flex; gap: 4px; z-index: 10;">
+                        ${plusTag}
+                        ${adultTag}
+                    </div>
+
+                    <div style="width: 100%; padding-right: 85px; box-sizing: border-box;">
+                        <span class="title-text" style="font-weight: bold; font-size: 15px; color: #fff; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block;">
+                            ${v.title}
+                        </span>
+                    </div>
+                    
+                    <div class="vod-tags" style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; justify-content: flex-start;">
+                        ${v.category.split(/[,/ ]+/).filter(c => c.trim()).map(c => 
+                            `<span style="font-size: 10px; color: ${getColor(c)}; border: 1px solid ${getColor(c)}40; padding: 1px 6px; border-radius: 4px; background: rgba(0,0,0,0.2); height: 18px; display: inline-flex; align-items: center; white-space: nowrap;">
+                                ${c}
+                            </span>`
+                        ).join('')}
+                    </div>
+                </div>
+            `;
             groupDiv.querySelector('.vod-list').appendChild(item);
         });
         container.appendChild(groupDiv);
