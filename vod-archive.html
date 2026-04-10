@@ -385,13 +385,22 @@ function generateReportHtml(key, s) {
         `;
     };
 
+    // 월 선택 셀렉트 박스 생성 (availableKeys는 renderAnalysis에서 정의됨)
+    const monthOptions = Object.keys(window.currentStats || {}).sort().reverse().map(k => 
+        `<option value="${k}" ${k === key ? 'selected' : ''}>${k.split('-')[1]}월</option>`
+    ).join('');
+
     return `
         <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:20px; padding:20px; margin-bottom:15px; animation: fadeIn 0.3s ease;">
-            <div style="font-size:18px; font-weight:bold; color:var(--accent); margin-bottom:15px; border-bottom:1px solid rgba(51,133,255,0.2); padding-bottom:10px;">
-                ${key} 리포트
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:1px solid rgba(51,133,255,0.2); padding-bottom:10px;">
+                <div style="font-size:18px; font-weight:bold; color:var(--accent);">${key.split('-')[0]}년 리포트</div>
+                <select onchange="document.getElementById('month-select').value = this.value; displaySelectedReport();" 
+                        style="background:#0a1a30; color:#fff; border:1px solid var(--border); border-radius:8px; padding:4px 8px; font-size:13px; font-weight:bold; outline:none;">
+                    ${monthOptions}
+                </select>
             </div>
 
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:20px;">
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:25px;">
                 <div style="background:rgba(0,0,0,0.2); padding:12px; border-radius:12px;">
                     <div style="font-size:10px; color:var(--text-sub);">총 방송 시간</div>
                     <div style="font-size:15px; font-weight:bold; color:#fff;">${Math.floor(s.time/3600)}시간 ${Math.floor((s.time%3600)/60)}분</div>
@@ -410,13 +419,14 @@ function generateReportHtml(key, s) {
                 </div>
             </div>
 
-            <div style="margin-bottom:20px;">
-                <div style="display:flex; flex-wrap:wrap; gap:6px;">
-                    ${sortedCats.map(([n, c]) => `<span style="font-size:11px; color:${getColor(n)}; border:1px solid ${getColor(n)}40; padding:3px 8px; border-radius:6px; background:rgba(0,0,0,0.2);">${n} ${c}회</span>`).join('')}
+            <div style="background:rgba(0,0,0,0.15); border-radius:16px; padding:20px;">
+                <div style="margin-bottom:15px;">
+                    <div style="font-size:11px; color:var(--text-sub); margin-bottom:10px;">📊 테마별 분포</div>
+                    <div style="display:flex; flex-wrap:wrap; gap:6px;">
+                        ${sortedCats.map(([n, c]) => `<span style="font-size:11px; color:${getColor(n)}; border:1px solid ${getColor(n)}40; padding:3px 8px; border-radius:6px; background:rgba(0,0,0,0.2);">${n} ${c}회</span>`).join('')}
+                    </div>
                 </div>
-            </div>
-
-            <div style="background:rgba(0,0,0,0.15); border-radius:16px; padding:5px 15px 20px 15px;">
+                
                 ${renderContentList('게임', s.subItems['게임'], catColors['게임'])}
                 ${renderContentList('노래', s.subItems['노래'], catColors['노래'])}
             </div>
