@@ -128,10 +128,19 @@
 
     <div class="dashboard-grid">
         <div class="stat-card">
-            <div class="total-info">
-                <span style="font-size:11px; color:var(--text-sub);">전체 영상 누적 시청 시간</span>
-                <h2 id="total-hour">0시간 0분</h2>
-            </div>
+            <div class="total-info" style="display: flex; justify-content: space-between; align-items: flex-end;">
+    <div>
+        <span style="font-size:11px; color:var(--text-sub);">전체 영상 누적 시청 시간</span>
+        <h2 id="total-hour" style="margin-top: 5px;">0시간 0분</h2>
+    </div>
+    <div style="text-align: right;">
+        <span style="font-size:11px; color:#e6e02e; font-weight: bold;">⭐ 구독플러스 비중</span>
+        <div style="display: flex; flex-direction: column; align-items: flex-end; margin-top: 5px;">
+            <span id="plus-hour" style="font-size: 16px; font-weight: bold; color: #fff;">0시간 0분</span>
+            <span id="plus-ratio" style="font-size: 12px; color: #e6e02e; opacity: 0.9;">(0.0%)</span>
+        </div>
+    </div>
+</div>
             <hr class="divider">
             <div class="sub-grid">
                 <div class="sub-item"><span class="sub-lbl">최장 방송</span><span class="sub-val" id="max-time">0:00:00</span></div>
@@ -339,30 +348,49 @@
     function closeModal() { document.getElementById('modal-overlay').style.display = 'none'; document.body.classList.remove('modal-open'); }
 
     function calculateAllStats(data) {
-        let totalSec = 0, maxSec = 0, minSec = Infinity;
-        let catMap = {};
-        data.forEach(v => {
-            const s = timeToSeconds(v.totalTime);
-            if (s > 0) { totalSec += s; maxSec = Math.max(maxSec, s); minSec = Math.min(minSec, s); }
-            v.category.split(/[,/ ]+/).filter(c => c.trim() !== "").forEach(c => { catMap[c] = (catMap[c] || 0) + 1; });
+    let totalSec = 0, plusSec = 0, maxSec = 0, minSec = Infinity;
+    let catMap = {};
+
+    data.forEach(v => {
+        const s = timeToSeconds(v.totalTime);
+        if (s > 0) { 
+            totalSec += s; 
+            if (v.isPlus) plusSec += s; // 구독플러스 시간 합산
+            maxSec = Math.max(maxSec, s); 
+            minSec = Math.min(minSec, s); 
+        }
+        v.category.split(/[,/ ]+/).filter(c => c.trim() !== "").forEach(c => { 
+            catMap[c] = (catMap[c] || 0) + 1; 
         });
-        document.getElementById('total-hour').textContent = `${Math.floor(totalSec / 3600)}시간 ${Math.floor((totalSec % 3600) / 60)}분`;
-        document.getElementById('max-time').textContent = secondsToTime(maxSec);
-        document.getElementById('min-time').textContent = secondsToTime(minSec);
-        document.getElementById('avg-time').textContent = secondsToTime(Math.floor(totalSec / (data.length || 1)));
-        const sortedCats = Object.entries(catMap).sort((a, b) => b[1] - a[1]);
-        const totalCount = Object.values(catMap).reduce((a, b) => a + b, 0);
-        let currentPos = 0;
-        const gradientParts = sortedCats.map(([name, count]) => {
-            const start = currentPos; const end = currentPos + (count / totalCount * 100);
-            currentPos = end; return `${getColor(name)} ${start}% ${end}%`;
-        });
-        document.getElementById('category-chart').style.background = `conic-gradient(${gradientParts.join(', ')})`;
-        document.getElementById('legend').innerHTML = sortedCats.map(([name, count]) => {
-            const percent = Math.round((count / totalCount) * 100);
-            return `<div class="legend-item"><span class="dot" style="background:${getColor(name)}"></span>${name}<span class="legend-percent">${percent}%</span></div>`;
-        }).join('');
-    }
+    });
+
+    // 메인 전체 시간 표시
+    document.getElementById('total-hour').textContent = `${Math.floor(totalSec / 3600)}시간 ${Math.floor((totalSec % 3600) / 60)}분`;
+
+    // 구독플러스 시간 및 비율 표시
+    const plusRatio = totalSec > 0 ? ((plusSec / totalSec) * 100).toFixed(1) : 0;
+    document.getElementById('plus-hour').textContent = `${Math.floor(plusSec / 3600)}시간 ${Math.floor((plusSec % 3600) / 60)}분`;
+    document.getElementById('plus-ratio').textContent = `(${plusRatio}%)`;
+
+    // 서브 스탯
+    document.getElementById('max-time').textContent = secondsToTime(maxSec);
+    document.getElementById('min-time').textContent = minSec === Infinity ? "0:00:00" : secondsToTime(minSec);
+    document.getElementById('avg-time').textContent = secondsToTime(Math.floor(totalSec / (data.length || 1)));
+
+    // 차트 생성 (기존 로직 유지)
+    const sortedCats = Object.entries(catMap).sort((a, b) => b[1] - a[1]);
+    const totalCount = Object.values(catMap).reduce((a, b) => a + b, 0);
+    let currentPos = 0;
+    const gradientParts = sortedCats.map(([name, count]) => {
+        const start = currentPos; const end = currentPos + (count / totalCount * 100);
+        currentPos = end; return `${getColor(name)} ${start}% ${end}%`;
+    });
+    document.getElementById('category-chart').style.background = `conic-gradient(${gradientParts.join(', ')})`;
+    document.getElementById('legend').innerHTML = sortedCats.map(([name, count]) => {
+        const percent = Math.round((count / totalCount) * 100);
+        return `<div class="legend-item"><span class="dot" style="background:${getColor(name)}"></span>${name}<span class="legend-percent">${percent}%</span></div>`;
+    }).join('');
+}
 </script>
 </body>
 </html>
