@@ -352,29 +352,50 @@
         container.innerHTML = '';
         const groups = {};
         data.forEach(v => { if(!groups[v.date]) groups[v.date] = []; groups[v.date].push(v); });
+        
+        // 공통 태그 스타일 정의 (정보메인 페이지 스타일)
+        const tagBaseStyle = `
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 7px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: bold;
+            background: #121f33; /* 정보메인과 동일한 어두운 배경 */
+            line-height: 1;
+            margin-right: 4px;
+            margin-top: 4px;
+            border: 1px solid;
+        `;
+
         Object.keys(groups).sort((a,b) => new Date(b) - new Date(a)).forEach(date => {
             const groupDiv = document.createElement('div');
             groupDiv.className = 'date-group';
             groupDiv.innerHTML = `<div class="date-header">${date}</div><div class="vod-list"></div>`;
+            
             groups[date].forEach(v => {
                 const item = document.createElement('div');
                 item.className = 'vod-item';
                 item.onclick = () => openModal(v);
-                const plusTag = v.isPlus ? `<span class="tag-common tag-plus">구독+</span>` : '';
+                
+                // 구독+ 태그 (리스트용)
+                const plusTag = v.isPlus ? `<span class="tag-common tag-plus" style="height:18px; line-height:18px; font-size:9px; padding:0 6px;">구독+</span>` : '';
+                
                 item.innerHTML = `
-    <div class="vod-thumb"><img src="${v.thumb}"><span class="duration">${v.totalTime}</span></div>
-    <div class="vod-body">
-        <div class="vod-title">
-            <span class="title-text">${v.title}</span>
-            ${plusTag}
-        </div>
-        <div style="display:flex; flex-wrap:wrap; margin-top:4px;">
-    ${v.category.split(/[,/ ]+/).filter(c => c.trim() !== "").map(c => {
-        const color = getColor(c);
-        return `<span class="cat-dot-badge" style="color:${color};">${c}</span>`;
-    }).join('')}
-</div>
-    </div>`;
+                    <div class="vod-thumb"><img src="${v.thumb}"><span class="duration">${v.totalTime}</span></div>
+                    <div class="vod-body">
+                        <div class="vod-title">
+                            <span class="title-text">${v.title}</span>
+                            ${plusTag}
+                        </div>
+                        <div style="display:flex; flex-wrap:wrap;">
+                            ${v.category.split(/[,/ ]+/).filter(c => c.trim() !== "").map(c => {
+                                const color = getColor(c);
+                                // 정보메인 스타일의 태그 렌더링
+                                return `<span style="${tagBaseStyle} color:${color}; border-color:${color}60;">${c}</span>`;
+                            }).join('')}
+                        </div>
+                    </div>`;
                 groupDiv.querySelector('.vod-list').appendChild(item);
             });
             container.appendChild(groupDiv);
