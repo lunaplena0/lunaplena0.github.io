@@ -386,21 +386,39 @@
         document.getElementById('m-title').textContent = v.title;
         document.getElementById('m-date').textContent = `${v.date} (${v.totalTime})`;
         document.getElementById('m-link').href = v.link;
+        
+        // Premium 전용 태그 스타일 (구독플러스 전용)
         document.getElementById('m-plus').innerHTML = v.isPlus ? 
-    `<span class="tag-common tag-plus">Premium Archive (구독플러스 전용)</span>` : '';
+            `<span class="tag-common tag-plus" style="padding: 0 12px; height: 26px; font-size: 12px;">Premium Archive (구독플러스 전용)</span>` : '';
+
+        // 컨텐츠 분류 뱃지 스타일 수정 (색상 적용)
         const catContainer = document.getElementById('m-cat-val');
-        catContainer.innerHTML = v.category.split(/[,/ ]+/).map(c => `<span class="tag-common cat-badge" style="background:${getColor(c)}">${c}</span>`).join('');
+        catContainer.innerHTML = v.category.split(/[,/ ]+/)
+            .filter(c => c.trim() !== "")
+            .map(c => {
+                const color = getColor(c);
+                return `<span class="tag-common cat-badge" style="background:${color}; color:#fff; border:none; padding: 0 10px; margin-right: 6px; margin-bottom: 6px;">${c}</span>`;
+            }).join('');
 
         const setRow = (id, valId, prefix, name, time) => {
             const row = document.getElementById(id);
             if(name && name !== "-") {
                 row.classList.add('is-active');
-                const names = name.split(','); const times = time.split(',');
-                document.getElementById(valId).innerHTML = names.map((n, i) => `<div><span class="m-prefix">${prefix}</span>${n.trim()}<span class="m-time">(${times[i]?.trim() || ''})</span></div>`).join('');
+                const names = name.split(','); 
+                const times = time.split(',');
+                document.getElementById(valId).innerHTML = names.map((n, i) => 
+                    `<div style="margin-bottom:6px;">
+                        <span class="m-prefix" style="color:${getColor(prefix)}; opacity: 0.9;">${prefix}</span>
+                        ${n.trim()}
+                        <span class="m-time">(${times[i]?.trim() || ''})</span>
+                    </div>`
+                ).join('');
             } else row.classList.remove('is-active');
         };
+
         setRow('row-game', 'm-game', '게임', v.gName, v.gTime);
         setRow('row-song', 'm-song', '노래', v.sName, v.sTime);
+        
         document.getElementById('modal-overlay').style.display = 'flex';
         document.body.classList.add('modal-open');
     }
