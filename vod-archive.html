@@ -339,6 +339,7 @@
 };
         collectSub(v.gData, '게임');
         collectSub(v.sData, '노래');
+        collectSub(v.cData, '콘텐츠');
     });
 
     const availableKeys = Object.keys(stats).sort().reverse();
@@ -385,7 +386,6 @@ function generateReportHtml(key, s) {
         `;
     };
 
-    // 월 선택 셀렉트 박스 생성 (availableKeys는 renderAnalysis에서 정의됨)
     const monthOptions = Object.keys(window.currentStats || {}).sort().reverse().map(k => 
         `<option value="${k}" ${k === key ? 'selected' : ''}>${k.split('-')[1]}월</option>`
     ).join('');
@@ -427,9 +427,9 @@ function generateReportHtml(key, s) {
                     </div>
                 </div>
                 
-                ${renderContentList('게임', s.subItems['게임'], catColors['게임'])}
-                ${renderContentList('노래', s.subItems['노래'], catColors['노래'])}
-            </div>
+                ${renderContentList('게임', s.subItems['게임'] || {}, catColors['게임'])}
+                ${renderContentList('노래', s.subItems['노래'] || {}, catColors['노래'])}
+                ${renderContentList('콘텐츠', s.subItems['콘텐츠'] || {}, '#00d8ff')} </div>
         </div>`;
 }
     function displaySelectedReport() {
