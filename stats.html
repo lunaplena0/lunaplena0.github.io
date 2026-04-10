@@ -87,10 +87,61 @@
 
         .stats-card { background: var(--card-bg); border-radius: 16px; border: 1px solid var(--border); padding: 20px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
 
-        table { width: 100%; border-collapse: collapse; font-size: 14px; }
-        th { background: #0a1425; padding: 12px; text-align: left; color: var(--accent-bright); font-weight: bold; border-bottom: 2px solid var(--border); text-transform: uppercase; letter-spacing: 1px; }
-        td { padding: 12px; border-bottom: 1px solid var(--border); cursor: pointer; transition: 0.2s; }
-        tr:hover td { background: rgba(255, 255, 255, 0.03); }
+        /* --- 테이블 스타일 시작 (기존 스타일을 이 내용으로 교체하세요) --- */
+table { 
+    width: 100%; 
+    border-collapse: collapse; 
+    font-size: 14px; 
+    table-layout: fixed; /* 전체 테이블 열 너비 고정 */
+}
+
+th { 
+    background: #0a1425; 
+    padding: 12px; 
+    text-align: left; 
+    color: var(--accent-bright); 
+    font-weight: bold; 
+    border-bottom: 2px solid var(--border); 
+    text-transform: uppercase; 
+    letter-spacing: 1px; 
+}
+
+td { 
+    padding: 12px; 
+    border-bottom: 1px solid var(--border); 
+    cursor: pointer; 
+    transition: 0.2s;
+    /* 텍스트가 너무 길면 '...'으로 처리하여 비율 유지 */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+tr:hover td { 
+    background: rgba(255, 255, 255, 0.03); 
+}
+
+/* --- 각 섹션별 구체적인 열 너비 고정 (추가) --- */
+
+/* 1. 가수별 통계 테이블 비율 */
+#artist-section th:nth-child(1), #artist-section td:nth-child(1) { width: 40%; } /* 가수명 */
+#artist-section th:nth-child(2), #artist-section td:nth-child(2) { width: 20%; } /* 곡 수 */
+#artist-section th:nth-child(3), #artist-section td:nth-child(3) { width: 20%; } /* 가창 횟수 */
+#artist-section th:nth-child(4), #artist-section td:nth-child(4) { width: 20%; } /* 날짜 */
+
+/* 2. 노래별 상세 기록 테이블 비율 */
+#song-section th:nth-child(1), #song-section td:nth-child(1) { width: 45%; } /* 제목 */
+#song-section th:nth-child(2), #song-section td:nth-child(2) { width: 25%; } /* 가수 */
+#song-section th:nth-child(3), #song-section td:nth-child(3) { width: 15%; } /* 횟수 */
+#song-section th:nth-child(4), #song-section td:nth-child(4) { width: 15%; } /* 날짜 */
+
+/* 모바일 화면에서 열 너비 재조정 */
+@media (max-width: 600px) {
+    th:nth-child(4), td:nth-child(4) { display: none; } /* 4번째 열 숨김 */
+    #artist-section th:nth-child(1), #artist-section td:nth-child(1) { width: 50%; }
+    #song-section th:nth-child(1), #song-section td:nth-child(1) { width: 60%; }
+}
+/* --- 테이블 스타일 끝 --- */
         
         .badge { padding: 3px 8px; border-radius: 4px; font-size: 11px; background: #0a1a30; color: var(--text-sub); border: 1px solid var(--border); }
         .count-text { color: var(--accent-bright); font-weight: bold; }
