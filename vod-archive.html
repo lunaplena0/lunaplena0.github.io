@@ -145,19 +145,25 @@
 <div id="modal-overlay" onclick="if(event.target === this) closeModal()">
     <div id="modal-content">
         <img id="m-thumb" style="width:100%; height:200px; object-fit:cover;">
-        <div style="padding: 20px;">
+        <div class="modal-body">
             <div id="m-title-area" style="margin-bottom:20px;">
                 <div id="m-title" style="font-weight:bold; font-size:17px; line-height:1.4;"></div>
                 <div id="m-plus" style="margin-top:8px;"></div>
             </div>
-            <div style="border-left: 3px solid var(--border); padding-left: 12px; margin-bottom: 18px;">
-                <span style="font-size:11px; color:var(--text-sub); display:block; margin-bottom:5px;">📅 방송 정보</span>
-                <span id="m-date" style="font-size:14px; color:var(--text-main);"></span>
+            <div class="info-row is-active">
+                <span class="sub-lbl">📅 방송 정보</span>
+                <span id="m-date" class="m-val-text"></span>
             </div>
-            <div id="row-game" style="display:none; margin-bottom:15px;"><span style="font-size:11px; color:var(--text-sub); display:block; margin-bottom:5px;">🎮 게임</span><div id="m-game"></div></div>
-            <div id="row-song" style="display:none; margin-bottom:15px;"><span style="font-size:11px; color:var(--text-sub); display:block; margin-bottom:5px;">🎵 노래</span><div id="m-song"></div></div>
-            <div id="row-talk" style="display:none; margin-bottom:15px;"><span style="font-size:11px; color:var(--text-sub); display:block; margin-bottom:5px;">💬 소통</span><div id="m-talk"></div></div>
-            <div style="display:flex; gap:10px; margin-top:20px;">
+            <div id="row-cat" class="info-row is-active">
+                <span class="sub-lbl">🔖 컨텐츠 분류</span>
+                <div id="m-cat-val"></div>
+            </div>
+            <div id="row-game" class="info-row"><span class="sub-lbl">🎮 게임 리스트</span><div id="m-game" class="m-val-text"></div></div>
+            <div id="row-song" class="info-row"><span class="sub-lbl">🎵 노래 리스트</span><div id="m-song" class="m-val-text"></div></div>
+            <div id="row-talk" class="info-row"><span class="sub-lbl">💬 소통 시간</span><div id="m-talk" class="m-val-text"></div></div>
+            <div id="row-content" class="info-row"><span class="sub-lbl">✨ 기타 컨텐츠</span><div id="m-content" class="m-val-text"></div></div>
+            
+            <div class="modal-footer">
                 <a id="m-link" href="#" target="_blank" class="btn-action btn-go">시청하기 ↗</a>
                 <button class="btn-action btn-close" onclick="closeModal()">닫기</button>
             </div>
@@ -284,22 +290,54 @@
         }
     }
 
-    function openModalById(id) {
-        const v = allVods.find(item => String(item.id) === String(id));
-        if(!v) return;
-        document.getElementById('m-thumb').src = v.thumb;
-        document.getElementById('m-title').textContent = v.title;
-        document.getElementById('m-date').textContent = `${v.date} (${v.totalTime})`;
-        document.getElementById('m-link').href = v.link;
-        document.getElementById('m-plus').innerHTML = v.isPlus ? `<span class="tag-common tag-plus" style="padding: 2px 8px; font-size: 11px;">구독플러스 전용</span>` : '';
-        const setSec = (id, rowId, data) => {
-            const row = document.getElementById(rowId);
-            const box = document.getElementById(id);
-            if (data && data !== '-') { row.style.display = 'block'; box.innerHTML = data.split('\n').map(l => `<div style="font-size:13px; margin-bottom:4px; color:#ccc;">• ${l}</div>`).join(''); } else { row.style.display = 'none'; }
-        };
-        setSec('m-game', 'row-game', v.gData); setSec('m-song', 'row-song', v.sData); setSec('m-talk', 'row-talk', v.tData);
-        document.getElementById('modal-overlay').style.display = 'flex'; document.body.classList.add('modal-open');
-    }
+    // 1. ID로 데이터를 찾아서 모달을 여는 함수 (분석 리포트용)
+function openModalById(id) {
+    const v = allVods.find(item => String(item.id) === String(id));
+    if (v) openModal(v); // 찾은 데이터를 가지고 아래 openModal 실행
+}
+
+// 2. 실제 모달에 데이터를 뿌려주는 함수 (공용)
+function openModal(v) {
+    document.getElementById('m-thumb').src = v.thumb;
+    document.getElementById('m-title').textContent = v.title;
+    document.getElementById('m-date').textContent = `${v.date} (${v.totalTime})`;
+    document.getElementById('m-link').href = v.link;
+    
+    // 배지 설정 (구독+, 19금 등)
+    let badgeHtml = v.isPlus ? `<span class="tag-common tag-plus" style="padding: 2px 8px; font-size: 11px;">구독플러스 전용</span>` : '';
+    if(v.isAdult) badgeHtml += `<span class="tag-common" style="padding: 2px 8px; font-size: 11px; background:#121f33; color:#ff4757; border:2px solid #ff4757; margin-left:4px;">19</span>`;
+    document.getElementById('m-plus').innerHTML = badgeHtml;
+
+    // 데이터 섹션 처리 (세련된 스타일 유지)
+    const renderSection = (rowId, valId, data, prefix) => {
+        const row = document.getElementById(rowId);
+        const val = document.getElementById(valId);
+        if (data && data !== '-') {
+            row.classList.add('is-active');
+            row.style.display = 'block';
+            // 기존의 예쁜 스타일(getColor 활용)을 그대로 적용
+            const color = (typeof getColor === 'function') ? getColor(prefix) : '#3385ff';
+            val.innerHTML = data.split('\n').filter(l => l.trim()).map(line => `
+                <div style="margin-bottom:6px; font-size:13px;">
+                    <span style="display:inline-block; padding:1px 6px; font-size:10px; font-weight:bold; border-radius:4px; background:#121f33; color:${color}; border:1px solid ${color}60; margin-right:6px;">${prefix}</span>
+                    <span style="color:var(--text-main);">${line}</span>
+                </div>`).join('');
+        } else {
+            if(row) {
+                row.classList.remove('is-active');
+                row.style.display = 'none';
+            }
+        }
+    };
+
+    renderSection('row-game', 'm-game', v.gData, '게임');
+    renderSection('row-song', 'm-song', v.sData, '노래');
+    renderSection('row-talk', 'm-talk', v.tData, '소통');
+    renderSection('row-content', 'm-content', v.cData, '컨텐츠');
+
+    document.getElementById('modal-overlay').style.display = 'flex';
+    document.body.classList.add('modal-open');
+}
     function closeModal() { document.getElementById('modal-overlay').style.display = 'none'; document.body.classList.remove('modal-open'); }
 
     function openAnalysisModal() {
