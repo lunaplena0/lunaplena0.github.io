@@ -286,35 +286,122 @@
     function closeAnalysisModal() { document.getElementById('analysis-overlay').style.display = 'none'; }
 
     function renderAnalysis() {
-        const year = document.getElementById('analysis-year').value;
-        const type = document.getElementById('analysis-type').value;
-        const res = document.getElementById('analysis-result');
-        const filtered = allVods.filter(v => v.date.startsWith(year));
-        
-        let stats = {};
-        filtered.forEach(v => {
-            const key = type === 'month' ? v.date.substring(0, 7) : v.date.substring(0, 4);
-            if (!stats[key]) stats[key] = { time: 0, count: 0, plus: 0, maxSec: 0, maxTitle: "" };
-            const s = timeToSeconds(v.totalTime);
-            stats[key].time += s;
-            stats[key].count++;
-            if (v.isPlus) stats[key].plus++;
-            if (s > stats[key].maxSec) { stats[key].maxSec = s; stats[key].maxTitle = v.title; }
-        });
+    const targetYear = document.getElementById('analysis-year').value;
+    const viewType = document.getElementById('analysis-type').value;
+    const resultDiv = document.getElementById('analysis-result');
+    
+    const yearFiltered = allVods.filter(v => v.date.startsWith(targetYear));
+    if (yearFiltered.length === 0) {
+        resultDiv.innerHTML = "<div style='text-align:center; padding:40px; color:var(--text-sub);'>데이터가 없습니다.</div>";
+        return;
+    }
 
-        res.innerHTML = Object.keys(stats).sort().reverse().map(k => `
-            <div style="background:rgba(255,255,255,0.03); padding:15px; border-radius:15px; margin-bottom:15px; border:1px solid var(--border);">
-                <div style="color:var(--accent); font-weight:bold; margin-bottom:10px;">${k} 리포트 (${stats[k].count}회)</div>
-                <div style="font-size:13px; display:grid; grid-template-columns:1fr 1fr; gap:5px;">
-                    <span>누적: ${Math.floor(stats[k].time/3600)}시간</span>
-                    <span>구독+: ${stats[k].plus}회</span>
+    const stats = {};
+    yearFiltered.forEach(v => {
+        const key = viewType === 'month' ? v.date.substring(0, 7) : v.date.substring(0, 4);
+        if (!stats[key]) {
+            stats[key] = { 
+                time: 0, count: 0, maxSec: 0, minSec: Infinity,
+                maxTitle: "", minTitle: "",
+                adultCount: 0, plusCount: 0,
+                cats: {} 
+            };
+        }
+        
+        const sec = timeToSeconds(v.totalTime);
+        const s = stats[key];
+        s.time += sec;
+        s.count++;
+        if (sec > s.maxSec) { s.maxSec = sec; s.maxTitle = v.title; }
+        if (sec > 0 && sec < s.minSec) { s.minSec = sec; s.minTitle = v.title; }
+        if (v.isAdult) s.adultCount++;
+        if (v.isPlus) s.plusCount++;
+        v.category.split(/[,/ ]+/).forEach(c => { 
+            if(c.trim()) s.cats[c] = (s.cats[c] || 0) + 1; 
+        });
+    });
+
+    const availableKeys = Object.keys(stats).sort().reverse();
+
+    if (viewType === 'month') {
+        // 월 선택 셀렉트 박스 생성
+        resultDiv.innerHTML = `
+            <div style="margin-bottom:20px;">
+                <select id="month-select" onchange="displaySelectedReport()" style="width:100%; background:#0a1a30; color:#fff; border:1px solid var(--border); border-radius:12px; padding:12px; font-size:14px; font-weight:bold; outline:none; cursor:pointer;">
+                    ${availableKeys.map(k => `<option value="${k}">${k.split('-')[1]}월 상세 리포트 보기</option>`).join('')}
+                </select>
+            </div>
+            <div id="report-container"></div>
+        `;
+        window.currentStats = stats; // 전역 참조용
+        displaySelectedReport();
+    } else {
+        let html = "";
+        availableKeys.forEach(key => { html += generateReportHtml(key, stats[key]); });
+        resultDiv.innerHTML = html;
+    }
+}
+
+function displaySelectedReport() {
+    const selectedKey = document.getElementById('month-select').value;
+    const s = window.currentStats[selectedKey];
+    document.getElementById('report-container').innerHTML = generateReportHtml(selectedKey, s);
+}
+
+function generateReportHtml(key, s) {
+    const sortedCats = Object.entries(s.cats).sort((a, b) => b[1] - a[1]);
+    return `
+        <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:20px; padding:20px; animation: fadeIn 0.3s ease;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-end; border-bottom:1px solid rgba(51,133,255,0.2); padding-bottom:12px; margin-bottom:15px;">
+                <span style="font-size:20px; font-weight:bold; color:var(--accent);">${key} 리포트</span>
+                <span style="font-size:13px; color:var(--text-sub);">${s.count}회 방송</span>
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:20px;">
+                <div style="background:rgba(0,0,0,0.2); padding:12px; border-radius:12px;">
+                    <div style="font-size:11px; color:var(--text-sub);">누적 시청 시간</div>
+                    <div style="font-size:16px; font-weight:bold; color:#fff;">${Math.floor(s.time/3600)}시간 ${Math.floor((s.time%3600)/60)}분</div>
                 </div>
-                <div style="margin-top:10px; font-size:11px; color:var(--text-sub); border-top:1px solid var(--border); padding-top:8px;">
-                    🏆 최장: ${stats[k].maxTitle} (${secondsToTime(stats[k].maxSec)})
+                <div style="background:rgba(0,0,0,0.2); padding:12px; border-radius:12px;">
+                    <div style="font-size:11px; color:var(--text-sub);">평균 방송 시간</div>
+                    <div style="font-size:16px; font-weight:bold; color:#fff;">${secondsToTime(Math.floor(s.time/s.count))}</div>
                 </div>
             </div>
-        `).join('');
-    }
+
+            <div style="font-size:14px; line-height:1.6; margin-bottom:20px; color:var(--text-main);">
+                <div style="display:flex; justify-content:space-between; padding:4px 0;">
+                    <span>🔞 성인 인증 방송</span> <span style="color:#ff4757;"><b>${s.adultCount}회</b></span>
+                </div>
+                <div style="display:flex; justify-content:space-between; padding:4px 0;">
+                    <span>⭐ 구독플러스 전용</span> <span style="color:#e6e02e;"><b>${s.plusCount}회</b></span>
+                </div>
+                
+                <div style="margin-top:15px; padding:12px; background:rgba(51,133,255,0.08); border-radius:12px; border-left:4px solid var(--accent);">
+                    <div style="color:var(--accent); font-weight:bold; font-size:11px; margin-bottom:4px;">🏆 최장 방송 기록</div>
+                    <div style="font-size:16px; font-weight:bold; color:#fff;">${secondsToTime(s.maxSec)}</div>
+                    <div style="font-size:12px; color:var(--text-sub); margin-top:4px; line-height:1.4;">${s.maxTitle}</div>
+                </div>
+
+                <div style="margin-top:10px; padding:12px; background:rgba(255,255,255,0.05); border-radius:12px; border-left:4px solid var(--text-sub);">
+                    <div style="color:var(--text-sub); font-weight:bold; font-size:11px; margin-bottom:4px;">⏱️ 최소 방송 기록</div>
+                    <div style="font-size:16px; font-weight:bold; color:#fff;">${s.minSec === Infinity ? '-' : secondsToTime(s.minSec)}</div>
+                    <div style="font-size:12px; color:var(--text-sub); margin-top:4px; line-height:1.4;">${s.minTitle}</div>
+                </div>
+            </div>
+
+            <div style="border-top:1px solid var(--border); padding-top:15px;">
+                <div style="font-size:11px; color:var(--text-sub); margin-bottom:10px;">📊 테마별 방송 횟수</div>
+                <div style="display:flex; flex-wrap:wrap; gap:6px;">
+                    ${sortedCats.map(([name, count]) => `
+                        <div style="background:#0a1a30; border:1px solid ${getColor(name)}80; padding:5px 10px; border-radius:8px; display:flex; align-items:center; gap:5px;">
+                            <span style="font-size:12px; color:#fff; font-weight:bold;">${name}</span>
+                            <span style="font-size:11px; color:${getColor(name)};">${count}회</span>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        </div>`;
+}
 </script>
 </body>
 </html>
