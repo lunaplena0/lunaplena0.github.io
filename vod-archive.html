@@ -62,6 +62,34 @@
             .vod-thumb { width: 135px; min-width: 135px; }
             .dashboard-grid { grid-template-columns: 1fr; }
         }
+        /* 리포트 모달 내의 레이아웃 */
+.analysis-layout { 
+    display: grid; 
+    grid-template-columns: 1fr 1fr; /* PC에서 1:1 비율 */
+    gap: 20px; 
+}
+
+/* 모바일 대응: 650px 이하일 때 1컬럼으로 변경 */
+@media (max-width: 850px) {
+    .analysis-layout { 
+        grid-template-columns: 1fr; 
+    }
+    .analysis-content {
+        max-width: 95vw !important; /* 모바일에서 더 넓게 사용 */
+    }
+}
+
+/* 리포트 내의 미니 리스트 스타일 */
+.report-vod-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 600px;
+    overflow-y: auto;
+    padding-right: 5px;
+}
+.report-vod-list::-webkit-scrollbar { width: 4px; }
+.report-vod-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
     </style>
 </head>
 <body class="loading">
@@ -137,7 +165,7 @@
 </div>
 
 <div id="analysis-overlay">
-    <div class="analysis-content" style="max-width:500px; display:flex; flex-direction:column;">
+    <div class="analysis-content" style="max-width:850px; width:95%; display:flex; flex-direction:column;">
         <div style="padding:20px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
             <h3 style="margin:0; font-size:18px; color:var(--accent);">📊 기간별 상세 분석</h3>
             <div style="display:flex; gap:8px;">
@@ -392,52 +420,73 @@ function generateReportHtml(key, s) {
     ).join('');
 
     return `
-        <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:20px; padding:20px; margin-bottom:15px; animation: fadeIn 0.3s ease;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:1px solid rgba(51,133,255,0.2); padding-bottom:10px;">
-                <div style="font-size:18px; font-weight:bold; color:var(--accent);">${key.split('-')[0]}년 리포트</div>
-                <select onchange="document.getElementById('month-select').value = this.value; displaySelectedReport();" 
-                        style="background:#0a1a30; color:#fff; border:1px solid var(--border); border-radius:8px; padding:4px 8px; font-size:13px; font-weight:bold; outline:none;">
-                    ${monthOptions}
-                </select>
-            </div>
+        <div class="analysis-layout" style="animation: fadeIn 0.3s ease;">
+            <div>
+                <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:20px; padding:20px; margin-bottom:15px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:1px solid rgba(51,133,255,0.2); padding-bottom:10px;">
+                        <div style="font-size:18px; font-weight:bold; color:var(--accent);">${key.split('-')[0]}년 리포트</div>
+                        <select onchange="document.getElementById('month-select').value = this.value; displaySelectedReport();" 
+                                style="background:#0a1a30; color:#fff; border:1px solid var(--border); border-radius:8px; padding:4px 8px; font-size:13px; font-weight:bold; outline:none;">
+                            ${Object.keys(window.currentStats || {}).sort().reverse().map(k => `<option value="${k}" ${k === key ? 'selected' : ''}>${k.split('-')[1]}월</option>`).join('')}
+                        </select>
+                    </div>
 
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:25px;">
-                <div style="background:rgba(0,0,0,0.2); padding:12px; border-radius:12px;">
-                    <div style="font-size:10px; color:var(--text-sub);">총 방송 시간</div>
-                    <div style="font-size:15px; font-weight:bold; color:#fff;">${Math.floor(s.time/3600)}시간 ${Math.floor((s.time%3600)/60)}분</div>
-                </div>
-                <div style="background:rgba(0,0,0,0.2); padding:12px; border-radius:12px;">
-                    <div style="font-size:10px; color:var(--text-sub);">평균 방송 시간</div>
-                    <div style="font-size:15px; font-weight:bold; color:#fff;">${secondsToTime(Math.floor(s.time/s.count))}</div>
-                </div>
-                <div style="background:rgba(0,0,0,0.2); padding:12px; border-radius:12px;">
-                    <div style="font-size:10px; color:var(--text-sub);">최고 방송 시간</div>
-                    <div style="font-size:15px; font-weight:bold; color:var(--accent);">${secondsToTime(s.maxSec)}</div>
-                </div>
-                <div style="background:rgba(0,0,0,0.2); padding:12px; border-radius:12px;">
-                    <div style="font-size:10px; color:var(--text-sub);">최저 방송 시간</div>
-                    <div style="font-size:15px; font-weight:bold; color:#a0aec0;">${s.minSec === Infinity ? '0:00:00' : secondsToTime(s.minSec)}</div>
-                </div>
-            </div>
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:25px;">
+                        <div style="background:rgba(0,0,0,0.2); padding:12px; border-radius:12px;">
+                            <div style="font-size:10px; color:var(--text-sub);">총 방송 시간</div>
+                            <div style="font-size:15px; font-weight:bold; color:#fff;">${Math.floor(s.time/3600)}시간 ${Math.floor((s.time%3600)/60)}분</div>
+                        </div>
+                        <div style="background:rgba(0,0,0,0.2); padding:12px; border-radius:12px;">
+                            <div style="font-size:10px; color:var(--text-sub);">평균 방송 시간</div>
+                            <div style="font-size:15px; font-weight:bold; color:#fff;">${secondsToTime(Math.floor(s.time/s.count))}</div>
+                        </div>
+                    </div>
 
-            <div style="background:rgba(0,0,0,0.15); border-radius:16px; padding:20px;">
-                <div style="margin-bottom:15px;">
-                    <div style="font-size:11px; color:var(--text-sub); margin-bottom:10px;">📊 테마별 분포</div>
-                    <div style="display:flex; flex-wrap:wrap; gap:6px;">
-                        ${sortedCats.map(([n, c]) => `<span style="font-size:11px; color:${getColor(n)}; border:1px solid ${getColor(n)}40; padding:3px 8px; border-radius:6px; background:rgba(0,0,0,0.2);">${n} ${c}회</span>`).join('')}
+                    <div style="background:rgba(0,0,0,0.15); border-radius:16px; padding:20px;">
+                        <div style="margin-bottom:15px;">
+                            <div style="font-size:11px; color:var(--text-sub); margin-bottom:10px;">📊 테마별 분포</div>
+                            <div style="display:flex; flex-wrap:wrap; gap:6px;">
+                                ${sortedCats.map(([n, c]) => `<span style="font-size:11px; color:${getColor(n)}; border:1px solid ${getColor(n)}40; padding:3px 8px; border-radius:6px; background:rgba(0,0,0,0.2);">${n} ${c}회</span>`).join('')}
+                            </div>
+                        </div>
+                        ${renderContentList('게임', s.subItems['게임'] || {}, catColors['게임'])}
+                        ${renderContentList('노래', s.subItems['노래'] || {}, catColors['노래'])}
+                        ${renderContentList('콘텐츠', s.subItems['콘텐츠'] || {}, '#00d8ff')}
                     </div>
                 </div>
-                
-                ${renderContentList('게임', s.subItems['게임'] || {}, catColors['게임'])}
-                ${renderContentList('노래', s.subItems['노래'] || {}, catColors['노래'])}
-                ${renderContentList('콘텐츠', s.subItems['콘텐츠'] || {}, '#00d8ff')} </div>
+            </div>
+
+            <div>
+                <div style="font-size:14px; font-weight:bold; color:var(--text-sub); margin-bottom:12px; display:flex; justify-content:space-between;">
+                    <span>📅 해당 기간 기록</span>
+                    <span>${s.count}개</span>
+                </div>
+                <div id="report-side-list" class="report-vod-list">
+                    </div>
+            </div>
         </div>`;
 }
     function displaySelectedReport() {
     const key = document.getElementById('month-select').value;
     const container = document.getElementById('report-container');
+    
     if (window.currentStats && window.currentStats[key]) {
         container.innerHTML = generateReportHtml(key, window.currentStats[key]);
+        
+        // 오른쪽 리스트 채우기
+        const sideList = document.getElementById('report-side-list');
+        const filtered = allVods.filter(v => v.date.startsWith(key));
+        
+        sideList.innerHTML = filtered.map(v => `
+            <div onclick="closeAnalysisModal(); openModal(${JSON.stringify(v).replace(/"/g, '&quot;')})" 
+                 style="background:rgba(255,255,255,0.02); border:1px solid var(--border); border-radius:10px; padding:10px; cursor:pointer; display:flex; gap:10px; align-items:center;">
+                <img src="${v.thumb}" style="width:60px; height:35px; object-fit:cover; border-radius:4px;">
+                <div style="flex:1; min-width:0;">
+                    <div style="font-size:12px; color:#fff; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${v.title}</div>
+                    <div style="font-size:10px; color:var(--text-sub);">${v.date}</div>
+                </div>
+            </div>
+        `).join('');
     }
 }
 </script>
