@@ -387,19 +387,34 @@
         document.getElementById('m-date').textContent = `${v.date} (${v.totalTime})`;
         document.getElementById('m-link').href = v.link;
         
-        // Premium 전용 태그 스타일 (구독플러스 전용)
+        // Premium 전용 태그 (기존 스타일 유지 혹은 메인 페이지 구독+ 스타일로 통일 가능)
         document.getElementById('m-plus').innerHTML = v.isPlus ? 
-            `<span class="tag-common tag-plus" style="padding: 0 12px; height: 26px; font-size: 12px;">Premium Archive (구독플러스 전용)</span>` : '';
+            `<span class="tag-common tag-plus" style="padding: 2px 10px; height: auto; font-size: 11px;">Premium Archive (구독플러스 전용)</span>` : '';
 
-        // 컨텐츠 분류 뱃지 스타일 수정 (색상 적용)
+        // 컨텐츠 분류 뱃지 스타일 수정 (정보메인 페이지 스타일 적용)
         const catContainer = document.getElementById('m-cat-val');
+        // 정보메인 페이지의 태그 스타일 CSS 정의
+        const tagStyle = `
+            display: inline-block;
+            padding: 2px 8px;
+            font-size: 10px;
+            font-weight: bold;
+            border-radius: 5px;
+            background: #121f33; /* 정보메인과 동일한 어두운 배경 */
+            line-height: 1.2;
+            margin-right: 5px;
+            margin-bottom: 5px;
+            border: 1px solid; /* 테두리 두께 */
+        `;
+
         catContainer.innerHTML = v.category.split(/[,/ ]+/)
             .filter(c => c.trim() !== "")
             .map(c => {
-                const color = getColor(c);
-                return `<span class="tag-common cat-badge" style="background:${color}; color:#fff; border:none; padding: 0 10px; margin-right: 6px; margin-bottom: 6px;">${c}</span>`;
+                const color = getColor(c); // 카테고리별 고유 색상 추출
+                return `<span class="badge" style="${tagStyle} color:${color}; border-color:${color}80;">${c}</span>`;
             }).join('');
 
+        // 게임/노래 리스트 렌더링
         const setRow = (id, valId, prefix, name, time) => {
             const row = document.getElementById(id);
             if(name && name !== "-") {
@@ -408,8 +423,8 @@
                 const times = time.split(',');
                 document.getElementById(valId).innerHTML = names.map((n, i) => 
                     `<div style="margin-bottom:6px;">
-                        <span class="m-prefix" style="color:${getColor(prefix)}; opacity: 0.9;">${prefix}</span>
-                        ${n.trim()}
+                        <span class="m-prefix" style="color:${getColor(prefix)}; font-size: 11px; padding: 1px 5px; background: #0a1425; border-radius: 3px; border: 1px solid ${getColor(prefix)}40;">${prefix}</span>
+                        <span style="margin-left:5px;">${n.trim()}</span>
                         <span class="m-time">(${times[i]?.trim() || ''})</span>
                     </div>`
                 ).join('');
