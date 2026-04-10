@@ -179,8 +179,19 @@ tr:hover td {
         .top-close-btn:hover { background: #d32f2f; border-color: #d32f2f; color: #fff; }
 
         @media (max-width: 600px) {
-            th:nth-child(4), td:nth-child(4) { display: none; }
-        }
+    /* 4번째 열(날짜) 숨기기 */
+    th:nth-child(4), td:nth-child(4) { display: none; } 
+    
+    /* 가수 섹션: 가수명 70% / 곡 수 30% */
+    #artist-section th:nth-child(1), #artist-section td:nth-child(1) { width: 70%; }
+    #artist-section th:nth-child(2), #artist-section td:nth-child(2) { width: 30%; }
+    #artist-section th:nth-child(3), #artist-section td:nth-child(3) { display: none; } /* 가창횟수도 숨김 */
+
+    /* 노래 섹션: 제목 70% / 가수 30% */
+    #song-section th:nth-child(1), #song-section td:nth-child(1) { width: 70%; }
+    #song-section th:nth-child(2), #song-section td:nth-child(2) { width: 30%; }
+    #song-section th:nth-child(3), #song-section td:nth-child(3) { display: none; }
+}
     </style>
 </head>
 <body>
@@ -330,21 +341,22 @@ tr:hover td {
 });
 
         statLines.forEach((line) => {
-            const parts = line.split('\t').map(item => item.trim());
-            if (parts.length >= 1) {
-                const title = parts[0];
-                const artist = (parts[1] && parts[1] !== "") ? parts[1] : "미지정";
-                const key = title + artist;
-                const sHistory = parts[2] ? parts[2].split(',').map(d => d.trim()).filter(d => d !== "") : [];
-                
-                if (songMap.has(key)) {
-                    const song = songMap.get(key);
-                    // 기존 기록과 합치고 중복 제거 후 정렬
-                    song.history = [...new Set([...song.history, ...sHistory])].sort();
-                    song.count = song.history.length;
-                }
+    const parts = line.split('\t').map(item => item.trim());
+    if (parts[0]) { // 제목만 있어도 실행
+        const title = parts[0];
+        const artist = parts[1] || "미지정";
+        const sHistory = parts[2] ? parts[2].split(',').map(d => d.trim()).filter(d => d !== "") : [];
+        
+        // 중요: songMap을 순회하며 제목과 가수가 일치하는 모든 항목에 기록 추가
+        // (중복 제목이 있을 수 있으므로 uniqueKey 대신 제목+가수로 매칭)
+        for (let song of songMap.values()) {
+            if (song.title === title && song.artist === artist) {
+                song.history = [...new Set([...song.history, ...sHistory])].sort();
+                song.count = song.history.length;
             }
-        });
+        }
+    }
+});
 
         fullSongData = Array.from(songMap.values()).map(song => {
             const lastDate = song.count > 0 ? song.history[song.history.length - 1] : "-";
