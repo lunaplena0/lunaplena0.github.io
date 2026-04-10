@@ -122,7 +122,6 @@
         // openModalById 내부의 배지 영역 (간격 조절 버전)
 let badgeHtml = '';
 if (v.isPlus) {
-    // margin-right: 6px를 추가해서 19금 배지와 붙지 않게 합니다.
     badgeHtml += `<span class="tag-common tag-plus" style="padding: 2px 8px; height: auto; font-size: 11px; margin-top:8px; margin-right:6px;">구독플러스 전용</span>`;
 }
 if (v.isAdult) {
