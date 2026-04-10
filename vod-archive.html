@@ -320,14 +320,23 @@
 
         // 상세 콘텐츠 분리 수집 (구분자 처리 로직 추가)
         const collectSub = (data, type) => {
-            if (data && data !== '-') {
-                // 엔터(\n), 콤마(,), 슬래시(/)를 기준으로 모두 분리
-                data.split(/[\n,/]+/).forEach(item => {
-                    const cleanItem = item.trim();
-                    if (cleanItem) s.subItems[type][cleanItem] = (s.subItems[type][cleanItem] || 0) + 1;
-                });
+    if (data && data !== '-') {
+        // 엔터(\n), 콤마(,), 슬래시(/)를 기준으로 분리
+        data.split(/[\n,/]+/).forEach(item => {
+            let cleanItem = item.trim();
+            if (cleanItem) {
+                // 1. 괄호와 그 안의 시간 형식 (00:00:00 또는 00:00) 제거
+                // 정규식 설명: \s* (공백) + \( (괄호 시작) + 시간패턴 + \) (괄호 끝)
+                cleanItem = cleanItem.replace(/\s*\(\d{1,2}:\d{2}(:\d{2})?\)/g, "").trim();
+                
+                // 2. 제목 끝에 남을 수 있는 잔여 공백 제거 후 카운트
+                if (cleanItem) {
+                    s.subItems[type][cleanItem] = (s.subItems[type][cleanItem] || 0) + 1;
+                }
             }
-        };
+        });
+    }
+};
         collectSub(v.gData, '게임');
         collectSub(v.sData, '노래');
     });
