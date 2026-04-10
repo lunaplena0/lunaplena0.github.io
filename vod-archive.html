@@ -267,84 +267,134 @@
 
 <script>
     const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTfTHMy1hImniay9QEPDcMq5C4Yo5yFpmRtBlWo6UXK-FNxABQYbtfGpEsKom2O-OIJPnEi8LLy1Qqx/pub?gid=0&single=true&output=tsv";
-    const catColors = {
-        '게임': '#4a33ff', '노래': '#ff3385', '소통': '#33cc85', 'ASMR': '#9d56ff',
-        '풀트': '#ff8800', '시네티': '#00d4ff', '대회': '#ff3333', '합방': '#ff3333', '기타': '#7a8aa7'
-    };
+const catColors = {
+    '게임': '#4a33ff', '노래': '#ff3385', '소통': '#33cc85', 'ASMR': '#9d56ff',
+    '풀트': '#ff8800', '시네티': '#00d4ff', '대회': '#ff3333', '합방': '#ff3333', '기타': '#7a8aa7'
+};
 
-    function getColor(name) {
-        for(let key in catColors) { if(name.includes(key)) return catColors[key]; }
-        return catColors['기타'];
-    }
+// 정보메인 스타일 공통 태그 CSS
+const tagBaseStyle = `display:inline-flex; align-items:center; padding:2px 7px; border-radius:4px; font-size:10px; font-weight:bold; background:#121f33; line-height:1.2; margin-right:4px; margin-top:4px; border:1px solid;`;
 
-    function timeToSeconds(t) {
-        if(!t || t === '-') return 0;
-        const p = t.split(':').map(Number);
-        return (p[0] * 3600) + (p[1] * 60) + (p[2] || 0);
-    }
+function getColor(name) {
+    for (let key in catColors) { if (name.includes(key)) return catColors[key]; }
+    return catColors['기타'];
+}
 
-    function secondsToTime(s) {
-        const h = Math.floor(s / 3600);
-        const m = Math.floor((s % 3600) / 60);
-        const sec = s % 60;
-        return `${h}:${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
-    }
+function timeToSeconds(t) {
+    if (!t || t === '-') return 0;
+    const p = t.split(':').map(Number);
+    return (p[0] * 3600) + (p[1] * 60) + (p[2] || 0);
+}
 
-    window.onload = () => {
-        const overlay = document.getElementById('loading-overlay');
-        fetch(sheetUrl + `&t=${new Date().getTime()}`)
-            .then(res => res.text())
-            .then(tsv => {
-                const lines = tsv.split(/\r?\n/).filter(l => l.trim() !== "");
-                let vods = [];
-                for (let i = 1; i < lines.length; i++) {
-                    const p = lines[i].split('\t').map(v => v.trim());
-                    if(!p[0]) continue;
-                    // 1. 시트 데이터를 객체로 변환하는 부분 (인덱스 체크하세요!)
-vods.push({
-    date: p[0], title: p[1], link: p[2], thumb: p[3], 
-    totalTime: p[4], isPlus: p[5] === '예' || p[5] === 'O',
-    gData: p[6], // 게임명(시간)
-    sData: p[7], // 노래명(시간)
-    tData: p[8], // 소통(시간)
-    cData: p[9], // 컨텐츠(시간)
-    category: p[10]
-});
+function secondsToTime(s) {
+    const h = Math.floor(s / 3600);
+    const m = Math.floor((s % 3600) / 60);
+    const sec = s % 60;
+    return `${h}:${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+}
 
-// 2. 텍스트 파싱 함수 (괄호 안의 내용을 정확히 추출)
+// 괄호 안의 시간 데이터를 분리하는 함수
 function parseEntry(str) {
-    if (!str || str === "-") return [];
-    // 쉼표로 먼저 나누고 각 항목 처리
+    if (!str || str === "-" || str.trim() === "") return [];
     return str.split(',').map(item => {
         const match = item.match(/(.+?)\((.+?)\)/);
-        if (match) {
-            return { name: match[1].trim(), time: match[2].trim() };
-        }
+        if (match) return { name: match[1].trim(), time: match[2].trim() };
         return { name: item.trim(), time: "" };
     });
 }
 
-// 3. 모달 오픈 함수 수정
+window.onload = () => {
+    const overlay = document.getElementById('loading-overlay');
+    fetch(sheetUrl + `&t=${new Date().getTime()}`)
+        .then(res => res.text())
+        .then(tsv => {
+            const lines = tsv.split(/\r?\n/).filter(l => l.trim() !== "");
+            let vods = [];
+            for (let i = 1; i < lines.length; i++) {
+                const p = lines[i].split('\t').map(v => v.trim());
+                if (!p[0]) continue;
+                vods.push({
+                    date: p[0], title: p[1], link: p[2], thumb: p[3],
+                    totalTime: p[4], isPlus: p[5] === '예' || p[5] === 'O',
+                    gData: p[6], sData: p[7], tData: p[8], cData: p[9],
+                    category: p[10] || "기타"
+                });
+            }
+            vods.sort((a, b) => new Date(b.date) - new Date(a.date));
+            renderList(vods);
+            calculateAllStats(vods);
+            document.getElementById('update-time').textContent = `최근 업데이트: ${new Date().toLocaleTimeString()}`;
+
+            setTimeout(() => {
+                overlay.style.opacity = '0';
+                setTimeout(() => {
+                    overlay.style.display = 'none';
+                    document.body.classList.remove('loading');
+                }, 500);
+            }, 800);
+        })
+        .catch(err => {
+            console.error(err);
+            overlay.style.display = 'none';
+        });
+};
+
+function renderList(data) {
+    const container = document.getElementById('vod-content');
+    container.innerHTML = '';
+    const groups = {};
+    data.forEach(v => { if (!groups[v.date]) groups[v.date] = []; groups[v.date].push(v); });
+
+    Object.keys(groups).sort((a, b) => new Date(b) - new Date(a)).forEach(date => {
+        const groupDiv = document.createElement('div');
+        groupDiv.className = 'date-group';
+        groupDiv.innerHTML = `<div class="date-header">${date}</div><div class="vod-list"></div>`;
+
+        groups[date].forEach(v => {
+            const item = document.createElement('div');
+            item.className = 'vod-item';
+            item.onclick = () => openModal(v);
+
+            const plusTag = v.isPlus ? `<span class="tag-common tag-plus" style="height:18px; line-height:18px; font-size:9px; padding:0 6px;">구독+</span>` : '';
+
+            item.innerHTML = `
+                <div class="vod-thumb"><img src="${v.thumb}"><span class="duration">${v.totalTime}</span></div>
+                <div class="vod-body">
+                    <div class="vod-title">
+                        <span class="title-text">${v.title}</span>
+                        ${plusTag}
+                    </div>
+                    <div style="display:flex; flex-wrap:wrap;">
+                        ${v.category.split(/[,/ ]+/).filter(c => c.trim() !== "").map(c => {
+                            const color = getColor(c);
+                            return `<span style="${tagBaseStyle} color:${color}; border-color:${color}60;">${c}</span>`;
+                        }).join('')}
+                    </div>
+                </div>`;
+            groupDiv.querySelector('.vod-list').appendChild(item);
+        });
+        container.appendChild(groupDiv);
+    });
+}
+
 function openModal(v) {
     document.getElementById('m-thumb').src = v.thumb;
     document.getElementById('m-title').textContent = v.title;
     document.getElementById('m-date').textContent = `${v.date} (${v.totalTime})`;
     document.getElementById('m-link').href = v.link;
-    
+
     // Premium 태그
-    document.getElementById('m-plus').innerHTML = v.isPlus ? 
+    document.getElementById('m-plus').innerHTML = v.isPlus ?
         `<span class="tag-common tag-plus" style="padding: 2px 10px; height: auto; font-size: 11px;">Premium Archive (구독플러스 전용)</span>` : '';
 
-    // 컨텐츠 분류 태그 (정보메인 스타일)
+    // 컨텐츠 분류
     const catContainer = document.getElementById('m-cat-val');
-    const tagBaseStyle = `display:inline-block; padding:2px 8px; font-size:10px; font-weight:bold; border-radius:5px; background:#121f33; line-height:1.2; margin-right:5px; margin-bottom:5px; border:1px solid;`;
-    
     catContainer.innerHTML = v.category.split(/[,/ ]+/).filter(c => c.trim() !== "").map(c => {
         const color = getColor(c);
         return `<span style="${tagBaseStyle} color:${color}; border-color:${color}80;">${c}</span>`;
     }).join('');
 
-    // 공통 렌더링 함수
+    // 섹션 렌더링 함수
     const renderSection = (rowId, valId, data, prefix) => {
         const row = document.getElementById(rowId);
         const val = document.getElementById(valId);
@@ -364,7 +414,7 @@ function openModal(v) {
             row.classList.remove('is-active');
         }
     };
-    // 각 섹션 실행
+
     renderSection('row-game', 'm-game', v.gData, '게임');
     renderSection('row-song', 'm-song', v.sData, '노래');
     renderSection('row-talk', 'm-talk', v.tData, '소통');
@@ -373,172 +423,40 @@ function openModal(v) {
     document.getElementById('modal-overlay').style.display = 'flex';
     document.body.classList.add('modal-open');
 }
-                }
-                vods.sort((a, b) => new Date(b.date) - new Date(a.date));
-                renderList(vods);
-                calculateAllStats(vods);
-                document.getElementById('update-time').textContent = `최근 업데이트: ${new Date().toLocaleTimeString()}`;
 
-                // 로딩 오버레이 제거
-                setTimeout(() => {
-                    overlay.style.opacity = '0';
-                    setTimeout(() => {
-                        overlay.style.display = 'none';
-                        document.body.classList.remove('loading');
-                    }, 500);
-                }, 800);
-            })
-            .catch(err => {
-                console.error(err);
-                overlay.style.display = 'none';
-            });
-    };
+function closeModal() {
+    document.getElementById('modal-overlay').style.display = 'none';
+    document.body.classList.remove('modal-open');
+}
 
-    function calculateAllStats(data) {
-        let totalSec = 0, maxSec = 0, minSec = Infinity;
-        let catMap = {};
-        data.forEach(v => {
-            const s = timeToSeconds(v.totalTime);
-            if(s > 0) { totalSec += s; maxSec = Math.max(maxSec, s); minSec = Math.min(minSec, s); }
-            const cats = v.category.split(/[,/ ]+/).filter(c => c.trim() !== "");
-            cats.forEach(c => { catMap[c] = (catMap[c] || 0) + 1; });
-        });
-        document.getElementById('total-hour').textContent = `${Math.floor(totalSec / 3600)}시간 ${Math.floor((totalSec % 3600) / 60)}분`;
-        document.getElementById('max-time').textContent = secondsToTime(maxSec);
-        document.getElementById('min-time').textContent = secondsToTime(minSec);
-        document.getElementById('avg-time').textContent = secondsToTime(Math.floor(totalSec / (data.length || 1)));
-        
-        const sortedCats = Object.entries(catMap).sort((a, b) => b[1] - a[1]);
-        const totalCount = Object.values(catMap).reduce((a, b) => a + b, 0);
-        let currentPos = 0;
-        const gradientParts = sortedCats.map(([name, count]) => {
-            const start = currentPos; const end = currentPos + (count / totalCount * 100);
-            currentPos = end; return `${getColor(name)} ${start}% ${end}%`;
-        });
-        document.getElementById('category-chart').style.background = `conic-gradient(${gradientParts.join(', ')})`;
-        const legend = document.getElementById('legend');
-        legend.innerHTML = sortedCats.map(([name, count]) => {
-            const percent = Math.round((count / totalCount) * 100);
-            return `<div class="legend-item"><span class="dot" style="background:${getColor(name)}"></span>${name}<span class="legend-percent">${percent}%</span></div>`;
-        }).join('');
-    }
+function calculateAllStats(data) {
+    let totalSec = 0, maxSec = 0, minSec = Infinity;
+    let catMap = {};
+    data.forEach(v => {
+        const s = timeToSeconds(v.totalTime);
+        if (s > 0) { totalSec += s; maxSec = Math.max(maxSec, s); minSec = Math.min(minSec, s); }
+        const cats = v.category.split(/[,/ ]+/).filter(c => c.trim() !== "");
+        cats.forEach(c => { catMap[c] = (catMap[c] || 0) + 1; });
+    });
+    document.getElementById('total-hour').textContent = `${Math.floor(totalSec / 3600)}시간 ${Math.floor((totalSec % 3600) / 60)}분`;
+    document.getElementById('max-time').textContent = secondsToTime(maxSec);
+    document.getElementById('min-time').textContent = secondsToTime(minSec);
+    document.getElementById('avg-time').textContent = secondsToTime(Math.floor(totalSec / (data.length || 1)));
 
-    function renderList(data) {
-        const container = document.getElementById('vod-content');
-        container.innerHTML = '';
-        const groups = {};
-        data.forEach(v => { if(!groups[v.date]) groups[v.date] = []; groups[v.date].push(v); });
-        
-        // 공통 태그 스타일 정의 (정보메인 페이지 스타일)
-        const tagBaseStyle = `
-            display: inline-flex;
-            align-items: center;
-            padding: 2px 7px;
-            border-radius: 4px;
-            font-size: 10px;
-            font-weight: bold;
-            background: #121f33; /* 정보메인과 동일한 어두운 배경 */
-            line-height: 1;
-            margin-right: 4px;
-            margin-top: 4px;
-            border: 1px solid;
-        `;
-
-        Object.keys(groups).sort((a,b) => new Date(b) - new Date(a)).forEach(date => {
-            const groupDiv = document.createElement('div');
-            groupDiv.className = 'date-group';
-            groupDiv.innerHTML = `<div class="date-header">${date}</div><div class="vod-list"></div>`;
-            
-            groups[date].forEach(v => {
-                const item = document.createElement('div');
-                item.className = 'vod-item';
-                item.onclick = () => openModal(v);
-                
-                // 구독+ 태그 (리스트용)
-                const plusTag = v.isPlus ? `<span class="tag-common tag-plus" style="height:18px; line-height:18px; font-size:9px; padding:0 6px;">구독+</span>` : '';
-                
-                item.innerHTML = `
-                    <div class="vod-thumb"><img src="${v.thumb}"><span class="duration">${v.totalTime}</span></div>
-                    <div class="vod-body">
-                        <div class="vod-title">
-                            <span class="title-text">${v.title}</span>
-                            ${plusTag}
-                        </div>
-                        <div style="display:flex; flex-wrap:wrap;">
-                            ${v.category.split(/[,/ ]+/).filter(c => c.trim() !== "").map(c => {
-                                const color = getColor(c);
-                                // 정보메인 스타일의 태그 렌더링
-                                return `<span style="${tagBaseStyle} color:${color}; border-color:${color}60;">${c}</span>`;
-                            }).join('')}
-                        </div>
-                    </div>`;
-                groupDiv.querySelector('.vod-list').appendChild(item);
-            });
-            container.appendChild(groupDiv);
-        });
-    }
-
-    function openModal(v) {
-        document.getElementById('m-thumb').src = v.thumb;
-        document.getElementById('m-title').textContent = v.title;
-        document.getElementById('m-date').textContent = `${v.date} (${v.totalTime})`;
-        document.getElementById('m-link').href = v.link;
-        
-        // Premium 전용 태그 (기존 스타일 유지 혹은 메인 페이지 구독+ 스타일로 통일 가능)
-        document.getElementById('m-plus').innerHTML = v.isPlus ? 
-            `<span class="tag-common tag-plus" style="padding: 2px 10px; height: auto; font-size: 11px;">Premium Archive (구독플러스 전용)</span>` : '';
-
-        // 컨텐츠 분류 뱃지 스타일 수정 (정보메인 페이지 스타일 적용)
-        const catContainer = document.getElementById('m-cat-val');
-        // 정보메인 페이지의 태그 스타일 CSS 정의
-        const tagStyle = `
-            display: inline-block;
-            padding: 2px 8px;
-            font-size: 10px;
-            font-weight: bold;
-            border-radius: 5px;
-            background: #121f33; /* 정보메인과 동일한 어두운 배경 */
-            line-height: 1.2;
-            margin-right: 5px;
-            margin-bottom: 5px;
-            border: 1px solid; /* 테두리 두께 */
-        `;
-
-        catContainer.innerHTML = v.category.split(/[,/ ]+/)
-            .filter(c => c.trim() !== "")
-            .map(c => {
-                const color = getColor(c); // 카테고리별 고유 색상 추출
-                return `<span class="badge" style="${tagStyle} color:${color}; border-color:${color}80;">${c}</span>`;
-            }).join('');
-
-        // 게임/노래 리스트 렌더링
-        const setRow = (id, valId, prefix, name, time) => {
-            const row = document.getElementById(id);
-            if(name && name !== "-") {
-                row.classList.add('is-active');
-                const names = name.split(','); 
-                const times = time.split(',');
-                document.getElementById(valId).innerHTML = names.map((n, i) => 
-                    `<div style="margin-bottom:6px;">
-                        <span class="m-prefix" style="color:${getColor(prefix)}; font-size: 11px; padding: 1px 5px; background: #0a1425; border-radius: 3px; border: 1px solid ${getColor(prefix)}40;">${prefix}</span>
-                        <span style="margin-left:5px;">${n.trim()}</span>
-                        <span class="m-time">(${times[i]?.trim() || ''})</span>
-                    </div>`
-                ).join('');
-            } else row.classList.remove('is-active');
-        };
-
-        setRow('row-game', 'm-game', '게임', v.gName, v.gTime);
-        setRow('row-song', 'm-song', '노래', v.sName, v.sTime);
-        
-        document.getElementById('modal-overlay').style.display = 'flex';
-        document.body.classList.add('modal-open');
-    }
-
-    function closeModal() {
-        document.getElementById('modal-overlay').style.display = 'none';
-        document.body.classList.remove('modal-open');
-    }
+    const sortedCats = Object.entries(catMap).sort((a, b) => b[1] - a[1]);
+    const totalCount = Object.values(catMap).reduce((a, b) => a + b, 0);
+    let currentPos = 0;
+    const gradientParts = sortedCats.map(([name, count]) => {
+        const start = currentPos; const end = currentPos + (count / totalCount * 100);
+        currentPos = end; return `${getColor(name)} ${start}% ${end}%`;
+    });
+    document.getElementById('category-chart').style.background = `conic-gradient(${gradientParts.join(', ')})`;
+    const legend = document.getElementById('legend');
+    legend.innerHTML = sortedCats.map(([name, count]) => {
+        const percent = Math.round((count / totalCount) * 100);
+        return `<div class="legend-item"><span class="dot" style="background:${getColor(name)}"></span>${name}<span class="legend-percent">${percent}%</span></div>`;
+    }).join('');
+}
 </script>
 </body>
 </html>
