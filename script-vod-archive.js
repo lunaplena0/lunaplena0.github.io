@@ -51,13 +51,25 @@
                 const plusTag = v.isPlus ? `<span class="tag-common tag-plus" style="height:18px; font-size:9px; margin-left:5px;">구독+</span>` : '';
                 const adultTag = v.isAdult ? `<span class="tag-common" style="height:18px; font-size:9px; margin-left:5px; background:#121f33; color:#ff4757; border:1px solid #ff4757;">19</span>` : '';
                 item.innerHTML = `
-                    <div class="vod-thumb"><img src="${v.thumb}" loading="lazy"><span class="duration">${v.totalTime}</span></div>
-                    <div class="vod-title">
-    <span class="title-text">${v.title}</span>
-    <span class="badge-group" style="display: inline-flex; gap: 4px; vertical-align: middle; margin-left: 8px;">
-        ${plusTag}${adultTag}
-    </span>
-</div>
+    <div class="vod-thumb">
+        <img src="${v.thumb}" loading="lazy">
+        <span class="duration">${v.totalTime}</span>
+    </div>
+    <div class="vod-info" style="display: flex; flex-direction: column; flex: 1; min-width: 0; gap: 8px;">
+        <div class="vod-title" style="display: flex; align-items: center; flex-wrap: wrap; gap: 8px;">
+            <span class="title-text" style="font-weight: bold; font-size: 15px; color: #fff;">${v.title}</span>
+            <div class="badge-group" style="display: flex; gap: 4px; align-items: center;">
+                ${plusTag}${adultTag}
+            </div>
+        </div>
+        <div class="vod-tags" style="display: flex; flex-wrap: wrap; gap: 4px;">
+            ${v.category.split(/[,/ ]+/).filter(c => c.trim()).map(c => 
+                `<span style="font-size: 10px; color: ${getColor(c)}; border: 1px solid ${getColor(c)}60; padding: 2px 6px; border-radius: 4px; background: rgba(0,0,0,0.2);">
+                    ${c}
+                </span>`
+            ).join('')}
+        </div>
+    </div>`;
                     <div style="display:flex; flex-wrap:wrap; gap:4px;">${v.category.split(/[,/ ]+/).filter(c => c.trim()).map(c => `<span style="font-size:10px; color:${getColor(c)}; border:1px solid ${getColor(c)}60; padding:1px 5px; border-radius:4px;">${c}</span>`).join('')}</div></div>`;
                 groupDiv.querySelector('.vod-list').appendChild(item);
             });
