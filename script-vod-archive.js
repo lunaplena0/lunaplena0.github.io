@@ -73,7 +73,7 @@
             <span class="title-text" style="font-weight: bold; font-size: 15px; color: #fff; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; padding-right: 15px;">
                 ${v.title}
             </span>
-            <div class="badge-group" style="display: flex; gap: 4px; flex-shrink: 0; margin-right: 10px;">
+            <div class="badge-group" style="display: flex; gap: 4px; flex-shrink: 0; margin-right: 4px;">
                 ${plusTag}
                 ${adultTag}
             </div>
