@@ -18,10 +18,12 @@
                 for (let i = 1; i < lines.length; i++) {
                     const p = lines[i].split('\t').map(v => v.trim());
                     if (!p[0]) continue;
-                    allVods.push({
-                        id: i - 1, date: p[0], title: p[1], link: p[2], thumb: p[3], totalTime: p[4],
-                        isPlus: p[5] === '예' || p[5] === 'O', gData: p[7], sData: p[8], tData: p[9], cData: p[10], category: p[11] || "기타"
-                    });
+                   allVods.push({
+                   id: i - 1, date: p[0], title: p[1], link: p[2], thumb: p[3], totalTime: p[4],
+                   isPlus: p[5] === '예' || p[5] === 'O', 
+                   isAdult: p[6] === '예' || p[6] === 'O', // 이 부분이 추가되어야 함
+                   gData: p[7], sData: p[8], tData: p[9], cData: p[10], category: p[11] || "기타"
+                   });
                 }
                 allVods.sort((a, b) => new Date(b.date) - new Date(a.date));
                 renderList(allVods); calculateAllStats(allVods); renderTagButtons();
@@ -41,9 +43,10 @@
             groups[date].forEach(v => {
                 const item = document.createElement('div'); item.className = 'vod-item'; item.onclick = () => openModalById(v.id);
                 const plusTag = v.isPlus ? `<span class="tag-common tag-plus" style="height:18px; font-size:9px; margin-left:5px;">구독+</span>` : '';
+                const adultTag = v.isAdult ? `<span class="tag-common" style="height:18px; font-size:9px; margin-left:5px; background:#121f33; color:#ff4757; border:1px solid #ff4757;">19</span>` : '';
                 item.innerHTML = `
                     <div class="vod-thumb"><img src="${v.thumb}" loading="lazy"><span class="duration">${v.totalTime}</span></div>
-                    <div class="vod-body"><div class="vod-title"><span class="title-text">${v.title}</span>${plusTag}</div>
+                    <div class="vod-body"><div class="vod-title"><span class="title-text">${v.title}</span>${plusTag}${adultTag}</div>
                     <div style="display:flex; flex-wrap:wrap; gap:4px;">${v.category.split(/[,/ ]+/).filter(c => c.trim()).map(c => `<span style="font-size:10px; color:${getColor(c)}; border:1px solid ${getColor(c)}60; padding:1px 5px; border-radius:4px;">${c}</span>`).join('')}</div></div>`;
                 groupDiv.querySelector('.vod-list').appendChild(item);
             });
@@ -116,10 +119,16 @@
 
         document.getElementById('m-link').href = v.link;
 
-        // 구독 플러스 및 배지 영역 (기존 CSS 클래스 활용)
-        document.getElementById('m-plus').innerHTML = v.isPlus 
-            ? `<span class="tag-common tag-plus" style="padding: 2px 8px; height: auto; font-size: 11px; margin-top:8px;">구독플러스 전용</span>` 
-            : '';
+        // openModalById 내부의 배지 영역 (간격 조절 버전)
+let badgeHtml = '';
+if (v.isPlus) {
+    // margin-right: 6px를 추가해서 19금 배지와 붙지 않게 합니다.
+    badgeHtml += `<span class="tag-common tag-plus" style="padding: 2px 8px; height: auto; font-size: 11px; margin-top:8px; margin-right:6px;">구독플러스 전용</span>`;
+}
+if (v.isAdult) {
+    badgeHtml += `<span class="tag-common" style="padding: 2px 8px; height: auto; font-size: 11px; margin-top:8px; background:#121f33; color:#ff4757; border:1px solid #ff4757;">19</span>`;
+}
+document.getElementById('m-plus').innerHTML = badgeHtml;
 
         // 섹션별 데이터 (게임, 노래, 소통) 출력 로직
         const setSec = (id, rowId, data) => {
