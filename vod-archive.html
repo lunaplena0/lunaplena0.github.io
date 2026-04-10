@@ -260,7 +260,6 @@
         }
         renderList(filtered);
         renderTagButtons();
-        // 필터 적용 시 상단으로 부드럽게 이동 (선택 사항)
         if(selectedTags.length > 0) document.getElementById('tag-filter-container').scrollIntoView({behavior: 'smooth', block: 'start'});
     }
 
@@ -284,7 +283,7 @@
     }
 
     function openModalById(id) {
-        const v = allVods.find(item => item.id == id); // id 타입 호환을 위해 == 사용
+        const v = allVods.find(item => item.id == id);
         if(!v) return;
         document.getElementById('m-thumb').src = v.thumb;
         document.getElementById('m-title').textContent = v.title;
@@ -315,12 +314,7 @@
         let catMap = {};
         data.forEach(v => {
             const s = timeToSeconds(v.totalTime);
-            if (s > 0) { 
-                totalSec += s; 
-                if (v.isPlus) plusSec += s; 
-                maxSec = Math.max(maxSec, s); 
-                minSec = Math.min(minSec, s); 
-            }
+            if (s > 0) { totalSec += s; if (v.isPlus) plusSec += s; maxSec = Math.max(maxSec, s); minSec = Math.min(minSec, s); }
             v.category.split(/[,/ ]+/).filter(c => c.trim()).forEach(c => { catMap[c] = (catMap[c] || 0) + 1; });
         });
         document.getElementById('total-hour').textContent = `${Math.floor(totalSec / 3600)}시간 ${Math.floor((totalSec % 3600) / 60)}분`;
@@ -422,7 +416,7 @@
                 </div>
                 <div class="report-vod-list">
                     ${filtered.map(v => `
-                        <div class="report-item" onclick="closeAnalysisModal(); openModalById(${v.id})">
+                        <div class="report-item" onclick="handleAnalysisItemClick(${v.id})">
                             <div style="width:80px; height:45px; min-width:80px; border-radius:6px; overflow:hidden;">
                                 <img src="${v.thumb}" style="width:100%; height:100%; object-fit:cover;">
                             </div>
@@ -434,6 +428,13 @@
                     `).join('')}
                 </div>`;
         }
+    }
+
+    function handleAnalysisItemClick(id) {
+        closeAnalysisModal();
+        setTimeout(() => {
+            openModalById(id);
+        }, 150);
     }
 </script>
 </body>
