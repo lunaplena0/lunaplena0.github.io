@@ -52,7 +52,12 @@
                 const adultTag = v.isAdult ? `<span class="tag-common" style="height:18px; font-size:9px; margin-left:5px; background:#121f33; color:#ff4757; border:1px solid #ff4757;">19</span>` : '';
                 item.innerHTML = `
                     <div class="vod-thumb"><img src="${v.thumb}" loading="lazy"><span class="duration">${v.totalTime}</span></div>
-                    <div class="vod-body"><div class="vod-title"><span class="title-text">${v.title}</span>${plusTag}${adultTag}</div>
+                    <div class="vod-title">
+    <span class="title-text">${v.title}</span>
+    <span class="badge-group" style="display: inline-flex; gap: 4px; vertical-align: middle; margin-left: 8px;">
+        ${plusTag}${adultTag}
+    </span>
+</div>
                     <div style="display:flex; flex-wrap:wrap; gap:4px;">${v.category.split(/[,/ ]+/).filter(c => c.trim()).map(c => `<span style="font-size:10px; color:${getColor(c)}; border:1px solid ${getColor(c)}60; padding:1px 5px; border-radius:4px;">${c}</span>`).join('')}</div></div>`;
                 groupDiv.querySelector('.vod-list').appendChild(item);
             });
