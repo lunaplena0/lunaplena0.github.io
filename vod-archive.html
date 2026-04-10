@@ -337,12 +337,18 @@
         let prevAvgTime = prevS ? prevS.time / prevS.count : null;
         let avgDiff = prevAvgTime ? avgTime - prevAvgTime : null;
 
-        const getDiffHtml = (diff) => {
-            if (diff === null) return `<span class="diff-val diff-none">지난 기록 없음</span>`;
-            const h = Math.floor(Math.abs(diff) / 3600);
-            const m = Math.floor((Math.abs(diff) % 3600) / 60);
-            const label = diff >= 0 ? `▲ +${h}시간 ${m}분` : `▼ -${h}시간 ${m}분`;
-            return `<span class="diff-val ${diff >= 0 ? 'diff-up' : 'diff-down'}">${label}</span>`;
+       const getDiffHtml = (diff) => {
+        if (diff === null) return `<span class="diff-val diff-none">지난 기록 없음</span>`;
+    
+        const h = Math.floor(Math.abs(diff) / 3600);
+        const m = Math.floor((Math.abs(diff) % 3600) / 60);
+    
+        // 이 부분이 핵심 수정 구간입니다!
+        const suffix = diff >= 0 ? "많아요" : "적어요"; 
+        const icon = diff >= 0 ? "▲ +" : "▼ -";
+        const label = `${icon}${h}시간 ${m}분 ${suffix}`;
+    
+        return `<span class="diff-val ${diff >= 0 ? 'diff-up' : 'diff-down'}">${label}</span>`;
         };
 
         const renderSubList = (title, items, color) => {
