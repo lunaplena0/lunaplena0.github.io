@@ -257,20 +257,26 @@
         const artistMap = new Map(); 
         const songMap = new Map();
 
-        bookLines.forEach((line) => {
-            const parts = line.split('\t').map(item => item.trim());
-            // 최소한 제목(parts[0])만 있어도 목록에 포함시킵니다.
-            if (parts[0] && parts[0] !== "") {
-                const title = parts[0];
-                const artist = (parts[1] && parts[1] !== "") ? parts[1] : "미지정"; // 가수가 없어도 포함
-                const dateRaw = parts[2] || "";
-                const history = dateRaw ? dateRaw.split(',').map(d => d.trim()).filter(d => d !== "") : [];
-                
-                // 중복 방지를 위해 제목+가수 조합을 키로 사용
-                const key = title + artist;
-                songMap.set(key, { title, artist, history: [...history], count: history.length });
-            }
+        bookLines.forEach((line, index) => { // index 추가
+    const parts = line.split('\t').map(item => item.trim());
+    
+    if (parts[0]) { // 제목만 있으면 일단 통과
+        const title = parts[0];
+        const artist = parts[1] || "미지정";
+        const dateRaw = parts[2] || "";
+        const history = dateRaw ? dateRaw.split(',').map(d => d.trim()).filter(d => d !== "") : [];
+        
+        // [수정] 제목+가수 대신 '순서+제목'을 키로 사용하여 중복 방지
+        const uniqueKey = `${index}_${title}`; 
+        
+        songMap.set(uniqueKey, { 
+            title, 
+            artist, 
+            history: [...history], 
+            count: history.length 
         });
+    }
+});
 
         statLines.forEach((line) => {
             const parts = line.split('\t').map(item => item.trim());
