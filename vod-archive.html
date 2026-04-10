@@ -303,7 +303,9 @@
             stats[key] = { 
                 time: 0, count: 0, maxSec: 0, minSec: Infinity,
                 maxTitle: "", minTitle: "", adultCount: 0, plusCount: 0,
-                cats: {}, subItems: { '게임': {}, '노래': {} } 
+                cats: {}, 
+                // 이 부분을 꼭 확인하세요! '콘텐츠'가 추가되었습니다.
+                subItems: { '게임': {}, '노래': {}, '콘텐츠': {} } 
             };
         }
         
@@ -318,28 +320,27 @@
         // 테마 카운팅
         v.category.split(/[,/ ]+/).forEach(c => { if(c.trim()) s.cats[c] = (s.cats[c] || 0) + 1; });
 
-        // 상세 콘텐츠 분리 수집 (구분자 처리 로직 추가)
+        // 상세 콘텐츠 수집 함수
         const collectSub = (data, type) => {
-    if (data && data !== '-') {
-        // 엔터(\n), 콤마(,), 슬래시(/)를 기준으로 분리
-        data.split(/[\n,/]+/).forEach(item => {
-            let cleanItem = item.trim();
-            if (cleanItem) {
-                // 1. 괄호와 그 안의 시간 형식 (00:00:00 또는 00:00) 제거
-                // 정규식 설명: \s* (공백) + \( (괄호 시작) + 시간패턴 + \) (괄호 끝)
-                cleanItem = cleanItem.replace(/\s*\([\d\s:~]+\)/g, "").trim();
-                
-                // 2. 제목 끝에 남을 수 있는 잔여 공백 제거 후 카운트
-                if (cleanItem) {
-                    s.subItems[type][cleanItem] = (s.subItems[type][cleanItem] || 0) + 1;
-                }
+            if (data && data !== '-') {
+                data.split(/[\n,/]+/).forEach(item => {
+                    let cleanItem = item.trim();
+                    if (cleanItem) {
+                        // 시간 범위 정규식 적용
+                        cleanItem = cleanItem.replace(/\s*\([\d\s:~]+\)/g, "").trim();
+                        if (cleanItem) {
+                            // 해당 타입 저장소가 있는지 확인 후 기록
+                            if (!s.subItems[type]) s.subItems[type] = {};
+                            s.subItems[type][cleanItem] = (s.subItems[type][cleanItem] || 0) + 1;
+                        }
+                    }
+                });
             }
-        });
-    }
-};
+        };
+
         collectSub(v.gData, '게임');
         collectSub(v.sData, '노래');
-        collectSub(v.cData, '콘텐츠');
+        collectSub(v.cData, '콘텐츠'); // 시네티, 합방 등 11번째 열 데이터 수집
     });
 
     const availableKeys = Object.keys(stats).sort().reverse();
