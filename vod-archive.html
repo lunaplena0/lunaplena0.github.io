@@ -65,14 +65,15 @@
         /* 리포트 모달 내의 레이아웃 */
 .analysis-layout { 
     display: grid; 
-    grid-template-columns: 1fr 1fr; /* PC에서 1:1 비율 */
+    grid-template-columns: 1.2fr 0.8fr; 
     gap: 20px; 
+    align-items: start; /* 높이가 달라도 위쪽 기준으로 정렬 */
 }
 
 /* 모바일 대응: 650px 이하일 때 1컬럼으로 변경 */
 @media (max-width: 850px) {
     .analysis-layout { 
-        grid-template-columns: 1fr; 
+        grid-template-columns: 1fr; /* 모바일은 다시 1컬럼 */
     }
     .analysis-content {
         max-width: 95vw !important; /* 모바일에서 더 넓게 사용 */
@@ -83,10 +84,10 @@
 .report-vod-list {
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    max-height: 600px;
+    gap: 10px;
+    max-height: 700px; /* 높이 제한을 조금 더 넉넉히 */
     overflow-y: auto;
-    padding-right: 5px;
+    padding-right: 8px;
 }
 .report-vod-list::-webkit-scrollbar { width: 4px; }
 .report-vod-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
@@ -473,17 +474,18 @@ function generateReportHtml(key, s) {
     if (window.currentStats && window.currentStats[key]) {
         container.innerHTML = generateReportHtml(key, window.currentStats[key]);
         
-        // 오른쪽 리스트 채우기
         const sideList = document.getElementById('report-side-list');
         const filtered = allVods.filter(v => v.date.startsWith(key));
         
         sideList.innerHTML = filtered.map(v => `
             <div onclick="closeAnalysisModal(); openModal(${JSON.stringify(v).replace(/"/g, '&quot;')})" 
-                 style="background:rgba(255,255,255,0.02); border:1px solid var(--border); border-radius:10px; padding:10px; cursor:pointer; display:flex; gap:10px; align-items:center;">
-                <img src="${v.thumb}" style="width:60px; height:35px; object-fit:cover; border-radius:4px;">
+                 style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.05); border-radius:12px; padding:10px; cursor:pointer; display:flex; gap:12px; align-items:center; transition: 0.2s;">
+                <div style="width:80px; height:45px; min-width:80px; border-radius:6px; overflow:hidden;">
+                    <img src="${v.thumb}" style="width:100%; height:100%; object-fit:cover;">
+                </div>
                 <div style="flex:1; min-width:0;">
-                    <div style="font-size:12px; color:#fff; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${v.title}</div>
-                    <div style="font-size:10px; color:var(--text-sub);">${v.date}</div>
+                    <div style="font-size:13px; color:#eee; font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; margin-bottom:2px;">${v.title}</div>
+                    <div style="font-size:11px; color:var(--text-sub);">${v.date.split('-')[2]}일 기록</div>
                 </div>
             </div>
         `).join('');
