@@ -302,29 +302,39 @@
         if (!stats[key]) {
             stats[key] = { 
                 time: 0, count: 0, maxSec: 0, minSec: Infinity,
-                maxTitle: "", minTitle: "",
-                adultCount: 0, plusCount: 0,
-                cats: {} 
+                maxTitle: "", minTitle: "", adultCount: 0, plusCount: 0,
+                cats: {}, subItems: { '게임': {}, '노래': {}, '소통': {} } 
             };
         }
         
         const sec = timeToSeconds(v.totalTime);
         const s = stats[key];
-        s.time += sec;
-        s.count++;
+        s.time += sec; s.count++;
         if (sec > s.maxSec) { s.maxSec = sec; s.maxTitle = v.title; }
         if (sec > 0 && sec < s.minSec) { s.minSec = sec; s.minTitle = v.title; }
         if (v.isAdult) s.adultCount++;
         if (v.isPlus) s.plusCount++;
-        v.category.split(/[,/ ]+/).forEach(c => { 
-            if(c.trim()) s.cats[c] = (s.cats[c] || 0) + 1; 
-        });
+
+        // 테마 카운팅
+        v.category.split(/[,/ ]+/).forEach(c => { if(c.trim()) s.cats[c] = (s.cats[c] || 0) + 1; });
+
+        // 상세 콘텐츠(게임명, 노래명 등) 수집
+        const collectSub = (data, type) => {
+            if (data && data !== '-') {
+                data.split('\n').forEach(line => {
+                    const item = line.trim();
+                    if (item) s.subItems[type][item] = (s.subItems[type][item] || 0) + 1;
+                });
+            }
+        };
+        collectSub(v.gData, '게임');
+        collectSub(v.sData, '노래');
+        collectSub(v.tData, '소통');
     });
 
     const availableKeys = Object.keys(stats).sort().reverse();
 
     if (viewType === 'month') {
-        // 월 선택 셀렉트 박스 생성
         resultDiv.innerHTML = `
             <div style="margin-bottom:20px;">
                 <select id="month-select" onchange="displaySelectedReport()" style="width:100%; background:#0a1a30; color:#fff; border:1px solid var(--border); border-radius:12px; padding:12px; font-size:14px; font-weight:bold; outline:none; cursor:pointer;">
@@ -333,7 +343,7 @@
             </div>
             <div id="report-container"></div>
         `;
-        window.currentStats = stats; // 전역 참조용
+        window.currentStats = stats;
         displaySelectedReport();
     } else {
         let html = "";
@@ -342,14 +352,28 @@
     }
 }
 
-function displaySelectedReport() {
-    const selectedKey = document.getElementById('month-select').value;
-    const s = window.currentStats[selectedKey];
-    document.getElementById('report-container').innerHTML = generateReportHtml(selectedKey, s);
-}
-
 function generateReportHtml(key, s) {
     const sortedCats = Object.entries(s.cats).sort((a, b) => b[1] - a[1]);
+    
+    // 상세 내역을 렌더링하는 헬퍼 함수
+    const renderSubSection = (title, items, color) => {
+        const sortedItems = Object.entries(items).sort((a, b) => b[1] - a[1]);
+        if (sortedItems.length === 0) return "";
+        return `
+            <div style="margin-top:15px;">
+                <div style="font-size:11px; color:var(--text-sub); margin-bottom:8px;">📌 주요 ${title} 목록</div>
+                <div style="display:flex; flex-direction:column; gap:6px;">
+                    ${sortedItems.map(([name, count]) => `
+                        <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.02); padding:6px 10px; border-radius:8px; font-size:12px;">
+                            <span style="color:#eee; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding-right:10px;">${name}</span>
+                            <span style="color:${color}; font-weight:bold;">${count}회</span>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    };
+
     return `
         <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:20px; padding:20px; animation: fadeIn 0.3s ease;">
             <div style="display:flex; justify-content:space-between; align-items:flex-end; border-bottom:1px solid rgba(51,133,255,0.2); padding-bottom:12px; margin-bottom:15px;">
@@ -375,36 +399,31 @@ function generateReportHtml(key, s) {
                 <div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.05);">
                     <span>⭐ 구독플러스 전용</span> <span style="color:#e6e02e;"><b>${s.plusCount}회</b></span>
                 </div>
-
                 <div style="padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.05);">
                     <div style="display:flex; justify-content:space-between;">
                         <span>🏆 최장 방송 기록</span> <span style="color:var(--accent);"><b>${secondsToTime(s.maxSec)}</b></span>
                     </div>
-                    <div style="font-size:12px; color:var(--text-sub); margin-top:4px; line-height:1.4; padding-left:22px; word-break:keep-all;">
-                        ${s.maxTitle}
-                    </div>
+                    <div style="font-size:12px; color:var(--text-sub); margin-top:4px; padding-left:22px;">${s.maxTitle}</div>
                 </div>
-
                 <div style="padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.05);">
                     <div style="display:flex; justify-content:space-between;">
                         <span>⏱️ 최소 방송 기록</span> <span style="color:#a0aec0;"><b>${s.minSec === Infinity ? '-' : secondsToTime(s.minSec)}</b></span>
                     </div>
-                    <div style="font-size:12px; color:var(--text-sub); margin-top:4px; line-height:1.4; padding-left:22px; word-break:keep-all;">
-                        ${s.minTitle || '-'}
-                    </div>
+                    <div style="font-size:12px; color:var(--text-sub); margin-top:4px; padding-left:22px;">${s.minTitle || '-'}</div>
                 </div>
             </div>
 
-            <div style="border-top:1px solid var(--border); padding-top:15px;">
-                <div style="font-size:11px; color:var(--text-sub); margin-bottom:10px;">📊 테마별 방송 횟수</div>
+            <div style="margin-bottom:20px;">
+                <div style="font-size:11px; color:var(--text-sub); margin-bottom:10px;">📊 테마 분포</div>
                 <div style="display:flex; flex-wrap:wrap; gap:6px;">
-                    ${sortedCats.map(([name, count]) => `
-                        <div style="background:#0a1a30; border:1px solid ${getColor(name)}80; padding:5px 10px; border-radius:8px; display:flex; align-items:center; gap:5px;">
-                            <span style="font-size:12px; color:#fff; font-weight:bold;">${name}</span>
-                            <span style="font-size:11px; color:${getColor(name)};">${count}회</span>
-                        </div>
-                    `).join('')}
+                    ${sortedCats.map(([n, c]) => `<span style="background:#0a1a30; border:1px solid ${getColor(n)}80; padding:4px 8px; border-radius:6px; font-size:11px; color:${getColor(n)};">${n} ${c}회</span>`).join('')}
                 </div>
+            </div>
+
+            <div style="border-top:1px solid var(--border); padding-top:10px;">
+                ${renderSubSection('게임', s.subItems['게임'], '#70a1ff')}
+                ${renderSubSection('노래', s.subItems['노래'], '#ff7eb9')}
+                ${renderSubSection('소통/토크', s.subItems['소통'], '#2ed573')}
             </div>
         </div>`;
 }
