@@ -6,14 +6,49 @@
     <title>바다비 눈물기록소</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
     <style>
+        /* 로딩 오버레이 스타일 */
+        #loading-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(1, 3, 6, 0.98);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease;
+        }
+
+        .loader-circle {
+            width: 50px;
+            height: 50px;
+            border: 3px solid #0a1425;
+            border-top: 3px solid #3385ff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 15px;
+            box-shadow: 0 0 15px rgba(51, 133, 255, 0.2);
+        }
+
+        .loader-text {
+            color: #3385ff;
+            font-size: 14px;
+            letter-spacing: 2px;
+            font-weight: bold;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
         :root {
-            /* 통계 페이지와 동일한 색상 변수 적용 */
-            --bg-color: #010306;          /* 깊은 바다 블랙 */
-            --card-bg: #030812;           /* 미드나잇 블루 카드 */
-            --accent: #3385ff;            /* 강조 포인트 블루 */
-            --text-main: #f0faff;         /* 아이스 화이트 */
-            --text-sub: #5c7285;          /* 블루 그레이 서브 텍스트 */
-            --border: #0a1425;            /* 네이비 테두리 */
+            --bg-color: #010306;
+            --card-bg: #030812;
+            --accent: #3385ff;
+            --text-main: #f0faff;
+            --text-sub: #5c7285;
+            --border: #0a1425;
         }
 
         * { box-sizing: border-box; }
@@ -24,11 +59,11 @@
             font-family: 'Noto Sans KR', sans-serif; 
             margin: 0; padding: 0; 
             min-height: 100vh;
+            overflow: hidden; /* 로딩 중 스크롤 방지 */
         }
 
         .wrapper { width: 100%; max-width: 800px; margin: 0 auto; padding: 40px 20px; display: flex; flex-direction: column; gap: 15px; }
 
-        /* 헤더 상자 */
         .header-card { 
             background: var(--card-bg); 
             border-radius: 16px; 
@@ -55,7 +90,6 @@
         }
         .btn-home:hover { background: var(--accent); border-color: var(--accent); color: #fff; }
 
-        /* 통계 상자 */
         .stats-container {
             background: var(--card-bg);
             border-radius: 12px;
@@ -71,7 +105,6 @@
         .year-block { margin-bottom: 6px; padding-left: 10px; border-left: 2px solid var(--accent); color: var(--text-main); }
         .year-block strong { color: var(--accent); }
 
-        /* 리스트 스타일 */
         .month-group { margin-top: 15px; margin-bottom: 15px; }
         .month-title { font-size: 19px; font-weight: bold; color: var(--accent); margin: 0 0 15px 5px; display: flex; align-items: center; border-left: 4px solid var(--accent); padding-left: 10px; }
 
@@ -96,7 +129,7 @@
             align-items: center;
             justify-content: center;
             font-weight: bold; 
-            color: var(--text-main); /* 날짜를 더 밝게 */
+            color: var(--text-main);
             font-size: 12px;
             line-height: 1.3; 
             border-right: 1px solid var(--border); 
@@ -112,24 +145,16 @@
         }
 
         .cry-desc { 
-            font-size: 15px; font-weight: 500; margin-bottom: 6px; color: var(--text-main); /* 아이스 화이트 적용 */
+            font-size: 15px; font-weight: 500; margin-bottom: 6px; color: var(--text-main);
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2;
         }
 
         .cry-time { font-size: 12px; color: var(--text-sub); display: flex; align-items: center; gap: 5px; line-height: 1; }
         .link-hint { color: var(--accent); font-size: 11px; margin-left: 10px; padding: 2px 6px; border: 1px solid rgba(51, 133, 255, 0.3); border-radius: 4px; font-weight: bold; }
         
-        .cry-item.no-link {
-            cursor: default;
-            pointer-events: none;
-        }
-        .cry-item.no-link:hover {
-            transform: none;
-            border-color: var(--border);
-        }
-        .cry-item.no-link .link-hint {
-            display: none;
-        }
+        .cry-item.no-link { cursor: default; pointer-events: none; }
+        .cry-item.no-link:hover { transform: none; border-color: var(--border); }
+        .cry-item.no-link .link-hint { display: none; }
 
         @media (max-width: 600px) {
             .header-card { flex-direction: column; align-items: flex-start; gap: 12px; }
@@ -141,6 +166,11 @@
     </style>
 </head>
 <body>
+
+<div id="loading-overlay">
+    <div class="loader-circle"></div>
+    <div class="loader-text">LOADING DATA . . .</div>
+</div>
 
 <div class="wrapper">
     <div class="header-card">
@@ -162,20 +192,16 @@
 </div>
 
 <script>
-    // 스크립트 부분은 기존 로직을 그대로 유지하되, 렌더링 시 클래스명 등이 동일하므로 문제없이 작동합니다.
     const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQsvaqEEGjtHB20R3qPkIAXyAySm8FnLzcs0rIsZevLuLP65D43gSuoRzYVU0pmhRbvyg5AW-Ce1cmL/pub?gid=0&single=true&output=tsv";
-    // 기준날짜
     const startDate = new Date("2026-04-20"); 
 
     window.onload = () => {
+        const overlay = document.getElementById('loading-overlay');
         const cacheBuster = `&t=${new Date().getTime()}`;
         
         fetch(sheetUrl + cacheBuster, {
             cache: 'no-store',
-            headers: {
-                'Pragma': 'no-cache',
-                'Cache-Control': 'no-cache'
-            }
+            headers: { 'Pragma': 'no-cache', 'Cache-Control': 'no-cache' }
         })
             .then(res => res.text())
             .then(tsv => {
@@ -210,6 +236,20 @@
                 const now = new Date();
                 const timeString = now.toLocaleTimeString('ko-KR', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
                 document.getElementById('update-time').textContent = `최근 업데이트: ${timeString}`;
+                
+                // 로딩 종료 처리
+                setTimeout(() => {
+                    overlay.style.opacity = '0';
+                    setTimeout(() => {
+                        overlay.style.visibility = 'hidden';
+                        document.body.style.overflow = 'auto'; // 스크롤 활성화
+                    }, 500);
+                }, 800);
+            })
+            .catch(err => {
+                console.error(err);
+                document.getElementById('stats-area').innerHTML = "데이터를 불러오는 중 오류가 발생했습니다.";
+                overlay.style.display = 'none';
             });
     };
 
