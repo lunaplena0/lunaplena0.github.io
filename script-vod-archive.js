@@ -2,7 +2,13 @@
     let allVods = [];
     let currentMainTag = null;
     let currentAnalysisTag = null;
-    const catColors = { '게임': '#70a1ff', '노래': '#ff7eb9', '소통': '#2ed573', 'ASMR': '#cd84f1', '풀트': '#ffbe76', '시네티': '#00d8ff', '대회': '#ff4757', '합방': '#fffa65', '기타': '#d2dae2' };
+    const catColors = { 
+    '게임': '#70a1ff', '노래': '#ff7eb9', '소통': '#2ed573', 
+    'ASMR': '#cd84f1', '풀트': '#ffbe76', '시네티': '#00d8ff', 
+    '대회': '#ff4757', '합방': '#fffa65', '기타': '#d2dae2',
+    '구독+': '#e6e02e', // 추가
+    '19': '#ff4757'     // 추가
+};
 
     function getColor(name) { for (let key in catColors) { if (name.includes(key)) return catColors[key]; } return catColors['기타']; }
     function timeToSeconds(t) { if (!t || t === '-' || t === '0') return 0; const p = t.split(':').map(Number); if(p.length === 2) return (p[0] * 60) + p[1]; return (p[0] * 3600) + (p[1] * 60) + (p[2] || 0); }
@@ -55,36 +61,55 @@
     }
 
     function renderTagButtons() {
-        const container = document.getElementById('tag-filter-container');
-        const allUniqueTags = [...new Set(allVods.flatMap(v => v.category.split(/[,/ ]+/).filter(c => c.trim())))].sort();
-        let html = `<div style="width:100%; font-size:11px; color:var(--text-sub); margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;"><span>🏷️ 태그 필터</span><span id="filter-status" style="font-size:10px; color:var(--accent);">전체보기 중</span></div>`;
-        html += `<button id="btn-all" onclick="toggleMainTagFilter(null)" class="filter-btn active" style="border:1px solid #5c7285; color:#fff;">✨ 전체보기</button>`;
-        html += allUniqueTags.map(tag => `<button id="btn-${tag}" onclick="toggleMainTagFilter('${tag}')" class="filter-btn" style="border:1px solid ${getColor(tag)}; color:${getColor(tag)};">${tag}</button>`).join('');
-        container.innerHTML = html;
-    }
+    const container = document.getElementById('tag-filter-container');
+    // 기존 태그 추출
+    const tags = [...new Set(allVods.flatMap(v => v.category.split(/[,/ ]+/).filter(c => c.trim())))].sort();
+    
+    // [수정] 구독+와 19를 태그 목록 맨 앞에 추가
+    const allUniqueTags = ['구독+', '19', ...tags];
+
+    let html = `<div style="width:100%; font-size:11px; color:var(--text-sub); margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;"><span>🏷️ 태그 필터</span><span id="filter-status" style="font-size:10px; color:var(--accent);">전체보기 중</span></div>`;
+    html += `<button id="btn-all" onclick="toggleMainTagFilter(null)" class="filter-btn active" style="border:1px solid #5c7285; color:#fff;">✨ 전체보기</button>`;
+    html += allUniqueTags.map(tag => `<button id="btn-${tag}" onclick="toggleMainTagFilter('${tag}')" class="filter-btn" style="border:1px solid ${getColor(tag)}; color:${getColor(tag)};">${tag}</button>`).join('');
+    container.innerHTML = html;
+}
 
     function toggleMainTagFilter(tag) {
-        currentMainTag = tag;
-        document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-        if (tag === null) {
-            document.getElementById('btn-all').classList.add('active');
-            document.getElementById('filter-status').textContent = "전체보기 중";
-            renderList(allVods);
-        } else {
-            const targetBtn = document.getElementById(`btn-${tag}`);
-            if(targetBtn) targetBtn.classList.add('active');
-            document.getElementById('filter-status').textContent = `[${tag}] 필터링 중`;
-            renderList(allVods.filter(v => v.category.includes(tag)));
-        }
+    currentMainTag = tag;
+    document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+    
+    if (tag === null) {
+        document.getElementById('btn-all').classList.add('active');
+        document.getElementById('filter-status').textContent = "전체보기 중";
+        renderList(allVods);
+    } else {
+        const targetBtn = document.getElementById(`btn-${tag}`);
+        if(targetBtn) targetBtn.classList.add('active');
+        document.getElementById('filter-status').textContent = `[${tag}] 필터링 중`;
+
+        // [수정] 일반 태그 검색 + 구독/성인 여부 체크
+        const filtered = allVods.filter(v => {
+            if (tag === '구독+') return v.isPlus;
+            if (tag === '19') return v.isAdult;
+            return v.category.includes(tag);
+        });
+        renderList(filtered);
     }
+}
 
     function calculateAllStats(data) {
-        let totalSec = 0, plusSec = 0, maxSec = 0, catMap = {};
-        data.forEach(v => {
-            const s = timeToSeconds(v.totalTime);
-            if (s > 0) { totalSec += s; if (v.isPlus) plusSec += s; maxSec = Math.max(maxSec, s); }
-            v.category.split(/[,/ ]+/).filter(c => c.trim()).forEach(c => { catMap[c] = (catMap[c] || 0) + 1; });
-        });
+    let totalSec = 0, plusSec = 0, maxSec = 0, catMap = {};
+    data.forEach(v => {
+        const s = timeToSeconds(v.totalTime);
+        if (s > 0) { totalSec += s; if (v.isPlus) plusSec += s; maxSec = Math.max(maxSec, s); }
+        
+        // 기존 카테고리 집계
+        v.category.split(/[,/ ]+/).filter(c => c.trim()).forEach(c => { catMap[c] = (catMap[c] || 0) + 1; });
+        
+        // [추가] 구독+ 및 19 집계
+        if (v.isPlus) catMap['구독+'] = (catMap['구독+'] || 0) + 1;
+        if (v.isAdult) catMap['19'] = (catMap['19'] || 0) + 1;
+    });
         document.getElementById('total-hour').textContent = `${Math.floor(totalSec / 3600)}시간 ${Math.floor((totalSec % 3600) / 60)}분`;
         document.getElementById('plus-hour').textContent = `${Math.floor(plusSec / 3600)}시간 ${Math.floor((plusSec % 3600) / 60)}분`;
         document.getElementById('plus-ratio').textContent = `(${(totalSec > 0 ? (plusSec / totalSec * 100) : 0).toFixed(1)}%)`;
@@ -92,13 +117,20 @@
         document.getElementById('avg-time').textContent = secondsToTime(Math.floor(totalSec / (data.length || 1)));
         const sorted = Object.entries(catMap).sort((a,b) => b[1]-a[1]);
         const totalC = Object.values(catMap).reduce((a,b)=>a+b, 0);
+    
+    if(totalC > 0) {
         let curr = 0;
-        if(totalC > 0) {
-            const grad = sorted.map(([n, c]) => { const s=curr; curr+= (c/totalC*100); return `${getColor(n)} ${s}% ${curr}%`; });
-            document.getElementById('category-chart').style.background = `conic-gradient(${grad.join(', ')})`;
-            document.getElementById('legend').innerHTML = sorted.map(([n, c]) => `<div class="legend-item"><span class="dot" style="background:${getColor(n)}"></span>${n} ${Math.round(c/totalC*100)}%</div>`).join('');
-        }
+        const grad = sorted.map(([n, c]) => { 
+            const s = curr; 
+            curr += (c/totalC*100); 
+            return `${getColor(n)} ${s}% ${curr}%`; 
+        });
+        document.getElementById('category-chart').style.background = `conic-gradient(${grad.join(', ')})`;
+        document.getElementById('legend').innerHTML = sorted.map(([n, c]) => 
+            `<div class="legend-item"><span class="dot" style="background:${getColor(n)}"></span>${n} ${Math.round(c/totalC*100)}%</div>`
+        ).join('');
     }
+}
 
     function openModalById(id) {
         const v = allVods.find(item => String(item.id) === String(id));
@@ -178,7 +210,13 @@ document.getElementById('m-plus').innerHTML = badgeHtml;
             if (!stats[key]) { stats[key] = { time: 0, count: 0, cats: {}, subItems: { '게임': {}, '노래': {}, '콘텐츠': {} } }; }
             const sec = timeToSeconds(v.totalTime);
             stats[key].time += sec; stats[key].count++;
-            v.category.split(/[,/ ]+/).forEach(c => { if(c.trim()) stats[key].cats[c] = (stats[key].cats[c] || 0) + 1; });
+            // 기존 카테고리 집계
+    v.category.split(/[,/ ]+/).forEach(c => { if(c.trim()) stats[key].cats[c] = (stats[key].cats[c] || 0) + 1; });
+
+    // [추가] 리포트 상단 태그 목록에 구독+와 19 추가
+    if (v.isPlus) stats[key].cats['구독+'] = (stats[key].cats['구독+'] || 0) + 1;
+    if (v.isAdult) stats[key].cats['19'] = (stats[key].cats['19'] || 0) + 1;
+         
             const collectSub = (data, type) => {
                 if (data && data !== '-') {
                     data.split(/[\n,/]+/).forEach(item => {
@@ -264,26 +302,37 @@ document.getElementById('m-plus').innerHTML = badgeHtml;
         }
 
         let filtered = allVods.filter(v => v.date.startsWith(key));
-        if (currentAnalysisTag) {
-            filtered = filtered.filter(v => v.category.includes(currentAnalysisTag));
-        }
+        // [수정] 태그 필터링 조건 확장
+    if (currentAnalysisTag) {
+        filtered = filtered.filter(v => {
+            if (currentAnalysisTag === '구독+') return v.isPlus;
+            if (currentAnalysisTag === '19') return v.isAdult;
+            return v.category.includes(currentAnalysisTag);
+        });
+    }
 
         sideList.innerHTML = `
-            <div style="font-size:14px; font-weight:bold; color:var(--text-sub); margin-bottom:12px; display:flex; justify-content:space-between;">
-                <span>📅 ${currentAnalysisTag ? `[${currentAnalysisTag}] 기록` : (key.length === 4 ? `${key}년 전체 기록` : '해당 기간 전체 기록')}</span>
-                <span>${filtered.length}개</span>
-            </div>
-            <div class="report-vod-list">
-                ${filtered.map(v => `<div class="report-item" onclick="handleAnalysisItemClick('${v.id}')"><div style="width:80px; height:45px; min-width:80px; border-radius:6px; overflow:hidden;"><img src="${v.thumb}" style="width:100%; height:100%; object-fit:cover;"></div>
-                <div class="report-item-info">
-                <div class="side-list-title">
-    ${v.title} 
-    ${v.isPlus ? '<span style="color:#ffae00; font-size:9px; margin-left:4px;">[+]</span>' : ''}
-    ${v.isAdult ? '<span style="color:#ff4757; font-size:9px; margin-left:4px;">[19]</span>' : ''}
-</div>
-                <div style="font-size:11px; color:var(--text-sub);">${v.date}</div></div></div>`).join('')}
-            </div>`;
-    }
+        <div style="font-size:14px; font-weight:bold; color:var(--text-sub); margin-bottom:12px; display:flex; justify-content:space-between;">
+            <span>📅 ${currentAnalysisTag ? `[${currentAnalysisTag}] 기록` : (key.length === 4 ? `${key}년 전체 기록` : '해당 기간 전체 기록')}</span>
+            <span>${filtered.length}개</span>
+        </div>
+        <div class="report-vod-list">
+            ${filtered.map(v => `
+                <div class="report-item" onclick="handleAnalysisItemClick('${v.id}')">
+                    <div style="width:80px; height:45px; min-width:80px; border-radius:6px; overflow:hidden;">
+                        <img src="${v.thumb}" style="width:100%; height:100%; object-fit:cover;">
+                    </div>
+                    <div class="report-item-info">
+                        <div class="side-list-title">
+                            ${v.title} 
+                            ${v.isPlus ? '<span style="color:#e6e02e; font-size:9px; margin-left:4px;">[+]</span>' : ''}
+                            ${v.isAdult ? '<span style="color:#ff4757; font-size:9px; margin-left:4px;">[19]</span>' : ''}
+                        </div>
+                        <div style="font-size:11px; color:var(--text-sub);">${v.date}</div>
+                    </div>
+                </div>`).join('')}
+        </div>`;
+}
 
     function displaySelectedReport() {
         const key = document.getElementById('month-select').value;
