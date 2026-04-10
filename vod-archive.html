@@ -364,20 +364,25 @@ function displaySelectedReport() {
     }
 }
 function generateReportHtml(key, s) {
+    // 1. 카테고리별 횟수 정렬 (게임, 노래, 소통 등 전체)
     const sortedCats = Object.entries(s.cats).sort((a, b) => b[1] - a[1]);
     
-    // 상세 내역을 렌더링하는 헬퍼 함수
-    const renderSubSection = (title, items, color) => {
+    // 2. 세부 콘텐츠 리스트 렌더링 헬퍼 (소통 제외)
+    const renderContentList = (title, items, color) => {
         const sortedItems = Object.entries(items).sort((a, b) => b[1] - a[1]);
         if (sortedItems.length === 0) return "";
+        
         return `
-            <div style="margin-top:15px;">
-                <div style="font-size:11px; color:var(--text-sub); margin-bottom:8px;">📌 주요 ${title} 목록</div>
+            <div style="margin-top:20px;">
+                <div style="font-size:12px; color:${color}; font-weight:bold; margin-bottom:10px; display:flex; align-items:center; gap:6px;">
+                    <span style="width:4px; height:12px; background:${color}; border-radius:2px;"></span>
+                    ${title} 기록 (${sortedItems.length}종)
+                </div>
                 <div style="display:flex; flex-direction:column; gap:6px;">
                     ${sortedItems.map(([name, count]) => `
-                        <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.02); padding:6px 10px; border-radius:8px; font-size:12px;">
-                            <span style="color:#eee; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; padding-right:10px;">${name}</span>
-                            <span style="color:${color}; font-weight:bold;">${count}회</span>
+                        <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.03); padding:9px 12px; border-radius:10px; border:1px solid rgba(255,255,255,0.05);">
+                            <span style="color:#eee; font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1; padding-right:10px;">${name}</span>
+                            <span style="color:${color}; font-size:13px; font-weight:800;">${count}회</span>
                         </div>
                     `).join('')}
                 </div>
@@ -386,55 +391,42 @@ function generateReportHtml(key, s) {
     };
 
     return `
-        <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:20px; padding:20px; animation: fadeIn 0.3s ease;">
-            <div style="display:flex; justify-content:space-between; align-items:flex-end; border-bottom:1px solid rgba(51,133,255,0.2); padding-bottom:12px; margin-bottom:15px;">
-                <span style="font-size:20px; font-weight:bold; color:var(--accent);">${key} 리포트</span>
-                <span style="font-size:13px; color:var(--text-sub);">${s.count}회 방송</span>
+        <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:20px; padding:20px; margin-bottom:15px; animation: fadeIn 0.3s ease;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-end; border-bottom:1px solid rgba(51,133,255,0.2); padding-bottom:12px; margin-bottom:20px;">
+                <span style="font-size:18px; font-weight:bold; color:var(--accent);">${key} 리포트</span>
+                <span style="font-size:12px; color:var(--text-sub);">총 ${s.count}회 방송</span>
             </div>
 
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:20px;">
-                <div style="background:rgba(0,0,0,0.2); padding:12px; border-radius:12px;">
-                    <div style="font-size:11px; color:var(--text-sub);">누적 시청 시간</div>
-                    <div style="font-size:16px; font-weight:bold; color:#fff;">${Math.floor(s.time/3600)}시간 ${Math.floor((s.time%3600)/60)}분</div>
-                </div>
-                <div style="background:rgba(0,0,0,0.2); padding:12px; border-radius:12px;">
-                    <div style="font-size:11px; color:var(--text-sub);">평균 방송 시간</div>
-                    <div style="font-size:16px; font-weight:bold; color:#fff;">${secondsToTime(Math.floor(s.time/s.count))}</div>
-                </div>
-            </div>
-
-            <div style="font-size:14px; line-height:1.6; margin-bottom:20px; color:var(--text-main);">
-                <div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.05);">
-                    <span>🔞 성인 인증 방송</span> <span style="color:#ff4757;"><b>${s.adultCount}회</b></span>
-                </div>
-                <div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.05);">
-                    <span>⭐ 구독플러스 전용</span> <span style="color:#e6e02e;"><b>${s.plusCount}회</b></span>
-                </div>
-                <div style="padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.05);">
-                    <div style="display:flex; justify-content:space-between;">
-                        <span>🏆 최장 방송 기록</span> <span style="color:var(--accent);"><b>${secondsToTime(s.maxSec)}</b></span>
-                    </div>
-                    <div style="font-size:12px; color:var(--text-sub); margin-top:4px; padding-left:22px;">${s.maxTitle}</div>
-                </div>
-                <div style="padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.05);">
-                    <div style="display:flex; justify-content:space-between;">
-                        <span>⏱️ 최소 방송 기록</span> <span style="color:#a0aec0;"><b>${s.minSec === Infinity ? '-' : secondsToTime(s.minSec)}</b></span>
-                    </div>
-                    <div style="font-size:12px; color:var(--text-sub); margin-top:4px; padding-left:22px;">${s.minTitle || '-'}</div>
+            <div style="margin-bottom:25px;">
+                <div style="font-size:11px; color:var(--text-sub); margin-bottom:10px;">📊 카테고리별 방송 횟수</div>
+                <div style="display:flex; flex-wrap:wrap; gap:8px;">
+                    ${sortedCats.map(([n, c]) => {
+                        const color = getColor(n);
+                        return `
+                            <div style="background:rgba(0,0,0,0.2); border:1px solid ${color}40; padding:6px 10px; border-radius:8px; display:flex; align-items:center; gap:6px;">
+                                <span style="width:6px; height:6px; background:${color}; border-radius:50%;"></span>
+                                <span style="font-size:12px; color:${color}; font-weight:bold;">${n}</span>
+                                <span style="font-size:12px; color:#fff; font-weight:bold;">${c}회</span>
+                            </div>
+                        `;
+                    }).join('')}
                 </div>
             </div>
 
-            <div style="margin-bottom:20px;">
-                <div style="font-size:11px; color:var(--text-sub); margin-bottom:10px;">📊 테마 분포</div>
-                <div style="display:flex; flex-wrap:wrap; gap:6px;">
-                    ${sortedCats.map(([n, c]) => `<span style="background:#0a1a30; border:1px solid ${getColor(n)}80; padding:4px 8px; border-radius:6px; font-size:11px; color:${getColor(n)};">${n} ${c}회</span>`).join('')}
-                </div>
+            <div style="background:rgba(0,0,0,0.15); border-radius:16px; padding:5px 15px 20px 15px; border:1px solid rgba(255,255,255,0.03);">
+                ${renderContentList('게임', s.subItems['게임'], catColors['게임'])}
+                ${renderContentList('노래', s.subItems['노래'], catColors['노래'])}
             </div>
-
-            <div style="border-top:1px solid var(--border); padding-top:10px;">
-                ${renderSubSection('게임', s.subItems['게임'], '#70a1ff')}
-                ${renderSubSection('노래', s.subItems['노래'], '#ff7eb9')}
-                ${renderSubSection('소통/토크', s.subItems['소통'], '#2ed573')}
+            
+            <div style="margin-top:20px; display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                <div style="background:rgba(255,255,255,0.02); padding:10px; border-radius:10px; text-align:center;">
+                    <div style="font-size:10px; color:var(--text-sub);">평균 방송</div>
+                    <div style="font-size:14px; font-weight:bold; color:#eee;">${secondsToTime(Math.floor(s.time/s.count))}</div>
+                </div>
+                <div style="background:rgba(255,255,255,0.02); padding:10px; border-radius:10px; text-align:center;">
+                    <div style="font-size:10px; color:var(--text-sub);">최장 방송</div>
+                    <div style="font-size:14px; font-weight:bold; color:var(--accent);">${secondsToTime(s.maxSec)}</div>
+                </div>
             </div>
         </div>`;
 }
