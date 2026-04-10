@@ -39,44 +39,53 @@
     };
 
     function renderList(data) {
-        const container = document.getElementById('vod-content');
-        container.innerHTML = '';
-        const groups = {};
-        data.forEach(v => { if (!groups[v.date]) groups[v.date] = []; groups[v.date].push(v); });
-        Object.keys(groups).sort((a, b) => new Date(b) - new Date(a)).forEach(date => {
-            const groupDiv = document.createElement('div');
-            groupDiv.innerHTML = `<div class="date-header">${date}</div><div class="vod-list"></div>`;
-            groups[date].forEach(v => {
-                const item = document.createElement('div'); item.className = 'vod-item'; item.onclick = () => openModalById(v.id);
-                const plusTag = v.isPlus ? `<span class="tag-common tag-plus" style="height:18px; font-size:9px; margin-left:5px;">구독+</span>` : '';
-                const adultTag = v.isAdult ? `<span class="tag-common" style="height:18px; font-size:9px; margin-left:5px; background:#121f33; color:#ff4757; border:1px solid #ff4757;">19</span>` : '';
-                item.innerHTML = `
-    <div class="vod-thumb">
-        <img src="${v.thumb}" loading="lazy">
-        <span class="duration">${v.totalTime}</span>
-    </div>
-    <div class="vod-info" style="display: flex; flex-direction: column; flex: 1; min-width: 0; gap: 8px;">
-        <div class="vod-title" style="display: flex; align-items: center; flex-wrap: wrap; gap: 8px;">
-            <span class="title-text" style="font-weight: bold; font-size: 15px; color: #fff;">${v.title}</span>
-            <div class="badge-group" style="display: flex; gap: 4px; align-items: center;">
-                ${plusTag}${adultTag}
-            </div>
-        </div>
-        <div class="vod-tags" style="display: flex; flex-wrap: wrap; gap: 4px;">
-            ${v.category.split(/[,/ ]+/).filter(c => c.trim()).map(c => 
-                `<span style="font-size: 10px; color: ${getColor(c)}; border: 1px solid ${getColor(c)}60; padding: 2px 6px; border-radius: 4px; background: rgba(0,0,0,0.2);">
-                    ${c}
-                </span>`
-            ).join('')}
-        </div>
-    </div>`;
-                    <div style="display:flex; flex-wrap:wrap; gap:4px;">${v.category.split(/[,/ ]+/).filter(c => c.trim()).map(c => `<span style="font-size:10px; color:${getColor(c)}; border:1px solid ${getColor(c)}60; padding:1px 5px; border-radius:4px;">${c}</span>`).join('')}</div></div>`;
-                groupDiv.querySelector('.vod-list').appendChild(item);
-            });
-            container.appendChild(groupDiv);
-        });
-    }
+    const container = document.getElementById('vod-content');
+    container.innerHTML = '';
+    const groups = {};
+    
+    // 날짜별 그룹화
+    data.forEach(v => { if (!groups[v.date]) groups[v.date] = []; groups[v.date].push(v); });
+    
+    // 날짜 내림차순 정렬 및 렌더링
+    Object.keys(groups).sort((a, b) => new Date(b) - new Date(a)).forEach(date => {
+        const groupDiv = document.createElement('div');
+        groupDiv.innerHTML = `<div class="date-header">${date}</div><div class="vod-list"></div>`;
+        
+        groups[date].forEach(v => {
+            const item = document.createElement('div'); 
+            item.className = 'vod-item'; 
+            item.onclick = () => openModalById(v.id);
 
+            // 배지 생성 (구독+, 19)
+            const plusTag = v.isPlus ? `<span class="tag-common tag-plus" style="height:18px; font-size:9px; padding: 0 5px; display: flex; align-items: center; border-radius:3px;">구독+</span>` : '';
+            const adultTag = v.isAdult ? `<span class="tag-common" style="height:18px; font-size:9px; padding: 0 5px; display: flex; align-items: center; background:#121f33; color:#ff4757; border:1px solid #ff4757; border-radius:3px;">19</span>` : '';
+
+            item.innerHTML = `
+                <div class="vod-thumb">
+                    <img src="${v.thumb}" loading="lazy">
+                    <span class="duration">${v.totalTime}</span>
+                </div>
+                <div class="vod-info" style="display: flex; flex-direction: column; flex: 1; min-width: 0; gap: 8px; padding-left: 15px;">
+                    <div class="vod-title" style="display: flex; align-items: center; flex-wrap: wrap; gap: 8px;">
+                        <span class="title-text" style="font-weight: bold; font-size: 15px; color: #fff; line-height:1.3;">${v.title}</span>
+                        <div class="badge-group" style="display: inline-flex; gap: 4px; align-items: center;">
+                            ${plusTag}${adultTag}
+                        </div>
+                    </div>
+                    <div class="vod-tags" style="display: flex; flex-wrap: wrap; gap: 4px;">
+                        ${v.category.split(/[,/ ]+/).filter(c => c.trim()).map(c => 
+                            `<span style="font-size: 10px; color: ${getColor(c)}; border: 1px solid ${getColor(c)}60; padding: 2px 6px; border-radius: 4px; background: rgba(0,0,0,0.2); white-space: nowrap;">
+                                ${c}
+                            </span>`
+                        ).join('')}
+                    </div>
+                </div>`;
+            
+            groupDiv.querySelector('.vod-list').appendChild(item);
+        });
+        container.appendChild(groupDiv);
+    });
+}
     function renderTagButtons() {
     const container = document.getElementById('tag-filter-container');
     // 기존 태그 추출
