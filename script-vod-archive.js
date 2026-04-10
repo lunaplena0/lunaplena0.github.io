@@ -365,7 +365,7 @@ document.getElementById('m-plus').innerHTML = badgeHtml;
                     <div class="report-item-info">
                         <div class="side-list-title">
                             ${v.title} 
-                            ${v.isPlus ? '<span style="color:#e6e02e; font-size:9px; margin-left:4px;">[+]</span>' : ''}
+                            ${v.isPlus ? '<span style="color:#e6e02e; font-size:9px; margin-left:4px;">[구독+]</span>' : ''}
                             ${v.isAdult ? '<span style="color:#ff4757; font-size:9px; margin-left:4px;">[19]</span>' : ''}
                         </div>
                         <div style="font-size:11px; color:var(--text-sub);">${v.date}</div>
