@@ -260,7 +260,7 @@
                 
                 // 태그 생성 (구독+ 및 19 태그 나란히 배치)
                 const plusTag = v.isPlus ? `<span class="tag-common tag-plus" style="height:18px; line-height:18px; font-size:9px; padding:0 6px;">구독+</span>` : '';
-                const adultTag = v.isAdult ? `<span class="tag-common" style="height:18px; line-height:18px; font-size:9px; padding:0 6px; background:#ff4757; color:#fff; border:none;">19</span>` : '';
+                const adultTag = v.isAdult ? `<span class="tag-common" style="height:18px; line-height:18px; font-size:9px; padding:0 6px; background:#121f33; color:#ff4757; border:2px solid #ff4757;">19</span>` : '';
                 
                 item.innerHTML = `
                     <div class="vod-thumb"><img src="${v.thumb}"><span class="duration">${v.totalTime}</span></div>
@@ -291,7 +291,7 @@
         // 모달 내 배지 표시 (나란히 배치)
         let badgeHtml = '';
         if(v.isPlus) badgeHtml += `<span class="tag-common tag-plus" style="padding: 2px 8px; height: auto; font-size: 11px; margin-right:4px;">구독플러스 전용</span>`;
-        if(v.isAdult) badgeHtml += `<span class="tag-common" style="padding: 2px 8px; height: auto; font-size: 11px; background:#ff4757; color:#fff; border:none;">19</span>`;
+        if(v.isAdult) badgeHtml += `<span class="tag-common" style="padding: 2px 8px; height: auto; font-size: 11px; background:#121f33; color:#ff4757; border:2px solid #ff4757;">19</span>`;
         document.getElementById('m-plus').innerHTML = badgeHtml;
 
         // [이하 기존 openModal 코드와 동일...]
@@ -302,20 +302,32 @@
         }).join('');
 
         const renderSection = (rowId, valId, data, prefix) => {
-            const row = document.getElementById(rowId);
-            const val = document.getElementById(valId);
-            const items = parseEntry(data);
-            const color = getColor(prefix);
-            if (items.length > 0) {
-                row.classList.add('is-active');
-                val.innerHTML = items.map(item => `
-                    <div style="margin-bottom:6px; font-size:13px;">
-                        <span style="display:inline-block; padding:1px 6px; font-size:10px; font-weight:bold; border-radius:4px; background:#121f33; color:${color}; border:1px solid ${color}60; margin-right:6px;">${prefix}</span>
-                        <span style="color:var(--text-main);">${item.name}</span>
-                        <span style="color:var(--text-sub); font-size:11px; margin-left:5px;">(${item.time})</span>
-                    </div>`).join('');
-            } else { row.classList.remove('is-active'); }
-        };
+    const row = document.getElementById(rowId);
+    const val = document.getElementById(valId);
+    const items = parseEntry(data);
+    const color = getColor(prefix);
+
+    if (items.length > 0) {
+        row.classList.add('is-active');
+        val.innerHTML = items.map(item => {
+            // '컨텐츠' 섹션일 경우 소괄호 안의 글자를 강조(main-text)하고, 아니면 기존처럼(sub-text) 처리
+            const subTextStyle = (prefix === '컨텐츠') 
+                ? `color:var(--text-main); font-weight:500;` 
+                : `color:var(--text-sub); font-size:11px;`;
+            
+            const bracketContent = item.time ? `<span style="${subTextStyle} margin-left:5px;">(${item.time})</span>` : "";
+
+            return `
+                <div style="margin-bottom:6px; font-size:13px;">
+                    <span style="display:inline-block; padding:1px 6px; font-size:10px; font-weight:bold; border-radius:4px; background:#121f33; color:${color}; border:1px solid ${color}60; margin-right:6px;">${prefix}</span>
+                    <span style="color:var(--text-main);">${item.name}</span>
+                    ${bracketContent}
+                </div>`;
+        }).join('');
+    } else { 
+        row.classList.remove('is-active'); 
+    }
+};
         renderSection('row-game', 'm-game', v.gData, '게임');
         renderSection('row-song', 'm-song', v.sData, '노래');
         renderSection('row-talk', 'm-talk', v.tData, '소통');
