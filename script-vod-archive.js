@@ -188,27 +188,34 @@
 
         // --- [수정된 섹션별 데이터 출력 로직] ---
         const setSec = (id, rowId, data) => {
-            const row = document.getElementById(rowId);
-            const box = document.getElementById(id);
-            
-            if (data && data !== '-' && data.trim() !== "") {
-                row.style.display = 'block';
-                // 콤마(,)를 기준으로 나누고 줄바꿈 처리
-                box.innerHTML = data.split(',')
-                    .map(item => item.trim())
-                    .filter(item => item !== "")
-                    .map(item => `<div style="font-size:13px; margin-bottom:6px; color:var(--text-main); opacity:0.9; line-height:1.5; word-break: break-all;">• ${item}</div>`)
-                    .join('');
-            } else {
-                row.style.display = 'none';
-            }
-        };
+    const row = document.getElementById(rowId);
+    const box = document.getElementById(id);
+    
+    // 데이터가 유효한지 체크 (공백, 하이픈 제외)
+    if (data && data.trim() !== "" && data !== '-') {
+        const items = data.split(',')
+            .map(item => item.trim())
+            .filter(item => item !== "");
 
-        // 각 섹션 데이터 매핑 (시트 열 순서에 맞춰 gData, sData, tData, cData 연결)
-        setSec('m-game', 'row-game', v.gData);   // 게임
-        setSec('m-song', 'row-song', v.sData);   // 노래
-        setSec('m-talk', 'row-talk', v.tData);   // 소통
-        setSec('m-content', 'row-content', v.cData); // 컨텐츠 (HTML에 row-content ID가 있어야 함)
+        if (items.length > 0) {
+            row.style.display = 'block'; // 상자가 보이게 설정
+            box.innerHTML = items
+                .map(item => `<div style="font-size:13px; margin-bottom:6px; color:var(--text-main); opacity:0.9; line-height:1.5; word-break: break-all;">• ${item}</div>`)
+                .join('');
+            
+            // 마지막 줄의 여백 제거
+            if (box.lastElementChild) box.lastElementChild.style.marginBottom = '0';
+            return;
+        }
+    }
+    row.style.display = 'none'; // 데이터 없으면 아예 숨김
+};
+
+// 호출 부분
+setSec('m-game', 'row-game', v.gData);
+setSec('m-song', 'row-song', v.sData);
+setSec('m-talk', 'row-talk', v.tData);
+setSec('m-content', 'row-content', v.cData);
 
         // 모달 활성화
         document.getElementById('modal-overlay').style.display = 'flex';
