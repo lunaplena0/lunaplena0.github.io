@@ -256,7 +256,13 @@ setSec('m-content', 'row-content', v.cData);
     currentAnalysisTag = null;
     renderAnalysis();
 }
-    function closeAnalysisModal() { document.getElementById('analysis-overlay').style.display = 'none'; }
+    function closeAnalysisModal() { 
+    // 1. 분석 모달 닫기
+    document.getElementById('analysis-overlay').style.display = 'none'; 
+    
+    // 2. [핵심] 메인 페이지 스크롤 잠금 해제
+    document.body.classList.remove('modal-open'); 
+}
 
     function renderAnalysis() {
     const targetYear = document.getElementById('analysis-year').value;
