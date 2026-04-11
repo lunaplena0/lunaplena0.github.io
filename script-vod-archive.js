@@ -98,15 +98,27 @@
     // 기존 태그 추출
     const tags = [...new Set(allVods.flatMap(v => v.category.split(/[,/ ]+/).filter(c => c.trim())))].sort();
     
-    // [수정] 구독+와 19를 태그 목록 맨 앞에 추가
+    // 구독+와 19를 태그 목록 맨 앞에 추가
     const allUniqueTags = ['구독+', '19', ...tags];
 
-    let html = `<div style="width:100%; font-size:11px; color:var(--text-sub); margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;"><span>🏷️ 태그 필터</span><span id="filter-status" style="font-size:10px; color:var(--accent);">전체보기 중</span></div>`;
-    html += `<button id="btn-all" onclick="toggleMainTagFilter(null)" class="filter-btn active" style="border:1px solid #5c7285; color:#fff;">✨ 전체보기</button>`;
-    html += allUniqueTags.map(tag => `<button id="btn-${tag}" onclick="toggleMainTagFilter('${tag}')" class="filter-btn" style="border:1px solid ${getColor(tag)}; color:${getColor(tag)};">${tag}</button>`).join('');
+    let html = `
+        <div style="width:100%; font-size:11px; color:var(--text-sub); margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
+            <span>🏷️ 태그 필터</span>
+            <span id="filter-status" style="font-size:10px; color:var(--accent);">전체보기 중</span>
+        </div>`;
+    
+    // 전체보기 버튼
+    html += `<button id="btn-all" onclick="toggleMainTagFilter(null)" class="filter-btn active" data-tag="전체보기">✨ 전체보기</button>`;
+    
+    // 개별 태그 버튼들 (data-tag 속성 추가)
+    html += allUniqueTags.map(tag => `
+        <button id="btn-${tag}" onclick="toggleMainTagFilter('${tag}')" class="filter-btn" data-tag="${tag}">
+            ${tag}
+        </button>
+    `).join('');
+    
     container.innerHTML = html;
 }
-
     function toggleMainTagFilter(tag) {
     currentMainTag = tag;
     document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
