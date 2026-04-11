@@ -194,9 +194,13 @@
 
         // 배지 설정
         let badgeHtml = '';
-        if (v.isPlus) badgeHtml += `<span class="tag-common tag-plus" style="padding: 2px 8px; height: auto; font-size: 11px; margin-top:8px; margin-right:4px;">구독플러스 전용</span>`;
-        if (v.isAdult) badgeHtml += `<span class="tag-common" style="padding: 2px 8px; height: auto; font-size: 11px; margin-top:8px; background:#121f33; color:#ff4757; border:1px solid #ff4757;">19</span>`;
-        document.getElementById('m-plus').innerHTML = badgeHtml;
+if (v.isPlus) {
+    badgeHtml += `<span class="tag-common tag-plus" style="padding: 2px 8px; height: auto; font-size: 11px; margin-top:8px; margin-right:4px; border: 2px solid #e6e02e; background: rgba(230, 224, 46, 0.1);">구독플러스</span>`;
+}
+if (v.isAdult) {
+    badgeHtml += `<span class="tag-common" style="padding: 2px 8px; height: auto; font-size: 11px; margin-top:8px; border: 2px solid #ff4757; color: #ff4757; background: rgba(255, 71, 87, 0.1);">19</span>`;
+}
+document.getElementById('m-plus').innerHTML = badgeHtml;
 
         // --- [수정된 섹션별 데이터 출력 로직] ---
         const setSec = (id, rowId, data) => {
