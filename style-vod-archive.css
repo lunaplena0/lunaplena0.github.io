@@ -51,7 +51,47 @@
         .btn-go { background: var(--accent); color: white; }
         .btn-close { background: #1a202c; color: #a0aec0; }
 
-        .analysis-content { max-width: 1000px; display: flex; flex-direction: column; }
+        .analysis-content {
+    max-width: 1000px;
+    display: flex;
+    flex-direction: column;
+    position: relative; /* 자식 요소인 .analysis-controls의 위치 기준이 됩니다. */
+}
+/* 2. [핵심] 월 선택 셀렉트 박스 위치 강제 이동 */
+.analysis-controls {
+    position: absolute;
+    top: 22px;         /* 타이틀 텍스트 중앙선에 맞춤 */
+    right: 200px;      /* 연도 선택 박스 왼쪽으로 적절히 배치 */
+    z-index: 1001;
+}
+/* 3. 월 선택 셀렉트 박스 스타일링 (우측 상단 UI와 통일) */
+#month-select {
+    background: #0a1a30; /* 기존 연도 박스와 동일한 배경색 */
+    color: #fff;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 13px;
+    font-weight: bold;
+    cursor: pointer;
+    outline: none;
+    height: 34px;      /* 기존 버튼들과 높이 통일 */
+    transition: all 0.2s;
+}
+#month-select:hover {
+    border-color: var(--accent);
+    background: #112540;
+}
+/* 분석 모달 상단 타이틀 바 영역 조정 */
+.analysis-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 25px;
+    border-bottom: 1px solid var(--border);
+    /* [추가] 월 선택 박스가 들어갈 공간을 오른쪽 연도 박스 옆에 미리 확보 */
+    padding-right: 15px; 
+}
         .analysis-layout { display: grid; grid-template-columns: 5.5fr 4.5fr; gap: 25px; align-items: start; animation: fadeIn 0.3s ease; min-width: 0; padding-bottom: 20px; }
         #analysis-result { flex: 1; overflow-y: auto; padding: 20px; }
         .report-vod-list { display: flex; flex-direction: column; gap: 12px; max-height: 600px; overflow-y: auto; padding-right: 8px; }
@@ -133,6 +173,14 @@
             .analysis-layout { grid-template-columns: 1fr; }
             .dashboard-grid { grid-template-columns: 1fr; }
             .vod-thumb { width: 120px; min-width: 120px; }
+                .analysis-controls {
+        position: static; /* 모바일에서는 절대 위치 해제하여 리포트 상단에 자연스럽게 배치 */
+        margin: 10px 20px;
+        text-align: center;
+    }
+    #month-select {
+        width: 100%; /* 모바일에서는 가로를 꽉 채워 터치하기 편하게 변경 */
+    }
         }
 @media screen and (max-width: 850px) {
     /* 1. 상자 자체는 밝고 선명하게 */
