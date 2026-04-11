@@ -191,53 +191,56 @@ function filterDataByTag(tag) {
 }
 
     function calculateAllStats(data) {
-    let totalSec = 0, plusSec = 0, maxSec = 0, catMap = {};
-    // [수정] 최단 시간을 찾기 위해 초기값을 아주 큰 숫자로 설정합니다.
-    let minSec = Infinity; 
-    let validCount = 0;
+        let totalSec = 0, plusSec = 0, maxSec = 0, catMap = {};
+        let minSec = Infinity; 
+        let validCount = 0;
 
-    data.forEach(v => {
         data.forEach(v => {
-    const s = timeToSeconds(v.totalTime);
-    if (s > 60) { // 최소 1분 이상인 방송만 통계에 포함 (너무 짧은 기록 제외)
-        totalSec += s; 
-        if (v.isPlus) plusSec += s; 
-        maxSec = Math.max(maxSec, s);
-        minSec = Math.min(minSec, s);
-        validCount++;
-    }        
-        // 카테고리 집계 로직은 그대로 유지
-        v.category.split(/[,/ ]+/).filter(c => c.trim()).forEach(c => { catMap[c] = (catMap[c] || 0) + 1; });
-        if (v.isPlus) catMap['구독+'] = (catMap['구독+'] || 0) + 1;
-        if (v.isAdult) catMap['19'] = (catMap['19'] || 0) + 1;
-    });
-
+            const s = timeToSeconds(v.totalTime);
+            if (s > 60) { // 최소 1분 이상인 방송만 통계에 포함
+                totalSec += s; 
+                if (v.isPlus) plusSec += s; 
+                maxSec = Math.max(maxSec, s);
+                minSec = Math.min(minSec, s);
+                validCount++;
+            }        
+            
+            // 카테고리 집계
+            v.category.split(/[,/ ]+/).filter(c => c.trim()).forEach(c => { 
+                catMap[c] = (catMap[c] || 0) + 1; 
+            });
+            if (v.isPlus) catMap['구독+'] = (catMap['구독+'] || 0) + 1;
+            if (v.isAdult) catMap['19'] = (catMap['19'] || 0) + 1;
+        });
+     
     // 만약 유효한 데이터가 없다면 0초로 표시
-    const finalMinSec = minSec === Infinity ? 0 : minSec;
+    // 만약 유효한 데이터가 없다면 0초로 표시
+        const finalMinSec = minSec === Infinity ? 0 : minSec;
 
-    document.getElementById('total-hour').textContent = `${Math.floor(totalSec / 3600)}시간 ${Math.floor((totalSec % 3600) / 60)}분`;
-    document.getElementById('plus-hour').textContent = `${Math.floor(plusSec / 3600)}시간 ${Math.floor((plusSec % 3600) / 60)}분`;
-    document.getElementById('plus-ratio').textContent = `(${(totalSec > 0 ? (plusSec / totalSec * 100) : 0).toFixed(1)}%)`;
-    
-    // [수정] 화면 출력 부분
-    document.getElementById('max-time').textContent = secondsToTime(maxSec);
-    document.getElementById('min-time').textContent = secondsToTime(finalMinSec);
-    const avgSec = validCount > 0 ? Math.floor(totalSec / validCount) : 0;
-document.getElementById('avg-time').textContent = secondsToTime(avgSec);
+        document.getElementById('total-hour').textContent = `${Math.floor(totalSec / 3600)}시간 ${Math.floor((totalSec % 3600) / 60)}분`;
+        document.getElementById('plus-hour').textContent = `${Math.floor(plusSec / 3600)}시간 ${Math.floor((plusSec % 3600) / 60)}분`;
+        document.getElementById('plus-ratio').textContent = `(${(totalSec > 0 ? (plusSec / totalSec * 100) : 0).toFixed(1)}%)`;
+        
+        document.getElementById('max-time').textContent = secondsToTime(maxSec);
+        document.getElementById('min-time').textContent = secondsToTime(finalMinSec);
+        const avgSec = validCount > 0 ? Math.floor(totalSec / validCount) : 0;
+        document.getElementById('avg-time').textContent = secondsToTime(avgSec);
+
         const sorted = Object.entries(catMap).sort((a,b) => b[1]-a[1]);
         const totalC = Object.values(catMap).reduce((a,b)=>a+b, 0);
-    
-    if(totalC > 0) {
-        let curr = 0;
-        const grad = sorted.map(([n, c]) => { 
-            const s = curr; 
-            curr += (c/totalC*100); 
-            return `${getColor(n)} ${s}% ${curr}%`; 
-        });
-        document.getElementById('category-chart').style.background = `conic-gradient(${grad.join(', ')})`;
-        document.getElementById('legend').innerHTML = sorted.map(([n, c]) => 
-            `<div class="legend-item"><span class="dot" style="background:${getColor(n)}"></span>${n} ${Math.round(c/totalC*100)}%</div>`
-        ).join('');
+        
+        if(totalC > 0) {
+            let curr = 0;
+            const grad = sorted.map(([n, c]) => { 
+                const s = curr; 
+                curr += (c/totalC*100); 
+                return `${getColor(n)} ${s}% ${curr}%`; 
+            });
+            document.getElementById('category-chart').style.background = `conic-gradient(${grad.join(', ')})`;
+            document.getElementById('legend').innerHTML = sorted.map(([n, c]) => 
+                `<div class="legend-item"><span class="dot" style="background:${getColor(n)}"></span>${n} ${Math.round(c/totalC*100)}%</div>`
+            ).join('');
+        }
     }
 
     function openModalById(id) {
