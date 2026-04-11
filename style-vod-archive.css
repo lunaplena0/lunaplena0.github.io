@@ -59,10 +59,11 @@
 }
 /* 2. [핵심] 월 선택 셀렉트 박스 위치 강제 이동 */
 .analysis-controls {
-    position: static; /* absolute 제거하여 겹침 방지 */
+    position: static;      /* absolute가 있다면 반드시 제거 */
     display: flex;
     align-items: center;
-    gap: 10px; /* 요소 사이의 간격 */
+    gap: 8px;              /* 요소 사이의 간격 */
+    flex-shrink: 0;        /* 공간이 좁아져도 크기가 줄어들지 않게 */
 }
 
 /* 3. 공통 셀렉트 박스 스타일 (년도/월 공통) */
@@ -80,13 +81,13 @@
     transition: all 0.2s;
 }
 
-/* 월 선택 박스에만 화살표 아이콘 적용 */
-#month-select {
+/* 모든 분석용 셀렉트 박스에 화살표 아이콘 공통 적용 */
+#analysis-year, #month-select, #analysis-type {
     appearance: none;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='white' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: calc(100% - 10px) center;
-    padding-right: 30px;
+    padding-right: 30px; /* 화살표가 글자를 가리지 않게 오른쪽 여백 확보 */
 }
 
 #year-select:hover, #month-select:hover {
