@@ -79,7 +79,7 @@ let currentMainTag = null;
         <div class="vod-tags">
             ${v.category.split(/[,/ ]+/).filter(c => c.trim()).map(c => 
                 `<span>${c}</span>`
-            ).join('')}  <-- 이 근처에 괄호나 오타가 있는지 확인
+            ).join('')}
         </div>
     </div>
 `;
