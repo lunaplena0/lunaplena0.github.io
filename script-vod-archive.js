@@ -314,7 +314,7 @@ setSec('m-content', 'row-content', v.cData);
         // HTML에 month-select가 이미 있다면 옵션만 갱신 (중복 생성 방지)
         if (monthSelect) {
             monthSelect.innerHTML = availableKeys.map(k => 
-                `<option value="${k}">${k.split('-')[1]}월 상세 리포트</option>`
+                `<option value="${k}">${k.split('-')[1]}월</option>`
             ).join('');
         }
         
