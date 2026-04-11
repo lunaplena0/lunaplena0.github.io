@@ -377,18 +377,19 @@ setSec('m-content', 'row-content', v.cData);
 
     // 3. 화면 출력 로직
     if (viewType === 'month') {
-        const monthSelect = document.getElementById('month-select');
-        
-        // HTML에 month-select가 이미 있다면 옵션만 갱신 (중복 생성 방지)
-        if (monthSelect) {
-            monthSelect.innerHTML = availableKeys.map(k => 
-                `<option value="${k}">${k.split('-')[1]}월</option>`
-            ).join('');
-        }
-        
-        resultDiv.innerHTML = `<div id="report-container"></div>`;
-        displaySelectedReport(); // 선택된 월의 리포트 표시
-    } else {
+    const monthSelect = document.getElementById('month-select');
+    
+    if (monthSelect) {
+        // onchange 속성을 추가하여 선택 시 즉시 함수가 실행되도록 합니다.
+        monthSelect.setAttribute('onchange', 'displaySelectedReport()');
+        monthSelect.innerHTML = availableKeys.map(k => 
+            `<option value="${k}">${k.split('-')[1]}월</option>`
+        ).join('');
+    }
+    
+    resultDiv.innerHTML = `<div id="report-container"></div>`;
+    displaySelectedReport(); 
+} else {
         // 연도별 요약 보기
         resultDiv.innerHTML = availableKeys.map((key, i) => 
             generateReportHtml(key, stats[key], availableKeys[i+1] ? stats[availableKeys[i+1]] : null)
@@ -521,16 +522,24 @@ setSec('m-content', 'row-content', v.cData);
 }
 
     function displaySelectedReport() {
-        const key = document.getElementById('month-select').value;
-        const availableKeys = Object.keys(window.currentStats).sort().reverse();
-        const currentIndex = availableKeys.indexOf(key);
-        const prevKey = availableKeys[currentIndex + 1];
+    const selectEl = document.getElementById('month-select');
+    if (!selectEl) return;
+    
+    const key = selectEl.value; // 선택된 'YYYY-MM' 값
+    const availableKeys = Object.keys(window.currentStats).sort().reverse();
+    const currentIndex = availableKeys.indexOf(key);
+    const prevKey = availableKeys[currentIndex + 1]; // 비교를 위한 이전 달 키
+    
+    currentAnalysisTag = null; // 태그 필터 초기화
+    
+    if (window.currentStats && window.currentStats[key]) {
+        // 리포트 본문 갱신
+        document.getElementById('report-container').innerHTML = 
+            generateReportHtml(key, window.currentStats[key], prevKey ? window.currentStats[prevKey] : null);
         
-        currentAnalysisTag = null; 
-        if (window.currentStats && window.currentStats[key]) {
-            document.getElementById('report-container').innerHTML = generateReportHtml(key, window.currentStats[key], prevKey ? window.currentStats[prevKey] : null);
-            filterAnalysisSideList(key, null);
-        }
+        // 해당 월의 전체 VOD 리스트 갱신
+        filterAnalysisSideList(key, null);
     }
+}
 
     function handleAnalysisItemClick(id) { closeAnalysisModal(); setTimeout(() => { openModalById(id); }, 150); }
