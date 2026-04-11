@@ -67,20 +67,22 @@ let currentMainTag = null;
             const adultTag = v.isAdult ? `<span class="tag-common" style="border-color:#ff4757; color:#ff4757;">19</span>` : '';
             
             item.innerHTML = `
-                <div class="vod-thumb">
-                    <img src="${v.thumb}" loading="lazy">
-                    <span class="duration">${v.totalTime}</span>
-                </div>
-                <div class="vod-info">
-                    <div>
-                        <span class="title-text">${v.title}</span>
-                        <div class="badge-group">${plusTag}${adultTag}</div>
-                    </div>
-                    <div class="vod-tags">
-    ${v.category.split(...).map(c => `<span>${c}</span>`).join('')}
-</div>
-                </div>
-            `;
+    <div class="vod-thumb">
+        <img src="${v.thumb}" loading="lazy">
+        <span class="duration">${v.totalTime}</span>
+    </div>
+    <div class="vod-info">
+        <div>
+            <span class="title-text">${v.title}</span>
+            <div class="badge-group">${plusTag}${adultTag}</div>
+        </div>
+        <div class="vod-tags">
+            ${v.category.split(/[,/ ]+/).filter(c => c.trim()).map(c => 
+                `<span>${c}</span>`
+            ).join('')}  <-- 이 근처에 괄호나 오타가 있는지 확인
+        </div>
+    </div>
+`;
             groupDiv.querySelector('.vod-list').appendChild(item);
         });
         container.appendChild(groupDiv);
