@@ -83,46 +83,47 @@
             .dashboard-grid { grid-template-columns: 1fr; }
             .vod-thumb { width: 120px; min-width: 120px; }
         }
-  @media (max-width: 850px) {
-    /* 1. 바깥 배경 어두운 정도 조절 (0.9 -> 0.7) */
-    #analysis-overlay {
-        background: rgba(0, 0, 0, 0.7) !important;
-        backdrop-filter: blur(8px); /* 뒤쪽이 비치면서 공간감 생성 */
-    }
+@media screen and (max-width: 850px) {
+    /* 1. 상자 자체는 밝고 선명하게 */
+    .report-item, 
+    #m-game, #m-song, #m-talk, #m-content,
+    .analysis-content div[style*="background"] {
+        background-color: rgba(255, 255, 255, 0.12) !important; /* 적당히 밝은 배경 */
+        border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        border-radius: 12px !important;
+        margin-bottom: 10px !important;
+        padding: 12px !important;
+    }
 
-    /* 2. 팝업창 메인 배경색을 살짝 밝은 네이비 톤으로 */
-    .analysis-content {
-        background: #0d121a !important; /* 완전 검정보다 눈이 편함 */
-        border: 1px solid rgba(255, 255, 255, 0.1) !important;
-    }
+    /* 2. 제목은 흰색으로 깔끔하게 유지 */
+    .side-list-title, #m-title {
+        color: #ffffff !important;
+    }
 
-   .report-item, 
-    .analysis-content [id^="m-"] > div, /* m-game, m-song 등 내부의 첫 번째 div들 */
-    .analysis-content [style*="background: rgba(255, 255, 255, 0.03)"] {
-        background: rgba(255, 255, 255, 0.2) !important; /* 더 밝은 0.15로 설정 */
-        border: 1px solid rgba(255, 255, 255, 0.3) !important;
-        margin-bottom: 8px !important;
-        border-radius: 10px !important;
-        padding: 12px !important;
-        display: flex !important;
-        justify-content: space-between !important;
-        align-items: center !important;
-    }
-.report-item {
-    background: rgba(255, 255, 255, 1) !important; /* 숫자를 높일수록 밝아짐 */
-    border: 1px solid rgba(255, 255, 255, 0.7) !important;
-}
-    /* 4. 텍스트 색상 대비 높이기 */
-    .side-list-title {
-        color: #ffffff !important; /* 흰색으로 확실하게 */
-    }
-    
-    .sub-lbl {
-        color: #8da1b5 !important; /* 흐릿한 글씨 색상을 한 단계 밝게 */
-    }
+    /* 3. ★ 핵심: 카테고리별 고유 색상 복구 ★ */
+    /* 게임 기록 - 파란색 계열 */
+    #m-game, #row-game span[style*="color:#70a1ff"] {
+        color: #70a1ff !important;
+    }
 
-    /* 5. 스크롤바가 답답해 보이지 않게 */
-    .report-vod-list::-webkit-scrollbar-thumb {
-        background: rgba(255, 255, 255, 0.2);
-    }
+    /* 노래 기록 - 핑크색 계열 */
+    #m-song, #row-song span[style*="color:#ff7eb9"] {
+        color: #ff7eb9 !important;
+    }
+
+    /* 소통 기록 - 초록색 계열 */
+    #m-talk, #row-talk span[style*="color:#2ed573"] {
+        color: #2ed573 !important;
+    }
+
+    /* 컨텐츠/기타 - 강조색 */
+    #m-content, #row-content div[style*="color:var(--accent)"] {
+        color: var(--accent) !important;
+    }
+
+    /* 4. '회수(3회, 1회)' 등 숫자 강조 */
+    .analysis-content b, .sub-val {
+        filter: brightness(1.2); /* 기존 색상을 유지하되 더 밝게 */
+        font-weight: bold !important;
+    }
 }
