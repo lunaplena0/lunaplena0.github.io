@@ -444,24 +444,24 @@ setSec('m-content', 'row-content', v.cData);
     }
 
     function filterAnalysisSideList(key, tagName) {
-        const sideList = document.getElementById(`report-side-list-${key.replace('-', '')}`);
-        if(!sideList) return;
+    const sideList = document.getElementById(`report-side-list-${key.replace(/-/g, '')}`);
+    if (!sideList) return;
 
-        // 토글 로직
-        currentAnalysisTag = (currentAnalysisTag === tagName) ? null : tagName;
+    // 토글 로직
+    currentAnalysisTag = (currentAnalysisTag === tagName) ? null : tagName;
 
-        // 해당 리포트 블록의 태그들만 active 클래스 관리
-        const parentReport = sideList.closest('.analysis-layout');
-        if(parentReport) {
-            parentReport.querySelectorAll('.analysis-tag').forEach(el => el.classList.remove('active'));
-            if (currentAnalysisTag) {
-                const activeEl = Array.from(parentReport.querySelectorAll('.analysis-tag')).find(el => el.textContent.includes(currentAnalysisTag));
-                if(activeEl) activeEl.classList.add('active');
-            }
+    // 해당 리포트 블록의 태그들만 active 클래스 관리
+    const parentReport = sideList.closest('.analysis-layout');
+    if (parentReport) {
+        parentReport.querySelectorAll('.analysis-tag').forEach(el => el.classList.remove('active'));
+        if (currentAnalysisTag) {
+            const activeEl = Array.from(parentReport.querySelectorAll('.analysis-tag')).find(el => el.textContent.includes(currentAnalysisTag));
+            if (activeEl) activeEl.classList.add('active');
         }
+    }
 
-        let filtered = allVods.filter(v => v.date.startsWith(key));
-        // [수정] 태그 필터링 조건 확장
+    let filtered = allVods.filter(v => v.date.startsWith(key));
+    
     if (currentAnalysisTag) {
         filtered = filtered.filter(v => {
             if (currentAnalysisTag === '구독+') return v.isPlus;
@@ -470,7 +470,8 @@ setSec('m-content', 'row-content', v.cData);
         });
     }
 
-        sideList.innerHTML = `
+    // [교정 포인트] 백틱 내부의 ${} 구조와 괄호를 명확하게 정리
+    sideList.innerHTML = `
         <div style="font-size:14px; font-weight:bold; color:var(--text-sub); margin-bottom:12px; display:flex; justify-content:space-between;">
             <span>📅 ${currentAnalysisTag ? `[${currentAnalysisTag}] 기록` : (key.length === 4 ? `${key}년 전체 기록` : '해당 기간 전체 기록')}</span>
             <span>${filtered.length}개</span>
