@@ -83,24 +83,26 @@
             .dashboard-grid { grid-template-columns: 1fr; }
             .vod-thumb { width: 120px; min-width: 120px; }
         }
-   @media (max-width: 850px) {
-    /* 1. 바깥 배경 어두운 정도 조절 (0.9 -> 0.7) */
+  @media screen and (max-width: 850px) {
+    /* 1. 바깥 배경 어두운 정도 조절 */
     #analysis-overlay {
         background: rgba(0, 0, 0, 0.7) !important;
-        backdrop-filter: blur(8px); /* 뒤쪽이 비치면서 공간감 생성 */
+        backdrop-filter: blur(8px) !important;
+        -webkit-backdrop-filter: blur(8px) !important; /* 아이폰(iOS) 대응 */
     }
 
-    /* 2. 팝업창 메인 배경색을 살짝 밝은 네이비 톤으로 */
+    /* 2. 팝업창 메인 배경색 */
     .analysis-content {
-        background: #0d121a !important; /* 완전 검정보다 눈이 편함 */
+        background: #0d121a !important;
         border: 1px solid rgba(255, 255, 255, 0.1) !important;
     }
 
-   .report-item, 
-    .analysis-content [id^="m-"] > div, /* m-game, m-song 등 내부의 첫 번째 div들 */
+    /* 3. 모든 상자(게임, 노래, 리스트) 통합 설정 */
+    .report-item, 
+    .analysis-content [id^="m-"] > div, 
     .analysis-content [style*="background: rgba(255, 255, 255, 0.03)"] {
-        background: rgba(255, 255, 255, 0.15) !important; /* 더 밝은 0.15로 설정 */
-        border: 1px solid rgba(255, 255, 255, 0.7) !important;
+        background: rgba(255, 255, 255, 0.2) !important; /* 0.15보다 조금 더 밝게 조정 */
+        border: 1px solid rgba(255, 255, 255, 0.3) !important; /* 테두리도 명확하게 */
         margin-bottom: 8px !important;
         border-radius: 10px !important;
         padding: 12px !important;
@@ -108,21 +110,13 @@
         justify-content: space-between !important;
         align-items: center !important;
     }
-.report-item {
-    background: rgba(255, 255, 255, 1) !important; /* 숫자를 높일수록 밝아짐 */
-    border: 1px solid rgba(255, 255, 255, 0.7) !important;
-}
-    /* 4. 텍스트 색상 대비 높이기 */
-    .side-list-title {
-        color: #ffffff !important; /* 흰색으로 확실하게 */
+
+    /* 4. 텍스트 및 기타 설정 */
+    .side-list-title, .analysis-content div, .analysis-content span {
+        color: #ffffff !important;
     }
     
     .sub-lbl {
-        color: #8da1b5 !important; /* 흐릿한 글씨 색상을 한 단계 밝게 */
-    }
-
-    /* 5. 스크롤바가 답답해 보이지 않게 */
-    .report-vod-list::-webkit-scrollbar-thumb {
-        background: rgba(255, 255, 255, 0.2);
+        color: #8da1b5 !important;
     }
 }
