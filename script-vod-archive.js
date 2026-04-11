@@ -239,7 +239,6 @@ document.getElementById('avg-time').textContent = secondsToTime(avgSec);
             `<div class="legend-item"><span class="dot" style="background:${getColor(n)}"></span>${n} ${Math.round(c/totalC*100)}%</div>`
         ).join('');
     }
-}
 
     function openModalById(id) {
         const v = allVods.find(item => String(item.id) === String(id));
