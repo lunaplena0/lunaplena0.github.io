@@ -281,7 +281,7 @@ setSec('m-content', 'row-content', v.cData);
 
     const availableKeys = Object.keys(stats).sort().reverse();
     
-    if (viewType === 'month') {
+   if (viewType === 'month') {
         // [수정] 무한루프 방지를 위해 내부 HTML 구성 변경
         resultDiv.innerHTML = `
             <div class="analysis-controls">
@@ -296,15 +296,11 @@ setSec('m-content', 'row-content', v.cData);
         window.currentStats = stats;
         displaySelectedReport();
     } else { 
+        // 연도별 보기일 때는 모든 리포트를 나열하고 리스트 로드
         resultDiv.innerHTML = availableKeys.map((key, i) => generateReportHtml(key, stats[key], availableKeys[i+1] ? stats[availableKeys[i+1]] : null)).join('');
-        availableKeys.forEach(key => filterAnalysisSideList(key, null));
+        availableKeys.forEach(key => filterAnalysisSideList(key, null)); 
     }
-} else { 
-            // 연도별 보기일 때는 모든 리포트를 나열하고 리스트 로드
-            resultDiv.innerHTML = availableKeys.map((key, i) => generateReportHtml(key, stats[key], availableKeys[i+1] ? stats[availableKeys[i+1]] : null)).join('');
-            availableKeys.forEach(key => filterAnalysisSideList(key, null)); // 각 연도별 리스트 로드
-        }
-    }
+}
 
     function generateReportHtml(key, s, prevS) {
         const sortedCats = Object.entries(s.cats).sort((a, b) => b[1] - a[1]);
