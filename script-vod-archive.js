@@ -241,33 +241,52 @@ setSec('m-content', 'row-content', v.cData);
     function closeModal() { document.getElementById('modal-overlay').style.display = 'none'; document.body.classList.remove('modal-open'); }
 
     function openAnalysisModal() {
-        document.getElementById('analysis-overlay').style.display = 'flex';
-        currentAnalysisTag = null;
-        const years = [...new Set(allVods.map(v => v.date.split('-')[0]))].sort().reverse();
-        document.getElementById('analysis-year').innerHTML = years.map(y => `<option value="${y}">${y}년</option>`).join('');
-        renderAnalysis();
-    }
+    document.getElementById('analysis-overlay').style.display = 'flex';
+    document.body.classList.add('modal-open');
+    
+    // 1. 데이터에 있는 연도들로 연도 선택 박스 채우기
+    const years = [...new Set(allVods.map(v => v.date.split('-')[0]))].sort().reverse();
+    const yearSelect = document.getElementById('analysis-year');
+    yearSelect.innerHTML = years.map(y => `<option value="${y}">${y}년</option>`).join('');
+    
+    // 2. 초기 리포트 타입 설정 (월별로 시작하고 싶다면)
+    document.getElementById('analysis-type').value = 'month';
+    
+    // 3. 리포트 생성 실행
+    currentAnalysisTag = null;
+    renderAnalysis();
+}
     function closeAnalysisModal() { document.getElementById('analysis-overlay').style.display = 'none'; }
 
     function renderAnalysis() {
-    const targetYear = document.getElementById('analysis-year').value; // 메인 연도 선택값
+    const targetYear = document.getElementById('analysis-year').value;
     const viewType = document.getElementById('analysis-type').value;
     const resultDiv = document.getElementById('analysis-result');
     
+    // 1. 해당 연도 데이터 1차 필터링
     const yearFiltered = allVods.filter(v => v.date.startsWith(targetYear));
-    if (yearFiltered.length === 0) { resultDiv.innerHTML = "데이터가 없습니다."; return; }
     
-    // 통계 계산 로직 (기존과 동일)
+    if (yearFiltered.length === 0) {
+        resultDiv.innerHTML = "<div style='padding:40px; text-align:center; color:var(--text-sub);'>해당 연도의 데이터가 없습니다.</div>";
+        return;
+    }
+
+    // 2. 통계 데이터 구조 생성 (월별/연도별)
     const stats = {};
     yearFiltered.forEach(v => {
         const key = viewType === 'month' ? v.date.substring(0, 7) : v.date.substring(0, 4);
-        if (!stats[key]) { stats[key] = { time: 0, count: 0, cats: {}, subItems: { '게임': {}, '노래': {}, '콘텐츠': {} } }; }
+        if (!stats[key]) {
+            stats[key] = { time: 0, count: 0, cats: {}, subItems: { '게임': {}, '노래': {}, '콘텐츠': {} } };
+        }
         const sec = timeToSeconds(v.totalTime);
-        stats[key].time += sec; stats[key].count++;
+        stats[key].time += sec;
+        stats[key].count++;
+        
+        // 카테고리 및 배지 집계
         v.category.split(/[,/ ]+/).forEach(c => { if(c.trim()) stats[key].cats[c] = (stats[key].cats[c] || 0) + 1; });
         if (v.isPlus) stats[key].cats['구독+'] = (stats[key].cats['구독+'] || 0) + 1;
         if (v.isAdult) stats[key].cats['19'] = (stats[key].cats['19'] || 0) + 1;
-        
+
         const collectSub = (data, type) => {
             if (data && data !== '-') {
                 data.split(/[\n,/]+/).forEach(item => {
@@ -280,22 +299,29 @@ setSec('m-content', 'row-content', v.cData);
     });
 
     const availableKeys = Object.keys(stats).sort().reverse();
-    
-     if (viewType === 'month') {
-    resultDiv.innerHTML = `
-        <div class="analysis-controls">
-            <select id="month-select" onchange="displaySelectedReport()">
-                ${availableKeys.map(k => `<option value="${k}">${k.split('-')[1]}월 상세 리포트</option>`).join('')}
-            </select>
-        </div>
-        <div id="report-container"></div>`;
+    window.currentStats = stats; // 전역 참조용
 
-    window.currentStats = stats;
-    displaySelectedReport();
-} else { 
-        // 연도별 보기일 때는 모든 리포트를 나열하고 리스트 로드
-        resultDiv.innerHTML = availableKeys.map((key, i) => generateReportHtml(key, stats[key], availableKeys[i+1] ? stats[availableKeys[i+1]] : null)).join('');
-        availableKeys.forEach(key => filterAnalysisSideList(key, null)); 
+    // 3. 화면 출력 로직
+    if (viewType === 'month') {
+        const monthSelect = document.getElementById('month-select');
+        
+        // HTML에 month-select가 이미 있다면 옵션만 갱신 (중복 생성 방지)
+        if (monthSelect) {
+            monthSelect.innerHTML = availableKeys.map(k => 
+                `<option value="${k}">${k.split('-')[1]}월 상세 리포트</option>`
+            ).join('');
+        }
+        
+        resultDiv.innerHTML = `<div id="report-container"></div>`;
+        displaySelectedReport(); // 선택된 월의 리포트 표시
+    } else {
+        // 연도별 요약 보기
+        resultDiv.innerHTML = availableKeys.map((key, i) => 
+            generateReportHtml(key, stats[key], availableKeys[i+1] ? stats[availableKeys[i+1]] : null)
+        ).join('');
+        
+        // 연도별 보기일 때는 사이드 리스트를 즉시 로드
+        availableKeys.forEach(key => filterAnalysisSideList(key, null));
     }
 }
 
