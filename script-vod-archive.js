@@ -144,22 +144,41 @@
 
     function calculateAllStats(data) {
     let totalSec = 0, plusSec = 0, maxSec = 0, catMap = {};
+    // [수정] 최단 시간을 찾기 위해 초기값을 아주 큰 숫자로 설정합니다.
+    let minSec = Infinity; 
+    let validCount = 0;
+
     data.forEach(v => {
         const s = timeToSeconds(v.totalTime);
-        if (s > 0) { totalSec += s; if (v.isPlus) plusSec += s; maxSec = Math.max(maxSec, s); }
         
-        // 기존 카테고리 집계
+        // 0초보다 큰 정상적인 기록일 때만 통계에 포함
+        if (s > 0) { 
+            totalSec += s; 
+            if (v.isPlus) plusSec += s; 
+            maxSec = Math.max(maxSec, s);
+            // [수정] 0초를 제외한 최소값을 찾습니다.
+            minSec = Math.min(minSec, s);
+            validCount++;
+        }
+        
+        // 카테고리 집계 로직은 그대로 유지
         v.category.split(/[,/ ]+/).filter(c => c.trim()).forEach(c => { catMap[c] = (catMap[c] || 0) + 1; });
-        
-        // [추가] 구독+ 및 19 집계
         if (v.isPlus) catMap['구독+'] = (catMap['구독+'] || 0) + 1;
         if (v.isAdult) catMap['19'] = (catMap['19'] || 0) + 1;
     });
-        document.getElementById('total-hour').textContent = `${Math.floor(totalSec / 3600)}시간 ${Math.floor((totalSec % 3600) / 60)}분`;
-        document.getElementById('plus-hour').textContent = `${Math.floor(plusSec / 3600)}시간 ${Math.floor((plusSec % 3600) / 60)}분`;
-        document.getElementById('plus-ratio').textContent = `(${(totalSec > 0 ? (plusSec / totalSec * 100) : 0).toFixed(1)}%)`;
-        document.getElementById('max-time').textContent = secondsToTime(maxSec);
-        document.getElementById('avg-time').textContent = secondsToTime(Math.floor(totalSec / (data.length || 1)));
+
+    // 만약 유효한 데이터가 없다면 0초로 표시
+    const finalMinSec = minSec === Infinity ? 0 : minSec;
+
+    document.getElementById('total-hour').textContent = `${Math.floor(totalSec / 3600)}시간 ${Math.floor((totalSec % 3600) / 60)}분`;
+    document.getElementById('plus-hour').textContent = `${Math.floor(plusSec / 3600)}시간 ${Math.floor((plusSec % 3600) / 60)}분`;
+    document.getElementById('plus-ratio').textContent = `(${(totalSec > 0 ? (plusSec / totalSec * 100) : 0).toFixed(1)}%)`;
+    
+    // [수정] 화면 출력 부분
+    document.getElementById('max-time').textContent = secondsToTime(maxSec);
+    document.getElementById('min-time').textContent = secondsToTime(finalMinSec);
+    const avgSec = validCount > 0 ? Math.floor(totalSec / validCount) : 0;
+document.getElementById('avg-time').textContent = secondsToTime(avgSec);
         const sorted = Object.entries(catMap).sort((a,b) => b[1]-a[1]);
         const totalC = Object.values(catMap).reduce((a,b)=>a+b, 0);
     
