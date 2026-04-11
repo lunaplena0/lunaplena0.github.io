@@ -1,6 +1,7 @@
  const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTfTHMy1hImniay9QEPDcMq5C4Yo5yFpmRtBlWo6UXK-FNxABQYbtfGpEsKom2O-OIJPnEi8LLy1Qqx/pub?gid=0&single=true&output=tsv";
     let allVods = [];
-    let currentMainTag = null;
+let displayCount = 30; // 초기 노출 개수
+let currentMainTag = null;
     let currentAnalysisTag = null;
     const catColors = { 
     '게임': '#70a1ff', '노래': '#ff7eb9', '소통': '#2ed573', 
@@ -41,15 +42,20 @@
     function renderList(data) {
     const container = document.getElementById('vod-content');
     container.innerHTML = '';
+    
+    // [핵심] 현재 displayCount 만큼만 잘라서 보여줌
+    const visibleData = data.slice(0, displayCount);
     const groups = {};
     
-    // 날짜별 그룹화
-    data.forEach(v => { if (!groups[v.date]) groups[v.date] = []; groups[v.date].push(v); });
+    visibleData.forEach(v => { 
+        if (!groups[v.date]) groups[v.date] = []; 
+        groups[v.date].push(v); 
+    });
     
-    // 날짜 내림차순 정렬
+    // 날짜별 렌더링
     Object.keys(groups).sort((a, b) => new Date(b) - new Date(a)).forEach(date => {
         const groupDiv = document.createElement('div');
-        groupDiv.className = 'date-group'; // 클래스 추가
+        groupDiv.className = 'date-group';
         groupDiv.innerHTML = `<div class="date-header">${date}</div><div class="vod-list"></div>`;
         
         groups[date].forEach(v => {
@@ -57,40 +63,84 @@
             item.className = 'vod-item'; 
             item.onclick = () => openModalById(v.id);
 
-            // 배지 생성 (구독+, 19) - 스타일 통일
-            const plusTag = v.isPlus ? `<span class="tag-common tag-plus" style="height:18px; font-size:10px; padding: 0 6px; display: inline-flex; align-items: center; border-radius:3px; border: 1px solid #e6e02e; color: #e6e02e; font-weight: bold; background: rgba(230, 224, 46, 0.1); white-space: nowrap;">구독+</span>` : '';
-            const adultTag = v.isAdult ? `<span class="tag-common" style="height:18px; font-size:10px; padding: 0 6px; display: inline-flex; align-items: center; border-radius:3px; border: 1px solid #ff4757; color: #ff4757; font-weight: bold; background: rgba(255, 71, 87, 0.1); white-space: nowrap;">19</span>` : '';
+            const plusTag = v.isPlus ? `<span class="tag-common tag-plus">구독+</span>` : '';
+            const adultTag = v.isAdult ? `<span class="tag-common" style="border-color:#ff4757; color:#ff4757;">19</span>` : '';
             
             item.innerHTML = `
-                <div class="vod-thumb" style="position: relative; width: 160px; min-width: 160px; height: 90px; border-radius: 8px; overflow: hidden; flex-shrink: 0;">
-                    <img src="${v.thumb}" loading="lazy" style="width: 100%; height: 100%; object-fit: cover;">
-                    <span class="duration" style="position: absolute; bottom: 4px; right: 4px; background: rgba(0,0,0,0.8); color: #fff; font-size: 11px; padding: 2px 4px; border-radius: 4px;">${v.totalTime}</span>
+                <div class="vod-thumb">
+                    <img src="${v.thumb}" loading="lazy">
+                    <span class="duration">${v.totalTime}</span>
                 </div>
-                
-                <div class="vod-info" style="display: flex; flex-direction: column; justify-content: center; flex: 1; min-width: 0; padding: 5px 15px 5px 15px; gap: 8px;">
-        
-        <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
-            <span class="title-text" style="font-weight: bold; font-size: 15px; color: #fff; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; padding-right: 15px;">
-                ${v.title}
-            </span>
-            <div class="badge-group" style="display: flex; gap: 4px; flex-shrink: 0; margin-right: 4px;">
-                ${plusTag}
-                ${adultTag}
-            </div>
-        </div>
-        
-        <div class="vod-tags" style="display: flex; flex-wrap: wrap; gap: 4px; justify-content: flex-start; width: 100%;">
-            ${v.category.split(/[,/ ]+/).filter(c => c.trim()).map(c => 
-                `<span style="font-size: 10px; color: ${getColor(c)}; border: 1px solid ${getColor(c)}40; padding: 1px 6px; border-radius: 4px; background: rgba(0,0,0,0.2); height: 18px; display: inline-flex; align-items: center; white-space: nowrap;">
-                    ${c}
-                </span>`
-            ).join('')}
-        </div>
-    </div>
+                <div class="vod-info">
+                    <div>
+                        <span class="title-text">${v.title}</span>
+                        <div class="badge-group">${plusTag}${adultTag}</div>
+                    </div>
+                    <div class="vod-tags">
+                        ${v.category.split(/[,/ ]+/).filter(c => c.trim()).map(c => 
+                            `<span>${c}</span>`
+                        ).join('')}
+                    </div>
+                </div>
             `;
             groupDiv.querySelector('.vod-list').appendChild(item);
         });
         container.appendChild(groupDiv);
+    });
+
+    // 리스트 하단에 [더보기 / 접기] 버튼 생성
+    renderExpandButtons(data.length);
+}
+
+function renderExpandButtons(totalLength) {
+    const container = document.getElementById('vod-content');
+    
+    // 버튼들을 감쌀 컨테이너
+    const btnWrapper = document.createElement('div');
+    btnWrapper.style.cssText = "display: flex; justify-content: center; align-items: center; gap: 15px; margin: 40px 0; width: 100%; flex-wrap: wrap;";
+
+    // [더보기 버튼]
+    if (displayCount < totalLength) {
+        const moreBtn = document.createElement('button');
+        moreBtn.className = 'filter-btn active'; 
+        // 현재 보여지는 개수와 전체 개수를 표시하여 직관성 제공
+        moreBtn.innerHTML = `▼ 더보기 (${displayCount} / ${totalLength})`;
+        moreBtn.onclick = () => {
+            displayCount += 30; // 30개 추가
+            const filtered = currentMainTag ? filterDataByTag(currentMainTag) : allVods;
+            renderList(filtered);
+        };
+        btnWrapper.appendChild(moreBtn);
+    }
+
+    // [접기 버튼]
+    // 30개를 초과해서 펼쳐진 상태일 때만 노출
+    if (displayCount > 30) {
+        const resetBtn = document.createElement('button');
+        resetBtn.className = 'filter-btn';
+        resetBtn.innerHTML = `▲ 첫 화면으로 접기`;
+        resetBtn.style.background = "rgba(255, 255, 255, 0.08)";
+        resetBtn.onclick = () => {
+            displayCount = 30; // 초기화
+            const filtered = currentMainTag ? filterDataByTag(currentMainTag) : allVods;
+            renderList(filtered);
+            // 버튼 클릭 후 리스트 상단으로 부드럽게 이동
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+        btnWrapper.appendChild(resetBtn);
+    }
+
+    if (btnWrapper.hasChildNodes()) {
+        container.appendChild(btnWrapper);
+    }
+}
+
+// 필터링된 데이터를 반환하는 보조 함수 (버튼 클릭 시 사용)
+function filterDataByTag(tag) {
+    return allVods.filter(v => {
+        if (tag === '구독+') return v.isPlus;
+        if (tag === '19') return v.isAdult;
+        return v.category.includes(tag);
     });
 }
     function renderTagButtons() {
@@ -121,10 +171,13 @@
 }
     function toggleMainTagFilter(tag) {
     currentMainTag = tag;
+    displayCount = 30; // [중요] 필터를 바꿀 때는 항상 다시 30개부터 보여줌
+    
     document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
     
     if (tag === null) {
-        document.getElementById('btn-all').classList.add('active');
+        const btnAll = document.getElementById('btn-all');
+        if(btnAll) btnAll.classList.add('active');
         document.getElementById('filter-status').textContent = "전체보기 중";
         renderList(allVods);
     } else {
@@ -132,12 +185,7 @@
         if(targetBtn) targetBtn.classList.add('active');
         document.getElementById('filter-status').textContent = `[${tag}] 필터링 중`;
 
-        // [수정] 일반 태그 검색 + 구독/성인 여부 체크
-        const filtered = allVods.filter(v => {
-            if (tag === '구독+') return v.isPlus;
-            if (tag === '19') return v.isAdult;
-            return v.category.includes(tag);
-        });
+        const filtered = filterDataByTag(tag);
         renderList(filtered);
     }
 }
