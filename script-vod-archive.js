@@ -191,24 +191,28 @@
     const row = document.getElementById(rowId);
     const box = document.getElementById(id);
     
-    // 데이터가 유효한지 체크 (공백, 하이픈 제외)
     if (data && data.trim() !== "" && data !== '-') {
         const items = data.split(',')
             .map(item => item.trim())
             .filter(item => item !== "");
 
         if (items.length > 0) {
-            row.style.display = 'block'; // 상자가 보이게 설정
+            row.style.display = 'block';
             box.innerHTML = items
-                .map(item => `<div style="font-size:13px; margin-bottom:6px; color:var(--text-main); opacity:0.9; line-height:1.5; word-break: break-all;">• ${item}</div>`)
+                .map(item => {
+                    // 1. "("를 " - "로 바꿉니다.
+                    // 2. ")"를 제거합니다.
+                    let formatted = item.replace('(', ' - ').replace(')', '');
+                    
+                    return `<div style="font-size:13px; margin-bottom:6px; color:var(--text-main); opacity:0.9; line-height:1.5; word-break: break-all;">• ${formatted}</div>`;
+                })
                 .join('');
             
-            // 마지막 줄의 여백 제거
             if (box.lastElementChild) box.lastElementChild.style.marginBottom = '0';
             return;
         }
     }
-    row.style.display = 'none'; // 데이터 없으면 아예 숨김
+    row.style.display = 'none';
 };
 
 // 호출 부분
