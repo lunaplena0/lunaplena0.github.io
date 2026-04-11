@@ -28,7 +28,7 @@ let currentMainTag = null;
                    allVods.push({
                    id: i - 1, date: p[0], title: p[1], link: p[2], thumb: p[3], totalTime: p[4],
                    isPlus: p[5] === '예' || p[5] === 'O', 
-                   isAdult: p[6] === '예' || p[6] === 'O', // 이 부분이 추가되어야 함
+                   isAdult: p[6] === '예' || p[6] === 'O', 
                    gData: p[7], sData: p[8], tData: p[9], cData: p[10], category: p[11] || "기타"
                    });
                 }
@@ -43,7 +43,6 @@ let currentMainTag = null;
     const container = document.getElementById('vod-content');
     container.innerHTML = '';
     
-    // [핵심] 현재 displayCount 만큼만 잘라서 보여줌
     const visibleData = data.slice(0, displayCount);
     const groups = {};
     
@@ -52,7 +51,6 @@ let currentMainTag = null;
         groups[v.date].push(v); 
     });
     
-    // 날짜별 렌더링
     Object.keys(groups).sort((a, b) => new Date(b) - new Date(a)).forEach(date => {
         const groupDiv = document.createElement('div');
         groupDiv.className = 'date-group';
@@ -63,33 +61,36 @@ let currentMainTag = null;
             item.className = 'vod-item'; 
             item.onclick = () => openModalById(v.id);
 
+            // 배지 생성 (CSS 클래스 tag-common, tag-plus 사용)
             const plusTag = v.isPlus ? `<span class="tag-common tag-plus">구독+</span>` : '';
-            const adultTag = v.isAdult ? `<span class="tag-common" style="border-color:#ff4757; color:#ff4757;">19</span>` : '';
+            const adultTag = v.isAdult ? `<span class="tag-common" style="border: 2px solid #ff4757; color:#ff4757; background:rgba(255,71,87,0.1);">19</span>` : '';
             
+            // [수정 포인트] CSS와 일치하도록 구조 변경
             item.innerHTML = `
-    <div class="vod-thumb">
-        <img src="${v.thumb}" loading="lazy">
-        <span class="duration">${v.totalTime}</span>
-    </div>
-    <div class="vod-info">
-        <div class="title-row"> <span class="title-text">${v.title}</span>
-            <div class="badge-group">${plusTag}${adultTag}</div>
-        </div>
-        <div class="vod-tags">
-            ${v.category.split(/[,/ ]+/).filter(c => c.trim()).map(c => 
-                `<span>${c}</span>`
-            ).join('')}
-        </div>
-    </div>
-`;
+                <div class="vod-thumb">
+                    <img src="${v.thumb}" loading="lazy">
+                    <span class="duration">${v.totalTime}</span>
+                </div>
+                <div class="vod-body">
+                    <div class="vod-title">
+                        <span class="title-text">${v.title}</span>
+                        <div class="badge-group">${plusTag}${adultTag}</div>
+                    </div>
+                    <div class="vod-tags">
+                        ${v.category.split(/[,/ ]+/).filter(c => c.trim()).map(c => 
+                            `<span>${c}</span>`
+                        ).join('')}
+                    </div>
+                </div>
+            `;
             groupDiv.querySelector('.vod-list').appendChild(item);
         });
         container.appendChild(groupDiv);
     });
 
-    // 리스트 하단에 [더보기 / 접기] 버튼 생성
     renderExpandButtons(data.length);
 }
+
 
 function renderExpandButtons(totalLength) {
     const container = document.getElementById('vod-content');
@@ -196,18 +197,15 @@ function filterDataByTag(tag) {
     let validCount = 0;
 
     data.forEach(v => {
-        const s = timeToSeconds(v.totalTime);
-        
-        // 0초보다 큰 정상적인 기록일 때만 통계에 포함
-        if (s > 0) { 
-            totalSec += s; 
-            if (v.isPlus) plusSec += s; 
-            maxSec = Math.max(maxSec, s);
-            // [수정] 0초를 제외한 최소값을 찾습니다.
-            minSec = Math.min(minSec, s);
-            validCount++;
-        }
-        
+        data.forEach(v => {
+    const s = timeToSeconds(v.totalTime);
+    if (s > 60) { // 최소 1분 이상인 방송만 통계에 포함 (너무 짧은 기록 제외)
+        totalSec += s; 
+        if (v.isPlus) plusSec += s; 
+        maxSec = Math.max(maxSec, s);
+        minSec = Math.min(minSec, s);
+        validCount++;
+    }        
         // 카테고리 집계 로직은 그대로 유지
         v.category.split(/[,/ ]+/).filter(c => c.trim()).forEach(c => { catMap[c] = (catMap[c] || 0) + 1; });
         if (v.isPlus) catMap['구독+'] = (catMap['구독+'] || 0) + 1;
