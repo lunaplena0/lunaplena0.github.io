@@ -92,19 +92,19 @@ let currentMainTag = null;
 
 function renderExpandButtons(totalLength) {
     const container = document.getElementById('vod-content');
-    
-    // 버튼들을 감쌀 컨테이너
     const btnWrapper = document.createElement('div');
-    btnWrapper.style.cssText = "display: flex; justify-content: center; align-items: center; gap: 15px; margin: 40px 0; width: 100%; flex-wrap: wrap;";
+    btnWrapper.className = 'expand-btn-container';
 
     // [더보기 버튼]
     if (displayCount < totalLength) {
         const moreBtn = document.createElement('button');
-        moreBtn.className = 'filter-btn active'; 
-        // 현재 보여지는 개수와 전체 개수를 표시하여 직관성 제공
-        moreBtn.innerHTML = `▼ 더보기 (${displayCount} / ${totalLength})`;
+        moreBtn.className = 'btn-load-more btn-expand-main';
+        moreBtn.innerHTML = `
+            <span>더보기</span>
+            <span class="load-count">${displayCount} / ${totalLength}</span>
+        `;
         moreBtn.onclick = () => {
-            displayCount += 30; // 30개 추가
+            displayCount += 30;
             const filtered = currentMainTag ? filterDataByTag(currentMainTag) : allVods;
             renderList(filtered);
         };
@@ -112,17 +112,14 @@ function renderExpandButtons(totalLength) {
     }
 
     // [접기 버튼]
-    // 30개를 초과해서 펼쳐진 상태일 때만 노출
     if (displayCount > 30) {
         const resetBtn = document.createElement('button');
-        resetBtn.className = 'filter-btn';
-        resetBtn.innerHTML = `▲ 첫 화면으로 접기`;
-        resetBtn.style.background = "rgba(255, 255, 255, 0.08)";
+        resetBtn.className = 'btn-load-more btn-collapse-sub';
+        resetBtn.innerHTML = `<span>맨 위로 접기</span>`;
         resetBtn.onclick = () => {
-            displayCount = 30; // 초기화
+            displayCount = 30;
             const filtered = currentMainTag ? filterDataByTag(currentMainTag) : allVods;
             renderList(filtered);
-            // 버튼 클릭 후 리스트 상단으로 부드럽게 이동
             window.scrollTo({ top: 0, behavior: 'smooth' });
         };
         btnWrapper.appendChild(resetBtn);
