@@ -77,10 +77,8 @@ let currentMainTag = null;
                         <div class="badge-group">${plusTag}${adultTag}</div>
                     </div>
                     <div class="vod-tags">
-                        ${v.category.split(/[,/ ]+/).filter(c => c.trim()).map(c => 
-                            `<span>${c}</span>`
-                        ).join('')}
-                    </div>
+    ${v.category.split(...).map(c => `<span>${c}</span>`).join('')}
+</div>
                 </div>
             `;
             groupDiv.querySelector('.vod-list').appendChild(item);
