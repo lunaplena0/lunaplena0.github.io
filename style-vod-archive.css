@@ -52,10 +52,15 @@
         .btn-close { background: #1a202c; color: #a0aec0; }
 
         .analysis-content {
-    max-width: 1000px;
+    max-width: 1000px; /* 분석창은 넓게 */
+    width: 90%;
+    max-height: 85vh; /* 화면의 85%만 차지 */
     display: flex;
-    flex-direction: column;
-    position: relative; /* 자식 요소인 .analysis-controls의 위치 기준이 됩니다. */
+    flex-direction: column; /* 세로로 쌓기 */
+    overflow: hidden; /* 전체 스크롤 방지 */
+    background: var(--card-bg);
+    border-radius: 20px;
+    border: 1px solid var(--border);
 }
 /* 2. [핵심] 월 선택 셀렉트 박스 위치 강제 이동 */
 .analysis-controls {
@@ -121,7 +126,12 @@
     gap: 15px;
 }
         .analysis-layout { display: grid; grid-template-columns: 5.5fr 4.5fr; gap: 25px; align-items: start; animation: fadeIn 0.3s ease; min-width: 0; padding-bottom: 20px; }
-        #analysis-result { flex: 1; overflow-y: auto; padding: 20px; }
+        #analysis-result {
+    flex: 1; /* 남은 중간 공간을 모두 차지 */
+    overflow-y: auto; /* 내용이 길어지면 여기만 스크롤 생성 */
+    padding: 24px;
+    background: rgba(0, 0, 0, 0.2); /* 배경을 살짝 어둡게 분리 */
+}
         .report-vod-list { display: flex; flex-direction: column; gap: 12px; max-height: 600px; overflow-y: auto; padding-right: 8px; }
         .report-vod-list::-webkit-scrollbar { width: 4px; }
         .report-vod-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
@@ -173,7 +183,14 @@
     transform: scale(1.05);
     background: #121f33 !important;
 }
-
+/* 하단 버튼 영역 고정 */
+.analysis-footer {
+    padding: 16px 24px;
+    border-top: 1px solid var(--border);
+    background: var(--card-bg);
+    display: flex;
+    justify-content: center;
+}
 /* 색상 매핑 (JS의 catColors와 일치) */
 .filter-btn.active[data-tag="전체보기"] { color: #fff !important; border-color: var(--accent) !important; }
 .filter-btn.active[data-tag="게임"] { color: #70a1ff !important; border-color: #70a1ff !important; }
@@ -203,15 +220,17 @@
             .vod-thumb { width: 120px; min-width: 120px; }
                 .analysis-header {
         flex-direction: column;
-        align-items: flex-start;
-        padding: 15px;
-        gap: 12px;
+        align-items: flex-start !important;
+        gap: 15px;
     }
-    
     .analysis-controls {
         width: 100%;
-        justify-content: flex-start; /* 왼쪽 정렬 */
-        gap: 6px;
+        display: grid;
+        grid-template-columns: 1fr 1fr; /* 셀렉트 박스 2개씩 배치 */
+        gap: 8px;
+    }
+    #analysis-type {
+        grid-column: span 2; /* 보기 방식은 가로로 길게 */
     }
     
     /* 모바일에서는 박스 크기를 약간 조정하여 꽉 차게 보일 수 있음 */
