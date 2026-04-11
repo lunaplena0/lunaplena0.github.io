@@ -281,11 +281,22 @@ setSec('m-content', 'row-content', v.cData);
         });
 
         const availableKeys = Object.keys(stats).sort().reverse();
-        if (viewType === 'month') {
-            resultDiv.innerHTML = `<div style="margin-bottom:20px;"><select id="month-select" onchange="displaySelectedReport()" style="width:100%; background:#0a1a30; color:#fff; border:1px solid var(--border); border-radius:12px; padding:12px; font-size:14px; font-weight:bold; outline:none; cursor:pointer;">${availableKeys.map(k => `<option value="${k}">${k.split('-')[1]}월 상세 리포트 보기</option>`).join('')}</select></div><div id="report-container"></div>`;
-            window.currentStats = stats;
-            displaySelectedReport();
-        } else { 
+        // renderAnalysis 함수 내부 수정
+if (viewType === 'month') {
+    resultDiv.innerHTML = `
+        <div class="analysis-controls">
+            <select id="analysis-year-inner" onchange="renderAnalysis()" style="flex: 1;">
+                ${/* 기존 년도 옵션 로직과 동일하게 유지 */}
+                ${years.map(y => `<option value="${y}" ${y === targetYear ? 'selected' : ''}>${y}년</option>`).join('')}
+            </select>
+            <select id="month-select" onchange="displaySelectedReport()" style="flex: 2;">
+                ${availableKeys.map(k => `<option value="${k}">${k.split('-')[1]}월 상세 리포트</option>`).join('')}
+            </select>
+        </div>
+        <div id="report-container"></div>`;
+    window.currentStats = stats;
+    displaySelectedReport();
+} else { 
             // 연도별 보기일 때는 모든 리포트를 나열하고 리스트 로드
             resultDiv.innerHTML = availableKeys.map((key, i) => generateReportHtml(key, stats[key], availableKeys[i+1] ? stats[availableKeys[i+1]] : null)).join('');
             availableKeys.forEach(key => filterAnalysisSideList(key, null)); // 각 연도별 리스트 로드
