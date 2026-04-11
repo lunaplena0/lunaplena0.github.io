@@ -281,21 +281,18 @@ setSec('m-content', 'row-content', v.cData);
 
     const availableKeys = Object.keys(stats).sort().reverse();
     
-   if (viewType === 'month') {
-        // [수정] 무한루프 방지를 위해 내부 HTML 구성 변경
-        resultDiv.innerHTML = `
-            <div class="analysis-controls">
-                <div style="flex: 1; background:#0a1a30; border:1px solid var(--border); border-radius:12px; padding:12px; font-size:14px; color:#fff; font-weight:bold; text-align:center;">
-                    ${targetYear}년
-                </div>
-                <select id="month-select" onchange="displaySelectedReport()" style="flex: 2;">
-                    ${availableKeys.map(k => `<option value="${k}">${k.split('-')[1]}월 상세 리포트</option>`).join('')}
-                </select>
-            </div>
-            <div id="report-container"></div>`;
-        window.currentStats = stats;
-        displaySelectedReport();
-    } else { 
+     if (viewType === 'month') {
+    resultDiv.innerHTML = `
+        <div class="analysis-controls">
+            <select id="month-select" onchange="displaySelectedReport()">
+                ${availableKeys.map(k => `<option value="${k}">${k.split('-')[1]}월 상세 리포트</option>`).join('')}
+            </select>
+        </div>
+        <div id="report-container"></div>`;
+
+    window.currentStats = stats;
+    displaySelectedReport();
+} else { 
         // 연도별 보기일 때는 모든 리포트를 나열하고 리스트 로드
         resultDiv.innerHTML = availableKeys.map((key, i) => generateReportHtml(key, stats[key], availableKeys[i+1] ? stats[availableKeys[i+1]] : null)).join('');
         availableKeys.forEach(key => filterAnalysisSideList(key, null)); 
