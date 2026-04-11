@@ -250,52 +250,55 @@ setSec('m-content', 'row-content', v.cData);
     function closeAnalysisModal() { document.getElementById('analysis-overlay').style.display = 'none'; }
 
     function renderAnalysis() {
-        const targetYear = document.getElementById('analysis-year').value;
-        const viewType = document.getElementById('analysis-type').value;
-        const resultDiv = document.getElementById('analysis-result');
-        const yearFiltered = allVods.filter(v => v.date.startsWith(targetYear));
-        if (yearFiltered.length === 0) { resultDiv.innerHTML = "데이터가 없습니다."; return; }
+    const targetYear = document.getElementById('analysis-year').value; // 메인 연도 선택값
+    const viewType = document.getElementById('analysis-type').value;
+    const resultDiv = document.getElementById('analysis-result');
+    
+    const yearFiltered = allVods.filter(v => v.date.startsWith(targetYear));
+    if (yearFiltered.length === 0) { resultDiv.innerHTML = "데이터가 없습니다."; return; }
+    
+    // 통계 계산 로직 (기존과 동일)
+    const stats = {};
+    yearFiltered.forEach(v => {
+        const key = viewType === 'month' ? v.date.substring(0, 7) : v.date.substring(0, 4);
+        if (!stats[key]) { stats[key] = { time: 0, count: 0, cats: {}, subItems: { '게임': {}, '노래': {}, '콘텐츠': {} } }; }
+        const sec = timeToSeconds(v.totalTime);
+        stats[key].time += sec; stats[key].count++;
+        v.category.split(/[,/ ]+/).forEach(c => { if(c.trim()) stats[key].cats[c] = (stats[key].cats[c] || 0) + 1; });
+        if (v.isPlus) stats[key].cats['구독+'] = (stats[key].cats['구독+'] || 0) + 1;
+        if (v.isAdult) stats[key].cats['19'] = (stats[key].cats['19'] || 0) + 1;
         
-        const stats = {};
-        yearFiltered.forEach(v => {
-            const key = viewType === 'month' ? v.date.substring(0, 7) : v.date.substring(0, 4);
-            if (!stats[key]) { stats[key] = { time: 0, count: 0, cats: {}, subItems: { '게임': {}, '노래': {}, '콘텐츠': {} } }; }
-            const sec = timeToSeconds(v.totalTime);
-            stats[key].time += sec; stats[key].count++;
-            // 기존 카테고리 집계
-    v.category.split(/[,/ ]+/).forEach(c => { if(c.trim()) stats[key].cats[c] = (stats[key].cats[c] || 0) + 1; });
+        const collectSub = (data, type) => {
+            if (data && data !== '-') {
+                data.split(/[\n,/]+/).forEach(item => {
+                    let cleanItem = item.trim().replace(/\s*\([\d\s:~]+\)/g, "").trim();
+                    if (cleanItem) stats[key].subItems[type][cleanItem] = (stats[key].subItems[type][cleanItem] || 0) + 1;
+                });
+            }
+        };
+        collectSub(v.gData, '게임'); collectSub(v.sData, '노래'); collectSub(v.cData, '콘텐츠');
+    });
 
-    // [추가] 리포트 상단 태그 목록에 구독+와 19 추가
-    if (v.isPlus) stats[key].cats['구독+'] = (stats[key].cats['구독+'] || 0) + 1;
-    if (v.isAdult) stats[key].cats['19'] = (stats[key].cats['19'] || 0) + 1;
-         
-            const collectSub = (data, type) => {
-                if (data && data !== '-') {
-                    data.split(/[\n,/]+/).forEach(item => {
-                        let cleanItem = item.trim().replace(/\s*\([\d\s:~]+\)/g, "").trim();
-                        if (cleanItem) stats[key].subItems[type][cleanItem] = (stats[key].subItems[type][cleanItem] || 0) + 1;
-                    });
-                }
-            };
-            collectSub(v.gData, '게임'); collectSub(v.sData, '노래'); collectSub(v.cData, '콘텐츠');
-        });
-
-        const availableKeys = Object.keys(stats).sort().reverse();
-        // renderAnalysis 함수 내부 수정
-if (viewType === 'month') {
-    resultDiv.innerHTML = `
-        <div class="analysis-controls">
-            <select id="analysis-year-inner" onchange="renderAnalysis()" style="flex: 1;">
-                ${/* 기존 년도 옵션 로직과 동일하게 유지 */}
-                ${years.map(y => `<option value="${y}" ${y === targetYear ? 'selected' : ''}>${y}년</option>`).join('')}
-            </select>
-            <select id="month-select" onchange="displaySelectedReport()" style="flex: 2;">
-                ${availableKeys.map(k => `<option value="${k}">${k.split('-')[1]}월 상세 리포트</option>`).join('')}
-            </select>
-        </div>
-        <div id="report-container"></div>`;
-    window.currentStats = stats;
-    displaySelectedReport();
+    const availableKeys = Object.keys(stats).sort().reverse();
+    
+    if (viewType === 'month') {
+        // [수정] 무한루프 방지를 위해 내부 HTML 구성 변경
+        resultDiv.innerHTML = `
+            <div class="analysis-controls">
+                <div style="flex: 1; background:#0a1a30; border:1px solid var(--border); border-radius:12px; padding:12px; font-size:14px; color:#fff; font-weight:bold; text-align:center;">
+                    ${targetYear}년
+                </div>
+                <select id="month-select" onchange="displaySelectedReport()" style="flex: 2;">
+                    ${availableKeys.map(k => `<option value="${k}">${k.split('-')[1]}월 상세 리포트</option>`).join('')}
+                </select>
+            </div>
+            <div id="report-container"></div>`;
+        window.currentStats = stats;
+        displaySelectedReport();
+    } else { 
+        resultDiv.innerHTML = availableKeys.map((key, i) => generateReportHtml(key, stats[key], availableKeys[i+1] ? stats[availableKeys[i+1]] : null)).join('');
+        availableKeys.forEach(key => filterAnalysisSideList(key, null));
+    }
 } else { 
             // 연도별 보기일 때는 모든 리포트를 나열하고 리스트 로드
             resultDiv.innerHTML = availableKeys.map((key, i) => generateReportHtml(key, stats[key], availableKeys[i+1] ? stats[availableKeys[i+1]] : null)).join('');
