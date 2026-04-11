@@ -83,24 +83,27 @@
             .dashboard-grid { grid-template-columns: 1fr; }
             .vod-thumb { width: 120px; min-width: 120px; }
         }
-        @media (max-width: 600px) {
-    /* 1. 배경을 PC보다 훨씬 밝게 (투명하게) */
-    #modal-overlay { 
-        align-items: flex-end; /* 아래로 붙임 */
-        padding: 0; 
-        background: rgba(0, 0, 0, 0.4); /* PC(0.7)보다 연한 0.4로 설정 */
+   @media (max-width: 600px) {
+    /* 1. 전체 배경 투명도 완화 (0.9 -> 0.6) */
+    #modal-overlay, #analysis-overlay { 
+        background: rgba(0, 0, 0, 0.6) !important; 
+        backdrop-filter: blur(5px); /* 뒤쪽이 살짝 비쳐서 덜 답답함 */
     }
 
-    /* 2. 팝업창 내부 색상을 살짝 밝게 조정 */
-    #modal-content { 
-        max-width: 100%; 
-        border-radius: 25px 25px 0 0; 
-        background: #1a2635; /* PC보다 아주 살짝 밝은 네이비 */
-        max-height: 85vh; /* 모바일은 화면이 작으니 높이 제한 살짝 조절 */
+    /* 2. 팝업창 내부 배경색을 살짝 밝은 네이비로 변경 */
+    #modal-content, .analysis-content { 
+        background: #0d1624 !important; /* 기존 var(--card-bg)보다 미세하게 밝음 */
+        border: 1px solid rgba(255, 255, 255, 0.1) !important; /* 테두리를 밝게 해서 경계 구분 */
     }
-    
-    /* 3. 모바일에서 텍스트가 너무 어두워 보일 경우 대비 향상 */
-    .title-text {
-        font-size: 16px; /* 모바일에서 제목을 조금 더 크게 */
+
+    /* 3. 내부의 '게임, 노래, 소통' 상자들을 더 잘 보이게 */
+    #m-game, #m-song, #m-talk, #m-content {
+        background: rgba(255, 255, 255, 0.08) !important; /* 상자 배경을 조금 더 밝게 */
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    }
+
+    /* 4. 텍스트 가독성 향상 */
+    .title-text, #m-title {
+        color: #ffffff !important; /* 제목을 완전 흰색으로 */
     }
 }
