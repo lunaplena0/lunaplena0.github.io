@@ -72,8 +72,7 @@ let currentMainTag = null;
         <span class="duration">${v.totalTime}</span>
     </div>
     <div class="vod-info">
-        <div>
-            <span class="title-text">${v.title}</span>
+        <div class="title-row"> <span class="title-text">${v.title}</span>
             <div class="badge-group">${plusTag}${adultTag}</div>
         </div>
         <div class="vod-tags">
