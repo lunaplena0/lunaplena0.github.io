@@ -1,4 +1,13 @@
-        :root { --bg-color: #010306; --card-bg: #030812; --accent: #3385ff; --text-main: #f0faff; --text-sub: #5c7285; --border: #0a1425; --modal-bg: rgba(0, 0, 0, 0.9); }
+        :root { 
+    --bg-color: #010306; 
+    --card-bg: #030812; 
+    --accent: #3385ff; 
+    --text-main: #f0faff; 
+    --text-sub: #5c7285; 
+    --border: #0a1425; 
+    /* 모달 배경을 0.9에서 0.7로 낮춰 뒤가 살짝 보이게 수정 */
+    --modal-bg: rgba(0, 0, 0, 0.7); 
+}
         * { box-sizing: border-box; }
         body { background-color: var(--bg-color); background-image: radial-gradient(circle at top right, #051020 0%, #010306 100%); color: var(--text-main); font-family: 'Noto Sans KR', sans-serif; margin: 0; padding: 0; overflow-x: hidden; }
         body.modal-open { overflow: hidden; }
@@ -32,7 +41,10 @@
         .dot { width: 8px; height: 8px; border-radius: 2px; }
 
         .date-header { font-size: 16px; font-weight: bold; color: var(--accent); margin: 35px 0 15px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
-        .vod-item { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; display: flex; cursor: pointer; transition: 0.2s; overflow: hidden; margin-bottom: 12px; }
+        .vod-item { 
+    background: rgba(255, 255, 255, 0.02); /* 기본 배경을 아주 살짝 밝게 */
+    border: 1px solid var(--border); 
+}
         .vod-item:hover { border-color: var(--accent); background: rgba(51, 133, 255, 0.05); }
         .vod-thumb { width: 140px; height: 80px; position: relative; min-width: 140px; }
         .vod-thumb img { width: 100%; height: 100%; object-fit: cover; }
@@ -44,9 +56,30 @@
         .tag-common { display: inline-flex; align-items: center; justify-content: center; height: 22px; padding: 0 10px; border-radius: 6px; font-size: 11px; font-weight: 800; white-space: nowrap; line-height: 1; }
         .tag-plus { background: #121f33; color: #e6e02e; border: 2px solid #e6e02e; }
 
-        #modal-overlay, #analysis-overlay { position: fixed; inset: 0; background: var(--modal-bg); display: none; justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(8px); padding: 20px; }
-        #modal-content, .analysis-content { background: var(--card-bg); width: 100%; max-width: 450px; border-radius: 20px; border: 1px solid var(--border); overflow-y: auto; max-height: 90vh; }
-
+        /* 모달 오버레이 개선 */
+#modal-overlay, #analysis-overlay { 
+    position: fixed; 
+    inset: 0; 
+    background: var(--modal-bg); 
+    display: none; 
+    justify-content: center; 
+    align-items: center; 
+    z-index: 1000; 
+    /* 블러 효과를 조금 더 강화하여 고급스러운 느낌 추가 */
+    backdrop-filter: blur(10px); 
+    -webkit-backdrop-filter: blur(10px); /* iOS 지원 */
+    padding: 20px; 
+}
+        #modal-content, .analysis-content { 
+    background: #0d1624; /* 완전 검은색보다 살짝 밝은 네이비 톤 */
+    width: 100%; 
+    max-width: 450px; 
+    border-radius: 20px; 
+    border: 1px solid rgba(255, 255, 255, 0.1); 
+    box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+    overflow-y: auto; 
+    max-height: 90vh; 
+}
         .btn-action { flex: 1; padding: 14px; text-align: center; border-radius: 12px; font-weight: bold; text-decoration: none; cursor: pointer; border: none; font-size: 14px; }
         .btn-go { background: var(--accent); color: white; }
         .btn-close { background: #1a202c; color: #a0aec0; }
@@ -83,3 +116,7 @@
             .dashboard-grid { grid-template-columns: 1fr; }
             .vod-thumb { width: 120px; min-width: 120px; }
         }
+        @media (max-width: 600px) {
+    #modal-overlay { align-items: flex-end; padding: 0; }
+    #modal-content { max-width: 100%; border-radius: 25px 25px 0 0; }
+}
