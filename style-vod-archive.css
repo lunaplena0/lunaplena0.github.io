@@ -59,11 +59,10 @@
 }
 /* 2. [핵심] 월 선택 셀렉트 박스 위치 강제 이동 */
 .analysis-controls {
-    position: static;      /* absolute가 있다면 반드시 제거 */
     display: flex;
     align-items: center;
-    gap: 8px;              /* 요소 사이의 간격 */
-    flex-shrink: 0;        /* 공간이 좁아져도 크기가 줄어들지 않게 */
+    gap: 10px; /* 박스 사이 간격 일정하게 유지 */
+    flex-shrink: 0;
 }
 
 /* 3. 공통 셀렉트 박스 스타일 (년도/월 공통) */
@@ -83,11 +82,28 @@
 
 /* 모든 분석용 셀렉트 박스에 화살표 아이콘 공통 적용 */
 #analysis-year, #month-select, #analysis-type {
-    appearance: none;
+    appearance: none; /* 기본 브라우저 화살표 제거 */
+    background-color: #0a1a30;
+    color: #fff;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0 32px 0 14px; /* 우측 화살표 공간 확보 */
+    font-size: 13px;
+    font-weight: 700;
+    height: 36px; /* 높이 36px로 통일 */
+    line-height: 34px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    
+    /* 사용자 정의 화살표 아이콘 */
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='white' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: calc(100% - 10px) center;
-    padding-right: 30px; /* 화살표가 글자를 가리지 않게 오른쪽 여백 확보 */
+}
+#analysis-year:hover, #month-select:hover, #analysis-type:hover {
+    border-color: var(--accent);
+    background-color: #112540;
+    box-shadow: 0 0 8px rgba(51, 133, 255, 0.2);
 }
 
 #year-select:hover, #month-select:hover {
@@ -97,10 +113,11 @@
 /* 분석 모달 상단 타이틀 바 영역 조정 */
 .analysis-header {
     display: flex;
-    justify-content: space-between; /* 타이틀은 왼쪽, 컨트롤러는 오른쪽 */
+    justify-content: space-between;
     align-items: center;
-    padding: 20px 25px;
+    padding: 16px 24px;
     border-bottom: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.02);
     gap: 15px;
 }
         .analysis-layout { display: grid; grid-template-columns: 5.5fr 4.5fr; gap: 25px; align-items: start; animation: fadeIn 0.3s ease; min-width: 0; padding-bottom: 20px; }
@@ -187,11 +204,21 @@
                 .analysis-header {
         flex-direction: column;
         align-items: flex-start;
+        padding: 15px;
+        gap: 12px;
     }
+    
     .analysis-controls {
         width: 100%;
-        justify-content: flex-start;
-        flex-wrap: wrap;
+        justify-content: flex-start; /* 왼쪽 정렬 */
+        gap: 6px;
+    }
+    
+    /* 모바일에서는 박스 크기를 약간 조정하여 꽉 차게 보일 수 있음 */
+    #analysis-year, #month-select, #analysis-type {
+        flex: 1; /* 가능한 공간 나눠 갖기 */
+        min-width: 100px;
+        font-size: 12px;
     }
         }
 @media screen and (max-width: 850px) {
