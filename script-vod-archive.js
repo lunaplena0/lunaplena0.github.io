@@ -61,11 +61,9 @@ let currentMainTag = null;
             item.className = 'vod-item'; 
             item.onclick = () => openModalById(v.id);
 
-            // 배지 생성 (CSS 클래스 tag-common, tag-plus 사용)
             const plusTag = v.isPlus ? `<span class="tag-common tag-plus">구독+</span>` : '';
             const adultTag = v.isAdult ? `<span class="tag-common" style="border: 2px solid #ff4757; color:#ff4757; background:rgba(255,71,87,0.1);">19</span>` : '';
             
-            // [수정 포인트] CSS와 일치하도록 구조 변경
             item.innerHTML = `
                 <div class="vod-thumb">
                     <img src="${v.thumb}" loading="lazy">
@@ -77,9 +75,10 @@ let currentMainTag = null;
                         <div class="badge-group">${plusTag}${adultTag}</div>
                     </div>
                     <div class="vod-tags">
-                        ${v.category.split(/[,/ ]+/).filter(c => c.trim()).map(c => 
-                            `<span>${c}</span>`
-                        ).join('')}
+                        ${v.category.split(/[,/ ]+/).filter(c => c.trim()).map(c => {
+                            const clr = getColor(c);
+                            return `<span class="tag-common" style="background:${clr}20; color:${clr}; border:1px solid ${clr}40;">${c}</span>`;
+                        }).join('')}
                     </div>
                 </div>
             `;
@@ -90,7 +89,6 @@ let currentMainTag = null;
 
     renderExpandButtons(data.length);
 }
-
 
 function renderExpandButtons(totalLength) {
     const container = document.getElementById('vod-content');
