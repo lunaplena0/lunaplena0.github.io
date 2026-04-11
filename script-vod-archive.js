@@ -417,30 +417,56 @@ setSec('m-content', 'row-content', v.cData);
         const renderSubList = (title, items, color) => {
             const sortedItems = Object.entries(items).sort((a, b) => b[1] - a[1]);
             if (sortedItems.length === 0) return "";
-            return `<div style="margin-top:20px; width: 100%;"><div style="font-size:13px; color:${color}; font-weight:bold; margin-bottom:10px; display:flex; align-items:center; gap:6px;"><span style="width:4px; height:14px; background:${color}; border-radius:2px;"></span>${title} 기록</div><div style="display:grid; grid-template-columns: 1fr; gap:6px;">${sortedItems.map(([name, count]) => `<div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.04); padding:10px 14px; border-radius:10px; border:1px solid rgba(255,255,255,0.06);"><span style="color:#eee; font-size:13px;">${name}</span><span style="color:${color}; font-size:13px; font-weight:800;">${count}회</span></div>`).join('')}</div></div>`;
+            return `
+                <div style="margin-top:20px; width: 100%;">
+                    <div style="font-size:13px; color:${color}; font-weight:bold; margin-bottom:10px; display:flex; align-items:center; gap:6px;">
+                        <span style="width:4px; height:14px; background:${color}; border-radius:2px;"></span>${title} 기록
+                    </div>
+                    <div style="display:grid; grid-template-columns: 1fr; gap:6px;">
+                        ${sortedItems.map(([name, count]) => `
+                            <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.04); padding:10px 14px; border-radius:10px; border:1px solid rgba(255,255,255,0.06);">
+                                <span style="color:#eee; font-size:13px;">${name}</span>
+                                <span style="color:${color}; font-size:13px; font-weight:800;">${count}회</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>`;
         };
 
-        return `<div class="analysis-layout">
-            <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:20px; padding:20px; margin-bottom:15px;">
-                <div style="font-size:18px; font-weight:bold; color:var(--accent); margin-bottom:15px;">${key} 리포트</div>
-                <div style="background:rgba(0,0,0,0.15); border-radius:16px; padding:20px;">
-                    <div style="margin-bottom:15px;">
-                        <div style="font-size:11px; color:var(--text-sub); margin-bottom:10px;">📊 테마별 분포 (클릭하여 토글 필터링)</div>
-                        <div style="display:flex; flex-wrap:wrap; gap:6px;">
-                            ${sortedCats.map(([n, c]) => `<span class="analysis-tag" data-report-key="${key}" onclick="filterAnalysisSideList('${key}', '${n}')" style="font-size:11px; color:${getColor(n)}; border:1px solid ${getColor(n)}40; padding:4px 10px; border-radius:8px; background:rgba(0,0,0,0.3);">${n} ${c}회</span>`).join('')}
+        return `
+            <div class="analysis-layout">
+                <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:20px; padding:20px; margin-bottom:15px;">
+                    <div style="font-size:18px; font-weight:bold; color:var(--accent); margin-bottom:15px;">${key} 리포트</div>
+                    <div style="background:rgba(0,0,0,0.15); border-radius:16px; padding:20px;">
+                        <div style="margin-bottom:15px;">
+                            <div style="font-size:11px; color:var(--text-sub); margin-bottom:10px;">📊 테마별 분포 (클릭하여 토글 필터링)</div>
+                            <div style="display:flex; flex-wrap:wrap; gap:6px;">
+                                ${sortedCats.map(([n, c]) => `
+                                    <span class="analysis-tag" data-report-key="${key}" onclick="filterAnalysisSideList('${key}', '${n}')" style="font-size:11px; color:${getColor(n)}; border:1px solid ${getColor(n)}40; padding:4px 10px; border-radius:8px; background:rgba(0,0,0,0.3); cursor:pointer;">
+                                        ${n} ${c}회
+                                    </span>
+                                `).join('')}
+                            </div>
                         </div>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:15px;">
+                            <div style="background:rgba(0,0,0,0.2); padding:12px; border-radius:12px;">
+                                <div style="font-size:10px; color:var(--text-sub);">총 방송</div>
+                                <div style="font-size:15px; font-weight:bold;">${Math.floor(s.time/3600)}시간</div>
+                                ${getDiffHtml(timeDiff)}
+                            </div>
+                            <div style="background:rgba(0,0,0,0.2); padding:12px; border-radius:12px;">
+                                <div style="font-size:10px; color:var(--text-sub);">평균 시간</div>
+                                <div style="font-size:15px; font-weight:bold;">${secondsToTime(Math.floor(avgTime))}</div>
+                                ${getDiffHtml(avgDiff)}
+                            </div>
+                        </div>
+                        ${renderSubList('게임', s.subItems['게임'], catColors['게임'])}
+                        ${renderSubList('노래', s.subItems['노래'], catColors['노래'])}
+                        ${renderSubList('콘텐츠', s.subItems['콘텐츠'], '#00d8ff')}
                     </div>
-                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:15px;">
-                        <div style="background:rgba(0,0,0,0.2); padding:12px; border-radius:12px;"><div style="font-size:10px; color:var(--text-sub);">총 방송</div><div style="font-size:15px; font-weight:bold;">${Math.floor(s.time/3600)}시간</div>${getDiffHtml(timeDiff)}</div>
-                        <div style="background:rgba(0,0,0,0.2); padding:12px; border-radius:12px;"><div style="font-size:10px; color:var(--text-sub);">평균 시간</div><div style="font-size:15px; font-weight:bold;">${secondsToTime(Math.floor(avgTime))}</div>${getDiffHtml(avgDiff)}</div>
-                    </div>
-                    ${renderSubList('게임', s.subItems['게임'], catColors['게임'])}
-                    ${renderSubList('노래', s.subItems['노래'], catColors['노래'])}
-                    ${renderSubList('콘텐츠', s.subItems['콘텐츠'], '#00d8ff')}
                 </div>
-            </div>
-            <div class="report-vod-list" id="report-side-list-${key.replace('-','')}"></div>
-        </div>`;
+                <div class="report-vod-list" id="report-side-list-${key.replace(/-/g, '')}"></div>
+            </div>`;
     }
 
     function filterAnalysisSideList(key, tagName) {
