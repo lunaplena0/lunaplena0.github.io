@@ -145,10 +145,7 @@ function filterDataByTag(tag) {
 }
     function renderTagButtons() {
     const container = document.getElementById('tag-filter-container');
-    // 기존 태그 추출
     const tags = [...new Set(allVods.flatMap(v => v.category.split(/[,/ ]+/).filter(c => c.trim())))].sort();
-    
-    // 구독+와 19를 태그 목록 맨 앞에 추가
     const allUniqueTags = ['구독+', '19', ...tags];
 
     let html = `
@@ -157,15 +154,21 @@ function filterDataByTag(tag) {
             <span id="filter-status" style="font-size:10px; color:var(--accent);">전체보기 중</span>
         </div>`;
     
-    // 전체보기 버튼
-    html += `<button id="btn-all" onclick="toggleMainTagFilter(null)" class="filter-btn active" data-tag="전체보기">✨ 전체보기</button>`;
+    // 전체보기 버튼 (기본 액센트 컬러 사용)
+    html += `<button id="btn-all" onclick="toggleMainTagFilter(null)" class="filter-btn active" data-tag="전체보기" style="--tag-color: var(--accent)">✨ 전체보기</button>`;
     
-    // 개별 태그 버튼들 (data-tag 속성 추가)
-    html += allUniqueTags.map(tag => `
-        <button id="btn-${tag}" onclick="toggleMainTagFilter('${tag}')" class="filter-btn" data-tag="${tag}">
-            ${tag}
-        </button>
-    `).join('');
+    // 개별 태그 버튼들
+    html += allUniqueTags.map(tag => {
+        const clr = getColor(tag); // 이미 있는 getColor 함수 활용!
+        return `
+            <button id="btn-${tag}" onclick="toggleMainTagFilter('${tag}')" 
+                class="filter-btn" 
+                data-tag="${tag}" 
+                style="--tag-color: ${clr}">
+                ${tag}
+            </button>
+        `;
+    }).join('');
     
     container.innerHTML = html;
 }
