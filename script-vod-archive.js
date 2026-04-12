@@ -508,29 +508,34 @@ setSec('m-content', 'row-content', v.cData);
     }
 
     // [교정 포인트] 백틱 내부의 ${} 구조와 괄호를 명확하게 정리
-    sideList.innerHTML = `
-        <div style="font-size:14px; font-weight:bold; color:var(--text-sub); margin-bottom:12px; display:flex; justify-content:space-between;">
-            <span>📅 ${currentAnalysisTag ? `[${currentAnalysisTag}] 기록` : (key.length === 4 ? `${key}년 전체 다시보기` : '해당 기간 다시보기')}</span>
-            <span>${filtered.length}개</span>
-        </div>
-        <div class="report-vod-list">
-            ${filtered.map(v => `
-                <div class="report-item" onclick="handleAnalysisItemClick('${v.id}')">
-                    <div style="width:80px; height:45px; min-width:80px; border-radius:6px; overflow:hidden;">
-                        <img src="${v.thumb}" style="width:100%; height:100%; object-fit:cover;">
+   sideList.innerHTML = `
+    <div style="font-size:14px; font-weight:bold; color:var(--text-sub); margin-bottom:12px; display:flex; justify-content:space-between;">
+        <span>📅 ${
+            currentAnalysisTag 
+            ? `[${currentAnalysisTag}] 기록` 
+            : (key.length === 4 
+                ? `${key}년 전체 다시보기` 
+                : `${key.slice(-2)}월 전체 다시보기`)
+        }</span>
+        <span>${filtered.length}개</span>
+    </div>
+    <div class="report-vod-list">
+        ${filtered.map(v => `
+            <div class="report-item" onclick="handleAnalysisItemClick('${v.id}')">
+                <div style="width:80px; height:45px; min-width:80px; border-radius:6px; overflow:hidden;">
+                    <img src="${v.thumb}" style="width:100%; height:100%; object-fit:cover;">
+                </div>
+                <div class="report-item-info">
+                    <div class="side-list-title">
+                        ${v.title} 
+                        ${v.isPlus ? '<span style="color:#e6e02e; font-size:9px; margin-left:4px;">[구독+]</span>' : ''}
+                        ${v.isAdult ? '<span style="color:#ff4757; font-size:9px; margin-left:4px;">[19]</span>' : ''}
                     </div>
-                    <div class="report-item-info">
-                        <div class="side-list-title">
-                            ${v.title} 
-                            ${v.isPlus ? '<span style="color:#e6e02e; font-size:9px; margin-left:4px;">[구독+]</span>' : ''}
-                            ${v.isAdult ? '<span style="color:#ff4757; font-size:9px; margin-left:4px;">[19]</span>' : ''}
-                        </div>
-                        <div style="font-size:11px; color:var(--text-sub);">${v.date}</div>
-                    </div>
-                </div>`).join('')}
-        </div>`;
-}
-
+                    <div style="font-size:11px; color:var(--text-sub);">${v.date}</div>
+                </div>
+            </div>`).join('')}
+    </div>`;
+    }
     function displaySelectedReport() {
     const selectEl = document.getElementById('month-select');
     if (!selectEl) return;
