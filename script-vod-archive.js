@@ -510,7 +510,7 @@ setSec('m-content', 'row-content', v.cData);
     // [교정 포인트] 백틱 내부의 ${} 구조와 괄호를 명확하게 정리
     sideList.innerHTML = `
         <div style="font-size:14px; font-weight:bold; color:var(--text-sub); margin-bottom:12px; display:flex; justify-content:space-between;">
-            <span>📅 ${currentAnalysisTag ? `[${currentAnalysisTag}] 기록` : (key.length === 4 ? `${key}년 전체 기록` : '해당 기간 전체 기록')}</span>
+            <span>📅 ${currentAnalysisTag ? `[${currentAnalysisTag}] 기록` : (key.length === 4 ? `${key}년 전체 다시보기` : '해당 기간 다시보기')}</span>
             <span>${filtered.length}개</span>
         </div>
         <div class="report-vod-list">
