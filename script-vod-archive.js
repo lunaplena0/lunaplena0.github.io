@@ -3,18 +3,18 @@
 let displayCount = 30; // 초기 노출 개수
 let currentMainTag = null;
     let currentAnalysisTag = null;
-    const catColors = { 
-    '게임': '#70a1ff', 
-    '노래': '#ff7eb9', 
-    '소통': '#2ed573', 
-    'ASMR': '#cd84f1', 
-    '풀트': '#ffbe76', 
-    '시네티': '#00d8ff', 
-    '대회': '#ffa502',  
-    '합방': '#ff7f50',  
-    '기타': '#d2dae2',
-    '구독+': '#ffd700',
-    '19': '#ff4757'
+   const catColors = { 
+    '시네티': '#00d8ff',  // 영화/영상 감상 중심의 고화질 시네마틱 감성 (네온 사이언)
+    '풀트': '#ff9f43',   // VR 풀트래커를 활용한 역동적인 신체 퍼포먼스 (비비드 오렌지)
+    '게임': '#70a1ff',   // 몰입감 있는 플레이와 활동적인 게임 방송 (스카이 블루)
+    '노래': '#ff7eb9',   // 보컬 중심의 화사하고 감성적인 음악 콘텐츠 (소프트 핑크)
+    '소통': '#2ed573',   // 시청자와의 편안하고 안정적인 대화 시간 (프레시 그린)
+    'ASMR': '#cd84f1',   // 청각적 자극과 차분한 수면 유도 분위기 (라벤더 퍼플)
+    '대회': '#ee5253',   // 승부의 열정과 긴장감이 감도는 이벤트 경기 (로즈 레드)
+    '합방': '#0abde3',   // 타 스트리머와의 신선한 케미가 돋보이는 협업 (터쿼이아 블루)
+    '구독+': '#f1c40f',  // 후원자 전용 혜택 및 특별한 가치를 상징 (선플라워 골드)
+    '19': '#576574',    // 성인 전용 콘텐츠의 무게감과 주의를 알림 (스틸 그레이)
+    '기타': '#d2dae2'    // 특정 카테고리에 속하지 않는 일반적인 항목 (라이트 실버)
 };
     function getColor(name) { for (let key in catColors) { if (name.includes(key)) return catColors[key]; } return catColors['기타']; }
     function timeToSeconds(t) { if (!t || t === '-' || t === '0') return 0; const p = t.split(':').map(Number); if(p.length === 2) return (p[0] * 60) + p[1]; return (p[0] * 3600) + (p[1] * 60) + (p[2] || 0); }
