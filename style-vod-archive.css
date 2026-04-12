@@ -1,434 +1,155 @@
-        :root { --bg-color: #010306; --card-bg: #030812; --accent: #3385ff; --text-main: #f0faff; --text-sub: #5c7285; --border: #0a1425; --modal-bg: rgba(0, 0, 0, 0.9); }
-        * { box-sizing: border-box; }
-        body { background-color: var(--bg-color); background-image: radial-gradient(circle at top right, #051020 0%, #010306 100%); color: var(--text-main); font-family: 'Noto Sans KR', sans-serif; margin: 0; padding: 0; overflow-x: hidden; }
-        body.modal-open { overflow: hidden; }
-        body.loading { overflow: hidden; }
+:root {
+    /* 핵심 색상 */
+    --bg-color: #010306;
+    --card-bg: #030812;
+    --card-hover: #0a1a30;
+    --accent: #3385ff;
+    --accent-glow: rgba(51, 133, 255, 0.2);
+    
+    /* 텍스트 */
+    --text-main: #f0faff;
+    --text-sub: #5c7285;
+    
+    /* 경계선 및 UI */
+    --border: #0a1425;
+    --modal-bg: rgba(0, 0, 0, 0.9);
+    
+    /* 공통 수치 */
+    --radius-lg: 16px;
+    --radius-md: 12px;
+    --radius-sm: 8px;
+}
 
-        #loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(1, 3, 6, 0.98); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; transition: opacity 0.5s ease; }
-        .loader-circle { width: 50px; height: 50px; border: 3px solid #0a1425; border-top: 3px solid #3385ff; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 15px; }
-        .loader-text { color: #3385ff; font-size: 14px; letter-spacing: 2px; font-weight: bold; animation: pulse 1.5s infinite; }
-        
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+* { box-sizing: border-box; }
 
-        .wrapper { width: 100%; max-width: 900px; margin: 0 auto; padding: 40px 20px; display: flex; flex-direction: column; gap: 20px; }
-        .header-card { background: var(--card-bg); border-radius: 16px; padding: 25px; border: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-        .header-info h1 { margin: 0; font-size: 22px; color: var(--accent); }
-        .btn-home { text-decoration: none; color: var(--text-main); background: #0a1a30; padding: 8px 14px; border-radius: 8px; font-size: 13px; border: 1px solid var(--border); }
+body { 
+    background-color: var(--bg-color); 
+    background-image: radial-gradient(circle at top right, #051020 0%, #010306 100%); 
+    color: var(--text-main); 
+    font-family: 'Noto Sans KR', sans-serif; 
+    margin: 0; padding: 0; 
+}
 
-        .dashboard-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 15px; }
-        .stat-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; padding: 5px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        .divider { border: 0; height: 1px; background: var(--border); margin: 20px 0; }
-        .sub-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-        .sub-val { font-size: 14px; font-weight: bold; color: #fff; display: inline-block; margin-top: 2px; }
-        .sub-lbl { font-size: 10px; color: var(--text-sub); display: block; }
+/* --- 공통 레이아웃 요소 --- */
+.wrapper { width: 100%; max-width: 900px; margin: 0 auto; padding: 40px 20px; display: flex; flex-direction: column; gap: 20px; }
 
-        .chart-box { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
-        #category-chart { width: 100px; height: 100px; border-radius: 50%; position: relative; margin-bottom: 15px; }
-        #category-chart::after { content: ""; position: absolute; inset: 18px; background: var(--card-bg); border-radius: 50%; }
-        .chart-legend { font-size: 11px; color: var(--text-sub); display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
-        .legend-item { display: flex; align-items: center; gap: 4px; background: rgba(255,255,255,0.03); padding: 4px 8px; border-radius: 6px; }
-        .dot { width: 8px; height: 8px; border-radius: 2px; }
-
-        .date-header { font-size: 16px; font-weight: bold; color: var(--accent); margin: 35px 0 15px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
-        .vod-item { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; display: flex; cursor: pointer; transition: 0.2s; overflow: hidden; margin-bottom: 12px; }
-        .vod-item:hover { border-color: var(--accent); background: rgba(51, 133, 255, 0.05); }
-        .vod-thumb { width: 140px; height: 80px; position: relative; min-width: 140px; }
-        .vod-thumb img { width: 100%; height: 100%; object-fit: cover; }
-        .duration { position: absolute; bottom: 5px; right: 5px; background: rgba(0,0,0,0.8); font-size: 10px; padding: 2px 5px; border-radius: 4px; }
-        .vod-body { padding: 12px 15px; display: flex; flex-direction: column; justify-content: center; flex: 1; min-width: 0; }
-        .vod-title { font-size: 14px; font-weight: bold; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
-        .title-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-
-        .tag-common { display: inline-flex; align-items: center; justify-content: center; height: 22px; padding: 0 10px; border-radius: 6px; font-size: 11px; font-weight: 800; white-space: nowrap; line-height: 1; }
-        .tag-plus { background: #121f33; color: #e6e02e; border: 2px solid #e6e02e; }
-
-        #modal-overlay, #analysis-overlay { position: fixed; inset: 0; background: var(--modal-bg); display: none; justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(8px); padding: 20px; }
-        #modal-content, .analysis-content { background: var(--card-bg); width: 100%; max-width: 450px; border-radius: 20px; border: 1px solid var(--border); overflow-y: auto; max-height: 90vh; }
-
-        .btn-action { flex: 1; padding: 14px; text-align: center; border-radius: 12px; font-weight: bold; text-decoration: none; cursor: pointer; border: none; font-size: 14px; }
-        .btn-go { background: var(--accent); color: white; }
-        .btn-close { background: #1a202c; color: #a0aec0; }
-
-        .analysis-content {
-    max-width: 1000px; /* 분석창은 넓게 */
-    width: 90%;
-    max-height: 85vh; /* 화면의 85%만 차지 */
-    display: flex;
-    flex-direction: column; /* 세로로 쌓기 */
-    overflow: hidden; /* 전체 스크롤 방지 */
+/* 모든 카드 디자인 통일 */
+.header-card, .stat-card, .vod-item, .analysis-content, #tag-filter-container {
     background: var(--card-bg);
-    border-radius: 20px;
     border: 1px solid var(--border);
-}
-/* 2. [핵심] 월 선택 셀렉트 박스 위치 강제 이동 */
-.analysis-controls {
-    display: flex;
-    align-items: center;
-    gap: 10px; /* 박스 사이 간격 일정하게 유지 */
-    flex-shrink: 0;
+    border-radius: var(--radius-lg);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
 }
 
-/* 3. 공통 셀렉트 박스 스타일 (년도/월 공통) */
-#year-select, #month-select {
+/* --- 헤더 및 버튼 --- */
+.header-card { padding: 25px; display: flex; justify-content: space-between; align-items: center; }
+
+.btn-home, .btn-analysis-report, #analysis-year, #month-select, #analysis-type {
     background: #0a1a30;
-    color: #fff;
+    color: var(--text-main);
     border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 6px 12px;
+    border-radius: var(--radius-sm);
+    padding: 8px 14px;
     font-size: 13px;
-    font-weight: bold;
+    font-weight: 600;
     cursor: pointer;
-    height: 34px;
-    outline: none;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+.btn-home:hover, .btn-analysis-report:hover {
+    border-color: var(--accent);
+    background: var(--card-hover);
+    color: var(--accent);
+}
+
+/* --- 필터 및 태그 영역 --- */
+#tag-filter-container { padding: 18px; gap: 8px; margin: 5px 0; }
+
+.filter-btn {
+    all: unset;
+    cursor: pointer;
+    height: 28px;
+    padding: 0 14px;
+    border-radius: var(--radius-sm);
+    font-size: 11px;
+    font-weight: 800;
+    background: #121f33;
+    color: var(--text-sub);
+    border: 1px solid var(--border);
     transition: all 0.2s;
 }
 
-/* 모든 분석용 셀렉트 박스에 화살표 아이콘 공통 적용 */
-#analysis-year, #month-select, #analysis-type {
-    appearance: none; /* 기본 브라우저 화살표 제거 */
-    background-color: #0a1a30;
-    color: #fff;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 0 32px 0 14px; /* 우측 화살표 공간 확보 */
-    font-size: 13px;
-    font-weight: 700;
-    height: 36px; /* 높이 36px로 통일 */
-    line-height: 34px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    
-    /* 사용자 정의 화살표 아이콘 */
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='white' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: calc(100% - 10px) center;
-}
-#analysis-year:hover, #month-select:hover, #analysis-type:hover {
-    border-color: var(--accent);
-    background-color: #112540;
-    box-shadow: 0 0 8px rgba(51, 133, 255, 0.2);
+.filter-btn.active {
+    background: var(--accent) !important;
+    color: #fff !important;
+    border-color: var(--accent) !important;
+    box-shadow: 0 0 10px var(--accent-glow);
 }
 
-#year-select:hover, #month-select:hover {
-    border-color: var(--accent);
-    background: #112540;
+/* --- VOD 리스트 아이템 --- */
+.vod-item { 
+    border-radius: var(--radius-md); 
+    overflow: hidden; 
+    transition: 0.3s; 
+    margin-bottom: 12px;
 }
-/* 분석 모달 상단 타이틀 바 영역 조정 */
-.analysis-header {
+
+.vod-item:hover { 
+    transform: translateX(5px);
+    border-color: var(--accent); 
+    background: var(--card-hover); 
+}
+
+.vod-thumb { width: 140px; height: 85px; min-width: 140px; }
+.vod-body { padding: 15px; }
+
+/* --- 분석 모달 (고급화) --- */
+.analysis-content {
+    max-width: 1000px;
+    width: 90%;
+    border-radius: var(--radius-lg);
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 16px 24px;
+    flex-direction: column;
+}
+
+.analysis-header {
+    padding: 20px 24px;
     border-bottom: 1px solid var(--border);
     background: rgba(255, 255, 255, 0.02);
-    gap: 15px;
-}
-        .analysis-layout { display: grid; grid-template-columns: 5.5fr 4.5fr; gap: 25px; align-items: start; animation: fadeIn 0.3s ease; min-width: 0; padding-bottom: 20px; }
-        #analysis-result {
-    flex: 1; /* 남은 중간 공간을 모두 차지 */
-    overflow-y: auto; /* 내용이 길어지면 여기만 스크롤 생성 */
-    padding: 24px;
-    background: rgba(0, 0, 0, 0.2); /* 배경을 살짝 어둡게 분리 */
-}
-        .report-vod-list { display: flex; flex-direction: column; gap: 12px; max-height: 600px; overflow-y: auto; padding-right: 8px; }
-        .report-vod-list::-webkit-scrollbar { width: 4px; }
-        .report-vod-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
-
-        .report-item { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 10px; cursor: pointer; display: flex; gap: 12px; align-items: center; transition: 0.2s; min-width: 0; }
-        .report-item:hover { background: rgba(255, 255, 255, 0.08); border-color: var(--accent); }
-        .report-item-info { flex: 1; min-width: 0; }
-        .side-list-title { font-size: 13px; color: #eee; font-weight: 500; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-       /* 태그 필터 박스 - 다른 카드들과 디자인 일치 */
-#tag-filter-container {
-    margin: 5px 0; 
-    padding: 18px; 
-    background: var(--card-bg) !important; /* 다른 카드와 동일한 배경색 */
-    border: 1px solid var(--border) !important; /* 다른 카드와 동일한 테두리 */
-    border-radius: 16px !important; /* 헤더/스탯 카드와 동일한 라운딩 */
-    display: flex; 
-    flex-wrap: wrap; 
-    gap: 8px 6px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); /* 은은한 입체감 */
 }
 
-/* 필터 버튼 공통 디자인 */
-.filter-btn {
-    cursor: pointer;
-    transition: all 0.2s ease;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    height: 26px;
-    padding: 0 12px;
-    border-radius: 6px;
-    font-size: 11px;
-    font-weight: 800;
-    line-height: 1;
-    background: #121f33 !important;
-    color: #8da1b5 !important; /* 평소엔 차분한 회색 */
-    border: 2px solid #1a2c42 !important;
-    margin: 4px 2px !important;
-}
-
-.filter-btn:hover {
-    transform: translateY(-2px);
-    color: #fff !important;
-}
-
-/* 활성화 시 고유 색상 적용 logic */
-.filter-btn.active {
-    transform: scale(1.05);
-    background: #121f33 !important;
-}
-/* 하단 버튼 영역 고정 */
 .analysis-footer {
-    padding: 16px 24px;
+    padding: 16px;
     border-top: 1px solid var(--border);
-    background: var(--card-bg);
     display: flex;
     justify-content: center;
-}
-/* 더보기 버튼 전용 컨테이너 */
-.expand-btn-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 10px;
-    margin: 30px 0; /* 상하 여백을 넉넉히 주어 페이지 하단 여유 확보 */
-    width: 100%;
 }
 
-/* [공통] 더보기/접기 버튼 기본 스타일 */
+/* --- 더보기 버튼 통일 --- */
+.expand-btn-container { margin: 30px 0; width: 100%; display: flex; justify-content: center; gap: 12px; }
+
 .btn-load-more {
-    all: unset;
-    cursor: pointer;
-    display: inline-flex; /* flex로 변경하여 내부 정렬 제어 */
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    
-    /* [핵심 수정] 패딩 대신 높이를 직접 지정 */
-    height: 30px;           /* 버튼의 세로 높이를 30px로 딱 고정 */
-    min-width: 80px;       /* 가로 너비도 최소치 고정 */
-    padding: 0 24px;        /* 좌우 여백만 줌 (상하는 height가 결정) */
-    
-    border-radius: 10px;
+    height: 38px;
+    padding: 0 25px;
+    border-radius: var(--radius-md);
+    font-weight: 700;
     font-size: 14px;
-    font-weight: 800;
-    line-height: 1;         /* 텍스트 줄높이 초기화 */
-    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    border: 1px solid rgba(51, 133, 255, 0.2);
-    box-sizing: border-box;
-}
-/* [더보기] 파란색 강조 & 네온 효과 */
-.btn-expand-main {
-    background: rgba(51, 133, 255, 0.1);
-    color: var(--accent);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-}
-
-.btn-expand-main:hover {
-    background: var(--accent);
-    color: #fff;
-    transform: translateY(-5px); /* 위로 슥 올라가는 효과 */
-    box-shadow: 0 8px 25px rgba(51, 133, 255, 0.4);
-}
-
-/* [접기] 차분한 회색 & 유리 스타일 */
-.btn-collapse-sub {
-    background: rgba(255, 255, 255, 0.05); /* 약간 더 밝게 조정 */
-    color: var(--text-sub);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.btn-collapse-sub:hover {
-    background: rgba(255, 255, 255, 0.1);
-    color: #fff;
-    transform: translateY(-3px);
-}
-
-/* 버튼 내 숫자 카운트 디자인 */
-.load-count {
-    font-size: 11px;
-    background: rgba(0, 0, 0, 0.4);
-    padding: 2px 8px;
-    border-radius: 20px;
-    color: var(--accent);
-    border: 1px solid rgba(51, 133, 255, 0.2);
-    display: inline-block;
-    height: 18px;           /* 숫자 박스 높이도 고정 */
-    line-height: 14px;      /* 숫자 텍스트 수직 중앙 정렬 */
-}
-/* [접기 버튼] 호버 높이 동일하게 수정 */
-.btn-collapse-sub:hover {
-    background: rgba(255, 255, 255, 0.1);
-    color: #fff;
-    transform: translateY(-5px); /* 더보기와 똑같이 -5px 상승 */
-}
-/* 색상 매핑 (JS의 catColors와 일치) */
-.filter-btn.active[data-tag="전체보기"] { color: #fff !important; border-color: var(--accent) !important; }
-.filter-btn.active[data-tag="게임"] { color: #70a1ff !important; border-color: #70a1ff !important; }
-.filter-btn.active[data-tag="노래"] { color: #ff7eb9 !important; border-color: #ff7eb9 !important; }
-.filter-btn.active[data-tag="소통"] { color: #2ed573 !important; border-color: #2ed573 !important; }
-.filter-btn.active[data-tag="ASMR"] { color: #cd84f1 !important; border-color: #cd84f1 !important; }
-.filter-btn.active[data-tag="구독+"] { color: #e6e02e !important; border-color: #e6e02e !important; }
-.filter-btn.active[data-tag="19"], .filter-btn.active[data-tag="대회"] { color: #ff4757 !important; border-color: #ff4757 !important; }
-.filter-btn.active[data-tag="풀트"] { color: #ffbe76 !important; border-color: #ffbe76 !important; }
-.filter-btn.active[data-tag="시네티"] { color: #00d8ff !important; border-color: #00d8ff !important; }
-.filter-btn.active[data-tag="합방"] { color: #fffa65 !important; border-color: #fffa65 !important; }
-.filter-btn.active[data-tag="기타"] { color: #d2dae2 !important; border-color: #d2dae2 !important; }
-.filter-btn.active { color: #fff !important; border-color: #5c7285 !important; box-shadow: 0 0 8px rgba(255, 255, 255, 0.1); }
-
-        .analysis-tag { cursor: pointer; transition: all 0.2s; border: 1px solid transparent; }
-        .analysis-tag:hover { background: rgba(255,255,255,0.1) !important; transform: scale(1.05); }
-        .analysis-tag.active { border: 2px solid white !important; font-weight: 800; box-shadow: 0 0 10px rgba(255,255,255,0.2); background: rgba(255,255,255,0.1) !important; }
-
-        .diff-val { font-size: 10px; font-weight: bold; margin-top: 4px; display: block; }
-        .diff-up { color: #ff4d4d; }
-        .diff-down { color: #3385ff; }
-        .diff-none { color: var(--text-sub); }
-
-/* 1. 제목 옆 배지 그룹 (구독+, 19 등) */
-.badge-group {
+    transition: 0.3s;
     display: flex;
     align-items: center;
-    gap: 6px;           /* 배지 사이 간격 6px */
-    flex-shrink: 0;     /* 제목이 길어도 배지 크기 고정 */
-}
-
-/* 2. 하단 카테고리 태그 그룹 (게임, 노래 등) */
-.vod-tags {
-    display: flex;
-    flex-wrap: wrap;    /* 태그가 많으면 다음 줄로 */
-    gap: 4px 6px;       /* 상하 4px, 좌우 6px 간격 */
-    margin-top: 4px;    /* 제목과의 간격 */
-}
-
-/* 3. 개별 태그의 마진 강제 제거 (gap으로만 제어하기 위함) */
-.vod-tags .tag-common, 
-.badge-group .tag-common {
-    margin: 0 !important;
-}
-
-/* 4. 제목 텍스트와 배지 그룹 배치 최적화 */
-.vod-title {
-    display: flex;
-    align-items: center;
-    gap: 10px;          /* 텍스트와 배지 그룹 사이 간격 */
-    width: 100%;
-}
-
-.title-text {
-    flex: 1;            /* 제목이 가용한 공간을 다 차지하게 함 */
-    min-width: 0;       /* ellipsis 작동을 위한 설정 */
-}
-/* 기간별 상세 리포트 분석 버튼 */
-.btn-analysis-report {
-    margin: 5px auto;
-    width: 70%;
-    padding: 12px;
-    
-    /* [통일 포인트] .btn-home과 동일한 어두운 시스템 배경 */
-    background: #0a1a30; 
-    /* [차별 포인트] 테두리에 강조색을 살짝 섞어 중요도 표시 */
-    border: 1px solid rgba(51, 133, 255, 0.4); 
-    
-    color: var(--accent); /* 글자색은 강조색 유지 */
-    border-radius: 8px; /* .btn-home과 동일한 라운딩 */
-    
-    cursor: pointer;
-    font-size: 13px;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    justify-content: center;
     gap: 8px;
-    transition: all 0.2s ease;
+    border: 1px solid var(--border);
 }
 
-.btn-analysis-report:hover {
-    /* 마우스 올렸을 때의 피드백 */
-    background: rgba(51, 133, 255, 0.1); /* 살짝 밝아지는 효과 */
-    border-color: var(--accent); /* 테두리가 선명해짐 */
-    color: #ffffff; /* 글자색 반전으로 시인성 확보 */
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); /* 은은한 그림자 */
-    transform: translateY(-1px);
-}
+.btn-expand-main { background: var(--accent); color: #fff; }
+.btn-collapse-sub { background: #121f33; color: var(--text-sub); }
 
-.btn-analysis-report:active {
-    transform: translateY(0);
-    background: #061020;
-}
-        @media (max-width: 850px) {
-            .analysis-layout { grid-template-columns: 1fr; }
-            .dashboard-grid { grid-template-columns: 1fr; }
-            .vod-thumb { width: 120px; min-width: 120px; }
-                .analysis-header {
-        flex-direction: column;
-        align-items: flex-start !important;
-        gap: 15px;
-    }
-    .analysis-controls {
-        width: 100%;
-        display: grid;
-        grid-template-columns: 1fr 1fr; /* 셀렉트 박스 2개씩 배치 */
-        gap: 8px;
-    }
-    #analysis-type {
-        grid-column: span 2; /* 보기 방식은 가로로 길게 */
-    }
-    
-    /* 모바일에서는 박스 크기를 약간 조정하여 꽉 차게 보일 수 있음 */
-    #analysis-year, #month-select, #analysis-type {
-        flex: 1; /* 가능한 공간 나눠 갖기 */
-        min-width: 100px;
-        font-size: 12px;
-    }
-        }
-@media screen and (max-width: 850px) {
-    /* 1. 상자 자체는 밝고 선명하게 */
-    .report-item, 
-    #m-game, #m-song, #m-talk, #m-content,
-    .analysis-content div[style*="background"] {
-        background-color: rgba(255, 255, 255, 0.12) !important; /* 적당히 밝은 배경 */
-        border: 1px solid rgba(255, 255, 255, 0.2) !important;
-        border-radius: 12px !important;
-        margin-bottom: 10px !important;
-        padding: 12px !important;
-    }
-
-    /* 2. 제목은 흰색으로 깔끔하게 유지 */
-    .side-list-title, #m-title {
-        color: #ffffff !important;
-    }
-
-    /* 3. ★ 핵심: 카테고리별 고유 색상 복구 ★ */
-    /* 게임 기록 - 파란색 계열 */
-    #m-game, #row-game span[style*="color:#70a1ff"] {
-        color: #70a1ff !important;
-    }
-
-    /* 노래 기록 - 핑크색 계열 */
-    #m-song, #row-song span[style*="color:#ff7eb9"] {
-        color: #ff7eb9 !important;
-    }
-
-    /* 소통 기록 - 초록색 계열 */
-    #m-talk, #row-talk span[style*="color:#2ed573"] {
-        color: #2ed573 !important;
-    }
-
-    /* 컨텐츠/기타 - 강조색 */
-    #m-content, #row-content div[style*="color:var(--accent)"] {
-        color: var(--accent) !important;
-    }
-
-    /* 4. '회수(3회, 1회)' 등 숫자 강조 */
-    .analysis-content b, .sub-val {
-        filter: brightness(1.2); /* 기존 색상을 유지하되 더 밝게 */
-        font-weight: bold !important;
-    }
+/* --- 모바일 최적화 --- */
+@media (max-width: 850px) {
+    .dashboard-grid { grid-template-columns: 1fr; }
+    .vod-thumb { width: 100px; min-width: 100px; height: 65px; }
+    .analysis-header { padding: 15px; }
+    .analysis-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%; }
+    #analysis-type { grid-column: span 2; }
 }
