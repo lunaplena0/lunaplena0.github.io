@@ -4,13 +4,18 @@ let displayCount = 30; // 초기 노출 개수
 let currentMainTag = null;
     let currentAnalysisTag = null;
     const catColors = { 
-    '게임': '#70a1ff', '노래': '#ff7eb9', '소통': '#2ed573', 
-    'ASMR': '#cd84f1', '풀트': '#ffbe76', '시네티': '#00d8ff', 
-    '대회': '#ff4757', '합방': '#fffa65', '기타': '#d2dae2',
-    '구독+': '#e6e02e', // 추가
-    '19': '#ff4757'     // 추가
+    '게임': '#70a1ff', 
+    '노래': '#ff7eb9', 
+    '소통': '#2ed573', 
+    'ASMR': '#cd84f1', 
+    '풀트': '#ffbe76', 
+    '시네티': '#00d8ff', 
+    '대회': '#ffa502',  
+    '합방': '#ff7f50',  
+    '기타': '#d2dae2',
+    '구독+': '#ffd700',
+    '19': '#ff4757'
 };
-
     function getColor(name) { for (let key in catColors) { if (name.includes(key)) return catColors[key]; } return catColors['기타']; }
     function timeToSeconds(t) { if (!t || t === '-' || t === '0') return 0; const p = t.split(':').map(Number); if(p.length === 2) return (p[0] * 60) + p[1]; return (p[0] * 3600) + (p[1] * 60) + (p[2] || 0); }
     function secondsToTime(s) { const absS = Math.abs(s); const h = Math.floor(absS / 3600); const m = Math.floor((absS % 3600) / 60); const sec = absS % 60; return `${s < 0 ? '-' : ''}${h}:${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`; }
