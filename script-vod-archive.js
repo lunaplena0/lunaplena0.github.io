@@ -84,12 +84,25 @@ let currentMainTag = null;
                         <span class="title-text">${v.title}</span>
                         <div class="badge-group">${plusTag}${adultTag}</div>
                     </div>
-                    <div class="vod-tags">
-                        ${v.category.split(/[,/ ]+/).filter(c => c.trim()).map(c => {
-                            const clr = getColor(c);
-                            return `<span class="tag-common" style="background:${clr}20; color:${clr}; border:1px solid ${clr}40;">${c}</span>`;
-                        }).join('')}
-                    </div>
+                    // renderList 함수 내부의 vod-tags 부분 수정
+<div class="vod-tags">
+    ${(() => {
+        const tags = v.category.split(/[,/ ]+/).filter(c => c.trim());
+        const maxVisible = 3; // 노출할 최대 태그 개수
+        const visibleTags = tags.slice(0, maxVisible);
+        const remainingCount = tags.length - maxVisible;
+
+        let tagHtml = visibleTags.map(c => {
+            const clr = getColor(c);
+            return `<span class="tag-common" style="background:${clr}20; color:${clr}; border:1px solid ${clr}40;">${c}</span>`;
+        }).join('');
+
+        if (remainingCount > 0) {
+            tagHtml += `<span class="tag-common tag-more">+${remainingCount}</span>`;
+        }
+        return tagHtml;
+    })()}
+</div>
                 </div>
             `;
             groupDiv.querySelector('.vod-list').appendChild(item);
