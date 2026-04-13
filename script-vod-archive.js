@@ -15,7 +15,7 @@ let currentMainTag = null;
     '소통': '#2ed573',   // 
     'ASMR': '#fda7df',   // 
     '풀트': '#ff9f43',   // 
-    '대회': '#5bfcc4',   // 
+    '대회': '#dbffe9',   // 
     '합방': '#c325f7',   // 
     
     // [기본]
