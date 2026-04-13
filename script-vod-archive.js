@@ -85,7 +85,6 @@ let currentMainTag = null;
                         <div class="badge-group">${plusTag}${adultTag}</div>
                     </div>
                     
-// renderList 함수 내부의 vod-tags 생성 부분 수정
 <div class="vod-tags">
     ${(() => {
         const tags = v.category.split(/[,/ ]+/).filter(c => c.trim());
