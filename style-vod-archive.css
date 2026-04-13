@@ -125,13 +125,31 @@ body.modal-open, body.loading { overflow: hidden; }
     border-radius: 6px; /* 태그는 고유 라운딩 유지 */
     font-size: 11px; font-weight: 800; white-space: nowrap; line-height: 1; 
 }
-.tag-more {
-    background: rgba(255, 255, 255, 0.1);
-    color: var(--text-sub);
-    border: 1px dashed var(--border);
-    font-size: 10px;
-    padding: 2px 5px;
-    flex-shrink: 0; /* 숫자는 사라지지 않게 고정 */
+/* 기본: PC에서는 +N 배지를 숨김 */
+.tag-more.m-show {
+    display: none !important;
+}
+
+/* 모바일 (사용자 미디어 쿼리 기준 850px) */
+@media (max-width: 850px) {
+    /* 4번째 태그부터 숨기기 (인덱스 3 이상) */
+    .vod-tags .m-hide {
+        display: none !important;
+    }
+
+    /* 숨겨진 태그가 있을 때만 +N 배지 표시 */
+    .tag-more.m-show {
+        display: inline-flex !important;
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--text-sub);
+        border: 1px dashed var(--border);
+    }
+
+    /* 모바일에서 태그가 줄바꿈되어 레이아웃이 깨지는 것 방지 */
+    .vod-tags {
+        flex-wrap: nowrap; 
+        overflow: hidden;
+    }
 }
 .tag-plus { background: #121f33; color: #e6e02e; border: 2px solid #e6e02e; }
 /* 태그/배지 마진 강제 제거 규칙 유지 */
