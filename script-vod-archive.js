@@ -88,7 +88,7 @@ let currentMainTag = null;
 <div class="vod-tags">
     ${(() => {
         const tags = v.category.split(/[,/ ]+/).filter(c => c.trim());
-        const limit = 4; // 모바일에서 보여줄 개수
+        const limit = 3; // 모바일에서 보여줄 개수
         
         let tagHtml = tags.map((c, index) => {
             const clr = getColor(c);
@@ -236,7 +236,6 @@ function filterDataByTag(tag) {
             if (v.isAdult) catMap['19'] = (catMap['19'] || 0) + 1;
         });
      
-    // 만약 유효한 데이터가 없다면 0초로 표시
     // 만약 유효한 데이터가 없다면 0초로 표시
         const finalMinSec = minSec === Infinity ? 0 : minSec;
 
