@@ -296,28 +296,25 @@ document.getElementById('m-plus').innerHTML = badgeHtml;
     const row = document.getElementById(rowId);
     const box = document.getElementById(id);
     
-    // 데이터가 유효한지 검사 (null, undefined, 공백, '-' 모두 체크)
-    const isValid = data && data.trim() !== "" && data.trim() !== "-";
-    
-    if (isValid) {
+    // 1. 데이터 자체가 없거나, 공백을 제거했을 때 정확히 "-"인 경우만 제외
+    if (data && data.trim() !== "" && data.trim() !== "-") {
         const items = data.split(',')
             .map(item => item.trim())
-            .filter(item => item !== "" && item !== "-"); // 리스트 내부의 '-'도 제거
+            .filter(item => item !== "" && item !== "-"); // 개별 요소가 "-"인 경우도 필터링
 
         if (items.length > 0) {
             row.style.display = 'block';
             box.innerHTML = items
                 .map(item => {
+                    // 여기서는 하이픈을 건드리지 않고, 괄호만 " - "로 변환합니다.
+                    // 만약 이미 하이픈이 있다면 자연스럽게 유지됩니다.
                     let formatted = item.replace('(', ' - ').replace(')', '');
                     return `<div style="font-size:13px; margin-bottom:6px; color:var(--text-main); opacity:0.9; line-height:1.5; word-break: break-all;">• ${formatted}</div>`;
                 })
                 .join('');
-            
-            if (box.lastElementChild) box.lastElementChild.style.marginBottom = '0';
             return;
         }
     }
-    // 데이터가 없거나 '-'인 경우 숨김 처리
     row.style.display = 'none';
 };
 
@@ -388,13 +385,13 @@ setSec('m-content', 'row-content', v.cData);
         if (v.isAdult) stats[key].cats['19'] = (stats[key].cats['19'] || 0) + 1;
 
         const collectSub = (data, type) => {
-    // 기본적으로 데이터가 null이거나 '-'이면 바로 종료
     if (!data || data.trim() === "" || data.trim() === "-") return;
 
     data.split(/[\n,/]+/).forEach(item => {
+        // 시간 정보를 포함한 괄호 제거 로직
         let cleanItem = item.trim().replace(/\s*\([\d\s:~]+\)/g, "").trim();
         
-        // 정제된 결과가 빈 문자열이거나 '-'가 아닐 때만 카운트
+        // 정제된 이름이 비어있지 않고, 정확히 "-"가 아닐 때만 통계에 합산
         if (cleanItem && cleanItem !== "-") { 
             stats[key].subItems[type][cleanItem] = (stats[key].subItems[type][cleanItem] || 0) + 1;
         }
