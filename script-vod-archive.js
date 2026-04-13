@@ -85,20 +85,22 @@ let currentMainTag = null;
                         <div class="badge-group">${plusTag}${adultTag}</div>
                     </div>
                     
+// renderList 함수 내부의 vod-tags 부분
 <div class="vod-tags">
     ${(() => {
         const tags = v.category.split(/[,/ ]+/).filter(c => c.trim());
-        const maxVisible = 4; // 노출할 최대 태그 개수
-        const visibleTags = tags.slice(0, maxVisible);
-        const remainingCount = tags.length - maxVisible;
-
-        let tagHtml = visibleTags.map(c => {
+        
+        // 1. 모든 태그를 일단 생성 (클래스 부여)
+        let tagHtml = tags.map((c, index) => {
             const clr = getColor(c);
-            return `<span class="tag-common" style="background:${clr}20; color:${clr}; border:1px solid ${clr}40;">${c}</span>`;
+            // index를 활용해 4번째 태그부터는 모바일에서 숨길 수 있도록 클래스 부여
+            const mobileHideClass = index >= 3 ? 'm-hide' : ''; 
+            return `<span class="tag-common ${mobileHideClass}" style="background:${clr}20; color:${clr}; border:1px solid ${clr}40;">${c}</span>`;
         }).join('');
 
-        if (remainingCount > 0) {
-            tagHtml += `<span class="tag-common tag-more">+${remainingCount}</span>`;
+        // 2. '+N' 배지 생성 (기본적으로 PC에선 숨김)
+        if (tags.length > 3) {
+            tagHtml += `<span class="tag-common tag-more m-show">+${tags.length - 3}</span>`;
         }
         return tagHtml;
     })()}
