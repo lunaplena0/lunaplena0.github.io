@@ -84,11 +84,11 @@ let currentMainTag = null;
                         <span class="title-text">${v.title}</span>
                         <div class="badge-group">${plusTag}${adultTag}</div>
                     </div>
-                    // renderList 함수 내부의 vod-tags 부분 수정
+                    
 <div class="vod-tags">
     ${(() => {
         const tags = v.category.split(/[,/ ]+/).filter(c => c.trim());
-        const maxVisible = 3; // 노출할 최대 태그 개수
+        const maxVisible = 5; // 노출할 최대 태그 개수
         const visibleTags = tags.slice(0, maxVisible);
         const remainingCount = tags.length - maxVisible;
 
