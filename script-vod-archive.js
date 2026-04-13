@@ -88,7 +88,7 @@ let currentMainTag = null;
 <div class="vod-tags">
     ${(() => {
         const tags = v.category.split(/[,/ ]+/).filter(c => c.trim());
-        const maxVisible = 5; // 노출할 최대 태그 개수
+        const maxVisible = 4; // 노출할 최대 태그 개수
         const visibleTags = tags.slice(0, maxVisible);
         const remainingCount = tags.length - maxVisible;
 
