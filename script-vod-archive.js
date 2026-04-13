@@ -296,19 +296,19 @@ document.getElementById('m-plus').innerHTML = badgeHtml;
     const row = document.getElementById(rowId);
     const box = document.getElementById(id);
     
-    if (data && data.trim() !== "" && data !== '-') {
+    // 데이터가 유효한지 검사 (null, undefined, 공백, '-' 모두 체크)
+    const isValid = data && data.trim() !== "" && data.trim() !== "-";
+    
+    if (isValid) {
         const items = data.split(',')
             .map(item => item.trim())
-            .filter(item => item !== "");
+            .filter(item => item !== "" && item !== "-"); // 리스트 내부의 '-'도 제거
 
         if (items.length > 0) {
             row.style.display = 'block';
             box.innerHTML = items
                 .map(item => {
-                    // 1. "("를 " - "로 바꿉니다.
-                    // 2. ")"를 제거합니다.
                     let formatted = item.replace('(', ' - ').replace(')', '');
-                    
                     return `<div style="font-size:13px; margin-bottom:6px; color:var(--text-main); opacity:0.9; line-height:1.5; word-break: break-all;">• ${formatted}</div>`;
                 })
                 .join('');
@@ -317,6 +317,7 @@ document.getElementById('m-plus').innerHTML = badgeHtml;
             return;
         }
     }
+    // 데이터가 없거나 '-'인 경우 숨김 처리
     row.style.display = 'none';
 };
 
@@ -387,13 +388,18 @@ setSec('m-content', 'row-content', v.cData);
         if (v.isAdult) stats[key].cats['19'] = (stats[key].cats['19'] || 0) + 1;
 
         const collectSub = (data, type) => {
-            if (data && data !== '-') {
-                data.split(/[\n,/]+/).forEach(item => {
-                    let cleanItem = item.trim().replace(/\s*\([\d\s:~]+\)/g, "").trim();
-                    if (cleanItem) stats[key].subItems[type][cleanItem] = (stats[key].subItems[type][cleanItem] || 0) + 1;
-                });
-            }
-        };
+    // 기본적으로 데이터가 null이거나 '-'이면 바로 종료
+    if (!data || data.trim() === "" || data.trim() === "-") return;
+
+    data.split(/[\n,/]+/).forEach(item => {
+        let cleanItem = item.trim().replace(/\s*\([\d\s:~]+\)/g, "").trim();
+        
+        // 정제된 결과가 빈 문자열이거나 '-'가 아닐 때만 카운트
+        if (cleanItem && cleanItem !== "-") { 
+            stats[key].subItems[type][cleanItem] = (stats[key].subItems[type][cleanItem] || 0) + 1;
+        }
+    });
+};
         collectSub(v.gData, '게임'); collectSub(v.sData, '노래'); collectSub(v.cData, '콘텐츠');
     });
 
