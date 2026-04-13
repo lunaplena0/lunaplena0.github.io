@@ -259,11 +259,17 @@ function filterDataByTag(tag) {
         document.getElementById('m-thumb').src = v.thumb;
         document.getElementById('m-title').textContent = v.title;
         document.getElementById('m-date').innerHTML = `
-            <div style="font-size: 15px; font-weight: bold; color: var(--text-main); margin-bottom: 4px;">${v.date}</div>
-            <div style="font-size: 13px; color: var(--text-sub);">
-                총 방송 시간: <span style="color: var(--accent); font-weight: bold;">${v.totalTime}</span>
-            </div>
-        `;
+        <div style="font-size: 15px; font-weight: bold; color: var(--text-main); margin-bottom: 4px;">${v.date}</div>
+        <div style="font-size: 13px; color: var(--text-sub); margin-bottom: 10px;">
+            총 방송 시간: <span style="color: var(--accent); font-weight: bold;">${v.totalTime}</span>
+        </div>
+        <div class="vod-tags" style="display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 4px;">
+            ${v.category.split(/[,/ ]+/).filter(c => c.trim()).map(c => {
+                const clr = getColor(c);
+                return `<span class="tag-common" style="background:${clr}20; color:${clr}; border:1px solid ${clr}40; font-size: 11px; padding: 2px 8px;">#${c}</span>`;
+            }).join('')}
+        </div>
+    `;
         document.getElementById('m-link').href = v.link;
      const linkBtn = document.getElementById('m-link');
      const hasLink = v.link && v.link.trim() !== "" && v.link !== "-";
