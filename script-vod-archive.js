@@ -265,6 +265,21 @@ function filterDataByTag(tag) {
             </div>
         `;
         document.getElementById('m-link').href = v.link;
+     const linkBtn = document.getElementById('m-link');
+     const hasLink = v.link && v.link.trim() !== "" && v.link !== "-";
+     if (hasLink) {
+        linkBtn.href = v.link;
+        linkBtn.textContent = "시청하기";
+        linkBtn.style.pointerEvents = "auto"; // 클릭 가능
+        linkBtn.style.opacity = "1";
+        linkBtn.style.background = "var(--accent)"; // 원래 강조 색상
+    } else {
+        linkBtn.href = "javascript:void(0)"; // 이동 방지
+        linkBtn.textContent = "주소 없음";
+        linkBtn.style.pointerEvents = "none"; // 클릭 불가능
+        linkBtn.style.opacity = "0.5"; // 비활성화 느낌 시각화
+        linkBtn.style.background = "#666"; // 무채색 변경
+    }
 
         // 배지 설정
         let badgeHtml = '';
