@@ -259,11 +259,26 @@ body.modal-open, body.loading { overflow: hidden; }
 #analysis-year:hover, #month-select:hover, #analysis-type:hover { border-color: var(--accent); background-color: #112540; box-shadow: 0 0 8px rgba(51, 133, 255, 0.2); }
 
 /* 분석 레이아웃 및 결과 (유지) */
-.analysis-layout { display: grid; grid-template-columns: 5.5fr 4.5fr; gap: 25px; align-items: start; animation: fadeIn 0.3s ease; min-width: 0; padding-bottom: 20px; }
+.analysis-layout {
+    display: grid;
+    grid-template-columns: 5.5fr 4.5fr;
+    gap: 25px;
+    align-items: stretch; /* 좌우 높이를 동일하게 맞춤 */
+    max-height: 100%;     /* 부모 높이를 넘지 않도록 설정 */
+}
 #analysis-result { flex: 1; overflow-y: auto; padding: 24px; background: rgba(0, 0, 0, 0.2); }
 
 /* 리포트 리스트 (유지) */
-.report-vod-list { display: flex; flex-direction: column; gap: 12px; max-height: 600px; overflow-y: auto; padding-right: 8px; }
+/* 이 부분이 좌측 리포트 높이를 따라가며, 넘치면 스크롤이 생기게 합니다 */
+.report-vod-list {
+    display: flex;
+    flex-direction: column;
+    /* 핵심: 부모(grid)의 높이를 100% 상속받고 넘치는 부분만 스크롤 */
+    height: 0; 
+    min-height: 100%; 
+    overflow-y: auto !important; 
+    padding-right: 8px;
+}
 .report-vod-list::-webkit-scrollbar { width: 4px; }
 .report-vod-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
 
@@ -335,7 +350,10 @@ body.modal-open, body.loading { overflow: hidden; }
 /* --- 미디어 쿼리 (모바일 위치 유지) --- */
 @media (max-width: 850px) {
     .dashboard-grid { grid-template-columns: 1fr; } /* 스택 배치로 변경 */
-    .analysis-layout { grid-template-columns: 1fr; }
+    .analysis-layout {
+        grid-template-columns: 1fr;
+        height: auto;
+    }
     .vod-thumb { width: 120px; min-width: 120px; }
     
     .analysis-header { flex-direction: column; align-items: flex-start !important; gap: 15px; }
