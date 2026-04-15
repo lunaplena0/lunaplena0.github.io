@@ -3,24 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Streamer Archive | Home</title>
+    <title>Streamer Archive | Ocean Blue</title>
     <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg: #0d1117;
-            --card: #161b22;
-            --primary: #8b5cf6; /* 트위치/치지직 스타일 보라 */
-            --secondary: #3b82f6;
-            --text: #e6edf3;
-            --text-dim: #8b949e;
-            --border: rgba(255, 255, 255, 0.1);
-            --hover-bg: #21262d;
+            --bg: #050a14; /* 깊은 바다색 */
+            --card: #0f172a; /* 남색 카드 */
+            --primary: #38bdf8; /* 밝은 하늘색 포인트 */
+            --secondary: #0ea5e9; /* 파란색 포인트 */
+            --text: #f0f9ff;
+            --text-dim: #94a3b8;
+            --border: rgba(56, 189, 248, 0.15);
+            --hover-bg: #1e293b;
+            --accent: #22d3ee;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Pretendard', sans-serif; }
-        body { background-color: var(--bg); color: var(--text); padding: 20px; line-height: 1.5; }
+        body { 
+            background-color: var(--bg); 
+            background-image: radial-gradient(circle at top right, #0c4a6e, transparent);
+            color: var(--text); 
+            padding: 20px; 
+            line-height: 1.5; 
+        }
 
-        /* 메인 레이아웃 */
         .dashboard {
             max-width: 1300px;
             margin: 0 auto;
@@ -29,58 +35,93 @@
             gap: 20px;
         }
 
-        /* 공통 카드 */
-        .card { background: var(--card); border-radius: 12px; padding: 20px; border: 1px solid var(--border); }
-        .section-title { font-size: 1rem; font-weight: 700; margin-bottom: 15px; color: var(--primary); display: flex; align-items: center; gap: 8px; }
+        /* 카드 공통 스타일 */
+        .card { 
+            background: var(--card); 
+            border-radius: 16px; 
+            padding: 24px; 
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .section-title { 
+            font-size: 0.95rem; 
+            font-weight: 800; 
+            margin-bottom: 20px; 
+            color: var(--primary); 
+            display: flex; 
+            align-items: center; 
+            gap: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
 
-        /* [좌측] 프로필 & 네비게이션 */
+        /* 좌측 사이드바 */
         .sidebar { display: flex; flex-direction: column; gap: 20px; }
-        .profile-area { text-align: center; }
-        .profile-img { width: 100px; height: 100px; border-radius: 50%; border: 3px solid var(--primary); margin: 0 auto 15px; overflow: hidden; }
+        .profile-area { text-align: center; background: linear-gradient(135deg, #0f172a 0%, #082f49 100%); }
+        .profile-img { 
+            width: 110px; height: 110px; border-radius: 50%; 
+            border: 4px solid var(--primary); margin: 0 auto 15px; overflow: hidden;
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.3);
+        }
         .profile-img img { width: 100%; height: 100%; object-fit: cover; }
-        .bio-box { background: rgba(0,0,0,0.2); border-radius: 8px; padding: 12px; font-size: 0.85rem; color: var(--text-dim); text-align: left; }
+        .bio-box { 
+            background: rgba(0, 0, 0, 0.2); border-radius: 12px; padding: 15px; 
+            font-size: 0.85rem; color: var(--text-dim); text-align: left; 
+            border: 1px solid rgba(255,255,255,0.05);
+        }
         
-        .nav-menu { display: flex; flex-direction: column; gap: 8px; }
+        .nav-menu { display: flex; flex-direction: column; gap: 10px; }
         .nav-item { 
-            text-decoration: none; color: var(--text); padding: 12px; border-radius: 8px; 
-            background: var(--hover-bg); font-size: 0.9rem; font-weight: 600; text-align: center;
-            transition: 0.2s; border: 1px solid transparent;
+            text-decoration: none; color: var(--text); padding: 14px; border-radius: 10px; 
+            background: rgba(255,255,255,0.03); font-size: 0.9rem; font-weight: 600; text-align: center;
+            transition: 0.3s; border: 1px solid transparent;
         }
-        .nav-item:hover { background: var(--primary); transform: translateY(-2px); border-color: rgba(255,255,255,0.2); }
+        .nav-item:hover { 
+            background: var(--secondary); 
+            transform: translateY(-3px); 
+            box-shadow: 0 5px 15px rgba(14, 165, 233, 0.4);
+        }
 
-        /* [우측] 메인 콘텐츠 그리드 */
-        .main-content { display: grid; grid-template-columns: 1fr; gap: 20px; }
+        /* 메인 콘텐츠 */
+        .main-content { display: flex; flex-direction: column; gap: 20px; }
         
-        /* 주간 시간표 */
-        .schedule-row { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; }
-        .day-item { background: rgba(255,255,255,0.03); border-radius: 8px; padding: 10px; text-align: center; }
-        .day-item.today { border: 1px solid var(--primary); background: rgba(139, 92, 246, 0.1); }
-        .day-label { font-size: 0.7rem; color: var(--text-dim); display: block; }
-        .day-time { font-size: 0.9rem; font-weight: 700; margin-top: 4px; }
-        .day-time.off { color: #f87171; }
+        /* 시간표 */
+        .schedule-row { display: grid; grid-template-columns: repeat(7, 1fr); gap: 12px; }
+        .day-item { background: rgba(255, 255, 255, 0.02); border-radius: 12px; padding: 15px 5px; text-align: center; border: 1px solid rgba(255,255,255,0.05); }
+        .day-item.today { border: 2px solid var(--primary); background: rgba(56, 189, 248, 0.1); }
+        .day-label { font-size: 0.75rem; color: var(--primary); font-weight: 700; }
+        .day-time { font-size: 1rem; font-weight: 700; margin-top: 6px; }
+        .day-time.off { color: #94a3b8; opacity: 0.5; }
 
-        /* VOD & 게시글 섹션 (2열 배치) */
-        .list-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        /* 하단 그리드 */
+        .list-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
 
-        /* VOD 아이템 */
-        .vod-card { display: flex; gap: 12px; padding: 10px; border-radius: 8px; transition: 0.2s; cursor: pointer; }
-        .vod-card:hover { background: var(--hover-bg); }
-        .vod-thumb { width: 100px; height: 56px; border-radius: 4px; background: #333; flex-shrink: 0; position: relative; }
-        .vod-thumb img { width: 100%; height: 100%; object-fit: cover; border-radius: 4px; }
-        .vod-duration { position: absolute; bottom: 2px; right: 2px; font-size: 0.65rem; background: rgba(0,0,0,0.8); padding: 1px 3px; border-radius: 2px; }
-        .vod-text { overflow: hidden; }
-        .vod-title { font-size: 0.85rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .vod-meta { font-size: 0.75rem; color: var(--text-dim); }
-
-        /* 게시글 아이템 */
-        .post-row { 
-            display: flex; justify-content: space-between; padding: 10px 5px; 
-            border-bottom: 1px solid var(--border); text-decoration: none; color: inherit; font-size: 0.85rem;
+        /* VOD 아이템 - 높이 최적화 */
+        .vod-card { 
+            display: flex; gap: 15px; padding: 12px; border-radius: 12px; 
+            transition: 0.2s; cursor: pointer; margin-bottom: 8px;
+            background: rgba(255,255,255,0.02);
         }
-        .post-row:hover { color: var(--primary); }
-        .post-tag { color: var(--secondary); margin-right: 8px; font-weight: bold; }
+        .vod-card:hover { background: var(--hover-bg); transform: scale(1.02); }
+        .vod-thumb { width: 120px; aspect-ratio: 16/9; border-radius: 6px; background: #1e293b; flex-shrink: 0; position: relative; }
+        .vod-thumb img { width: 100%; height: 100%; object-fit: cover; border-radius: 6px; }
+        .vod-duration { position: absolute; bottom: 4px; right: 4px; font-size: 0.7rem; background: rgba(0,0,0,0.8); padding: 2px 5px; border-radius: 4px; }
+        .vod-text { display: flex; flex-direction: column; justify-content: center; overflow: hidden; }
+        .vod-title { font-size: 0.9rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 4px; }
+        .vod-meta { font-size: 0.8rem; color: var(--text-dim); }
 
-        @media (max-width: 1000px) {
+        /* 게시글 아이템 - 높이 최적화 (VOD 5개 길이에 맞춤) */
+        .post-row { 
+            display: flex; justify-content: space-between; padding: 12px 8px; 
+            border-bottom: 1px solid rgba(255,255,255,0.05); text-decoration: none; color: inherit; font-size: 0.88rem;
+            transition: 0.2s;
+        }
+        .post-row:hover { background: rgba(56, 189, 248, 0.05); color: var(--primary); padding-left: 15px; }
+        .post-tag { color: var(--accent); margin-right: 8px; font-weight: 800; font-size: 0.75rem; }
+        .post-date { color: var(--text-dim); font-size: 0.8rem; }
+
+        @media (max-width: 1100px) {
             .dashboard { grid-template-columns: 1fr; }
             .list-grid { grid-template-columns: 1fr; }
             .schedule-row { grid-template-columns: repeat(4, 1fr); }
@@ -92,22 +133,21 @@
 <div class="dashboard">
     <aside class="sidebar">
         <div class="card profile-area">
-            <div class="profile-img"><img src="https://via.placeholder.com/100" alt="PFP"></div>
-            <h2 style="font-size: 1.2rem; margin-bottom: 4px;">스트리머 이름</h2>
-            <p style="font-size: 0.8rem; color: var(--primary); margin-bottom: 15px;">Variety Streamer</p>
+            <div class="profile-img"><img src="https://via.placeholder.com/110" alt="PFP"></div>
+            <h2 style="font-size: 1.3rem; margin-bottom: 4px; letter-spacing: -0.5px;">스트리머 이름</h2>
+            <p style="font-size: 0.85rem; color: var(--primary); font-weight: 700; margin-bottom: 20px;">OCEAN STREAMER</p>
             <div class="bio-box">
-                <strong>About Me</strong><br>
-                안녕하세요! 매일 밤 9시에 찾아오는 종합 게임 스트리머입니다. 
-                함께 즐거운 시간을 만들어가요! 💜
+                <p style="margin-bottom: 8px; color: var(--text); font-weight: 600;">🌊 반가워요!</p>
+                매일 밤 9시, 푸른 바다처럼 시원한 방송을 지향합니다. 소통과 게임을 즐기는 공간입니다.
             </div>
         </div>
         
         <div class="card nav-menu">
-            <a href="#" class="nav-item">방송국 바로가기</a>
-            <a href="#" class="nav-item">유튜브 채널</a>
-            <a href="#" class="nav-item">팬카페 커뮤니티</a>
-            <a href="#" class="nav-item">인스타그램</a>
-            <a href="#" class="nav-item">디스코드 서버</a>
+            <a href="#" class="nav-item">LIVE 방송국</a>
+            <a href="#" class="nav-item">YOUTUBE</a>
+            <a href="#" class="nav-item">FAN CAFE</a>
+            <a href="#" class="nav-item">INSTAGRAM</a>
+            <a href="#" class="nav-item">DISCORD</a>
         </div>
     </aside>
 
@@ -115,13 +155,13 @@
         <div class="card">
             <h3 class="section-title">📅 WEEKLY SCHEDULE</h3>
             <div class="schedule-row">
-                <div class="day-item"><span class="day-label">월</span><span class="day-time">21:00</span></div>
-                <div class="day-item today"><span class="day-label">화</span><span class="day-time">21:00</span></div>
-                <div class="day-item"><span class="day-label">수</span><span class="day-time off">휴방</span></div>
-                <div class="day-item"><span class="day-label">목</span><span class="day-time">21:00</span></div>
-                <div class="day-item"><span class="day-label">금</span><span class="day-time">21:00</span></div>
-                <div class="day-item"><span class="day-label">토</span><span class="day-time">22:00</span></div>
-                <div class="day-item"><span class="day-label">일</span><span class="day-time off">휴방</span></div>
+                <div class="day-item"><span class="day-label">MON</span><span class="day-time">21:00</span></div>
+                <div class="day-item today"><span class="day-label">TUE</span><span class="day-time">21:00</span></div>
+                <div class="day-item"><span class="day-label">WED</span><span class="day-time off">OFF</span></div>
+                <div class="day-item"><span class="day-label">THU</span><span class="day-time">21:00</span></div>
+                <div class="day-item"><span class="day-label">FRI</span><span class="day-time">21:00</span></div>
+                <div class="day-item"><span class="day-label">SAT</span><span class="day-time">22:00</span></div>
+                <div class="day-item"><span class="day-label">SUN</span><span class="day-time off">OFF</span></div>
             </div>
         </div>
 
@@ -129,65 +169,38 @@
             <div class="card">
                 <h3 class="section-title">🎥 RECENT VODS</h3>
                 <div class="vod-card">
-                    <div class="vod-thumb"><img src="https://via.placeholder.com/100x56/222/fff"><span class="vod-duration">03:10</span></div>
+                    <div class="vod-thumb"><img src="https://via.placeholder.com/120x68/082f49/fff"><span class="vod-duration">03:10</span></div>
                     <div class="vod-text"><div class="vod-title">오늘의 랭크전 연승 도전!</div><div class="vod-meta">어제 · 조회 1.2k</div></div>
                 </div>
                 <div class="vod-card">
-                    <div class="vod-thumb"><img src="https://via.placeholder.com/100x56/333/fff"><span class="vod-duration">02:45</span></div>
-                    <div class="vod-text"><div class="vod-title">공포게임 찍먹하다 기절할 뻔</div><div class="vod-meta">2일 전 · 조회 980</div></div>
+                    <div class="vod-thumb"><img src="https://via.placeholder.com/120x68/082f49/fff"><span class="vod-duration">02:45</span></div>
+                    <div class="vod-text"><div class="vod-title">심해 공포게임 찍먹하다 기절</div><div class="vod-meta">2일 전 · 조회 980</div></div>
                 </div>
                 <div class="vod-card">
-                    <div class="vod-thumb"><img src="https://via.placeholder.com/100x56/444/fff"><span class="vod-duration">01:20</span></div>
-                    <div class="vod-text"><div class="vod-title">새벽 감성 라디오 토크</div><div class="vod-meta">3일 전 · 조회 840</div></div>
+                    <div class="vod-thumb"><img src="https://via.placeholder.com/120x68/082f49/fff"><span class="vod-duration">01:20</span></div>
+                    <div class="vod-text"><div class="vod-title">파도 소리 ASMR 라디오</div><div class="vod-meta">3일 전 · 조회 840</div></div>
                 </div>
                 <div class="vod-card">
-                    <div class="vod-thumb"><img src="https://via.placeholder.com/100x56/555/fff"><span class="vod-duration">05:30</span></div>
-                    <div class="vod-text"><div class="vod-title">주말 켠왕 방송: 끝까지 달린다</div><div class="vod-meta">4일 전 · 조회 2.5k</div></div>
+                    <div class="vod-thumb"><img src="https://via.placeholder.com/120x68/082f49/fff"><span class="vod-duration">05:30</span></div>
+                    <div class="vod-text"><div class="vod-title">주말 켠왕 방송: 끝까지 간다</div><div class="vod-meta">4일 전 · 조회 2.5k</div></div>
                 </div>
-                <div class="vod-card">
-                    <div class="vod-thumb"><img src="https://via.placeholder.com/100x56/666/fff"><span class="vod-duration">03:00</span></div>
+                <div class="vod-card" style="margin-bottom: 0;">
+                    <div class="vod-thumb"><img src="https://via.placeholder.com/120x68/082f49/fff"><span class="vod-duration">03:00</span></div>
                     <div class="vod-text"><div class="vod-title">신작 게임 탐방기</div><div class="vod-meta">5일 전 · 조회 1.1k</div></div>
                 </div>
             </div>
 
             <div class="card">
                 <h3 class="section-title">📝 RECENT POSTS</h3>
-                <a href="#" class="post-row">
-                    <span><span class="post-tag">[공지]</span> 1이번주 휴방 일정 공지</span>
-                    <span style="color: var(--text-dim); font-size: 0.75rem;">1시간 전</span>
-                </a>
-                <a href="#" class="post-row">
-                    <span><span class="post-tag">[잡담]</span> 2오늘 먹은 점심 인증!</span>
-                    <span style="color: var(--text-dim); font-size: 0.75rem;">4시간 전</span>
-                </a>
-                <a href="#" class="post-row">
-                    <span><span class="post-tag">[이벤트]</span> 3팬아트 이벤트 당첨자 발표</span>
-                    <span style="color: var(--text-dim); font-size: 0.75rem;">어제</span>
-                </a>
-                <a href="#" class="post-row">
-                    <span><span class="post-tag">[공지]</span> 4유튜브 멤버십 혜택 정리</span>
-                    <span style="color: var(--text-dim); font-size: 0.75rem;">2일 전</span>
-                </a>
-                <a href="#" class="post-row">
-                    <span><span class="post-tag">[후기]</span> 5어제 합방 너무 재밌었습니다!</span>
-                    <span style="color: var(--text-dim); font-size: 0.75rem;">3일 전</span>
-                </a>
-                <a href="#" class="post-row">
-                    <span><span class="post-tag">[이벤트]</span> 6팬아트 이벤트 당첨자 발표</span>
-                    <span style="color: var(--text-dim); font-size: 0.75rem;">어제</span>
-                </a>
-                <a href="#" class="post-row">
-                    <span><span class="post-tag">[공지]</span> 7유튜브 멤버십 혜택 정리</span>
-                    <span style="color: var(--text-dim); font-size: 0.75rem;">2일 전</span>
-                </a>
-                <a href="#" class="post-row">
-                    <span><span class="post-tag">[후기]</span> 8어제 합방 너무 재밌었습니다!</span>
-                    <span style="color: var(--text-dim); font-size: 0.75rem;">3일 전</span>
-                </a>
-                <a href="#" class="post-row">
-                    <span><span class="post-tag">[공지]</span> 9유튜브 멤버십 혜택 정리</span>
-                    <span style="color: var(--text-dim); font-size: 0.75rem;">2일 전</span>
-                </a>
+                <a href="#" class="post-row"><span class="post-title"><span class="post-tag">공지</span>이번주 휴방 일정 안내</span><span class="post-date">1h</span></a>
+                <a href="#" class="post-row"><span class="post-title"><span class="post-tag">잡담</span>오늘 점심은 해산물!</span><span class="post-date">4h</span></a>
+                <a href="#" class="post-row"><span class="post-title"><span class="post-tag">이벤트</span>굿즈 당첨자 발표 확인</span><span class="post-date">어제</span></a>
+                <a href="#" class="post-row"><span class="post-title"><span class="post-tag">공지</span>유튜브 멤버십 개설 완료</span><span class="post-date">2d</span></a>
+                <a href="#" class="post-row"><span class="post-title"><span class="post-tag">후기</span>어제 방송 너무 재밌었어요!</span><span class="post-date">3d</span></a>
+                <a href="#" class="post-row"><span class="post-title"><span class="post-tag">잡담</span>다들 오늘 뭐하시나요?</span><span class="post-date">3d</span></a>
+                <a href="#" class="post-row"><span class="post-title"><span class="post-tag">공지</span>새로운 다시보기 채널 링크</span><span class="post-date">4d</span></a>
+                <a href="#" class="post-row"><span class="post-title"><span class="post-tag">후기</span>처음으로 10시간 방송했네요</span><span class="post-date">5d</span></a>
+                <a href="#" class="post-row" style="border-bottom: none;"><span class="post-title"><span class="post-tag">잡담</span>추천 게임 받습니다!</span><span class="post-date">6d</span></a>
             </div>
         </div>
     </main>
