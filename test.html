@@ -4,242 +4,333 @@
     <link rel="icon" href="data:;base64,iVBORw0KGgo=">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Streamer Archive Dashboard</title>
-    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <title>Streamer Digital Identity</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;500;700;900&display=swap" rel="stylesheet">
     <style>
         :root {
-            /* 지정해주신 깊은 바다 테마색 기반의 새로운 팔레트 */
-            --bg: #010306; /* 더 짙은 블랙 */
-            --card-bg: #030812; /* 깊은 네이비 */
-            --card-hover: #081225;
-            --accent: #3385ff; /* 메인 블루 */
-            --accent-bright: #3385ff;
-            --accent-glow: rgba(51, 133, 255, 0.4);
-            --text-main: #f0faff; /* 아이스 화이트 */
-            --text-sub: #5c7285; /* 차분한 블루 그레이 */
-            --border: rgba(10, 20, 37, 0.6);
-            --radius: 24px; /* 현대적인 둥근 모서리 */
+            /* 극도의 다크 모드를 위한 블랙 팔레트 */
+            --bg: #000000;
+            --surface: #0a0a0c;
+            --surface-glass: rgba(16, 16, 18, 0.6);
+            
+            /* 핵심 퓨처리스틱 블루 & 실버 */
+            --accent: #007aff; /* 애플 블루 */
+            --accent-glow: rgba(0, 122, 255, 0.5);
+            --silver: #e2e2e7;
+            
+            /* 텍스트 위계 */
+            --text-p: #ffffff;
+            --text-s: #86868b;
+            --border: rgba(255, 255, 255, 0.06);
+            
+            /* 현대적인 둥근 값 (과감하게) */
+            --radius-lg: 32px;
+            --radius-md: 16px;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * { margin: 0; padding: 0; box-sizing: border-box; outline: none; }
         body { 
             background-color: var(--bg); 
-            background-image: radial-gradient(circle at center, #051020 0%, #02050a 100%);
-            color: var(--text-main); font-family: 'Pretendard', sans-serif; 
-            margin: 0; padding: 20px; min-height: 100vh;
-            display: flex; justify-content: center; align-items: flex-start;
-            box-sizing: border-box; overflow-x: hidden;
+            color: var(--text-p); 
+            font-family: 'Inter', -apple-system, sans-serif; 
+            min-height: 100vh;
+            display: flex; justify-content: center;
+            overflow-x: hidden;
+            letter-spacing: -0.02em; /* 프리미엄 자간 */
         }
 
-        /* 로딩 레이어 */
+        /* 로딩 레이어 (애니메이션 최소화, 고급스럽게) */
         #loading-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(1, 3, 6, 0.95); display: flex; flex-direction: column;
-            justify-content: center; align-items: center; z-index: 9999;
-            transition: opacity 0.5s ease; visibility: visible;
+            background: var(--bg); display: flex; justify-content: center; align-items: center; z-index: 9999;
+            transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .loader-circle {
-            width: 40px; height: 40px; border: 3px solid rgba(51, 133, 255, 0.2);
-            border-top: 3px solid var(--accent); border-radius: 50%;
-            animation: spin 1s linear infinite; margin-bottom: 15px;
-            box-shadow: 0 0 15px var(--accent-glow);
+        .loader-bar {
+            width: 100px; height: 1px; background: var(--border); position: relative; overflow: hidden;
         }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .loader-bar::after {
+            content: ''; position: absolute; top: 0; left: 0; width: 0; height: 100%;
+            background: var(--accent); animation: load 1.5s infinite;
+        }
+        @keyframes load { 0% { width: 0; left: 0; } 50% { width: 100%; left: 0; } 100% { width: 0; left: 100%; } }
 
-        .wrapper { width: 100%; max-width: 1200px; display: flex; flex-direction: column; gap: 20px; padding: 20px 0; }
-
-        /* 새로운 벤토 그리드 레이아웃 */
-        .bento-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            grid-auto-rows: minmax(160px, auto);
-            gap: 20px;
+        /* 메인 레이아웃 (중앙 집중형) */
+        .main-wrapper { 
+            width: 100%; max-width: 1400px; 
+            padding: 60px 20px;
+            display: flex; flex-direction: column; gap: 40px;
         }
 
-        /* 공통 카드 스타일 */
-        .card { 
-            background: var(--card-bg); border-radius: var(--radius); padding: 25px; 
-            border: 1px solid var(--border); position: relative;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-            transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
-            overflow: hidden;
+        /* [NEW] 히어로 섹션 (프로필 + 상태) */
+        .hero-section {
+            display: grid; grid-template-columns: 1fr auto; gap: 30px; align-items: center;
+            padding: 40px; background: var(--surface); border-radius: var(--radius-lg);
+            border: 1px solid var(--border);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
         }
-        .card:hover { transform: translateY(-5px); box-shadow: 0 15px 40px rgba(51, 133, 255, 0.2); background-color: var(--card-hover); }
-
-        /* 카드 개별 크기 설정 (벤토 그리드 핵심) */
-        .profile-card { grid-column: span 3; display: flex; align-items: center; gap: 30px; }
-        .status-card { grid-column: span 1; text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-        .schedule-card { grid-column: span 2; grid-row: span 2; }
-        .post-card { grid-column: span 2; }
-        .vod-card { grid-column: span 2; }
-
-        /* 프로필 요소 */
-        .profile-img { 
-            width: 100px; height: 100px; border-radius: 50%; background: #0a1a30; 
-            flex-shrink: 0; border: 3px solid var(--accent-bright); 
-            box-shadow: 0 0 20px var(--accent-glow);
-            background-size: cover; background-position: center; cursor: pointer;
+        .profile-meta { display: flex; align-items: center; gap: 30px; }
+        .avatar-wrapper { position: relative; }
+        .avatar {
+            width: 120px; height: 120px; border-radius: 50%;
+            background-size: cover; background-position: center;
+            border: 2px solid var(--border);
+            box-shadow: 0 0 30px var(--accent-glow);
         }
-        .profile-info h1 { margin: 0 0 5px; font-size: 28px; font-weight: 800; color: var(--text-main); letter-spacing: -0.5px; }
-        .profile-info p { color: var(--text-sub); margin: 0 0 15px; font-size: 14px; line-height: 1.6; }
-
-        /* 버튼 스타일 (네온 효과) */
-        .social-links { display: flex; gap: 10px; flex-wrap: wrap; }
-        .link-btn { 
-            padding: 8px 18px; background: rgba(51, 133, 255, 0.08); border-radius: 12px; 
-            color: var(--accent-bright); text-decoration: none; font-size: 12px; font-weight: 600;
-            border: 1px solid var(--accent); transition: 0.3s; 
+        .status-indicator {
+            position: absolute; bottom: 5px; right: 5px;
+            width: 25px; height: 25px; border-radius: 50%;
+            background: #1a1a1a; border: 4px solid var(--surface);
+            display: flex; justify-content: center; align-items: center;
         }
-        .link-btn:hover { background: var(--accent-bright); border-color: var(--accent-bright); color: #fff; box-shadow: 0 0 15px var(--accent-glow); }
+        .status-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--text-s); }
+        
+        .streamer-info h1 { font-size: 40px; font-weight: 900; letter-spacing: -0.05em; margin-bottom: 8px; color: var(--silver); }
+        .streamer-info p { color: var(--text-s); font-size: 16px; max-width: 500px; line-height: 1.6; }
 
-        /* 라이브 상태창 (상단 우측) */
-        .badge { display: inline-block; padding: 4px 12px; border-radius: 8px; font-size: 10px; font-weight: bold; margin-bottom: 8px; }
-        .offline-badge { background: #1a2638; color: var(--text-sub); }
-        .online-badge { background: #d32f2f; color: white; animation: pulse 1.5s infinite; box-shadow: 0 0 10px rgba(211, 47, 47, 0.5); }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
+        /* 상태에 따른 색상 변경 클래스 */
+        .is-online .status-dot { background: #30d158; box-shadow: 0 0 15px #30d158; }
+        .is-online .avatar { border-color: #30d158; }
 
-        /* 리스트 아이템 스타일 (그리드 내부) */
-        h2 { font-size: 14px; margin-top: 0; color: var(--accent-bright); letter-spacing: 1px; margin-bottom: 20px; text-transform: uppercase; font-weight: 800; }
-        h2::before { content: '///'; margin-right: 8px; color: var(--accent-dark); opacity: 0.5; }
+        /* [NEW] 하단 인포메이션 그리드 */
+        .info-grid {
+            display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 30px;
+        }
 
+        /* 공통 섹션 스타일 (미니멀) */
+        .section-card { 
+            background: var(--surface); border-radius: var(--radius-lg); padding: 30px; 
+            border: 1px solid var(--border);
+            transition: border-color 0.3s ease;
+        }
+        .section-card:hover { border-color: rgba(255, 255, 255, 0.15); }
+        
+        .section-header { 
+            font-size: 12px; color: var(--accent); font-weight: 700; 
+            text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 25px; 
+            display: flex; align-items: center; gap: 10px;
+        }
+        .section-header::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+        /* 리스트 아이템 스타일 (극도의 깔끔함) */
         .item-row { 
-            padding: 12px; background: rgba(255, 255, 255, 0.02);
-            border-radius: 12px; transition: 0.2s; cursor: pointer;
-            margin-bottom: 8px; border: 1px solid transparent;
+            padding: 15px 0; border-bottom: 1px solid var(--border); cursor: pointer;
+            transition: background-color 0.3s ease;
+            display: flex; flex-direction: column;
         }
-        .item-row:hover { background: rgba(51, 133, 255, 0.05); border-color: var(--accent); }
-        .item-date { font-size: 11px; color: var(--text-sub); margin-bottom: 3px; }
+        .item-row:hover { background-color: rgba(255, 255, 255, 0.01); }
+        .item-row:last-child { border-bottom: none; }
 
+        .item-meta { font-size: 11px; color: var(--text-s); margin-bottom: 4px; display: flex; gap: 10px; }
+        .item-title { font-size: 14px; font-weight: 500; color: var(--silver); line-height: 1.5; }
+
+        /* 스케줄 전용 */
+        .schedule-row { flex-direction: row; justify-content: space-between; align-items: center; cursor: default; }
+        .today-card { 
+            background: rgba(0, 122, 255, 0.05); border: 1px solid var(--accent);
+            border-radius: var(--radius-md); padding: 15px; margin-bottom: 10px;
+        }
+
+        /* VOD 전용 */
+        .vod-row { flex-direction: row; gap: 15px; align-items: center; }
         .vod-thumb { 
-            width: 80px; height: 45px; background: #000; border-radius: 8px; 
+            width: 70px; height: 39px; border-radius: 8px; background: #000;
             background-size: cover; background-position: center; border: 1px solid var(--border);
         }
 
-        .today-highlight { 
-            background: rgba(51, 133, 255, 0.1) !important; 
-            border: 1px solid var(--accent-bright) !important; 
+        /* 링크 버튼 (프리미엄 블러 효과) */
+        .links-wrapper { display: flex; flex-direction: column; gap: 10px; }
+        .link-btn {
+            padding: 14px 20px; background: var(--surface-glass); border-radius: var(--radius-md);
+            border: 1px solid var(--border); color: var(--silver); text-decoration: none;
+            font-size: 13px; font-weight: 500; display: flex; justify-content: space-between; align-items: center;
+            backdrop-filter: blur(10px); transition: 0.3s;
         }
+        .link-btn:hover { background: rgba(255, 255, 255, 0.05); border-color: rgba(255, 255, 255, 0.1); transform: translateX(5px); }
+        .link-btn::after { content: '→'; opacity: 0.5; }
 
-        .ellipsis { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-        @media (max-width: 900px) {
-            .bento-grid { grid-template-columns: 1fr; }
-            .profile-card, .status-card, .schedule-card, .post-card, .vod-card { grid-column: span 1; }
-            .profile-card { flex-direction: column; text-align: center; }
+        @media (max-width: 1000px) {
+            .hero-section { grid-template-columns: 1fr; text-align: center; }
+            .profile-meta { flex-direction: column; gap: 20px; }
+            .info-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
 
 <div id="loading-overlay">
-    <div class="loader-circle"></div>
-    <div class="loader-text" style="color: var(--text-sub); font-size: 12px;">아카이브 데이터를 불러오고 있어요...</div>
+    <div class="loader-bar"></div>
 </div>
     
-<div class="wrapper">
-    <div class="bento-grid">
-        <div class="card profile-card">
-            <div class="profile-img" id="profile-img-target"></div>
-            <div class="profile-info">
-                <h1 id="user-nick">Loading...</h1>
-                <p id="user-desc">기록을 불러오고 있습니다.</p>
-                <div class="social-links">
-                    <a href="https://www.sooplive.com/station/bababi" class="link-btn" target="_blank">📺 방송국</a>
-                    <a href="songlist.html" class="link-btn" target="_self">📖 노래책</a>
-                    <div id="extra-links-target" style="display: flex; gap: 10px; flex-wrap: wrap;"></div>
+<div class="main-wrapper">
+    <header class="hero-section" id="hero-target">
+        <div class="profile-meta">
+            <div class="avatar-wrapper">
+                <div class="avatar" id="profile-img-target"></div>
+                <div class="status-indicator">
+                    <div class="status-dot"></div>
                 </div>
             </div>
+            <div class="streamer-info">
+                <h1 id="user-nick">Identity</h1>
+                <p id="user-desc">Digital Archive Platform</p>
+            </div>
         </div>
+        <div id="live-detail-target" style="text-align: right; color: var(--text-s); font-size: 13px;"></div>
+    </header>
 
-        <div class="card status-card" id="status-box">
-            <div class="badge offline-badge">CHECKING</div>
-            <div id="stream-title" style="margin: 10px 0; font-weight: bold;">연결 중...</div>
-            <div id="last-stream-time" style="font-size: 11px; color: var(--text-sub);">최근 정보 없음</div>
-        </div>
+    <div class="info-grid">
+        <section class="section-card">
+            <h2 class="section-header">Recent Posts</h2>
+            <div id="post-container"></div>
+        </section>
 
-        <div class="card schedule-card">
-            <h2>📅 Schedule</h2>
-            <div id="schedule-container"></div>
-        </div>
+        <section class="section-card">
+            <h2 class="section-header">Recent VODs</h2>
+            <div id="vod-container"></div>
+        </section>
 
-        <div class="card post-card" id="post-container">
-            <h2>📢 Recent Posts</h2>
-        </div>
-
-        <div class="card vod-card" id="vod-container">
-            <h2>🎬 Recent VODs</h2>
+        <div style="display: flex; flex-direction: column; gap: 30px;">
+            <section class="section-card">
+                <h2 class="section-header">Weekly Schedule</h2>
+                <div id="schedule-container"></div>
+            </section>
+            
+            <section class="section-card" style="padding: 20px;">
+                <h2 class="section-header" style="margin-bottom: 15px;">Official Links</h2>
+                <div class="links-wrapper">
+                    <a href="https://www.sooplive.com/station/bababi" class="link-btn" target="_blank">📺 SOOP 방송국</a>
+                    <a href="songlist.html" class="link-btn" target="_self">📖 노래책</a>
+                    <div id="extra-links-target" style="display: flex; flex-direction: column; gap: 10px;"></div>
+                </div>
+            </section>
         </div>
     </div>
 
-    <footer style="text-align: center; padding: 20px; color: var(--text-sub); font-size: 11px; opacity: 0.6; margin-top: 20px;">
-        <p>Fan Archive Project © 2026. Data updated every 1 min.</p>
+    <footer style="text-align: center; color: rgba(255,255,255,0.2); font-size: 10px; margin-top: 20px;">
+        FAN ARCHIVE // DATA SYNCHRONIZED EVERY 60S
     </footer>
 </div>
 
 <script>
-    // 기존 스크립트 로직 유지 (데이터 필드 매핑 및 렌더링 함수들)
+    // 기존 스크립트 로직 유지 (렌더링 방식만 현대적으로 변경)
     const TSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTQ3nX6onmaf-ZHhXGox2s4ChGos7ki7iFjQ_47lArZR6dV935gCIbLbvlDDAS65rTEnswSLIk_7v3R/pub?gid=0&single=true&output=tsv';
 
     async function init() {
         const overlay = document.getElementById('loading-overlay');
         try {
-            const cacheBuster = `&t=${new Date().getTime()}`;
-            const response = await fetch(TSV_URL + cacheBuster);
-            if (!response.ok) throw new Error('Network error');
-
+            const response = await fetch(`${TSV_URL}&t=${new Date().getTime()}`);
             const text = await response.text();
             const rows = text.split(/\r?\n/).map(row => row.split('\t'));
 
-            // 1. 프로필 업데이트
             const profile = rows[2];
+            const liveData = rows[6];
+            
+            // 1. 프로필 & 히어로 섹션 업데이트
             if (profile) {
-                document.getElementById('user-nick').innerText = profile[0] || '닉네임';
-                document.getElementById('user-desc').innerText = profile[1] || '';
-                if(profile[2]) document.getElementById('profile-img-target').style.backgroundImage = `url('${profile[2]}')`;
+                document.getElementById('user-nick').innerText = profile[0];
+                document.getElementById('user-desc').innerText = profile[1];
+                document.getElementById('profile-img-target').style.backgroundImage = `url('${profile[2]}')`;
             }
 
-            // 2. 라이브 상태 업데이트
-            const liveData = rows[6];
-            const statusBox = document.getElementById('status-box');
+            // 2. 라이브 상태 업데이트 (가장 현대적인 방식으로)
+            const hero = document.getElementById('hero-target');
+            const liveDetail = document.getElementById('live-detail-target');
             const isOnline = liveData && liveData[5] !== "방송 정보 없음" && liveData[5] !== undefined;
 
             if (isOnline) {
-                statusBox.innerHTML = `
-                    <div class="badge online-badge">LIVE</div>
-                    <a href="https://play.sooplive.com/bababi" target="_blank" style="color:white; font-weight:bold; text-decoration:none; margin:10px 0; display:block;" class="ellipsis">
-                        ${liveData[5]}
-                    </a>
-                    <div style="font-size:11px; color:var(--text-sub);">시작: ${liveData[6]}</div>
+                hero.classList.add('is-online'); // 온라인 스타일 적용
+                liveDetail.innerHTML = `
+                    <div style="color:#30d158; font-weight:700; font-size:11px; text-transform:uppercase; letter-spacing:0.1em; margin-bottom:5px;">● LIVE NOW</div>
+                    <a href="https://play.sooplive.com/bababi" target="_blank" style="color:var(--silver); text-decoration:none; font-size:15px; font-weight:500;" class="ellipsis">${liveData[5]}</a>
+                    <div style="margin-top:3px; opacity:0.7;">Started: ${liveData[6]}</div>
                 `;
             } else {
-                statusBox.innerHTML = `
-                    <div class="badge offline-badge">OFFLINE</div>
-                    <div style="color:var(--text-sub); font-weight:bold; margin:10px 0;">방송 준비 중</div>
-                    <div style="font-size:11px; color:var(--text-sub);">최근: ${profile ? profile[3] : '확인 중'}</div>
-                `;
+                hero.classList.remove('is-online');
+                liveDetail.innerHTML = `<div>Currently Offline</div><div style="margin-top:3px; opacity:0.7;">Last: ${profile ? profile[3] : 'N/A'}</div>`;
             }
 
-            // 3. 리스트 렌더링
-            renderLinks(rows[5]);
+            // 3. 각 섹션 데이터 렌더링
             renderPosts(rows.slice(8, 13));
             renderVODs(rows.slice(16, 21));
             renderSchedule(rows.slice(24, 29));
+            renderLinks(rows[5]);
 
         } catch (e) {
-            console.error("Data Load Error:", e);
+            console.error(e);
         } finally {
-            setTimeout(() => {
-                overlay.style.opacity = '0';
-                setTimeout(() => { overlay.style.visibility = 'hidden'; }, 500);
-            }, 800);
+            setTimeout(() => { overlay.style.opacity = '0'; setTimeout(() => overlay.style.visibility = 'hidden', 800); }, 500);
         }
     }
 
-    function renderLinks(extraLinks) {
-        const targetBox = document.getElementById('extra-links-target');
-        targetBox.innerHTML = '';
-        if (extraLinks) {
-            extraLinks.forEach(l => {
+    // 렌더링 함수들 (더 현대적인 마크업으로 변경)
+    function renderPosts(data) {
+        const container = document.getElementById('post-container');
+        container.innerHTML = '';
+        data.filter(p => p[1]).forEach(p => {
+            const row = document.createElement('div');
+            row.className = 'item-row';
+            row.onclick = () => window.open(p[2], '_blank');
+            row.innerHTML = `
+                <div class="item-meta"><span>${p[0]}</span>${p[3] === 'O' ? '<span style="color:var(--accent);">📌 NOTICE</span>' : ''}</div>
+                <div class="item-title ellipsis">${p[1]}</div>
+            `;
+            container.appendChild(row);
+        });
+    }
+
+    function renderVODs(data) {
+        const container = document.getElementById('vod-container');
+        container.innerHTML = '';
+        data.filter(v => v[1]).forEach(v => {
+            const row = document.createElement('div');
+            row.className = 'item-row vod-row';
+            row.onclick = () => window.open(v[2], '_blank');
+            row.innerHTML = `
+                <div class="vod-thumb" style="background-image:url('${v[3]}')"></div>
+                <div style="flex:1; min-width:0;">
+                    <div class="item-meta"><span>${v[0]}</span></div>
+                    <div class="item-title ellipsis">${v[1]}</div>
+                </div>
+            `;
+            container.appendChild(row);
+        });
+    }
+
+    function renderSchedule(data) {
+        const container = document.getElementById('schedule-container');
+        const todayStr = new Date().toLocaleDateString('en-CA');
+        container.innerHTML = '';
+        data.forEach(row => {
+            if (!row[0]) return;
+            const isToday = row[0].trim() === todayStr;
+            const div = document.createElement('div');
+            // 오늘 일정은 특별한 카드로 표시
+            div.className = isToday ? 'today-card' : 'item-row schedule-row';
+            
+            if(isToday) {
+                div.innerHTML = `
+                    <div style="color:var(--accent); font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.1em; margin-bottom:8px;">★ TODAY</div>
+                    <div style="font-size:16px; font-weight:700; color:white; margin-bottom:3px;">${row[2] ? `${row[2]} ` : ''}${row[3] || '일정 없음'}</div>
+                    <div style="font-size:12px; color:rgba(255,255,255,0.7);">${row[0]} (${row[1]}) // ${row[4] || ''}</div>
+                `;
+            } else {
+                div.innerHTML = `
+                    <div style="min-width:0; flex:1;">
+                        <div class="item-meta"><span>${row[0]} (${row[1]})</span></div>
+                        <div class="item-title ellipsis">${row[2] ? `<b>${row[2]}</b> ` : ''}${row[3] || '일정 없음'}</div>
+                    </div>
+                    <div style="font-size:11px; color:var(--text-s); margin-left:15px; text-align:right;">${row[4] || ''}</div>
+                `;
+            }
+            container.appendChild(div);
+        });
+    }
+
+    function renderLinks(links) {
+        const target = document.getElementById('extra-links-target');
+        target.innerHTML = '';
+        if (links) {
+            links.forEach(l => {
                 if (!l || !l.includes(': ')) return;
                 const [name, url] = l.split(': ');
                 const a = document.createElement('a');
@@ -247,60 +338,9 @@
                 a.href = url.trim();
                 a.target = '_blank';
                 a.innerText = name.trim();
-                targetBox.appendChild(a);
+                target.appendChild(a);
             });
         }
-    }
-
-    function renderPosts(data) {
-        const container = document.getElementById('post-container');
-        let html = '<h2>📢 Recent Posts</h2>';
-        data.filter(p => p[1]).forEach(p => {
-            html += `<div class="item-row" onclick="window.open('${p[2]}', '_blank')">
-                <div class="item-date">${p[0]}</div>
-                <div class="ellipsis" style="font-weight:500;">${p[3] === 'O' ? '📌 ' : ''}${p[1]}</div>
-            </div>`;
-        });
-        container.innerHTML = html;
-    }
-
-    function renderVODs(data) {
-        const container = document.getElementById('vod-container');
-        let html = '<h2>🎬 Recent VODs</h2>';
-        data.filter(v => v[1]).forEach(v => {
-            html += `<div class="item-row" onclick="window.open('${v[2]}', '_blank')" style="display:flex; gap:15px; align-items:center;">
-                <div class="vod-thumb" style="background-image:url('${v[3]}')"></div>
-                <div style="flex:1; min-width:0;">
-                    <div class="item-date">${v[0]}</div>
-                    <div class="ellipsis" style="font-size:12px; font-weight:500;">${v[1]}</div>
-                </div>
-            </div>`;
-        });
-        container.innerHTML = html;
-    }
-
-    function renderSchedule(data) {
-        const container = document.getElementById('schedule-container');
-        container.innerHTML = '';
-        const todayStr = new Date().toLocaleDateString('en-CA');
-        data.forEach(row => {
-            if(!row[0]) return;
-            const isToday = row[0].trim() === todayStr;
-            const div = document.createElement('div');
-            div.className = `item-row ${isToday ? 'today-highlight' : ''}`;
-            div.innerHTML = `
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <div>
-                        <div class="item-date" style="font-weight:bold; color:${isToday ? 'var(--accent-bright)' : 'var(--text-sub)'}">${row[0]} (${row[1]})</div>
-                        <div style="font-size:13px; font-weight:500; margin-top:2px;">
-                            ${row[2] ? `<b style="color:var(--accent-bright);">${row[2]}</b> ` : ''}${row[3] || '일정 없음'}
-                        </div>
-                    </div>
-                    <div style="font-size:11px; color:var(--text-sub); text-align:right;">${row[4] || ''}</div>
-                </div>
-            `;
-            container.appendChild(div);
-        });
     }
 
     window.onload = () => { init(); setInterval(init, 60000); };
