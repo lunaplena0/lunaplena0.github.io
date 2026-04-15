@@ -7,10 +7,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg: #050a14; /* 깊은 바다색 */
-            --card: #0f172a; /* 남색 카드 */
-            --primary: #38bdf8; /* 밝은 하늘색 포인트 */
-            --secondary: #0ea5e9; /* 파란색 포인트 */
+            --bg: #050a14;
+            --card: #0f172a;
+            --primary: #38bdf8;
+            --secondary: #0ea5e9;
             --text: #f0f9ff;
             --text-dim: #94a3b8;
             --border: rgba(56, 189, 248, 0.15);
@@ -35,13 +35,14 @@
             gap: 20px;
         }
 
-        /* 카드 공통 스타일 */
         .card { 
             background: var(--card); 
             border-radius: 16px; 
             padding: 24px; 
             border: 1px solid var(--border);
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
         }
         
         .section-title { 
@@ -94,37 +95,49 @@
         .day-time { font-size: 1rem; font-weight: 700; margin-top: 6px; }
         .day-time.off { color: #94a3b8; opacity: 0.5; }
 
-        /* 하단 그리드 */
-        .list-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
+        /* 하단 그리드 (VOD 5 : 게시글 5 높이 맞춤) */
+        .list-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 
-        /* VOD 아이템 - 높이 최적화 */
-        .vod-card { 
-            display: flex; gap: 15px; padding: 12px; border-radius: 12px; 
-            transition: 0.2s; cursor: pointer; margin-bottom: 8px;
-            background: rgba(255,255,255,0.02);
+        .list-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            justify-content: space-between; /* 요소 간 간격을 균등하게 배분 */
         }
-        .vod-card:hover { background: var(--hover-bg); transform: scale(1.02); }
-        .vod-thumb { width: 120px; aspect-ratio: 16/9; border-radius: 6px; background: #1e293b; flex-shrink: 0; position: relative; }
+
+        /* VOD 아이템 */
+        .vod-card { 
+            display: flex; gap: 15px; padding: 15px; border-radius: 12px; 
+            transition: 0.2s; cursor: pointer;
+            background: rgba(255,255,255,0.02);
+            margin-bottom: 12px; /* VOD 간 간격 */
+        }
+        .vod-card:last-child { margin-bottom: 0; }
+        .vod-card:hover { background: var(--hover-bg); transform: translateX(5px); }
+        .vod-thumb { width: 130px; aspect-ratio: 16/9; border-radius: 6px; background: #1e293b; flex-shrink: 0; position: relative; }
         .vod-thumb img { width: 100%; height: 100%; object-fit: cover; border-radius: 6px; }
         .vod-duration { position: absolute; bottom: 4px; right: 4px; font-size: 0.7rem; background: rgba(0,0,0,0.8); padding: 2px 5px; border-radius: 4px; }
         .vod-text { display: flex; flex-direction: column; justify-content: center; overflow: hidden; }
-        .vod-title { font-size: 0.9rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 4px; }
+        .vod-title { font-size: 0.95rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 6px; }
         .vod-meta { font-size: 0.8rem; color: var(--text-dim); }
 
-        /* 게시글 아이템 - 높이 최적화 (VOD 5개 길이에 맞춤) */
+        /* 게시글 아이템 (높이 조정을 위해 padding 대폭 강화) */
         .post-row { 
-            display: flex; justify-content: space-between; padding: 12px 8px; 
-            border-bottom: 1px solid rgba(255,255,255,0.05); text-decoration: none; color: inherit; font-size: 0.88rem;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 24.5px 10px; /* VOD 5개 높이에 맞추기 위한 수치 */
+            border-bottom: 1px solid rgba(255,255,255,0.05); text-decoration: none; color: inherit; font-size: 0.95rem;
             transition: 0.2s;
         }
-        .post-row:hover { background: rgba(56, 189, 248, 0.05); color: var(--primary); padding-left: 15px; }
-        .post-tag { color: var(--accent); margin-right: 8px; font-weight: 800; font-size: 0.75rem; }
-        .post-date { color: var(--text-dim); font-size: 0.8rem; }
+        .post-row:last-child { border-bottom: none; }
+        .post-row:hover { background: rgba(56, 189, 248, 0.05); color: var(--primary); padding-left: 20px; }
+        .post-tag { color: var(--accent); margin-right: 10px; font-weight: 800; font-size: 0.8rem; }
+        .post-date { color: var(--text-dim); font-size: 0.85rem; }
 
         @media (max-width: 1100px) {
             .dashboard { grid-template-columns: 1fr; }
             .list-grid { grid-template-columns: 1fr; }
             .schedule-row { grid-template-columns: repeat(4, 1fr); }
+            .post-row { padding: 15px 10px; } /* 모바일에서는 기본 간격으로 */
         }
     </style>
 </head>
@@ -168,39 +181,39 @@
         <div class="list-grid">
             <div class="card">
                 <h3 class="section-title">🎥 RECENT VODS</h3>
-                <div class="vod-card">
-                    <div class="vod-thumb"><img src="https://via.placeholder.com/120x68/082f49/fff"><span class="vod-duration">03:10</span></div>
-                    <div class="vod-text"><div class="vod-title">오늘의 랭크전 연승 도전!</div><div class="vod-meta">어제 · 조회 1.2k</div></div>
-                </div>
-                <div class="vod-card">
-                    <div class="vod-thumb"><img src="https://via.placeholder.com/120x68/082f49/fff"><span class="vod-duration">02:45</span></div>
-                    <div class="vod-text"><div class="vod-title">심해 공포게임 찍먹하다 기절</div><div class="vod-meta">2일 전 · 조회 980</div></div>
-                </div>
-                <div class="vod-card">
-                    <div class="vod-thumb"><img src="https://via.placeholder.com/120x68/082f49/fff"><span class="vod-duration">01:20</span></div>
-                    <div class="vod-text"><div class="vod-title">파도 소리 ASMR 라디오</div><div class="vod-meta">3일 전 · 조회 840</div></div>
-                </div>
-                <div class="vod-card">
-                    <div class="vod-thumb"><img src="https://via.placeholder.com/120x68/082f49/fff"><span class="vod-duration">05:30</span></div>
-                    <div class="vod-text"><div class="vod-title">주말 켠왕 방송: 끝까지 간다</div><div class="vod-meta">4일 전 · 조회 2.5k</div></div>
-                </div>
-                <div class="vod-card" style="margin-bottom: 0;">
-                    <div class="vod-thumb"><img src="https://via.placeholder.com/120x68/082f49/fff"><span class="vod-duration">03:00</span></div>
-                    <div class="vod-text"><div class="vod-title">신작 게임 탐방기</div><div class="vod-meta">5일 전 · 조회 1.1k</div></div>
+                <div class="list-container">
+                    <div class="vod-card">
+                        <div class="vod-thumb"><img src="https://via.placeholder.com/130x73/082f49/fff"><span class="vod-duration">03:10</span></div>
+                        <div class="vod-text"><div class="vod-title">오늘의 랭크전 연승 도전!</div><div class="vod-meta">어제 · 조회 1.2k</div></div>
+                    </div>
+                    <div class="vod-card">
+                        <div class="vod-thumb"><img src="https://via.placeholder.com/130x73/082f49/fff"><span class="vod-duration">02:45</span></div>
+                        <div class="vod-text"><div class="vod-title">심해 공포게임 찍먹하다 기절</div><div class="vod-meta">2일 전 · 조회 980</div></div>
+                    </div>
+                    <div class="vod-card">
+                        <div class="vod-thumb"><img src="https://via.placeholder.com/130x73/082f49/fff"><span class="vod-duration">01:20</span></div>
+                        <div class="vod-text"><div class="vod-title">파도 소리 ASMR 라디오</div><div class="vod-meta">3일 전 · 조회 840</div></div>
+                    </div>
+                    <div class="vod-card">
+                        <div class="vod-thumb"><img src="https://via.placeholder.com/130x73/082f49/fff"><span class="vod-duration">05:30</span></div>
+                        <div class="vod-text"><div class="vod-title">주말 켠왕 방송: 끝까지 간다</div><div class="vod-meta">4일 전 · 조회 2.5k</div></div>
+                    </div>
+                    <div class="vod-card">
+                        <div class="vod-thumb"><img src="https://via.placeholder.com/130x73/082f49/fff"><span class="vod-duration">03:00</span></div>
+                        <div class="vod-text"><div class="vod-title">신작 게임 탐방기</div><div class="vod-meta">5일 전 · 조회 1.1k</div></div>
+                    </div>
                 </div>
             </div>
 
             <div class="card">
                 <h3 class="section-title">📝 RECENT POSTS</h3>
-                <a href="#" class="post-row"><span class="post-title"><span class="post-tag">공지</span>이번주 휴방 일정 안내</span><span class="post-date">1h</span></a>
-                <a href="#" class="post-row"><span class="post-title"><span class="post-tag">잡담</span>오늘 점심은 해산물!</span><span class="post-date">4h</span></a>
-                <a href="#" class="post-row"><span class="post-title"><span class="post-tag">이벤트</span>굿즈 당첨자 발표 확인</span><span class="post-date">어제</span></a>
-                <a href="#" class="post-row"><span class="post-title"><span class="post-tag">공지</span>유튜브 멤버십 개설 완료</span><span class="post-date">2d</span></a>
-                <a href="#" class="post-row"><span class="post-title"><span class="post-tag">후기</span>어제 방송 너무 재밌었어요!</span><span class="post-date">3d</span></a>
-                <a href="#" class="post-row"><span class="post-title"><span class="post-tag">잡담</span>다들 오늘 뭐하시나요?</span><span class="post-date">3d</span></a>
-                <a href="#" class="post-row"><span class="post-title"><span class="post-tag">공지</span>새로운 다시보기 채널 링크</span><span class="post-date">4d</span></a>
-                <a href="#" class="post-row"><span class="post-title"><span class="post-tag">후기</span>처음으로 10시간 방송했네요</span><span class="post-date">5d</span></a>
-                <a href="#" class="post-row" style="border-bottom: none;"><span class="post-title"><span class="post-tag">잡담</span>추천 게임 받습니다!</span><span class="post-date">6d</span></a>
+                <div class="list-container">
+                    <a href="#" class="post-row"><span class="post-title"><span class="post-tag">공지</span>이번주 휴방 일정 안내드립니다</span><span class="post-date">1h</span></a>
+                    <a href="#" class="post-row"><span class="post-title"><span class="post-tag">잡담</span>오늘 점심은 시원한 물회 먹었어요!</span><span class="post-date">4h</span></a>
+                    <a href="#" class="post-row"><span class="post-title"><span class="post-tag">이벤트</span>여름 맞이 굿즈 당첨자 발표</span><span class="post-date">어제</span></a>
+                    <a href="#" class="post-row"><span class="post-title"><span class="post-tag">공지</span>새로운 유튜브 영상 업로드 완료!</span><span class="post-date">2d</span></a>
+                    <a href="#" class="post-row"><span class="post-title"><span class="post-tag">후기</span>어제 12시간 방송 고생하셨습니다</span><span class="post-date">3d</span></a>
+                </div>
             </div>
         </div>
     </main>
