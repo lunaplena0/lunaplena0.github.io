@@ -3,287 +3,202 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Streamer Archive Admin</title>
+    <title>Streamer Archive | Layout</title>
     <style>
         :root {
-            --bg: #0b0e14;
-            --card: #161b22;
-            --border: #30363d;
-            --accent: #58a6ff;
-            --text: #c9d1d9;
-            --text-bright: #ffffff;
-            --gray: #8b949e;
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --accent: #38bdf8;
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+            --border-radius: 24px; /* 손그림의 둥근 느낌 반영 */
         }
 
         body {
             font-family: 'Pretendard', sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
+            background-color: var(--bg-color);
+            color: var(--text-main);
             margin: 0;
+            padding: 20px;
             display: flex;
             justify-content: center;
         }
 
-        .container {
-            max-width: 1200px;
-            width: 95%;
-            margin: 40px 0;
+        /* 메인 그리드 레이아웃 (손그림 구도 반영) */
+        .grid-container {
             display: grid;
-            grid-template-columns: 300px 1fr;
-            gap: 24px;
+            grid-template-columns: 300px 1fr 1fr; /* 왼쪽 고정, 오른쪽 가변 */
+            grid-template-rows: auto 1fr;
+            gap: 20px;
+            max-width: 1200px;
+            width: 100%;
         }
 
-        /* 왼쪽 사이드바: 프로필 & 링크 */
-        .sidebar {
+        .card {
+            background: var(--card-bg);
+            border: 2px solid #334155;
+            border-radius: var(--border-radius);
+            padding: 20px;
+        }
+
+        .title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            display: block;
+            border-bottom: 1px solid #334155;
+            padding-bottom: 10px;
+        }
+
+        /* 1. 방송 정보 (왼쪽 상단) */
+        .box-stream-info {
+            grid-column: 1 / 2;
+            grid-row: 1 / 2;
+        }
+
+        /* 2. 방송인 정보 + 링크 (왼쪽 하단) */
+        .box-profile {
+            grid-column: 1 / 2;
+            grid-row: 2 / 3;
             display: flex;
             flex-direction: column;
-            gap: 20px;
-        }
-
-        .profile-card {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 30px 20px;
-            text-align: center;
         }
 
         .profile-img {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            background: #21262d;
+            width: 100%;
+            aspect-ratio: 1/1;
+            background: #334155;
+            border-radius: 15px;
             margin-bottom: 15px;
-            border: 3px solid var(--accent);
         }
 
-        .profile-name {
-            font-size: 1.5rem;
-            color: var(--text-bright);
-            margin: 10px 0;
-        }
-
-        .profile-bio {
-            font-size: 0.9rem;
-            color: var(--gray);
-            margin-bottom: 20px;
-            line-height: 1.4;
-        }
-
-        .external-links {
-            display: flex;
-            flex-direction: column;
+        .link-group {
+            margin-top: auto;
+            display: grid;
             gap: 8px;
         }
 
         .link-item {
-            background: #21262d;
-            color: var(--text);
-            text-decoration: none;
+            background: #0f172a;
             padding: 10px;
-            border-radius: 6px;
-            font-size: 0.85rem;
-            border: 1px solid var(--border);
-            transition: 0.2s;
-        }
-
-        .link-item:hover {
-            background: var(--border);
-            border-color: var(--accent);
-        }
-
-        /* 메인 콘텐츠 구역 */
-        .main-content {
-            display: flex;
-            flex-direction: column;
-            gap: 24px;
-        }
-
-        .section-title {
-            font-size: 1.1rem;
-            color: var(--text-bright);
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .card {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 20px;
-        }
-
-        /* 주간 일정 표 */
-        .schedule-table {
-            width: 100%;
-            border-collapse: collapse;
+            border-radius: 10px;
+            text-decoration: none;
+            color: var(--accent);
             font-size: 0.9rem;
+            text-align: center;
+            border: 1px solid transparent;
         }
 
-        .schedule-table th, .schedule-table td {
-            border: 1px solid var(--border);
-            padding: 12px;
+        .link-item:hover { border-color: var(--accent); }
+
+        /* 3. 주간 일정 (오른쪽 상단 긴 박스) */
+        .box-schedule {
+            grid-column: 2 / 4;
+            grid-row: 1 / 2;
+        }
+
+        .schedule-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 10px;
             text-align: center;
         }
 
-        .schedule-table th { background: #21262d; color: var(--accent); }
-        .today { background: rgba(88, 166, 255, 0.1); font-weight: bold; }
+        .day-box { font-size: 0.8rem; padding: 5px; background: #0f172a; border-radius: 8px; }
 
-        /* 리스트 스타일 (게시글 & 다시보기) */
-        .data-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
+        /* 4. 게시글 (중앙 하단) */
+        .box-posts {
+            grid-column: 2 / 3;
+            grid-row: 2 / 3;
         }
 
-        .list-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 12px 0;
-            border-bottom: 1px solid var(--border);
+        .post-item {
+            padding: 10px 0;
+            border-bottom: 1px solid #334155;
+            font-size: 0.9rem;
         }
 
-        .list-item:last-child { border-bottom: none; }
-        
-        .list-item a {
-            color: var(--text);
-            text-decoration: none;
-            font-size: 0.95rem;
+        /* 5. 다시보기 (우측 하단) */
+        .box-replay {
+            grid-column: 3 / 4;
+            grid-row: 2 / 3;
         }
 
-        .list-item a:hover { color: var(--accent); }
-        .date { font-size: 0.8rem; color: var(--gray); }
-
-        /* 다시보기 격자 레이아웃 */
-        .replay-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: 15px;
-        }
-
-        .replay-item {
-            text-decoration: none;
-        }
-
-        .thumb {
+        .replay-thumb {
             width: 100%;
-            aspect-ratio: 16/9;
-            background: #21262d;
-            border-radius: 6px;
-            margin-bottom: 8px;
+            height: 80px;
+            background: #0f172a;
+            border-radius: 8px;
+            margin-bottom: 10px;
         }
 
-        .replay-title {
-            font-size: 0.85rem;
-            color: var(--text);
-            display: block;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        @media (max-width: 850px) {
-            .container { grid-template-columns: 1fr; }
+        /* 모바일 대응 */
+        @media (max-width: 900px) {
+            .grid-container {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto;
+            }
+            .box-schedule, .box-posts, .box-replay { grid-column: 1 / 2; }
         }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <aside class="sidebar">
-        <div class="profile-card">
-            <div style="display: flex; justify-content: center;">
-                <div class="profile-img"></div> </div>
-            <h1 class="profile-name">방송인 이름</h1>
-            <p class="profile-bio">
-                안녕하세요! 게임과 소통을 즐기는 종합 스트리머입니다. 
-                매일 저녁 8시, 즐거운 방송으로 만나요!
-            </p>
-            
-            <div class="external-links">
-                <a href="#" class="link-item">채널 바로가기</a>
-                <a href="#" class="link-item">유튜브 다시보기</a>
-                <a href="#" class="link-item">인스타그램 (일상)</a>
-                <a href="#" class="link-item">트위터 (공지)</a>
-                <a href="#" class="link-item">투네이션 후원</a>
-            </div>
+<div class="grid-container">
+    <section class="card box-stream-info">
+        <span class="title">방송 정보</span>
+        <p style="font-size: 0.9rem; color: var(--text-dim);">현재 방송: OFF</p>
+    </section>
+
+    <section class="card box-profile">
+        <span class="title">방송인 정보</span>
+        <div class="profile-img"></div>
+        <p><strong>이름:</strong> 스트리머A</p>
+        <p style="font-size: 0.85rem; color: var(--text-dim);">
+            여기에 소개글이 들어갑니다. 최대 5줄 정도의 깔끔한 설명을 추천합니다.
+        </p>
+        
+        <div class="link-group">
+            <span class="title" style="font-size: 0.9rem; border:none; margin:0;">링크</span>
+            <a href="#" class="link-item">치지직</a>
+            <a href="#" class="link-item">유튜브</a>
+            <a href="#" class="link-item">인스타그램</a>
+            <a href="#" class="link-item">트위터</a>
+            <a href="#" class="link-item">디스코드</a>
         </div>
-    </aside>
+    </section>
 
-    <main class="main-content">
-        <section class="card">
-            <div class="section-title">📅 주간 일정 (Weekly Schedule)</div>
-            <table class="schedule-table">
-                <thead>
-                    <tr>
-                        <th>월</th><th>화</th><th>수</th><th>목</th><th>금</th><th>토</th><th>일</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>20:00</td><td class="today">20:00</td><td>휴방</td><td>20:00</td><td>20:00</td><td>18:00</td><td>휴방</td>
-                    </tr>
-                    <tr style="font-size: 0.75rem; color: var(--gray);">
-                        <td>종겜</td><td>라디오</td><td>-</td><td>신작</td><td>종겜</td><td>공포</td><td>-</td>
-                    </tr>
-                </tbody>
-            </table>
-        </section>
+    <section class="card box-schedule">
+        <span class="title">주간 일정</span>
+        <div class="schedule-grid">
+            <div class="day-box">월<br>20:00</div>
+            <div class="day-box">화<br>20:00</div>
+            <div class="day-box">수<br>휴방</div>
+            <div class="day-box">목<br>20:00</div>
+            <div class="day-box">금<br>20:00</div>
+            <div class="day-box">토<br>18:00</div>
+            <div class="day-box">일<br>휴방</div>
+        </div>
+    </section>
 
-        <section class="card">
-            <div class="section-title">📝 커뮤니티 최근 소식</div>
-            <ul class="data-list">
-                <li class="list-item">
-                    <a href="#">오늘 방송 시간 공지 드립니다.</a>
-                    <span class="date">2026.04.15</span>
-                </li>
-                <li class="list-item">
-                    <a href="#">이번 주 합방 라인업 공개!</a>
-                    <span class="date">2026.04.13</span>
-                </li>
-                <li class="list-item">
-                    <a href="#">유튜브 10만 구독자 감사합니다.</a>
-                    <span class="date">2026.04.10</span>
-                </li>
-                <li class="list-item">
-                    <a href="#">굿즈 제작 관련 수요 조사 진행 중</a>
-                    <span class="date">2026.04.08</span>
-                </li>
-                <li class="list-item">
-                    <a href="#">다음 주 휴방 일정 안내 (제주도 여행)</a>
-                    <span class="date">2026.04.05</span>
-                </li>
-            </ul>
-        </section>
+    <section class="card box-posts">
+        <span class="title">게시글</span>
+        <div class="post-item">최근 공지사항 제목입니다.</div>
+        <div class="post-item">이벤트 당첨자 발표 안내</div>
+        <div class="post-item">팬아트 게시판 베스트 소식</div>
+        <div class="post-item">굿즈 2차 판매 수량 안내</div>
+        <div class="post-item">정기 점검 관련 공지</div>
+    </section>
 
-        <section class="card">
-            <div class="section-title">🎬 최근 다시보기</div>
-            <div class="replay-grid">
-                <a href="#" class="replay-item">
-                    <div class="thumb"></div>
-                    <span class="replay-title">역대급 꿀잼 공포게임 ㅋㅋ</span>
-                </a>
-                <a href="#" class="replay-item">
-                    <div class="thumb"></div>
-                    <span class="replay-title">시청자 고민상담 라디오</span>
-                </a>
-                <a href="#" class="replay-item">
-                    <div class="thumb"></div>
-                    <span class="replay-title">[VLOG] 팬미팅 현장 스케치</span>
-                </a>
-                <a href="#" class="replay-item">
-                    <div class="thumb"></div>
-                    <span class="replay-title">신작 오픈월드 찍먹하기</span>
-                </a>
-                <a href="#" class="replay-item">
-                    <div class="thumb"></div>
-                    <span class="replay-title">도네 리액션 월드컵 1위는?</span>
-                </a>
+    <section class="card box-replay">
+        <span class="title">다시보기</span>
+        <div>
+            <div class="replay-thumb"></div>
+            <div style="font-size: 0.85rem; margin-bottom: 10px;">[다시보기] 26.04.15 방송</div>
+            <div class="replay-thumb"></div>
+            <div style="font-size: 0.85rem;">[다시보기] 26.04.14 방송</div>
             </div>
-        </section>
-    </main>
+    </section>
 </div>
 
 </body>
