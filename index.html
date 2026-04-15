@@ -303,7 +303,7 @@
                 updateEl.innerText = `갱신: ${updateTimeData}`;
             }
 
-          //  renderLinks(rows[5]);
+            renderLinks(rows[5]);
             renderPosts(rows.slice(8, 13));
             renderVODs(rows.slice(16, 21));
             renderSchedule(rows.slice(24, 29));
@@ -326,34 +326,29 @@
     // 렌더링 함수 내의 보라색 강조 효과들도 블루로 교체합니다.
     function renderLinks(extraLinks) {
         const linkBox = document.getElementById('social-links');
-       // linkBox.innerHTML = '';
-        const basicBtns = [
-            { name: '📺 방송국', url: 'https://www.sooplive.com/station/bababi' },
-            { name: '📖 노래책', url: SONG_BOOK_URL }
-        ];
-        basicBtns.forEach(btn => {
-            const a = document.createElement('a');
-            a.className = 'link-btn';
-            a.href = btn.url;
-            a.target = btn.name === '📖 노래책' ? '_self' : '_blank';
-            a.innerText = btn.name;
-            a.style.borderColor = 'var(--accent-bright)'; /* 기본 링크 테두리를 블루로 설정 */
-            linkBox.appendChild(a);
+       if (!linkBox) return;
+
+    // 1. 방송국, 노래책 버튼은 이미 HTML에 있으므로 여기서 또 만들 필요가 없습니다.
+    // 2. 이미 추가된 링크가 있는지 확인하기 위해 기존 버튼 개수를 체크합니다.
+    // (이미 추가 버튼이 있다면 중복 방지를 위해 실행하지 않음)
+    if (linkBox.querySelectorAll('.link-btn').length > 2) return;
+
+    // 3. 구글 시트에서 가져온 '추가 링크'가 있을 때만 뒤에 덧붙입니다.
+    if (extraLinks && Array.isArray(extraLinks)) {
+        extraLinks.forEach(l => {
+            if (l && l.includes(': ')) {
+                const [name, ...urlParts] = l.split(': ');
+                const a = document.createElement('a');
+                a.className = 'link-btn';
+                a.href = urlParts.join(': ').trim();
+                a.target = '_blank';
+                a.innerText = name.trim();
+                a.style.borderColor = 'var(--accent-bright)';
+                linkBox.appendChild(a);
+            }
         });
-        if (extraLinks) {
-            extraLinks.forEach(l => {
-                if (l && l.includes(': ')) {
-                    const [name, ...urlParts] = l.split(': ');
-                    const a = document.createElement('a');
-                    a.className = 'link-btn';
-                    a.href = urlParts.join(': ').trim();
-                    a.target = '_blank';
-                    a.innerText = name.trim();
-                    linkBox.appendChild(a);
-                }
-            });
-        }
     }
+}
 
     function renderPosts(data) {
         const postBox = document.getElementById('post-container');
