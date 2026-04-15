@@ -1,247 +1,303 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+    <link rel="icon" href="data:;base64,iVBORw0KGgo=">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Streamer Archive Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg: #0a0a0c;
-            --card-bg: #16161a;
-            --accent: #9147ff; /* 트위치 느낌의 퍼플 */
-            --sub-accent: #00ff7f; /* 활동 상태 강조색 */
-            --text-p: #efeff1;
-            --text-s: #adadb8;
-            --border: #26262c;
+            /* 사용자 제공 컬러 시스템 적용 */
+            --bg-color: #010306;
+            --card-bg: #030812;
+            --accent: #003366;
+            --accent-bright: #3385ff;
+            --accent-glow: rgba(0, 51, 102, 0.7);
+            --text-main: #f0faff;
+            --text-sub: #5c7285;
+            --border: #0a1425;
+            --radius-lg: 24px; /* 현대적인 둥근 모서리 */
+            --radius-md: 16px;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        /* 로딩 화면 */
+        #loading-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-color); display: flex; flex-direction: column;
+            justify-content: center; align-items: center; z-index: 9999;
+            transition: opacity 0.5s ease;
+        }
+        .loader-circle {
+            width: 40px; height: 40px; border: 3px solid var(--accent);
+            border-top: 3px solid var(--accent-bright); border-radius: 50%;
+            animation: spin 1s linear infinite; margin-bottom: 15px;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
         body { 
-            background-color: var(--bg); 
-            color: var(--text-p); 
-            font-family: 'Pretendard', -apple-system, sans-serif; 
-            padding: 20px;
-            line-height: 1.6;
+            background-color: var(--bg-color);
+            background-image: radial-gradient(circle at center, #051020 0%, #02050a 100%);
+            color: var(--text-main); font-family: 'Noto Sans KR', sans-serif;
+            margin: 0; padding: 20px; min-height: 100vh;
+            display: flex; justify-content: center;
         }
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
+        .wrapper { width: 100%; max-width: 1200px; display: flex; flex-direction: column; gap: 20px; }
+
+        /* Bento Grid Layout */
+        .bento-grid {
             display: grid;
-            grid-template-columns: 350px 1fr 300px;
+            grid-template-columns: repeat(4, 1fr);
+            grid-auto-rows: minmax(150px, auto);
             gap: 20px;
         }
 
-        /* 공통 카드 스타일 */
         .card {
             background: var(--card-bg);
-            border-radius: 16px;
+            border-radius: var(--radius-lg);
             border: 1px solid var(--border);
-            padding: 20px;
-            overflow: hidden;
-        }
-
-        .section-title {
-            font-size: 0.9rem;
-            font-weight: 700;
-            color: var(--text-s);
-            text-transform: uppercase;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .section-title::before {
-            content: '';
-            width: 3px;
-            height: 12px;
-            background: var(--accent);
-        }
-
-        /* 좌측: 프로필 섹션 */
-        .profile-side { display: flex; flex-direction: column; gap: 20px; }
-        .profile-main { text-align: center; }
-        .avatar {
-            width: 120px; height: 120px;
-            background: #2a2a2e; border-radius: 50%;
-            margin: 0 auto 15px;
-            border: 3px solid var(--accent);
-        }
-        .streamer-name { font-size: 1.5rem; font-weight: 800; }
-        .platform-tag {
-            display: inline-block;
-            background: var(--accent);
-            font-size: 0.75rem;
-            padding: 2px 8px;
-            border-radius: 4px;
-            margin-top: 5px;
-        }
-
-        /* 중앙: 콘텐츠 및 연혁 */
-        .main-content { display: flex; flex-direction: column; gap: 20px; }
-        
-        /* 통계 그리드 */
-        .stats-grid {
-            display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;
-        }
-        .stat-item { background: #1f1f23; padding: 15px; border-radius: 12px; text-align: center; }
-        .stat-value { display: block; font-size: 1.2rem; font-weight: 700; color: var(--accent); }
-        .stat-label { font-size: 0.75rem; color: var(--text-s); }
-
-        /* 타임라인 */
-        .history-list { list-style: none; }
-        .history-item {
-            padding-left: 15px;
-            border-left: 2px solid var(--border);
-            margin-bottom: 15px;
+            padding: 24px;
             position: relative;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
-        .history-item::after {
-            content: ''; position: absolute; left: -6px; top: 5px;
-            width: 10px; height: 10px; background: var(--accent); border-radius: 50%;
+        .card:hover { transform: translateY(-5px); box-shadow: 0 15px 40px rgba(0, 51, 102, 0.2); }
+
+        /* 카드 개별 크기 설정 */
+        .profile-card { grid-column: span 3; display: flex; align-items: center; gap: 30px; }
+        .status-card { grid-column: span 1; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
+        .schedule-card { grid-column: span 2; grid-row: span 2; }
+        .post-card { grid-column: span 2; }
+        .vod-card { grid-column: span 2; }
+
+        /* 프로필 요소 */
+        .profile-img { 
+            width: 100px; height: 100px; border-radius: 50%; 
+            border: 3px solid var(--accent-bright);
+            box-shadow: 0 0 20px var(--accent-glow);
+            background-size: cover; background-position: center; flex-shrink: 0;
         }
-        .h-date { font-size: 0.8rem; color: var(--accent); font-weight: 600; }
-        .h-title { font-size: 0.95rem; font-weight: 600; margin: 2px 0; }
+        .profile-info h1 { font-size: 28px; margin-bottom: 5px; color: var(--text-main); }
+        .profile-info p { color: var(--text-sub); font-size: 14px; margin-bottom: 15px; }
 
-        /* 우측: 장비 및 링크 */
-        .info-side { display: flex; flex-direction: column; gap: 20px; }
-        .spec-list { font-size: 0.85rem; }
-        .spec-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); }
-        .spec-label { color: var(--text-s); }
+        /* 버튼 스타일 */
+        .social-links { display: flex; gap: 10px; flex-wrap: wrap; }
+        .link-btn {
+            padding: 8px 16px; background: rgba(51, 133, 255, 0.1);
+            border-radius: var(--radius-md); border: 1px solid var(--accent);
+            color: var(--accent-bright); text-decoration: none; font-size: 12px; font-weight: bold;
+            transition: 0.3s;
+        }
+        .link-btn:hover { background: var(--accent-bright); color: #fff; }
 
-        /* 반응형 */
-        @media (max-width: 1100px) {
-            .container { grid-template-columns: 1fr; }
-            .profile-side, .info-side { order: 2; }
-            .main-content { order: 1; }
+        /* 타이틀 */
+        h2 { 
+            font-size: 14px; color: var(--accent-bright); letter-spacing: 1px;
+            margin-bottom: 20px; display: flex; align-items: center; gap: 8px;
+        }
+        h2::before { content: ''; width: 4px; height: 14px; background: var(--accent-bright); border-radius: 2px; }
+
+        /* 리스트 스타일 */
+        .item-row {
+            padding: 12px; border-radius: var(--radius-md);
+            background: rgba(255, 255, 255, 0.02);
+            margin-bottom: 10px; cursor: pointer; transition: 0.2s;
+            border: 1px solid transparent;
+        }
+        .item-row:hover { background: rgba(51, 133, 255, 0.05); border-color: var(--accent); }
+
+        .vod-thumb { 
+            width: 80px; height: 45px; border-radius: 8px; 
+            background: #000; background-size: cover; border: 1px solid var(--border);
+        }
+
+        .today-highlight {
+            background: rgba(51, 133, 255, 0.1) !important;
+            border: 1px solid var(--accent-bright) !important;
+        }
+
+        .badge { padding: 4px 10px; border-radius: 6px; font-size: 10px; font-weight: bold; }
+        .offline { background: #1a2638; color: var(--text-sub); }
+        .online { background: #d32f2f; color: #fff; animation: pulse 1.5s infinite; }
+
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
+
+        /* 모바일 대응 */
+        @media (max-width: 900px) {
+            .bento-grid { grid-template-columns: 1fr; }
+            .profile-card, .status-card, .schedule-card, .post-card, .vod-card { grid-column: span 1; }
+            .profile-card { flex-direction: column; text-align: center; }
         }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="profile-side">
-        <div class="card profile-main">
-            <div class="avatar"></div>
-            <h1 class="streamer-name">스트리머ID</h1>
-            <span class="platform-tag">PARTNERED</span>
-            <p style="margin-top: 15px; font-size: 0.9rem; color: var(--text-s);">
-                종합 게임 및 소통 위주의 방송을 지향하는 스트리머입니다.
-            </p>
-        </div>
-
-        <div class="card">
-            <h3 class="section-title">Streaming Schedule</h3>
-            <div style="font-size: 0.9rem;">
-                <p>📅 월/화/목/토 - 20:00 START</p>
-                <p>📅 수/금/일 - OFF (랜덤뱅)</p>
-            </div>
-        </div>
-
-        <div class="card">
-            <h3 class="section-title">Social Links</h3>
-            <div style="display: flex; flex-direction: column; gap: 8px; font-size: 0.9rem;">
-                <a href="#" style="color: #ff0000; text-decoration: none;">▶ YouTube (다시보기)</a>
-                <a href="#" style="color: #5865f2; text-decoration: none;">💬 Discord (커뮤니티)</a>
-                <a href="#" style="color: #03cf5d; text-decoration: none;">☕ Fan Cafe</a>
-            </div>
-        </div>
-    </div>
-
-    <div class="main-content">
-        <div class="stats-grid">
-            <div class="stat-item">
-                <span class="stat-label">팔로워</span>
-                <span class="stat-value">54.2K</span>
-            </div>
-            <div class="stat-item">
-                <span class="stat-label">평균 시청자</span>
-                <span class="stat-value">1,200</span>
-            </div>
-            <div class="stat-item">
-                <span class="stat-label">방송 연차</span>
-                <span class="stat-value">4년차</span>
-            </div>
-        </div>
-
-        <div class="card">
-            <h3 class="section-title">Major Milestones</h3>
-            <ul class="history-list">
-                <li class="history-item">
-                    <div class="h-date">2026.03.10</div>
-                    <div class="h-title">누적 팔로워 5만 명 달성</div>
-                </li>
-                <li class="history-item">
-                    <div class="h-date">2025.12.24</div>
-                    <div class="h-title">24시간 릴레이 기부 방송 진행</div>
-                    <div style="font-size: 0.8rem; color: var(--text-s);">총 후원금 1,500만 원 달성</div>
-                </li>
-                <li class="history-item">
-                    <div class="h-date">2024.05.01</div>
-                    <div class="h-title">SOOP 파트너 스트리머 선정</div>
-                </li>
-                <li class="history-item">
-                    <div class="h-date">2022.08.15</div>
-                    <div class="h-title">첫 방송 시작 (저챗 & 인디게임)</div>
-                </li>
-            </ul>
-        </div>
-
-        <div class="card">
-            <h3 class="section-title">Main Contents</h3>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                <div style="background: #2a2a2e; padding: 15px; border-radius: 12px;">
-                    <h4 style="color: var(--accent);">종합 게임</h4>
-                    <p style="font-size: 0.85rem; color: var(--text-s);">신작 AAA 게임 및 인디 게임 탐방</p>
-                </div>
-                <div style="background: #2a2a2e; padding: 15px; border-radius: 12px;">
-                    <h4 style="color: var(--accent);">라디오/저챗</h4>
-                    <p style="font-size: 0.85rem; color: var(--text-s);">시청자 고민 상담 및 일상 공유</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="info-side">
-        <div class="card">
-            <h3 class="section-title">Streaming PC Specs</h3>
-            <div class="spec-list">
-                <div class="spec-row">
-                    <span class="spec-label">CPU</span>
-                    <span>Ryzen 9 7950X</span>
-                </div>
-                <div class="spec-row">
-                    <span class="spec-label">GPU</span>
-                    <span>RTX 4090 24GB</span>
-                </div>
-                <div class="spec-row">
-                    <span class="spec-label">RAM</span>
-                    <span>64GB DDR5</span>
-                </div>
-                <div class="spec-row">
-                    <span class="spec-label">Mic</span>
-                    <span>Shure SM7B</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="card">
-            <h3 class="section-title">Fan Memes & Slang</h3>
-            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
-                <span style="background: #2a2a2e; padding: 4px 10px; border-radius: 20px; font-size: 0.8rem;">#레전드사건</span>
-                <span style="background: #2a2a2e; padding: 4px 10px; border-radius: 20px; font-size: 0.8rem;">#ㄱㅇㅇ</span>
-                <span style="background: #2a2a2e; padding: 4px 10px; border-radius: 20px; font-size: 0.8rem;">#방종송</span>
-                <span style="background: #2a2a2e; padding: 4px 10px; border-radius: 20px; font-size: 0.8rem;">#억까금지</span>
-            </div>
-        </div>
-
-        <div class="card" style="background: linear-gradient(135deg, #9147ff, #772ce8); border: none;">
-            <p style="font-size: 0.85rem; font-weight: 700;">Broadcast Status</p>
-            <div style="font-size: 1.2rem; font-weight: 800; margin-top: 5px;">Currently Offline</div>
-        </div>
-    </div>
+<div id="loading-overlay">
+    <div class="loader-circle"></div>
+    <div class="loader-text" style="color: var(--text-sub); font-size: 12px;">아카이브 동기화 중...</div>
 </div>
 
+<div class="wrapper">
+    <div class="bento-grid">
+        <div class="card profile-card">
+            <div class="profile-img" id="profile-img-target"></div>
+            <div class="profile-info">
+                <h1 id="user-nick">Loading...</h1>
+                <p id="user-desc">스트리머 정보를 불러오고 있습니다.</p>
+                <div class="social-links" id="social-links">
+                    <a href="https://www.sooplive.com/station/bababi" class="link-btn" target="_blank">📺 방송국</a>
+                    <a href="songlist.html" class="link-btn" target="_self">📖 노래책</a>
+                    <div id="extra-links-target" style="display: flex; gap: 10px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card status-card" id="status-box">
+            <div class="badge offline">CHECKING</div>
+            <div id="stream-title-inline" style="margin: 10px 0; font-weight: bold;">연결 중...</div>
+            <div id="last-stream-time" style="font-size: 11px; color: var(--text-sub);">최근 방송 정보 없음</div>
+        </div>
+
+        <div class="card schedule-card">
+            <h2>📅 WEEKLY SCHEDULE</h2>
+            <div id="schedule-container"></div>
+        </div>
+
+        <div class="card post-card" id="post-container">
+            <h2>📢 RECENT POSTS</h2>
+        </div>
+
+        <div class="card vod-card" id="vod-container">
+            <h2>🎬 RECENT VODS</h2>
+        </div>
+    </div>
+
+    <footer style="text-align: center; color: var(--text-sub); font-size: 11px; margin-top: 20px; opacity: 0.6;">
+        <p>Fan Archive Project © 2026. All data is synchronized from official channels.</p>
+    </footer>
+</div>
+
+<script>
+    /* 기존 TSV 로직 유지 (데이터 필드 매핑 및 렌더링) */
+    const TSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTQ3nX6onmaf-ZHhXGox2s4ChGos7ki7iFjQ_47lArZR6dV935gCIbLbvlDDAS65rTEnswSLIk_7v3R/pub?gid=0&single=true&output=tsv';
+
+    async function init() {
+        const overlay = document.getElementById('loading-overlay');
+        try {
+            const response = await fetch(`${TSV_URL}&t=${new Date().getTime()}`);
+            const text = await response.text();
+            const rows = text.split(/\r?\n/).map(row => row.split('\t'));
+
+            // 1. 프로필 업데이트
+            const profile = rows[2];
+            if (profile) {
+                document.getElementById('user-nick').innerText = profile[0];
+                document.getElementById('user-desc').innerText = profile[1];
+                document.getElementById('profile-img-target').style.backgroundImage = `url('${profile[2]}')`;
+            }
+
+            // 2. 라이브 상태 업데이트
+            const liveData = rows[6];
+            const statusBox = document.getElementById('status-box');
+            const isOnline = liveData && liveData[5] !== "방송 정보 없음" && liveData[5] !== undefined;
+
+            if (isOnline) {
+                statusBox.innerHTML = `
+                    <div class="badge online">LIVE</div>
+                    <a href="https://play.sooplive.com/bababi" target="_blank" style="color:var(--accent-bright); font-weight:bold; text-decoration:none; margin:10px 0; display:block;">${liveData[5]}</a>
+                    <div style="font-size:11px; color:var(--text-sub);">시작: ${liveData[6]}</div>
+                `;
+            } else {
+                statusBox.innerHTML = `
+                    <div class="badge offline">OFFLINE</div>
+                    <div style="margin:10px 0; font-weight:bold; color:var(--text-sub);">방송 준비 중</div>
+                    <div style="font-size:11px; color:var(--text-sub);">최근: ${profile ? profile[3] : '확인 중'}</div>
+                `;
+            }
+
+            // 3. 각 섹션 렌더링
+            renderLinks(rows[5]);
+            renderPosts(rows.slice(8, 13));
+            renderVODs(rows.slice(16, 21));
+            renderSchedule(rows.slice(24, 29));
+
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setTimeout(() => { 
+                overlay.style.opacity = '0'; 
+                setTimeout(() => overlay.style.visibility = 'hidden', 500);
+            }, 800);
+        }
+    }
+
+    function renderLinks(extraLinks) {
+        const target = document.getElementById('extra-links-target');
+        target.innerHTML = '';
+        if (extraLinks) {
+            extraLinks.forEach(l => {
+                if (!l || !l.includes(': ')) return;
+                const [name, url] = l.split(': ');
+                const a = document.createElement('a');
+                a.className = 'link-btn';
+                a.href = url.trim();
+                a.target = '_blank';
+                a.innerText = name.trim();
+                target.appendChild(a);
+            });
+        }
+    }
+
+    function renderPosts(data) {
+        const container = document.getElementById('post-container');
+        let html = '<h2>📢 RECENT POSTS</h2>';
+        data.filter(p => p[1]).forEach(p => {
+            html += `
+                <div class="item-row" onclick="window.open('${p[2]}', '_blank')">
+                    <div style="font-size:10px; color:var(--text-sub);">${p[0]}</div>
+                    <div style="font-size:13px; font-weight:500;">${p[3] === 'O' ? '📌 ' : ''}${p[1]}</div>
+                </div>`;
+        });
+        container.innerHTML = html;
+    }
+
+    function renderVODs(data) {
+        const container = document.getElementById('vod-container');
+        let html = '<h2>🎬 RECENT VODS</h2>';
+        data.filter(v => v[1]).forEach(v => {
+            html += `
+                <div class="item-row" onclick="window.open('${v[2]}', '_blank')" style="display:flex; gap:15px; align-items:center;">
+                    <div class="vod-thumb" style="background-image:url('${v[3]}')"></div>
+                    <div>
+                        <div style="font-size:10px; color:var(--text-sub);">${v[0]}</div>
+                        <div style="font-size:12px; font-weight:500;">${v[1]}</div>
+                    </div>
+                </div>`;
+        });
+        container.innerHTML = html;
+    }
+
+    function renderSchedule(data) {
+        const container = document.getElementById('schedule-container');
+        const todayStr = new Date().toLocaleDateString('en-CA');
+        let html = '';
+        data.forEach(row => {
+            if (!row[0]) return;
+            const isToday = row[0].trim() === todayStr;
+            html += `
+                <div class="item-row ${isToday ? 'today-highlight' : ''}" style="display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <span style="font-size:11px; font-weight:bold; color:${isToday ? 'var(--accent-bright)' : 'var(--text-sub)'}">${row[0]} (${row[1]})</span>
+                        <div style="font-size:13px; margin-top:2px;">${row[2] ? `<b style="color:var(--accent-bright)">${row[2]}</b> ` : ''}${row[3] || '일정 없음'}</div>
+                    </div>
+                    <div style="font-size:10px; color:var(--text-sub); text-align:right;">${row[4] || ''}</div>
+                </div>`;
+        });
+        container.innerHTML = html;
+    }
+
+    window.onload = () => { init(); setInterval(init, 60000); };
+</script>
 </body>
 </html>
