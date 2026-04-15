@@ -24,41 +24,38 @@
             justify-content: center;
         }
 
-        /* 손그림 비율을 맞춘 그리드 설정 */
+        /* 손그림 구조: 좌측(세로 2단), 우측(상단 1단, 하단 2분할) */
         .container {
             display: grid;
-            grid-template-columns: 320px 1fr 1fr; /* 왼쪽 고정폭, 오른쪽 자동분할 */
-            grid-template-rows: 140px 1fr; /* 상단 박스 높이 고정 */
+            grid-template-columns: 300px 1fr 1fr; 
+            grid-template-rows: 130px 1fr; 
             gap: 20px;
-            max-width: 1300px;
+            max-width: 1200px;
             width: 100%;
-            height: auto;
         }
 
         .card {
             background: var(--card);
             border: 1px solid var(--border);
-            border-radius: 28px; /* 손그림 특유의 둥근 모서리 강조 */
-            padding: 25px;
+            border-radius: 24px; /* 그림처럼 둥근 모서리 */
+            padding: 24px;
             display: flex;
             flex-direction: column;
         }
 
         .box-title {
-            font-size: 1.15rem;
+            font-size: 1.1rem;
             font-weight: 800;
             color: var(--text-title);
             margin-bottom: 18px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border);
         }
 
         /* 1. 방송 정보 (좌측 상단) */
         .box-stream {
             grid-column: 1 / 2;
             grid-row: 1 / 2;
-            justify-content: center;
         }
 
         /* 2. 방송인 정보 & 링크 (좌측 하단) */
@@ -69,101 +66,96 @@
 
         .profile-img {
             width: 100%;
-            aspect-ratio: 1.2 / 1; /* 약간 가로가 긴 사각형 */
+            aspect-ratio: 1 / 1;
             background: #21262d;
-            border-radius: 15px;
+            border-radius: 16px;
+            margin-bottom: 15px;
+        }
+
+        .bio-text {
+            font-size: 0.9rem;
+            line-height: 1.5;
+            color: #8b949e;
             margin-bottom: 20px;
         }
 
         .link-list {
-            margin-top: auto; /* 링크를 박스 하단으로 밀어냄 */
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 10px;
+            margin-top: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
         }
 
         .link-btn {
             background: #21262d;
             color: var(--text-main);
             text-decoration: none;
-            padding: 12px;
-            border-radius: 12px;
+            padding: 10px;
+            border-radius: 8px;
             font-size: 0.85rem;
             text-align: center;
             border: 1px solid var(--border);
-            transition: 0.2s;
         }
 
         .link-btn:hover { border-color: var(--accent); color: var(--accent); }
 
-        /* 3. 주간 일정 (우측 상단 전체) */
+        /* 3. 주간 일정 (우측 상단 가로박스) */
         .box-schedule {
             grid-column: 2 / 4;
             grid-row: 1 / 2;
-            justify-content: center;
         }
 
-        .schedule-row {
+        .schedule-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
-            gap: 12px;
+            gap: 8px;
+            height: 100%;
+            align-items: center;
         }
 
-        .day-card {
+        .day-item {
             background: #0d1117;
-            padding: 12px 5px;
+            padding: 10px 0;
             border-radius: 12px;
             text-align: center;
             font-size: 0.8rem;
-            border: 1px solid #21262d;
         }
 
-        /* 4. 게시글 & 5. 다시보기 (우측 하단 분할) */
+        /* 4. 게시글 & 5. 다시보기 (하단 리스트) */
         .box-posts, .box-replay {
             grid-row: 2 / 3;
-            min-height: 500px; /* 게시글/다시보기 5개가 넉넉히 들어가는 높이 */
         }
 
-        /* 게시글 아이템 스타일 */
-        .post-item {
-            padding: 15px 5px;
+        .item-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .list-row {
+            padding: 14px 5px;
             border-bottom: 1px solid #21262d;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             display: flex;
             justify-content: space-between;
+            align-items: center;
         }
 
-        /* 다시보기 아이템 스타일 */
-        .replay-item {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            margin-bottom: 20px;
+        .list-row:last-child { border-bottom: none; }
+
+        .list-row .date {
+            font-size: 0.75rem;
+            color: #8b949e;
         }
 
-        .thumb-box {
-            width: 100%;
-            aspect-ratio: 16 / 9;
-            background: #21262d;
-            border-radius: 10px;
-        }
-
-        .replay-title {
-            font-size: 0.9rem;
+        .list-row .title-text {
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            margin-right: 10px;
         }
 
-        /* 스크롤바 커스텀 */
-        .scroll-area {
-            overflow-y: auto;
-            padding-right: 5px;
-        }
-        .scroll-area::-webkit-scrollbar { width: 4px; }
-        .scroll-area::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
-
-        @media (max-width: 1000px) {
+        @media (max-width: 950px) {
             .container { grid-template-columns: 1fr; grid-template-rows: auto; }
             .box-schedule, .box-posts, .box-replay { grid-column: 1 / 2; }
         }
@@ -173,62 +165,58 @@
 
 <div class="container">
     <div class="card box-stream">
-        <span class="box-title">📡 방송 정보</span>
-        <div style="font-size: 0.9rem; border-left: 3px solid var(--accent); padding-left: 10px;">
-            현재 방송 중이 아닙니다
-        </div>
+        <span class="box-title" style="border:none; margin:0;">방송 정보</span>
+        <div style="font-size: 0.9rem; color: #3fb950; font-weight: bold;">● Online</div>
     </div>
 
     <div class="card box-profile">
-        <span class="box-title">👤 방송인 정보</span>
+        <span class="box-title">방송인 정보</span>
         <div class="profile-img"></div>
-        <p style="margin: 0 0 10px 0; font-size: 1.2rem; font-weight: bold;">스트리머 이름</p>
-        <p style="font-size: 0.9rem; line-height: 1.6; color: #8b949e;">
-            게임과 일상을 공유하는 아카이브 공간입니다. 게시글과 다시보기를 확인해보세요.
-        </p>
+        <p style="margin: 0 0 8px 0; font-weight: bold;">스트리머 이름</p>
+        <p class="bio-text">안녕하세요! 게임과 소통을 즐기는 방송인입니다. 아카이브에 오신 걸 환영해요!</p>
         
         <div class="link-list">
-            <span style="font-size: 0.8rem; font-weight: bold; color: var(--gray); margin-bottom: 5px;">🔗 외부 링크</span>
-            <a href="#" class="link-btn">치지직(Chzzk)</a>
-            <a href="#" class="link-btn">유튜브(YouTube)</a>
+            <span style="font-size: 0.75rem; color: #8b949e; margin-bottom: 5px;">링크</span>
+            <a href="#" class="link-btn">방송국</a>
+            <a href="#" class="link-btn">유튜브</a>
             <a href="#" class="link-btn">인스타그램</a>
-            <a href="#" class="link-btn">공식 카페</a>
+            <a href="#" class="link-btn">공식카페</a>
             <a href="#" class="link-btn">디스코드</a>
         </div>
     </div>
 
     <div class="card box-schedule">
-        <span class="box-title">📅 주간 일정</span>
-        <div class="schedule-row">
-            <div class="day-card">월<br><b>20:00</b></div>
-            <div class="day-card">화<br><b>20:00</b></div>
-            <div class="day-card" style="color:#f85149">수<br><b>휴방</b></div>
-            <div class="day-card">목<br><b>20:00</b></div>
-            <div class="day-card">금<br><b>20:00</b></div>
-            <div class="day-card">토<br><b>18:00</b></div>
-            <div class="day-card" style="color:#f85149">일<br><b>휴방</b></div>
+        <span class="box-title" style="border:none; margin:0 0 10px 0; font-size: 1rem;">주간 일정</span>
+        <div class="schedule-grid">
+            <div class="day-item">월<br>20:00</div>
+            <div class="day-item">화<br>20:00</div>
+            <div class="day-item" style="color: #f85149;">수<br>휴방</div>
+            <div class="day-item">목<br>20:00</div>
+            <div class="day-item">금<br>20:00</div>
+            <div class="day-item">토<br>18:00</div>
+            <div class="day-item" style="color: #f85149;">일<br>휴방</div>
         </div>
     </div>
 
     <div class="card box-posts">
-        <span class="box-title">📝 게시글</span>
-        <div class="scroll-area">
-            <div class="post-item"><span>공지사항: 이번 주 방송 일정 안내</span><small>04.15</small></div>
-            <div class="post-item"><span>새로운 굿즈 샘플이 나왔어요!</span><small>04.14</small></div>
-            <div class="post-item"><span>어제 공포게임 하이라이트 (유튜브)</span><small>04.12</small></div>
-            <div class="post-item"><span>팬아트 게시판 4월 베스트 선정</span><small>04.10</small></div>
-            <div class="post-item"><span>질문 답변(Q&A) 영상 업로드 예고</span><small>04.08</small></div>
+        <span class="box-title">게시글</span>
+        <div class="item-list">
+            <div class="list-row"><span class="title-text">오늘 방송 시간 변경 안내</span><span class="date">04.15</span></div>
+            <div class="list-row"><span class="title-text">새로운 굿즈 펀딩 시작했습니다!</span><span class="date">04.14</span></div>
+            <div class="list-row"><span class="title-text">공포게임 하이라이트 편집본 업로드</span><span class="date">04.12</span></div>
+            <div class="list-row"><span class="title-text">팬아트 게시판 4월 명예의 전당</span><span class="date">04.10</span></div>
+            <div class="list-row"><span class="title-text">다음 주 장기 휴방 관련 공지</span><span class="date">04.08</span></div>
         </div>
     </div>
 
     <div class="card box-replay">
-        <span class="box-title">🎬 다시보기</span>
-        <div class="scroll-area">
-            <div class="replay-item"><div class="thumb-box"></div><div class="replay-title">역대급 매운맛 게임 도전기</div></div>
-            <div class="replay-item"><div class="thumb-box"></div><div class="replay-title">시청자 고민상담 라디오 #22</div></div>
-            <div class="replay-item"><div class="thumb-box"></div><div class="replay-title">배달음식 월드컵 64강전</div></div>
-            <div class="replay-item"><div class="thumb-box"></div><div class="replay-title">신작 오픈월드 RPG 찍먹</div></div>
-            <div class="replay-item"><div class="thumb-box"></div><div class="replay-title">일상 브이로그: 편집실 비하인드</div></div>
+        <span class="box-title">다시보기</span>
+        <div class="item-list">
+            <div class="list-row"><span class="title-text">최신 다시보기: 월요병 타파 방송</span><span class="date">04.14</span></div>
+            <div class="list-row"><span class="title-text">엔딩까지 달린 그 게임 (막방)</span><span class="date">04.13</span></div>
+            <div class="list-row"><span class="title-text">시청자 고민상담 라디오 15화</span><span class="date">04.11</span></div>
+            <div class="list-row"><span class="title-text">새벽 감성 노래방 & 수다타임</span><span class="date">04.09</span></div>
+            <div class="list-row"><span class="title-text">신작 RPG 오픈런 10시간 정주행</span><span class="date">04.07</span></div>
         </div>
     </div>
 </div>
