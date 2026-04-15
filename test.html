@@ -3,251 +3,244 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Personal Archive - Identity</title>
+    <title>Streamer Archive Dashboard</title>
     <style>
         :root {
-            --bg: #0f1012;
-            --surface: #1a1c1e;
-            --primary: #d4d4d8;
-            --accent: #6366f1;
-            --text-dim: #a1a1aa;
-            --border: rgba(255, 255, 255, 0.08);
+            --bg: #0a0a0c;
+            --card-bg: #16161a;
+            --accent: #9147ff; /* 트위치/치지직 느낌의 퍼플 */
+            --sub-accent: #00ff7f; /* 활동 상태 강조색 */
+            --text-p: #efeff1;
+            --text-s: #adadb8;
+            --border: #26262c;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { 
             background-color: var(--bg); 
-            color: var(--primary); 
-            font-family: 'Pretendard', sans-serif; 
-            padding: 40px 20px;
-            display: flex;
-            justify-content: center;
+            color: var(--text-p); 
+            font-family: 'Pretendard', -apple-system, sans-serif; 
+            padding: 20px;
+            line-height: 1.6;
         }
 
-        .dossier-container {
-            max-width: 1100px;
-            width: 100%;
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
             display: grid;
-            grid-template-columns: 320px 1fr;
-            gap: 30px;
-        }
-
-        /* Sidebar: Profile Summary */
-        .sidebar {
-            display: flex;
-            flex-direction: column;
+            grid-template-columns: 350px 1fr 300px;
             gap: 20px;
         }
 
-        .profile-card {
-            background: var(--surface);
-            border-radius: 24px;
-            padding: 30px;
+        /* 공통 카드 스타일 */
+        .card {
+            background: var(--card-bg);
+            border-radius: 16px;
             border: 1px solid var(--border);
-            text-align: center;
-        }
-
-        .profile-image {
-            width: 120px;
-            height: 120px;
-            background: linear-gradient(45deg, var(--accent), #a855f7);
-            border-radius: 50%;
-            margin: 0 auto 20px;
-        }
-
-        .name { font-size: 1.5rem; font-weight: 700; margin-bottom: 5px; }
-        .tagline { color: var(--text-dim); font-size: 0.9rem; margin-bottom: 20px; }
-
-        .meta-info {
-            text-align: left;
-            border-top: 1px solid var(--border);
-            padding-top: 20px;
-            font-size: 0.85rem;
-        }
-
-        .meta-item { display: flex; justify-content: space-between; margin-bottom: 10px; }
-        .meta-label { color: var(--text-dim); }
-
-        /* Main Content: Detailed Records */
-        .main-content {
-            display: flex;
-            flex-direction: column;
-            gap: 25px;
-        }
-
-        .section {
-            background: var(--surface);
-            border-radius: 24px;
-            padding: 30px;
-            border: 1px solid var(--border);
+            padding: 20px;
+            overflow: hidden;
         }
 
         .section-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-bottom: 20px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--text-s);
+            text-transform: uppercase;
+            margin-bottom: 15px;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
         }
 
         .section-title::before {
             content: '';
-            width: 4px;
-            height: 16px;
-            background: var(--accent);
-            border-radius: 2px;
-        }
-
-        /* Timeline Style */
-        .timeline {
-            position: relative;
-            padding-left: 20px;
-        }
-
-        .timeline::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 5px;
-            bottom: 5px;
-            width: 1px;
-            background: var(--border);
-        }
-
-        .timeline-item {
-            position: relative;
-            margin-bottom: 25px;
-        }
-
-        .timeline-item::before {
-            content: '';
-            position: absolute;
-            left: -23.5px;
-            top: 6px;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
+            width: 3px;
+            height: 12px;
             background: var(--accent);
         }
 
-        .date { font-size: 0.8rem; color: var(--accent); font-weight: 600; }
-        .event { font-weight: 500; margin: 4px 0; }
-        .desc { font-size: 0.9rem; color: var(--text-dim); }
-
-        /* Grid for Cards */
-        .bento-inner {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
+        /* 좌측: 프로필 섹션 */
+        .profile-side { display: flex; flex-direction: column; gap: 20px; }
+        .profile-main { text-align: center; }
+        .avatar {
+            width: 120px; height: 120px;
+            background: #2a2a2e; border-radius: 50%;
+            margin: 0 auto 15px;
+            border: 3px solid var(--accent);
+        }
+        .streamer-name { font-size: 1.5rem; font-weight: 800; }
+        .platform-tag {
+            display: inline-block;
+            background: var(--accent);
+            font-size: 0.75rem;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-top: 5px;
         }
 
-        .attribute-card {
-            background: rgba(255, 255, 255, 0.03);
-            padding: 15px;
-            border-radius: 12px;
+        /* 중앙: 콘텐츠 및 연혁 */
+        .main-content { display: flex; flex-direction: column; gap: 20px; }
+        
+        /* 통계 그리드 */
+        .stats-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;
         }
+        .stat-item { background: #1f1f23; padding: 15px; border-radius: 12px; text-align: center; }
+        .stat-value { display: block; font-size: 1.2rem; font-weight: 700; color: var(--accent); }
+        .stat-label { font-size: 0.75rem; color: var(--text-s); }
 
-        .attribute-header { font-size: 0.8rem; color: var(--text-dim); margin-bottom: 8px; }
-        .attribute-value { font-weight: 600; }
+        /* 타임라인 */
+        .history-list { list-style: none; }
+        .history-item {
+            padding-left: 15px;
+            border-left: 2px solid var(--border);
+            margin-bottom: 15px;
+            position: relative;
+        }
+        .history-item::after {
+            content: ''; position: absolute; left: -6px; top: 5px;
+            width: 10px; height: 10px; background: var(--accent); border-radius: 50%;
+        }
+        .h-date { font-size: 0.8rem; color: var(--accent); font-weight: 600; }
+        .h-title { font-size: 0.95rem; font-weight: 600; margin: 2px 0; }
 
-        @media (max-width: 850px) {
-            .dossier-container { grid-template-columns: 1fr; }
-            .sidebar { position: static; }
+        /* 우측: 장비 및 링크 */
+        .info-side { display: flex; flex-direction: column; gap: 20px; }
+        .spec-list { font-size: 0.85rem; }
+        .spec-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); }
+        .spec-label { color: var(--text-s); }
+
+        /* 반응형 */
+        @media (max-width: 1100px) {
+            .container { grid-template-columns: 1fr; }
+            .profile-side, .info-side { order: 2; }
+            .main-content { order: 1; }
         }
     </style>
 </head>
 <body>
 
-<div class="dossier-container">
-    <aside class="sidebar">
-        <div class="profile-card">
-            <div class="profile-image"></div>
-            <h2 class="name">김한결 (Gyeol Kim)</h2>
-            <p class="tagline">Strategic Planner & Archivist</p>
-            
-            <div class="meta-info">
-                <div class="meta-item">
-                    <span class="meta-label">ID</span>
-                    <span>#ARK-2026-04</span>
-                </div>
-                <div class="meta-item">
-                    <span class="meta-label">Location</span>
-                    <span>Seoul, KR</span>
-                </div>
-                <div class="meta-item">
-                    <span class="meta-label">Status</span>
-                    <span style="color: #4ade80;">● Active</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="section">
-            <h3 class="section-title">Key Attributes</h3>
-            <div class="bento-inner">
-                <div class="attribute-card">
-                    <div class="attribute-header">MBTI</div>
-                    <div class="attribute-value">INTJ</div>
-                </div>
-                <div class="attribute-card">
-                    <div class="attribute-header">Expertise</div>
-                    <div class="attribute-value">UX Strategy</div>
-                </div>
-            </div>
-        </div>
-    </aside>
-
-    <main class="main-content">
-        <section class="section">
-            <h3 class="section-title">Life Milestone</h3>
-            <div class="timeline">
-                <div class="timeline-item">
-                    <div class="date">2026 - Present</div>
-                    <div class="event">데이터 아카이빙 솔루션 프로젝트 리드</div>
-                    <div class="desc">개인화된 정보 구조 설계 및 자동화 시스템 구축 진행 중.</div>
-                </div>
-                <div class="timeline-item">
-                    <div class="date">2023 - 2025</div>
-                    <div class="event">글로벌 테크 에이전시 시니어 디자이너</div>
-                    <div class="desc">다국적 기업의 브랜딩 및 디지털 가이드라인 수립 총괄.</div>
-                </div>
-                <div class="timeline-item">
-                    <div class="date">2021</div>
-                    <div class="event">디지털 미디어 디자인 학사 졸업</div>
-                    <div class="desc">시각 정보 디자인 및 인간 심리 상호작용 전공.</div>
-                </div>
-            </div>
-        </section>
-
-        <section class="section">
-            <h3 class="section-title">Detailed Records</h3>
-            <div class="bento-inner">
-                <div class="attribute-card" style="grid-column: span 2;">
-                    <div class="attribute-header">Core Philosophy</div>
-                    <div class="attribute-value" style="font-weight: 400; line-height: 1.6;">
-                        "정보는 축적될 때가 아니라, 분류되고 연결될 때 가치를 지닌다."<br>
-                        이 인물은 모든 데이터를 체계화하여 직관적인 통찰을 이끌어내는 것을 최우선으로 함.
-                    </div>
-                </div>
-                <div class="attribute-card">
-                    <div class="attribute-header">Favorite Tools</div>
-                    <div class="attribute-value">Figma, Notion, Obsidian</div>
-                </div>
-                <div class="attribute-card">
-                    <div class="attribute-header">Interests</div>
-                    <div class="attribute-value">GenAI, Typography</div>
-                </div>
-            </div>
-        </section>
-
-        <section class="section" style="background: rgba(99, 102, 241, 0.05); border-color: var(--accent);">
-            <h3 class="section-title">Administrative Notes</h3>
-            <p style="font-size: 0.9rem; color: var(--text-dim);">
-                이 페이지의 정보는 2026년 4월 15일에 마지막으로 업데이트되었습니다. <br>
-                추가적인 프로젝트 로그는 별도의 데이터베이스 링크를 참조하십시오.
+<div class="container">
+    <div class="profile-side">
+        <div class="card profile-main">
+            <div class="avatar"></div>
+            <h1 class="streamer-name">스트리머ID</h1>
+            <span class="platform-tag">PARTNERED</span>
+            <p style="margin-top: 15px; font-size: 0.9rem; color: var(--text-s);">
+                종합 게임 및 소통 위주의 방송을 지향하는 스트리머입니다.
             </p>
-        </section>
-    </main>
+        </div>
+
+        <div class="card">
+            <h3 class="section-title">Streaming Schedule</h3>
+            <div style="font-size: 0.9rem;">
+                <p>📅 월/화/목/토 - 20:00 START</p>
+                <p>📅 수/금/일 - OFF (랜덤뱅)</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3 class="section-title">Social Links</h3>
+            <div style="display: flex; flex-direction: column; gap: 8px; font-size: 0.9rem;">
+                <a href="#" style="color: #ff0000; text-decoration: none;">▶ YouTube (다시보기)</a>
+                <a href="#" style="color: #5865f2; text-decoration: none;">💬 Discord (커뮤니티)</a>
+                <a href="#" style="color: #03cf5d; text-decoration: none;">☕ Fan Cafe</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="stats-grid">
+            <div class="stat-item">
+                <span class="stat-label">팔로워</span>
+                <span class="stat-value">54.2K</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">평균 시청자</span>
+                <span class="stat-value">1,200</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">방송 연차</span>
+                <span class="stat-value">4년차</span>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3 class="section-title">Major Milestones</h3>
+            <ul class="history-list">
+                <li class="history-item">
+                    <div class="h-date">2026.03.10</div>
+                    <div class="h-title">누적 팔로워 5만 명 달성</div>
+                </li>
+                <li class="history-item">
+                    <div class="h-date">2025.12.24</div>
+                    <div class="h-title">24시간 릴레이 기부 방송 진행</div>
+                    <div style="font-size: 0.8rem; color: var(--text-s);">총 후원금 1,500만 원 달성</div>
+                </li>
+                <li class="history-item">
+                    <div class="h-date">2024.05.01</div>
+                    <div class="h-title">치지직 파트너 스트리머 선정</div>
+                </li>
+                <li class="history-item">
+                    <div class="h-date">2022.08.15</div>
+                    <div class="h-title">첫 방송 시작 (저챗 & 인디게임)</div>
+                </li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h3 class="section-title">Main Contents</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div style="background: #2a2a2e; padding: 15px; border-radius: 12px;">
+                    <h4 style="color: var(--accent);">종합 게임</h4>
+                    <p style="font-size: 0.85rem; color: var(--text-s);">신작 AAA 게임 및 인디 게임 탐방</p>
+                </div>
+                <div style="background: #2a2a2e; padding: 15px; border-radius: 12px;">
+                    <h4 style="color: var(--accent);">라디오/저챗</h4>
+                    <p style="font-size: 0.85rem; color: var(--text-s);">시청자 고민 상담 및 일상 공유</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="info-side">
+        <div class="card">
+            <h3 class="section-title">Streaming PC Specs</h3>
+            <div class="spec-list">
+                <div class="spec-row">
+                    <span class="spec-label">CPU</span>
+                    <span>Ryzen 9 7950X</span>
+                </div>
+                <div class="spec-row">
+                    <span class="spec-label">GPU</span>
+                    <span>RTX 4090 24GB</span>
+                </div>
+                <div class="spec-row">
+                    <span class="spec-label">RAM</span>
+                    <span>64GB DDR5</span>
+                </div>
+                <div class="spec-row">
+                    <span class="spec-label">Mic</span>
+                    <span>Shure SM7B</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3 class="section-title">Fan Memes & Slang</h3>
+            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                <span style="background: #2a2a2e; padding: 4px 10px; border-radius: 20px; font-size: 0.8rem;">#레전드사건</span>
+                <span style="background: #2a2a2e; padding: 4px 10px; border-radius: 20px; font-size: 0.8rem;">#ㄱㅇㅇ</span>
+                <span style="background: #2a2a2e; padding: 4px 10px; border-radius: 20px; font-size: 0.8rem;">#방종송</span>
+                <span style="background: #2a2a2e; padding: 4px 10px; border-radius: 20px; font-size: 0.8rem;">#억까금지</span>
+            </div>
+        </div>
+
+        <div class="card" style="background: linear-gradient(135deg, #9147ff, #772ce8); border: none;">
+            <p style="font-size: 0.85rem; font-weight: 700;">Broadcast Status</p>
+            <div style="font-size: 1.2rem; font-weight: 800; margin-top: 5px;">Currently Offline</div>
+        </div>
+    </div>
 </div>
 
 </body>
