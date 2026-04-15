@@ -8,67 +8,63 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
     <style>
         /* 로딩 바 컨테이너 */
-/* 화면 전체를 덮는 로딩 레이어 */
-#loading-overlay {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: rgba(1, 3, 6, 0.8); /* 배경을 약간 어둡게 */
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    z-index: 9999;
-    transition: opacity 0.5s ease;
-    visibility: visible;
-}
+        #loading-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(1, 3, 6, 0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease;
+            visibility: visible;
+        }
 
-/* 로딩 애니메이션 (원형 스피너) */
-.loader-circle {
-    width: 50px;
-    height: 50px;
-    border: 3px solid var(--accent);
-    border-top: 3px solid var(--accent-bright);
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin-bottom: 15px;
-    box-shadow: 0 0 15px var(--accent-glow);
-}
+        .loader-circle {
+            width: 50px;
+            height: 50px;
+            border: 3px solid var(--accent);
+            border-top: 3px solid var(--accent-bright);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 15px;
+            box-shadow: 0 0 15px var(--accent-glow);
+        }
 
-/* 로딩 글자 애니메이션 */
-.loader-text {
-    color: var(--accent-bright);
-    font-size: 14px;
-    letter-spacing: 2px;
-    font-weight: bold;
-    animation: pulse 1.5s infinite;
-}
+        .loader-text {
+            color: var(--accent-bright);
+            font-size: 14px;
+            letter-spacing: 2px;
+            font-weight: bold;
+            animation: pulse 1.5s infinite;
+        }
 
-@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
         
         :root {
-            /* 기존 트위치 테마색을 깊은 바다 테마색으로 변경 */
-            --bg-color: #010306;          /* 깊은 바다 블랙 배경 */
-            --card-bg: #030812;            /* 미드나잇 블루 카드 배경 */
-            --accent: #003366;          /* 메인 감청색 (링크 테두리 등) */
-            --accent-bright: #3385ff;    /* 강조 포인트 블루 (제목, 텍스트) */
+            --bg-color: #010306;
+            --card-bg: #030812;
+            --accent: #003366;
+            --accent-bright: #3385ff;
             --accent-glow: rgba(0, 51, 102, 0.7);
-            --text-main: #f0faff;         /* 아이스 화이트 메인 텍스트 */
-            --text-sub: #5c7285;          /* 차분한 블루 그레이 서브 텍스트 */
-            --border: #0a1425;            /* 어두운 네이비 테두리 */
+            --text-main: #f0faff;
+            --text-sub: #5c7285;
+            --border: #0a1425;
         }
 
         body { 
             background-color: var(--bg-color); 
-            /* 타이머와 동일한 배경 그라데이션 적용 */
             background-image: radial-gradient(circle at center, #051020 0%, #02050a 100%);
             color: var(--text-main); 
             font-family: 'Noto Sans KR', sans-serif; 
             margin: 0; padding: 10px;
-            display: flex; justify-content: center; align-items: center; 
+            display: flex; justify-content: center; align-items: flex-start; /* 상단부터 정렬 */
             min-height: 100vh; box-sizing: border-box;
-            overflow: hidden;
+            overflow-y: auto !important; /* 모바일 스크롤 허용 */
+            -webkit-overflow-scrolling: touch;
         }
 
         .wrapper { width: 100%; max-width: 1100px; display: flex; flex-direction: column; gap: 15px; padding: 10px 0; }
@@ -86,7 +82,7 @@
         .profile-img { 
             width: 90px; height: 90px; border-radius: 50%; background: #0a1a30; 
             flex-shrink: 0; 
-            border: 3px solid var(--accent-bright); /* 보라색 테두리를 블루로 변경 */
+            border: 3px solid var(--accent-bright);
             box-shadow: 0 0 15px var(--accent-glow);
             background-size: cover; background-position: center;
             cursor: default; 
@@ -95,28 +91,27 @@
         .profile-info { flex-grow: 1; min-width: 0; }
         .profile-info h1 { margin: 0 0 2px; font-size: 22px; font-weight: 700; color: var(--text-main); }
         .profile-info p { 
-            color: var(--text-sub); margin: 0 0 8px; font-size: 13px; 
+            color: var(--text-sub); margin: 0 0 12px; font-size: 13px; 
             max-width: 450px; line-height: 1.4;
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
 
         .social-links { display: flex; gap: 8px; flex-wrap: wrap; }
         .link-btn { 
-            padding: 5px 12px; background: #0a1a30; border-radius: 6px; 
+            padding: 6px 14px; background: #0a1a30; border-radius: 6px; 
             color: var(--text-main); text-decoration: none; font-size: 11px; 
             border: 1px solid var(--accent); transition: 0.3s; 
         }
-        .link-btn:hover { background: var(--accent-bright); border-color: var(--accent-bright); color: #fff; } /* 호버 시 블루로 변경 */
+        .link-btn:hover { background: var(--accent-bright); border-color: var(--accent-bright); color: #fff; }
 
         .live-status-inline {
             margin-left: auto; text-align: center; padding: 0 25px; 
-            border-left: 1px solid var(--border); /* 보라색 실선을 블루 실선으로 변경 */
+            border-left: 1px solid var(--border);
             min-width: 180px; display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
 
         .badge { display: inline-block; padding: 4px 10px; border-radius: 5px; font-size: 10px; font-weight: bold; margin-bottom: 5px; }
-        .offline { background: #1a2638; color: var(--text-sub); } /* 오프라인 배지 어둡게 조정 */
-        #stream-title-inline { font-size: 16px; font-weight: bold; margin-bottom: 2px; color: var(--accent-bright); } /* 방송 중일 때 블루로 강조 */
+        .offline { background: #1a2638; color: var(--text-sub); }
+        #stream-title-inline { font-size: 16px; font-weight: bold; margin-bottom: 2px; color: var(--accent-bright); }
         #last-stream-time { font-size: 11px; color: var(--text-sub); }
 
         .bottom-section { 
@@ -129,46 +124,45 @@
             flex-direction: column; padding: 15px; height: auto; box-sizing: border-box; min-width: 0;
         }
 
-        h2 { font-size: 13px; margin-top: 0; color: var(--accent-bright); border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; } /* 제목을 블루로 강조 */
+        h2 { font-size: 13px; margin-top: 0; color: var(--accent-bright); border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; }
 
         .item-row { 
             padding: 8px; 
-            border-bottom: 1px solid var(--border); /* 보라색 하단선을 블루로 변경 */
+            border-bottom: 1px solid var(--border); 
             font-size: 12px; 
             border-radius: 6px; transition: 0.2s; cursor: pointer;
             min-height: 65px; display: flex; flex-direction: column; justify-content: center; box-sizing: border-box;
         }
-        .item-row:hover { 
-        background: rgba(255, 255, 255, 0.03); /* 아주 살짝 밝아지는 느낌 */
-        }
+        .item-row:hover { background: rgba(255, 255, 255, 0.03); }
         .item-date { font-size: 10px; color: var(--text-sub); margin-bottom: 2px; }
         
         .vod-row { flex-direction: row !important; align-items: center; gap: 10px; }
         .vod-thumb { 
             width: 70px; height: 40px; background: #0a1a30; border-radius: 4px; 
             flex-shrink: 0; background-size: cover; background-position: center; 
-            border: 1px solid var(--border); /* 썸네일 테두리 추가 */
+            border: 1px solid var(--border);
         }
 
         .schedule-row { flex-direction: row !important; justify-content: space-between; cursor: default; }
         .day { font-weight: bold; color: var(--text-sub); }
 
         .today-highlight { 
-            background: rgba(51, 133, 255, 0.08) !important; /* 오늘 일정 하이라이트를 보라색에서 블루 틴트로 변경 */
+            background: rgba(51, 133, 255, 0.08) !important; 
             border: 1px solid var(--accent-bright) !important; 
             transform: scale(1.01); 
             box-shadow: 0 0 10px rgba(51, 133, 255, 0.15);
         }
 
-        .today-tag { background: var(--accent-bright); color: #fff; border-radius: 3px; margin-left: 4px; } /* 오늘 태그 블루로 변경 */
-
+        .today-tag { background: var(--accent-bright); color: #fff; border-radius: 3px; margin-left: 4px; }
         .ellipsis { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
         @media (max-width: 900px) {
-            body { overflow: auto; }
-            .profile-box { flex-direction: column; padding-bottom: 20px; }
+            .wrapper { padding: 10px 5px 60px 5px; } /* 하단 여백 추가 */
+            .profile-box { flex-direction: column; padding-bottom: 20px; text-align: center; }
             .live-status-inline { margin-left: 0; border-left: none; border-top: 1px solid var(--border); padding: 15px 0; width: 100%; }
             .bottom-section { grid-template-columns: 1fr; }
+            .social-links { justify-content: center; }
+            .profile-info p { white-space: normal; text-overflow: unset; margin: 0 auto 15px; }
         }
     </style>
 </head>
@@ -179,18 +173,18 @@
     <div class="loader-text">정보를 정리하고 있어요 . . .</div>
 </div>
     
-    <div class="wrapper">
+<div class="wrapper">
     <div class="top-section">
         <div class="card profile-box">
-            <div class="profile-img" onclick="location.href='blue-note.html'"></div>
+            <div class="profile-img"></div>
             <div class="profile-info">
                 <h1 id="user-nick">로딩 중...</h1>
                 <p id="user-desc">정보를 불러오고 있습니다.</p>
                 <div class="social-links" id="social-links">
-    <a href="https://www.sooplive.com/station/bababi" class="link-btn" target="_blank" style="border-color: var(--accent-bright);">📺 방송국</a>
-    <a href="songlist.html" class="link-btn" target="_self" style="border-color: var(--accent-bright);">📖 노래책</a>
-
-</div>
+                    <a href="https://www.sooplive.com/station/bababi" class="link-btn" target="_blank" style="border-color: var(--accent-bright);">📺 방송국</a>
+                    <a href="songlist.html" class="link-btn" target="_self" style="border-color: var(--accent-bright);">📖 노래책</a>
+                    <span id="extra-links-container" style="display:contents;"></span>
+                </div>
             </div>
             <div class="live-status-inline">
                 <div class="badge offline">OFFLINE</div>
@@ -212,70 +206,51 @@
     <footer style="text-align: center; padding: 15px 20px; color: var(--text-sub); font-size: 11px; border-top: 1px solid var(--border); margin-top: 5px;">
         <p style="margin: 0; opacity: 0.7;">팬심으로 제작된 비영리페이지입니다.<br>
         정보는 공개 데이터를 바탕으로 하며 클릭 시 방송국으로 연결됩니다.<br>
-        일정 시간을 두고 정보 갱신이 되며 2분 전의 정보가 다시 나타날 수 있습니다</p>
+        2026-04-15 갱신됨</p>
     </footer>
 </div>
 
 <script>
-    // 기존 스크립트 로직은 절대 건드리지 않습니다.
     const TSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTQ3nX6onmaf-ZHhXGox2s4ChGos7ki7iFjQ_47lArZR6dV935gCIbLbvlDDAS65rTEnswSLIk_7v3R/pub?gid=0&single=true&output=tsv';
-    const SONG_BOOK_URL = 'songlist.html'; 
 
     async function init() {
-    const overlay = document.getElementById('loading-overlay');
-    
-    try {
-        // 로딩창 표시
-        overlay.style.opacity = '1';
-        overlay.style.visibility = 'visible';
+        const overlay = document.getElementById('loading-overlay');
+        
+        try {
+            const cacheBuster = `&t=${new Date().getTime()}`;
+            const response = await fetch(TSV_URL + cacheBuster, { cache: 'no-store' });
+            if (!response.ok) throw new Error('Network error');
 
-        const cacheBuster = `&t=${new Date().getTime()}`;
-        const finalUrl = TSV_URL + cacheBuster;
-
-        const response = await fetch(finalUrl, {
-            cache: 'no-store',
-            headers: { 'Pragma': 'no-cache', 'Cache-Control': 'no-cache' }
-        });
-
-        if (!response.ok) throw new Error('Network error');
-
-        const text = await response.text();
-        const rows = text.split(/\r?\n/).map(row => row.split('\t'));
+            const text = await response.text();
+            const rows = text.split(/\r?\n/).map(row => row.split('\t'));
 
             const profile = rows[2];
             const liveData = rows[6]; 
-            const updateTimeData = rows[1] ? rows[1][5] : null; 
             const statusBox = document.querySelector('.live-status-inline');
 
-            const isOnline = liveData && liveData[5] !== "방송 정보 없음" && liveData[5] !== undefined;
+            // 1. 프로필 정보 렌더링
+            if (profile) {
+                document.getElementById('user-nick').innerText = profile[0] || '닉네임';
+                document.getElementById('user-desc').innerText = profile[1] || '';
+                if(profile[2]) document.querySelector('.profile-img').style.backgroundImage = `url('${profile[2]}')`;
+            }
 
+            // 2. 라이브 상태 렌더링
+            const isOnline = liveData && liveData[5] !== "방송 정보 없음" && liveData[5] !== undefined;
             if (isOnline) {
                 const bTitle = liveData[5];
                 const bTime = liveData[6];
-                const bGrade = liveData[7];
-                const bSubOnly = liveData[8];
-                const bPwd = liveData[9];
+                let tagsHtml = '';
+                const tagStyle = `padding: 1px 5px; font-size: 8px; background:#121f33; border: 1px solid var(--border); color:#3385ff;`;
 
-                let onlineBadge = `<div class="badge" style="background:#d32f2f; color:white; margin-bottom:0; padding: 2px 8px; font-size: 9px;">ONLINE</div>`;
-                let subTagsHtml = '';
-                const subStyle = `padding: 1px 5px; font-size: 8px; margin: 0; background:#121f33; line-height: 1; border: 1px solid var(--border);`;
-
-                if (!["X", "-"].includes(bGrade)) subTagsHtml += `<span class="badge" style="${subStyle} color:#FFAB91;">19</span>`;
-                if (!["X", "-"].includes(bSubOnly)) subTagsHtml += `<span class="badge" style="${subStyle} color:#B39DDB;">구독+</span>`;
-                if (!["X", "-"].includes(bPwd)) subTagsHtml += `<span class="badge" style="${subStyle} color:#90A4AE;">비밀번호</span>`;
+                if (!["X", "-"].includes(liveData[7])) tagsHtml += `<span class="badge" style="${tagStyle}">19</span>`;
+                if (!["X", "-"].includes(liveData[8])) tagsHtml += `<span class="badge" style="${tagStyle}">구독+</span>`;
 
                 statusBox.innerHTML = `
-                    <div style="display: flex; flex-direction: column; align-items: center; gap: 3px; margin-bottom: 5px;">
-                        ${onlineBadge}
-                        <div style="display: flex; gap: 3px; flex-wrap: wrap; justify-content: center;">
-                            ${subTagsHtml}
-                        </div>
-                    </div>
-                    <a href="https://play.sooplive.com/bababi" target="_blank" id="stream-title-inline" class="ellipsis" 
-                       style="max-width:180px; color:var(--accent-bright); font-size:15px; margin-bottom:1px; text-decoration:none; display:block; cursor:pointer;">
-                       ${bTitle}
-                    </a>
-                    <div id="last-stream-time" style="color:var(--text-sub); font-size:10px;">시작: ${bTime}</div>
+                    <div class="badge" style="background:#d32f2f; color:white; margin-bottom:5px;">ONLINE</div>
+                    <div style="display:flex; gap:3px; margin-bottom:5px;">${tagsHtml}</div>
+                    <a href="https://play.sooplive.com/bababi" target="_blank" id="stream-title-inline" class="ellipsis" style="text-decoration:none;">${bTitle}</a>
+                    <div id="last-stream-time">시작: ${bTime}</div>
                 `;
             } else {
                 const lastTime = (profile && profile[3]) ? profile[3].trim() : "확인 중";
@@ -286,69 +261,41 @@
                 `;
             }
 
-            if (profile) {
-                document.getElementById('user-nick').innerText = profile[0] || '닉네임';
-                document.getElementById('user-desc').innerText = profile[1] || '';
-                if(profile[2]) document.querySelector('.profile-img').style.backgroundImage = `url('${profile[2]}')`;
-            }
-
-            if (updateTimeData) {
-                let updateEl = document.getElementById('update-time');
-                if (!updateEl) {
-                    updateEl = document.createElement('div');
-                    updateEl.id = 'update-time';
-                    updateEl.style.cssText = "font-size: 9px; color: var(--text-sub); margin-top: 8px; opacity: 0.6;";
-                    statusBox.appendChild(updateEl);
-                }
-                updateEl.innerText = `갱신: ${updateTimeData}`;
-            }
-
-            renderLinks(rows[5]);
+            // 3. 각 섹션 데이터 렌더링
+            renderExtraLinks(rows[5]);
             renderPosts(rows.slice(8, 13));
             renderVODs(rows.slice(16, 21));
             renderSchedule(rows.slice(24, 29));
 
         } catch (e) { 
-        console.error("Data Load Error:", e);
-        const textEl = document.querySelector('.loader-text');
-        if(textEl) textEl.innerText = "ERROR LOADING DATA";
-    } finally {
-        setTimeout(() => {
-            overlay.style.opacity = '0';
+            console.error("Data Load Error:", e);
+        } finally {
             setTimeout(() => {
-                overlay.style.visibility = 'hidden';
-                document.body.style.overflow = 'auto'; // 스크롤 다시 허용
-            }, 500);
-        }, 800);
+                overlay.style.opacity = '0';
+                setTimeout(() => { overlay.style.visibility = 'hidden'; }, 500);
+            }, 600);
+        }
     }
-}
 
-    // 렌더링 함수 내의 보라색 강조 효과들도 블루로 교체합니다.
-    function renderLinks(extraLinks) {
-        const linkBox = document.getElementById('social-links');
-       if (!linkBox) return;
+    function renderExtraLinks(extraLinks) {
+        const container = document.getElementById('extra-links-container');
+        if (!container || container.children.length > 0) return; // 중복 생성 방지
 
-    // 1. 방송국, 노래책 버튼은 이미 HTML에 있으므로 여기서 또 만들 필요가 없습니다.
-    // 2. 이미 추가된 링크가 있는지 확인하기 위해 기존 버튼 개수를 체크합니다.
-    // (이미 추가 버튼이 있다면 중복 방지를 위해 실행하지 않음)
-    if (linkBox.querySelectorAll('.link-btn').length > 2) return;
-
-    // 3. 구글 시트에서 가져온 '추가 링크'가 있을 때만 뒤에 덧붙입니다.
-    if (extraLinks && Array.isArray(extraLinks)) {
-        extraLinks.forEach(l => {
-            if (l && l.includes(': ')) {
-                const [name, ...urlParts] = l.split(': ');
-                const a = document.createElement('a');
-                a.className = 'link-btn';
-                a.href = urlParts.join(': ').trim();
-                a.target = '_blank';
-                a.innerText = name.trim();
-                a.style.borderColor = 'var(--accent-bright)';
-                linkBox.appendChild(a);
-            }
-        });
+        if (extraLinks && Array.isArray(extraLinks)) {
+            extraLinks.forEach(l => {
+                if (l && l.includes(': ')) {
+                    const [name, ...urlParts] = l.split(': ');
+                    const a = document.createElement('a');
+                    a.className = 'link-btn';
+                    a.href = urlParts.join(': ').trim();
+                    a.target = '_blank';
+                    a.innerText = name.trim();
+                    a.style.borderColor = 'var(--accent-bright)';
+                    container.appendChild(a);
+                }
+            });
+        }
     }
-}
 
     function renderPosts(data) {
         const postBox = document.getElementById('post-container');
@@ -372,12 +319,11 @@
         const vodData = data.filter(v => v[1] && v[1].trim() !== "");
         let html = '<h2>🎬 방송 다시보기</h2>';
         vodData.forEach(v => {
-            const isPin = v[4]?.trim() === 'O' ? '📌 ' : '';
             html += `<div class="item-row vod-row" onclick="window.open('${v[2]}', '_blank')">
                         <div class="vod-thumb" style="background-image:url('${v[3]}')"></div>
                         <div style="flex:1; min-width:0;">
                             <div class="item-date">${v[0]}</div>
-                            <div class="ellipsis" style="font-size:11px;">${isPin}${v[1]}</div>
+                            <div class="ellipsis" style="font-size:11px;">${v[1]}</div>
                         </div>
                     </div>`;
         });
@@ -413,7 +359,10 @@
         });
     }
 
-    window.onload = () => { init(); setInterval(init, 60000); };
+    // 초기 실행
+    window.onload = init;
+    // 60초마다 갱신 (모바일 브라우저 최적화를 위해 타이머 유지)
+    setInterval(init, 60000);
 </script>
 </body>
 </html>
