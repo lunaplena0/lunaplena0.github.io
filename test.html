@@ -4,215 +4,213 @@
     <link rel="icon" href="data:;base64,iVBORw0KGgo=">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Streamer Digital Identity</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;500;700;900&display=swap" rel="stylesheet">
+    <title>Streamer Fluid Identity</title>
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;500;700;900&display=swap" rel="stylesheet">
     <style>
         :root {
-            /* 극도의 다크 모드를 위한 블랙 팔레트 */
-            --bg: #000000;
-            --surface: #0a0a0c;
-            --surface-glass: rgba(16, 16, 18, 0.6);
+            /* 심해와 네온을 결합한 플루이드 팔레트 */
+            --bg: #000205;
+            --core-bg: #030812;
+            --node-bg: rgba(5, 12, 28, 0.6);
             
-            /* 핵심 퓨처리스틱 블루 & 실버 */
-            --accent: #007aff; /* 애플 블루 */
-            --accent-glow: rgba(0, 122, 255, 0.5);
-            --silver: #e2e2e7;
+            --accent: #00ffff; /* 시안 네온 */
+            --accent-dim: rgba(0, 255, 255, 0.2);
+            --accent-glow: rgba(0, 255, 255, 0.4);
             
-            /* 텍스트 위계 */
             --text-p: #ffffff;
-            --text-s: #86868b;
-            --border: rgba(255, 255, 255, 0.06);
+            --text-s: #708090;
+            --border: rgba(0, 255, 255, 0.1);
             
-            /* 현대적인 둥근 값 (과감하게) */
-            --radius-lg: 32px;
-            --radius-md: 16px;
+            --font-main: 'Pretendard', sans-serif;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; outline: none; }
         body { 
             background-color: var(--bg); 
             color: var(--text-p); 
-            font-family: 'Inter', -apple-system, sans-serif; 
+            font-family: var(--font-main); 
             min-height: 100vh;
-            display: flex; justify-content: center;
-            overflow-x: hidden;
-            letter-spacing: -0.02em; /* 프리미엄 자간 */
+            overflow: hidden; /* 스크롤바 제거, 캔버스 느낌 강조 */
+            letter-spacing: -0.01em;
         }
 
-        /* 로딩 레이어 (애니메이션 최소화, 고급스럽게) */
+        /* 로딩 레이어 (네온 와이어프레임 스타일) */
         #loading-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: var(--bg); display: flex; justify-content: center; align-items: center; z-index: 9999;
-            transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: opacity 0.8s ease;
         }
-        .loader-bar {
-            width: 100px; height: 1px; background: var(--border); position: relative; overflow: hidden;
+        .loader-hub {
+            width: 60px; height: 60px; border: 2px solid var(--accent-dim); border-radius: 50%;
+            position: relative; animation: hubPulse 1.5s infinite;
         }
-        .loader-bar::after {
-            content: ''; position: absolute; top: 0; left: 0; width: 0; height: 100%;
-            background: var(--accent); animation: load 1.5s infinite;
+        .loader-hub::after {
+            content: ''; position: absolute; top: -10px; left: 28px; width: 4px; height: 80px;
+            background: var(--accent); animation: scanLine 1.5s infinite;
         }
-        @keyframes load { 0% { width: 0; left: 0; } 50% { width: 100%; left: 0; } 100% { width: 0; left: 100%; } }
+        @keyframes hubPulse { 0% { box-shadow: 0 0 10px var(--accent-dim); } 50% { box-shadow: 0 0 30px var(--accent-glow); } 100% { box-shadow: 0 0 10px var(--accent-dim); } }
+        @keyframes scanLine { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* 메인 레이아웃 (중앙 집중형) */
-        .main-wrapper { 
-            width: 100%; max-width: 1400px; 
-            padding: 60px 20px;
-            display: flex; flex-direction: column; gap: 40px;
-        }
-
-        /* [NEW] 히어로 섹션 (프로필 + 상태) */
-        .hero-section {
-            display: grid; grid-template-columns: 1fr auto; gap: 30px; align-items: center;
-            padding: 40px; background: var(--surface); border-radius: var(--radius-lg);
-            border: 1px solid var(--border);
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-        }
-        .profile-meta { display: flex; align-items: center; gap: 30px; }
-        .avatar-wrapper { position: relative; }
-        .avatar {
-            width: 120px; height: 120px; border-radius: 50%;
-            background-size: cover; background-position: center;
-            border: 2px solid var(--border);
-            box-shadow: 0 0 30px var(--accent-glow);
-        }
-        .status-indicator {
-            position: absolute; bottom: 5px; right: 5px;
-            width: 25px; height: 25px; border-radius: 50%;
-            background: #1a1a1a; border: 4px solid var(--surface);
+        /* [NEW] 인피니트 캔버스 래퍼 */
+        .canvas {
+            position: relative; width: 100vw; height: 100vh;
             display: flex; justify-content: center; align-items: center;
         }
-        .status-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--text-s); }
-        
-        .streamer-info h1 { font-size: 40px; font-weight: 900; letter-spacing: -0.05em; margin-bottom: 8px; color: var(--silver); }
-        .streamer-info p { color: var(--text-s); font-size: 16px; max-width: 500px; line-height: 1.6; }
 
-        /* 상태에 따른 색상 변경 클래스 */
-        .is-online .status-dot { background: #30d158; box-shadow: 0 0 15px #30d158; }
-        .is-online .avatar { border-color: #30d158; }
-
-        /* [NEW] 하단 인포메이션 그리드 */
-        .info-grid {
-            display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 30px;
+        /* 배경 연결선 그래픽 (SVG 대용 CSS) */
+        .canvas::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-image: 
+                radial-gradient(circle at 50% 50%, var(--accent-dim) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(0, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(to right, rgba(0, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px, 100px 100px, 100px 100px;
+            opacity: 0.5; z-index: 0;
         }
 
-        /* 공통 섹션 스타일 (미니멀) */
-        .section-card { 
-            background: var(--surface); border-radius: var(--radius-lg); padding: 30px; 
+        /* [NEW] 중앙 핵심 허브 (Core Hub) */
+        .core-hub {
+            position: relative; z-index: 10;
+            display: flex; flex-direction: column; align-items: center; text-align: center;
+            padding: 30px; background: var(--core-bg); border-radius: 50%;
+            border: 2px solid var(--accent);
+            box-shadow: 0 0 50px var(--accent-glow);
+            transition: 0.5s;
+        }
+        .avatar-wrapper { position: relative; margin-bottom: 15px; }
+        .avatar {
+            width: 140px; height: 140px; border-radius: 50%;
+            background-size: cover; background-position: center;
+            border: 4px solid var(--bg);
+        }
+        .live-tag {
+            position: absolute; top: -10px; right: -10px;
+            background: #d32f2f; color: white; font-size: 10px; font-weight: 700;
+            padding: 3px 8px; border-radius: 4px; display: none; /* 온라인일 때만 표시 */
+            box-shadow: 0 0 15px rgba(211, 47, 47, 0.6);
+        }
+        
+        .streamer-info h1 { font-size: 24px; font-weight: 900; color: white; letter-spacing: -0.05em; }
+        .streamer-info p { color: var(--text-s); font-size: 12px; margin-top: 5px; max-width: 200px; }
+
+        /* 상태에 따른 허브 스타일 */
+        .is-online .core-hub { border-color: #d32f2f; box-shadow: 0 0 60px rgba(211, 47, 47, 0.4); }
+        .is-online .live-tag { display: block; }
+
+        /* [NEW] 유기적 노드 (Info Nodes) */
+        .info-node {
+            position: absolute; z-index: 5;
+            background: var(--node-bg); border-radius: 20px; padding: 20px;
             border: 1px solid var(--border);
-            transition: border-color 0.3s ease;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            transition: 0.3s ease;
         }
-        .section-card:hover { border-color: rgba(255, 255, 255, 0.15); }
-        
-        .section-header { 
-            font-size: 12px; color: var(--accent); font-weight: 700; 
-            text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 25px; 
-            display: flex; align-items: center; gap: 10px;
-        }
-        .section-header::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+        .info-node:hover { border-color: var(--accent); box-shadow: 0 0 20px var(--accent-dim); transform: scale(1.02); }
 
-        /* 리스트 아이템 스타일 (극도의 깔끔함) */
+        .node-header { 
+            font-size: 11px; color: var(--accent); font-weight: 700; 
+            text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 15px; 
+            display: flex; align-items: center; gap: 8px;
+        }
+        .node-header::before { content: ''; width: 6px; height: 6px; background: var(--accent); border-radius: 50%; }
+
+        /* 노드별 위치 및 크기 설정 (완전 새로운 구도) */
+        /* 좌상단: 스케줄 */
+        .node-schedule { top: 10vh; left: 10vw; width: 280px; }
+        /* 우상단: 최근 VOD */
+        .node-vod { top: 12vh; right: 8vw; width: 320px; }
+        /* 좌하단: 링크 */
+        .node-links { bottom: 15vh; left: 12vw; width: 250px; }
+        /* 우하단: 최근 게시물 */
+        .node-posts { bottom: 10vh; right: 10vw; width: 300px; }
+
+        /* 리스트 스타일 (깔끔하게 통합) */
         .item-row { 
-            padding: 15px 0; border-bottom: 1px solid var(--border); cursor: pointer;
-            transition: background-color 0.3s ease;
+            padding: 10px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.03); cursor: pointer;
             display: flex; flex-direction: column;
         }
-        .item-row:hover { background-color: rgba(255, 255, 255, 0.01); }
+        .item-row:hover { background-color: rgba(255, 255, 255, 0.02); }
         .item-row:last-child { border-bottom: none; }
 
-        .item-meta { font-size: 11px; color: var(--text-s); margin-bottom: 4px; display: flex; gap: 10px; }
-        .item-title { font-size: 14px; font-weight: 500; color: var(--silver); line-height: 1.5; }
+        .item-meta { font-size: 10px; color: var(--text-s); margin-bottom: 3px; }
+        .item-title { font-size: 13px; font-weight: 500; color: #e0e0e0; line-height: 1.4; }
 
-        /* 스케줄 전용 */
-        .schedule-row { flex-direction: row; justify-content: space-between; align-items: center; cursor: default; }
-        .today-card { 
-            background: rgba(0, 122, 255, 0.05); border: 1px solid var(--accent);
-            border-radius: var(--radius-md); padding: 15px; margin-bottom: 10px;
-        }
-
-        /* VOD 전용 */
-        .vod-row { flex-direction: row; gap: 15px; align-items: center; }
+        /* 스케줄/VOD 전용 특수 스타일 */
+        .today-mark { color: var(--accent); font-weight: bold; margin-right: 5px; }
         .vod-thumb { 
-            width: 70px; height: 39px; border-radius: 8px; background: #000;
-            background-size: cover; background-position: center; border: 1px solid var(--border);
+            width: 60px; height: 34px; border-radius: 4px; background: #000;
+            background-size: cover; background-position: center; margin-right: 12px;
+            border: 1px solid var(--border); flex-shrink: 0;
         }
 
-        /* 링크 버튼 (프리미엄 블러 효과) */
-        .links-wrapper { display: flex; flex-direction: column; gap: 10px; }
+        /* 링크 버튼 */
         .link-btn {
-            padding: 14px 20px; background: var(--surface-glass); border-radius: var(--radius-md);
-            border: 1px solid var(--border); color: var(--silver); text-decoration: none;
-            font-size: 13px; font-weight: 500; display: flex; justify-content: space-between; align-items: center;
-            backdrop-filter: blur(10px); transition: 0.3s;
+            display: block; padding: 12px 15px; background: rgba(255, 255, 255, 0.03); 
+            border-radius: 10px; border: 1px solid var(--border);
+            color: #e0e0e0; text-decoration: none; font-size: 12px; 
+            transition: 0.3s; margin-bottom: 8px;
         }
-        .link-btn:hover { background: rgba(255, 255, 255, 0.05); border-color: rgba(255, 255, 255, 0.1); transform: translateX(5px); }
-        .link-btn::after { content: '→'; opacity: 0.5; }
+        .link-btn:hover { background: rgba(0, 255, 255, 0.05); border-color: var(--accent); color: var(--accent); }
 
+        .ellipsis { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        /* 모바일 대응 (사고의 흐름을 수직으로) */
         @media (max-width: 1000px) {
-            .hero-section { grid-template-columns: 1fr; text-align: center; }
-            .profile-meta { flex-direction: column; gap: 20px; }
-            .info-grid { grid-template-columns: 1fr; }
+            body { overflow: auto; }
+            .canvas { flex-direction: column; height: auto; padding: 40px 20px; gap: 30px; }
+            .canvas::before { display: none; }
+            .core-hub { order: 1; position: static; border-radius: var(--radius-lg); }
+            .avatar { width: 100px; height: 100px; }
+            .info-node { position: static; width: 100% !important; order: 2; }
         }
     </style>
 </head>
-<body>
+<body id="body-target">
 
 <div id="loading-overlay">
-    <div class="loader-bar"></div>
+    <div class="loader-hub"></div>
 </div>
     
-<div class="main-wrapper">
-    <header class="hero-section" id="hero-target">
-        <div class="profile-meta">
-            <div class="avatar-wrapper">
-                <div class="avatar" id="profile-img-target"></div>
-                <div class="status-indicator">
-                    <div class="status-dot"></div>
-                </div>
-            </div>
-            <div class="streamer-info">
-                <h1 id="user-nick">Identity</h1>
-                <p id="user-desc">Digital Archive Platform</p>
-            </div>
+<div class="canvas">
+    <header class="core-hub">
+        <div class="avatar-wrapper">
+            <div class="avatar" id="profile-img-target"></div>
+            <div class="live-tag">LIVE</div>
         </div>
-        <div id="live-detail-target" style="text-align: right; color: var(--text-s); font-size: 13px;"></div>
+        <div class="streamer-info">
+            <h1 id="user-nick">Identity</h1>
+            <p id="user-desc">Syncing...</p>
+        </div>
+        <div id="live-title-target" style="font-size: 11px; color: #d32f2f; margin-top: 10px; max-width: 200px; font-weight: 500;" class="ellipsis"></div>
     </header>
 
-    <div class="info-grid">
-        <section class="section-card">
-            <h2 class="section-header">Recent Posts</h2>
-            <div id="post-container"></div>
-        </section>
+    <section class="info-node node-schedule">
+        <h2 class="node-header">Schedule</h2>
+        <div id="schedule-container"></div>
+    </section>
 
-        <section class="section-card">
-            <h2 class="section-header">Recent VODs</h2>
-            <div id="vod-container"></div>
-        </section>
+    <section class="info-node node-vod">
+        <h2 class="node-header">Recent VODs</h2>
+        <div id="vod-container"></div>
+    </section>
 
-        <div style="display: flex; flex-direction: column; gap: 30px;">
-            <section class="section-card">
-                <h2 class="section-header">Weekly Schedule</h2>
-                <div id="schedule-container"></div>
-            </section>
-            
-            <section class="section-card" style="padding: 20px;">
-                <h2 class="section-header" style="margin-bottom: 15px;">Official Links</h2>
-                <div class="links-wrapper">
-                    <a href="https://www.sooplive.com/station/bababi" class="link-btn" target="_blank">📺 SOOP 방송국</a>
-                    <a href="songlist.html" class="link-btn" target="_self">📖 노래책</a>
-                    <div id="extra-links-target" style="display: flex; flex-direction: column; gap: 10px;"></div>
-                </div>
-            </section>
+    <section class="info-node node-links">
+        <h2 class="node-header">Links</h2>
+        <div id="social-links">
+            <a href="https://www.sooplive.com/station/bababi" class="link-btn" target="_blank">📺 SOOP 방송국</a>
+            <a href="songlist.html" class="link-btn">📖 노래책</a>
+            <div id="extra-links-target"></div>
         </div>
-    </div>
+    </section>
 
-    <footer style="text-align: center; color: rgba(255,255,255,0.2); font-size: 10px; margin-top: 20px;">
-        FAN ARCHIVE // DATA SYNCHRONIZED EVERY 60S
-    </footer>
+    <section class="info-node node-posts">
+        <h2 class="node-header">Recent Posts</h2>
+        <div id="post-container"></div>
+    </section>
 </div>
 
 <script>
-    // 기존 스크립트 로직 유지 (렌더링 방식만 현대적으로 변경)
     const TSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTQ3nX6onmaf-ZHhXGox2s4ChGos7ki7iFjQ_47lArZR6dV935gCIbLbvlDDAS65rTEnswSLIk_7v3R/pub?gid=0&single=true&output=tsv';
 
     async function init() {
@@ -225,34 +223,30 @@
             const profile = rows[2];
             const liveData = rows[6];
             
-            // 1. 프로필 & 히어로 섹션 업데이트
+            // 1. 프로필 & 허브 업데이트
             if (profile) {
                 document.getElementById('user-nick').innerText = profile[0];
                 document.getElementById('user-desc').innerText = profile[1];
                 document.getElementById('profile-img-target').style.backgroundImage = `url('${profile[2]}')`;
             }
 
-            // 2. 라이브 상태 업데이트 (가장 현대적인 방식으로)
-            const hero = document.getElementById('hero-target');
-            const liveDetail = document.getElementById('live-detail-target');
+            // 2. 라이브 상태 업데이트 (허브 디자인 변경)
+            const body = document.getElementById('body-target');
+            const liveTitle = document.getElementById('live-title-target');
             const isOnline = liveData && liveData[5] !== "방송 정보 없음" && liveData[5] !== undefined;
 
             if (isOnline) {
-                hero.classList.add('is-online'); // 온라인 스타일 적용
-                liveDetail.innerHTML = `
-                    <div style="color:#30d158; font-weight:700; font-size:11px; text-transform:uppercase; letter-spacing:0.1em; margin-bottom:5px;">● LIVE NOW</div>
-                    <a href="https://play.sooplive.com/bababi" target="_blank" style="color:var(--silver); text-decoration:none; font-size:15px; font-weight:500;" class="ellipsis">${liveData[5]}</a>
-                    <div style="margin-top:3px; opacity:0.7;">Started: ${liveData[6]}</div>
-                `;
+                body.classList.add('is-online'); // 온라인 테마 적용
+                liveTitle.innerText = liveData[5];
             } else {
-                hero.classList.remove('is-online');
-                liveDetail.innerHTML = `<div>Currently Offline</div><div style="margin-top:3px; opacity:0.7;">Last: ${profile ? profile[3] : 'N/A'}</div>`;
+                body.classList.remove('is-online');
+                liveTitle.innerText = '';
             }
 
-            // 3. 각 섹션 데이터 렌더링
-            renderPosts(rows.slice(8, 13));
-            renderVODs(rows.slice(16, 21));
+            // 3. 데이터 렌더링
             renderSchedule(rows.slice(24, 29));
+            renderVODs(rows.slice(16, 21));
+            renderPosts(rows.slice(8, 13));
             renderLinks(rows[5]);
 
         } catch (e) {
@@ -262,40 +256,7 @@
         }
     }
 
-    // 렌더링 함수들 (더 현대적인 마크업으로 변경)
-    function renderPosts(data) {
-        const container = document.getElementById('post-container');
-        container.innerHTML = '';
-        data.filter(p => p[1]).forEach(p => {
-            const row = document.createElement('div');
-            row.className = 'item-row';
-            row.onclick = () => window.open(p[2], '_blank');
-            row.innerHTML = `
-                <div class="item-meta"><span>${p[0]}</span>${p[3] === 'O' ? '<span style="color:var(--accent);">📌 NOTICE</span>' : ''}</div>
-                <div class="item-title ellipsis">${p[1]}</div>
-            `;
-            container.appendChild(row);
-        });
-    }
-
-    function renderVODs(data) {
-        const container = document.getElementById('vod-container');
-        container.innerHTML = '';
-        data.filter(v => v[1]).forEach(v => {
-            const row = document.createElement('div');
-            row.className = 'item-row vod-row';
-            row.onclick = () => window.open(v[2], '_blank');
-            row.innerHTML = `
-                <div class="vod-thumb" style="background-image:url('${v[3]}')"></div>
-                <div style="flex:1; min-width:0;">
-                    <div class="item-meta"><span>${v[0]}</span></div>
-                    <div class="item-title ellipsis">${v[1]}</div>
-                </div>
-            `;
-            container.appendChild(row);
-        });
-    }
-
+    // 렌더링 함수들 (미니멀 마크업)
     function renderSchedule(data) {
         const container = document.getElementById('schedule-container');
         const todayStr = new Date().toLocaleDateString('en-CA');
@@ -304,25 +265,50 @@
             if (!row[0]) return;
             const isToday = row[0].trim() === todayStr;
             const div = document.createElement('div');
-            // 오늘 일정은 특별한 카드로 표시
-            div.className = isToday ? 'today-card' : 'item-row schedule-row';
-            
-            if(isToday) {
-                div.innerHTML = `
-                    <div style="color:var(--accent); font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.1em; margin-bottom:8px;">★ TODAY</div>
-                    <div style="font-size:16px; font-weight:700; color:white; margin-bottom:3px;">${row[2] ? `${row[2]} ` : ''}${row[3] || '일정 없음'}</div>
-                    <div style="font-size:12px; color:rgba(255,255,255,0.7);">${row[0]} (${row[1]}) // ${row[4] || ''}</div>
-                `;
-            } else {
-                div.innerHTML = `
-                    <div style="min-width:0; flex:1;">
-                        <div class="item-meta"><span>${row[0]} (${row[1]})</span></div>
-                        <div class="item-title ellipsis">${row[2] ? `<b>${row[2]}</b> ` : ''}${row[3] || '일정 없음'}</div>
-                    </div>
-                    <div style="font-size:11px; color:var(--text-s); margin-left:15px; text-align:right;">${row[4] || ''}</div>
-                `;
-            }
+            div.className = 'item-row';
+            div.innerHTML = `
+                <div class="item-meta">${row[0]} (${row[1]})</div>
+                <div class="item-title ellipsis">
+                    ${isToday ? '<span class="today-mark">●</span>' : ''}
+                    ${row[2] ? `<b>${row[2]}</b> ` : ''}${row[3] || '일정 없음'}
+                </div>
+            `;
             container.appendChild(div);
+        });
+    }
+
+    function renderVODs(data) {
+        const container = document.getElementById('vod-container');
+        container.innerHTML = '';
+        data.filter(v => v[1]).forEach(v => {
+            const row = document.createElement('div');
+            row.className = 'item-row';
+            row.style.flexDirection = 'row';
+            row.style.alignItems = 'center';
+            row.onclick = () => window.open(v[2], '_blank');
+            row.innerHTML = `
+                <div class="vod-thumb" style="background-image:url('${v[3]}')"></div>
+                <div style="flex:1; min-width:0;">
+                    <div class="item-meta">${v[0]}</div>
+                    <div class="item-title ellipsis">${v[1]}</div>
+                </div>
+            `;
+            container.appendChild(row);
+        });
+    }
+
+    function renderPosts(data) {
+        const container = document.getElementById('post-container');
+        container.innerHTML = '';
+        data.filter(p => p[1]).forEach(p => {
+            const row = document.createElement('div');
+            row.className = 'item-row';
+            row.onclick = () => window.open(p[2], '_blank');
+            row.innerHTML = `
+                <div class="item-meta">${p[0]} ${p[3] === 'O' ? '<span style="color:var(--accent);">📌</span>' : ''}</div>
+                <div class="item-title ellipsis">${p[1]}</div>
+            `;
+            container.appendChild(row);
         });
     }
 
