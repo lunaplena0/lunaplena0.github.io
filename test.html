@@ -4,332 +4,253 @@
     <link rel="icon" href="data:;base64,iVBORw0KGgo=">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Streamer Fluid Identity</title>
-    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;500;700;900&display=swap" rel="stylesheet">
+    <title>Streamer Integrated Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            /* 심해와 네온을 결합한 플루이드 팔레트 */
-            --bg: #000205;
-            --core-bg: #030812;
-            --node-bg: rgba(5, 12, 28, 0.6);
-            
-            --accent: #00ffff; /* 시안 네온 */
-            --accent-dim: rgba(0, 255, 255, 0.2);
-            --accent-glow: rgba(0, 255, 255, 0.4);
-            
-            --text-p: #ffffff;
-            --text-s: #708090;
-            --border: rgba(0, 255, 255, 0.1);
-            
-            --font-main: 'Pretendard', sans-serif;
+            --bg: #050608;
+            --panel: #0d0f14;
+            --accent: #00ffa3; /* 생동감 넘치는 민트 그린 */
+            --text: #ffffff;
+            --text-dim: #71717a;
+            --border: rgba(255, 255, 255, 0.05);
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; outline: none; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body { 
-            background-color: var(--bg); 
-            color: var(--text-p); 
-            font-family: var(--font-main); 
-            min-height: 100vh;
-            overflow: hidden; /* 스크롤바 제거, 캔버스 느낌 강조 */
-            letter-spacing: -0.01em;
-        }
-
-        /* 로딩 레이어 (네온 와이어프레임 스타일) */
-        #loading-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: var(--bg); display: flex; justify-content: center; align-items: center; z-index: 9999;
-            transition: opacity 0.8s ease;
-        }
-        .loader-hub {
-            width: 60px; height: 60px; border: 2px solid var(--accent-dim); border-radius: 50%;
-            position: relative; animation: hubPulse 1.5s infinite;
-        }
-        .loader-hub::after {
-            content: ''; position: absolute; top: -10px; left: 28px; width: 4px; height: 80px;
-            background: var(--accent); animation: scanLine 1.5s infinite;
-        }
-        @keyframes hubPulse { 0% { box-shadow: 0 0 10px var(--accent-dim); } 50% { box-shadow: 0 0 30px var(--accent-glow); } 100% { box-shadow: 0 0 10px var(--accent-dim); } }
-        @keyframes scanLine { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-        /* [NEW] 인피니트 캔버스 래퍼 */
-        .canvas {
-            position: relative; width: 100vw; height: 100vh;
+            background: var(--bg); color: var(--text); 
+            font-family: 'Pretendard', sans-serif; 
+            height: 100vh; overflow: hidden; /* 스크롤 없이 한 화면에 고정 */
             display: flex; justify-content: center; align-items: center;
         }
 
-        /* 배경 연결선 그래픽 (SVG 대용 CSS) */
-        .canvas::before {
-            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background-image: 
-                radial-gradient(circle at 50% 50%, var(--accent-dim) 1px, transparent 1px),
-                linear-gradient(to bottom, rgba(0, 255, 255, 0.03) 1px, transparent 1px),
-                linear-gradient(to right, rgba(0, 255, 255, 0.03) 1px, transparent 1px);
-            background-size: 50px 50px, 100px 100px, 100px 100px;
-            opacity: 0.5; z-index: 0;
+        /* 전체 대시보드 레이아웃 */
+        .dashboard {
+            width: 95vw; height: 90vh;
+            display: grid;
+            grid-template-columns: 320px 1fr 320px;
+            grid-template-rows: auto 1fr auto;
+            gap: 15px;
         }
 
-        /* [NEW] 중앙 핵심 허브 (Core Hub) */
-        .core-hub {
-            position: relative; z-index: 10;
-            display: flex; flex-direction: column; align-items: center; text-align: center;
-            padding: 30px; background: var(--core-bg); border-radius: 50%;
-            border: 2px solid var(--accent);
-            box-shadow: 0 0 50px var(--accent-glow);
-            transition: 0.5s;
-        }
-        .avatar-wrapper { position: relative; margin-bottom: 15px; }
-        .avatar {
-            width: 140px; height: 140px; border-radius: 50%;
-            background-size: cover; background-position: center;
-            border: 4px solid var(--bg);
-        }
-        .live-tag {
-            position: absolute; top: -10px; right: -10px;
-            background: #d32f2f; color: white; font-size: 10px; font-weight: 700;
-            padding: 3px 8px; border-radius: 4px; display: none; /* 온라인일 때만 표시 */
-            box-shadow: 0 0 15px rgba(211, 47, 47, 0.6);
-        }
-        
-        .streamer-info h1 { font-size: 24px; font-weight: 900; color: white; letter-spacing: -0.05em; }
-        .streamer-info p { color: var(--text-s); font-size: 12px; margin-top: 5px; max-width: 200px; }
-
-        /* 상태에 따른 허브 스타일 */
-        .is-online .core-hub { border-color: #d32f2f; box-shadow: 0 0 60px rgba(211, 47, 47, 0.4); }
-        .is-online .live-tag { display: block; }
-
-        /* [NEW] 유기적 노드 (Info Nodes) */
-        .info-node {
-            position: absolute; z-index: 5;
-            background: var(--node-bg); border-radius: 20px; padding: 20px;
-            border: 1px solid var(--border);
-            backdrop-filter: blur(10px);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
-            transition: 0.3s ease;
-        }
-        .info-node:hover { border-color: var(--accent); box-shadow: 0 0 20px var(--accent-dim); transform: scale(1.02); }
-
-        .node-header { 
-            font-size: 11px; color: var(--accent); font-weight: 700; 
-            text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 15px; 
-            display: flex; align-items: center; gap: 8px;
-        }
-        .node-header::before { content: ''; width: 6px; height: 6px; background: var(--accent); border-radius: 50%; }
-
-        /* 노드별 위치 및 크기 설정 (완전 새로운 구도) */
-        /* 좌상단: 스케줄 */
-        .node-schedule { top: 10vh; left: 10vw; width: 280px; }
-        /* 우상단: 최근 VOD */
-        .node-vod { top: 12vh; right: 8vw; width: 320px; }
-        /* 좌하단: 링크 */
-        .node-links { bottom: 15vh; left: 12vw; width: 250px; }
-        /* 우하단: 최근 게시물 */
-        .node-posts { bottom: 10vh; right: 10vw; width: 300px; }
-
-        /* 리스트 스타일 (깔끔하게 통합) */
-        .item-row { 
-            padding: 10px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.03); cursor: pointer;
+        /* 패널 공통 스타일 */
+        .panel {
+            background: var(--panel); border: 1px solid var(--border);
+            border-radius: 16px; padding: 20px; overflow: hidden;
             display: flex; flex-direction: column;
         }
-        .item-row:hover { background-color: rgba(255, 255, 255, 0.02); }
-        .item-row:last-child { border-bottom: none; }
 
-        .item-meta { font-size: 10px; color: var(--text-s); margin-bottom: 3px; }
-        .item-title { font-size: 13px; font-weight: 500; color: #e0e0e0; line-height: 1.4; }
+        /* 상단 헤더: 실시간 상태 및 요약 */
+        .header-panel {
+            grid-column: 1 / -1;
+            flex-direction: row; justify-content: space-between; align-items: center;
+            padding: 15px 30px;
+        }
+        .live-status { display: flex; align-items: center; gap: 15px; }
+        .live-indicator { 
+            padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 800;
+            background: #1e1e1e; color: var(--text-dim);
+        }
+        .is-live .live-indicator { background: #ff2d55; color: #fff; animation: blink 1s infinite; }
+        @keyframes blink { 50% { opacity: 0.6; } }
 
-        /* 스케줄/VOD 전용 특수 스타일 */
-        .today-mark { color: var(--accent); font-weight: bold; margin-right: 5px; }
-        .vod-thumb { 
-            width: 60px; height: 34px; border-radius: 4px; background: #000;
-            background-size: cover; background-position: center; margin-right: 12px;
-            border: 1px solid var(--border); flex-shrink: 0;
+        /* 좌측: 프로필 및 링크 */
+        .sidebar-left { grid-row: 2 / 4; }
+        .profile-box { text-align: center; margin-bottom: 25px; }
+        .avatar { 
+            width: 100px; height: 100px; border-radius: 50%; margin: 0 auto 15px;
+            border: 2px solid var(--accent); background-size: cover;
+        }
+        .nav-links { display: flex; flex-direction: column; gap: 8px; }
+        .nav-btn {
+            padding: 12px; background: rgba(255,255,255,0.03); border-radius: 10px;
+            text-decoration: none; color: var(--text); font-size: 13px;
+            transition: 0.2s; border: 1px solid transparent;
+        }
+        .nav-btn:hover { background: rgba(0, 255, 163, 0.1); border-color: var(--accent); color: var(--accent); }
+
+        /* 중앙: 핵심 스케줄 (가장 넓게) */
+        .main-panel { grid-row: 2; }
+        .section-title { 
+            font-size: 14px; font-weight: 800; color: var(--accent); 
+            margin-bottom: 15px; display: flex; align-items: center; gap: 8px;
+        }
+        .schedule-grid {
+            display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; height: 100%;
+        }
+        .day-card {
+            background: rgba(255,255,255,0.02); border-radius: 12px; padding: 15px;
+            border: 1px solid var(--border); display: flex; flex-direction: column;
+        }
+        .day-card.today { border-color: var(--accent); background: rgba(0, 255, 163, 0.05); }
+        .day-name { font-size: 11px; color: var(--text-dim); margin-bottom: 5px; }
+        .day-content { font-size: 13px; font-weight: 600; line-height: 1.4; }
+
+        /* 우측: 최근 게시물 & VOD 통합 */
+        .sidebar-right { grid-row: 2 / 4; gap: 20px; display: flex; flex-direction: column; }
+        .scroll-area { flex: 1; overflow-y: auto; padding-right: 5px; }
+        .scroll-area::-webkit-scrollbar { width: 4px; }
+        .scroll-area::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+
+        .list-item {
+            padding: 10px 0; border-bottom: 1px solid var(--border);
+            cursor: pointer; transition: 0.2s;
+        }
+        .list-item:hover { transform: translateX(5px); }
+        .list-item .meta { font-size: 10px; color: var(--text-dim); margin-bottom: 4px; }
+        .list-item .title { font-size: 12px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        /* 하단 바: VOD 썸네일 가로 정렬 */
+        .bottom-panel { grid-column: 2; height: 120px; flex-direction: row; gap: 15px; align-items: center; }
+        .vod-strip { display: flex; gap: 12px; width: 100%; }
+        .vod-card { 
+            flex: 1; height: 80px; border-radius: 8px; background-size: cover; 
+            position: relative; cursor: pointer; border: 1px solid var(--border);
+        }
+        .vod-card:hover { border-color: var(--accent); }
+        .vod-overlay { 
+            position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.7);
+            padding: 4px 8px; font-size: 10px; border-radius: 0 0 8px 8px;
         }
 
-        /* 링크 버튼 */
-        .link-btn {
-            display: block; padding: 12px 15px; background: rgba(255, 255, 255, 0.03); 
-            border-radius: 10px; border: 1px solid var(--border);
-            color: #e0e0e0; text-decoration: none; font-size: 12px; 
-            transition: 0.3s; margin-bottom: 8px;
-        }
-        .link-btn:hover { background: rgba(0, 255, 255, 0.05); border-color: var(--accent); color: var(--accent); }
-
-        .ellipsis { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-        /* 모바일 대응 (사고의 흐름을 수직으로) */
-        @media (max-width: 1000px) {
-            body { overflow: auto; }
-            .canvas { flex-direction: column; height: auto; padding: 40px 20px; gap: 30px; }
-            .canvas::before { display: none; }
-            .core-hub { order: 1; position: static; border-radius: var(--radius-lg); }
-            .avatar { width: 100px; height: 100px; }
-            .info-node { position: static; width: 100% !important; order: 2; }
+        @media (max-width: 1100px) {
+            body { overflow: auto; height: auto; }
+            .dashboard { display: flex; flex-direction: column; height: auto; width: 100%; padding: 10px; }
+            .schedule-grid { grid-template-columns: 1fr; }
+            .bottom-panel { height: auto; flex-direction: column; }
         }
     </style>
 </head>
-<body id="body-target">
+<body id="live-root">
 
-<div id="loading-overlay">
-    <div class="loader-hub"></div>
-</div>
-    
-<div class="canvas">
-    <header class="core-hub">
-        <div class="avatar-wrapper">
-            <div class="avatar" id="profile-img-target"></div>
-            <div class="live-tag">LIVE</div>
+<div class="dashboard">
+    <header class="panel header-panel">
+        <div class="live-status">
+            <span class="live-indicator">OFFLINE</span>
+            <span id="live-title" style="font-size: 14px; font-weight: 600;">방송 데이터를 연결 중입니다...</span>
         </div>
-        <div class="streamer-info">
-            <h1 id="user-nick">Identity</h1>
-            <p id="user-desc">Syncing...</p>
-        </div>
-        <div id="live-title-target" style="font-size: 11px; color: #d32f2f; margin-top: 10px; max-width: 200px; font-weight: 500;" class="ellipsis"></div>
+        <div style="font-size: 11px; color: var(--text-dim);" id="sync-time">LAST SYNC: --:--:--</div>
     </header>
 
-    <section class="info-node node-schedule">
-        <h2 class="node-header">Schedule</h2>
-        <div id="schedule-container"></div>
-    </section>
-
-    <section class="info-node node-vod">
-        <h2 class="node-header">Recent VODs</h2>
-        <div id="vod-container"></div>
-    </section>
-
-    <section class="info-node node-links">
-        <h2 class="node-header">Links</h2>
-        <div id="social-links">
-            <a href="https://www.sooplive.com/station/bababi" class="link-btn" target="_blank">📺 SOOP 방송국</a>
-            <a href="songlist.html" class="link-btn">📖 노래책</a>
-            <div id="extra-links-target"></div>
+    <aside class="panel sidebar-left">
+        <div class="profile-box">
+            <div class="avatar" id="profile-img"></div>
+            <h2 id="user-nick" style="font-size: 20px; font-weight: 800;">Loading</h2>
+            <p id="user-desc" style="font-size: 12px; color: var(--text-dim); margin-top: 5px;">...</p>
         </div>
-    </section>
+        <div class="nav-links">
+            <div class="section-title">QUICK LINKS</div>
+            <a href="https://www.sooplive.com/station/bababi" target="_blank" class="nav-btn">📺 방송국 메인</a>
+            <a href="songlist.html" class="nav-btn">📖 노래책 데이터</a>
+            <div id="extra-links" style="display: flex; flex-direction: column; gap: 8px;"></div>
+        </div>
+    </aside>
 
-    <section class="info-node node-posts">
-        <h2 class="node-header">Recent Posts</h2>
-        <div id="post-container"></div>
-    </section>
+    <main class="panel main-panel">
+        <div class="section-title">WEEKLY BROADCAST SCHEDULE</div>
+        <div class="schedule-grid" id="schedule-target"></div>
+    </main>
+
+    <footer class="panel bottom-panel">
+        <div class="section-title" style="writing-mode: vertical-lr; margin-bottom: 0; margin-right: 15px;">RECENT VOD</div>
+        <div class="vod-strip" id="vod-target"></div>
+    </footer>
+
+    <aside class="panel sidebar-right">
+        <div class="section-title">COMMUNITY POSTS</div>
+        <div class="scroll-area" id="post-target"></div>
+    </aside>
 </div>
 
 <script>
     const TSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTQ3nX6onmaf-ZHhXGox2s4ChGos7ki7iFjQ_47lArZR6dV935gCIbLbvlDDAS65rTEnswSLIk_7v3R/pub?gid=0&single=true&output=tsv';
 
-    async function init() {
-        const overlay = document.getElementById('loading-overlay');
+    async function fetchData() {
         try {
             const response = await fetch(`${TSV_URL}&t=${new Date().getTime()}`);
             const text = await response.text();
             const rows = text.split(/\r?\n/).map(row => row.split('\t'));
 
+            // 데이터 할당
             const profile = rows[2];
-            const liveData = rows[6];
+            const links = rows[5];
+            const live = rows[6];
+            const posts = rows.slice(8, 15);
+            const vods = rows.slice(16, 21);
+            const schedule = rows.slice(24, 29);
+
+            // UI 업데이트
+            updateProfile(profile, live);
+            updateLinks(links);
+            updateSchedule(schedule);
+            updatePosts(posts);
+            updateVODs(vods);
             
-            // 1. 프로필 & 허브 업데이트
-            if (profile) {
-                document.getElementById('user-nick').innerText = profile[0];
-                document.getElementById('user-desc').innerText = profile[1];
-                document.getElementById('profile-img-target').style.backgroundImage = `url('${profile[2]}')`;
-            }
+            document.getElementById('sync-time').innerText = `LAST SYNC: ${new Date().toLocaleTimeString()}`;
+        } catch (e) { console.error("Data error", e); }
+    }
 
-            // 2. 라이브 상태 업데이트 (허브 디자인 변경)
-            const body = document.getElementById('body-target');
-            const liveTitle = document.getElementById('live-title-target');
-            const isOnline = liveData && liveData[5] !== "방송 정보 없음" && liveData[5] !== undefined;
+    function updateProfile(p, l) {
+        document.getElementById('user-nick').innerText = p[0];
+        document.getElementById('user-desc').innerText = p[1];
+        document.getElementById('profile-img').style.backgroundImage = `url('${p[2]}')`;
+        
+        const isOnline = l && l[5] !== "방송 정보 없음" && l[5] !== undefined;
+        const root = document.getElementById('live-root');
+        const title = document.getElementById('live-title');
+        const indicator = document.querySelector('.live-indicator');
 
-            if (isOnline) {
-                body.classList.add('is-online'); // 온라인 테마 적용
-                liveTitle.innerText = liveData[5];
-            } else {
-                body.classList.remove('is-online');
-                liveTitle.innerText = '';
-            }
-
-            // 3. 데이터 렌더링
-            renderSchedule(rows.slice(24, 29));
-            renderVODs(rows.slice(16, 21));
-            renderPosts(rows.slice(8, 13));
-            renderLinks(rows[5]);
-
-        } catch (e) {
-            console.error(e);
-        } finally {
-            setTimeout(() => { overlay.style.opacity = '0'; setTimeout(() => overlay.style.visibility = 'hidden', 800); }, 500);
+        if(isOnline) {
+            root.classList.add('is-live');
+            indicator.innerText = 'LIVE';
+            title.innerText = l[5];
+        } else {
+            root.classList.remove('is-live');
+            indicator.innerText = 'OFFLINE';
+            title.innerText = `최근 방송: ${p[3] || '정보 없음'}`;
         }
     }
 
-    // 렌더링 함수들 (미니멀 마크업)
-    function renderSchedule(data) {
-        const container = document.getElementById('schedule-container');
+    function updateSchedule(data) {
+        const target = document.getElementById('schedule-target');
         const todayStr = new Date().toLocaleDateString('en-CA');
-        container.innerHTML = '';
-        data.forEach(row => {
-            if (!row[0]) return;
-            const isToday = row[0].trim() === todayStr;
-            const div = document.createElement('div');
-            div.className = 'item-row';
-            div.innerHTML = `
-                <div class="item-meta">${row[0]} (${row[1]})</div>
-                <div class="item-title ellipsis">
-                    ${isToday ? '<span class="today-mark">●</span>' : ''}
-                    ${row[2] ? `<b>${row[2]}</b> ` : ''}${row[3] || '일정 없음'}
-                </div>
-            `;
-            container.appendChild(div);
-        });
+        target.innerHTML = data.map(row => `
+            <div class="day-card ${row[0] === todayStr ? 'today' : ''}">
+                <div class="day-name">${row[0]} (${row[1]})</div>
+                <div class="day-content">${row[3] || '휴방'}</div>
+                <div style="font-size:10px; color:var(--text-dim); margin-top:auto;">${row[4] || ''}</div>
+            </div>
+        `).join('');
     }
 
-    function renderVODs(data) {
-        const container = document.getElementById('vod-container');
-        container.innerHTML = '';
-        data.filter(v => v[1]).forEach(v => {
-            const row = document.createElement('div');
-            row.className = 'item-row';
-            row.style.flexDirection = 'row';
-            row.style.alignItems = 'center';
-            row.onclick = () => window.open(v[2], '_blank');
-            row.innerHTML = `
-                <div class="vod-thumb" style="background-image:url('${v[3]}')"></div>
-                <div style="flex:1; min-width:0;">
-                    <div class="item-meta">${v[0]}</div>
-                    <div class="item-title ellipsis">${v[1]}</div>
-                </div>
-            `;
-            container.appendChild(row);
-        });
+    function updatePosts(data) {
+        const target = document.getElementById('post-target');
+        target.innerHTML = data.filter(r => r[1]).map(r => `
+            <div class="list-item" onclick="window.open('${r[2]}', '_blank')">
+                <div class="meta">${r[0]}</div>
+                <div class="title">${r[3] === 'O' ? '📌 ' : ''}${r[1]}</div>
+            </div>
+        `).join('');
     }
 
-    function renderPosts(data) {
-        const container = document.getElementById('post-container');
-        container.innerHTML = '';
-        data.filter(p => p[1]).forEach(p => {
-            const row = document.createElement('div');
-            row.className = 'item-row';
-            row.onclick = () => window.open(p[2], '_blank');
-            row.innerHTML = `
-                <div class="item-meta">${p[0]} ${p[3] === 'O' ? '<span style="color:var(--accent);">📌</span>' : ''}</div>
-                <div class="item-title ellipsis">${p[1]}</div>
-            `;
-            container.appendChild(row);
-        });
+    function updateVODs(data) {
+        const target = document.getElementById('vod-target');
+        target.innerHTML = data.filter(r => r[1]).map(r => `
+            <div class="vod-card" style="background-image:url('${r[3]}')" onclick="window.open('${r[2]}', '_blank')">
+                <div class="vod-overlay ellipsis">${r[1]}</div>
+            </div>
+        `).join('');
     }
 
-    function renderLinks(links) {
-        const target = document.getElementById('extra-links-target');
-        target.innerHTML = '';
-        if (links) {
-            links.forEach(l => {
-                if (!l || !l.includes(': ')) return;
-                const [name, url] = l.split(': ');
-                const a = document.createElement('a');
-                a.className = 'link-btn';
-                a.href = url.trim();
-                a.target = '_blank';
-                a.innerText = name.trim();
-                target.appendChild(a);
-            });
-        }
+    function updateLinks(links) {
+        const target = document.getElementById('extra-links');
+        target.innerHTML = links ? links.filter(l => l.includes(': ')).map(l => {
+            const [name, url] = l.split(': ');
+            return `<a href="${url}" target="_blank" class="nav-btn">${name}</a>`;
+        }).join('') : '';
     }
 
-    window.onload = () => { init(); setInterval(init, 60000); };
+    window.onload = () => { fetchData(); setInterval(fetchData, 60000); };
 </script>
 </body>
 </html>
