@@ -189,7 +189,8 @@
                 <div class="social-links" id="social-links">
     <a href="https://www.sooplive.com/station/bababi" class="link-btn" target="_blank" style="border-color: var(--accent-bright);">📺 방송국</a>
     <a href="songlist.html" class="link-btn" target="_self" style="border-color: var(--accent-bright);">📖 노래책</a>
-
+    
+    <div id="extra-links-target" style="display: flex; gap: 8px; flex-wrap: wrap;"></div>
 </div>
             </div>
             <div class="live-status-inline">
@@ -325,26 +326,29 @@
 
     // 렌더링 함수 내의 보라색 강조 효과들도 블루로 교체합니다.
     function renderLinks(extraLinks) {
-        const linkBox = document.getElementById('social-links');
-       if (!linkBox) return;
+    const targetBox = document.getElementById('extra-links-target');
+    if (!targetBox) return;
 
-    // 1. 방송국, 노래책 버튼은 이미 HTML에 있으므로 여기서 또 만들 필요가 없습니다.
-    // 2. 이미 추가된 링크가 있는지 확인하기 위해 기존 버튼 개수를 체크합니다.
-    // (이미 추가 버튼이 있다면 중복 방지를 위해 실행하지 않음)
-    if (linkBox.querySelectorAll('.link-btn').length > 2) return;
+    // Cloudflare 캐시로 인한 중복 생성 방지: 내부를 한 번 비우고 시작합니다.
+    targetBox.innerHTML = '';
 
-    // 3. 구글 시트에서 가져온 '추가 링크'가 있을 때만 뒤에 덧붙입니다.
     if (extraLinks && Array.isArray(extraLinks)) {
         extraLinks.forEach(l => {
-            if (l && l.includes(': ')) {
-                const [name, ...urlParts] = l.split(': ');
+            // 빈 칸이거나 형식이 맞지 않으면 건너뜁니다.
+            if (!l || !l.includes(': ')) return;
+
+            const [name, ...urlParts] = l.split(': ');
+            const url = urlParts.join(': ').trim();
+            
+            // 유효한 URL 형태일 때만 버튼을 생성합니다.
+            if (url.startsWith('http')) {
                 const a = document.createElement('a');
                 a.className = 'link-btn';
-                a.href = urlParts.join(': ').trim();
+                a.href = url;
                 a.target = '_blank';
                 a.innerText = name.trim();
                 a.style.borderColor = 'var(--accent-bright)';
-                linkBox.appendChild(a);
+                targetBox.appendChild(a);
             }
         });
     }
