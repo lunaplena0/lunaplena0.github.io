@@ -98,27 +98,25 @@ body.modal-open, body.loading { overflow: hidden; }
     display: flex;
     flex-direction: column;
     max-height: 85vh;
-    overflow: hidden; /* 전체 스크롤 방지 */
+    overflow: hidden; /* 헤더/푸터 고정을 위해 전체 스크롤 차단 */
     background: var(--card-bg);
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
-    position: relative;
 }
 .modal-top-img {
     width: 100%;
     height: auto;
-    display: block;
-    flex-shrink: 0;
+    object-fit: cover;
+    flex-shrink: 0; /* 이미지 크기 유지 */
 }
 .modal-body-area {
-    flex: 1;
-    overflow-y: auto;
+    flex: 1; /* 남은 공간 모두 차지 */
+    overflow-y: auto; /* 내용이 길 때만 내부 스크롤 */
     padding: 20px;
-    /* 스크롤바 숨김 */
     -ms-overflow-style: none;
     scrollbar-width: none;
 }
-.modal-body-area::-webkit-scrollbar { display: none; }
+.modal-body-area::-webkit-scrollbar { display: none; }}
 
 /* 하단 버튼 영역 고정 */
 .modal-footer-fixed {
@@ -127,7 +125,6 @@ body.modal-open, body.loading { overflow: hidden; }
     border-top: 1px solid var(--border);
     display: flex;
     gap: 10px;
-    z-index: 10;
     flex-shrink: 0;
 }
 #modal-content::-webkit-scrollbar, 
@@ -399,9 +396,9 @@ body.modal-open, body.loading { overflow: hidden; }
 
 /* --- 미디어 쿼리 (모바일 위치 유지) --- */
 @media (max-width: 900px) {
-    .dashboard-grid { grid-template-columns: 1fr; } /* 스택 배치로 변경 */
-    .analysis-layout {
-        grid-template-columns: 1fr;
+    .dashboard-grid, 
+    .analysis-layout { 
+        grid-template-columns: 1fr; 
         height: auto;
     }
     .report-vod-list {
@@ -418,7 +415,7 @@ body.modal-open, body.loading { overflow: hidden; }
     #analysis-result { padding: 10px; }
     .header-card {
         flex-direction: column !important;
-        align-items: flex-start !important; /* 왼쪽 정렬 */
+        align-items: flex-start !important;
         gap: 15px !important;
         padding: 20px !important;
     }
