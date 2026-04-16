@@ -6,41 +6,42 @@
     <title>바다비 노래 통계</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
     <style>
-        /* 로딩 오버레이 스타일 */
+        /* --- 로딩 영역 CSS (페이지 통일) --- */
         #loading-overlay {
             position: fixed;
             top: 0; left: 0;
             width: 100%; height: 100%;
-            background: rgba(1, 3, 6, 0.95);
+            background: rgba(1, 3, 6, 0.98);
             display: flex;
-            flex-direction: column;
             justify-content: center;
             align-items: center;
             z-index: 9999;
             transition: opacity 0.5s ease;
+            visibility: visible;
         }
 
-        .loader-circle {
-            width: 50px;
-            height: 50px;
-            border: 3px solid #003366;
-            border-top: 3px solid #3385ff;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 15px;
-            box-shadow: 0 0 15px rgba(51, 133, 255, 0.3);
-        }
-
-        .loader-text {
+        .wave-text {
             color: #3385ff;
-            font-size: 14px;
+            font-size: 16px;
+            font-weight: 700;
             letter-spacing: 2px;
-            font-weight: bold;
-            animation: pulse 1.5s infinite;
+            display: flex;
         }
 
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+        .wave-text span {
+            display: inline-block;
+            animation: wave 1.6s ease-in-out infinite;
+        }
+
+        @keyframes wave {
+            0%, 100% { transform: translateY(0); }
+            50% {
+                transform: translateY(-10px);
+                color: #fff;
+                text-shadow: 0 0 10px rgba(51, 133, 255, 0.7);
+            }
+        }
+        /* -------------------------- */
 
         :root {
             --bg-color: #010306;
@@ -87,62 +88,22 @@
 
         .stats-card { background: var(--card-bg); border-radius: 16px; border: 1px solid var(--border); padding: 20px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
 
-        /* --- 테이블 스타일 시작 (기존 스타일을 이 내용으로 교체하세요) --- */
-table { 
-    width: 100%; 
-    border-collapse: collapse; 
-    font-size: 14px; 
-    table-layout: fixed; /* 전체 테이블 열 너비 고정 */
-}
+        table { width: 100%; border-collapse: collapse; font-size: 14px; table-layout: fixed; }
+        th { background: #0a1425; padding: 12px; text-align: left; color: var(--accent-bright); font-weight: bold; border-bottom: 2px solid var(--border); text-transform: uppercase; letter-spacing: 1px; }
+        td { padding: 12px; border-bottom: 1px solid var(--border); cursor: pointer; transition: 0.2s; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        tr:hover td { background: rgba(255, 255, 255, 0.03); }
 
-th { 
-    background: #0a1425; 
-    padding: 12px; 
-    text-align: left; 
-    color: var(--accent-bright); 
-    font-weight: bold; 
-    border-bottom: 2px solid var(--border); 
-    text-transform: uppercase; 
-    letter-spacing: 1px; 
-}
+        /* 테이블 비율 고정 */
+        #artist-section th:nth-child(1), #artist-section td:nth-child(1) { width: 40%; }
+        #artist-section th:nth-child(2), #artist-section td:nth-child(2) { width: 20%; }
+        #artist-section th:nth-child(3), #artist-section td:nth-child(3) { width: 20%; }
+        #artist-section th:nth-child(4), #artist-section td:nth-child(4) { width: 20%; }
 
-td { 
-    padding: 12px; 
-    border-bottom: 1px solid var(--border); 
-    cursor: pointer; 
-    transition: 0.2s;
-    /* 텍스트가 너무 길면 '...'으로 처리하여 비율 유지 */
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
+        #song-section th:nth-child(1), #song-section td:nth-child(1) { width: 45%; }
+        #song-section th:nth-child(2), #song-section td:nth-child(2) { width: 25%; }
+        #song-section th:nth-child(3), #song-section td:nth-child(3) { width: 15%; }
+        #song-section th:nth-child(4), #song-section td:nth-child(4) { width: 15%; }
 
-tr:hover td { 
-    background: rgba(255, 255, 255, 0.03); 
-}
-
-/* --- 각 섹션별 구체적인 열 너비 고정 (추가) --- */
-
-/* 1. 가수별 통계 테이블 비율 */
-#artist-section th:nth-child(1), #artist-section td:nth-child(1) { width: 40%; } /* 가수명 */
-#artist-section th:nth-child(2), #artist-section td:nth-child(2) { width: 20%; } /* 곡 수 */
-#artist-section th:nth-child(3), #artist-section td:nth-child(3) { width: 20%; } /* 가창 횟수 */
-#artist-section th:nth-child(4), #artist-section td:nth-child(4) { width: 20%; } /* 날짜 */
-
-/* 2. 노래별 상세 기록 테이블 비율 */
-#song-section th:nth-child(1), #song-section td:nth-child(1) { width: 45%; } /* 제목 */
-#song-section th:nth-child(2), #song-section td:nth-child(2) { width: 25%; } /* 가수 */
-#song-section th:nth-child(3), #song-section td:nth-child(3) { width: 15%; } /* 횟수 */
-#song-section th:nth-child(4), #song-section td:nth-child(4) { width: 15%; } /* 날짜 */
-
-/* 모바일 화면에서 열 너비 재조정 */
-@media (max-width: 600px) {
-    th:nth-child(4), td:nth-child(4) { display: none; } /* 4번째 열 숨김 */
-    #artist-section th:nth-child(1), #artist-section td:nth-child(1) { width: 50%; }
-    #song-section th:nth-child(1), #song-section td:nth-child(1) { width: 60%; }
-}
-/* --- 테이블 스타일 끝 --- */
-        
         .badge { padding: 3px 8px; border-radius: 4px; font-size: 11px; background: #0a1a30; color: var(--text-sub); border: 1px solid var(--border); }
         .count-text { color: var(--accent-bright); font-weight: bold; }
 
@@ -179,26 +140,20 @@ tr:hover td {
         .top-close-btn:hover { background: #d32f2f; border-color: #d32f2f; color: #fff; }
 
         @media (max-width: 600px) {
-    /* 4번째 열(날짜) 숨기기 */
-    th:nth-child(4), td:nth-child(4) { display: none; } 
-    
-    /* 가수 섹션: 가수명 40% / 곡 수 30% / 가창 횟수 30% */
-    #artist-section th:nth-child(1), #artist-section td:nth-child(1) { width: 40%; }
-    #artist-section th:nth-child(2), #artist-section td:nth-child(2) { width: 30%; }
-    #artist-section th:nth-child(3), #artist-section td:nth-child(3) { width: 30%; } 
-
-    /* 노래 섹션: 제목 50% / 가수 30% / 횟수 20% */
-    #song-section th:nth-child(1), #song-section td:nth-child(1) { width: 50%; }
-    #song-section th:nth-child(2), #song-section td:nth-child(2) { width: 30%; }
-    #song-section th:nth-child(3), #song-section td:nth-child(3) { width: 20%; }
-}
+            th:nth-child(4), td:nth-child(4) { display: none; } 
+            #artist-section th:nth-child(1), #artist-section td:nth-child(1) { width: 40%; }
+            #artist-section th:nth-child(2), #artist-section td:nth-child(2) { width: 30%; }
+            #artist-section th:nth-child(3), #artist-section td:nth-child(3) { width: 30%; } 
+            #song-section th:nth-child(1), #song-section td:nth-child(1) { width: 50%; }
+            #song-section th:nth-child(2), #song-section td:nth-child(2) { width: 30%; }
+            #song-section th:nth-child(3), #song-section td:nth-child(3) { width: 20%; }
+        }
     </style>
 </head>
 <body>
 
 <div id="loading-overlay">
-    <div class="loader-circle"></div>
-    <div class="loader-text">기록을 정리하고 있어요 . . .</div>
+    <div id="wave-text" class="wave-text"></div>
 </div>
 
 <div class="wrapper">
@@ -210,7 +165,7 @@ tr:hover td {
     <div id="artist-section">
         <div class="section-title">🎤 가수별 보유 곡 현황</div>
         <div class="search-container">
-            <input type="text" id="artist-search" class="search-input" placeholder="가수 이름을 검색하세요..." oninput="onSearch('artist')">
+            <input type="text" id="artist-search" class="search-input" placeholder="가수를 검색하세요..." oninput="onSearch('artist')">
         </div>
         <div class="stats-card">
             <table>
@@ -231,7 +186,7 @@ tr:hover td {
     <div id="song-section">
         <div class="section-title">🎵 노래별 상세 기록</div>
         <div class="search-container">
-            <input type="text" id="song-search" class="search-input" placeholder="노래 제목 또는 가수를 검색하세요..." oninput="onSearch('song')">
+            <input type="text" id="song-search" class="search-input" placeholder="노래 또는 가수를 검색하세요..." oninput="onSearch('song')">
         </div>
         <div class="stats-card">
             <table>
@@ -244,8 +199,12 @@ tr:hover td {
         </div>
     </div>
     <footer style="text-align: center; padding: 15px 20px; color: var(--text-sub); font-size: 11px; border-top: 1px solid var(--border); margin-top: 5px;">
-        <p style="margin: 0; opacity: 0.7;">팬심으로 제작된 비영리 페이지입니다.</p>
-    </footer>
+    <p style="margin: 0; opacity: 0.8; line-height: 1.6;">
+        <strong>바다비 비공식 팬 아카이브</strong><br>
+        모든 권리는 원저작권자(바다비/SOOP)에게 있으며 요청 시 수정·삭제됩니다.<br>
+        비영리로 운영되며, 정보 갱신시 이전 데이터가 2분정도 나타날 수 있습니다.
+    </p>
+</footer>
 </div>
 
 <div id="detailModal" class="modal">
@@ -273,6 +232,20 @@ tr:hover td {
     let songSearchQuery = "";
     let artistSortTarget = 'songCount';
 
+    // 파도 텍스트 생성기
+    function prepareWaveText(text) {
+        const container = document.getElementById('wave-text');
+        if (!container) return;
+        container.innerHTML = ''; 
+        const letters = text.split('').map(char => char === ' ' ? '&nbsp;' : char);
+        letters.forEach((letter, index) => {
+            const span = document.createElement('span');
+            span.innerHTML = letter;
+            span.style.animationDelay = `${index * 0.1}s`;
+            container.appendChild(span);
+        });
+    }
+
     function parseTitleWithTag(originalTitle) {
         const tagMatch = originalTitle.match(/^\[([^\]]+)\]/);
         let displayTitle = originalTitle;
@@ -298,101 +271,84 @@ tr:hover td {
     }
 
     async function initStats() {
-    const overlay = document.getElementById('loading-overlay');
-    try {
-        const cacheBuster = `&t=${new Date().getTime()}`;
-        const [bookRes, statRes] = await Promise.all([
-            fetch(BOOK_SHEET_URL + cacheBuster),
-            fetch(STAT_SHEET_URL + cacheBuster)
-        ]);
+        const overlay = document.getElementById('loading-overlay');
+        prepareWaveText("기록을 정리하고 있어요 . . .");
 
-        const bookText = await bookRes.text();
-        const statText = await statRes.text();
+        try {
+            const cacheBuster = `&t=${new Date().getTime()}`;
+            const [bookRes, statRes] = await Promise.all([
+                fetch(BOOK_SHEET_URL + cacheBuster),
+                fetch(STAT_SHEET_URL + cacheBuster)
+            ]);
 
-        // 빈 줄을 제외하되, 데이터가 있는 모든 행을 가져옵니다.
-        const parseTSV = (text) => text.split(/\r?\n/).filter(line => line.trim() !== "");
-        
-        // 헤더를 제외한 실제 데이터 행
-        const bookLines = parseTSV(bookText).slice(1);
-        const statLines = parseTSV(statText).slice(1);
+            const bookText = await bookRes.text();
+            const statText = await statRes.text();
 
-        const artistMap = new Map(); 
-        const songMap = new Map();
+            const parseTSV = (text) => text.split(/\r?\n/).filter(line => line.trim() !== "");
+            const bookLines = parseTSV(bookText).slice(1);
+            const statLines = parseTSV(statText).slice(1);
 
-        bookLines.forEach((line, index) => { // index 추가
-    const parts = line.split('\t').map(item => item.trim());
-    
-    if (parts[0]) { // 제목만 있으면 일단 통과
-        const title = parts[0];
-        const artist = parts[1] || "미지정";
-        const dateRaw = parts[2] || "";
-        const history = dateRaw ? dateRaw.split(',').map(d => d.trim()).filter(d => d !== "") : [];
-        
-        // [수정] 제목+가수 대신 '순서+제목'을 키로 사용하여 중복 방지
-        const uniqueKey = `${index}_${title}`; 
-        
-        songMap.set(uniqueKey, { 
-            title, 
-            artist, 
-            history: [...history], 
-            count: history.length 
-        });
-    }
-});
+            const artistMap = new Map(); 
+            const songMap = new Map();
 
-        statLines.forEach((line) => {
-    const parts = line.split('\t').map(item => item.trim());
-    if (parts[0]) { // 제목만 있어도 실행
-        const title = parts[0];
-        const artist = parts[1] || "미지정";
-        const sHistory = parts[2] ? parts[2].split(',').map(d => d.trim()).filter(d => d !== "") : [];
-        
-        // 중요: songMap을 순회하며 제목과 가수가 일치하는 모든 항목에 기록 추가
-        // (중복 제목이 있을 수 있으므로 uniqueKey 대신 제목+가수로 매칭)
-        for (let song of songMap.values()) {
-            if (song.title === title && song.artist === artist) {
-                song.history = [...new Set([...song.history, ...sHistory])].sort();
-                song.count = song.history.length;
-            }
+            bookLines.forEach((line, index) => {
+                const parts = line.split('\t').map(item => item.trim());
+                if (parts[0]) {
+                    const title = parts[0];
+                    const artist = parts[1] || "미지정";
+                    const dateRaw = parts[2] || "";
+                    const history = dateRaw ? dateRaw.split(',').map(d => d.trim()).filter(d => d !== "") : [];
+                    const uniqueKey = `${index}_${title}`; 
+                    
+                    songMap.set(uniqueKey, { 
+                        title, artist, history: [...history], count: history.length 
+                    });
+                }
+            });
+
+            statLines.forEach((line) => {
+                const parts = line.split('\t').map(item => item.trim());
+                if (parts[0]) {
+                    const title = parts[0];
+                    const artist = parts[1] || "미지정";
+                    const sHistory = parts[2] ? parts[2].split(',').map(d => d.trim()).filter(d => d !== "") : [];
+                    for (let song of songMap.values()) {
+                        if (song.title === title && song.artist === artist) {
+                            song.history = [...new Set([...song.history, ...sHistory])].sort();
+                            song.count = song.history.length;
+                        }
+                    }
+                }
+            });
+
+            fullSongData = Array.from(songMap.values()).map(song => {
+                const lastDate = song.count > 0 ? song.history[song.history.length - 1] : "-";
+                if (!artistMap.has(song.artist)) artistMap.set(song.artist, { songCount: 0, totalSing: 0, lastSing: "-" });
+                const aData = artistMap.get(song.artist);
+                aData.songCount += 1;
+                aData.totalSing += song.count;
+                if (lastDate !== "-" && (aData.lastSing === "-" || lastDate > aData.lastSing)) aData.lastSing = lastDate;
+                return { ...song, lastDate };
+            }).sort((a, b) => b.count - a.count);
+
+            fullArtistData = Array.from(artistMap.entries());
+            render('artist');
+            render('song');
+
+        } catch (e) {
+            console.error("데이터 로드 오류:", e);
+            document.getElementById('artist-stats-body').innerHTML = `<tr><td colspan="4" style="text-align:center;">데이터 로드 중 오류가 발생했습니다.</td></tr>`;
+        } finally {
+            setTimeout(() => {
+                overlay.style.opacity = '0';
+                setTimeout(() => {
+                    overlay.style.visibility = 'hidden';
+                    document.body.style.overflow = 'auto';
+                }, 500);
+            }, 800);
         }
     }
-});
 
-        fullSongData = Array.from(songMap.values()).map(song => {
-            const lastDate = song.count > 0 ? song.history[song.history.length - 1] : "-";
-            
-            if (!artistMap.has(song.artist)) {
-                artistMap.set(song.artist, { songCount: 0, totalSing: 0, lastSing: "-" });
-            }
-            
-            const aData = artistMap.get(song.artist);
-            aData.songCount += 1;
-            aData.totalSing += song.count;
-            
-            if (lastDate !== "-" && (aData.lastSing === "-" || lastDate > aData.lastSing)) {
-                aData.lastSing = lastDate;
-            }
-            return { ...song, lastDate };
-        }).sort((a, b) => b.count - a.count);
-
-        fullArtistData = Array.from(artistMap.entries());
-        
-        render('artist');
-        render('song');
-
-    } catch (e) {
-        console.error("데이터 로드 오류:", e);
-        document.getElementById('artist-stats-body').innerHTML = `<tr><td colspan="4" style="text-align:center;">데이터 파싱 중 오류가 발생했습니다.</td></tr>`;
-    } finally {
-        setTimeout(() => {
-            overlay.style.opacity = '0';
-            setTimeout(() => {
-                overlay.style.visibility = 'hidden';
-                document.body.style.overflow = 'auto';
-            }, 500);
-        }, 800);
-    }
-}
     function onSearch(type) {
         if (type === 'artist') artistSearchQuery = document.getElementById('artist-search').value.toLowerCase();
         else songSearchQuery = document.getElementById('song-search').value.toLowerCase();
