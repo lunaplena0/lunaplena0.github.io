@@ -6,41 +6,45 @@
     <title>바다비 눈물기록소</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
     <style>
-        /* 로딩 오버레이 스타일 */
-        #loading-overlay {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(1, 3, 6, 0.98);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-            transition: opacity 0.5s ease;
-        }
+        /* --- 로딩 영역 CSS 교체 --- */
+    #loading-overlay {
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: rgba(1, 3, 6, 0.98);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+        transition: opacity 0.5s ease;
+        visibility: visible;
+    }
 
-        .loader-circle {
-            width: 50px;
-            height: 50px;
-            border: 3px solid #0a1425;
-            border-top: 3px solid #3385ff;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 15px;
-            box-shadow: 0 0 15px rgba(51, 133, 255, 0.2);
-        }
+    /* 파도 애니메이션을 위한 글자 컨테이너 */
+    .wave-text {
+        color: #3385ff; /* var(--accent) 색상 */
+        font-size: 16px;
+        font-weight: 700;
+        letter-spacing: 2px;
+        display: flex;
+    }
 
-        .loader-text {
-            color: #3385ff;
-            font-size: 14px;
-            letter-spacing: 2px;
-            font-weight: bold;
-            animation: pulse 1.5s infinite;
-        }
+    /* 각 글자(span)에 애니메이션 적용 */
+    .wave-text span {
+        display: inline-block;
+        animation: wave 1.6s ease-in-out infinite;
+    }
 
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+    /* 파도 애니메이션 정의 */
+    @keyframes wave {
+        0%, 100% { transform: translateY(0); }
+        50% {
+            transform: translateY(-10px); /* 위로 톡! */
+            color: #fff; /* 가장 높을 때 하얗게 빛남 */
+            text-shadow: 0 0 10px rgba(51, 133, 255, 0.7);
+        }
+    }
+    /* -------------------------- */
 
         :root {
             --bg-color: #010306;
@@ -168,8 +172,7 @@
 <body>
 
 <div id="loading-overlay">
-    <div class="loader-circle"></div>
-    <div class="loader-text">눈물을 모으고 있어요 . . .</div>
+    <div id="wave-text" class="wave-text"></div>
 </div>
 
 <div class="wrapper">
@@ -187,16 +190,40 @@
 
     <div id="main-content"></div>
     <footer style="text-align: center; padding: 15px 20px; color: var(--text-sub); font-size: 11px; border-top: 1px solid var(--border); margin-top: 5px;">
-        <p style="margin: 0; opacity: 0.7;">팬심으로 제작된 비영리 페이지입니다.</p>
-    </footer>
+    <p style="margin: 0; opacity: 0.8; line-height: 1.6;">
+        <strong>바다비 비공식 팬 아카이브</strong><br>
+        모든 권리는 원저작권자(바다비/SOOP)에게 있으며 요청 시 수정·삭제됩니다.<br>
+        비영리로 운영되며, 정보 갱신시 이전 데이터가 2분정도 나타날 수 있습니다.
+    </p>
+</footer>
 </div>
 
 <script>
     const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQsvaqEEGjtHB20R3qPkIAXyAySm8FnLzcs0rIsZevLuLP65D43gSuoRzYVU0pmhRbvyg5AW-Ce1cmL/pub?gid=0&single=true&output=tsv";
     const startDate = new Date("2026-04-20"); 
 
+    // 글자를 한 글자씩 나누고 애니메이션 지연 시간을 설정하는 함수 추가
+    function prepareWaveText(text) {
+        const container = document.getElementById('wave-text');
+        if (!container) return;
+        container.innerHTML = ''; 
+
+        const letters = text.split('').map(char => char === ' ' ? '&nbsp;' : char);
+
+        letters.forEach((letter, index) => {
+            const span = document.createElement('span');
+            span.innerHTML = letter;
+            span.style.animationDelay = `${index * 0.1}s`;
+            container.appendChild(span);
+        });
+    }
+    
     window.onload = () => {
         const overlay = document.getElementById('loading-overlay');
+
+        // 로딩 문구 설정
+        prepareWaveText("눈물을 모으고 있어요 . . .");
+        
         const cacheBuster = `&t=${new Date().getTime()}`;
         
         fetch(sheetUrl + cacheBuster, {
@@ -261,7 +288,7 @@
         const today = new Date();
         const diffTime = Math.abs(today - startDate);
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
-        const averageCycle = (diffDays / total).toFixed(1);
+        const averageCycle = total > 0 ? (diffDays / total).toFixed(1) : 0;
 
         data.forEach(item => {
             const [y, m] = item.rawMonth.split(',').map(Number);
