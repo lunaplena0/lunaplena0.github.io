@@ -34,10 +34,8 @@
             display: flex; 
             justify-content: center; 
             align-items: center;
-            /* 100vh 대신 dvh(Dynamic Viewport Height) 사용으로 모바일 상단바 대응 */
             height: 100dvh; 
             background-image: radial-gradient(circle at center, #051020 0%, #02050a 100%);
-            /* 모바일 텍스트 크기 보정 방지 */
             -webkit-text-size-adjust: none;
             -webkit-font-smoothing: antialiased;
         }
@@ -60,7 +58,6 @@
         }
 
         #timer {
-            /* clamp를 통해 모바일에서도 너무 커지지 않게 조정 */
             font-size: clamp(32px, 12vw, 80px);
             font-weight: 700;
             font-variant-numeric: tabular-nums;
@@ -97,12 +94,22 @@
     <div class="label">BADABI Coming Soon</div>
     <div id="timer">00 : 00 : 00 : 00</div>
     <div class="target-date" id="target-display">2026.04.20 16:00:00</div>
-    <footer style="text-align: center; padding: 15px 20px; color: var(--text-sub); font-size: 11px; border-top: 1px solid var(--border); margin-top: 5px;">
-        <p style="margin: 0; opacity: 0.7;">팬심으로 제작된 비영리 페이지입니다.</p>
-    </footer>
+     <footer style="text-align: center; padding: 25px 20px; color: var(--text-sub); font-size: 11px; margin-top: 20px;">
+    <div style="display: inline-block; border-top: 1px solid rgba(255, 255, 255, 0.15); padding: 15px 50px 0 50px;">
+        <p style="margin: 0; opacity: 0.8; line-height: 1.6;">
+            <strong style="color: var(--text-main);">바다비 비공식 데뷔 카운트다운 사이트</strong>
+        </p>
+    </div>
+</footer>
 </div>
 
 <script>
+    // --- 리다이렉트 설정: 2026년 4월 21일 00:00:00 이후 접근 시 차단 ---
+    const EXPIRE_DATE = new Date("2026-04-21T00:00:00").getTime();
+    if (new Date().getTime() >= EXPIRE_DATE) {
+        window.location.replace("https://www.sooplive.com/station/bababi");
+    }
+
     const TARGET_DATE = new Date("2026-04-20T16:00:00").getTime();
     let isRedirecting = false;
 
@@ -113,6 +120,7 @@
         const diff = TARGET_DATE - now;
         const timerEl = document.getElementById('timer');
 
+        // 타이머 종료 및 페이지 이동 로직
         if (diff <= 0) {
             isRedirecting = true;
             timerEl.innerText = "이동 중..."; 
@@ -125,12 +133,12 @@
         const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
         const secs = Math.floor((diff % (1000 * 60)) / 1000);
 
-        // 텍스트 업데이트
+        // 시간 표시 형식 업데이트
         timerEl.innerText = (days > 0) ? `${days} : ${String(hours).padStart(2, '0')} : ${String(mins).padStart(2, '0')} : ${String(secs).padStart(2, '0')}` :
                            (hours > 0) ? `${hours} : ${String(mins).padStart(2, '0')} : ${String(secs).padStart(2, '0')}` :
                            (mins > 0) ? `${mins} : ${String(secs).padStart(2, '0')}` : `${secs}`;
 
-        // 스케일 및 애니메이션 로직
+        // 애니메이션 효과 제어
         let scale = 1;
         if (diff <= 300000) scale = 1.05; 
         if (diff <= 240000) scale = 1.1;  
@@ -156,7 +164,6 @@
         }
     }
 
-    // 0.1초마다 체크하여 더 정밀하게 반응
     const timerInterval = setInterval(updateTimer, 100);
     updateTimer();
 </script>
