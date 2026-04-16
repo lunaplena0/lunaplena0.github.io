@@ -3,299 +3,275 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Streamer Archive | Layout Fixed</title>
+    <title>Streamer Archive | Deep Sea Edition</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg: #0d1117;
-            --card: #161b22;
-            --border: #30363d;
-            --accent: #58a6ff;
-            --text-main: #c9d1d9;
-            --text-title: #f0f6fc;
-            --text-dim: #8b949e;
+            --bg: #010306;
+            --bg-grad: radial-gradient(circle at center, #051020 0%, #02050a 100%);
+            --card: #030812;
+            --border: #0a1425;
+            --accent: #003366;
+            --accent-bright: #3385ff;
+            --accent-glow: rgba(0, 51, 102, 0.7);
+            --text-main: #f0faff;
+            --text-title: #ffffff;
+            --text-dim: #5c7285;
+            --online: #3fb950;
         }
 
+        /* 로딩 레이어 */
+        #loading-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg); display: flex; flex-direction: column;
+            justify-content: center; align-items: center; z-index: 9999;
+            transition: opacity 0.5s ease;
+        }
+        .loader-circle {
+            width: 50px; height: 50px; border: 3px solid var(--accent);
+            border-top: 3px solid var(--accent-bright); border-radius: 50%;
+            animation: spin 1s linear infinite; margin-bottom: 15px;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
         body {
-            font-family: 'Pretendard', sans-serif;
+            font-family: 'Noto Sans KR', sans-serif;
             background-color: var(--bg);
+            background-image: var(--bg-grad);
             color: var(--text-main);
-            margin: 0;
-            padding: 40px 20px;
-            display: flex;
-            justify-content: center;
+            margin: 0; padding: 40px 20px;
+            display: flex; justify-content: center; min-height: 100vh;
         }
 
         .container {
             display: grid;
-            grid-template-columns: 300px 1fr 1fr; 
-            grid-template-rows: auto 1fr; /* 상단 박스 높이를 내용에 맞게 자동 조절 */
-            gap: 20px;
-            max-width: 1200px;
-            width: 100%;
+            grid-template-columns: 320px 1fr 1fr;
+            grid-template-rows: auto 1fr;
+            gap: 20px; max-width: 1200px; width: 100%;
         }
 
         .card {
             background: var(--card);
             border: 1px solid var(--border);
-            border-radius: 24px;
-            padding: 24px;
-            display: flex;
-            flex-direction: column;
+            border-radius: 24px; padding: 24px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            display: flex; flex-direction: column;
         }
 
         .box-title {
-            font-size: 1.1rem;
-            font-weight: 800;
-            color: var(--text-title);
-            margin-bottom: 18px;
-            padding-bottom: 10px;
+            font-size: 1rem; font-weight: 800; color: var(--accent-bright);
+            margin-bottom: 18px; padding-bottom: 10px;
             border-bottom: 1px solid var(--border);
+            text-transform: uppercase; letter-spacing: 1px;
         }
 
-        .box-stream {
-            grid-column: 1 / 2;
-            grid-row: 1 / 2;
-            justify-content: center;
-        }
+        /* 상단 방송 정보 및 프로필 */
+        .box-stream { grid-column: 1 / 2; grid-row: 1 / 2; justify-content: center; }
+        .box-profile { grid-column: 1 / 2; grid-row: 2 / 3; }
 
-        .box-profile {
-            grid-column: 1 / 2;
-            grid-row: 2 / 3;
-            /* 제목 제거로 인한 상단 여백 보정 */
-            padding-top: 30px; 
-        }
-
-        .profile-header {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
+        .profile-header { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; }
         .profile-img {
-            width: 65px;
-            height: 65px;
-            background: #21262d;
-            border-radius: 50%;
-            flex-shrink: 0;
-            border: 2px solid var(--border);
+            width: 70px; height: 70px; border-radius: 50%;
+            border: 2px solid var(--accent-bright); background-size: cover;
+            box-shadow: 0 0 15px var(--accent-glow);
         }
 
-        .profile-name {
-            margin: 0;
-            font-weight: bold;
-            font-size: 1.2rem;
-            color: var(--text-title);
-        }
+        .bio-text { font-size: 0.9rem; color: var(--text-dim); line-height: 1.6; margin-bottom: 25px; }
 
-        .bio-text {
-            font-size: 0.9rem;
-            line-height: 1.6;
-            color: var(--text-dim);
-            margin-bottom: 25px;
-        }
-
-        .link-list {
-            margin-top: auto;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-        }
-
-        .link-label {
-            grid-column: span 2;
-            font-size: 0.75rem;
-            color: var(--text-dim);
-            margin-bottom: 4px;
-        }
-
+        .link-list { margin-top: auto; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
         .link-btn {
-            background: #21262d;
-            color: var(--text-main);
-            text-decoration: none;
-            padding: 10px 5px;
-            border-radius: 8px;
-            font-size: 0.8rem;
-            text-align: center;
-            border: 1px solid var(--border);
-            transition: 0.2s;
+            background: #0a1a30; color: var(--text-main); text-decoration: none;
+            padding: 10px 5px; border-radius: 8px; font-size: 0.8rem; text-align: center;
+            border: 1px solid var(--accent); transition: 0.2s;
         }
+        .link-btn:hover { background: var(--accent-bright); border-color: var(--accent-bright); color: #fff; }
 
-        .link-btn:hover { border-color: var(--accent); color: var(--accent); }
-
-        .box-schedule {
-            grid-column: 2 / 4;
-            grid-row: 1 / 2;
-        }
-
-        /* --- 주간 일정 구조 강화 --- */
-        .schedule-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 10px;
-            margin-top: 5px;
-        }
-
+        /* 주간 일정 (가로형 배치) */
+        .box-schedule { grid-column: 2 / 4; grid-row: 1 / 2; }
+        .schedule-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; }
         .day-item {
-            background: #0d1117;
-            padding: 12px 8px;
-            border-radius: 14px;
-            text-align: center;
-            border: 1px solid #21262d;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
+            background: rgba(255, 255, 255, 0.02); padding: 12px 8px; border-radius: 14px;
+            text-align: center; border: 1px solid var(--border); transition: 0.3s;
         }
-
-        .day-name {
-            font-size: 0.75rem;
-            font-weight: bold;
-            color: var(--text-dim);
+        .today-highlight {
+            background: rgba(51, 133, 255, 0.1) !important;
+            border-color: var(--accent-bright) !important;
+            box-shadow: 0 0 10px rgba(51, 133, 255, 0.2);
         }
+        .day-name { font-size: 0.75rem; color: var(--text-dim); font-weight: bold; }
+        .day-time { font-size: 0.85rem; font-weight: bold; color: var(--accent-bright); margin: 4px 0; display: block; }
+        .day-content { font-size: 0.75rem; line-height: 1.3; word-break: keep-all; }
 
-        .day-time {
-            font-size: 0.85rem;
-            font-weight: bold;
-            color: var(--accent);
-        }
-
-        .day-content {
-            font-size: 0.75rem;
-            color: var(--text-main);
-            line-height: 1.3;
-            word-break: keep-all;
-        }
-
-        .box-posts, .box-replay {
-            grid-row: 2 / 3;
-        }
-
-        .item-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
+        /* 리스트 스타일 (게시물, 다시보기) */
+        .item-list { display: flex; flex-direction: column; gap: 2px; }
         .list-row {
-            padding: 14px 5px;
-            border-bottom: 1px solid #21262d;
-            font-size: 0.9rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            padding: 12px 8px; border-radius: 8px; cursor: pointer;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+            display: flex; justify-content: space-between; align-items: center; transition: 0.2s;
+        }
+        .list-row:hover { background: rgba(255,255,255,0.05); }
+        .list-row .title-text { 
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; 
+            font-size: 0.9rem; margin-right: 10px;
+        }
+        .list-row .date { font-size: 0.75rem; color: var(--text-dim); flex-shrink: 0; }
+
+        .vod-thumb {
+            width: 60px; height: 35px; background-size: cover; border-radius: 4px;
+            margin-right: 12px; border: 1px solid var(--border);
         }
 
-        .list-row:last-child { border-bottom: none; }
-
-        .list-row .date {
-            font-size: 0.75rem;
-            color: var(--text-dim);
-        }
-
-        .list-row .title-text {
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            margin-right: 10px;
-        }
-
-        @media (max-width: 950px) {
-            .container { grid-template-columns: 1fr; grid-template-rows: auto; }
-            .box-schedule, .box-posts, .box-replay { grid-column: 1 / 2; }
+        @media (max-width: 1000px) {
+            .container { grid-template-columns: 1fr; }
+            .box-schedule, .box-posts, .box-replay { grid-column: 1 / 2; grid-row: auto; }
             .schedule-grid { grid-template-columns: repeat(4, 1fr); }
         }
     </style>
 </head>
 <body>
 
+<div id="loading-overlay">
+    <div class="loader-circle"></div>
+    <div style="color: var(--accent-bright); font-size: 14px; letter-spacing: 1px;">심해에서 데이터를 끌어올리는 중...</div>
+</div>
+
 <div class="container">
-    <div class="card box-stream">
-        <span class="box-title" style="border:none; margin:0;">방송 정보</span>
-        <div style="font-size: 0.9rem; color: #3fb950; font-weight: bold;">● Online</div>
+    <div class="card box-stream" id="stream-status-card">
+        <span class="box-title" style="border:none; margin:0;">LIVE STATUS</span>
+        <div id="live-indicator" style="font-size: 0.9rem; color: var(--text-dim); font-weight: bold;">Checking...</div>
     </div>
 
     <div class="card box-profile">
         <div class="profile-header">
-            <div class="profile-img"></div>
-            <p class="profile-name">스트리머 이름</p>
+            <div class="profile-img" id="user-img"></div>
+            <h2 class="profile-name" id="user-nick" style="margin:0; font-size: 1.2rem;">로딩 중...</h2>
         </div>
-        
-        <p class="bio-text">안녕하세요! 게임과 소통을 즐기는 방송인입니다. 아카이브에 오신 걸 환영해요!</p>
-        
-        <div class="link-list">
-            <span class="link-label">링크</span>
-            <a href="#" class="link-btn">방송국</a>
-            <a href="#" class="link-btn">유튜브</a>
-            <a href="#" class="link-btn">노래통계</a>
-            <a href="#" class="link-btn">다시보기통계</a>
-            <a href="#" class="link-btn">눈물통계</a>
-            <a href="#" class="link-btn">노래책</a>
-        </div>
+        <p class="bio-text" id="user-desc">정보를 불러오고 있습니다.</p>
+        <div class="link-list" id="link-container">
+            </div>
     </div>
 
     <div class="card box-schedule">
-        <span class="box-title" style="border:none; margin:0 0 15px 0; font-size: 1rem;">주간 일정</span>
-        <div class="schedule-grid">
-            <div class="day-item">
-                <span class="day-name">월</span>
-                <span class="day-time">20:00</span>
-                <span class="day-content">종합 게임 방송</span>
+        <span class="box-title" style="border:none;">WEEKLY SCHEDULE</span>
+        <div class="schedule-grid" id="schedule-grid">
             </div>
-            <div class="day-item">
-                <span class="day-name">화</span>
-                <span class="day-time">20:00</span>
-                <span class="day-content">신작 찍먹 데이</span>
-            </div>
-            <div class="day-item">
-                <span class="day-name">수</span>
-                <span class="day-time" style="color: #f85149;">휴방</span>
-                <span class="day-content">-</span>
-            </div>
-            <div class="day-item">
-                <span class="day-name">목</span>
-                <span class="day-time">20:00</span>
-                <span class="day-content">시청자 참여 컨텐츠</span>
-            </div>
-            <div class="day-item">
-                <span class="day-name">금</span>
-                <span class="day-time">20:00</span>
-                <span class="day-content">공포 게임 특집</span>
-            </div>
-            <div class="day-item">
-                <span class="day-name">토</span>
-                <span class="day-time">18:00</span>
-                <span class="day-content">야외 방송 또는 먹방</span>
-            </div>
-            <div class="day-item">
-                <span class="day-name">일</span>
-                <span class="day-time" style="color: #f85149;">휴방</span>
-                <span class="day-content">-</span>
-            </div>
-        </div>
     </div>
 
     <div class="card box-posts">
-        <span class="box-title">게시글</span>
-        <div class="item-list">
-            <div class="list-row"><span class="title-text">오늘 방송 시간 변경 안내</span><span class="date">04.15</span></div>
-            <div class="list-row"><span class="title-text">새로운 굿즈 펀딩 시작했습니다!</span><span class="date">04.14</span></div>
-            <div class="list-row"><span class="title-text">공포게임 하이라이트 편집본 업로드</span><span class="date">04.12</span></div>
-            <div class="list-row"><span class="title-text">팬아트 게시판 4월 명예의 전당</span><span class="date">04.10</span></div>
-            <div class="list-row"><span class="title-text">다음 주 장기 휴방 관련 공지</span><span class="date">04.08</span></div>
-        </div>
+        <span class="box-title">RECENT POSTS</span>
+        <div class="item-list" id="post-list"></div>
     </div>
 
     <div class="card box-replay">
-        <span class="box-title">다시보기</span>
-        <div class="item-list">
-            <div class="list-row"><span class="title-text">최신 다시보기: 월요병 타파 방송</span><span class="date">04.14</span></div>
-            <div class="list-row"><span class="title-text">엔딩까지 달린 그 게임 (막방)</span><span class="date">04.13</span></div>
-            <div class="list-row"><span class="title-text">시청자 고민상담 라디오 15화</span><span class="date">04.11</span></div>
-            <div class="list-row"><span class="title-text">새벽 감성 노래방 & 수다타임</span><span class="date">04.09</span></div>
-            <div class="list-row"><span class="title-text">신작 RPG 오픈런 10시간 정주행</span><span class="date">04.07</span></div>
-        </div>
+        <span class="box-title">BROADCAST REPLAY</span>
+        <div class="item-list" id="vod-list"></div>
     </div>
 </div>
 
+<script>
+    const TSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTQ3nX6onmaf-ZHhXGox2s4ChGos7ki7iFjQ_47lArZR6dV935gCIbLbvlDDAS65rTEnswSLIk_7v3R/pub?gid=0&single=true&output=tsv';
+
+    async function fetchData() {
+        try {
+            const res = await fetch(`${TSV_URL}&t=${Date.now()}`);
+            const text = await res.text();
+            const rows = text.split(/\r?\n/).map(row => row.split('\t'));
+
+            // 1. 프로필 & 방송 상태 (행 번호는 제공해주신 스크립트 기준)
+            const profile = rows[2];
+            const liveData = rows[6];
+            
+            if (profile) {
+                document.getElementById('user-nick').innerText = profile[0] || '닉네임';
+                document.getElementById('user-desc').innerText = profile[1] || '';
+                if(profile[2]) document.getElementById('user-img').style.backgroundImage = `url('${profile[2]}')`;
+            }
+
+            const isOnline = liveData && liveData[5] !== "방송 정보 없음" && liveData[5] !== undefined;
+            const indicator = document.getElementById('live-indicator');
+            if (isOnline) {
+                indicator.innerHTML = `<span style="color:#ff4d4d">● ONLINE</span><br><span style="font-size:0.8rem; color:var(--text-main)">${liveData[5]}</span>`;
+            } else {
+                indicator.innerHTML = `<span style="color:var(--text-dim)">○ OFFLINE</span><br><span style="font-size:0.7rem;">최근: ${profile[3] || '기록 없음'}</span>`;
+            }
+
+            // 2. 링크 버튼
+            const links = rows[5];
+            const linkBox = document.getElementById('link-container');
+            linkBox.innerHTML = '';
+            if (links) {
+                links.forEach(l => {
+                    if (l && l.includes(': ')) {
+                        const [name, url] = l.split(': ');
+                        const a = document.createElement('a');
+                        a.className = 'link-btn';
+                        a.href = url.trim();
+                        a.target = '_blank';
+                        a.innerText = name.trim();
+                        linkBox.appendChild(a);
+                    }
+                });
+            }
+
+            // 3. 스케줄 (가로 7칸)
+            renderSchedule(rows.slice(24, 31));
+
+            // 4. 게시물
+            renderList('post-list', rows.slice(8, 13), false);
+
+            // 5. 다시보기
+            renderList('vod-list', rows.slice(16, 21), true);
+
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setTimeout(() => {
+                document.getElementById('loading-overlay').style.opacity = '0';
+                setTimeout(() => document.getElementById('loading-overlay').style.display = 'none', 500);
+            }, 800);
+        }
+    }
+
+    function renderSchedule(data) {
+        const grid = document.getElementById('schedule-grid');
+        grid.innerHTML = '';
+        const todayStr = new Date().toLocaleDateString('en-CA');
+
+        data.forEach(row => {
+            const isToday = row[0] === todayStr;
+            const div = document.createElement('div');
+            div.className = `day-item ${isToday ? 'today-highlight' : ''}`;
+            div.innerHTML = `
+                <span class="day-name">${row[1] || ''}</span>
+                <span class="day-time" style="${row[2] === '휴방' ? 'color:#ff4d4d' : ''}">${row[2] || '-'}</span>
+                <span class="day-content">${row[3] || ''}</span>
+            `;
+            grid.appendChild(div);
+        });
+    }
+
+    function renderList(targetId, data, isVod) {
+        const container = document.getElementById(targetId);
+        container.innerHTML = '';
+        data.filter(r => r[1]).forEach(r => {
+            const row = document.createElement('div');
+            row.className = 'list-row';
+            row.onclick = () => window.open(r[2], '_blank');
+            
+            let content = `<div class="title-text">${r[1]}</div>`;
+            if (isVod) {
+                content = `<div style="display:flex; align-items:center; min-width:0;">
+                            <div class="vod-thumb" style="background-image:url('${r[3]}')"></div>
+                            <div class="title-text">${r[1]}</div>
+                           </div>`;
+            }
+
+            row.innerHTML = `${content}<span class="date">${r[0]}</span>`;
+            container.appendChild(row);
+        });
+    }
+
+    window.onload = fetchData;
+</script>
 </body>
 </html>
