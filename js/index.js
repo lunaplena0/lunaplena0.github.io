@@ -70,20 +70,10 @@ const TSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTQ3nX6onmaf-ZH
             }
 
             if (profile) {
-    document.getElementById('user-nick').innerText = profile[0] || '닉네임';
-    document.getElementById('user-desc').innerText = profile[1] || '';
-    
-    if(profile[2]) {
-        // 1. 프로필 이미지 박스 변경 (기존 코드)
-        document.querySelector('.profile-img').style.backgroundImage = `url('${profile[2]}')`;
-        
-        // 2. 브라우저 탭 마크(Favicon) 변경 (추가할 코드)
-        const favicon = document.getElementById('favicon');
-        if (favicon) {
-            favicon.href = profile[2]; // 시트에서 가져온 PNG 주소를 파비콘에 적용
-        }
-    }
-}
+                document.getElementById('user-nick').innerText = profile[0] || '닉네임';
+                document.getElementById('user-desc').innerText = profile[1] || '';
+                if(profile[2]) document.querySelector('.profile-img').style.backgroundImage = `url('${profile[2]}')`;
+            }
 
             if (updateTimeData) {
                 let updateEl = document.getElementById('update-time');
