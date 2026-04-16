@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 - 길을 잃었어요</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #010306;
+            --card-bg: #030812;
+            --accent-bright: #3385ff;
+            --accent-glow: rgba(0, 51, 102, 0.7);
+            --text-main: #f0faff;
+            --text-sub: #5c7285;
+            --border: #0a1425;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            background-image: radial-gradient(circle at center, #051020 0%, #02050a 100%);
+            color: var(--text-main);
+            font-family: 'Noto Sans KR', sans-serif;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            text-align: center;
+            z-index: 1;
+        }
+
+        /* 404 숫자 강조 */
+        .error-code {
+            font-size: 120px;
+            font-weight: 700;
+            color: var(--accent-bright);
+            text-shadow: 0 0 20px var(--accent-glow);
+            margin: 0;
+            line-height: 1;
+        }
+
+        /* 물결 애니메이션 (로딩창과 동일 컨셉) */
+        .wave-text {
+            font-size: 24px;
+            font-weight: 400;
+            margin: 20px 0;
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        .wave-text span {
+            display: inline-block;
+            animation: wave 1.6s ease-in-out infinite;
+        }
+
+        @keyframes wave {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); color: #fff; text-shadow: 0 0 10px var(--accent-glow); }
+        }
+
+        .description {
+            color: var(--text-sub);
+            font-size: 16px;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        /* 홈으로 버튼 */
+        .home-btn {
+            display: inline-block;
+            padding: 12px 30px;
+            background: #0a1a30;
+            color: var(--text-main);
+            text-decoration: none;
+            border: 1px solid var(--accent-bright);
+            border-radius: 8px;
+            font-size: 14px;
+            transition: 0.3s;
+        }
+
+        .home-btn:hover {
+            background: var(--accent-bright);
+            box-shadow: 0 0 15px var(--accent-glow);
+            color: #fff;
+        }
+
+        /* 배경 장식용 물방울 */
+        .bubble {
+            position: absolute;
+            background: rgba(51, 133, 255, 0.1);
+            border-radius: 50%;
+            bottom: -50px;
+            animation: rise 10s infinite ease-in;
+        }
+
+        @keyframes rise {
+            0% { transform: translateY(0) scale(1); opacity: 0; }
+            50% { opacity: 0.5; }
+            100% { transform: translateY(-100vh) scale(1.2); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="error-code">404</div>
+    <div class="wave-text" id="wave-target"></div>
+    <p class="description">
+        입력하신 주소는 아직 존재하지 않거나,<br>
+        깊은 바다 밑으로 가라앉아 찾을 수 없습니다.
+    </p>
+    <a href="index.html" class="home-btn">메인으로 돌아가기</a>
+</div>
+
+<script>
+    // 파도 애니메이션 텍스트 설정
+    const text = "해당 주소는 아직 없어요";
+    const target = document.getElementById('wave-target');
+    
+    text.split('').forEach((char, index) => {
+        const span = document.createElement('span');
+        span.innerHTML = char === ' ' ? '&nbsp;' : char;
+        span.style.animationDelay = `${index * 0.1}s`;
+        target.appendChild(span);
+    });
+
+    // 배경 물방울 생성 스크립트
+    function createBubble() {
+        const bubble = document.createElement('div');
+        bubble.className = 'bubble';
+        const size = Math.random() * 60 + 10 + 'px';
+        bubble.style.width = size;
+        bubble.style.height = size;
+        bubble.style.left = Math.random() * 100 + 'vw';
+        bubble.style.animationDuration = Math.random() * 5 + 5 + 's';
+        document.body.appendChild(bubble);
+        setTimeout(() => bubble.remove(), 10000);
+    }
+    setInterval(createBubble, 1000);
+</script>
+
+</body>
+</html>
