@@ -294,6 +294,10 @@ function filterDataByTag(tag) {
         const v = allVods.find(item => String(item.id) === String(id));
         if(!v) return;
 
+     // 상세 내용 영역 스크롤을 맨 위로 초기화
+    const scrollArea = document.querySelector('#modal-content > div:nth-child(2)');
+    if(scrollArea) scrollArea.scrollTop = 0;
+
         // 썸네일, 제목, 날짜 설정
         document.getElementById('m-thumb').src = v.thumb;
         document.getElementById('m-title').textContent = v.title;
@@ -312,6 +316,7 @@ function filterDataByTag(tag) {
         document.getElementById('m-link').href = v.link;
      const linkBtn = document.getElementById('m-link');
      const hasLink = v.link && v.link.trim() !== "" && v.link !== "-";
+     
      if (hasLink) {
         linkBtn.href = v.link;
         linkBtn.textContent = "시청하기";
