@@ -447,14 +447,25 @@ function prepareWaveText(text) {
             const content = row[3]?.trim() || ''; 
             const category = row[4]?.trim() || ''; 
             if(!date && !content) return; 
+
             const isToday = date === todayStr;
+            const isDayOff = content.includes('휴방'); // 휴방 여부 체크
+            
+            // --- 스타일 및 시간 표시 제어 ---
+            // 1. 휴방이면 빨간색, 아니면 기본색
+            const contentStyle = isDayOff ? 'color: #ff4d4d; font-weight: bold;' : 'color: var(--text-main);';
+            
+            // 2. 휴방이 아닐 때만 시간 정보를 생성 (휴방이면 시간이 있어도 무시)
+            const timeInfo = (time && !isDayOff) ? `<span style="color:var(--accent-bright); font-weight:bold;">${time}</span>` : '';
+            // ------------------------------
+
             const rowDiv = document.createElement('div');
             rowDiv.className = `item-row schedule-row ${isToday ? 'today-highlight' : ''}`;
-            const timeInfo = time ? `<span style="color:var(--accent-bright); font-weight:bold;">${time}</span>` : '';
+            
             rowDiv.innerHTML = `
                 <div style="display:flex; flex-direction:column; gap:1px; flex:1; min-width:0;">
                     <span class="day" style="font-size:10px;">${date} (${day})${isToday ? '<span class="badge today-tag" style="font-size:8px; padding:1px 4px;">TODAY</span>' : ''}</span>
-                    <div style="font-size:12px; color:var(--text-main); display:flex; align-items:center; gap:5px;">
+                    <div style="font-size:12px; ${contentStyle} display:flex; align-items:center; gap:5px;">
                         ${timeInfo} <span class="ellipsis">${content || '일정 없음'}</span>
                     </div>
                 </div>
