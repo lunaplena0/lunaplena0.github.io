@@ -3,14 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>404 - 길을 잃었어요</title>
+    <title>길을 잃었어요</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
     <style>
         :root {
+            /* 기존 메인 페이지와 동일한 테마색 */
             --bg-color: #010306;
             --card-bg: #030812;
             --accent-bright: #3385ff;
-            --accent-glow: rgba(0, 51, 102, 0.7);
+            --accent-glow: rgba(51, 133, 255, 0.15);
             --text-main: #f0faff;
             --text-sub: #5c7285;
             --border: #0a1425;
@@ -25,124 +26,140 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
             overflow: hidden;
         }
 
         .container {
+            width: 90%;
+            max-width: 450px;
             text-align: center;
-            z-index: 1;
+            z-index: 10;
         }
 
-        /* 404 숫자 강조 */
-        .error-code {
-            font-size: 120px;
-            font-weight: 700;
-            color: var(--accent-bright);
-            text-shadow: 0 0 20px var(--accent-glow);
-            margin: 0;
-            line-height: 1;
-        }
-
-        /* 물결 애니메이션 (로딩창과 동일 컨셉) */
-        .wave-text {
-            font-size: 24px;
-            font-weight: 400;
-            margin: 20px 0;
-            display: flex;
-            justify-content: center;
-            gap: 5px;
-        }
-
-        .wave-text span {
-            display: inline-block;
-            animation: wave 1.6s ease-in-out infinite;
-        }
-
-        @keyframes wave {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); color: #fff; text-shadow: 0 0 10px var(--accent-glow); }
-        }
-
+        /* 안내 문구 스타일 */
         .description {
-            color: var(--text-sub);
-            font-size: 16px;
-            margin-bottom: 30px;
-            line-height: 1.6;
-        }
-
-        /* 홈으로 버튼 */
-        .home-btn {
-            display: inline-block;
-            padding: 12px 30px;
-            background: #0a1a30;
+            font-size: 17px;
+            font-weight: 400;
+            line-height: 1.7;
+            margin-bottom: 35px;
             color: var(--text-main);
+            word-break: keep-all;
+        }
+
+        /* 목차 박스 */
+        .nav-box {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
+        }
+
+        .nav-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            transition: background 0.2s;
+        }
+
+        .nav-item:last-child {
+            border-bottom: none;
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .nav-title {
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--text-main);
+        }
+
+        /* 이동하기 버튼 */
+        .move-btn {
+            background: #0a1a30;
+            color: var(--accent-bright);
             text-decoration: none;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 7px 14px;
             border: 1px solid var(--accent-bright);
-            border-radius: 8px;
-            font-size: 14px;
-            transition: 0.3s;
+            border-radius: 6px;
+            transition: all 0.3s ease;
         }
 
-        .home-btn:hover {
+        .move-btn:hover {
             background: var(--accent-bright);
-            box-shadow: 0 0 15px var(--accent-glow);
             color: #fff;
+            box-shadow: 0 0 12px var(--accent-glow);
+            transform: translateY(-1px);
         }
 
-        /* 배경 장식용 물방울 */
+        /* 배경 물방울 효과 */
         .bubble {
             position: absolute;
-            background: rgba(51, 133, 255, 0.1);
+            background: rgba(51, 133, 255, 0.07);
             border-radius: 50%;
-            bottom: -50px;
-            animation: rise 10s infinite ease-in;
+            bottom: -100px;
+            z-index: 0;
+            animation: rise 15s infinite linear;
         }
 
         @keyframes rise {
-            0% { transform: translateY(0) scale(1); opacity: 0; }
-            50% { opacity: 0.5; }
-            100% { transform: translateY(-100vh) scale(1.2); opacity: 0; }
+            0% { transform: translateY(0); opacity: 0; }
+            50% { opacity: 0.4; }
+            100% { transform: translateY(-120vh); opacity: 0; }
         }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div class="error-code">404</div>
-    <div class="wave-text" id="wave-target"></div>
     <p class="description">
         입력하신 주소는 아직 존재하지 않거나,<br>
         깊은 바다 밑으로 가라앉아 찾을 수 없습니다.
     </p>
-    <a href="index.html" class="home-btn">메인으로 돌아가기</a>
+
+    <div class="nav-box">
+        <div class="nav-item">
+            <span class="nav-title">🏠 메인 페이지</span>
+            <a href="index.html" class="move-btn">이동하기</a>
+        </div>
+        <div class="nav-item">
+            <span class="nav-title">📖 노래책 페이지</span>
+            <a href="songlist.html" class="move-btn">이동하기</a>
+        </div>
+        <div class="nav-item">
+            <span class="nav-title">📊 노래통계 페이지</span>
+            <a href="stats.html" class="move-btn">이동하기</a>
+        </div>
+        <div class="nav-item">
+            <span class="nav-title">💧 눈물모음 페이지</span>
+            <a href="tears.html" class="move-btn">이동하기</a>
+        </div>
+    </div>
 </div>
 
 <script>
-    // 파도 애니메이션 텍스트 설정
-    const text = "해당 주소는 아직 없어요";
-    const target = document.getElementById('wave-target');
-    
-    text.split('').forEach((char, index) => {
-        const span = document.createElement('span');
-        span.innerHTML = char === ' ' ? '&nbsp;' : char;
-        span.style.animationDelay = `${index * 0.1}s`;
-        target.appendChild(span);
-    });
-
-    // 배경 물방울 생성 스크립트
-    function createBubble() {
-        const bubble = document.createElement('div');
-        bubble.className = 'bubble';
-        const size = Math.random() * 60 + 10 + 'px';
-        bubble.style.width = size;
-        bubble.style.height = size;
-        bubble.style.left = Math.random() * 100 + 'vw';
-        bubble.style.animationDuration = Math.random() * 5 + 5 + 's';
-        document.body.appendChild(bubble);
-        setTimeout(() => bubble.remove(), 10000);
+    // 배경 방울 생성 (정적이지 않도록 최소한의 연출)
+    function createBubbles() {
+        for (let i = 0; i < 10; i++) {
+            const bubble = document.createElement('div');
+            bubble.className = 'bubble';
+            const size = Math.random() * 50 + 10 + 'px';
+            bubble.style.width = size;
+            bubble.style.height = size;
+            bubble.style.left = Math.random() * 100 + 'vw';
+            bubble.style.animationDuration = Math.random() * 10 + 10 + 's';
+            bubble.style.animationDelay = Math.random() * 8 + 's';
+            document.body.appendChild(bubble);
+        }
     }
-    setInterval(createBubble, 1000);
+    createBubbles();
 </script>
 
 </body>
