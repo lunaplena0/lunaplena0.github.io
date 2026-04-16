@@ -1,61 +1,391 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <link rel="icon" href="data:;base64,iVBORw0KGgo=">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>정보 메인 페이지</title>
+    <title>바다비 눈물기록소</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/loading.css">
-    <link rel="stylesheet" href="css/index.css"> 
+    <style>
+        /* --- 로딩 영역 CSS 교체 --- */
+    #loading-overlay {
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: rgba(1, 3, 6, 0.98);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+        transition: opacity 0.5s ease;
+        visibility: visible;
+    }
+
+    /* 파도 애니메이션을 위한 글자 컨테이너 */
+    .wave-text {
+        color: #3385ff; /* var(--accent) 색상 */
+        font-size: 16px;
+        font-weight: 700;
+        letter-spacing: 2px;
+        display: flex;
+    }
+
+    /* 각 글자(span)에 애니메이션 적용 */
+    .wave-text span {
+        display: inline-block;
+        animation: wave 1.6s ease-in-out infinite;
+    }
+
+    /* 파도 애니메이션 정의 */
+    @keyframes wave {
+        0%, 100% { transform: translateY(0); }
+        50% {
+            transform: translateY(-10px); /* 위로 톡! */
+            color: #fff; /* 가장 높을 때 하얗게 빛남 */
+            text-shadow: 0 0 10px rgba(51, 133, 255, 0.7);
+        }
+    }
+    /* -------------------------- */
+
+        :root {
+            --bg-color: #010306;
+            --card-bg: #030812;
+            --accent: #3385ff;
+            --text-main: #f0faff;
+            --text-sub: #5c7285;
+            --border: #0a1425;
+        }
+
+        * { box-sizing: border-box; }
+        body { 
+            background-color: var(--bg-color); 
+            background-image: radial-gradient(circle at center, #051020 0%, #010306 100%);
+            color: var(--text-main); 
+            font-family: 'Noto Sans KR', sans-serif; 
+            margin: 0; padding: 0; 
+            min-height: 100vh;
+            overflow: hidden; /* 로딩 중 스크롤 방지 */
+        }
+
+        .wrapper { width: 100%; max-width: 800px; margin: 0 auto; padding: 40px 20px; display: flex; flex-direction: column; gap: 15px; }
+
+        .header-card { 
+            background: var(--card-bg); 
+            border-radius: 16px; 
+            padding: 20px 25px; 
+            border: 1px solid var(--border); 
+            display: flex; 
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        .header-info h1 { margin: 0; font-size: 24px; color: var(--accent); }
+        .update-now { font-size: 11px; color: var(--text-sub); margin-top: 4px; }
+        
+        .btn-home {
+            text-decoration: none;
+            color: var(--text-main);
+            background: #0a1a30;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            border: 1px solid var(--border);
+            transition: 0.3s;
+        }
+        .btn-home:hover { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+        .stats-container {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 18px 22px;
+            border: 1px solid var(--border);
+            line-height: 1.6;
+            margin-top: 5px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        .stats-total { font-weight: bold; color: var(--accent); font-size: 15px; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+        .stats-total::before { content: '📊'; font-size: 14px; }
+        .stats-detail { font-size: 13px; color: var(--text-sub); }
+        .year-block { margin-bottom: 6px; padding-left: 10px; border-left: 2px solid var(--accent); color: var(--text-main); }
+        .year-block strong { color: var(--accent); }
+
+        .month-group { margin-top: 15px; margin-bottom: 15px; }
+        .month-title { font-size: 19px; font-weight: bold; color: var(--accent); margin: 0 0 15px 5px; display: flex; align-items: center; border-left: 4px solid var(--accent); padding-left: 10px; }
+
+        .cry-list { display: flex; flex-direction: column; gap: 8px; }
+        .cry-item { 
+            background: var(--card-bg); 
+            border-radius: 12px; 
+            border: 1px solid var(--border); 
+            padding: 8px 15px; 
+            display: flex; 
+            align-items: stretch; 
+            text-decoration: none; 
+            color: inherit; 
+            transition: 0.2s;
+            min-height: 60px;
+        }
+        .cry-item:hover { background: rgba(255, 255, 255, 0.03); border-color: var(--accent); transform: translateY(-2px); }
+
+        .cry-date { 
+            width: 75px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold; 
+            color: var(--text-main);
+            font-size: 12px;
+            line-height: 1.3; 
+            border-right: 1px solid var(--border); 
+            margin-right: 15px; 
+            padding: 8px 0;
+            flex-shrink: 0; 
+            text-align: center;
+            white-space: pre-line;
+        }
+
+        .cry-content { 
+            flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; padding: 2px 0;
+        }
+
+        .cry-desc { 
+            font-size: 15px; font-weight: 500; margin-bottom: 6px; color: var(--text-main);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2;
+        }
+
+        .cry-time { font-size: 12px; color: var(--text-sub); display: flex; align-items: center; gap: 5px; line-height: 1; }
+        .link-hint { color: var(--accent); font-size: 11px; margin-left: 10px; padding: 2px 6px; border: 1px solid rgba(51, 133, 255, 0.3); border-radius: 4px; font-weight: bold; }
+        
+        .cry-item.no-link { cursor: default; pointer-events: none; }
+        .cry-item.no-link:hover { transform: none; border-color: var(--border); }
+        .cry-item.no-link .link-hint { display: none; }
+
+        @media (max-width: 900px) {
+            .header-card { flex-direction: column; align-items: flex-start; gap: 12px; }
+            .btn-home { align-self: stretch; text-align: center; }
+            .cry-item { padding: 8px 10px; min-height: 55px; }
+            .cry-date { width: 70px; margin-right: 10px; font-size: 11px; }
+            .cry-desc { font-size: 14px; }
+        }
+    </style>
 </head>
 <body>
 
 <div id="loading-overlay">
-    <div id="wave-text" class="wave-text"></div> </div>
-    
-    <div class="wrapper">
-    <div class="top-section">
-        <div class="card profile-box">
-            <div class="profile-img" onclick="location.href='blue-note.html'"></div>
-            <div class="profile-info">
-                <h1 id="user-nick">로딩 중...</h1>
-                <p id="user-desc">정보를 불러오고 있습니다.</p>
-                <div class="link-list" id="link-list">
-    <a href="https://www.sooplive.com/station/bababi" class="link-btn" target="_blank" style="border-color: var(--accent-bright);">📺 방송국</a>
-    <a href="songlist.html" class="link-btn" target="_self" style="border-color: var(--accent-bright);">📖 노래책</a>
-    
-    <div id="extra-links-target" style="display: flex; gap: 8px; flex-wrap: wrap;"></div>
+    <div id="wave-text" class="wave-text"></div>
 </div>
-            </div>
-            <div class="live-status-inline">
-                <div class="badge offline">OFFLINE</div>
-                <div id="stream-title-inline">방송 준비 중</div>
-                <div id="last-stream-time">최근 방송: 확인 중</div>
-            </div>
+
+<div class="wrapper">
+    <div class="header-card">
+        <div class="header-info">
+            <h1>바다비 눈물기록소</h1>
+            <div id="update-time" class="update-now">데이터 로드 중...</div>
         </div>
+        <a href="index.html" class="btn-home">🏠 메인으로 돌아가기</a>
+    </div>
+    
+    <div class="stats-container" id="stats-area">
+        데이터를 분석하고 있습니다...
     </div>
 
-    <div class="bottom-section">
-        <div class="card">
-            <h2>📅 방송 스케줄</h2>
-            <div id="schedule-container"></div>
-        </div>
-        <div class="card" id="post-container"><h2>📢 최근 게시물</h2></div>
-        <div class="card" id="vod-container"><h2>🎬 최근 다시보기</h2></div>
-    </div>
-
-    <footer style="text-align: center; padding: 15px 20px; color: var(--text-sub); font-size: 11px; border-top: 1px solid var(--border); margin-top: 5px;">
-    <p style="margin: 0; opacity: 0.8; line-height: 1.6;">
-        <strong>바다비 비공식 팬 아카이브</strong><br>
+    <div id="main-content"></div>
+    <footer style="text-align: center; padding: 20px 10px; color: var(--text-sub); font-size: 11px; border-top: 1px solid var(--border); margin-top: 20px; width: 100%; box-sizing: border-box;">
+    <p style="margin: 0; opacity: 0.8; line-height: 1.6; word-break: keep-all; overflow-wrap: break-word;">
+        <strong style="display: block; margin-bottom: 5px; color: var(--text-main); font-size: 12px;">바다비 비공식 팬 아카이브</strong>
         모든 권리는 원저작권자(바다비/SOOP)에게 있으며 요청 시 수정·삭제됩니다.<br>
-        비영리로 운영되며, 정보 갱신시 이전 데이터가 2분정도 나타날 수 있습니다.
+        <span style="display: inline-block;">비영리로 운영되며, 정보 갱신 시 데이터 반영에 차이가 있을 수 있습니다.</span>
     </p>
 </footer>
 </div>
-<script src="js/loading.js"></script>
-<script src="js/index.js"></script>
 
+<script>
+    const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQsvaqEEGjtHB20R3qPkIAXyAySm8FnLzcs0rIsZevLuLP65D43gSuoRzYVU0pmhRbvyg5AW-Ce1cmL/pub?gid=0&single=true&output=tsv";
+    const startDate = new Date("2026-04-20"); 
+
+    // 글자를 한 글자씩 나누고 애니메이션 지연 시간을 설정하는 함수 추가
+    function prepareWaveText(text) {
+        const container = document.getElementById('wave-text');
+        if (!container) return;
+        container.innerHTML = ''; 
+
+        const letters = text.split('').map(char => char === ' ' ? '&nbsp;' : char);
+
+        letters.forEach((letter, index) => {
+            const span = document.createElement('span');
+            span.innerHTML = letter;
+            span.style.animationDelay = `${index * 0.1}s`;
+            container.appendChild(span);
+        });
+    }
+    
+    window.onload = () => {
+        const overlay = document.getElementById('loading-overlay');
+
+        // 로딩 문구 설정
+        prepareWaveText("눈물을 모으고 있어요 . . .");
+        
+        const cacheBuster = `&t=${new Date().getTime()}`;
+        
+        fetch(sheetUrl + cacheBuster, {
+            cache: 'no-store',
+            headers: { 'Pragma': 'no-cache', 'Cache-Control': 'no-cache' }
+        })
+            .then(res => res.text())
+            .then(tsv => {
+                const lines = tsv.split(/\r?\n/).filter(line => line.trim() !== "");
+                let cries = [];
+                
+                for (let i = 1; i < lines.length; i++) {
+                    const parts = lines[i].split('\t').map(item => item.trim());
+                    if (!parts[0] || !parts[2] || parts[0] === "" || parts[2] === "") continue;
+                    
+                    let displayMonth = parts[0];
+                    if (displayMonth.includes(',')) {
+                        const [y, m] = displayMonth.split(',');
+                        if (!y || !m) continue; 
+                        displayMonth = `20${y}년 ${m}월`;
+                    } else {
+                        continue;
+                    }
+
+                    cries.push({ 
+                        rawMonth: parts[0], 
+                        formattedMonth: displayMonth,
+                        date: parts[1] || '', 
+                        desc: parts[2], 
+                        time: parts[3] || '--:--:--', 
+                        link: parts[4] || '#' 
+                    });
+                }
+                renderList(cries);
+                renderStats(cries);
+                
+                const now = new Date();
+                const timeString = now.toLocaleTimeString('ko-KR', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                document.getElementById('update-time').textContent = `최근 업데이트: ${timeString}`;
+                
+                // 로딩 종료 처리
+                setTimeout(() => {
+                    overlay.style.opacity = '0';
+                    setTimeout(() => {
+                        overlay.style.visibility = 'hidden';
+                        document.body.style.overflow = 'auto'; // 스크롤 활성화
+                    }, 500);
+                }, 800);
+            })
+            .catch(err => {
+                console.error(err);
+                document.getElementById('stats-area').innerHTML = "데이터를 불러오는 중 오류가 발생했습니다.";
+                overlay.style.display = 'none';
+            });
+    };
+
+    function renderStats(data) {
+        const statsArea = document.getElementById('stats-area');
+        const total = data.length;
+        const stats = {};
+
+        const today = new Date();
+        const diffTime = Math.abs(today - startDate);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+        const averageCycle = total > 0 ? (diffDays / total).toFixed(1) : 0;
+
+        data.forEach(item => {
+            const [y, m] = item.rawMonth.split(',').map(Number);
+            const year = `20${y}년`;
+            const month = `${m}월`;
+            if (!stats[year]) stats[year] = { months: {}, yearTotal: 0 };
+            if (!stats[year].months[month]) stats[year].months[month] = 0;
+            stats[year].months[month]++;
+            stats[year].yearTotal++;
+        });
+
+        let statsHtml = `
+            <div class="stats-summary" style="margin-bottom: 12px;">
+                <span class="stats-total" style="margin-bottom: 4px;">전체 기록: ${total}회</span>
+                <div style="font-size: 13px; color: var(--text-sub);">
+                    📅 <strong>${startDate.toLocaleDateString()}</strong>로부터 <strong>${diffDays}일</strong>째 기록 중<br>
+                    📉 약 <strong>${averageCycle}일</strong>에 한 번 꼴로 울고 계시네요!
+                </div>
+            </div>
+        `;
+        
+        statsHtml += `<div class="stats-detail" style="border-top: 1px solid var(--border); padding-top: 10px;">`;
+        
+        Object.keys(stats).sort((a, b) => a.localeCompare(b)).forEach(year => {
+            const yearData = stats[year];
+            const monthDetails = Object.keys(yearData.months)
+                .sort((a, b) => parseInt(a) - parseInt(b))
+                .map(m => `${m} ${yearData.months[m]}회`)
+                .join(', ');
+                
+            statsHtml += `<div class="year-block"><strong>${year} 합계 ${yearData.yearTotal}회</strong> (${monthDetails})</div>`;
+        });
+        
+        statsHtml += `</div>`;
+        statsArea.innerHTML = statsHtml;
+    }
+
+    function renderList(data) {
+        const container = document.getElementById('main-content');
+        container.innerHTML = '';
+
+        data.sort((a, b) => {
+            const [yearA, monthA] = a.rawMonth.split(',').map(Number);
+            const [yearB, monthB] = b.rawMonth.split(',').map(Number);
+            if (yearA !== yearB) return yearA - yearB;
+            if (monthA !== monthB) return monthA - monthB;
+            const getDateNum = (dateStr) => parseFloat(dateStr.split('~')[0]);
+            const dateA = getDateNum(a.date);
+            const dateB = getDateNum(b.date);
+            if (dateA !== dateB) return dateA - dateB;
+            return a.time.localeCompare(b.time);
+        });
+
+        const groups = {};
+        data.forEach(item => {
+            if (!groups[item.formattedMonth]) groups[item.formattedMonth] = [];
+            groups[item.formattedMonth].push(item);
+        });
+
+        const sortedMonthKeys = Object.keys(groups).sort((a, b) => {
+            const parseM = (s) => {
+                const match = s.match(/(\d+)년\s+(\d+)월/);
+                if (!match) return 0;
+                return parseInt(match[1]) * 100 + parseInt(match[2]);
+            };
+            return parseM(a) - parseM(b);
+        });
+
+        sortedMonthKeys.forEach(month => {
+            const groupDiv = document.createElement('div');
+            groupDiv.className = 'month-group';
+            groupDiv.innerHTML = `
+                <div class="month-title">${month}</div>
+                <div class="cry-list">
+                    ${groups[month].map(cry => {
+                        const hasLink = cry.link && cry.link !== '#' && cry.link.trim() !== '';
+                        const linkAttr = hasLink ? `href="${cry.link}" target="_blank"` : `href="javascript:void(0)"`;
+                        const noLinkClass = hasLink ? "" : "no-link";
+
+                        return `
+                            <a ${linkAttr} class="cry-item ${noLinkClass}">
+                                <div class="cry-date">${cry.date.replace(' ~ ', '\n').replace('~', '\n')}</div>
+                                <div class="cry-content">
+                                    <div class="cry-desc">${cry.desc}</div>
+                                    <div class="cry-time">
+                                        🕒 ${cry.time} 
+                                        ${hasLink ? '<span class="link-hint">다시보기 ↗</span>' : ''}
+                                    </div>
+                                </div>
+                            </a>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+            container.appendChild(groupDiv);
+        });
+    }
 </script>
 </body>
 </html>
