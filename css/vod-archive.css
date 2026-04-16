@@ -40,41 +40,48 @@ body.modal-open, body.loading { overflow: hidden; }
 }
 .header-info h1 { margin: 0; font-size: 22px; color: var(--accent); }
 
-/* [통일] 시스템 스타일 버튼 (홈, 리포트) - 수정본 */
+/* [통일] 시스템 스타일 버튼 (홈, 리포트) - 최종 최적화 */
 .btn-home, .btn-analysis-report { 
-    display: inline-flex;    /* flex로 변경하여 내부 정렬 통일 */
+    /* 1. 기본 레이아웃 통일 */
+    display: inline-flex;    /* flex를 사용해 내부 텍스트를 중앙 정렬 */
     align-items: center;
     justify-content: center;
     text-decoration: none; 
+    box-sizing: border-box;  /* 패딩이 높이에 영향을 주지 않게 설정 */
     
-    /* 색상 강제 고정 */
-    color: var(--text-main) !important; 
+    /* 2. 크기 및 간격 고정 */
+    height: 36px;            /* 높이를 명시적으로 고정 */
+    padding: 0 16px !important; 
+    margin: 0;
+    
+    /* 3. 색상 및 배경 강제 고정 (모바일 간섭 방지) */
     background-color: #0a1a30 !important; 
+    color: var(--text-main) !important; 
     border: 1px solid var(--border) !important;
-    
-    /* 높이 및 패딩 통일 */
-    height: 34px;           /* 높이를 명시적으로 고정 */
-    padding: 0 14px !important; 
-    box-sizing: border-box; /* 패딩이 높이에 영향을 주지 않도록 설정 */
-    
     border-radius: var(--radius-sm); 
-    font-size: 13px; 
-    font-weight: 500;
-    line-height: 1;         /* 텍스트 줄높이 제거로 중앙 정렬 보정 */
-    transition: 0.2s;
-    cursor: pointer;
-    white-space: nowrap;    /* 텍스트 줄바꿈 방지 */
     
-    /* 모바일 브라우저 기본 스타일 제거 */
+    /* 4. 텍스트 스타일 */
+    font-size: 13px; 
+    font-weight: 700;        /* 폰트 굵기 통일 */
+    line-height: 1;          /* 줄높이 제거로 중앙 정렬 보정 */
+    white-space: nowrap;     /* 줄바꿈 방지 */
+    
+    /* 5. 기타 효과 */
+    cursor: pointer;
+    transition: all 0.2s ease;
+    
+    /* 6. 모바일 브라우저 특유의 스타일 제거 */
     -webkit-appearance: none;
+    -moz-appearance: none;
     appearance: none;
 }
 
-/* 호버 효과도 !important 영향권 아래로 유지 */
+/* 호버 상태 (모바일에서도 동일하게 적용) */
 .btn-home:hover, .btn-analysis-report:hover {
     border-color: var(--accent) !important;
     background-color: rgba(51, 133, 255, 0.1) !important;
     color: var(--accent) !important;
+    transform: translateY(-1px); /* 미세한 호버 효과 */
 }
 /* --- 모달 내부 스크롤바 시각적 제거 --- */
 
