@@ -9,13 +9,14 @@
     <style>
         /* 로딩 바 컨테이너 */
 /* 화면 전체를 덮는 로딩 레이어 */
+/* --- 로딩 영역 CSS 교체 --- */
+/* 화면 전체를 덮는 로딩 레이어 */
 #loading-overlay {
     position: fixed;
     top: 0; left: 0;
     width: 100%; height: 100%;
-    background: rgba(1, 3, 6, 0.8); /* 배경을 약간 어둡게 */
+    background: rgba(1, 3, 6, 0.9); /* 배경을 조금 더 어둡게 */
     display: flex;
-    flex-direction: column;
     justify-content: center;
     align-items: center;
     z-index: 9999;
@@ -23,29 +24,33 @@
     visibility: visible;
 }
 
-/* 로딩 애니메이션 (원형 스피너) */
-.loader-circle {
-    width: 50px;
-    height: 50px;
-    border: 3px solid var(--accent);
-    border-top: 3px solid var(--accent-bright);
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin-bottom: 15px;
-    box-shadow: 0 0 15px var(--accent-glow);
-}
-
-/* 로딩 글자 애니메이션 */
-.loader-text {
+/* 파도 애니메이션을 위한 글자 컨테이너 */
+.wave-text {
     color: var(--accent-bright);
-    font-size: 14px;
+    font-size: 16px;
+    font-weight: 700;
     letter-spacing: 2px;
-    font-weight: bold;
-    animation: pulse 1.5s infinite;
+    display: flex; /* 글자를 가로로 나열 */
 }
 
-@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+/* 각 글자(span)에 애니메이션 적용 */
+.wave-text span {
+    display: inline-block;
+    animation: wave 1.2s ease-in-out infinite;
+}
+
+/* 파도 애니메이션 정의 */
+@keyframes wave {
+    0%, 100% {
+        transform: translateY(0); /* 제자리 */
+    }
+    50% {
+        transform: translateY(-15px); /* 위로 15px 톡! */
+        color: #fff; /* 가장 높을 때 하얗게 빛남 */
+        text-shadow: 0 0 10px var(--accent-glow); /* 광채 효과 */
+    }
+}
+/* -------------------------- */
         
         :root {
             /* 기존 트위치 테마색을 깊은 바다 테마색으로 변경 */
@@ -191,9 +196,7 @@
 <body>
 
 <div id="loading-overlay">
-    <div class="loader-circle"></div>
-    <div class="loader-text">정보를 정리하고 있어요 . . .</div>
-</div>
+    <div id="wave-text" class="wave-text"></div> </div>
     
     <div class="wrapper">
     <div class="top-section">
@@ -240,13 +243,35 @@
     const TSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTQ3nX6onmaf-ZHhXGox2s4ChGos7ki7iFjQ_47lArZR6dV935gCIbLbvlDDAS65rTEnswSLIk_7v3R/pub?gid=0&single=true&output=tsv';
     const SONG_BOOK_URL = 'songlist.html'; 
 
+    // 글자를 한 글자씩 나누고 애니메이션 지연 시간을 설정하는 함수
+function prepareWaveText(text) {
+    const container = document.getElementById('wave-text');
+    if (!container) return;
+    container.innerHTML = ''; // 기존 내용 초기화
+
+    // 글자를 배열로 나누고, 공백은 특수문자로 처리
+    const letters = text.split('').map(char => char === ' ' ? '&nbsp;' : char);
+
+    letters.forEach((letter, index) => {
+        const span = document.createElement('span');
+        span.innerHTML = letter;
+        // 각 글자마다 0.1초씩 지연시켜 파도 효과를 만듦
+        span.style.animationDelay = `${index * 0.1}s`;
+        container.appendChild(span);
+    });
+}
+
     async function init() {
     const overlay = document.getElementById('loading-overlay');
     
     try {
+        // 애니메이션할 문구 설정 (준비 중... 메시지)
+        prepareWaveText("바닷속에서 찾고 있어요 . . .");
+        
         // 로딩창 표시
         overlay.style.opacity = '1';
         overlay.style.visibility = 'visible';
+        // ---------------------------
 
         const cacheBuster = `&t=${new Date().getTime()}`;
         const finalUrl = TSV_URL + cacheBuster;
