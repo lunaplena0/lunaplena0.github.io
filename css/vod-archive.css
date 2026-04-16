@@ -406,8 +406,44 @@ body.modal-open, body.loading { overflow: hidden; }
     #m-talk, #row-talk span[style*="color:#2ed573"] { color: #2ed573 !important; }
     #m-content, #row-content div[style*="color:var(--accent)"] { color: var(--accent) !important; }
     .analysis-content b, .sub-val { filter: brightness(1.2); font-weight: bold !important; }
-    .btn-home, .btn-analysis-report {
-        background-color: #0a1a30 !important;
-        border: 1px solid var(--border) !important;
+    btn-home, .btn-analysis-report {
+        /* 1. 브라우저 기본 스타일 완전 박멸 */
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        outline: none !important;
+        box-shadow: none !important; /* 기본적으로 들어가는 그림자나 내부 광택 제거 */
+        
+        /* 2. 배경색과 테두리를 명확하게 (눌려 보이지 않도록) */
+        background-color: #121f33 !important; /* 약간만 더 밝은 톤으로 변경 */
+        border: 1px solid #1e2d45 !important; /* 테두리를 배경보다 밝게 하여 '떠 있는' 느낌 부여 */
+        
+        /* 3. 시각적 '깊이' 초기화 */
+        filter: none !important;
+        transform: none !important;
+        
+        /* 4. 기타 설정 */
+        flex: 1;
+        max-width: 150px;
+        height: 38px;
+        color: var(--text-main) !important;
+        font-weight: 700;
+        text-shadow: none; /* 텍스트 그림자 제거 */
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    /* 마우스나 손가락을 떼었을 때(평소) 스타일 강제 고정 */
+    .btn-home:not(:active), .btn-analysis-report:not(:active) {
+        background-color: #121f33 !important;
+        border: 1px solid #1e2d45 !important;
+        transform: translateY(0) !important;
+    }
+
+    /* 실제로 손가락으로 꾸욱 누를 때만 파란색으로 변하게 설정 */
+    .btn-home:active, .btn-analysis-report:active {
+        background-color: var(--accent) !important; /* 누를 때만 파란색으로 변신 */
+        border-color: var(--accent) !important;
+        color: #ffffff !important;
+        transform: scale(0.95) !important; /* 누르는 물리적 피드백 */
     }
 } 
