@@ -445,20 +445,21 @@ function prepareWaveText(text) {
         const day = row[1]?.trim() || '';    
         const time = row[2]?.trim() || '';   
         const content = row[3]?.trim() || ''; 
-        const category = row[4]?.trim() || ''; // 5번째 열 (분류)
+        const category = row[4]?.trim() || ''; 
 
         if(!date && !content) return; 
 
         const isToday = date === todayStr;
-        
-        // 분류(category)에 '휴방'이라는 글자가 포함되어 있는지 확인
         const isDayOff = category.includes('휴방'); 
         
-        // 휴방일 때 스타일 (글씨색 빨간색 강조)
-        const contentStyle = isDayOff ? 'color: #ff4d4d; font-weight: bold;' : 'color: var(--text-main);';
+        // 1. 내용은 이제 항상 기본색입니다.
+        const contentStyle = 'color: var(--text-main);';
         
-        // 시간 표시 로직: 휴방이 아닐 때만 시간을 노출
+        // 2. 시간 표시 여부 (휴방일 땐 숨김)
         const timeInfo = (time && !isDayOff) ? `<span style="color:var(--accent-bright); font-weight:bold; margin-right:5px;">${time}</span>` : '';
+
+        // 3. 분류(category) 스타일: 휴방일 때만 빨간색 bold 적용
+        const categoryStyle = isDayOff ? 'color: #ff4d4d; font-weight: bold;' : 'color: var(--text-sub);';
 
         const rowDiv = document.createElement('div');
         rowDiv.className = `item-row schedule-row ${isToday ? 'today-highlight' : ''}`;
@@ -470,7 +471,7 @@ function prepareWaveText(text) {
                     ${timeInfo} <span class="ellipsis">${content || '일정 없음'}</span>
                 </div>
             </div>
-            <div style="font-size:10px; color:var(--text-sub);">${category}</div>
+            <div style="font-size:10px; ${categoryStyle}">${category}</div>
         `;
         container.appendChild(rowDiv);
     });
