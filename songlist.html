@@ -6,14 +6,13 @@
     <title>바다비 노래책 리스트</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
     <style>
-        /* 로딩 오버레이 스타일 (메인 페이지와 동일) */
+        /* --- 로딩 영역 CSS (눈물기록소와 동일하게 통일) --- */
         #loading-overlay {
             position: fixed;
             top: 0; left: 0;
             width: 100%; height: 100%;
-            background: rgba(1, 3, 6, 0.9);
+            background: rgba(1, 3, 6, 0.98);
             display: flex;
-            flex-direction: column;
             justify-content: center;
             align-items: center;
             z-index: 9999;
@@ -21,27 +20,28 @@
             visibility: visible;
         }
 
-        .loader-circle {
-            width: 50px;
-            height: 50px;
-            border: 3px solid var(--accent-dark);
-            border-top: 3px solid var(--accent-bright);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 15px;
-            box-shadow: 0 0 15px rgba(51, 133, 255, 0.3);
-        }
-
-        .loader-text {
-            color: var(--accent-bright);
-            font-size: 14px;
+        .wave-text {
+            color: #3385ff;
+            font-size: 16px;
+            font-weight: 700;
             letter-spacing: 2px;
-            font-weight: bold;
-            animation: pulse 1.5s infinite;
+            display: flex;
         }
 
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+        .wave-text span {
+            display: inline-block;
+            animation: wave 1.6s ease-in-out infinite;
+        }
+
+        @keyframes wave {
+            0%, 100% { transform: translateY(0); }
+            50% {
+                transform: translateY(-10px);
+                color: #fff;
+                text-shadow: 0 0 10px rgba(51, 133, 255, 0.7);
+            }
+        }
+        /* -------------------------- */
 
         :root {
             --bg-color: #010306;
@@ -57,6 +57,7 @@
 
         body { 
             background-color: var(--bg-color); 
+            background-image: radial-gradient(circle at center, #051020 0%, #010306 100%);
             color: var(--text-main); 
             font-family: 'Noto Sans KR', sans-serif; 
             margin: 0; padding: 0; 
@@ -68,7 +69,7 @@
             width: 100%; 
             max-width: 900px; 
             margin: 0 auto; 
-            padding: 60px 20px; 
+            padding: 40px 20px; 
             display: flex; 
             flex-direction: column; 
             gap: 20px; 
@@ -77,7 +78,7 @@
         .header-card { 
             background: var(--card-bg); 
             border-radius: 16px; 
-            padding: 30px; 
+            padding: 25px; 
             border: 1px solid var(--border); 
             display: flex; 
             justify-content: space-between; 
@@ -134,8 +135,7 @@
 <body>
 
 <div id="loading-overlay">
-    <div class="loader-circle"></div>
-    <div class="loader-text">노래 리스트를 가져오고 있어요 . . .</div>
+    <div id="wave-text" class="wave-text"></div>
 </div>
 
 <div class="wrapper">
@@ -146,7 +146,7 @@
                     노래 : <span id="total-count">0</span>곡 | 기타 : <span id="guitar-count">0</span>곡
                 </span>
             </h1>
-            <div class="sync-info">실시간 시트 동기화 중...</div>
+            <div id="update-time" class="sync-info">데이터 로드 중...</div>
         </div>
         <div class="header-btns">
             <a href="stats.html" class="btn">📊 통계</a>
@@ -161,13 +161,16 @@
     <div class="song-card">
         <table>
             <thead><tr><th style="width:80px;">번호</th><th>노래제목</th><th style="width:280px;">가수</th></tr></thead>
-            <tbody id="song-list-body">
-                </tbody>
+            <tbody id="song-list-body"></tbody>
         </table>
     </div>
-    <footer style="text-align: center; padding: 15px 20px; color: var(--text-sub); font-size: 11px; border-top: 1px solid var(--border); margin-top: 5px;">
-        <p style="margin: 0; opacity: 0.7;">팬심으로 제작된 비영리 페이지입니다.</p>
-    </footer>
+     <footer style="text-align: center; padding: 15px 20px; color: var(--text-sub); font-size: 11px; border-top: 1px solid var(--border); margin-top: 5px;">
+    <p style="margin: 0; opacity: 0.8; line-height: 1.6;">
+        <strong>바다비 비공식 팬 아카이브</strong><br>
+        모든 권리는 원저작권자(바다비/SOOP)에게 있으며 요청 시 수정·삭제됩니다.<br>
+        비영리로 운영되며, 정보 갱신시 이전 데이터가 2분정도 나타날 수 있습니다.
+    </p>
+</footer>
 </div>
 
 <script>
@@ -175,8 +178,24 @@
     
     window.allSongs = [];
 
+    // 파도 텍스트 생성기
+    function prepareWaveText(text) {
+        const container = document.getElementById('wave-text');
+        if (!container) return;
+        container.innerHTML = ''; 
+        const letters = text.split('').map(char => char === ' ' ? '&nbsp;' : char);
+        letters.forEach((letter, index) => {
+            const span = document.createElement('span');
+            span.innerHTML = letter;
+            span.style.animationDelay = `${index * 0.1}s`;
+            container.appendChild(span);
+        });
+    }
+
     window.onload = async () => {
         const overlay = document.getElementById('loading-overlay');
+        prepareWaveText("노래책을 펼치고 있어요 . . .");
+
         const cacheBuster = `&t=${new Date().getTime()}`;
         const finalUrl = sheetUrl + cacheBuster;
 
@@ -238,19 +257,18 @@
             document.getElementById('guitar-count').textContent = guitar;
             
             const now = new Date();
-            document.querySelector('.sync-info').textContent = `시트 동기화: ${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
+            document.getElementById('update-time').textContent = `최근 동기화: ${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
 
         } catch (err) {
             console.error("데이터 로드 실패:", err);
-            document.getElementById('song-list-body').innerHTML = `<tr><td colspan="3" style="text-align:center; color:#ff4b4b; padding:40px;">시트 데이터를 불러오지 못했습니다.</td></tr>`;
-            document.querySelector('.loader-text').innerText = "ERROR LOADING DATA";
+            document.getElementById('song-list-body').innerHTML = `<tr><td colspan="3" style="text-align:center; color:#ff4b4b; padding:40px;">데이터를 불러오지 못했습니다.</td></tr>`;
         } finally {
-            // 부드러운 전환 효과
+            // 로딩 종료 처리
             setTimeout(() => {
                 overlay.style.opacity = '0';
                 setTimeout(() => {
                     overlay.style.visibility = 'hidden';
-                    document.body.style.overflow = 'auto'; // 스크롤 허용
+                    document.body.style.overflow = 'auto'; // 성공/실패 여부 관계없이 스크롤 복구
                 }, 500);
             }, 800);
         }
