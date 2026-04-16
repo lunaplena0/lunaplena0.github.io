@@ -3,169 +3,132 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>바다비 눈물기록소</title>
+    <title>바다비 노래책 리스트</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
     <style>
-        /* --- 로딩 영역 CSS 교체 --- */
-    #loading-overlay {
-        position: fixed;
-        top: 0; left: 0;
-        width: 100%; height: 100%;
-        background: rgba(1, 3, 6, 0.98);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        z-index: 9999;
-        transition: opacity 0.5s ease;
-        visibility: visible;
-    }
-
-    /* 파도 애니메이션을 위한 글자 컨테이너 */
-    .wave-text {
-        color: #3385ff; /* var(--accent) 색상 */
-        font-size: 16px;
-        font-weight: 700;
-        letter-spacing: 2px;
-        display: flex;
-    }
-
-    /* 각 글자(span)에 애니메이션 적용 */
-    .wave-text span {
-        display: inline-block;
-        animation: wave 1.6s ease-in-out infinite;
-    }
-
-    /* 파도 애니메이션 정의 */
-    @keyframes wave {
-        0%, 100% { transform: translateY(0); }
-        50% {
-            transform: translateY(-10px); /* 위로 톡! */
-            color: #fff; /* 가장 높을 때 하얗게 빛남 */
-            text-shadow: 0 0 10px rgba(51, 133, 255, 0.7);
+        /* --- 로딩 영역 CSS (눈물기록소와 동일하게 통일) --- */
+        #loading-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(1, 3, 6, 0.98);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease;
+            visibility: visible;
         }
-    }
-    /* -------------------------- */
+
+        .wave-text {
+            color: #3385ff;
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            display: flex;
+        }
+
+        .wave-text span {
+            display: inline-block;
+            animation: wave 1.6s ease-in-out infinite;
+        }
+
+        @keyframes wave {
+            0%, 100% { transform: translateY(0); }
+            50% {
+                transform: translateY(-10px);
+                color: #fff;
+                text-shadow: 0 0 10px rgba(51, 133, 255, 0.7);
+            }
+        }
+        /* -------------------------- */
 
         :root {
             --bg-color: #010306;
             --card-bg: #030812;
-            --accent: #3385ff;
+            --accent-bright: #3385ff;
+            --accent-dark: #003366;
             --text-main: #f0faff;
             --text-sub: #5c7285;
             --border: #0a1425;
         }
 
         * { box-sizing: border-box; }
+
         body { 
             background-color: var(--bg-color); 
             background-image: radial-gradient(circle at center, #051020 0%, #010306 100%);
             color: var(--text-main); 
             font-family: 'Noto Sans KR', sans-serif; 
             margin: 0; padding: 0; 
-            min-height: 100vh;
             overflow: hidden; /* 로딩 중 스크롤 방지 */
+            min-height: 100vh;
         }
 
-        .wrapper { width: 100%; max-width: 800px; margin: 0 auto; padding: 40px 20px; display: flex; flex-direction: column; gap: 15px; }
+        .wrapper { 
+            width: 100%; 
+            max-width: 900px; 
+            margin: 0 auto; 
+            padding: 40px 20px; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 20px; 
+        }
 
         .header-card { 
             background: var(--card-bg); 
             border-radius: 16px; 
-            padding: 20px 25px; 
+            padding: 25px; 
             border: 1px solid var(--border); 
             display: flex; 
-            justify-content: space-between;
+            justify-content: space-between; 
             align-items: center;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
         }
-
-        .header-info h1 { margin: 0; font-size: 24px; color: var(--accent); }
-        .update-now { font-size: 11px; color: var(--text-sub); margin-top: 4px; }
         
-        .btn-home {
-            text-decoration: none;
-            color: var(--text-main);
-            background: #0a1a30;
-            padding: 8px 14px;
-            border-radius: 8px;
-            font-size: 13px;
-            border: 1px solid var(--border);
+        .header-info h1 { margin: 0; font-size: 24px; color: var(--accent-bright); display: flex; align-items: baseline; gap: 12px; }
+        .song-count-info { font-size: 14px; color: var(--text-sub); font-weight: normal; }
+        .sync-info { font-size: 11px; color: var(--text-sub); margin-top: 5px; opacity: 0.7; }
+        
+        .header-btns { display: flex; gap: 8px; }
+        .btn { padding: 8px 16px; border-radius: 8px; color: var(--text-main); text-decoration: none; font-size: 13px; border: 1px solid var(--border); cursor: pointer; transition: 0.3s; background: #0a1a30; }
+        .btn:hover { background: var(--accent-bright); color: #fff; border-color: var(--accent-bright); }
+
+        .search-container { display: flex; gap: 10px; width: 100%; }
+        .search-input { 
+            flex: 1; 
+            background: var(--card-bg); 
+            border: 1px solid var(--border); 
+            padding: 15px 20px; 
+            border-radius: 12px; 
+            color: #fff; 
+            outline: none; 
+            width: 100%; 
             transition: 0.3s;
         }
-        .btn-home:hover { background: var(--accent); border-color: var(--accent); color: #fff; }
+        .search-input:focus { border-color: var(--accent-bright); box-shadow: 0 0 10px rgba(51, 133, 255, 0.2); }
 
-        .stats-container {
-            background: var(--card-bg);
-            border-radius: 12px;
-            padding: 18px 22px;
-            border: 1px solid var(--border);
-            line-height: 1.6;
-            margin-top: 5px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-        }
-        .stats-total { font-weight: bold; color: var(--accent); font-size: 15px; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
-        .stats-total::before { content: '📊'; font-size: 14px; }
-        .stats-detail { font-size: 13px; color: var(--text-sub); }
-        .year-block { margin-bottom: 6px; padding-left: 10px; border-left: 2px solid var(--accent); color: var(--text-main); }
-        .year-block strong { color: var(--accent); }
-
-        .month-group { margin-top: 15px; margin-bottom: 15px; }
-        .month-title { font-size: 19px; font-weight: bold; color: var(--accent); margin: 0 0 15px 5px; display: flex; align-items: center; border-left: 4px solid var(--accent); padding-left: 10px; }
-
-        .cry-list { display: flex; flex-direction: column; gap: 8px; }
-        .cry-item { 
-            background: var(--card-bg); 
-            border-radius: 12px; 
-            border: 1px solid var(--border); 
-            padding: 8px 15px; 
-            display: flex; 
-            align-items: stretch; 
-            text-decoration: none; 
-            color: inherit; 
-            transition: 0.2s;
-            min-height: 60px;
-        }
-        .cry-item:hover { background: rgba(255, 255, 255, 0.03); border-color: var(--accent); transform: translateY(-2px); }
-
-        .cry-date { 
-            width: 75px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold; 
-            color: var(--text-main);
-            font-size: 12px;
-            line-height: 1.3; 
-            border-right: 1px solid var(--border); 
-            margin-right: 15px; 
-            padding: 8px 0;
-            flex-shrink: 0; 
-            text-align: center;
-            white-space: pre-line;
-        }
-
-        .cry-content { 
-            flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; padding: 2px 0;
-        }
-
-        .cry-desc { 
-            font-size: 15px; font-weight: 500; margin-bottom: 6px; color: var(--text-main);
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2;
-        }
-
-        .cry-time { font-size: 12px; color: var(--text-sub); display: flex; align-items: center; gap: 5px; line-height: 1; }
-        .link-hint { color: var(--accent); font-size: 11px; margin-left: 10px; padding: 2px 6px; border: 1px solid rgba(51, 133, 255, 0.3); border-radius: 4px; font-weight: bold; }
+        .song-card { background: var(--card-bg); border-radius: 16px; border: 1px solid var(--border); overflow: hidden; width: 100%; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3); }
+        table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+        th { background: #0a1425; padding: 15px 20px; font-size: 13px; color: var(--accent-bright); text-align: left; border-bottom: 1px solid var(--border); text-transform: uppercase; letter-spacing: 1px; }
+        td { padding: 14px 20px; font-size: 14px; border-bottom: 1px solid var(--border); word-break: break-all; color: var(--text-main); }
         
-        .cry-item.no-link { cursor: default; pointer-events: none; }
-        .cry-item.no-link:hover { transform: none; border-color: var(--border); }
-        .cry-item.no-link .link-hint { display: none; }
+        tr:hover { background: rgba(255, 255, 255, 0.03); }
+
+        .tag-badge { display: inline-block; padding: 2px 9px; border-radius: 50px; font-size: 10px; font-weight: bold; margin-left: 8px; color: white; vertical-align: middle; }
+        .tag-200 { background-color: #d32f2f; }
+        .tag-300 { background-color: #f57c00; }
+        .tag-기타 { background-color: #2e7d32; }
+        .tag-default { background-color: #455a64; }
 
         @media (max-width: 600px) {
-            .header-card { flex-direction: column; align-items: flex-start; gap: 12px; }
-            .btn-home { align-self: stretch; text-align: center; }
-            .cry-item { padding: 8px 10px; min-height: 55px; }
-            .cry-date { width: 70px; margin-right: 10px; font-size: 11px; }
-            .cry-desc { font-size: 14px; }
+            .wrapper { padding: 20px 12px; }
+            .header-card { flex-direction: column; align-items: flex-start; gap: 15px; padding: 20px; }
+            .header-btns { width: 100%; }
+            .header-btns .btn { flex: 1; text-align: center; }
+            th:nth-child(1), td:nth-child(1) { width: 50px !important; padding: 12px 8px; }
+            th:nth-child(2), td:nth-child(2) { width: auto !important; padding: 12px 8px; }
+            th:nth-child(3), td:nth-child(3) { width: 110px !important; padding: 12px 8px; font-size: 12px; }
         }
     </style>
 </head>
@@ -178,38 +141,45 @@
 <div class="wrapper">
     <div class="header-card">
         <div class="header-info">
-            <h1>바다비 눈물기록소</h1>
-            <div id="update-time" class="update-now">데이터 로드 중...</div>
+            <h1>🎶 바다비 노래책 
+                <span class="song-count-info">
+                    노래 : <span id="total-count">0</span>곡 | 기타 : <span id="guitar-count">0</span>곡
+                </span>
+            </h1>
+            <div id="update-time" class="sync-info">데이터 로드 중...</div>
         </div>
-        <a href="index.html" class="btn-home">🏠 메인으로 돌아가기</a>
-    </div>
-    
-    <div class="stats-container" id="stats-area">
-        데이터를 분석하고 있습니다...
+        <div class="header-btns">
+            <a href="stats.html" class="btn">📊 통계</a>
+            <a href="index.html" class="btn">🏠 홈으로</a>
+        </div>
     </div>
 
-    <div id="main-content"></div>
+    <div class="search-container">
+        <input type="text" id="songSearch" class="search-input" placeholder="곡 제목이나 가수를 검색하세요..." onkeyup="filterSongs()">
+    </div>
+
+    <div class="song-card">
+        <table>
+            <thead><tr><th style="width:80px;">번호</th><th>노래제목</th><th style="width:280px;">가수</th></tr></thead>
+            <tbody id="song-list-body"></tbody>
+        </table>
+    </div>
     <footer style="text-align: center; padding: 15px 20px; color: var(--text-sub); font-size: 11px; border-top: 1px solid var(--border); margin-top: 5px;">
-    <p style="margin: 0; opacity: 0.8; line-height: 1.6;">
-        <strong>바다비 비공식 팬 아카이브</strong><br>
-        모든 권리는 원저작권자(바다비/SOOP)에게 있으며 요청 시 수정·삭제됩니다.<br>
-        비영리로 운영되며, 정보 갱신시 이전 데이터가 2분정도 나타날 수 있습니다.
-    </p>
-</footer>
+        <p style="margin: 0; opacity: 0.7;">팬심으로 제작된 비영리 페이지입니다.</p>
+    </footer>
 </div>
 
 <script>
-    const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQsvaqEEGjtHB20R3qPkIAXyAySm8FnLzcs0rIsZevLuLP65D43gSuoRzYVU0pmhRbvyg5AW-Ce1cmL/pub?gid=0&single=true&output=tsv";
-    const startDate = new Date("2026-04-20"); 
+    const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSIfrVC6MakrvA_D8rsQeTT6oaX_0w4bc8I_aaJuoQi4g_AuuvFi-nCP_lnHwvoSAsFKxagrzhoPy_J/pub?gid=0&single=true&output=tsv";
+    
+    window.allSongs = [];
 
-    // 글자를 한 글자씩 나누고 애니메이션 지연 시간을 설정하는 함수 추가
+    // 파도 텍스트 생성기
     function prepareWaveText(text) {
         const container = document.getElementById('wave-text');
         if (!container) return;
         container.innerHTML = ''; 
-
         const letters = text.split('').map(char => char === ' ' ? '&nbsp;' : char);
-
         letters.forEach((letter, index) => {
             const span = document.createElement('span');
             span.innerHTML = letter;
@@ -217,173 +187,101 @@
             container.appendChild(span);
         });
     }
-    
-    window.onload = () => {
+
+    window.onload = async () => {
         const overlay = document.getElementById('loading-overlay');
+        prepareWaveText("노래책을 펼치고 있어요 . . .");
 
-        // 로딩 문구 설정
-        prepareWaveText("눈물을 모으고 있어요 . . .");
-        
         const cacheBuster = `&t=${new Date().getTime()}`;
-        
-        fetch(sheetUrl + cacheBuster, {
-            cache: 'no-store',
-            headers: { 'Pragma': 'no-cache', 'Cache-Control': 'no-cache' }
-        })
-            .then(res => res.text())
-            .then(tsv => {
-                const lines = tsv.split(/\r?\n/).filter(line => line.trim() !== "");
-                let cries = [];
-                
-                for (let i = 1; i < lines.length; i++) {
-                    const parts = lines[i].split('\t').map(item => item.trim());
-                    if (!parts[0] || !parts[2] || parts[0] === "" || parts[2] === "") continue;
-                    
-                    let displayMonth = parts[0];
-                    if (displayMonth.includes(',')) {
-                        const [y, m] = displayMonth.split(',');
-                        if (!y || !m) continue; 
-                        displayMonth = `20${y}년 ${m}월`;
-                    } else {
-                        continue;
-                    }
+        const finalUrl = sheetUrl + cacheBuster;
 
-                    cries.push({ 
-                        rawMonth: parts[0], 
-                        formattedMonth: displayMonth,
-                        date: parts[1] || '', 
-                        desc: parts[2], 
-                        time: parts[3] || '--:--:--', 
-                        link: parts[4] || '#' 
-                    });
-                }
-                renderList(cries);
-                renderStats(cries);
-                
-                const now = new Date();
-                const timeString = now.toLocaleTimeString('ko-KR', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
-                document.getElementById('update-time').textContent = `최근 업데이트: ${timeString}`;
-                
-                // 로딩 종료 처리
-                setTimeout(() => {
-                    overlay.style.opacity = '0';
-                    setTimeout(() => {
-                        overlay.style.visibility = 'hidden';
-                        document.body.style.overflow = 'auto'; // 스크롤 활성화
-                    }, 500);
-                }, 800);
-            })
-            .catch(err => {
-                console.error(err);
-                document.getElementById('stats-area').innerHTML = "데이터를 불러오는 중 오류가 발생했습니다.";
-                overlay.style.display = 'none';
+        try {
+            const res = await fetch(finalUrl, {
+                cache: 'no-store',
+                headers: { 'Pragma': 'no-cache', 'Cache-Control': 'no-cache' }
             });
+
+            if (!res.ok) throw new Error("Network Error");
+
+            const tsv = await res.text();
+            const lines = tsv.split(/\r?\n/).filter(line => line.trim() !== "");
+            const tbody = document.getElementById('song-list-body');
+            
+            let html = ''; 
+            let total = 0;
+            let guitar = 0;
+            window.allSongs = [];
+
+            for (let i = 1; i < lines.length; i++) {
+                const parts = lines[i].split('\t').map(item => item.trim());
+                if (parts.length < 2 || !parts[0]) continue;
+
+                total++;
+                const originalTitle = parts[0]; 
+                const artist = parts[1] || "Unknown"; 
+
+                const tagMatch = originalTitle.match(/^\[([^\]]+)\]/);
+                let displayTitle = originalTitle;
+                let tagHtml = '';
+
+                if (tagMatch) {
+                    const fullTag = tagMatch[0];
+                    const tagText = tagMatch[1];
+                    displayTitle = originalTitle.replace(fullTag, '').trim();
+                    
+                    let tagClass = 'tag-default';
+                    if (tagText.includes("200")) tagClass = 'tag-200';
+                    else if (tagText.includes("300")) tagClass = 'tag-300';
+                    else if (tagText.includes("기타")) {
+                        tagClass = 'tag-기타';
+                        guitar++;
+                    }
+                    tagHtml = `<span class="tag-badge ${tagClass}">${tagText}</span>`;
+                }
+
+                window.allSongs.push({ originalTitle, artist });
+
+                html += `<tr>
+                    <td>${total}</td>
+                    <td class="song-title">${displayTitle}${tagHtml}</td>
+                    <td class="song-artist">${artist}</td>
+                </tr>`;
+            }
+            
+            tbody.innerHTML = html;
+            document.getElementById('total-count').textContent = total;
+            document.getElementById('guitar-count').textContent = guitar;
+            
+            const now = new Date();
+            document.getElementById('update-time').textContent = `최근 동기화: ${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+
+        } catch (err) {
+            console.error("데이터 로드 실패:", err);
+            document.getElementById('song-list-body').innerHTML = `<tr><td colspan="3" style="text-align:center; color:#ff4b4b; padding:40px;">데이터를 불러오지 못했습니다.</td></tr>`;
+        } finally {
+            // 로딩 종료 처리
+            setTimeout(() => {
+                overlay.style.opacity = '0';
+                setTimeout(() => {
+                    overlay.style.visibility = 'hidden';
+                    document.body.style.overflow = 'auto'; // 성공/실패 여부 관계없이 스크롤 복구
+                }, 500);
+            }, 800);
+        }
     };
 
-    function renderStats(data) {
-        const statsArea = document.getElementById('stats-area');
-        const total = data.length;
-        const stats = {};
-
-        const today = new Date();
-        const diffTime = Math.abs(today - startDate);
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
-        const averageCycle = total > 0 ? (diffDays / total).toFixed(1) : 0;
-
-        data.forEach(item => {
-            const [y, m] = item.rawMonth.split(',').map(Number);
-            const year = `20${y}년`;
-            const month = `${m}월`;
-            if (!stats[year]) stats[year] = { months: {}, yearTotal: 0 };
-            if (!stats[year].months[month]) stats[year].months[month] = 0;
-            stats[year].months[month]++;
-            stats[year].yearTotal++;
-        });
-
-        let statsHtml = `
-            <div class="stats-summary" style="margin-bottom: 12px;">
-                <span class="stats-total" style="margin-bottom: 4px;">전체 기록: ${total}회</span>
-                <div style="font-size: 13px; color: var(--text-sub);">
-                    📅 <strong>${startDate.toLocaleDateString()}</strong>로부터 <strong>${diffDays}일</strong>째 기록 중<br>
-                    📉 약 <strong>${averageCycle}일</strong>에 한 번 꼴로 울고 계시네요!
-                </div>
-            </div>
-        `;
+    function filterSongs() {
+        const filter = document.getElementById('songSearch').value.toUpperCase();
+        const rows = document.querySelectorAll("#song-list-body tr");
         
-        statsHtml += `<div class="stats-detail" style="border-top: 1px solid var(--border); padding-top: 10px;">`;
-        
-        Object.keys(stats).sort((a, b) => a.localeCompare(b)).forEach(year => {
-            const yearData = stats[year];
-            const monthDetails = Object.keys(yearData.months)
-                .sort((a, b) => parseInt(a) - parseInt(b))
-                .map(m => `${m} ${yearData.months[m]}회`)
-                .join(', ');
-                
-            statsHtml += `<div class="year-block"><strong>${year} 합계 ${yearData.yearTotal}회</strong> (${monthDetails})</div>`;
-        });
-        
-        statsHtml += `</div>`;
-        statsArea.innerHTML = statsHtml;
-    }
-
-    function renderList(data) {
-        const container = document.getElementById('main-content');
-        container.innerHTML = '';
-
-        data.sort((a, b) => {
-            const [yearA, monthA] = a.rawMonth.split(',').map(Number);
-            const [yearB, monthB] = b.rawMonth.split(',').map(Number);
-            if (yearA !== yearB) return yearA - yearB;
-            if (monthA !== monthB) return monthA - monthB;
-            const getDateNum = (dateStr) => parseFloat(dateStr.split('~')[0]);
-            const dateA = getDateNum(a.date);
-            const dateB = getDateNum(b.date);
-            if (dateA !== dateB) return dateA - dateB;
-            return a.time.localeCompare(b.time);
-        });
-
-        const groups = {};
-        data.forEach(item => {
-            if (!groups[item.formattedMonth]) groups[item.formattedMonth] = [];
-            groups[item.formattedMonth].push(item);
-        });
-
-        const sortedMonthKeys = Object.keys(groups).sort((a, b) => {
-            const parseM = (s) => {
-                const match = s.match(/(\d+)년\s+(\d+)월/);
-                if (!match) return 0;
-                return parseInt(match[1]) * 100 + parseInt(match[2]);
-            };
-            return parseM(a) - parseM(b);
-        });
-
-        sortedMonthKeys.forEach(month => {
-            const groupDiv = document.createElement('div');
-            groupDiv.className = 'month-group';
-            groupDiv.innerHTML = `
-                <div class="month-title">${month}</div>
-                <div class="cry-list">
-                    ${groups[month].map(cry => {
-                        const hasLink = cry.link && cry.link !== '#' && cry.link.trim() !== '';
-                        const linkAttr = hasLink ? `href="${cry.link}" target="_blank"` : `href="javascript:void(0)"`;
-                        const noLinkClass = hasLink ? "" : "no-link";
-
-                        return `
-                            <a ${linkAttr} class="cry-item ${noLinkClass}">
-                                <div class="cry-date">${cry.date.replace(' ~ ', '\n').replace('~', '\n')}</div>
-                                <div class="cry-content">
-                                    <div class="cry-desc">${cry.desc}</div>
-                                    <div class="cry-time">
-                                        🕒 ${cry.time} 
-                                        ${hasLink ? '<span class="link-hint">다시보기 ↗</span>' : ''}
-                                    </div>
-                                </div>
-                            </a>
-                        `;
-                    }).join('')}
-                </div>
-            `;
-            container.appendChild(groupDiv);
+        rows.forEach(row => {
+            const title = row.querySelector('.song-title')?.textContent.toUpperCase() || "";
+            const artist = row.querySelector('.song-artist')?.textContent.toUpperCase() || "";
+            if (title.includes(filter) || artist.includes(filter)) {
+                row.style.display = "";
+            } else {
+                row.style.display = "none";
+            }
         });
     }
 </script>
