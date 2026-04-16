@@ -92,40 +92,32 @@ body.modal-open, body.loading { overflow: hidden; }
     -ms-overflow-style: none;  /* IE and Edge */
     scrollbar-width: none;  /* Firefox */
 }
-#modal-content {
-    width: 100%;
-    max-width: 450px;
-    display: flex;
-    flex-direction: column;
-    max-height: 85vh;
-    overflow: hidden; /* 헤더/푸터 고정을 위해 전체 스크롤 차단 */
-    background: var(--card-bg);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
+#modal-content { 
+    width: 100%; 
+    max-width: 450px; 
+    display: flex; 
+    flex-direction: column; /* 위아래 배치 */
+    max-height: 85vh;       /* 화면 높이의 85%까지만 커지도록 제한 */
+    overflow: hidden;       /* 전체 스크롤은 막음 */
 }
-.modal-top-img {
-    width: 100%;
-    height: auto;
-    object-fit: cover;
-    flex-shrink: 0; /* 이미지 크기 유지 */
-}
-.modal-body-area {
-    flex: 1; /* 남은 공간 모두 차지 */
-    overflow-y: auto; /* 내용이 길 때만 내부 스크롤 */
-    padding: 20px;
-    -ms-overflow-style: none;
+/* [추가] 썸네일+텍스트 정보가 들어가는 영역 (스크롤 발생) */
+#modal-content > div:nth-child(2) { 
+    flex: 1;                /* 남은 공간을 모두 차지 */
+    overflow-y: auto;       /* 내용이 길어지면 여기만 스크롤 */
+    padding: 0;             /* 내부 padding은 하위 요소에서 조절 */
+    -ms-overflow-style: none; 
     scrollbar-width: none;
 }
-.modal-body-area::-webkit-scrollbar { display: none; }}
+#modal-content > div:nth-child(2)::-webkit-scrollbar { display: none; }
 
-/* 하단 버튼 영역 고정 */
-.modal-footer-fixed {
+/* [추가] 하단 버튼 영역 고정 */
+#modal-content .modal-footer-fixed {
     padding: 15px 20px;
     background: var(--card-bg);
     border-top: 1px solid var(--border);
     display: flex;
     gap: 10px;
-    flex-shrink: 0;
+    z-index: 10;
 }
 #modal-content::-webkit-scrollbar, 
 #analysis-result::-webkit-scrollbar, 
@@ -283,14 +275,8 @@ body.modal-open, body.loading { overflow: hidden; }
 
 /* --- 분석 모달 상세 (위치 유지) --- */
 .analysis-content {
-    max-width: 1000px;
-    width: 90%;
-    max-height: 85vh;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    background: var(--card-bg);
-    border-radius: var(--radius-lg);
+    max-width: 1000px; width: 90%; max-height: 85vh; 
+    display: flex; flex-direction: column; overflow: hidden; 
 }
 
 /* [통일] 분석 모달 헤더 */
@@ -396,9 +382,9 @@ body.modal-open, body.loading { overflow: hidden; }
 
 /* --- 미디어 쿼리 (모바일 위치 유지) --- */
 @media (max-width: 900px) {
-    .dashboard-grid, 
-    .analysis-layout { 
-        grid-template-columns: 1fr; 
+    .dashboard-grid { grid-template-columns: 1fr; } /* 스택 배치로 변경 */
+    .analysis-layout {
+        grid-template-columns: 1fr;
         height: auto;
     }
     .report-vod-list {
@@ -415,7 +401,7 @@ body.modal-open, body.loading { overflow: hidden; }
     #analysis-result { padding: 10px; }
     .header-card {
         flex-direction: column !important;
-        align-items: flex-start !important;
+        align-items: flex-start !important; /* 왼쪽 정렬 */
         gap: 15px !important;
         padding: 20px !important;
     }
@@ -427,7 +413,7 @@ body.modal-open, body.loading { overflow: hidden; }
         width: 100%;       /* 버튼 영역을 가로로 꽉 채움 */
         display: flex;
         gap: 10px;         /* 버튼 사이 간격 */
-        justify-content: center; /* 왼쪽부터 배치 (가운데 정렬 원하면 center) */
+        justify-content: flex-start; /* 왼쪽부터 배치 (가운데 정렬 원하면 center) */
     }
 
     /* 4. 버튼 각각의 크기 조정 (필요 시) */
