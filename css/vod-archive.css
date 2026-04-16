@@ -27,98 +27,60 @@ body {
     overflow-x: hidden; 
 }
 body.modal-open, body.loading { overflow: hidden; }
-
-/* --- [통일] 시스템 버튼 & 셀렉트 박스 표준 스타일 --- */
-.btn-home, 
-.btn-analysis-report, 
-.filter-btn, 
-.btn-action, 
-.btn-load-more, 
-.btn-collapse-sub,
-#analysis-year, 
-#month-select, 
-#analysis-type {
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    height: 36px !important;            /* 모든 버튼 높이 통일 */
-    padding: 0 16px !important;         /* 일관된 여백 */
-    background-color: #0a1a30 !important; /* 시스템 네이비 배경 */
-    border: 1px solid var(--border) !important;
-    border-radius: var(--radius-sm) !important;
-    color: var(--text-main) !important;
-    font-size: 13px !important;
-    font-weight: 700 !important;
-    text-decoration: none !important;
-    white-space: nowrap !important;
-    cursor: pointer !important;
-    transition: all 0.2s ease !important;
-    box-sizing: border-box !important;
-    appearance: none; /* 브라우저 기본 UI 제거 */
-}
-
-/* 버튼/셀렉트 공통 호버 피드백 */
-.btn-home:hover, 
-.btn-analysis-report:hover, 
-.filter-btn:hover, 
-.btn-action:hover, 
-.btn-load-more:hover, 
-.btn-collapse-sub:hover,
-#analysis-year:hover, 
-#month-select:hover, 
-#analysis-type:hover {
-    border-color: var(--accent) !important;
-    background-color: rgba(51, 133, 255, 0.1) !important;
-    color: var(--accent) !important;
-    box-shadow: 0 0 12px var(--accent-glow) !important;
-    transform: translateY(-1px);
-}
-
-/* 셀렉트 박스 화살표 복구 */
-#analysis-year, #month-select, #analysis-type {
-    padding-right: 32px !important;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='white' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E") !important;
-    background-repeat: no-repeat !important;
-    background-position: calc(100% - 10px) center !important;
-}
-
-/* 강조 버튼 전용 색상 */
-.btn-analysis-report { color: var(--accent) !important; }
-.btn-go { background: var(--accent) !important; color: white !important; }
-.btn-close { background: #1a202c !important; color: #a0aec0 !important; }
-
-/* 필터 버튼 활성화 상태 */
-.filter-btn.active {
-    color: var(--tag-color) !important;
-    border-color: var(--tag-color) !important;
-    background: rgba(255, 255, 255, 0.05) !important;
-    box-shadow: 0 0 10px var(--tag-color)33 !important;
-}
-
-/* --- 메인 레이아웃 --- */
+/* --- 메인 레이아웃 (위치 유지) --- */
 .wrapper { width: 100%; max-width: 900px; margin: 0 auto; padding: 40px 20px; display: flex; flex-direction: column; gap: 20px; }
 
+/* --- 헤더 카드 (디자인 통일) --- */
 .header-card { 
     background: var(--card-bg); 
-    border-radius: var(--radius-lg); 
+    border-radius: var(--radius-lg); /* [통일] */
     padding: 25px; 
-    border: 1px solid var(--border); 
+    border: 1px solid var(--border); /* [통일] */
     display: flex; justify-content: space-between; align-items: center; 
 }
 .header-info h1 { margin: 0; font-size: 22px; color: var(--accent); }
-.header-buttons { display: flex; gap: 10px; }
 
-/* --- 스크롤바 제거 --- */
-#modal-content, #analysis-result, .analysis-content { -ms-overflow-style: none; scrollbar-width: none; }
-#modal-content::-webkit-scrollbar, #analysis-result::-webkit-scrollbar, .analysis-content::-webkit-scrollbar { display: none; }
+/* [통일] 시스템 스타일 버튼 (홈, 리포트) */
+.btn-home, .btn-analysis-report { 
+    text-decoration: none; 
+    color: var(--text-main); 
+    background: #0a1a30; /* 어두운 네이비 */
+    padding: 8px 14px; 
+    border-radius: var(--radius-sm); /* [통일] */
+    font-size: 13px; 
+    border: 1px solid var(--border); /* [통일] */
+    transition: 0.2s;
+    cursor: pointer;
+}
+.btn-home:hover, .btn-analysis-report:hover {
+    border-color: var(--accent);
+    background: rgba(51, 133, 255, 0.1);
+    color: var(--accent);
+}
+/* --- 모달 내부 스크롤바 시각적 제거 --- */
 
-/* --- 대시보드 --- */
+/* 1. 일반 상세 팝업 및 분석 결과 영역 */
+#modal-content, 
+#analysis-result, 
+.analysis-content{
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}
+
+#modal-content::-webkit-scrollbar, 
+#analysis-result::-webkit-scrollbar, 
+.analysis-content::-webkit-scrollbar{
+    display: none; /* Chrome, Safari, Opera */
+}
+/* --- 대시보드 그리드 (위치 유지) --- */
 .dashboard-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 15px; }
+
+/* [통일] 스탯 카드 디자인 */
 .stat-card { 
     background: var(--card-bg); 
-    border: 1px solid var(--border); 
-    border-radius: var(--radius-lg); 
-    padding: 15px; 
+    border: 1px solid var(--border); /* [통일] */
+    border-radius: var(--radius-lg); /* [통일] */
+    padding: 5px; /* 패딩 약간 조정하여 여유 부여 */
     box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
 }
 .divider { border: 0; height: 1px; background: var(--border); margin: 20px 0; }
@@ -126,7 +88,7 @@ body.modal-open, body.loading { overflow: hidden; }
 .sub-val { font-size: 14px; font-weight: bold; color: #fff; display: inline-block; margin-top: 2px; }
 .sub-lbl { font-size: 10px; color: var(--text-sub); display: block; }
 
-/* 차트 영역 */
+/* 차트 영역 (유지) */
 .chart-box { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
 #category-chart { width: 100px; height: 100px; border-radius: 50%; position: relative; margin-bottom: 15px; }
 #category-chart::after { content: ""; position: absolute; inset: 18px; background: var(--card-bg); border-radius: 50%; }
@@ -134,77 +96,268 @@ body.modal-open, body.loading { overflow: hidden; }
 .legend-item { display: flex; align-items: center; gap: 4px; background: rgba(255,255,255,0.03); padding: 4px 8px; border-radius: 6px; }
 .dot { width: 8px; height: 8px; border-radius: 2px; }
 
-/* --- VOD 리스트 --- */
+/* --- VOD 리스트 영역 (위치 유지) --- */
 .date-header { font-size: 16px; font-weight: bold; color: var(--accent); margin: 35px 0 15px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+
+/* [통일] VOD 아이템 디자인 */
 .vod-item { 
     background: var(--card-bg); 
-    border: 1px solid var(--border); 
-    border-radius: var(--radius-md); 
+    border: 1px solid var(--border); /* [통일] */
+    border-radius: var(--radius-md); /* [통일] */
     display: flex; cursor: pointer; transition: 0.2s; overflow: hidden; margin-bottom: 12px; 
 }
-.vod-item:hover { border-color: var(--accent); background: var(--card-hover); }
+.vod-item:hover { 
+    border-color: var(--accent); 
+    background: var(--card-hover); /* [통일] */
+}
 .vod-thumb { width: 140px; height: 80px; position: relative; min-width: 140px; }
 .vod-thumb img { width: 100%; height: 100%; object-fit: cover; }
 .duration { position: absolute; bottom: 5px; right: 5px; background: rgba(0,0,0,0.8); font-size: 10px; padding: 2px 5px; border-radius: 4px; }
 .vod-body { padding: 12px 15px; display: flex; flex-direction: column; justify-content: center; flex: 1; min-width: 0; }
+
+/* 제목 및 배지 배정 (기존 규칙 유지) */
 .vod-title { display: flex; align-items: center; gap: 10px; width: 100%; font-size: 14px; font-weight: bold; margin-bottom: 6px; }
 .title-text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .badge-group { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
-.vod-tags { display: flex; flex-wrap: nowrap; gap: 4px 6px; margin-top: 4px; overflow: hidden; }
+.vod-tags { display: flex; flex-wrap: nowrap; gap: 4px 6px; margin-top: 4px; }
 
-/* [유지] 태그 디자인 (수정 안 함) */
+/* [통일] 공통 태그/배지 스타일 */
 .tag-common { 
     display: inline-flex; align-items: center; justify-content: center; 
     height: 22px; padding: 0 10px; 
-    border-radius: 6px; 
+    border-radius: 6px; /* 태그는 고유 라운딩 유지 */
     font-size: 11px; font-weight: 800; white-space: nowrap; line-height: 1; 
 }
-.tag-plus { background: #121f33; color: #e6e02e; border: 2px solid #e6e02e; }
-
-/* --- 필터 컨테이너 --- */
-#tag-filter-container { 
-    margin: 5px 0; padding: 18px; 
-    background: var(--card-bg); 
-    border: 1px solid var(--border); 
-    border-radius: var(--radius-lg); 
-    display: flex; flex-wrap: wrap; gap: 8px 6px; 
+/* 기본: PC에서는 +N 배지를 숨김 */
+.tag-more.m-show {
+    display: none !important;
 }
 
-/* --- 모달 공통 --- */
+/* 모바일 (사용자 미디어 쿼리 기준 850px) */
+@media (max-width: 850px) {
+    /* 4번째 태그부터 숨기기 (인덱스 3 이상) */
+    .vod-tags .m-hide {
+        display: none !important;
+    }
+
+    /* 숨겨진 태그가 있을 때만 +N 배지 표시 */
+    .tag-more.m-show {
+        display: inline-flex !important;
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--text-sub);
+        border: 1px dashed var(--border);
+    }
+
+    /* 모바일에서 태그가 줄바꿈되어 레이아웃이 깨지는 것 방지 */
+    .vod-tags {
+        flex-wrap: nowrap; 
+        overflow: hidden;
+    }
+}
+.tag-plus { background: #121f33; color: #e6e02e; border: 2px solid #e6e02e; }
+/* 태그/배지 마진 강제 제거 규칙 유지 */
+.vod-tags .tag-common, .badge-group .tag-common { margin: 0 !important; }
+
+/* --- 필터 박스 (위치 유지, 디자인 통일) --- */
+#tag-filter-container { 
+    margin: 5px 0; 
+    padding: 18px; 
+    background: var(--card-bg); /* [통일] */
+    border: 1px solid var(--border); /* [통일] */
+    border-radius: var(--radius-lg); /* [통일] */
+    display: flex; flex-wrap: wrap; gap: 8px 6px; 
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); 
+}
+
+/* [통일] 필터 버튼 디자인 */
+.filter-btn { 
+    all: unset; /* 기본 스타일 제거 */
+    cursor: pointer; transition: all 0.2s ease; 
+    display: inline-flex; align-items: center; justify-content: center; 
+    height: 26px; padding: 0 12px; 
+    border-radius: var(--radius-sm); /* [통일] */
+    font-size: 11px; font-weight: 800; line-height: 1; 
+    background: #121f33; /* 버튼 배경 */
+    color: var(--text-sub); /* 평소 글자색 */
+    border: 2px solid #1a2c42; /* 버튼 테두리 */
+    margin: 4px 2px !important; /* 기존 마진 유지 */
+}
+.filter-btn:hover {
+    transform: translateY(-2px); /* 살짝 떠오르는 효과 유지 */
+    
+    /* 배경을 투명하게 설정 */
+    background: transparent !important; 
+    
+    /* 배경이 투명해지는 대신 글자와 테두리를 강조 */
+    color: var(--accent) !important; 
+    border-color: var(--accent) !important;
+    
+    /* 선택사항: 투명한 배경에 약간의 파란 빛(Glow) 추가 */
+    box-shadow: 0 4px 12px rgba(51, 133, 255, 0.15);
+}
+
+/* [통일] 활성화 필터 스타일 (네온 효과 추가) */
+.filter-btn.active {
+    /* 스크립트에서 넣어줄 변수(--tag-color)를 사용합니다 */
+    color: var(--tag-color) !important;
+    border-color: var(--tag-color) !important;
+    background: rgba(255, 255, 255, 0.05) !important; 
+    box-shadow: 0 0 10px var(--tag-color)33; /* 33은 투명도 약 20%를 의미 */
+}
+/* --- 모달 공통 (위치 유지, 디자인 통일) --- */
 #modal-overlay, #analysis-overlay { position: fixed; inset: 0; background: var(--modal-bg); display: none; justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(8px); padding: 20px; }
-#modal-content, .analysis-content { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow-y: auto; max-height: 90vh; }
+
+/* [통일] 모달 컨텐츠 디자인 */
+#modal-content, .analysis-content { 
+    background: var(--card-bg); 
+    border: 1px solid var(--border); /* [통일] */
+    border-radius: var(--radius-lg); /* [통일] */
+    overflow-y: auto; max-height: 90vh; 
+}
 #modal-content { width: 100%; max-width: 450px; }
-.modal-footer { display: flex; gap: 10px; padding: 20px; }
 
-/* --- 분석 상세 --- */
-.analysis-content { max-width: 1000px; width: 95%; height: 85vh; display: flex; flex-direction: column; overflow: hidden; }
-.analysis-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 24px; border-bottom: 1px solid var(--border); background: rgba(255, 255, 255, 0.02); gap: 15px; }
-.analysis-layout { display: grid; grid-template-columns: 5.5fr 4.5fr; gap: 25px; flex: 1; overflow: hidden; padding: 0; }
-#analysis-result { padding: 24px; overflow-y: auto; background: rgba(0, 0, 0, 0.2); }
-.report-vod-list { height: 100%; overflow-y: auto !important; padding: 20px; }
+/* 모달 액션 버튼 (유지) */
+.btn-action { flex: 1; padding: 14px; text-align: center; border-radius: var(--radius-md); font-weight: bold; text-decoration: none; cursor: pointer; border: none; font-size: 14px; }
+.btn-go { background: var(--accent); color: white; }
+.btn-close { background: #1a202c; color: #a0aec0; }
 
-/* 리포트 아이템 */
-.report-item { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: var(--radius-md); padding: 10px; cursor: pointer; display: flex; gap: 12px; align-items: center; transition: 0.2s; margin-bottom: 8px; }
+/* --- 분석 모달 상세 (위치 유지) --- */
+.analysis-content {
+    max-width: 1000px; width: 90%; max-height: 85vh; 
+    display: flex; flex-direction: column; overflow: hidden; 
+}
+
+/* [통일] 분석 모달 헤더 */
+.analysis-header { 
+    display: flex; justify-content: space-between; align-items: center; 
+    padding: 16px 24px; border-bottom: 1px solid var(--border); 
+    background: rgba(255, 255, 255, 0.02); gap: 15px; 
+}
+.analysis-controls { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+
+/* [통일] 공통 셀렉트 박스 스타일 */
+#analysis-year, #month-select, #analysis-type { 
+    appearance: none; background-color: #0a1a30; color: #fff; 
+    border: 1px solid var(--border); /* [통일] */
+    border-radius: var(--radius-sm); /* [통일] */
+    padding: 0 32px 0 14px; font-size: 13px; font-weight: 700; height: 36px; line-height: 34px; cursor: pointer; transition: all 0.2s ease; 
+    /* 화살표 아이콘 (유지) */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='white' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E"); 
+    background-repeat: no-repeat; background-position: calc(100% - 10px) center; 
+}
+#analysis-year:hover, #month-select:hover, #analysis-type:hover { border-color: var(--accent); background-color: #112540; box-shadow: 0 0 8px rgba(51, 133, 255, 0.2); }
+
+/* 분석 레이아웃 및 결과 (유지) */
+.analysis-layout {
+    display: grid;
+    grid-template-columns: 5.5fr 4.5fr;
+    gap: 25px;
+    align-items: stretch; /* 좌우 높이를 동일하게 맞춤 */
+    max-height: 100%;     /* 부모 높이를 넘지 않도록 설정 */
+}
+#analysis-result { flex: 1; overflow-y: auto; padding: 24px; background: rgba(0, 0, 0, 0.2); }
+
+/* 리포트 리스트 (유지) */
+/* 이 부분이 좌측 리포트 높이를 따라가며, 넘치면 스크롤이 생기게 합니다 */
+.report-vod-list {
+    display: flex;
+    flex-direction: column;
+    /* 핵심: 부모(grid)의 높이를 100% 상속받고 넘치는 부분만 스크롤 */
+    height: 0; 
+    min-height: 98%; 
+    overflow-y: auto !important; 
+    padding-right: 8px;
+}
+.report-vod-list::-webkit-scrollbar { width: 4px; }
+.report-vod-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+
+/* [통일] 리포트 아이템 디자인 */
+.report-item { 
+    background: rgba(255, 255, 255, 0.03); 
+    border: 1px solid rgba(255, 255, 255, 0.05); /* 미세한 테두리 유지 */
+    border-radius: var(--radius-md); /* [통일] */
+    padding: 10px; cursor: pointer; display: flex; gap: 12px; align-items: center; transition: 0.2s; min-width: 0; 
+}
 .report-item:hover { background: rgba(255, 255, 255, 0.08); border-color: var(--accent); }
-.side-list-title { font-size: 13px; color: #eee; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.report-item-info { flex: 1; min-width: 0; }
+.side-list-title { font-size: 13px; color: #eee; font-weight: 500; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-/* --- 더보기 컨테이너 --- */
+/* 분석 태그 (유지) */
+.analysis-tag { cursor: pointer; transition: all 0.2s; border: 2px solid transparent; }
+.analysis-tag:hover { background: rgba(255,255,255,0.1) !important; transform: scale(1.05); }
+.analysis-tag.active { border-color: white !important; box-shadow: 0 0 10px rgba(255,255,255,0.2); background: rgba(255,255,255,0.1) !important; }
+
+/* 수치 변화량 (유지) */
+.diff-val { font-size: 10px; font-weight: bold; margin-top: 4px; display: block; }
+.diff-up { color: #ff4d4d; }
+.diff-down { color: #3385ff; }
+.diff-none { color: var(--text-sub); }
+
+/* [통일] 분석 모달 푸터 */
+.analysis-footer { 
+    padding: 16px 24px; border-top: 1px solid var(--border); 
+    background: var(--card-bg); /* [통일] */
+    display: flex; justify-content: center; 
+}
+
+/* --- 더보기 버튼 영역 (위치 유지) --- */
 .expand-btn-container { display: flex; justify-content: center; align-items: center; gap: 10px; margin: 30px 0; width: 100%; }
 
-/* --- 미디어 쿼리 --- */
-@media (max-width: 850px) {
-    .dashboard-grid { grid-template-columns: 1fr; }
-    .analysis-layout { grid-template-columns: 1fr; height: auto; }
-    .report-vod-list { max-height: 400px; }
-    .vod-thumb { width: 120px; min-width: 120px; }
-    .analysis-header { flex-direction: column; align-items: stretch !important; }
-    .analysis-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-    #analysis-type { grid-column: span 2; }
-    .vod-tags .m-hide { display: none !important; }
-    .tag-more.m-show { display: inline-flex !important; background: rgba(255, 255, 255, 0.05); color: var(--text-sub); border: 1px dashed var(--border); }
+/* [통일] 더보기/접기 버튼 기본 스타일 */
+.btn-load-more { 
+    all: unset; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 10px; 
+    height: 30px; min-width: 80px; padding: 0 24px; 
+    border-radius: var(--radius-sm); /* [통일] */
+    font-size: 14px; font-weight: 800; line-height: 1; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+    border: 1px solid rgba(51, 133, 255, 0.2); box-sizing: border-box; 
 }
 
+/* [통일] 더보기 버튼 강조 스타일 */
+.btn-expand-main { 
+    background: rgba(51, 133, 255, 0.1); 
+    color: var(--accent); /* 파란색 강조 */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); 
+}
+.btn-expand-main:hover { 
+    background: var(--accent); /* 호버 시 꽉 찬 파란색 */
+    color: #fff; transform: translateY(-5px); box-shadow: 0 8px 25px rgba(51, 133, 255, 0.4); 
+}
+
+/* 접기 버튼 스타일 (유지) */
+.btn-collapse-sub { background: rgba(255, 255, 255, 0.05); color: var(--text-sub); border: 1px solid rgba(255, 255, 255, 0.1); }
+.btn-collapse-sub:hover { background: rgba(255, 255, 255, 0.1); color: #fff; transform: translateY(-5px); }
+.load-count { font-size: 11px; background: rgba(0, 0, 0, 0.4); padding: 2px 8px; border-radius: 20px; color: var(--accent); border: 1px solid rgba(51, 133, 255, 0.2); display: inline-block; height: 18px; line-height: 14px; }
+
+/* --- 미디어 쿼리 (모바일 위치 유지) --- */
+@media (max-width: 850px) {
+    .dashboard-grid { grid-template-columns: 1fr; } /* 스택 배치로 변경 */
+    .analysis-layout {
+        grid-template-columns: 1fr;
+        height: auto;
+    }
+    .report-vod-list {
+        height: auto;
+        max-height: 400px; /* 모바일은 너무 길면 불편하므로 적당히 제한 */
+    }
+    .vod-thumb { width: 120px; min-width: 120px; }
+    
+    .analysis-header { flex-direction: column; align-items: flex-start !important; gap: 15px; }
+    .analysis-controls { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    #analysis-type { grid-column: span 2; }
+    #analysis-year, #month-select, #analysis-type { flex: 1; min-width: 100px; font-size: 12px; }
+    #analysis-overlay { padding: 10px; }
+    #analysis-result { padding: 10px; }
+}
+
+/* 모바일 전용 상세 스타일 (유지) */
+/* 모바일 전용 상세 스타일 (유지) */
+
 @media screen and (max-width: 900px) {
-    .report-item, .analysis-content div[style*="background"] { background-color: rgba(255, 255, 255, 0.12) !important; border: 1px solid rgba(255, 255, 255, 0.2) !important; padding: 8px !important; }
-    .header-buttons { width: 100%; gap: 8px !important; }
+    .report-item, #m-game, #m-song, #m-talk, #m-content, .analysis-content div[style*="background"] { background-color: rgba(255, 255, 255, 0.12) !important; border: 1px solid rgba(255, 255, 255, 0.2) !important; border-radius: 12px !important; margin-bottom: 10px !important; padding: 8px !important; }
+    .side-list-title, #m-title { color: #ffffff !important; }
+    #m-game, #row-game span[style*="color:#70a1ff"] { color: #70a1ff !important; }
+    #m-song, #row-song span[style*="color:#ff7eb9"] { color: #ff7eb9 !important; }
+    #m-talk, #row-talk span[style*="color:#2ed573"] { color: #2ed573 !important; }
+    #m-content, #row-content div[style*="color:var(--accent)"] { color: var(--accent) !important; }
+    .analysis-content b, .sub-val { filter: brightness(1.2); font-weight: bold !important; }
 }
