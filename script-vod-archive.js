@@ -26,28 +26,53 @@ let currentMainTag = null;
     function secondsToTime(s) { const absS = Math.abs(s); const h = Math.floor(absS / 3600); const m = Math.floor((absS % 3600) / 60); const sec = absS % 60; return `${s < 0 ? '-' : ''}${h}:${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`; }
 
     window.onload = () => {
-        const overlay = document.getElementById('loading-overlay');
-        fetch(sheetUrl + `&t=${new Date().getTime()}`)
-            .then(res => res.text())
-            .then(tsv => {
-                const lines = tsv.split(/\r?\n/).filter(l => l.trim() !== "");
-                allVods = [];
-                for (let i = 1; i < lines.length; i++) {
-                    const p = lines[i].split('\t').map(v => v.trim());
-                    if (!p[0]) continue;
-                   allVods.push({
-                   id: i - 1, date: p[0], title: p[1], link: p[2], thumb: p[3], totalTime: p[4],
-                   isPlus: p[5] === '예' || p[5] === 'O', 
-                   isAdult: p[6] === '예' || p[6] === 'O', 
-                   gData: p[7], sData: p[8], tData: p[9], cData: p[10], category: p[11] || "기타"
-                   });
-                }
-                allVods.sort((a, b) => new Date(b.date) - new Date(a.date));
-                renderList(allVods); calculateAllStats(allVods); renderTagButtons();
-                document.getElementById('update-time').textContent = `최근 업데이트: ${new Date().toLocaleTimeString()}`;
-                setTimeout(() => { overlay.style.opacity = '0'; setTimeout(()=>overlay.style.display='none', 500); document.body.classList.remove('loading'); }, 800);
-            });
-    };
+    const overlay = document.getElementById('loading-overlay');
+    
+    // 1. 파도 애니메이션 텍스트 생성 (애니메이션 효과 극대화)
+    const loadingText = "소중한 기록들을 정리하고 있어요 . . .";
+    const waveContainer = document.getElementById('wave-text'); // HTML에 이 ID를 가진 div가 있어야 합니다.
+    
+    if (waveContainer) {
+        waveContainer.innerHTML = loadingText.split('').map((char, i) => 
+            `<span style="animation-delay: ${i * 0.1}s">${char === ' ' ? '&nbsp;' : char}</span>`
+        ).join('');
+    }
+
+    // 2. 데이터 페치 시작
+    fetch(sheetUrl + `&t=${new Date().getTime()}`)
+        .then(res => res.text())
+        .then(tsv => {
+            const lines = tsv.split(/\r?\n/).filter(l => l.trim() !== "");
+            allVods = [];
+            for (let i = 1; i < lines.length; i++) {
+                const p = lines[i].split('\t').map(v => v.trim());
+                if (!p[0]) continue;
+                allVods.push({
+                    id: i - 1, date: p[0], title: p[1], link: p[2], thumb: p[3], totalTime: p[4],
+                    isPlus: p[5] === '예' || p[5] === 'O', 
+                    isAdult: p[6] === '예' || p[6] === 'O', 
+                    gData: p[7], sData: p[8], tData: p[9], cData: p[10], category: p[11] || "기타"
+                });
+            }
+            allVods.sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            // 데이터 렌더링
+            renderList(allVods); 
+            calculateAllStats(allVods); 
+            renderTagButtons();
+            
+            document.getElementById('update-time').textContent = `최근 업데이트: ${new Date().toLocaleTimeString()}`;
+            
+            // 3. 로딩 완료 후 부드러운 페이드 아웃
+            setTimeout(() => { 
+                overlay.style.opacity = '0'; 
+                setTimeout(() => {
+                    overlay.style.display = 'none';
+                    document.body.classList.remove('loading');
+                }, 500); 
+            }, 800);
+        });
+};
 
     function renderList(data) {
     const container = document.getElementById('vod-content');
