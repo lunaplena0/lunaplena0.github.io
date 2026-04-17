@@ -410,8 +410,13 @@ body.modal-open, body.loading { overflow: hidden; }
 
 /* 분석 모달 본체 */
 .analysis-content {
-    max-width: 1000px; width: 90%; max-height: 85vh; 
-    display: flex; flex-direction: column; overflow: hidden; 
+    max-width: 1000px; 
+    width: 90%; 
+    height: 85vh; /* max-height 대신 고정 height 권장 */
+    display: flex; 
+    flex-direction: column; 
+    overflow: hidden; 
+    position: relative;
 }
 
 .analysis-header { 
@@ -433,22 +438,29 @@ body.modal-open, body.loading { overflow: hidden; }
 
 .analysis-layout {
     display: grid;
-    grid-template-columns: 5.5fr 4.5fr; /* 좌우 화면 배분 */
+    grid-template-columns: 5.5fr 4.5fr; 
     gap: 25px;
-    align-items: stretch;
-    max-height: 100%;
+    flex: 1; /* 핵심: 헤더 제외한 나머지 공간을 꽉 채움 */
+    min-height: 0; /* 중요: 자식 요소의 overflow 계산을 도움 */
+    padding: 20px 24px;
 }
 
 /* 분석 리포트 VOD 목록 스크롤 영역 */
 .report-vod-list {
     display: flex;
     flex-direction: column;
-    height: 0; 
-    min-height: 98%; 
-    overflow-y: auto !important; 
-    padding-right: 8px;
+    gap: 12px;
+    height: 100%; /* 부모(analysis-layout) 높이를 그대로 따름 */
+    overflow-y: auto !important; /* 스크롤 활성화 */
+    padding-right: 10px;
+    
+    /* 스크롤바 숨기기 (기능은 유지) */
+    -ms-overflow-style: none;
+    scrollbar-width: none;
 }
-
+.report-vod-list::-webkit-scrollbar {
+    display: none;
+}
 .report-item { 
     background: rgba(255, 255, 255, 0.03); 
     border: 1px solid rgba(255, 255, 255, 0.05); 
@@ -500,7 +512,15 @@ body.modal-open, body.loading { overflow: hidden; }
 @media (max-width: 900px) {
     /* 레이아웃을 한 줄 세로로 변경 */
     .dashboard-grid { grid-template-columns: 1fr; } 
-    .analysis-layout { grid-template-columns: 1fr; height: auto; }
+    .analysis-layout {
+        grid-template-columns: 1fr;
+        overflow-y: auto; /* 모바일은 전체가 스크롤되도록 */
+        height: auto;
+    }
+   .report-vod-list {
+        height: auto; /* 모바일은 리스트가 길어지게 */
+        overflow-y: visible !important;
+    }
     
     /* 모바일에서 태그 숨기기 처리 */
     .vod-tags .m-hide { display: none !important; } /* 일부 태그 숨김 */
