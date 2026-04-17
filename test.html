@@ -3,143 +3,219 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VOD 기록함</title>
+    <title>바다비 팬 아카이브</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
-    <link id="favicon" rel="icon" href="data:;base64,iVBORw0KGgo=">
-    
-    <link rel="stylesheet" href="css/loading.css">
-    <link rel="stylesheet" href="css/vodarchive.css">
+    <style>
+        :root {
+            /* 깊은 바다 테마색 */
+            --bg-color: #010306;          /* 깊은 바다 블랙 배경 */
+            --card-bg: #030812;            /* 미드나잇 블루 카드 배경 */
+            --accent: #003366;          /* 메인 감청색 */
+            --accent-bright: #3385ff;    /* 강조 포인트 블루 */
+            --accent-glow: rgba(0, 51, 102, 0.7);
+            --text-main: #f0faff;         /* 아이스 화이트 메인 텍스트 */
+            --text-sub: #5c7285;          /* 차분한 블루 그레이 서브 텍스트 */
+            --border: #0a1425;            /* 어두운 네이비 테두리 */
+        }
+
+        body { 
+            background-color: var(--bg-color); 
+            background-image: radial-gradient(circle at center, #051020 0%, #02050a 100%);
+            color: var(--text-main); 
+            font-family: 'Noto Sans KR', sans-serif; 
+            margin: 0; padding: 10px;
+            display: flex; justify-content: center; align-items: center; 
+            min-height: 100vh; box-sizing: border-box;
+            overflow-x: hidden;
+        }
+
+        .wrapper { width: 100%; max-width: 1100px; display: flex; flex-direction: column; gap: 15px; padding: 10px 0; }
+
+        .card { 
+            background: var(--card-bg); 
+            border-radius: 12px; padding: 20px; 
+            border: 1px solid var(--border); 
+            display: flex; position: relative;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        /* 상단 프로필 섹션 */
+        .profile-box { align-items: center; gap: 20px; background: linear-gradient(145deg, #051020, #02050a); }
+        
+        .profile-img { 
+            width: 90px; height: 90px; border-radius: 50%; background: #0a1a30; 
+            flex-shrink: 0; 
+            border: 3px solid var(--accent-bright);
+            box-shadow: 0 0 15px var(--accent-glow);
+            background-size: cover; background-position: center;
+            cursor: pointer; 
+        }
+
+        .profile-info { flex-grow: 1; min-width: 0; }
+        .profile-info h1 { margin: 0 0 2px; font-size: 22px; font-weight: 700; color: var(--text-main); }
+        .profile-info p { 
+            color: var(--text-sub); margin: 0 0 8px; font-size: 13px; 
+            max-width: 600px; line-height: 1.4;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+
+        /* 버튼 및 링크 */
+        .link-list { display: flex; gap: 8px; flex-wrap: wrap; }
+        .link-btn { 
+            padding: 5px 12px; background: #0a1a30; border-radius: 6px; 
+            color: var(--text-main); text-decoration: none; font-size: 11px; 
+            border: 1px solid var(--accent); transition: 0.3s; 
+        }
+        .link-btn:hover { background: var(--accent-bright); border-color: var(--accent-bright); color: #fff; }
+
+        /* 라이브 상태 */
+        .live-status-inline {
+            margin-left: auto; text-align: center; padding: 0 25px; 
+            border-left: 1px solid var(--border); 
+            min-width: 180px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+
+        .badge { display: inline-block; padding: 4px 10px; border-radius: 5px; font-size: 10px; font-weight: bold; margin-bottom: 5px; }
+        .offline { background: #1a2638; color: var(--text-sub); }
+        #stream-title-inline { font-size: 16px; font-weight: bold; margin-bottom: 2px; color: var(--accent-bright); }
+        #last-stream-time { font-size: 11px; color: var(--text-sub); }
+
+        /* 하단 그리드 섹션 */
+        .bottom-section { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr 1fr; 
+            gap: 15px; 
+            align-items: stretch;
+        }
+        .bottom-section .card { 
+            flex-direction: column; padding: 15px; height: auto; box-sizing: border-box; min-width: 0;
+        }
+
+        h2 { font-size: 13px; margin-top: 0; color: var(--accent-bright); border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* 아이템 리스트 스타일 */
+        .item-row { 
+            padding: 8px; 
+            border-bottom: 1px solid var(--border); 
+            font-size: 12px; 
+            border-radius: 6px; transition: 0.2s; cursor: pointer;
+            min-height: 65px; display: flex; flex-direction: column; justify-content: center; box-sizing: border-box;
+        }
+        .item-row:hover { background: rgba(255, 255, 255, 0.03); }
+        .item-date { font-size: 10px; color: var(--text-sub); margin-bottom: 2px; }
+        
+        .vod-row { flex-direction: row !important; align-items: center; gap: 10px; }
+        .vod-thumb { 
+            width: 70px; height: 40px; background: #0a1a30; border-radius: 4px; 
+            flex-shrink: 0; background-size: cover; background-position: center; 
+            border: 1px solid var(--border);
+        }
+
+        .schedule-row { flex-direction: row !important; justify-content: space-between; cursor: default; }
+        .day { font-weight: bold; color: var(--text-sub); }
+
+        .today-highlight { 
+            background: rgba(51, 133, 255, 0.08) !important; 
+            border: 1px solid var(--accent-bright) !important; 
+            transform: scale(1.01); 
+            box-shadow: 0 0 10px rgba(51, 133, 255, 0.15);
+        }
+
+        /* 반응형 설정 */
+        @media (max-width: 900px) {
+            body { overflow: auto; padding: 20px 10px; }
+            .profile-box { flex-direction: column; padding-bottom: 20px; }
+            .live-status-inline { margin-left: 0; border-left: none; border-top: 1px solid var(--border); padding: 15px 0; width: 100%; }
+            .bottom-section { grid-template-columns: 1fr; }
+            .profile-info { 
+                width: 100%; display: flex; flex-direction: column; align-items: center; 
+            }
+            .profile-info p { 
+                max-width: 340px; margin: 0 auto 8px; 
+                line-height: 1.5; white-space: normal; 
+                display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+                overflow: hidden; text-overflow: ellipsis; text-align: center; 
+            }
+            .link-list { justify-content: center; }
+        }
+    </style>
 </head>
-<body class="loading">
+<body>
 
-<div id="loading-overlay">
-    <div id="wave-text" class="wave-text"></div>
-</div>
-
-<div class="wrapper">
-    <header class="header-card main-header">
-        <div class="header-info">
-            <h1>VOD 기록함 <span class="badge-beta">재단장 중</span></h1>
-            <div id="update-time" class="update-status">데이터를 불러오는 중입니다...</div>
-        </div>
-        <div class="header-buttons">
-            <button onclick="openAnalysisModal()" class="btn-home btn-analysis">📊 상세 분석</button>
-            <a href="index.html" class="btn-home">🏠 홈으로</a>
-        </div>
-    </header>
-
-    <section class="dashboard-grid">
-        <div class="stat-card">
-            <div class="stat-main-row">
-                <div class="stat-item">
-                    <span class="stat-label">전체 누적 시간</span>
-                    <h2 id="total-hour" class="stat-value primary">0시간 0분</h2>
+    <div class="wrapper">
+        <div class="top-section">
+            <div class="card profile-box">
+                <div class="profile-img" onclick="location.href='blue-note.html'" style="background-image: url('https://via.placeholder.com/90/0a1a30/3385ff?text=BDB');"></div>
+                
+                <div class="profile-info">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <h1 id="user-nick">로딩 중...</h1>
+                    </div>
+                    <p id="user-desc">정보를 불러오고 있습니다. 잠시만 기다려 주세요.</p>
+                    
+                    <div class="link-list" id="link-list">
+                        <a href="https://www.sooplive.com/station/bababi" class="link-btn" target="_blank" title="방송국 가기">🏠 홈</a>
+                        <a href="songlist.html" class="link-btn">📖 노래책</a>
+                        <a href="vod-archive.html" class="link-btn">🎬 VOD 기록함</a>
+                        <div id="extra-links-target" style="display: flex; gap: 8px; flex-wrap: wrap;"></div>
+                    </div>
                 </div>
-                <div class="stat-divider"></div>
-                <div class="stat-item highlight">
-                    <span class="stat-label gold">⭐ 구독플러스 비중</span>
-                    <div class="stat-value-group">
-                        <span id="plus-hour" class="stat-sub-value">0시간 0분</span>
-                        <span id="plus-ratio" class="stat-percent">(0.0%)</span>
+
+                <div class="live-status-inline">
+                    <div class="badge offline">OFFLINE</div>
+                    <div id="stream-title-inline">방송 준비 중</div>
+                    <div id="last-stream-time">최근 방송: 확인 중</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bottom-section">
+            <div class="card">
+                <h2>📅 방송 스케줄</h2>
+                <div id="schedule-container">
+                    <div class="item-row schedule-row today-highlight">
+                        <span class="day">오늘</span>
+                        <span class="content">오후 8시 정기 방송</span>
+                    </div>
+                    <div class="item-row schedule-row">
+                        <span class="day">내일</span>
+                        <span class="content">휴방</span>
                     </div>
                 </div>
             </div>
-            <hr class="divider">
-            <div class="sub-grid">
-                <div class="sub-item"><span class="sub-lbl">최장 방송</span><span class="sub-val" id="max-time">0:00:00</span></div>
-                <div class="sub-item"><span class="sub-lbl">최단 방송</span><span class="sub-val" id="min-time">0:00:00</span></div>
-                <div class="sub-item"><span class="sub-lbl">평균 시간</span><span class="sub-val" id="avg-time">0:00:00</span></div>
+
+            <div class="card" id="post-container">
+                <h2>📢 최근 게시물</h2>
+                <div class="item-row">
+                    <div class="item-date">2026.04.17</div>
+                    <div class="ellipsis">새로운 굿즈 안내 공지사항</div>
+                </div>
+                <div class="item-row">
+                    <div class="item-date">2026.04.15</div>
+                    <div class="ellipsis">오늘 방송 시간 변경 안내</div>
+                </div>
+            </div>
+
+            <div class="card" id="vod-container">
+                <h2>🎬 최근 다시보기</h2>
+                <div class="item-row vod-row">
+                    <div class="vod-thumb"></div>
+                    <div>
+                        <div class="item-date">2026.04.16</div>
+                        <div class="ellipsis">심해 노래방 뱅송</div>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <div class="stat-card chart-box">
-            <div id="category-chart"></div>
-            <div id="legend" class="chart-legend"></div>
-        </div>
-    </section>
-
-    <nav id="tag-filter-container" class="filter-wrapper"></nav>
-    <main id="vod-content" class="content-area"></main>
-
-    <footer class="archive-footer">
-        <p>
-            <strong>바다비 비공식 팬 아카이브</strong>
-            모든 권리는 원저작권자(바다비/SOOP)에게 있으며 요청 시 수정·삭제됩니다.<br>
-            <span>비영리로 운영되며, 정보 반영에 시차가 발생할 수 있습니다.</span>
-        </p>
-    </footer>
-</div>
-
-<div id="modal-overlay" class="overlay" onclick="if(event.target === this) closeModal()">
-    <div id="modal-content" class="modal-layout-container">
-        <img id="m-thumb" class="modal-top-img" alt="Thumbnail">
-        
-        <div class="modal-body-area">
-            <div class="m-title-section">
-                <h2 id="m-title"></h2>
-                <div id="m-plus" class="badge-container"></div>
-            </div>
-
-            <div class="modal-info-border">
-                <span class="info-label">📅 방송 정보</span>
-                <div id="m-date" class="info-value"></div>
-            </div>
-
-            <div id="row-game" class="modal-section">
-                <span class="section-label game-color">🎮 게임</span>
-                <div id="m-game" class="section-content"></div>
-            </div>
-
-            <div id="row-song" class="modal-section">
-                <span class="section-label song-color">🎵 노래</span>
-                <div id="m-song" class="section-content"></div>
-            </div>
-
-            <div id="row-talk" class="modal-section">
-                <span class="section-label talk-color">💬 소통</span>
-                <div id="m-talk" class="section-content"></div>
-            </div>
-
-            <div id="row-content" class="modal-section">
-                <span class="section-label content-color">🎬 컨텐츠</span>
-                <div id="m-content" class="section-content"></div>
-            </div>
-        </div>
-
-        <div class="modal-footer-fixed">
-            <a id="m-link" href="#" target="_blank" class="btn-action btn-go">시청하기 ↗</a>
-            <button class="btn-action btn-close" onclick="closeModal()">닫기</button>
-        </div>
-    </div>
-</div>
-
-<div id="analysis-overlay" class="overlay" onclick="if(event.target === this) closeAnalysisModal()">
-    <div class="analysis-content">
-        <header class="analysis-header">
-            <h3>📊 기간별 상세 분석</h3>
-            <div class="analysis-controls">
-                <select id="analysis-year" class="styled-select"></select>
-                <select id="month-select" class="styled-select">
-                    <option value="all">전체 월</option>
-                </select>
-                <select id="analysis-type" class="styled-select">
-                    <option value="month">월별 보기</option>
-                    <option value="year">연도별 요약</option>
-                </select>
-            </div>
-        </header>
-        
-        <div id="analysis-result" class="scroll-area"></div>
-
-        <footer class="analysis-footer">
-            <button class="btn-action btn-close-full" onclick="closeAnalysisModal()">닫기</button>
+        <footer style="text-align: center; padding: 15px 20px; color: var(--text-sub); font-size: 11px; border-top: 1px solid var(--border); margin-top: 5px;">
+            <p style="margin: 0; opacity: 0.8; line-height: 1.6;">
+                <strong>바다비 비공식 팬 아카이브</strong><br>
+                모든 권리는 원저작권자(바다비/SOOP)에게 있으며 요청 시 수정·삭제됩니다.<br>
+                비영리로 운영되며, 정보 갱신 시 이전 데이터가 2분 정도 나타날 수 있습니다.
+            </p>
         </footer>
     </div>
-</div>
 
-<script src="js/common.js"></script>
-<script src="js/loading.js"></script>
-<script src="js/vod-archive.js"></script>
-    
-</body>
+    </body>
 </html>
