@@ -3,64 +3,143 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>정보 메인 페이지</title>
+    <title>VOD 기록함</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
     <link id="favicon" rel="icon" href="data:;base64,iVBORw0KGgo=">
-    <script src="js/common.js"></script>
+    
     <link rel="stylesheet" href="css/loading.css">
-    <link rel="stylesheet" href="css/index.css"> 
+    <link rel="stylesheet" href="css/vodarchive.css">
 </head>
-<body>
+<body class="loading">
 
 <div id="loading-overlay">
-    <div id="wave-text" class="wave-text"></div> </div>
-    
-    <div class="wrapper">
-    <div class="top-section">
-        <div class="card profile-box">
-            <div class="profile-img" onclick="location.href='blue-note.html'"></div>
-            <div class="profile-info">
-   <div style="display: flex; align-items: center; gap: 10px;">
-    <h1 id="user-nick" style="margin-bottom: 0;">로딩 중...</h1>
+    <div id="wave-text" class="wave-text"></div>
 </div>
-    <p id="user-desc">정보를 불러오고 있습니다.</p>
-    
-    <div class="link-list" id="link-list">
-        <a href="https://www.sooplive.com/station/bababi" class="link-btn" target="_blank" style="border-color: var(--accent-bright); title="방송국 가기" >
-        🏠
-    </a>
-        <a href="songlist.html" class="link-btn" target="_self" style="border-color: var(--accent-bright);">📖 노래책</a>
-        <a href="vod-archive.html" class="link-btn" target="_self" style="border-color: var(--accent-bright);">🎬 VOD 기록함</a>
-        
-        <div id="extra-links-target" style="display: flex; gap: 8px; flex-wrap: wrap;"></div>
-    </div>
-</div>
-            <div class="live-status-inline">
-                <div class="badge offline">OFFLINE</div>
-                <div id="stream-title-inline">방송 준비 중</div>
-                <div id="last-stream-time">최근 방송: 확인 중</div>
+
+<div class="wrapper">
+    <header class="header-card main-header">
+        <div class="header-info">
+            <h1>VOD 기록함 <span class="badge-beta">재단장 중</span></h1>
+            <div id="update-time" class="update-status">데이터를 불러오는 중입니다...</div>
+        </div>
+        <div class="header-buttons">
+            <button onclick="openAnalysisModal()" class="btn-home btn-analysis">📊 상세 분석</button>
+            <a href="index.html" class="btn-home">🏠 홈으로</a>
+        </div>
+    </header>
+
+    <section class="dashboard-grid">
+        <div class="stat-card">
+            <div class="stat-main-row">
+                <div class="stat-item">
+                    <span class="stat-label">전체 누적 시간</span>
+                    <h2 id="total-hour" class="stat-value primary">0시간 0분</h2>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-item highlight">
+                    <span class="stat-label gold">⭐ 구독플러스 비중</span>
+                    <div class="stat-value-group">
+                        <span id="plus-hour" class="stat-sub-value">0시간 0분</span>
+                        <span id="plus-ratio" class="stat-percent">(0.0%)</span>
+                    </div>
+                </div>
+            </div>
+            <hr class="divider">
+            <div class="sub-grid">
+                <div class="sub-item"><span class="sub-lbl">최장 방송</span><span class="sub-val" id="max-time">0:00:00</span></div>
+                <div class="sub-item"><span class="sub-lbl">최단 방송</span><span class="sub-val" id="min-time">0:00:00</span></div>
+                <div class="sub-item"><span class="sub-lbl">평균 시간</span><span class="sub-val" id="avg-time">0:00:00</span></div>
             </div>
         </div>
-    </div>
 
-    <div class="bottom-section">
-        <div class="card">
-            <h2>📅 방송 스케줄</h2>
-            <div id="schedule-container"></div>
+        <div class="stat-card chart-box">
+            <div id="category-chart"></div>
+            <div id="legend" class="chart-legend"></div>
         </div>
-        <div class="card" id="post-container"><h2>📢 최근 게시물</h2></div>
-        <div class="card" id="vod-container"><h2>🎬 최근 다시보기</h2></div>
-    </div>
+    </section>
 
-    <footer style="text-align: center; padding: 15px 20px; color: var(--text-sub); font-size: 11px; border-top: 1px solid var(--border); margin-top: 5px;">
-    <p style="margin: 0; opacity: 0.8; line-height: 1.6;">
-        <strong>바다비 비공식 팬 아카이브</strong><br>
-        모든 권리는 원저작권자(바다비/SOOP)에게 있으며 요청 시 수정·삭제됩니다.<br>
-        비영리로 운영되며, 정보 갱신시 이전 데이터가 2분정도 나타날 수 있습니다.
-    </p>
-</footer>
+    <nav id="tag-filter-container" class="filter-wrapper"></nav>
+    <main id="vod-content" class="content-area"></main>
+
+    <footer class="archive-footer">
+        <p>
+            <strong>바다비 비공식 팬 아카이브</strong>
+            모든 권리는 원저작권자(바다비/SOOP)에게 있으며 요청 시 수정·삭제됩니다.<br>
+            <span>비영리로 운영되며, 정보 반영에 시차가 발생할 수 있습니다.</span>
+        </p>
+    </footer>
 </div>
+
+<div id="modal-overlay" class="overlay" onclick="if(event.target === this) closeModal()">
+    <div id="modal-content" class="modal-layout-container">
+        <img id="m-thumb" class="modal-top-img" alt="Thumbnail">
+        
+        <div class="modal-body-area">
+            <div class="m-title-section">
+                <h2 id="m-title"></h2>
+                <div id="m-plus" class="badge-container"></div>
+            </div>
+
+            <div class="modal-info-border">
+                <span class="info-label">📅 방송 정보</span>
+                <div id="m-date" class="info-value"></div>
+            </div>
+
+            <div id="row-game" class="modal-section">
+                <span class="section-label game-color">🎮 게임</span>
+                <div id="m-game" class="section-content"></div>
+            </div>
+
+            <div id="row-song" class="modal-section">
+                <span class="section-label song-color">🎵 노래</span>
+                <div id="m-song" class="section-content"></div>
+            </div>
+
+            <div id="row-talk" class="modal-section">
+                <span class="section-label talk-color">💬 소통</span>
+                <div id="m-talk" class="section-content"></div>
+            </div>
+
+            <div id="row-content" class="modal-section">
+                <span class="section-label content-color">🎬 컨텐츠</span>
+                <div id="m-content" class="section-content"></div>
+            </div>
+        </div>
+
+        <div class="modal-footer-fixed">
+            <a id="m-link" href="#" target="_blank" class="btn-action btn-go">시청하기 ↗</a>
+            <button class="btn-action btn-close" onclick="closeModal()">닫기</button>
+        </div>
+    </div>
+</div>
+
+<div id="analysis-overlay" class="overlay" onclick="if(event.target === this) closeAnalysisModal()">
+    <div class="analysis-content">
+        <header class="analysis-header">
+            <h3>📊 기간별 상세 분석</h3>
+            <div class="analysis-controls">
+                <select id="analysis-year" class="styled-select"></select>
+                <select id="month-select" class="styled-select">
+                    <option value="all">전체 월</option>
+                </select>
+                <select id="analysis-type" class="styled-select">
+                    <option value="month">월별 보기</option>
+                    <option value="year">연도별 요약</option>
+                </select>
+            </div>
+        </header>
+        
+        <div id="analysis-result" class="scroll-area"></div>
+
+        <footer class="analysis-footer">
+            <button class="btn-action btn-close-full" onclick="closeAnalysisModal()">닫기</button>
+        </footer>
+    </div>
+</div>
+
+<script src="js/common.js"></script>
 <script src="js/loading.js"></script>
-<script src="js/index.js"></script>
+<script src="js/vod-archive.js"></script>
+    
 </body>
 </html>
