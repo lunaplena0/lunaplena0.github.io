@@ -3,19 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>바다비 팬 아카이브</title>
+    <title>바다비 VOD 기록함</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            /* 깊은 바다 테마색 */
-            --bg-color: #010306;          /* 깊은 바다 블랙 배경 */
-            --card-bg: #030812;            /* 미드나잇 블루 카드 배경 */
-            --accent: #003366;          /* 메인 감청색 */
-            --accent-bright: #3385ff;    /* 강조 포인트 블루 */
+            --bg-color: #010306;
+            --card-bg: #030812;
+            --accent: #003366;
+            --accent-bright: #3385ff;
             --accent-glow: rgba(0, 51, 102, 0.7);
-            --text-main: #f0faff;         /* 아이스 화이트 메인 텍스트 */
-            --text-sub: #5c7285;          /* 차분한 블루 그레이 서브 텍스트 */
-            --border: #0a1425;            /* 어두운 네이비 테두리 */
+            --text-main: #f0faff;
+            --text-sub: #5c7285;
+            --border: #0a1425;
         }
 
         body { 
@@ -39,175 +38,151 @@
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
         }
 
-        /* 상단 프로필 섹션 */
         .profile-box { align-items: center; gap: 20px; background: linear-gradient(145deg, #051020, #02050a); }
-        
-        .profile-img { 
-            width: 90px; height: 90px; border-radius: 50%; background: #0a1a30; 
-            flex-shrink: 0; 
-            border: 3px solid var(--accent-bright);
-            box-shadow: 0 0 15px var(--accent-glow);
-            background-size: cover; background-position: center;
-            cursor: pointer; 
-        }
-
         .profile-info { flex-grow: 1; min-width: 0; }
-        .profile-info h1 { margin: 0 0 2px; font-size: 22px; font-weight: 700; color: var(--text-main); }
-        .profile-info p { 
-            color: var(--text-sub); margin: 0 0 8px; font-size: 13px; 
-            max-width: 600px; line-height: 1.4;
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        .profile-info h1 { margin: 0; font-size: 28px; font-weight: 700; color: var(--text-main); }
+        .profile-info p { color: var(--text-sub); margin: 5px 0 0; font-size: 14px; }
+
+        .live-status-inline {
+            margin-left: auto; text-align: center; padding: 0 0 0 25px; 
+            border-left: 1px solid var(--border); 
+            min-width: 200px; display: flex; flex-direction: column; gap: 8px;
         }
 
-        /* 버튼 및 링크 */
-        .link-list { display: flex; gap: 8px; flex-wrap: wrap; }
         .link-btn { 
-            padding: 5px 12px; background: #0a1a30; border-radius: 6px; 
-            color: var(--text-main); text-decoration: none; font-size: 11px; 
-            border: 1px solid var(--accent); transition: 0.3s; 
+            padding: 8px 12px; background: rgba(10, 26, 48, 0.6); border-radius: 6px; 
+            color: var(--text-main); text-decoration: none; font-size: 12px; 
+            border: 1px solid var(--accent); transition: 0.3s;
+            display: block; width: 100%; box-sizing: border-box;
         }
         .link-btn:hover { background: var(--accent-bright); border-color: var(--accent-bright); color: #fff; }
 
-        /* 라이브 상태 */
-        .live-status-inline {
-            margin-left: auto; text-align: center; padding: 0 25px; 
-            border-left: 1px solid var(--border); 
-            min-width: 180px; display: flex; flex-direction: column; align-items: center; justify-content: center;
-        }
-
-        .badge { display: inline-block; padding: 4px 10px; border-radius: 5px; font-size: 10px; font-weight: bold; margin-bottom: 5px; }
-        .offline { background: #1a2638; color: var(--text-sub); }
-        #stream-title-inline { font-size: 16px; font-weight: bold; margin-bottom: 2px; color: var(--accent-bright); }
-        #last-stream-time { font-size: 11px; color: var(--text-sub); }
-
-        /* 하단 그리드 섹션 */
         .bottom-section { 
-            display: grid; 
-            grid-template-columns: 1fr 1fr 1fr; 
-            gap: 15px; 
-            align-items: stretch;
+            display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; align-items: stretch;
         }
-        .bottom-section .card { 
-            flex-direction: column; padding: 15px; height: auto; box-sizing: border-box; min-width: 0;
-        }
+        .bottom-section .card { flex-direction: column; padding: 15px; }
 
         h2 { font-size: 13px; margin-top: 0; color: var(--accent-bright); border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; }
 
-        /* 아이템 리스트 스타일 */
+        /* 리스트 공통 스타일 */
         .item-row { 
-            padding: 8px; 
-            border-bottom: 1px solid var(--border); 
-            font-size: 12px; 
-            border-radius: 6px; transition: 0.2s; cursor: pointer;
-            min-height: 65px; display: flex; flex-direction: column; justify-content: center; box-sizing: border-box;
+            padding: 10px; border-bottom: 1px solid var(--border); font-size: 13px; 
+            border-radius: 6px; transition: 0.2s; display: flex; flex-direction: column; justify-content: center;
         }
         .item-row:hover { background: rgba(255, 255, 255, 0.03); }
-        .item-date { font-size: 10px; color: var(--text-sub); margin-bottom: 2px; }
-        
-        .vod-row { flex-direction: row !important; align-items: center; gap: 10px; }
-        .vod-thumb { 
-            width: 70px; height: 40px; background: #0a1a30; border-radius: 4px; 
-            flex-shrink: 0; background-size: cover; background-position: center; 
-            border: 1px solid var(--border);
+
+        /* 태그 그래프용 스타일 */
+        .graph-bar-container { width: 100%; background: #0a1a30; height: 6px; border-radius: 3px; margin-top: 8px; overflow: hidden; }
+        .graph-bar { height: 100%; background: var(--accent-bright); border-radius: 3px; box-shadow: 0 0 8px var(--accent-bright); }
+
+        /* 태그 순위용 스타일 */
+        .rank-badge { 
+            display: inline-block; width: 20px; height: 20px; line-height: 20px; 
+            text-align: center; background: var(--accent); border-radius: 4px; 
+            font-size: 10px; margin-right: 8px; color: #fff;
         }
 
-        .schedule-row { flex-direction: row !important; justify-content: space-between; cursor: default; }
-        .day { font-weight: bold; color: var(--text-sub); }
+        footer { text-align: center; padding: 20px; color: var(--text-sub); font-size: 11px; border-top: 1px solid var(--border); }
 
-        .today-highlight { 
-            background: rgba(51, 133, 255, 0.08) !important; 
-            border: 1px solid var(--accent-bright) !important; 
-            transform: scale(1.01); 
-            box-shadow: 0 0 10px rgba(51, 133, 255, 0.15);
-        }
-
-        /* 반응형 설정 */
         @media (max-width: 900px) {
-            body { overflow: auto; padding: 20px 10px; }
-            .profile-box { flex-direction: column; padding-bottom: 20px; }
-            .live-status-inline { margin-left: 0; border-left: none; border-top: 1px solid var(--border); padding: 15px 0; width: 100%; }
+            .profile-box { flex-direction: column; text-align: center; }
+            .live-status-inline { margin: 0; border-left: none; border-top: 1px solid var(--border); padding: 15px 0; width: 100%; }
             .bottom-section { grid-template-columns: 1fr; }
-            .profile-info { 
-                width: 100%; display: flex; flex-direction: column; align-items: center; 
-            }
-            .profile-info p { 
-                max-width: 340px; margin: 0 auto 8px; 
-                line-height: 1.5; white-space: normal; 
-                display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
-                overflow: hidden; text-overflow: ellipsis; text-align: center; 
-            }
-            .link-list { justify-content: center; }
         }
     </style>
 </head>
 <body>
 
-    <div class="wrapper">
-       <div class="top-section">
-    <div class="card profile-box">
-        <div class="profile-info">
-            <h1 id="user-nick" style="font-size: 28px; letter-spacing: -0.5px;">🎬 VOD 기록함</h1>
-            <p id="user-desc" style="margin-top: 5px;">바다비의 지난 방송 기록을 월별, 연도별로 확인하세요.</p>
-        </div>
+<div class="wrapper">
+    <div class="top-section">
+        <div class="card profile-box">
+            <div class="profile-info">
+                <h1>🎬 VOD 기록함</h1>
+                <p>바다비의 지난 방송 기록을 월별, 연도별로 확인하세요.</p>
+            </div>
 
-        <div class="live-status-inline" style="gap: 10px;">
-            <a href=" " class="link-btn" style="width: 100%; text-align: center; background: transparent; border-color: var(--text-sub); color: var(--text-sub);">
-                📅 월/연간 요약
-            </a>
-            <a href="index.html" class="link-btn" style="width: 100%; text-align: center; background: transparent; border-color: var(--text-sub); color: var(--text-sub);">
-                ↩ 메인으로 돌아가기
-            </a>
+            <div class="live-status-inline">
+                <a href="summary.html" class="link-btn" style="border-color: var(--accent-bright);">
+                    📅 월/연간 요약 보고서
+                </a>
+                <a href="index.html" class="link-btn" style="border-color: var(--text-sub); color: var(--text-sub);">
+                    ↩ 메인으로 돌아가기
+                </a>
+            </div>
         </div>
     </div>
+
+    <div class="bottom-section">
+        <div class="card">
+            <h2>전체 다시보기 요약</h2>
+            <div class="item-row">
+                <span style="color: var(--text-sub); font-size: 11px;">총 방송 횟수</span>
+                <span style="font-size: 18px; font-weight: bold; color: var(--accent-bright);">128회</span>
+            </div>
+            <div class="item-row">
+                <span style="color: var(--text-sub); font-size: 11px;">누적 방송 시간</span>
+                <span style="font-size: 18px; font-weight: bold;">542시간 15분</span>
+            </div>
+            <div class="item-row">
+                <span style="color: var(--text-sub); font-size: 11px;">최근 업데이트</span>
+                <span>2026.04.17 14:00</span>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>전체 태그 그래프</h2>
+            <div class="item-row">
+                <div style="display: flex; justify-content: space-between;">
+                    <span>🎤 노래 방송</span>
+                    <span style="color: var(--accent-bright);">45%</span>
+                </div>
+                <div class="graph-bar-container"><div class="graph-bar" style="width: 45%;"></div></div>
+            </div>
+            <div class="item-row">
+                <div style="display: flex; justify-content: space-between;">
+                    <span>🎮 게임 방송</span>
+                    <span style="color: var(--accent-bright);">30%</span>
+                </div>
+                <div class="graph-bar-container"><div class="graph-bar" style="width: 30%;"></div></div>
+            </div>
+            <div class="item-row">
+                <div style="display: flex; justify-content: space-between;">
+                    <span>💬 소통/라디오</span>
+                    <span style="color: var(--accent-bright);">25%</span>
+                </div>
+                <div class="graph-bar-container"><div class="graph-bar" style="width: 25%;"></div></div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>전체 태그 순위</h2>
+            <div class="item-row" style="flex-direction: row; align-items: center; justify-content: flex-start;">
+                <span class="rank-badge" style="background: #ffd700; color: #000;">1</span>
+                <span>#심해노래방</span>
+            </div>
+            <div class="item-row" style="flex-direction: row; align-items: center; justify-content: flex-start;">
+                <span class="rank-badge" style="background: #c0c0c0; color: #000;">2</span>
+                <span>#바다비_라이브</span>
+            </div>
+            <div class="item-row" style="flex-direction: row; align-items: center; justify-content: flex-start;">
+                <span class="rank-badge" style="background: #cd7f32; color: #000;">3</span>
+                <span>#신곡커버</span>
+            </div>
+            <div class="item-row" style="flex-direction: row; align-items: center; justify-content: flex-start;">
+                <span class="rank-badge">4</span>
+                <span>#공포게임</span>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>
+            <strong>바다비 비공식 팬 아카이브</strong><br>
+            모든 권리는 원저작권자(바다비/SOOP)에게 있으며 요청 시 수정·삭제됩니다.<br>
+            비영리로 운영되며, 정보 갱신 시 데이터 반영에 차이가 있을 수 있습니다.
+        </p>
+    </footer>
 </div>
 
-        <div class="bottom-section">
-            <div class="card">
-                <h2>전체 다시보기 요약</h2>
-                <div id="schedule-container">
-                    <div class="item-row schedule-row today-highlight">
-                        <span class="day">오늘</span>
-                        <span class="content">오후 8시 정기 방송</span>
-                    </div>
-                    <div class="item-row schedule-row">
-                        <span class="day">내일</span>
-                        <span class="content">휴방</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card" id="post-container">
-                <h2>전체 태그 그래프</h2>
-                <div class="item-row">
-                    <div class="item-date">2026.04.17</div>
-                    <div class="ellipsis">새로운 굿즈 안내 공지사항</div>
-                </div>
-                <div class="item-row">
-                    <div class="item-date">2026.04.15</div>
-                    <div class="ellipsis">오늘 방송 시간 변경 안내</div>
-                </div>
-            </div>
-
-            <div class="card" id="vod-container">
-                <h2>전체 태그 순위</h2>
-                <div class="item-row vod-row">
-                    <div class="vod-thumb"></div>
-                    <div>
-                        <div class="item-date">2026.04.16</div>
-                        <div class="ellipsis">심해 노래방 뱅송</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <footer style="text-align: center; padding: 15px 20px; color: var(--text-sub); font-size: 11px; border-top: 1px solid var(--border); margin-top: 5px;">
-            <p style="margin: 0; opacity: 0.8; line-height: 1.6;">
-                <strong>바다비 비공식 팬 아카이브</strong><br>
-                모든 권리는 원저작권자(바다비/SOOP)에게 있으며 요청 시 수정·삭제됩니다.<br>
-                비영리로 운영되며, 정보 갱신 시 이전 데이터가 2분 정도 나타날 수 있습니다.
-            </p>
-        </footer>
-    </div>
-
-    </body>
+</body>
 </html>
