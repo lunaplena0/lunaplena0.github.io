@@ -141,6 +141,44 @@
         }
         .btn-watch:hover { background: var(--accent-bright); }
 
+        /* 팝업(모달) 배경 */
+.modal {
+    display: none; position: fixed; z-index: 1000; left: 0; top: 0;
+    width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(5px); align-items: center; justify-content: center;
+}
+
+/* 팝업창 박스 */
+.modal-content {
+    background: var(--card-bg); border: 1px solid var(--border);
+    width: 90%; max-width: 500px; border-radius: 15px;
+    position: relative; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* 닫기 버튼 */
+.close-btn {
+    position: absolute; top: 15px; right: 20px; color: var(--text-sub);
+    font-size: 24px; cursor: pointer; z-index: 10;
+}
+.close-btn:hover { color: var(--text-main); }
+
+/* 팝업 내부 콘텐츠 */
+.modal-body { padding: 0; }
+.modal-thumb { width: 100%; aspect-ratio: 16/9; object-fit: cover; border-bottom: 1px solid var(--border); }
+.modal-details { padding: 20px; }
+.modal-details h3 { margin: 0 0 15px 0; font-size: 18px; color: var(--text-main); line-height: 1.5; }
+.modal-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+.info-item { background: rgba(22, 36, 58, 0.5); padding: 10px; border-radius: 8px; }
+.info-item label { display: block; font-size: 10px; color: var(--text-sub); margin-bottom: 4px; }
+.info-item span { font-size: 13px; font-weight: bold; color: var(--accent-bright); }
+.modal-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+        
         @media (max-width: 800px) {
             .bottom-section { grid-template-columns: 1fr; }
             .rank-grid { 
@@ -254,6 +292,69 @@
         © 바다비 비공식 데이터 센터
     </footer>
 </div>
+<div id="vodModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" onclick="closeModal()">&times;</span>
+        <div class="modal-body">
+            <img id="modalThumb" src="" class="modal-thumb">
+            <div class="modal-details">
+                <h3 id="modalTitle">제목</h3>
+                <div class="modal-info-grid">
+                    <div class="info-item">
+                        <label>방송 날짜</label>
+                        <span id="modalDate">00.00</span>
+                    </div>
+                    <div class="info-item">
+                        <label>방송 시간</label>
+                        <span id="modalDuration">00:00:00</span>
+                    </div>
+                </div>
+                <div id="modalTags" class="modal-tags">
+                    </div>
+            </div>
+        </div>
+    </div>
+</div>
+    <script>
+    function openModal(element) {
+        // 클릭한 요소에서 데이터 추출
+        const thumb = element.querySelector('.vod-thumb img').src;
+        const date = element.querySelector('.date-day').innerText;
+        const duration = element.querySelector('.date-duration').innerText;
+        const title = element.querySelector('.vod-title').innerText;
+        const tags = element.querySelectorAll('.vod-tag');
 
+        // 팝업에 데이터 채우기
+        document.getElementById('modalThumb').src = thumb;
+        document.getElementById('modalTitle').innerText = title;
+        document.getElementById('modalDate').innerText = date;
+        document.getElementById('modalDuration').innerText = duration;
+
+        // 태그 초기화 및 추가
+        const tagContainer = document.getElementById('modalTags');
+        tagContainer.innerHTML = '';
+        tags.forEach(tag => {
+            const span = document.createElement('span');
+            span.className = 'vod-tag';
+            span.innerText = tag.innerText;
+            tagContainer.appendChild(span);
+        });
+
+        // 팝업 보이기
+        document.getElementById('vodModal').style.display = 'flex';
+    }
+
+    function closeModal() {
+        document.getElementById('vodModal').style.display = 'none';
+    }
+
+    // 배경 클릭 시 닫기
+    window.onclick = function(event) {
+        const modal = document.getElementById('vodModal');
+        if (event.target == modal) {
+            closeModal();
+        }
+    }
+</script>
 </body>
 </html>
