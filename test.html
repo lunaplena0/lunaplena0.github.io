@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>바다비 VOD 기록함</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
     <style>
         :root {
             --bg-color: #010306;
@@ -378,74 +379,102 @@
     </div>
 </div>
     <script>
-    function openModal(element) {
-        // 클릭한 요소에서 데이터 추출
-        const thumb = element.querySelector('.vod-thumb img').src;
-        const date = element.querySelector('.date-day').innerText;
-        const duration = element.querySelector('.date-duration').innerText;
-        const title = element.querySelector('.vod-title').innerText;
-        const tags = element.querySelectorAll('.vod-tag');
+    // 1. 구글 시트 웹 게시 CSV URL (여기에 복사한 URL을 넣으세요)
+const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTfTHMy1hImniay9QEPDcMq5C4Yo5yFpmRtBlWo6UXK-FNxABQYbtfGpEsKom2O-OIJPnEi8LLy1Qqx/pub?gid=0&single=true&output=tsv";
 
-        // 팝업에 데이터 채우기
-        document.getElementById('modalThumb').src = thumb;
-        document.getElementById('modalTitle').innerText = title;
-        document.getElementById('modalDate').innerText = date;
-        document.getElementById('modalDuration').innerText = duration;
+document.addEventListener("DOMContentLoaded", function() {
+    loadSheetData();
+});
 
-        // 태그 초기화 및 추가
-        const tagContainer = document.getElementById('modalTags');
-        tagContainer.innerHTML = '';
-        tags.forEach(tag => {
-            const span = document.createElement('span');
-            span.className = 'vod-tag';
-            span.innerText = tag.innerText;
-            tagContainer.appendChild(span);
-        });
-
-        // 팝업 보이기
-        document.getElementById('vodModal').style.display = 'flex';
-    }
-
-    function closeModal() {
-        document.getElementById('vodModal').style.display = 'none';
-    }
-
-    // 배경 클릭 시 닫기
-    window.onclick = function(event) {
-        const modal = document.getElementById('vodModal');
-        if (event.target == modal) {
-            closeModal();
+function loadSheetData() {
+    Papa.parse(sheetURL, {
+        download: true,
+        header: true, // 첫 줄을 변수명으로 사용
+        complete: function(results) {
+            const data = results.data;
+            renderVODList(data);
         }
-    }
-        // 요약 팝업 열기
-function openSummary(event) {
-    event.preventDefault(); // 페이지 이동 방지
-    document.getElementById('summaryModal').style.display = 'flex';
+    });
 }
 
-// 요약 팝업 닫기
-function closeSummary() {
-    document.getElementById('summaryModal').style.display = 'none';
+function renderVODList(data) {
+    const listContainer = document.querySelector('.vod-list');
+    listContainer.innerHTML = ''; // 기존 정적 데이터 삭제
+
+    data.forEach((row, index) => {
+        if(!row.날짜) return; // 빈 줄 방지
+
+        // HTML 동적 생성
+        const vodItem = document.createElement('div');
+        vodItem.className = 'vod-item';
+        vodItem.style.cursor = 'pointer';
+        
+        // 상세 데이터를 JSON 문자열로 저장하여 팝업으로 넘김
+        const jsonData = JSON.stringify(row).replace(/"/g, '&quot;');
+
+        vodItem.innerHTML = `
+            <div class="vod-thumb">
+                <img src="${row.썸네일 || 'default_thumb.jpg'}" alt="VOD">
+            </div>
+            <div class="vod-date">
+                <span class="date-day">${row.날짜}</span>
+                <span class="date-duration">${row['다시보기 총시간']}</span>
+            </div>
+            <div class="vod-info">
+                <div class="vod-title">
+                    ${row.성인인증 === 'Y' ? '<span style="color:#ff4444;">[19]</span> ' : ''}
+                    ${row.제목}
+                </div>
+                <div class="vod-meta">
+                    <span class="vod-tag" style="background:#003366;">#${row['컨텐츠 종류']}</span>
+                    ${row.구독플러스 === 'Y' ? '<span class="vod-tag" style="background:#ffcc00; color:#000;">⭐구독+</span>' : ''}
+                </div>
+            </div>
+            <a href="${row.링크}" target="_blank" class="btn-watch" onclick="event.stopPropagation();">다시보기</a>
+        `;
+
+        vodItem.onclick = () => openDetailedModal(row);
+        listContainer.appendChild(vodItem);
+    });
 }
 
-// 탭 전환
-function switchTab(tabId) {
-    // 모든 탭 콘텐츠 숨김
-    document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-    // 모든 탭 버튼 비활성화
-    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-    
-    // 선택한 탭 보이기
-    document.getElementById(tabId).classList.add('active');
+// 상세 팝업 오픈 (시트 데이터 기반)
+function openDetailedModal(data) {
+    document.getElementById('modalThumb').src = data.썸네일;
+    document.getElementById('modalTitle').innerText = data.제목;
+    document.getElementById('modalDate').innerText = data.날짜;
+    document.getElementById('modalDuration').innerText = data['다시보기 총시간'];
+
+    // 상세 분석 (게임, 노래, 소통, 컨텐츠 시간 표시)
+    const tagContainer = document.getElementById('modalTags');
+    tagContainer.innerHTML = `
+        <div class="info-item" style="grid-column: span 2; display:flex; gap:10px; flex-wrap:wrap; background:none; padding:0;">
+            ${data.게임 ? `<span class="vod-tag">🎮 게임: ${data.게임}</span>` : ''}
+            ${data.노래 ? `<span class="vod-tag">🎤 노래: ${data.노래}</span>` : ''}
+            ${data.소통 ? `<span class="vod-tag">💬 소통: ${data.소통}</span>` : ''}
+            ${data.컨텐츠 ? `<span class="vod-tag">🎬 컨텐츠: ${data.컨텐츠}</span>` : ''}
+        </div>
+    `;
+
+    document.getElementById('vodModal').style.display = 'flex';
+}
+
+// 기존 팝업 닫기 및 요약 로직 유지
+function closeModal() { document.getElementById('vodModal').style.display = 'none'; }
+function openSummary(e) { e.preventDefault(); document.getElementById('summaryModal').style.display = 'flex'; }
+function closeSummary() { document.getElementById('summaryModal').style.display = 'none'; }
+function switchTab(id) {
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
     event.currentTarget.classList.add('active');
 }
 
-// 배경 클릭 시 닫기 기능에 summaryModal 추가
 window.onclick = function(event) {
-    const vodModal = document.getElementById('vodModal');
-    const summaryModal = document.getElementById('summaryModal');
-    if (event.target == vodModal) closeModal();
-    if (event.target == summaryModal) closeSummary();
+    if (event.target.classList.contains('modal')) {
+        closeModal();
+        closeSummary();
+    }
 }
 </script>
 </body>
