@@ -339,56 +339,65 @@
         </div>
     </div>
 </div>
-    <div id="summaryModal" class="modal">
-    <div class="modal-content" style="max-width: 800px; width: 95%;"> 
+   <div id="summaryModal" class="modal">
+    <div class="modal-content" style="max-width: 850px; width: 95%;"> 
         <span class="close-btn" onclick="closeSummary()">&times;</span>
         
-        <div class="modal-body" style="padding: 20px;">
+        <div class="modal-body" style="padding: 25px;">
             <div style="display: grid; grid-template-columns: 1fr; gap: 20px;">
                 
-                <div class="card" style="margin:0; flex-direction: row; justify-content: space-between; align-items: center; gap: 20px;">
+                <div class="card" style="margin:0; flex-direction: row; justify-content: space-between; align-items: center; background: linear-gradient(145deg, #051020, #02050a);">
                     <h2 style="border:none; font-size: 20px; line-height: 1.4; color: var(--accent-bright); margin:0;">
                         📅 방송 분석 리포트
                     </h2>
                     <div style="display: flex; gap: 10px; align-items: center;">
-                        <select id="selectYear" style="background:var(--border); color:white; border:1px solid var(--border); padding: 5px 10px; border-radius: 4px;"></select>
-                        <select id="selectMonth" style="background:var(--border); color:white; border:1px solid var(--border); padding: 5px 10px; border-radius: 4px;">
+                        <select id="selectYear" class="btn-back" style="padding: 6px 12px; border-radius: 6px; background: #16243a; color: white; border: 1px solid var(--border);"></select>
+                        <select id="selectMonth" class="btn-back" style="padding: 6px 12px; border-radius: 6px; background: #16243a; color: white; border: 1px solid var(--border);">
                             <option value="all">연간 전체</option>
-                            </select>
+                            <option value="01">1월</option><option value="02">2월</option><option value="03">3월</option>
+                            <option value="04">4월</option><option value="05">5월</option><option value="06">6월</option>
+                            <option value="07">7월</option><option value="08">8월</option><option value="09">9월</option>
+                            <option value="10">10월</option><option value="11">11월</option><option value="12">12월</option>
+                        </select>
                     </div>
                 </div>
 
-                <div class="card" style="margin:0; flex-direction: row; justify-content: space-around; padding: 20px;">
-                    <div class="summary-item" style="background:none; padding:0; text-align:center;">
-                        <label style="font-size: 11px; color: var(--text-sub);">총 방송 시간</label>
-                        <div id="rptTotalTime" style="font-size: 1.2rem; color: var(--accent-bright); font-weight: bold;">-</div>
+                <div class="card" style="margin:0; flex-direction: row; justify-content: space-around; padding: 25px; text-align: center;">
+                    <div class="summary-item" style="background:none; padding:0;">
+                        <label style="font-size: 11px; color: var(--text-sub); display: block; margin-bottom: 8px;">총 방송 시간</label>
+                        <div id="rptTotalTime" style="font-size: 1.5rem; color: var(--accent-bright); font-weight: bold;">-</div>
+                        <small id="diffTotalTime" class="diff-text"></small>
                     </div>
-                    <div class="summary-item" style="background:none; padding:0; text-align:center;">
-                        <label style="font-size: 11px; color: var(--text-sub);">평균 시간</label>
-                        <div id="rptAvgTime" style="font-size: 1.2rem; font-weight: bold;">-</div>
+                    <div style="width: 1px; background: var(--border); height: 40px; align-self: center;"></div>
+                    <div class="summary-item" style="background:none; padding:0;">
+                        <label style="font-size: 11px; color: var(--text-sub); display: block; margin-bottom: 8px;">평균 방송 시간</label>
+                        <div id="rptAvgTime" style="font-size: 1.3rem; font-weight: bold;">-</div>
+                        <small id="diffAvgTime" class="diff-text"></small>
                     </div>
-                    <div class="summary-item" style="background:none; padding:0; text-align:center;">
-                        <label style="font-size: 11px; color: var(--text-sub);">방송 횟수</label>
-                        <div id="rptCount" style="font-size: 1.2rem; font-weight: bold;">-</div>
+                    <div style="width: 1px; background: var(--border); height: 40px; align-self: center;"></div>
+                    <div class="summary-item" style="background:none; padding:0;">
+                        <label style="font-size: 11px; color: var(--text-sub); display: block; margin-bottom: 8px;">방송 횟수</label>
+                        <div id="rptCount" style="font-size: 1.5rem; font-weight: bold;">-</div>
+                        <small id="diffCount" class="diff-text"></small>
                     </div>
                 </div>
 
                 <div class="card" style="margin:0;">
                     <h2 style="font-size: 14px; margin-bottom: 15px;">📊 전체 태그 순위</h2>
-                    <div id="rptTags" class="rank-grid" style="grid-template-columns: repeat(3, 1fr); gap: 10px;">
-                    </div>
+                    <div id="rptTags" class="rank-grid" style="grid-template-columns: repeat(3, 1fr); column-gap: 20px;">
+                        </div>
                 </div>
 
                 <div class="card" style="margin:0;">
                     <h2 style="font-size: 14px; margin-bottom: 15px;">📝 카테고리별 요약</h2>
-                    <div id="rptCategory" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                    <div id="rptCategory" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 15px;">
                         </div>
                 </div>
 
                 <div class="card" style="margin:0;">
                     <h2 style="font-size: 14px; margin-bottom: 15px;">🎥 방송 목록</h2>
-                    <div id="rptVodList" class="vod-list" style="max-height: 300px; overflow-y: auto;">
-                    </div>
+                    <div id="rptVodList" class="vod-list" style="max-height: 400px; overflow-y: auto;">
+                        </div>
                 </div>
 
             </div>
