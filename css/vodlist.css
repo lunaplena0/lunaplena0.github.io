@@ -290,57 +290,67 @@
 } 
 
         @media (max-width: 800px) {
-        .modal-content {
-        width: 92% !important; /* 좌우 여백 확보 */
-        max-width: 800px !important;
-        margin: 5px auto !important;
-        padding: 0px !important;
-        overflow-x: hidden !important; /* 가로 스크롤 원천 차단 */
+    /* 1. 리포트 팝업창 폭 확장 및 중앙 정렬 */
+    .modal-content {
+        width: 96% !important; /* 좌우 여백을 최소화 */
+        max-width: 500px !important;
+        margin: 10px auto !important;
+        padding: 0 !important;
+        border-radius: 12px !important;
+        overflow-x: hidden !important;
     }
 
+    /* 2. 내부 콘텐츠 패딩 최적화 */
+    .modal-details {
+        padding: 15px 12px !important;
+    }
 
-    /* 2. 상세 정보 내부의 그리드 해제 */
-    #modalTags, #rptCategory {
-        display: block !important; /* 그리드 대신 위아래로 쌓음 */
+    /* 3. 태그 순위 및 카테고리 요약: 세로 1열로 길게 배치 */
+    #modalTags, #rptCategory, .rank-grid {
+        display: flex !important;
+        flex-direction: column !important; /* 무조건 세로 한 줄 */
         width: 100% !important;
+        gap: 8px !important;
+        height: auto !important; /* 높이 제한 해제 */
     }
 
-    /* 3. 텍스트 줄바꿈 강제 설정 */
+    /* 4. 순위 아이템 디자인: 한 줄을 꽉 채우도록 */
+    .rank-item {
+        width: 100% !important;
+        padding: 10px 8px !important;
+        font-size: 13px !important; /* 글자 크기를 키워 가독성 확보 */
+        background: rgba(22, 36, 58, 0.3);
+        border-radius: 6px;
+        display: flex !important;
+        align-items: center;
+    }
+
+    /* 5. 텍스트 줄바꿈 및 넘침 방지 */
     .vod-title, .modal-content h3, .modal-content span, .modal-content div {
         white-space: normal !important;
-        word-break: break-all !important;
+        word-break: keep-all !important; /* 단어 단위 줄바꿈으로 더 깔끔하게 */
         overflow-wrap: break-word !important;
     }
 
-    /* 4. 리포트 탭 내 그리드 조정 (2열 -> 1열) */
-    .rank-grid {
-        grid-template-columns: 1fr !important; /* 태그 순위표를 한 줄에 하나씩 */
-        gap: 1px !important;
+    /* 6. 메인 화면 하단 섹션 (다시보기 리스트 등) 1열로 */
+    .bottom-section { 
+        display: flex !important;
+        flex-direction: column !important;
+        grid-template-columns: none !important; 
     }
 
-    /* 5. 썸네일 이미지 크기 자동 조정 */
-    .modal-content img {
-        width: 100% !important;
-        height: auto !important;
-        max-height: 200px;
-        object-fit: cover;
+    /* 7. 다시보기 아이템 최적화 */
+    .vod-item { 
+        gap: 10px; 
+        padding: 10px; 
     }
-            
-    /* 6. 태그 비중 그래프 컨테이너 */
-    .graph-bar-container {
-        width: 100% !important;
-        margin-top: 4px;
+    .vod-thumb { width: 90px; } /* 썸네일 크기 적정화 */
+    .btn-watch { display: none; } /* 모바일에서 버튼 숨김 유지 */
+
+    /* 8. 통계 수치 그리드 (2열이 가장 깔끔함) */
+    .summary-grid {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 10px !important;
     }
-        .bottom-section { grid-template-columns: 1fr; }
-        .rank-grid { 
-        grid-template-columns: repeat(2, 1fr); 
-        grid-template-rows: repeat(6, auto); 
-        grid-auto-flow: column;
-        }
-        .vod-item { gap: 10px; padding: 12px; }
-        .vod-thumb { width: 80px; } /* 모바일에서는 썸네일 축소 */
-        .vod-date { min-width: 50px; padding-right: 8px; }
-        .date-day { font-size: 12px; }
-        .vod-title { white-space: normal; -webkit-line-clamp: 2; display: -webkit-box; -webkit-box-orient: vertical; }
-        .btn-watch { display: none; }
-        }
+}
