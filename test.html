@@ -407,34 +407,46 @@ function updateTagStatistics(data) {
     const tagCount = {};
     let totalTagInstances = 0;
 
-    // 1. 모든 데이터에서 태그 추출 및 카운트
     data.forEach(row => {
-        if (!row['컨텐츠 종류']) return;
-        const tags = row['컨텐츠 종류'].split(',').map(t => t.trim());
-        tags.forEach(tag => {
-            if (tag) {
+        if (!row['날짜']) return;
+
+        // 1. 임시 태그 배열 생성 (일반 태그들)
+        let rowTags = row['컨텐츠 종류'] ? row['컨텐츠 종류'].split(',').map(t => t.trim()) : [];
+
+        // 2. "예"라고 되어 있으면 태그 리스트에 강제로 추가
+        if (row['구독플러스여부'] === '예') rowTags.push('⭐구독+');
+        if (row['성인인증 필요 여부'] === '예') rowTags.push('🔞성인인증');
+
+        // 3. 통합된 태그들 카운트
+        rowTags.forEach(tag => {
+            if (tag && tag !== '-') {
                 tagCount[tag] = (tagCount[tag] || 0) + 1;
                 totalTagInstances++;
             }
         });
     });
 
-    // 2. 카운트 기준 내림차순 정렬
+    // 4. 내림차순 정렬
     const sortedTags = Object.entries(tagCount).sort((a, b) => b[1] - a[1]);
 
-    // 3. 상단 [태그 비중 (Top 5)] 업데이트
-    const ratioContainer = document.querySelector('.card:nth-child(2)'); // 태그 비중 카드 선택
-    let ratioHtml = '<h2>📈 태그 비중 (Top 5)</h2>';
+    // 5. [태그 비중 (Top 5)] UI 업데이트
+    const ratioContainer = document.querySelector('.card:nth-child(2)'); 
+    let ratioHtml = '<h2>📈 통합 태그 비중 (Top 5)</h2>';
     
     const top5 = sortedTags.slice(0, 5);
     const othersCount = sortedTags.slice(5).reduce((acc, curr) => acc + curr[1], 0);
 
     top5.forEach(([name, count]) => {
         const percentage = Math.round((count / totalTagInstances) * 100);
+        // 특정 태그(구독/성인)인 경우 색상 강조 가능
+        const barColor = name.includes('구독') ? '#ffcc00' : (name.includes('성인') ? '#ff4444' : 'var(--accent-bright)');
+        
         ratioHtml += `
             <div class="item-row">
-                <div style="display: flex; justify-content: space-between;"><span>#${name}</span><strong>${percentage}%</strong></div>
-                <div class="graph-bar-container"><div class="graph-bar" style="width: ${percentage}%;"></div></div>
+                <div style="display: flex; justify-content: space-between;"><span>${name.startsWith('#') ? name : '#'+name}</span><strong>${percentage}%</strong></div>
+                <div class="graph-bar-container">
+                    <div class="graph-bar" style="width: ${percentage}%; background: ${barColor};"></div>
+                </div>
             </div>`;
     });
 
@@ -448,16 +460,19 @@ function updateTagStatistics(data) {
     }
     ratioContainer.innerHTML = ratioHtml;
 
-    // 4. [전체 태그 순위] 업데이트
+// 6. [전체 태그 순위] 그리드 업데이트
     const rankGrid = document.querySelector('.rank-grid');
-    rankGrid.innerHTML = ''; // 기존 정적 데이터 삭제
+    rankGrid.innerHTML = ''; 
 
     sortedTags.forEach(([name, count], index) => {
         const rank = index + 1;
         const isTop = rank <= 3 ? 'top-rank' : '';
+        // 구독/성인 태그는 별도 스타일 적용 가능
+        const specialStyle = name.includes('구독') ? 'color:#ffcc00;' : (name.includes('성인') ? 'color:#ff4444;' : '');
+        
         const rankItem = `
-            <div class="rank-item">
-                <span class="rank-badge ${isTop}">${rank}</span>#${name}
+            <div class="rank-item" style="${specialStyle}">
+                <span class="rank-badge ${isTop}">${rank}</span>${name.startsWith('⭐') || name.startsWith('🔞') ? name : '#'+name}
             </div>`;
         rankGrid.insertAdjacentHTML('beforeend', rankItem);
     });
