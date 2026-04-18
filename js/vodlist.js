@@ -222,6 +222,10 @@ let currentFilter = null; // 현재 선택된 태그
 
 // 기존 loadSheetData 함수 수정
 function loadSheetData() {
+    const overlay = document.getElementById('loading-overlay');
+    
+    // 1. 파도 애니메이션 텍스트 생성 (애니메이션 효과 극대화)
+    const loadingText = "소중한 기록들을 정리하고 있어요 . . .";
     Papa.parse(sheetURL, {
         download: true,
         header: true,
