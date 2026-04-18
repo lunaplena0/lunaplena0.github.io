@@ -490,9 +490,11 @@ function updateTagStatistics(data) {
         const specialStyle = name.includes('구독') ? 'color:#ffcc00;' : (name.includes('성인') ? 'color:#ff4444;' : '');
         
         const rankItem = `
-            <div class="rank-item" style="${specialStyle}">
-                <span class="rank-badge ${isTop}">${rank}</span>${name.startsWith('⭐') || name.startsWith('🔞') ? name : '#'+name}
-            </div>`;
+    <div class="rank-item" 
+         onclick="toggleTagFilter('${name}')" 
+         style="${specialStyle} cursor:pointer; border:1px solid transparent; transition:0.2s;">
+        <span class="rank-badge ${isTop}">${rank}</span>${name.startsWith('⭐') || name.startsWith('🔞') ? name : '#'+name}
+    </div>`;
         rankGrid.insertAdjacentHTML('beforeend', rankItem);
     });
 }
@@ -510,19 +512,61 @@ function secondsToText(totalSeconds) {
     const m = Math.floor((totalSeconds % 3600) / 60);
     return `${h}시간 ${m}분`;
 }
-// 기존 loadSheetData 함수 마지막 부분에 updateTagStatistics(data)를 호출하세요.
+
+let allData = []; // 전체 데이터를 저장할 변수
+let currentFilter = null; // 현재 선택된 태그
+
+// 기존 loadSheetData 함수 수정
 function loadSheetData() {
     Papa.parse(sheetURL, {
         download: true,
         header: true,
         complete: function(results) {
-            const data = results.data;
-            renderVODList(data); // 리스트 출력
-            updateTagStatistics(data); // 통계 업데이트 추가!
+            allData = results.data.filter(row => row['날짜']); // 유효 데이터 저장
+            renderVODList(allData); 
+            updateTagStatistics(allData); 
         }
     });
 }
+function toggleTagFilter(tagName) {
+    const listContainer = document.querySelector('.vod-list');
+    
+    // 이미 선택된 태그를 다시 클릭하면 해제
+    if (currentFilter === tagName) {
+        currentFilter = null;
+    } else {
+        currentFilter = tagName;
+    }
 
+    // 필터링 적용
+    const filteredData = currentFilter 
+        ? allData.filter(row => {
+            const rowTags = row['컨텐츠 종류'] ? row['컨텐츠 종류'].split(',').map(t => t.trim()) : [];
+            if (row['구독플러스여부'] === '예') rowTags.push('⭐구독+');
+            if (row['성인인증 필요 여부'] === '예') rowTags.push('🔞성인인증');
+            
+            // #이 붙어있든 아니든 비교할 수 있게 처리
+            return rowTags.some(t => t.replace('#','') === currentFilter.replace('#',''));
+        })
+        : allData;
+
+    renderVODList(filteredData);
+    updateRankHighlight(); // 순위표 하이라이트 업데이트
+}
+// 순위표에서 선택된 태그 강조 스타일 업데이트
+function updateRankHighlight() {
+    document.querySelectorAll('.rank-item').forEach(item => {
+        const tagName = item.innerText.replace(/[0-9]/g, '').trim(); // 배지 숫자 제외
+        if (currentFilter && tagName === currentFilter) {
+            item.style.background = 'rgba(51, 133, 255, 0.2)';
+            item.style.borderColor = 'var(--accent-bright)';
+            item.style.borderRadius = '5px';
+        } else {
+            item.style.background = 'transparent';
+            item.style.borderColor = 'transparent';
+        }
+    });
+}
 function renderVODList(data) {
     const listContainer = document.querySelector('.vod-list');
     listContainer.innerHTML = ''; 
