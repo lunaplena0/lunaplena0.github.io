@@ -399,19 +399,19 @@ function loadSheetData() {
 
 function renderVODList(data) {
     const listContainer = document.querySelector('.vod-list');
-    listContainer.innerHTML = ''; // 기존 정적 데이터 삭제
+    listContainer.innerHTML = ''; 
 
-    data.forEach((row, index) => {
-        if(!row.날짜) return; // 빈 줄 방지
+    data.forEach((row) => {
+        if(!row.날짜) return;
 
-        // HTML 동적 생성
+        // 컨텐츠 종류를 쉼표(,) 기준으로 나누어 태그 배열로 만듦
+        const tagsRaw = row['컨텐츠 종류'] ? row['컨텐츠 종류'].split(',') : [];
+        const tagHtml = tagsRaw.map(tag => `<span class="vod-tag">#${tag.trim()}</span>`).join('');
+
         const vodItem = document.createElement('div');
         vodItem.className = 'vod-item';
         vodItem.style.cursor = 'pointer';
         
-        // 상세 데이터를 JSON 문자열로 저장하여 팝업으로 넘김
-        const jsonData = JSON.stringify(row).replace(/"/g, '&quot;');
-
         vodItem.innerHTML = `
             <div class="vod-thumb">
                 <img src="${row.썸네일 || 'default_thumb.jpg'}" alt="VOD">
@@ -422,12 +422,11 @@ function renderVODList(data) {
             </div>
             <div class="vod-info">
                 <div class="vod-title">
-                    ${row.성인인증 === 'Y' ? '<span style="color:#ff4444;">[19]</span> ' : ''}
+                    ${row.성인인증 === 'Y' ? '<span style="color:#ff4444; font-weight:bold;">[19]</span> ' : ''}
                     ${row.제목}
                 </div>
                 <div class="vod-meta">
-                    <span class="vod-tag" style="background:#003366;">#${row['컨텐츠 종류']}</span>
-                    ${row.구독플러스 === 'Y' ? '<span class="vod-tag" style="background:#ffcc00; color:#000;">⭐구독+</span>' : ''}
+                    ${tagHtml} ${row.구독플러스 === 'Y' ? '<span class="vod-tag" style="background:#ffcc00; color:#000; font-weight:bold;">⭐구독+</span>' : ''}
                 </div>
             </div>
             <a href="${row.링크}" target="_blank" class="btn-watch" onclick="event.stopPropagation();">다시보기</a>
@@ -445,16 +444,26 @@ function openDetailedModal(data) {
     document.getElementById('modalDate').innerText = data.날짜;
     document.getElementById('modalDuration').innerText = data['다시보기 총시간'];
 
-    // 상세 분석 (게임, 노래, 소통, 컨텐츠 시간 표시)
     const tagContainer = document.getElementById('modalTags');
-    tagContainer.innerHTML = `
-        <div class="info-item" style="grid-column: span 2; display:flex; gap:10px; flex-wrap:wrap; background:none; padding:0;">
-            ${data.게임 ? `<span class="vod-tag">🎮 게임: ${data.게임}</span>` : ''}
-            ${data.노래 ? `<span class="vod-tag">🎤 노래: ${data.노래}</span>` : ''}
-            ${data.소통 ? `<span class="vod-tag">💬 소통: ${data.소통}</span>` : ''}
-            ${data.컨텐츠 ? `<span class="vod-tag">🎬 컨텐츠: ${data.컨텐츠}</span>` : ''}
-        </div>
-    `;
+    
+    // 1. 컨텐츠 종류 태그 생성
+    const tagsRaw = data['컨텐츠 종류'] ? data['컨텐츠 종류'].split(',') : [];
+    let combinedHtml = tagsRaw.map(tag => `<span class="vod-tag" style="background:var(--accent); color:white;">#${tag.trim()}</span>`).join('');
+
+    // 2. 시간별 상세 정보 추가 (데이터가 있을 때만)
+    const details = [
+        { label: '🎮 게임', value: data['게임(시간)'] },
+        { label: '🎤 노래', value: data['노래(시간)'] },
+        { label: '💬 소통', value: data['소통(시간)'] },
+        { label: '🎬 컨텐츠', value: data['컨텐츠(시간)'] }
+    ];
+
+    let detailHtml = details
+        .filter(d => d.value && d.value !== '-' && d.value !== '0') // 값이 있는 것만 표시
+        .map(d => `<span class="vod-tag" style="background:#16243a; color:var(--text-sub); border:1px solid var(--border);">${d.label}: ${d.value}</span>`)
+        .join('');
+
+    tagContainer.innerHTML = combinedHtml + '<div style="width:100%; margin-top:10px; display:flex; gap:5px; flex-wrap:wrap;">' + detailHtml + '</div>';
 
     document.getElementById('vodModal').style.display = 'flex';
 }
