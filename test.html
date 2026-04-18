@@ -534,13 +534,13 @@ if (name.includes('구독')) {
     let topTagName = topTag;
 
     // 요약 칸에서도 기호 제거
-   if (topTag.includes('구독')) {
-    topTagName = '#구독+'; // 요약 칸에서도 #을 붙여 통일감을 줌
-} else if (topTag.includes('성인')) {
-    topTagName = '#19';
-} else if (topTag !== '-') {
-    topTagName = topTag.startsWith('#') ? topTag : '#' + topTag;
-}
+    if (topTag.includes('구독')) {
+        topTagName = '구독+';
+    } else if (topTag.includes('성인')) {
+        topTagName = '19';
+    } else if (topTag !== '-') {
+        topTagName = topTag.startsWith('#') ? topTag : '#' + topTag;
+    }
     
     if(document.getElementById('sumTotalTime')) document.getElementById('sumTotalTime').innerText = secondsToText(totalSec);
     if(document.getElementById('sumTotalCount')) document.getElementById('sumTotalCount').innerText = `${totalVods}회`;
@@ -587,11 +587,10 @@ function filterPopupVodByTag(tagName) {
             const rowTags = row['컨텐츠 종류'] ? row['컨텐츠 종류'].split(',').map(t => t.trim()) : [];
             
             // 필터링 조건 분기
-           if (tagName === '구독+') { // '구독플러스'에서 '구독+'로 변경
-    return row['구독플러스여부'] === '예';
-} else if (tagName === '19') { // '성인인증'에서 '19'로 변경 (renderRptTags와 통일)
-    return row['성인인증 필요 여부'] === '예';
-}
+            if (tagName === '구독플러스') {
+                return row['구독플러스여부'] === '예';
+            } else if (tagName === '성인인증') {
+                return row['성인인증 필요 여부'] === '예';
             } else {
                 // 일반 #태그 필터링
                 return rowTags.some(t => t.replace('#','') === tagName.replace('#',''));
@@ -607,9 +606,9 @@ function updatePopupTagHighlight(tagName) {
     const items = document.querySelectorAll('#rptTags .rank-item');
     items.forEach(item => {
         // 태그 텍스트 추출 (예: "#게임" -> "게임")
-        const itemTag = item.querySelector('span:nth-child(2)').innerText.replace(/#/g,'').trim();
-        const targetTag = tagName.replace(/#/g,'').trim();
-        if (tagName && itemTag === targetTag) {
+        const itemTag = item.querySelector('span:nth-child(2)').innerText.replace('#','').trim();
+        
+        if (tagName && itemTag === tagName.replace('#','').trim()) {
             item.style.backgroundColor = 'rgba(51, 133, 255, 0.3)';
             item.style.border = '1px solid var(--accent-bright)';
             item.style.borderRadius = '6px';
@@ -993,6 +992,6 @@ window.onclick = function(event) {
         closeSummary();
     }
 }
-</script>
+    </script> 
 </body>
 </html>
