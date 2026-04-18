@@ -450,33 +450,50 @@ function renderVODList(data) {
 function openDetailedModal(data) {
     document.getElementById('modalThumb').src = data['썸네일'];
     document.getElementById('modalTitle').innerText = data['제목'];
-    document.getElementById('modalDate').innerText = data['날짜']; // YYYY-MM-DD 그대로 표시
+    document.getElementById('modalDate').innerText = data['날짜'];
     document.getElementById('modalDuration').innerText = data['다시보기 총시간'];
 
     const tagContainer = document.getElementById('modalTags');
     
-    // 컨텐츠 종류 태그
-    const tagsRaw = data['컨텐츠 종류'] ? data['컨텐츠 종류'].split(',') : [];
-    let combinedHtml = tagsRaw.map(tag => `<span class="vod-tag" style="background:var(--accent); color:white;">#${tag.trim()}</span>`).join('');
+    // 1. 상단 컨텐츠 종류 태그 (기존 스타일 유지)
+    const typeTags = data['컨텐츠 종류'] ? data['컨텐츠 종류'].split(',') : [];
+    let typeHtml = typeTags.map(tag => `<span class="vod-tag" style="background:var(--accent); color:white;">#${tag.trim()}</span>`).join('');
 
-    // 시간별 상세 정보 (시트 컬럼명과 정확히 일치시킴)
+    // 2. 상세 시간 정보 (줄바꿈 리스트 형식)
     const details = [
-        { label: '🎮 게임', value: data['게임(시간)'] },
-        { label: '🎤 노래', value: data['노래(시간)'] },
-        { label: '💬 소통', value: data['소통(시간)'] },
-        { label: '🎬 컨텐츠', value: data['컨텐츠(시간)'] }
+        { label: '🎮 게임', key: '게임(시간)' },
+        { label: '🎤 노래', key: '노래(시간)' },
+        { label: '💬 소통', key: '소통(시간)' },
+        { label: '🎬 컨텐츠', key: '컨텐츠(시간)' }
     ];
 
-    let detailHtml = details
-        .filter(d => d.value && d.value !== '-' && d.value !== '0' && d.value !== '0시간')
-        .map(d => `<span class="vod-tag" style="background:#16243a; color:var(--text-sub); border:1px solid var(--border);">${d.label}: ${d.value}</span>`)
-        .join('');
+    let detailHtml = '';
+    details.forEach(d => {
+        const val = data[d.key];
+        // 데이터가 유효한 경우에만 (예: -, 0 등이 아닐 때)
+        if (val && val !== '-' && val !== '0' && val !== '0시간') {
+            // 쉼표로 구분된 항목들을 배열로 변환
+            const subItems = val.split(',');
+            
+            detailHtml += `
+                <div style="width:100%; margin-top:12px;">
+                    <label style="display:block; font-size:11px; color:var(--accent-bright); margin-bottom:6px; font-weight:bold;">${d.label}</label>
+                    <div style="display:flex; flex-direction:column; gap:4px;">
+                        ${subItems.map(item => `
+                            <div style="background:rgba(22, 36, 58, 0.6); padding:8px 12px; border-radius:6px; border:1px solid var(--border); font-size:12px; color:var(--text-main);">
+                                ${item.trim()}
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+    });
 
-    tagContainer.innerHTML = combinedHtml + '<div style="width:100%; margin-top:10px; display:flex; gap:5px; flex-wrap:wrap;">' + detailHtml + '</div>';
+    tagContainer.innerHTML = typeHtml + detailHtml;
 
     document.getElementById('vodModal').style.display = 'flex';
 }
-
 // 기존 팝업 닫기 및 요약 로직 유지
 function closeModal() { document.getElementById('vodModal').style.display = 'none'; }
 function openSummary(e) { e.preventDefault(); document.getElementById('summaryModal').style.display = 'flex'; }
