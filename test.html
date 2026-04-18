@@ -502,19 +502,20 @@ function updateTagStatistics(data) {
             const rank = index + 1;
             const isTop = rank <= 3 ? 'top-rank' : '';
             
-            // 이름 세척 및 스타일 결정
-            let finalName = name;
-            let specialStyle = '';
-            
-            if (name.includes('구독')) {
-                finalName = '구독+';
-                specialStyle = 'color:#ffcc00; font-weight:bold;';
-            } else if (name.includes('성인')) {
-                finalName = '19';
-                specialStyle = 'color:#ff4444; font-weight:bold;';
-            } else {
-                finalName = name.startsWith('#') ? name : '#' + name;
-            }
+           // 이름 세척 및 스타일 결정
+let finalName = name;
+let specialStyle = '';
+
+if (name.includes('구독')) {
+    finalName = '#구독+'; // 앞에 # 추가
+    specialStyle = 'color:#ffcc00; font-weight:bold;';
+} else if (name.includes('성인')) {
+    finalName = '#19';    // 앞에 # 추가
+    specialStyle = 'color:#ff4444; font-weight:bold;';
+} else {
+    // 일반 태그 처리
+    finalName = name.startsWith('#') ? name : '#' + name;
+}
 
             const rankItem = `
                 <div class="rank-item" 
@@ -667,8 +668,8 @@ function renderRptTags(data) {
         let rowTags = row['컨텐츠 종류'] ? row['컨텐츠 종류'].split(',').map(t => t.trim()) : [];
         
         // 기호 대신 텍스트로 변환하여 추가
-        if (row['구독플러스여부'] === '예') rowTags.push('구독플러스'); 
-        if (row['성인인증 필요 여부'] === '예') rowTags.push('성인인증');
+        if (row['구독플러스여부'] === '예') rowTags.push('구독+'); 
+        if (row['성인인증 필요 여부'] === '예') rowTags.push('19');
 
         rowTags.forEach(tag => { 
             if(tag && tag !== '-') {
