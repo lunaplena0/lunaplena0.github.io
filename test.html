@@ -404,33 +404,34 @@ document.addEventListener("DOMContentLoaded", function() {
 // 통계 계산용 ID를 HTML 태그에 맞춰 설정하기 위해 선택자 준비
 function updateTagStatistics(data) {
     let totalVods = 0;
-    let totalSec = 0;       // 전체 누적 초
-    let plusTotalSec = 0;   // 구독+ 누적 초
+    let totalSec = 0;
+    let plusTotalSec = 0;
     let maxSec = 0;
     let minSec = Infinity;
-    let maxDate = ""; // 가장 오래 방송한 날짜 기록용
+    let maxDate = "";
     
     const tagCount = {};
     let totalTagInstances = 0;
 
+    // 1. 데이터 순회 및 기본 수치 계산
     data.forEach(row => {
         if (!row['날짜']) return;
         totalVods++;
 
-        // 시간 변환 (HH:MM:SS -> Seconds)
         const currentSec = timeToSeconds(row['다시보기 총시간']);
         totalSec += currentSec;
 
-        // 구독+ 시간만 별도 합산
         if (row['구독플러스여부'] === '예') {
             plusTotalSec += currentSec;
         }
 
-        // 최대/최소 비교
-        if (currentSec > maxSec) maxSec = currentSec;
+        if (currentSec > maxSec) {
+            maxSec = currentSec;
+            maxDate = row['날짜'];
+        }
         if (currentSec > 0 && currentSec < minSec) minSec = currentSec;
 
-        // 태그 통계 (구독/19 포함 로직 유지)
+        // 태그 추출 및 카운트
         let rowTags = row['컨텐츠 종류'] ? row['컨텐츠 종류'].split(',').map(t => t.trim()) : [];
         if (row['구독플러스여부'] === '예') rowTags.push('⭐구독+');
         if (row['성인인증 필요 여부'] === '예') rowTags.push('🔞성인인증');
@@ -441,103 +442,83 @@ function updateTagStatistics(data) {
                 totalTagInstances++;
             }
         });
-        if (timeToSeconds(row['다시보기 총시간']) === maxSec) {
-            maxDate = row['날짜'];
-        }    
     });
-    // --- 데이터 매핑 ---
 
-    // 1. 전체 누적 시간
+    // 2. 메인 대시보드 상단 수치 업데이트
     document.getElementById('statTotalTime').innerText = secondsToText(totalSec);
-
-    // 2. 구독+ 방송시간 및 비율 (예: 120시간 (22%))
     const plusPercent = totalSec > 0 ? Math.round((plusTotalSec / totalSec) * 100) : 0;
     document.getElementById('statPlusTimeRatio').innerText = `${secondsToText(plusTotalSec)} (${plusPercent}%)`;
-
-    // 3. 최대 방송시간
     document.getElementById('statMaxTime').innerText = secondsToText(maxSec);
-
-    // 4. 평균 방송시간
     const avgSec = totalVods > 0 ? Math.floor(totalSec / totalVods) : 0;
     document.getElementById('statAvgTime').innerText = secondsToText(avgSec);
-
-    // 5. 최소 방송시간
     document.getElementById('statMinTime').innerText = (minSec === Infinity) ? '-' : secondsToText(minSec);
 
-    // 4. 내림차순 정렬
+    // 3. 태그 데이터 정렬
     const sortedTags = Object.entries(tagCount).sort((a, b) => b[1] - a[1]);
 
-    // 5. [태그 비중 (Top 5)] UI 업데이트
+    // 4. [태그 비중 (Top 5)] 카드 업데이트
     const ratioContainer = document.querySelector('.card:nth-child(2)'); 
-    let ratioHtml = '<h2>📈 통합 태그 비중 (Top 5)</h2>';
-    
-    const top5 = sortedTags.slice(0, 5);
-    const othersCount = sortedTags.slice(5).reduce((acc, curr) => acc + curr[1], 0);
+    if (ratioContainer) {
+        let ratioHtml = '<h2>📈 통합 태그 비중 (Top 5)</h2>';
+        const top5 = sortedTags.slice(0, 5);
+        const othersCount = sortedTags.slice(5).reduce((acc, curr) => acc + curr[1], 0);
 
-    top5.forEach(([name, count]) => {
-        const percentage = Math.round((count / totalTagInstances) * 100);
-        // 특정 태그(구독/성인)인 경우 색상 강조 가능
-        const barColor = name.includes('구독') ? '#ffcc00' : (name.includes('성인') ? '#ff4444' : 'var(--accent-bright)');
-        
-        ratioHtml += `
-            <div class="item-row">
-                <div style="display: flex; justify-content: space-between;"><span>${name.startsWith('#') ? name : '#'+name}</span><strong>${percentage}%</strong></div>
-                <div class="graph-bar-container">
-                    <div class="graph-bar" style="width: ${percentage}%; background: ${barColor};"></div>
-                </div>
-            </div>`;
-    });
-
-    if (othersCount > 0) {
-        const othersPercent = Math.round((othersCount / totalTagInstances) * 100);
-        ratioHtml += `
-            <div class="item-row">
-                <div style="display: flex; justify-content: space-between; color: var(--text-sub);"><span>기타 (외 ${sortedTags.length - 5}종)</span><strong>${othersPercent}%</strong></div>
-                <div class="graph-bar-container"><div class="graph-bar" style="width: ${othersPercent}%; opacity: 0.5;"></div></div>
-            </div>`;
+        top5.forEach(([name, count]) => {
+            const percentage = Math.round((count / totalTagInstances) * 100);
+            const barColor = name.includes('구독') ? '#ffcc00' : (name.includes('성인') ? '#ff4444' : 'var(--accent-bright)');
+            ratioHtml += `
+                <div class="item-row">
+                    <div style="display: flex; justify-content: space-between;"><span>${name.startsWith('#') || name.startsWith('⭐') || name.startsWith('🔞') ? name : '#'+name}</span><strong>${percentage}%</strong></div>
+                    <div class="graph-bar-container"><div class="graph-bar" style="width: ${percentage}%; background: ${barColor};"></div></div>
+                </div>`;
+        });
+        if (othersCount > 0) {
+            const othersPercent = Math.round((othersCount / totalTagInstances) * 100);
+            ratioHtml += `
+                <div class="item-row">
+                    <div style="display: flex; justify-content: space-between; color: var(--text-sub);"><span>기타 (외 ${sortedTags.length - 5}종)</span><strong>${othersPercent}%</strong></div>
+                    <div class="graph-bar-container"><div class="graph-bar" style="width: ${othersPercent}%; opacity: 0.5;"></div></div>
+                </div>`;
+        }
+        ratioContainer.innerHTML = ratioHtml;
     }
-    ratioContainer.innerHTML = ratioHtml;
-    // [요약 보고서 연동]
+
+    // 5. [전체 태그 순위] 그리드 업데이트 (이 부분이 빠져있었을 확률이 높음)
+    const rankGrid = document.querySelector('.rank-grid');
+    if (rankGrid) {
+        rankGrid.innerHTML = ''; 
+        sortedTags.forEach(([name, count], index) => {
+            const rank = index + 1;
+            const isTop = rank <= 3 ? 'top-rank' : '';
+            const specialStyle = name.includes('구독') ? 'color:#ffcc00;' : (name.includes('성인') ? 'color:#ff4444;' : '');
+            const displayName = name.startsWith('⭐') || name.startsWith('🔞') ? name : '#' + name;
+
+            const rankItem = `
+                <div class="rank-item" 
+                     data-tag="${name}" 
+                     onclick="toggleTagFilter('${name}')" 
+                     style="${specialStyle} cursor:pointer; padding: 6px 8px; margin: 2px 0;">
+                    <span class="rank-badge ${isTop}">${rank}</span>
+                    <span class="tag-text">${displayName}</span>
+                </div>`;
+            rankGrid.insertAdjacentHTML('beforeend', rankItem);
+        });
+    }
+
+    // 6. 요약 보고서 기본 연동 데이터
     const topTag = sortedTags.length > 0 ? sortedTags[0][0] : '-';
     const topTagName = topTag.startsWith('⭐') || topTag.startsWith('🔞') ? topTag : '#' + topTag;
-
-    // 1. 월간(전체) 탭 업데이트
-    document.getElementById('sumTotalTime').innerText = secondsToText(totalSec);
-    document.getElementById('sumTotalCount').innerText = `${totalVods}회`;
-    document.getElementById('sumTopTag').innerText = topTagName;
-
-    // 2. 연간(상세) 탭 업데이트 (현재 시트 전체를 2026년으로 가정)
-    document.getElementById('sumYearlyTime').innerText = secondsToText(totalSec);
     
-    // 월평균 계산 (데이터에 포함된 고유한 '월'의 개수로 나눔)
+    if(document.getElementById('sumTotalTime')) document.getElementById('sumTotalTime').innerText = secondsToText(totalSec);
+    if(document.getElementById('sumTotalCount')) document.getElementById('sumTotalCount').innerText = `${totalVods}회`;
+    if(document.getElementById('sumTopTag')) document.getElementById('sumTopTag').innerText = topTagName;
+
+    // 요약 리포트용 연간 데이터 기초
+    if(document.getElementById('sumYearlyTime')) document.getElementById('sumYearlyTime').innerText = secondsToText(totalSec);
     const uniqueMonths = new Set(data.map(row => row['날짜'] ? row['날짜'].substring(0, 7) : null).filter(Boolean)).size;
     const avgMonthlySec = uniqueMonths > 0 ? Math.floor(totalSec / uniqueMonths) : 0;
-    document.getElementById('sumAvgMonthlyTime').innerText = secondsToText(avgMonthlySec);
-    
-    document.getElementById('sumMaxDay').innerText = maxDate ? `${maxDate.split('-')[1]}월 ${maxDate.split('-')[2]}일` : '-';
-
-// 6. [전체 태그 순위] 그리드 업데이트
-    const rankGrid = document.querySelector('.rank-grid');
-    rankGrid.innerHTML = ''; 
-
-    sortedTags.forEach(([name, count], index) => {
-    const rank = index + 1;
-    const isTop = rank <= 3 ? 'top-rank' : '';
-    const specialStyle = name.includes('구독') ? 'color:#ffcc00;' : (name.includes('성인') ? 'color:#ff4444;' : '');
-    
-    // #을 붙여서 표시하되, 데이터 속성에는 순수 이름만 저장
-    const displayName = name.startsWith('⭐') || name.startsWith('🔞') ? name : '#' + name;
-
-    const rankItem = `
-        <div class="rank-item" 
-             data-tag="${name}" 
-             onclick="toggleTagFilter('${name}')" 
-             style="${specialStyle} cursor:pointer; border:1px solid transparent; transition:0.2s; padding: 6px 8px; margin: 2px 0;">
-            <span class="rank-badge ${isTop}">${rank}</span>
-            <span class="tag-text">${displayName}</span>
-        </div>`;
-    rankGrid.insertAdjacentHTML('beforeend', rankItem);
-});
+    if(document.getElementById('sumAvgMonthlyTime')) document.getElementById('sumAvgMonthlyTime').innerText = secondsToText(avgMonthlySec);
+    if(document.getElementById('sumMaxDay')) document.getElementById('sumMaxDay').innerText = maxDate ? `${maxDate.split('-')[1]}월 ${maxDate.split('-')[2]}일` : '-';
 }
 // 시간 변환 보조 함수들 (기존과 동일하게 유지)
 function timeToSeconds(timeStr) {
