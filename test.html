@@ -4,14 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>바다비 VOD 기록함</title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --bg-color: #010306;
             --card-bg: #030812;
             --accent: #003366;
             --accent-bright: #3385ff;
-            --accent-glow: rgba(0, 51, 102, 0.7);
             --text-main: #f0faff;
             --text-sub: #5c7285;
             --border: #16243a;
@@ -20,81 +19,63 @@
         body { 
             background-color: var(--bg-color); 
             background-image: radial-gradient(circle at center, #051020 0%, #02050a 100%);
-            color: var(--text-main); 
-            font-family: 'Noto Sans KR', sans-serif; 
-            margin: 0; padding: 10px;
-            display: flex; justify-content: center; align-items: center; 
-            min-height: 100vh; box-sizing: border-box;
+            color: var(--text-main); font-family: 'Noto Sans KR', sans-serif; 
+            margin: 0; padding: 15px; display: flex; justify-content: center; min-height: 100vh; box-sizing: border-box;
         }
 
-        .wrapper { width: 100%; max-width: 1200px; display: flex; flex-direction: column; gap: 15px; }
+        .wrapper { width: 100%; max-width: 1100px; display: flex; flex-direction: column; gap: 12px; }
 
         .card { 
-            background: var(--card-bg); 
-            border-radius: 12px; padding: 20px; 
-            border: 1px solid var(--border); 
-            display: flex; flex-direction: column;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            background: var(--card-bg); border-radius: 10px; padding: 15px; 
+            border: 1px solid var(--border); box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
         }
 
-        /* 상단 프로필 영역 */
-        .profile-box { flex-direction: row; align-items: center; gap: 20px; background: linear-gradient(145deg, #051020, #02050a); }
-        .profile-info { flex-grow: 1; }
-        .profile-info h1 { margin: 0; font-size: 24px; color: var(--text-main); }
-        .live-status-inline { display: flex; gap: 10px; }
+        /* 헤더 축소 */
+        .profile-box { display: flex; justify-content: space-between; align-items: center; background: linear-gradient(145deg, #051020, #02050a); }
+        .profile-info h1 { margin: 0; font-size: 20px; }
+        .profile-info p { margin: 3px 0 0; font-size: 12px; color: var(--text-sub); }
 
-        /* 하단 3컬럼 레이아웃 */
-        .bottom-section { 
-            display: grid; 
-            grid-template-columns: 1fr 1.2fr 1fr; 
-            gap: 15px; 
-            align-items: start;
-        }
+        /* 레이아웃 */
+        .bottom-section { display: grid; grid-template-columns: 0.8fr 1fr 1.2fr; gap: 12px; align-items: start; }
 
-        h2 { font-size: 13px; color: var(--accent-bright); border-bottom: 1px solid var(--border); padding-bottom: 10px; margin: 0 0 15px 0; text-transform: uppercase; letter-spacing: 1px; }
+        h2 { font-size: 12px; color: var(--accent-bright); border-bottom: 1px solid var(--border); padding-bottom: 8px; margin: 0 0 10px 0; letter-spacing: 0.5px; }
 
-        /* 리스트 공통 */
-        .item-row { 
-            padding: 10px; 
-            border-bottom: 1px solid var(--border); 
-            font-size: 13px; 
-            transition: 0.2s;
-        }
+        /* 간격 축소된 로우 */
+        .item-row { padding: 6px 4px; border-bottom: 1px solid rgba(22, 36, 58, 0.5); font-size: 12.5px; }
         .item-row:last-child { border-bottom: none; }
 
-        /* 1. 방송 통계 스타일 */
-        .stat-label { color: var(--text-sub); font-size: 11px; display: block; margin-bottom: 4px; }
-        .stat-value { font-size: 17px; font-weight: bold; }
+        .stat-label { color: var(--text-sub); font-size: 11px; display: block; }
+        .stat-value { font-size: 15px; font-weight: bold; margin-top: 2px; display: block; }
 
-        /* 2. 태그 비율 그래프 */
-        .graph-bar-container { width: 100%; background: #051020; height: 6px; border-radius: 4px; margin-top: 8px; border: 1px solid #0a1425; }
-        .graph-bar { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-bright)); border-radius: 4px; }
+        /* 그래프 바 축소 */
+        .graph-bar-container { width: 100%; background: #051020; height: 4px; border-radius: 2px; margin-top: 5px; }
+        .graph-bar { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-bright)); border-radius: 2px; }
 
-        /* 3. 전체 순위 스크롤박스 */
-        .rank-list-container {
-            max-height: 400px; /* 높이 고정 */
-            overflow-y: auto;  /* 스크롤 발생 */
-            padding-right: 5px;
+        /* 핵심: 전체 태그 순위 2열 정렬 */
+        .rank-grid { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; /* 2줄로 나누기 */
+            column-gap: 15px; 
+            row-gap: 2px;
         }
-        /* 스크롤바 커스텀 */
-        .rank-list-container::-webkit-scrollbar { width: 4px; }
-        .rank-list-container::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 10px; }
+        
+        .rank-item { 
+            display: flex; align-items: center; padding: 5px 0;
+            border-bottom: 1px solid rgba(22, 36, 58, 0.3);
+        }
 
         .rank-badge { 
-            display: inline-block; width: 24px; height: 24px; line-height: 24px; 
-            text-align: center; background: #1a2638; border-radius: 4px; 
-            font-size: 11px; margin-right: 10px; color: var(--text-sub); font-weight: bold;
+            display: inline-block; min-width: 18px; height: 18px; line-height: 18px; 
+            text-align: center; background: #1a2638; border-radius: 3px; 
+            font-size: 10px; margin-right: 8px; color: var(--text-sub); font-weight: bold;
         }
         .top-rank { background: var(--accent-bright); color: #fff; }
 
-        .link-btn { 
-            padding: 8px 15px; background: rgba(10, 26, 48, 0.6); border-radius: 6px; 
-            color: var(--text-main); text-decoration: none; font-size: 12px; border: 1px solid var(--accent);
-        }
+        .link-btn { padding: 6px 12px; background: rgba(10, 26, 48, 0.6); border-radius: 4px; color: var(--text-main); text-decoration: none; font-size: 11px; border: 1px solid var(--accent); }
 
-        @media (max-width: 950px) {
+        @media (max-width: 900px) {
             .bottom-section { grid-template-columns: 1fr; }
-            .profile-box { flex-direction: column; text-align: center; }
+            .rank-grid { grid-template-columns: 1fr 1fr; } /* 모바일에서도 2줄 유지 */
         }
     </style>
 </head>
@@ -104,11 +85,9 @@
     <div class="card profile-box">
         <div class="profile-info">
             <h1>🎬 VOD 데이터 센터</h1>
-            <p style="color: var(--text-sub); margin: 5px 0 0; font-size: 13px;">바다비 방송의 모든 수치를 한눈에 확인하세요.</p>
+            <p>방송 통계 및 태그 분석 리포트</p>
         </div>
-        <div class="live-status-inline">
-            <a href="index.html" class="link-btn">메인으로</a>
-        </div>
+        <a href="index.html" class="link-btn">메인으로</a>
     </div>
 
     <div class="bottom-section">
@@ -119,25 +98,25 @@
                 <span class="stat-value">542시간 15분</span>
             </div>
             <div class="item-row">
-                <span class="stat-label">구독+ 방송 시간 및 비율</span>
-                <span class="stat-value" style="color: #ffcc00;">120시간 <small>(22%)</small></span>
+                <span class="stat-label">구독+ 방송시간 및 비율</span>
+                <span class="stat-value" style="color:#ffcc00;">120시간 (22%)</span>
             </div>
             <div class="item-row">
-                <span class="stat-label">최대 방송 시간</span>
+                <span class="stat-label">최대 방송시간</span>
                 <span class="stat-value">12시간 45분</span>
             </div>
             <div class="item-row">
-                <span class="stat-label">평균 방송 시간</span>
+                <span class="stat-label">평균 방송시간</span>
                 <span class="stat-value">4시간 20분</span>
             </div>
             <div class="item-row">
-                <span class="stat-label">평균 방송 시간 (최근 30일)</span>
+                <span class="stat-label">평균 방송시간 (최근)</span>
                 <span class="stat-value">3시간 55분</span>
             </div>
         </div>
 
         <div class="card">
-            <h2>📈 주요 태그 비중 (Top 5)</h2>
+            <h2>📈 태그 비중 (Top 5)</h2>
             <div class="item-row">
                 <div style="display: flex; justify-content: space-between;"><span>#심해노래방</span><strong>45%</strong></div>
                 <div class="graph-bar-container"><div class="graph-bar" style="width: 45%;"></div></div>
@@ -162,30 +141,29 @@
 
         <div class="card">
             <h2>🏆 전체 태그 순위</h2>
-            <div class="rank-list-container">
-                <div class="item-row"><span class="rank-badge top-rank">1</span>#심해노래방</div>
-                <div class="item-row"><span class="rank-badge top-rank">2</span>#바다비_라이브</div>
-                <div class="rank-list-container">
-                    <div class="item-row"><span class="rank-badge top-rank">3</span>#신곡커버</div>
-                    <div class="item-row"><span class="rank-badge">4</span>#공포게임</div>
-                    <div class="item-row"><span class="rank-badge">5</span>#시네티</div>
-                    <div class="item-row"><span class="rank-badge">6</span>#소통방송</div>
-                    <div class="item-row"><span class="rank-badge">7</span>#먹방</div>
-                    <div class="item-row"><span class="rank-badge">8</span>#라디오</div>
-                    <div class="item-row"><span class="rank-badge">9</span>#VRchat</div>
-                    <div class="item-row"><span class="rank-badge">10</span>#기타게임</div>
-                    <div class="item-row"><span class="rank-badge">11</span>#듀엣</div>
-                    <div class="item-row"><span class="rank-badge">12</span>#ASMR</div>
-                    <div class="item-row"><span class="rank-badge">13</span>#야외방송</div>
-                    <div class="item-row"><span class="rank-badge">14</span>#작업방송</div>
-                    <div class="item-row"><span class="rank-badge">15</span>#이벤트</div>
-                </div>
+            <div class="rank-grid">
+                <div class="rank-item"><span class="rank-badge top-rank">1</span>#심해노래방</div>
+                <div class="rank-item"><span class="rank-badge top-rank">2</span>#바다비_라이브</div>
+                <div class="rank-item"><span class="rank-badge top-rank">3</span>#신곡커버</div>
+                <div class="rank-item"><span class="rank-badge">4</span>#공포게임</div>
+                <div class="rank-item"><span class="rank-badge">5</span>#시네티</div>
+                <div class="rank-item"><span class="rank-badge">6</span>#소통방송</div>
+                <div class="rank-item"><span class="rank-badge">7</span>#먹방</div>
+                <div class="rank-item"><span class="rank-badge">8</span>#라디오</div>
+                <div class="rank-item"><span class="rank-badge">9</span>#VRchat</div>
+                <div class="rank-item"><span class="rank-badge">10</span>#기타게임</div>
+                <div class="rank-item"><span class="rank-badge">11</span>#듀엣</div>
+                <div class="rank-item"><span class="rank-badge">12</span>#ASMR</div>
+                <div class="rank-item"><span class="rank-badge">13</span>#야외방송</div>
+                <div class="rank-item"><span class="rank-badge">14</span>#작업방송</div>
+                <div class="rank-item"><span class="rank-badge">15</span>#이벤트</div>
+                <div class="rank-item"><span class="rank-badge">16</span>#기타</div>
             </div>
         </div>
     </div>
 
-    <footer style="text-align: center; padding: 20px; color: var(--text-sub); font-size: 11px;">
-        © 2024 바다비 비공식 아카이브 데이터 센터
+    <footer style="text-align: center; margin-top: 10px; color: var(--text-sub); font-size: 10px; opacity: 0.6;">
+        © 바다비 비공식 데이터 센터
     </footer>
 </div>
 
