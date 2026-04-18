@@ -100,8 +100,28 @@
         }
         .top-rank { background: var(--accent-bright); color: #fff; }
 
-        /* VOD List Styles */
-        .vod-list { display: flex; flex-direction: column; gap: 8px; }
+        .btn-pagination {
+    padding: 10px 25px;
+    background: var(--accent);
+    color: white;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    transition: all 0.2s;
+}
+
+.btn-pagination:hover {
+    background: var(--accent-bright);
+    transform: translateY(-2px);
+}
+
+/* 기존 리스트의 스크롤 제거 (필요한 경우) */
+.vod-list {
+    max-height: none !important; /* 고정 높이 해제 */
+    overflow-y: visible !important; /* 스크롤 제거 */
+}
         .vod-item {
         display: flex; align-items: center; gap: 15px;
         padding: 10px; background: rgba(22, 36, 58, 0.3);
@@ -405,6 +425,7 @@
     </div>
 </div>
     <script>
+        let visibleCount = 10;
     // 1. 구글 시트 웹 게시 CSV URL (여기에 복사한 URL을 넣으세요)
 const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTfTHMy1hImniay9QEPDcMq5C4Yo5yFpmRtBlWo6UXK-FNxABQYbtfGpEsKom2O-OIJPnEi8LLy1Qqx/pub?gid=0&single=true&output=tsv";
 
@@ -706,6 +727,7 @@ function renderRptTags(data) {
     }).join('') || '<p style="color:var(--text-sub); font-size:12px;">데이터 없음</p>';
 }
 function toggleTagFilter(tagName) {
+    visibleCount = 10;
     const listContainer = document.querySelector('.vod-list');
     
     // 이미 선택된 태그를 다시 클릭하면 해제
@@ -753,7 +775,10 @@ function renderVODList(data) {
     const listContainer = document.querySelector('.vod-list');
     listContainer.innerHTML = ''; 
 
-    data.forEach((row) => {
+   // 1. 현재 표시 개수만큼만 데이터 슬라이싱
+    const displayData = data.slice(0, visibleCount);
+
+    displayData.forEach((row) => {
         if(!row['날짜']) return;
 
         // 1. 날짜 처리 (2026-04-12 -> 04.12)
@@ -795,6 +820,69 @@ function renderVODList(data) {
 
         vodItem.onclick = () => openDetailedModal(row);
         listContainer.appendChild(vodItem);
+    });
+    // 2. 더보기 / 접기 버튼 관리
+    updatePaginationButtons(data.length);
+}
+        function updatePaginationButtons(totalLength) {
+    // 기존 버튼이 있다면 삭제
+    const existingControl = document.getElementById('vod-control');
+    if (existingControl) existingControl.remove();
+
+    if (totalLength === 0) return;
+
+    const controlDiv = document.createElement('div');
+    controlDiv.id = 'vod-control';
+    controlDiv.style.cssText = 'display:flex; flex-direction:column; align-items:center; gap:10px; margin-top:20px; width:100%; padding-bottom:30px;';
+
+    // 표시 상태 텍스트 (예: 10/30)
+    const currentShown = Math.min(visibleCount, totalLength);
+    const statusText = `<span style="color:var(--text-sub); font-size:13px; font-family:monospace;">${currentShown} / ${totalLength}</span>`;
+
+    let buttonsHtml = statusText;
+    buttonsHtml += `<div style="display:flex; gap:10px;">`;
+
+    // 더보기 버튼 (데이터가 더 남아있을 때만 표시)
+    if (visibleCount < totalLength) {
+        buttonsHtml += `<button onclick="loadMoreVods()" class="btn-pagination">더보기</button>`;
+    }
+
+    // 접기 버튼 (10개 초과로 보고 있을 때만 표시)
+    if (visibleCount > 10) {
+        buttonsHtml += `<button onclick="resetVods()" class="btn-pagination" style="background:rgba(255,255,255,0.1); color:var(--text-main);">접기</button>`;
+    }
+
+    buttonsHtml += `</div>`;
+    controlDiv.innerHTML = buttonsHtml;
+    
+    // 리스트 컨테이너 뒤에 삽입
+    document.querySelector('.vod-list').after(controlDiv);
+}
+
+// 더보기 로직
+function loadMoreVods() {
+    visibleCount += 10;
+    // 현재 필터링된 데이터가 있다면 그 데이터를 기준으로 다시 렌더링
+    const targetData = currentFilter ? getFilteredData() : allData;
+    renderVODList(targetData);
+}
+
+// 접기 로직
+function resetVods() {
+    visibleCount = 10;
+    const targetData = currentFilter ? getFilteredData() : allData;
+    renderVODList(targetData);
+    // 스크롤을 리스트 상단으로 이동 (선택 사항)
+    document.querySelector('.vod-list').scrollIntoView({ behavior: 'smooth' });
+}
+
+// 현재 필터 상태의 데이터를 가져오는 보조 함수
+function getFilteredData() {
+    return allData.filter(row => {
+        const rowTags = row['컨텐츠 종류'] ? row['컨텐츠 종류'].split(',').map(t => t.trim()) : [];
+        if (row['구독플러스여부'] === '예') rowTags.push('구독+');
+        if (row['성인인증 필요 여부'] === '예') rowTags.push('19');
+        return rowTags.some(t => t.replace('#','') === currentFilter.replace('#',''));
     });
 }
 // 전역 변수 설정
