@@ -495,39 +495,43 @@ function updateTagStatistics(data) {
     }
 
    // 5. [전체 태그 순위] 그리드 업데이트
-    const rankGrid = document.querySelector('.rank-grid');
-    if (rankGrid) {
-        rankGrid.innerHTML = ''; 
-        sortedTags.forEach(([name, count], index) => {
-            const rank = index + 1;
-            const isTop = rank <= 3 ? 'top-rank' : '';
-            
-           // 이름 세척 및 스타일 결정
-let finalName = name;
-let specialStyle = '';
+    // 5. [전체 태그 순위] 그리드 업데이트 부분 수정
+const rankGrid = document.querySelector('.rank-grid');
+if (rankGrid) {
+    rankGrid.innerHTML = ''; 
+    sortedTags.forEach(([name, count], index) => {
+        const rank = index + 1;
+        const isTop = rank <= 3 ? 'top-rank' : '';
+        
+        let finalName = name;
+        let specialStyle = '';
 
-if (name.includes('구독')) {
-    finalName = '#구독+'; // 앞에 # 추가
-    specialStyle = 'color:#ffcc00; font-weight:bold;';
-} else if (name.includes('성인')) {
-    finalName = '#19';    // 앞에 # 추가
-    specialStyle = 'color:#ff4444; font-weight:bold;';
-} else {
-    // 일반 태그 처리
-    finalName = name.startsWith('#') ? name : '#' + name;
+        // 이름에 '구독'이 포함된 경우 (구독+)
+        if (name.includes('구독')) {
+            finalName = '#구독+'; 
+            specialStyle = 'color:#ffcc00; font-weight:bold;';
+        } 
+        // 이름에 '19'가 포함된 경우 (성인인증)
+        else if (name.includes('19')) {
+            finalName = '#19';    
+            specialStyle = 'color:#ff4444; font-weight:bold;';
+        } 
+        // 그 외 일반 태그
+        else {
+            finalName = name.startsWith('#') ? name : '#' + name;
+        }
+
+        const rankItem = `
+            <div class="rank-item" 
+                 data-tag="${name}" 
+                 onclick="toggleTagFilter('${name}')" 
+                 style="${specialStyle} cursor:pointer; padding: 6px 8px; margin: 2px 0; display: flex; align-items: center;">
+                <span class="rank-badge ${isTop}">${rank}</span>
+                <span class="tag-text" style="margin-left: 5px;">${finalName}</span>
+            </div>`;
+        rankGrid.insertAdjacentHTML('beforeend', rankItem);
+    });
 }
-
-            const rankItem = `
-                <div class="rank-item" 
-                     data-tag="${name}" 
-                     onclick="toggleTagFilter('${name}')" 
-                     style="${specialStyle} cursor:pointer; padding: 6px 8px; margin: 2px 0;">
-                    <span class="rank-badge ${isTop}">${rank}</span>
-                    <span class="tag-text">${finalName}</span>
-                </div>`;
-            rankGrid.insertAdjacentHTML('beforeend', rankItem);
-        });
-    }
 
     // 6. 요약 보고서 기본 연동 데이터
     let topTag = sortedTags.length > 0 ? sortedTags[0][0] : '-';
