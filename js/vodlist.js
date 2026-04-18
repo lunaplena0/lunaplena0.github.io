@@ -226,18 +226,24 @@ function loadSheetData() {
     
     // 1. 파도 애니메이션 텍스트 생성 (애니메이션 효과 극대화)
     const loadingText = "소중한 기록들을 정리하고 있어요 . . .";
+    if (overlay) {
+        overlay.style.opacity = '1';
+        overlay.style.visibility = 'visible';
+        document.body.style.overflow = 'hidden'; // 로딩 중 스크롤 방지
+    }
     Papa.parse(sheetURL, {
         download: true,
         header: true,
         complete: function(results) {
             allData = results.data.filter(row => row['날짜']); 
+            
             renderVODList(allData); 
             updateTagStatistics(allData); 
             // 리포트 데이터 그룹화 및 초기 렌더링 호출
             initializeReportData(allData);
             updateReport(); 
-            const overlay = document.getElementById('loading-overlay');
-            if (overlay) overlay.style.display = 'none';
+            // 2. 로딩 종료: 이미 만들어두신 함수 호출
+            hideLoadingOverlay();
         }
     });
 }
