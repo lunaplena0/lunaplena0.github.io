@@ -89,6 +89,10 @@
     background: rgba(51, 133, 255, 0.1);
     border-radius: 5px;
 }
+        .rank-item:not([style*="background: rgba"]) :hover {
+    background: rgba(22, 36, 58, 0.5);
+    border-radius: 6px;
+}
         .rank-badge { 
             display: inline-block; min-width: 18px; height: 18px; line-height: 18px; 
             text-align: center; background: #1a2638; border-radius: 3px; 
@@ -472,19 +476,23 @@ function updateTagStatistics(data) {
     rankGrid.innerHTML = ''; 
 
     sortedTags.forEach(([name, count], index) => {
-        const rank = index + 1;
-        const isTop = rank <= 3 ? 'top-rank' : '';
-        // 구독/성인 태그는 별도 스타일 적용 가능
-        const specialStyle = name.includes('구독') ? 'color:#ffcc00;' : (name.includes('성인') ? 'color:#ff4444;' : '');
-        
-        const rankItem = `
-    <div class="rank-item" 
-         onclick="toggleTagFilter('${name}')" 
-         style="${specialStyle} cursor:pointer; border:1px solid transparent; transition:0.2s;">
-        <span class="rank-badge ${isTop}">${rank}</span>${name.startsWith('⭐') || name.startsWith('🔞') ? name : '#'+name}
-    </div>`;
-        rankGrid.insertAdjacentHTML('beforeend', rankItem);
-    });
+    const rank = index + 1;
+    const isTop = rank <= 3 ? 'top-rank' : '';
+    const specialStyle = name.includes('구독') ? 'color:#ffcc00;' : (name.includes('성인') ? 'color:#ff4444;' : '');
+    
+    // #을 붙여서 표시하되, 데이터 속성에는 순수 이름만 저장
+    const displayName = name.startsWith('⭐') || name.startsWith('🔞') ? name : '#' + name;
+
+    const rankItem = `
+        <div class="rank-item" 
+             data-tag="${name}" 
+             onclick="toggleTagFilter('${name}')" 
+             style="${specialStyle} cursor:pointer; border:1px solid transparent; transition:0.2s; padding: 6px 8px; margin: 2px 0;">
+            <span class="rank-badge ${isTop}">${rank}</span>
+            <span class="tag-text">${displayName}</span>
+        </div>`;
+    rankGrid.insertAdjacentHTML('beforeend', rankItem);
+});
 }
 // 시간 변환 보조 함수들 (기존과 동일하게 유지)
 function timeToSeconds(timeStr) {
@@ -544,14 +552,19 @@ function toggleTagFilter(tagName) {
 // 순위표에서 선택된 태그 강조 스타일 업데이트
 function updateRankHighlight() {
     document.querySelectorAll('.rank-item').forEach(item => {
-        const tagName = item.innerText.replace(/[0-9]/g, '').trim(); // 배지 숫자 제외
-        if (currentFilter && tagName === currentFilter) {
-            item.style.background = 'rgba(51, 133, 255, 0.2)';
+        const tagValue = item.getAttribute('data-tag'); // 데이터 속성에서 직접 가져옴
+        
+        if (currentFilter && tagValue === currentFilter) {
+            // 클릭된 상태 스타일
+            item.style.background = 'rgba(51, 133, 255, 0.25)';
             item.style.borderColor = 'var(--accent-bright)';
-            item.style.borderRadius = '5px';
+            item.style.borderRadius = '6px';
+            item.style.boxShadow = 'inset 0 0 5px rgba(51, 133, 255, 0.2)';
         } else {
+            // 기본 상태 스타일
             item.style.background = 'transparent';
             item.style.borderColor = 'transparent';
+            item.style.boxShadow = 'none';
         }
     });
 }
