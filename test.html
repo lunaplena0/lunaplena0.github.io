@@ -643,22 +643,41 @@ function renderRptVodList(data) {
 // 리포트용 태그 리스트 (5개 제한 삭제 후 전체 출력)
 function renderRptTags(data) {
     const tagCount = {};
+    
     data.forEach(row => {
+        // 1. 일반 컨텐츠 태그 추출
         let rowTags = row['컨텐츠 종류'] ? row['컨텐츠 종류'].split(',').map(t => t.trim()) : [];
-        rowTags.forEach(tag => { if(tag && tag !== '-') tagCount[tag] = (tagCount[tag] || 0) + 1; });
+        
+        // 2. [추가] 구독플러스 및 성인인증 여부를 태그 목록에 포함
+        if (row['구독플러스여부'] === '예') rowTags.push('⭐구독+');
+        if (row['성인인증 필요 여부'] === '예') rowTags.push('🔞성인인증');
+
+        rowTags.forEach(tag => { 
+            if(tag && tag !== '-') {
+                tagCount[tag] = (tagCount[tag] || 0) + 1; 
+            }
+        });
     });
 
     const sorted = Object.entries(tagCount).sort((a, b) => b[1] - a[1]);
     const container = document.getElementById('rptTags');
     
-    // 핵심 변경: onclick에서 closeSummary()를 삭제하고 filterPopupVodByTag를 호출합니다.
-    container.innerHTML = sorted.map(([name, count], i) => `
-        <div class="rank-item" onclick="filterPopupVodByTag('${name}')" style="font-size:12px; padding:6px 10px; margin-bottom:4px; cursor:pointer;">
-            <span class="rank-badge ${i < 3 ? 'top-rank' : ''}">${i + 1}</span>
-            <span style="flex:1; margin-left:8px;">#${name}</span>
-            <small style="color:var(--text-sub);">${count}회</small>
-        </div>
-    `).join('') || '<p style="color:var(--text-sub); font-size:12px;">데이터 없음</p>';
+    container.innerHTML = sorted.map(([name, count], i) => {
+        // 특수 태그 스타일 처리
+        const isPlus = name.includes('구독');
+        const isAdult = name.includes('성인');
+        const specialStyle = isPlus ? 'color:#ffcc00;' : (isAdult ? 'color:#ff4444;' : '');
+        const displayName = (name.startsWith('#') || name.startsWith('⭐') || name.startsWith('🔞')) ? name : '#' + name;
+
+        return `
+            <div class="rank-item" onclick="filterPopupVodByTag('${name}')" 
+                 style="font-size:12px; padding:6px 10px; margin-bottom:4px; cursor:pointer; ${specialStyle}">
+                <span class="rank-badge ${i < 3 ? 'top-rank' : ''}">${i + 1}</span>
+                <span style="flex:1; margin-left:8px; font-weight:${isPlus || isAdult ? 'bold' : 'normal'};">${displayName}</span>
+                <small style="color:var(--text-sub);">${count}회</small>
+            </div>
+        `;
+    }).join('') || '<p style="color:var(--text-sub); font-size:12px;">데이터 없음</p>';
 }
 function toggleTagFilter(tagName) {
     const listContainer = document.querySelector('.vod-list');
