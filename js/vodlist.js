@@ -251,6 +251,7 @@ function loadSheetData() {
            // 로딩 종료 (loading.js에 있는 함수)
             if (typeof hideLoadingOverlay === "function") {
                 hideLoadingOverlay();
+            }
         }
     });
 }
