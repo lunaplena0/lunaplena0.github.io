@@ -289,67 +289,58 @@
     text-overflow: ellipsis;
 } 
         @media (max-width: 800px) {
-           /* 1. 팝업창 크기 및 위치 최적화 */
-    #summaryModal .modal-content {
-        width: 92% !important; /* 좌우 여백 확보 */
-        max-height: 85vh !important;
-        margin: auto;
+           /* 1. 팝업창 본체: 양옆 여백을 강제로 확보 */
+    .modal-content {
+        width: calc(100% - 20px) !important; 
+        margin: 10px !important;
+        max-height: 90vh !important;
     }
 
-    /* 2. 리포트 내부 그리드 시스템 1열로 강제 */
-    .summary-grid {
-        grid-template-columns: 1fr !important; /* 2열 -> 1열 */
+    /* 2. 내부 그리드 해제: 2열로 배치된 것들을 모두 1열로 직렬화 */
+    .summary-grid, 
+    .modal-info-grid, 
+    #rptCategory, 
+    #rptCategory > div > div {
+        display: block !important; /* 그리드를 해제하고 위아래로 쌓음 */
+        width: 100% !important;
+    }
+
+    /* 3. 개별 아이템 간격 조정 */
+    .summary-item, .info-item {
+        width: 100% !important;
+        margin-bottom: 8px !important;
+        padding: 12px !important;
+    }
+
+    /* 4. 태그 순위: 3열에서 2열로 강제 조정 (1열은 너무 길어지므로) */
+    #rptTags {
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr) !important;
         gap: 8px !important;
     }
 
-    /* 3. 카테고리(게임/노래) 섹션 최적화 */
-    #rptCategory {
-        display: flex !important;
-        flex-direction: column !important;
-        gap: 15px !important;
+    /* 5. 텍스트가 삐져나가지 않게 처리 */
+    .summary-item div, .info-item span {
+        font-size: 14px !important;
+        word-break: break-all !important;
+        white-space: normal !important;
     }
 
-    /* 4. 태그 순위 리스트 간격 및 폰트 조절 */
-    #rptTags {
-        grid-template-columns: 1fr 1fr !important; /* 2열 유지 */
-        gap: 5px 10px !important;
-    }
-    
-    #rptTags .rank-item {
-        font-size: 11px !important;
-        padding: 4px 0 !important;
-    }
-
-    /* 5. 탭 메뉴 버튼 크기 조절 (터치하기 편하게) */
-    .tab-btn {
-        padding: 12px 5px !important;
-        font-size: 13px !important;
-    }
-
-    /* 6. 통계 아이템(summary-item) 내부 텍스트 최적화 */
-    .summary-item {
+    /* 6. 내부 바디 여백 축소 */
+    .modal-body {
         padding: 12px !important;
     }
-    .summary-item div {
-        font-size: 15px !important;
-        word-break: keep-all; /* 숫자가 잘리지 않게 */
-    }
 
-    /* 7. VOD 목록 영역 높이 제한 해제 및 스크롤 최적화 */
-    #rptVodList {
-        max-height: 300px !important;
-        overflow-y: auto;
+    /* 7. 기존 리스트 아이템 대응 */
+    .bottom-section { grid-template-columns: 1fr; }
+    .rank-grid { 
+        grid-template-columns: repeat(2, 1fr); 
+        grid-auto-flow: row; /* 흐름을 위아래로 변경 */
     }
-            .bottom-section { grid-template-columns: 1fr; }
-            .rank-grid { 
-                grid-template-columns: repeat(2, 1fr); 
-                grid-template-rows: repeat(6, auto); 
-                grid-auto-flow: column;
-            }
-            .vod-item { gap: 10px; padding: 12px; }
-            .vod-thumb { width: 80px; } /* 모바일에서는 썸네일 축소 */
+        .vod-item { gap: 10px; padding: 12px; }
+        .vod-thumb { width: 80px; } /* 모바일에서는 썸네일 축소 */
         .vod-date { min-width: 50px; padding-right: 8px; }
         .date-day { font-size: 12px; }
         .vod-title { white-space: normal; -webkit-line-clamp: 2; display: -webkit-box; -webkit-box-orient: vertical; }
-            .btn-watch { display: none; }
+        .btn-watch { display: none; }
         }
