@@ -547,11 +547,55 @@ function loadSheetData() {
         download: true,
         header: true,
         complete: function(results) {
-            allData = results.data.filter(row => row['날짜']); // 유효 데이터 저장
+            allData = results.data.filter(row => row['날짜']); 
             renderVODList(allData); 
             updateTagStatistics(allData); 
+            // 리포트 데이터 그룹화 및 초기 렌더링 호출
+            initializeReportData(allData);
+            updateReport(); 
         }
     });
+}
+        // [추가] 리포트 전용 VOD 리스트 렌더링
+function renderRptVodList(data) {
+    const listContainer = document.getElementById('rptVodList');
+    if (!listContainer) return;
+    listContainer.innerHTML = '';
+
+    if (data.length === 0) {
+        listContainer.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-sub);">해당 기간의 데이터가 없습니다.</div>';
+        return;
+    }
+
+    data.forEach(row => {
+        const item = `
+            <div class="item-row" style="cursor:pointer; padding:10px; border-bottom:1px solid var(--border);" onclick="openDetailedModal(${JSON.stringify(row).replace(/"/g, '&quot;')})">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-size:12px; font-weight:bold;">${row['날짜'].substring(5)}</span>
+                    <span style="font-size:13px; flex:1; margin: 0 10px;" class="truncate">${row['제목']}</span>
+                    <span style="font-size:11px; color:var(--accent-bright);">${row['다시보기 총시간']}</span>
+                </div>
+            </div>`;
+        listContainer.insertAdjacentHTML('beforeend', item);
+    });
+}
+        // [보강] 태그 순위 및 필터링 렌더링 (리포트용)
+function renderRptTags(data) {
+    const tagCount = {};
+    data.forEach(row => {
+        let rowTags = row['컨텐츠 종류'] ? row['컨텐츠 종류'].split(',').map(t => t.trim()) : [];
+        rowTags.forEach(tag => { if(tag && tag !== '-') tagCount[tag] = (tagCount[tag] || 0) + 1; });
+    });
+
+    const sorted = Object.entries(tagCount).sort((a, b) => b[1] - a[1]).slice(0, 5);
+    const container = document.getElementById('rptTags');
+    container.innerHTML = sorted.map(([name, count], i) => `
+        <div class="rank-item" onclick="closeSummary(); toggleTagFilter('${name}');" style="font-size:12px; padding:5px;">
+            <span class="rank-badge ${i<3?'top-rank':''}">${i+1}</span>
+            <span>#${name}</span>
+            <small style="margin-left:auto; color:var(--text-sub);">${count}회</small>
+        </div>
+    `).join('') || '<p style="color:var(--text-sub); font-size:12px;">데이터 없음</p>';
 }
 function toggleTagFilter(tagName) {
     const listContainer = document.querySelector('.vod-list');
@@ -730,18 +774,25 @@ function setDiff(id, curr, prev, unit) {
 
 // 카테고리별(게임, 노래 등) 텍스트 요약
 function renderCategorySummary(data) {
-    const summary = { '게임': [], '노래': [], '컨텐츠': [] };
+    const categories = {
+        'game': { icon: '🎮', label: '게임', items: new Set() },
+        'song': { icon: '🎤', label: '노래', items: [] },
+        'content': { icon: '🎬', label: '컨텐츠', items: new Set() }
+    };
+
     data.forEach(r => {
-        if(r['게임(시간)'] && r['게임(시간)'] !== '-') summary['게임'].push(r['게임(시간)']);
-        if(r['노래(시간)'] && r['노래(시간)'] !== '-') summary['노래'].push(r['노래(시간)']);
-        if(r['컨텐츠(시간)'] && r['컨텐츠(시간)'] !== '-') summary['컨텐츠'].push(r['컨텐츠(시간)']);
+        if(r['게임(시간)'] && r['게임(시간)'] !== '-') r['게임(시간)'].split(',').forEach(v => categories.game.items.add(v.trim()));
+        if(r['노래(시간)'] && r['노래(시간)'] !== '-') r['노래(시간)'].split(',').forEach(v => categories.song.items.push(v.trim()));
+        if(r['컨텐츠(시간)'] && r['컨텐츠(시간)'] !== '-') r['컨텐츠(시간)'].split(',').forEach(v => categories.content.items.add(v.trim()));
     });
 
     document.getElementById('rptCategory').innerHTML = `
-        <p>🎮 <b>게임:</b> ${summary['게임'].slice(0, 3).join(', ')} ...</p>
-        <p>🎤 <b>노래:</b> ${summary['노래'].length}곡 기록됨</p>
-        <p>🎬 <b>컨텐츠:</b> ${summary['컨텐츠'].slice(0, 2).join(' / ')}</p>
+        <div style="margin-bottom:8px;">${categories.game.icon} <b>게임:</b> <span style="color:var(--text-sub);">${Array.from(categories.game.items).join(', ') || '없음'}</span></div>
+        <div style="margin-bottom:8px;">${categories.song.icon} <b>노래:</b> <span style="color:var(--text-sub);">${categories.song.items.length}곡 기록됨</span></div>
+        <div>${categories.content.icon} <b>컨텐츠:</b> <span style="color:var(--text-sub);">${Array.from(categories.content.items).join(', ') || '없음'}</span></div>
     `;
+    
+    renderRptTags(data); // 태그 순위도 함께 갱신
 }
 // 상세 팝업 오픈 (시트 데이터 기반)
 function openDetailedModal(data) {
