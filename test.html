@@ -340,7 +340,7 @@
     </div>
 </div>
     <div id="summaryModal" class="modal">
-    <div class="modal-content" style="max-width: 800px;"> <span class="close-btn" onclick="closeSummary()">&times;</span>
+    <div class="modal-content" style="max-width: 900px;"> <span class="close-btn" onclick="closeSummary()">&times;</span>
         <div class="modal-details">
             <h2 style="border:none; font-size: 18px; margin-bottom: 15px;">📅 방송 분석 리포트</h2>
             
@@ -356,38 +356,38 @@
             </div>
 
             <div class="modal-body" style="padding:0;">
-                <div class="summary-grid">
+                <div class="summary-grid" style="grid-template-columns: repeat(3, 1fr); margin-bottom: 15px; gap: 10px;">
                     <div class="summary-item">
                         <label>총 방송 시간</label>
-                        <div id="rptTotalTime">-</div>
+                        <div id="rptTotalTime" style="font-size: 1.2rem;">-</div>
                         <small id="diffTotalTime" class="diff-text"></small>
                     </div>
                     <div class="summary-item">
                         <label>평균 방송 시간</label>
-                        <div id="rptAvgTime">-</div>
+                        <div id="rptAvgTime" style="font-size: 1.2rem;">-</div>
                         <small id="diffAvgTime" class="diff-text"></small>
                     </div>
                     <div class="summary-item">
                         <label>방송 횟수</label>
-                        <div id="rptCount">-</div>
+                        <div id="rptCount" style="font-size: 1.2rem;">-</div>
                         <small id="diffCount" class="diff-text"></small>
                     </div>
                 </div>
 
-                <div class="detail-report-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
-                    <div class="card">
-                        <h2>🏆 주요 태그 순위</h2>
-                        <div id="rptTags" class="rank-grid" style="grid-template-columns: 1fr;"></div>
+                <div class="detail-report-grid" style="display: grid; grid-template-columns: 280px 1fr; gap: 15px; margin-top: 15px;">
+                    <div class="card" style="height: fit-content;">
+                        <h2>📊 전체 태그 순위</h2>
+                        <div id="rptTags" class="rank-grid" style="grid-template-columns: 1fr; max-height: 400px; overflow-y: auto; padding-right: 5px;"></div>
                     </div>
                     <div class="card">
                         <h2>📝 카테고리별 요약</h2>
-                        <div id="rptCategory" class="item-row" style="font-size: 11px; gap: 8px;"></div>
+                        <div id="rptCategory" style="display: flex; flex-direction: column; gap: 20px;"></div>
                     </div>
                 </div>
 
                 <div class="card" style="margin-top: 15px;">
                     <h2>🎥 선택 기간 방송 목록</h2>
-                    <div id="rptVodList" class="vod-list"></div>
+                    <div id="rptVodList" class="vod-list" style="max-height: 250px;"></div>
                 </div>
             </div>
         </div>
@@ -577,6 +577,7 @@ function renderRptVodList(data) {
     });
 }
         // [보강] 태그 순위 및 필터링 렌더링 (리포트용)
+// 리포트용 태그 리스트 (5개 제한 삭제 후 전체 출력)
 function renderRptTags(data) {
     const tagCount = {};
     data.forEach(row => {
@@ -584,13 +585,14 @@ function renderRptTags(data) {
         rowTags.forEach(tag => { if(tag && tag !== '-') tagCount[tag] = (tagCount[tag] || 0) + 1; });
     });
 
-    const sorted = Object.entries(tagCount).sort((a, b) => b[1] - a[1]).slice(0, 5);
+    const sorted = Object.entries(tagCount).sort((a, b) => b[1] - a[1]);
     const container = document.getElementById('rptTags');
+    
     container.innerHTML = sorted.map(([name, count], i) => `
-        <div class="rank-item" onclick="closeSummary(); toggleTagFilter('${name}');" style="font-size:12px; padding:5px;">
-            <span class="rank-badge ${i<3?'top-rank':''}">${i+1}</span>
-            <span>#${name}</span>
-            <small style="margin-left:auto; color:var(--text-sub);">${count}회</small>
+        <div class="rank-item" onclick="closeSummary(); toggleTagFilter('${name}');" style="font-size:12px; padding:6px 10px; margin-bottom:4px; cursor:pointer;">
+            <span class="rank-badge ${i < 3 ? 'top-rank' : ''}">${i + 1}</span>
+            <span style="flex:1; margin-left:8px;">#${name}</span>
+            <small style="color:var(--text-sub);">${count}회</small>
         </div>
     `).join('') || '<p style="color:var(--text-sub); font-size:12px;">데이터 없음</p>';
 }
@@ -778,37 +780,38 @@ function renderCategorySummary(data) {
     };
 
     data.forEach(r => {
-        // 각 카테고리별로 쉼표로 구분된 데이터를 읽어와서 횟수 카운트
         const process = (key, category) => {
             if (r[key] && r[key] !== '-' && r[key] !== '0') {
-                // "롤(01:20:00)" 형태에서 이름만 추출하거나 "가나다" 이름만 있는 경우 처리
                 r[key].split(',').forEach(item => {
-                    let name = item.split('(')[0].trim(); // 괄호 앞의 이름만 추출
+                    let name = item.split('(')[0].trim();
                     if (name) {
                         categories[category].items[name] = (categories[category].items[name] || 0) + 1;
                     }
                 });
             }
         };
-
         process('게임(시간)', 'game');
         process('노래(시간)', 'song');
         process('컨텐츠(시간)', 'content');
     });
 
-    // 화면에 그리기
     const generateHtml = (cat) => {
         const sortedItems = Object.entries(cat.items).sort((a, b) => b[1] - a[1]);
-        let html = `<div style="margin-bottom:15px;">
-                        <b style="color:var(--accent-bright); font-size:14px;">${cat.icon} ${cat.label}</b><br>`;
+        let html = `<div>
+                        <b style="color:var(--accent-bright); font-size:14px; display:block; margin-bottom:10px;">${cat.icon} ${cat.label}</b>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px;">`;
+        
         if (sortedItems.length > 0) {
-            html += sortedItems.map(([name, count]) => 
-                `<span style="display:inline-block; font-size:12px; margin-top:4px; margin-right:8px; color:var(--text-main);">${name} ${count}회</span>`
-            ).join(' ');
+            html += sortedItems.map(([name, count]) => `
+                <div style="background:rgba(255,255,255,0.05); padding:8px 12px; border-radius:6px; border:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-size:12px; color:var(--text-main); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${name}">${name}</span>
+                    <strong style="font-size:11px; color:var(--accent-bright);">${count}회</strong>
+                </div>
+            `).join('');
         } else {
-            html += `<span style="font-size:12px; color:var(--text-sub);">기록 없음</span>`;
+            html += `<span style="font-size:12px; color:var(--text-sub); grid-column: 1/-1;">데이터 없음</span>`;
         }
-        html += `</div>`;
+        html += `</div></div>`;
         return html;
     };
 
@@ -817,7 +820,8 @@ function renderCategorySummary(data) {
         generateHtml(categories.song) + 
         generateHtml(categories.content);
     
-    renderRptTags(data); // 리포트 내 태그 순위 갱신
+    // 리포트용 태그 리스트 업데이트 (전체 출력)
+    renderRptTags(data);
 }
 // 상세 팝업 오픈 (시트 데이터 기반)
 function openDetailedModal(data) {
