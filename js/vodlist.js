@@ -236,6 +236,8 @@ function loadSheetData() {
             // 리포트 데이터 그룹화 및 초기 렌더링 호출
             initializeReportData(allData);
             updateReport(); 
+            const overlay = document.getElementById('loading-overlay');
+            if (overlay) overlay.style.display = 'none';
         }
     });
 }
