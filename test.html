@@ -335,38 +335,38 @@
             </div>
 
             <div id="monthly" class="tab-content active">
-                <div class="summary-grid">
-                    <div class="summary-item summary-full">
-                        <label>이달의 총 방송 시간</label>
-                        <div style="color: var(--accent-bright);">82시간 40분</div>
-                    </div>
-                    <div class="summary-item">
-                        <label>방송 횟수</label>
-                        <div>18회</div>
-                    </div>
-                    <div class="summary-item">
-                        <label>최고 시청 태그</label>
-                        <div>#심해노래방</div>
-                    </div>
-                </div>
-            </div>
+    <div class="summary-grid">
+        <div class="summary-item summary-full">
+            <label>전체 누적 방송 시간</label>
+            <div id="sumTotalTime" style="color: var(--accent-bright);">-</div>
+        </div>
+        <div class="summary-item">
+            <label>총 방송 횟수</label>
+            <div id="sumTotalCount">-</div>
+        </div>
+        <div class="summary-item">
+            <label>가장 많이 한 태그</label>
+            <div id="sumTopTag">-</div>
+        </div>
+    </div>
+</div>
 
-            <div id="yearly" class="tab-content">
-                <div class="summary-grid">
-                    <div class="summary-item summary-full">
-                        <label>2024년 누적 방송 시간</label>
-                        <div style="color: #ffcc00;">542시간 15분</div>
-                    </div>
-                    <div class="summary-item">
-                        <label>평균 방송 시간</label>
-                        <div>4시간 20분</div>
-                    </div>
-                    <div class="summary-item">
-                        <label>가장 바빴던 달</label>
-                        <div>3월 (95시간)</div>
-                    </div>
-                </div>
-            </div>
+<div id="yearly" class="tab-content">
+    <div class="summary-grid">
+        <div class="summary-item summary-full">
+            <label>2026년 누적 방송 시간</label>
+            <div id="sumYearlyTime" style="color: #ffcc00;">-</div>
+        </div>
+        <div class="summary-item">
+            <label>월평균 방송 시간</label>
+            <div id="sumAvgMonthlyTime">-</div>
+        </div>
+        <div class="summary-item">
+            <label>가장 방송이 길었던 날</label>
+            <div id="sumMaxDay">-</div>
+        </div>
+    </div>
+</div>
         </div>
     </div>
 </div>
@@ -385,6 +385,7 @@ function updateTagStatistics(data) {
     let plusTotalSec = 0;   // 구독+ 누적 초
     let maxSec = 0;
     let minSec = Infinity;
+    let maxDate = ""; // 가장 오래 방송한 날짜 기록용
     
     const tagCount = {};
     let totalTagInstances = 0;
@@ -417,6 +418,9 @@ function updateTagStatistics(data) {
                 totalTagInstances++;
             }
         });
+        if (timeToSeconds(row['다시보기 총시간']) === maxSec) {
+            maxDate = row['날짜'];
+        }    
     });
     // --- 데이터 매핑 ---
 
@@ -470,6 +474,24 @@ function updateTagStatistics(data) {
             </div>`;
     }
     ratioContainer.innerHTML = ratioHtml;
+    // [요약 보고서 연동]
+    const topTag = sortedTags.length > 0 ? sortedTags[0][0] : '-';
+    const topTagName = topTag.startsWith('⭐') || topTag.startsWith('🔞') ? topTag : '#' + topTag;
+
+    // 1. 월간(전체) 탭 업데이트
+    document.getElementById('sumTotalTime').innerText = secondsToText(totalSec);
+    document.getElementById('sumTotalCount').innerText = `${totalVods}회`;
+    document.getElementById('sumTopTag').innerText = topTagName;
+
+    // 2. 연간(상세) 탭 업데이트 (현재 시트 전체를 2026년으로 가정)
+    document.getElementById('sumYearlyTime').innerText = secondsToText(totalSec);
+    
+    // 월평균 계산 (데이터에 포함된 고유한 '월'의 개수로 나눔)
+    const uniqueMonths = new Set(data.map(row => row['날짜'] ? row['날짜'].substring(0, 7) : null).filter(Boolean)).size;
+    const avgMonthlySec = uniqueMonths > 0 ? Math.floor(totalSec / uniqueMonths) : 0;
+    document.getElementById('sumAvgMonthlyTime').innerText = secondsToText(avgMonthlySec);
+    
+    document.getElementById('sumMaxDay').innerText = maxDate ? `${maxDate.split('-')[1]}월 ${maxDate.split('-')[2]}일` : '-';
 
 // 6. [전체 태그 순위] 그리드 업데이트
     const rankGrid = document.querySelector('.rank-grid');
