@@ -583,16 +583,16 @@ function filterPopupVodByTag(tagName) {
     } else {
         currentPopupTag = tagName;
         const filtered = baseData.filter(row => {
-            // 일반 태그 리스트
+            // 일반 태그 리스트 생성
             const rowTags = row['컨텐츠 종류'] ? row['컨텐츠 종류'].split(',').map(t => t.trim()) : [];
             
-            // 필터링 조건 분기
-            if (tagName === '구독플러스') {
+            // --- 이 부분을 수정합니다 ---
+            if (tagName === '구독+') {
                 return row['구독플러스여부'] === '예';
-            } else if (tagName === '성인인증') {
+            } else if (tagName === '19') {
                 return row['성인인증 필요 여부'] === '예';
             } else {
-                // 일반 #태그 필터링
+                // 일반 #태그 필터링 (샵 기호 제거 후 비교)
                 return rowTags.some(t => t.replace('#','') === tagName.replace('#',''));
             }
         });
