@@ -31,38 +31,45 @@
             display: flex; flex-direction: column;
         }
 
-        /* --- 상단 헤더: 왼쪽 글씨 / 오른쪽 버튼 --- */
+        /* --- 상단 헤더: 왼쪽(글씨) / 오른쪽(버튼) 강제 정렬 --- */
         .profile-box { 
-            display: flex; 
-            justify-content: space-between; /* 양 끝 정렬 */
-            align-items: center; 
+            display: flex !important; 
+            flex-direction: row !important; /* 가로 정렬 강제 */
+            justify-content: space-between !important; 
+            align-items: center !important; 
             background: linear-gradient(145deg, #051020, #02050a); 
         }
-        .profile-info { text-align: left; } /* 왼쪽 정렬 명시 */
-        .profile-info h1 { margin: 0; font-size: 20px; }
+        
+        .profile-info { text-align: left; }
+        .profile-info h1 { margin: 0; font-size: 20px; letter-spacing: -0.5px; }
         .profile-info p { margin: 3px 0 0; font-size: 12px; color: var(--text-sub); }
 
-        .header-buttons { display: flex; gap: 8px; }
+        .header-buttons { display: flex; gap: 8px; flex-shrink: 0; } /* 버튼이 줄어들지 않게 설정 */
+        
         .link-btn { 
             padding: 8px 12px; border-radius: 6px; font-size: 11px; font-weight: bold;
             text-decoration: none; transition: 0.3s; display: inline-flex; align-items: center; justify-content: center;
+            white-space: nowrap; /* 글자 줄바꿈 방지 */
         }
         .btn-summary { background: rgba(51, 133, 255, 0.1); border: 1px solid var(--accent-bright); color: var(--text-main); }
         .btn-summary:hover { background: var(--accent-bright); color: #fff; }
         .btn-back { background: rgba(92, 114, 133, 0.1); border: 1px solid var(--text-sub); color: var(--text-sub); }
         .btn-back:hover { background: var(--text-sub); color: #fff; }
 
-        /* 하단 레이아웃: 통계(1) : 태그비중(1) : 전체순위(1.8) */
+        /* --- 하단 3개 상자 레이아웃 --- */
         .bottom-section { 
             display: grid; 
             grid-template-columns: 1fr 1fr 1.8fr; 
             gap: 12px; 
-            align-items: stretch;
+            align-items: stretch; /* 높이를 동일하게 맞춤 */
         }
 
         h2 { font-size: 12px; color: var(--accent-bright); border-bottom: 1px solid var(--border); padding-bottom: 8px; margin: 0 0 10px 0; letter-spacing: 0.5px; }
 
-        .item-row { padding: 6px 4px; border-bottom: 1px solid rgba(22, 36, 58, 0.5); font-size: 12.5px; flex: 1; display: flex; flex-direction: column; justify-content: center; }
+        .item-row { 
+            padding: 6px 4px; border-bottom: 1px solid rgba(22, 36, 58, 0.5); 
+            font-size: 12.5px; flex: 1; display: flex; flex-direction: column; justify-content: center; 
+        }
         .item-row:last-child { border-bottom: none; }
 
         .stat-label { color: var(--text-sub); font-size: 10.5px; }
@@ -71,12 +78,11 @@
         .graph-bar-container { width: 100%; background: #051020; height: 4px; border-radius: 2px; margin-top: 5px; }
         .graph-bar { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-bright)); border-radius: 2px; }
 
-        /* 전체 태그 순위 3열 */
+        /* --- 전체 태그 순위 3열 --- */
         .rank-grid { 
             display: grid; 
             grid-template-columns: 1fr 1fr 1fr; 
             column-gap: 12px; 
-            row-gap: 0px;
             height: 100%;
         }
         .rank-item { display: flex; align-items: center; padding: 7px 0; border-bottom: 1px solid rgba(22, 36, 58, 0.3); font-size: 11.5px; }
@@ -87,9 +93,10 @@
         }
         .top-rank { background: var(--accent-bright); color: #fff; }
 
-        @media (max-width: 1000px) {
-            .profile-box { flex-direction: column; text-align: center; gap: 15px; }
-            .profile-info { text-align: center; }
+        /* 모바일 반응형 */
+        @media (max-width: 800px) {
+            .profile-box { padding: 12px; }
+            .profile-info h1 { font-size: 16px; }
             .bottom-section { grid-template-columns: 1fr; }
             .rank-grid { grid-template-columns: 1fr 1fr; } 
         }
@@ -104,8 +111,8 @@
             <p>방송 통계 및 태그 분석 리포트</p>
         </div>
         <div class="header-buttons">
-            <a href="summary.html" class="link-btn btn-summary">📅 월/연간 요약 보고서</a>
-            <a href="index.html" class="link-btn btn-back">↩ 메인으로 돌아가기</a>
+            <a href="summary.html" class="link-btn btn-summary">📅 요약 보고서</a>
+            <a href="index.html" class="link-btn btn-back">↩ 돌아가기</a>
         </div>
     </div>
 
@@ -162,28 +169,25 @@
             <h2>🏆 전체 태그 순위</h2>
             <div class="rank-grid">
                 <div class="rank-item"><span class="rank-badge top-rank">1</span>#심해노래방</div>
-                <div class="rank-item"><span class="rank-badge">7</span>#먹방</div>
-                <div class="rank-item"><span class="rank-badge">13</span>#야외방송</div>
-                
-                <div class="rank-item"><span class="rank-badge top-rank">2</span>#라이브</div>
-                <div class="rank-item"><span class="rank-badge">8</span>#라디오</div>
-                <div class="rank-item"><span class="rank-badge">14</span>#작업방송</div>
-                
-                <div class="rank-item"><span class="rank-badge top-rank">3</span>#신곡커버</div>
-                <div class="rank-item"><span class="rank-badge">9</span>#VRchat</div>
-                <div class="rank-item"><span class="rank-badge">15</span>#이벤트</div>
-                
                 <div class="rank-item"><span class="rank-badge">4</span>#공포게임</div>
+                <div class="rank-item"><span class="rank-badge">7</span>#먹방</div>
                 <div class="rank-item"><span class="rank-badge">10</span>#기타게임</div>
-                <div class="rank-item"><span class="rank-badge">16</span>#기타</div>
-                
+                <div class="rank-item"><span class="rank-badge">13</span>#야외방송</div>
+                <div class="rank-item" style="border:none;"></div>
+
+                <div class="rank-item"><span class="rank-badge top-rank">2</span>#라이브</div>
                 <div class="rank-item"><span class="rank-badge">5</span>#시네티</div>
+                <div class="rank-item"><span class="rank-badge">8</span>#라디오</div>
                 <div class="rank-item"><span class="rank-badge">11</span>#듀엣</div>
-                <div class="rank-item" style="border-bottom: none;"></div>
-                
+                <div class="rank-item"><span class="rank-badge">14</span>#작업방송</div>
+                <div class="rank-item" style="border:none;"></div>
+
+                <div class="rank-item"><span class="rank-badge top-rank">3</span>#신곡커버</div>
                 <div class="rank-item"><span class="rank-badge">6</span>#소통방송</div>
+                <div class="rank-item"><span class="rank-badge">9</span>#VRchat</div>
                 <div class="rank-item"><span class="rank-badge">12</span>#ASMR</div>
-                <div class="rank-item" style="border-bottom: none;"></div>
+                <div class="rank-item"><span class="rank-badge">15</span>#이벤트</div>
+                <div class="rank-item"><span class="rank-badge">16</span>#기타</div>
             </div>
         </div>
     </div>
