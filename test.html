@@ -324,49 +324,56 @@
     </div>
 </div>
     <div id="summaryModal" class="modal">
-    <div class="modal-content" style="max-width: 600px;">
-        <span class="close-btn" onclick="closeSummary()">&times;</span>
+    <div class="modal-content" style="max-width: 800px;"> <span class="close-btn" onclick="closeSummary()">&times;</span>
         <div class="modal-details">
-            <h2 style="border:none; font-size: 18px; margin-bottom: 20px;">📅 방송 요약 리포트</h2>
+            <h2 style="border:none; font-size: 18px; margin-bottom: 15px;">📅 방송 분석 리포트</h2>
             
-            <div class="summary-tabs">
-                <button class="tab-btn active" onclick="switchTab('monthly')">월간 요약 (4월)</button>
-                <button class="tab-btn" onclick="switchTab('yearly')">연간 요약 (2024)</button>
+            <div class="filter-controls" style="display: flex; gap: 10px; margin-bottom: 20px;">
+                <select id="selectYear" class="link-btn btn-back" style="background:#16243a; color:white; border:1px solid var(--border);"></select>
+                <select id="selectMonth" class="link-btn btn-back" style="background:#16243a; color:white; border:1px solid var(--border);">
+                    <option value="all">연간 전체</option>
+                    <option value="01">1월</option><option value="02">2월</option><option value="03">3월</option>
+                    <option value="04">4월</option><option value="05">5월</option><option value="06">6월</option>
+                    <option value="07">7월</option><option value="08">8월</option><option value="09">9월</option>
+                    <option value="10">10월</option><option value="11">11월</option><option value="12">12월</option>
+                </select>
             </div>
 
-            <div id="monthly" class="tab-content active">
-    <div class="summary-grid">
-        <div class="summary-item summary-full">
-            <label>전체 누적 방송 시간</label>
-            <div id="sumTotalTime" style="color: var(--accent-bright);">-</div>
-        </div>
-        <div class="summary-item">
-            <label>총 방송 횟수</label>
-            <div id="sumTotalCount">-</div>
-        </div>
-        <div class="summary-item">
-            <label>가장 많이 한 태그</label>
-            <div id="sumTopTag">-</div>
-        </div>
-    </div>
-</div>
+            <div class="modal-body" style="padding:0;">
+                <div class="summary-grid">
+                    <div class="summary-item">
+                        <label>총 방송 시간</label>
+                        <div id="rptTotalTime">-</div>
+                        <small id="diffTotalTime" class="diff-text"></small>
+                    </div>
+                    <div class="summary-item">
+                        <label>평균 방송 시간</label>
+                        <div id="rptAvgTime">-</div>
+                        <small id="diffAvgTime" class="diff-text"></small>
+                    </div>
+                    <div class="summary-item">
+                        <label>방송 횟수</label>
+                        <div id="rptCount">-</div>
+                        <small id="diffCount" class="diff-text"></small>
+                    </div>
+                </div>
 
-<div id="yearly" class="tab-content">
-    <div class="summary-grid">
-        <div class="summary-item summary-full">
-            <label>2026년 누적 방송 시간</label>
-            <div id="sumYearlyTime" style="color: #ffcc00;">-</div>
-        </div>
-        <div class="summary-item">
-            <label>월평균 방송 시간</label>
-            <div id="sumAvgMonthlyTime">-</div>
-        </div>
-        <div class="summary-item">
-            <label>가장 방송이 길었던 날</label>
-            <div id="sumMaxDay">-</div>
-        </div>
-    </div>
-</div>
+                <div class="detail-report-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
+                    <div class="card">
+                        <h2>🏆 주요 태그 순위</h2>
+                        <div id="rptTags" class="rank-grid" style="grid-template-columns: 1fr;"></div>
+                    </div>
+                    <div class="card">
+                        <h2>📝 카테고리별 요약</h2>
+                        <div id="rptCategory" class="item-row" style="font-size: 11px; gap: 8px;"></div>
+                    </div>
+                </div>
+
+                <div class="card" style="margin-top: 15px;">
+                    <h2>🎥 선택 기간 방송 목록</h2>
+                    <div id="rptVodList" class="vod-list"></div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -638,7 +645,104 @@ function renderVODList(data) {
         listContainer.appendChild(vodItem);
     });
 }
+// 전역 변수 설정
+let groupedData = {}; // { "2026": { "04": [...], "03": [...] } }
 
+// 1. 데이터 초기 그룹화 (loadSheetData 완료 시 호출)
+function initializeReportData(data) {
+    groupedData = {};
+    const yearSelect = document.getElementById('selectYear');
+    const years = new Set();
+
+    data.forEach(row => {
+        if (!row['날짜']) return;
+        const [y, m] = row['날짜'].split('-');
+        if (!groupedData[y]) groupedData[y] = {};
+        if (!groupedData[y][m]) groupedData[y][m] = [];
+        groupedData[y][m].push(row);
+        years.add(y);
+    });
+
+    // 연도 셀렉트박스 채우기
+    yearSelect.innerHTML = Array.from(years).sort().reverse()
+        .map(y => `<option value="${y}">${y}년</option>`).join('');
+    
+    // 이벤트 리스너 등록
+    document.getElementById('selectYear').addEventListener('change', updateReport);
+    document.getElementById('selectMonth').addEventListener('change', updateReport);
+}
+
+// 2. 리포트 업데이트 함수
+function updateReport() {
+    const targetYear = document.getElementById('selectYear').value;
+    const targetMonth = document.getElementById('selectMonth').value;
+
+    let currentData = [];
+    let prevData = [];
+
+    if (targetMonth === 'all') {
+        // 연도별 데이터 처리 및 작년 데이터 비교 로직 (생략 가능)
+        currentData = Object.values(groupedData[targetYear] || {}).flat();
+        prevData = Object.values(groupedData[parseInt(targetYear)-1] || {}).flat();
+    } else {
+        // 월별 데이터 처리 및 전달 데이터 비교
+        currentData = groupedData[targetYear]?.[targetMonth] || [];
+        const prevMonth = parseInt(targetMonth) === 1 ? '12' : (parseInt(targetMonth)-1).toString().padStart(2, '0');
+        const prevYear = parseInt(targetMonth) === 1 ? (parseInt(targetYear)-1).toString() : targetYear;
+        prevData = groupedData[prevYear]?.[prevMonth] || [];
+    }
+
+    renderStats(currentData, prevData);
+    renderCategorySummary(currentData);
+    renderRptVodList(currentData);
+}
+
+// 3. 수치 및 비교 렌더링
+function renderStats(curr, prev) {
+    const currTotal = curr.reduce((acc, r) => acc + timeToSeconds(r['다시보기 총시간']), 0);
+    const prevTotal = prev.reduce((acc, r) => acc + timeToSeconds(r['다시보기 총시간']), 0);
+    
+    // 시간 표시 및 차이 계산
+    document.getElementById('rptTotalTime').innerText = secondsToText(currTotal);
+    setDiff('diffTotalTime', currTotal, prevTotal, "시간");
+
+    // 방송 횟수 표시 및 차이 계산
+    document.getElementById('rptCount').innerText = `${curr.length}회`;
+    setDiff('diffCount', curr.length, prev.length, "회");
+
+    // 평균 시간
+    const currAvg = curr.length > 0 ? currTotal / curr.length : 0;
+    const prevAvg = prev.length > 0 ? prevTotal / prev.length : 0;
+    document.getElementById('rptAvgTime').innerText = secondsToText(currAvg);
+    setDiff('diffAvgTime', currAvg, prevAvg, "분");
+}
+
+function setDiff(id, curr, prev, unit) {
+    const el = document.getElementById(id);
+    if (prev === 0) { el.innerText = ""; return; }
+    const diff = curr - prev;
+    const color = diff >= 0 ? "#ff4444" : "#3385ff";
+    const sign = diff >= 0 ? "▲" : "▼";
+    // 시간/분 단위 변환 로직 필요 시 추가
+    el.style.color = color;
+    el.innerText = `${sign} ${Math.abs(Math.round(diff / (unit === "회" ? 1 : 60)))} ${unit}`;
+}
+
+// 카테고리별(게임, 노래 등) 텍스트 요약
+function renderCategorySummary(data) {
+    const summary = { '게임': [], '노래': [], '컨텐츠': [] };
+    data.forEach(r => {
+        if(r['게임(시간)'] && r['게임(시간)'] !== '-') summary['게임'].push(r['게임(시간)']);
+        if(r['노래(시간)'] && r['노래(시간)'] !== '-') summary['노래'].push(r['노래(시간)']);
+        if(r['컨텐츠(시간)'] && r['컨텐츠(시간)'] !== '-') summary['컨텐츠'].push(r['컨텐츠(시간)']);
+    });
+
+    document.getElementById('rptCategory').innerHTML = `
+        <p>🎮 <b>게임:</b> ${summary['게임'].slice(0, 3).join(', ')} ...</p>
+        <p>🎤 <b>노래:</b> ${summary['노래'].length}곡 기록됨</p>
+        <p>🎬 <b>컨텐츠:</b> ${summary['컨텐츠'].slice(0, 2).join(' / ')}</p>
+    `;
+}
 // 상세 팝업 오픈 (시트 데이터 기반)
 function openDetailedModal(data) {
     document.getElementById('modalThumb').src = data['썸네일'];
