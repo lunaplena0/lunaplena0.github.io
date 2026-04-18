@@ -152,8 +152,12 @@
 /* 팝업창 박스 */
 .modal-content {
     background: var(--card-bg); border: 1px solid var(--border);
-    width: 90%; max-width: 500px; border-radius: 15px;
-    position: relative; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    width: 95%; max-width: 500px; 
+    max-height: 85vh; /* 화면 높이의 85%까지만 커짐 */
+    border-radius: 15px;
+    position: relative; 
+    display: flex; flex-direction: column; /* 헤더와 바디 분리용 */
+    overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
     animation: fadeIn 0.3s ease-out;
 }
 
@@ -165,12 +169,24 @@
 /* 닫기 버튼 */
 .close-btn {
     position: absolute; top: 15px; right: 20px; color: var(--text-sub);
-    font-size: 24px; cursor: pointer; z-index: 10;
+    font-size: 24px; cursor: pointer; z-index: 100; /* 최상단 고정 */
+    background: var(--card-bg); padding: 0 5px; border-radius: 50%;
 }
 .close-btn:hover { color: var(--text-main); }
 
 /* 팝업 내부 콘텐츠 */
-.modal-body { padding: 0; }
+.modal-body { 
+    overflow-y: auto; /* 세로 스크롤 활성화 */
+    flex: 1; 
+    scrollbar-width: thin; /* 파이어폭스 스크롤바 조절 */
+    scrollbar-color: var(--accent) transparent;
+}
+/* 크롬/사파리 스크롤바 디자인 */
+.modal-body::-webkit-scrollbar { width: 6px; }
+.modal-body::-webkit-scrollbar-thumb { background-color: var(--accent); border-radius: 10px; }
+.modal-body::-webkit-scrollbar-track { background: transparent; }
+
+/* 팝업 상단 이미지 고정 해제 (본문과 함께 스크롤되도록 본문 안으로 이동) */
 .modal-thumb { width: 100%; aspect-ratio: 16/9; object-fit: cover; border-bottom: 1px solid var(--border); }
 .modal-details { padding: 20px; }
 .modal-details h3 { margin: 0 0 15px 0; font-size: 18px; color: var(--text-main); line-height: 1.5; }
@@ -311,6 +327,7 @@
 <div id="vodModal" class="modal">
     <div class="modal-content">
         <span class="close-btn" onclick="closeModal()">&times;</span>
+        
         <div class="modal-body">
             <img id="modalThumb" src="" class="modal-thumb">
             <div class="modal-details">
@@ -318,15 +335,14 @@
                 <div class="modal-info-grid">
                     <div class="info-item">
                         <label>방송 날짜</label>
-                        <span id="modalDate">00.00</span>
+                        <span id="modalDate">0000-00-00</span>
                     </div>
                     <div class="info-item">
                         <label>방송 시간</label>
                         <span id="modalDuration">00:00:00</span>
                     </div>
                 </div>
-                <div id="modalTags" class="modal-tags">
-                    </div>
+                <div id="modalTags" class="modal-tags"></div>
             </div>
         </div>
     </div>
