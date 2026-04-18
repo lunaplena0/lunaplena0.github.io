@@ -3,6 +3,20 @@ let visibleCount = 10;
 const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTfTHMy1hImniay9QEPDcMq5C4Yo5yFpmRtBlWo6UXK-FNxABQYbtfGpEsKom2O-OIJPnEi8LLy1Qqx/pub?gid=0&single=true&output=tsv";
 
 document.addEventListener("DOMContentLoaded", function() {
+    // 1. 글자를 먼저 생성 (이게 먼저 실행되어야 글자가 보입니다)
+    if (typeof prepareWaveText === "function") {
+        prepareWaveText("소중한 기록들을 정리하고 있어요 . . .");
+    }
+
+    // 2. 오버레이를 강제로 보여줌
+    const overlay = document.getElementById('loading-overlay');
+    if (overlay) {
+        overlay.style.display = 'flex';
+        overlay.style.opacity = '1';
+        overlay.style.visibility = 'visible';
+    }
+
+    // 3. 데이터 로딩 시작
     loadSheetData();
 });
 
@@ -222,15 +236,7 @@ let currentFilter = null; // 현재 선택된 태그
 
 // 기존 loadSheetData 함수 수정
 function loadSheetData() {
-    const overlay = document.getElementById('loading-overlay');
     
-    // 1. 파도 애니메이션 텍스트 생성 (애니메이션 효과 극대화)
-    const loadingText = "소중한 기록들을 정리하고 있어요 . . .";
-    if (overlay) {
-        overlay.style.opacity = '1';
-        overlay.style.visibility = 'visible';
-        document.body.style.overflow = 'hidden'; // 로딩 중 스크롤 방지
-    }
     Papa.parse(sheetURL, {
         download: true,
         header: true,
@@ -242,8 +248,9 @@ function loadSheetData() {
             // 리포트 데이터 그룹화 및 초기 렌더링 호출
             initializeReportData(allData);
             updateReport(); 
-            // 2. 로딩 종료: 이미 만들어두신 함수 호출
-            hideLoadingOverlay();
+           // 로딩 종료 (loading.js에 있는 함수)
+            if (typeof hideLoadingOverlay === "function") {
+                hideLoadingOverlay();
         }
     });
 }
