@@ -246,13 +246,28 @@
 
     <div class="bottom-section">
         <div class="card">
-            <h2>📊 전체 다시보기 통계</h2>
-            <div class="item-row"><span class="stat-label">전체 누적 시간</span><span class="stat-value">542시간 15분</span></div>
-            <div class="item-row"><span class="stat-label">구독+ 방송시간 및 비율</span><span class="stat-value" style="color:#ffcc00;">120시간 (22%)</span></div>
-            <div class="item-row"><span class="stat-label">최대 방송시간</span><span class="stat-value">12시간 45분</span></div>
-            <div class="item-row"><span class="stat-label">평균 방송시간</span><span class="stat-value">4시간 20분</span></div>
-            <div class="item-row"><span class="stat-label">최소 방송시간</span><span class="stat-value">3시간 55분</span></div>
-        </div>
+    <h2>📊 전체 다시보기 통계</h2>
+    <div class="item-row">
+        <span class="stat-label">전체 누적 시간</span>
+        <span id="statTotalTime" class="stat-value">-</span>
+    </div>
+    <div class="item-row">
+        <span class="stat-label">구독+ 방송시간 및 비율</span>
+        <span id="statPlusTimeRatio" class="stat-value" style="color:#ffcc00;">-</span>
+    </div>
+    <div class="item-row">
+        <span class="stat-label">최대 방송시간</span>
+        <span id="statMaxTime" class="stat-value">-</span>
+    </div>
+    <div class="item-row">
+        <span class="stat-label">평균 방송시간</span>
+        <span id="statAvgTime" class="stat-value">-</span>
+    </div>
+    <div class="item-row">
+        <span class="stat-label">최소 방송시간</span>
+        <span id="statMinTime" class="stat-value">-</span>
+    </div>
+</div>
 
         <div class="card">
             <h2>📈 통합 태그 비중 (Top 5)</h2>
@@ -373,20 +388,37 @@ document.addEventListener("DOMContentLoaded", function() {
 
 // 통계 계산용 ID를 HTML 태그에 맞춰 설정하기 위해 선택자 준비
 function updateTagStatistics(data) {
+    let totalVods = 0;
+    let totalSec = 0;       // 전체 누적 초
+    let plusTotalSec = 0;   // 구독+ 누적 초
+    let maxSec = 0;
+    let minSec = Infinity;
+    
     const tagCount = {};
     let totalTagInstances = 0;
 
     data.forEach(row => {
         if (!row['날짜']) return;
+        totalVods++;
 
-        // 1. 임시 태그 배열 생성 (일반 태그들)
+        // 시간 변환 (HH:MM:SS -> Seconds)
+        const currentSec = timeToSeconds(row['다시보기 총시간']);
+        totalSec += currentSec;
+
+        // 구독+ 시간만 별도 합산
+        if (row['구독플러스여부'] === '예') {
+            plusTotalSec += currentSec;
+        }
+
+        // 최대/최소 비교
+        if (currentSec > maxSec) maxSec = currentSec;
+        if (currentSec > 0 && currentSec < minSec) minSec = currentSec;
+
+        // 태그 통계 (구독/19 포함 로직 유지)
         let rowTags = row['컨텐츠 종류'] ? row['컨텐츠 종류'].split(',').map(t => t.trim()) : [];
-
-        // 2. "예"라고 되어 있으면 태그 리스트에 강제로 추가
         if (row['구독플러스여부'] === '예') rowTags.push('⭐구독+');
         if (row['성인인증 필요 여부'] === '예') rowTags.push('🔞성인인증');
 
-        // 3. 통합된 태그들 카운트
         rowTags.forEach(tag => {
             if (tag && tag !== '-') {
                 tagCount[tag] = (tagCount[tag] || 0) + 1;
@@ -394,6 +426,24 @@ function updateTagStatistics(data) {
             }
         });
     });
+    // --- 데이터 매핑 ---
+
+    // 1. 전체 누적 시간
+    document.getElementById('statTotalTime').innerText = secondsToText(totalSec);
+
+    // 2. 구독+ 방송시간 및 비율 (예: 120시간 (22%))
+    const plusPercent = totalSec > 0 ? Math.round((plusTotalSec / totalSec) * 100) : 0;
+    document.getElementById('statPlusTimeRatio').innerText = `${secondsToText(plusTotalSec)} (${plusPercent}%)`;
+
+    // 3. 최대 방송시간
+    document.getElementById('statMaxTime').innerText = secondsToText(maxSec);
+
+    // 4. 평균 방송시간
+    const avgSec = totalVods > 0 ? Math.floor(totalSec / totalVods) : 0;
+    document.getElementById('statAvgTime').innerText = secondsToText(avgSec);
+
+    // 5. 최소 방송시간
+    document.getElementById('statMinTime').innerText = (minSec === Infinity) ? '-' : secondsToText(minSec);
 
     // 4. 내림차순 정렬
     const sortedTags = Object.entries(tagCount).sort((a, b) => b[1] - a[1]);
@@ -446,7 +496,20 @@ function updateTagStatistics(data) {
         rankGrid.insertAdjacentHTML('beforeend', rankItem);
     });
 }
+// 시간 변환 보조 함수들 (기존과 동일하게 유지)
+function timeToSeconds(timeStr) {
+    if (!timeStr || timeStr === '-') return 0;
+    const parts = timeStr.split(':').map(Number);
+    if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
+    if (parts.length === 2) return parts[0] * 60 + parts[1];
+    return 0;
+}
 
+function secondsToText(totalSeconds) {
+    const h = Math.floor(totalSeconds / 3600);
+    const m = Math.floor((totalSeconds % 3600) / 60);
+    return `${h}시간 ${m}분`;
+}
 // 기존 loadSheetData 함수 마지막 부분에 updateTagStatistics(data)를 호출하세요.
 function loadSheetData() {
     Papa.parse(sheetURL, {
