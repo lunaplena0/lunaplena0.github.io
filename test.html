@@ -76,11 +76,13 @@
         .graph-bar { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-bright)); border-radius: 2px; }
 
         .rank-grid { 
-            display: grid; 
-            grid-template-columns: 1fr 1fr 1fr; 
-            column-gap: 12px; 
-            height: 100%;
-        }
+        display: grid; 
+        grid-template-columns: repeat(3, 1fr); /* 3열 고정 */
+        grid-template-rows: repeat(4, auto);   /* 4행 고정 (12개일 때) */
+        grid-auto-flow: column;                /* 중요: 아래 방향으로 먼저 채우기 */
+        column-gap: 12px; 
+        height: 100%;
+    }
         .rank-item { display: flex; align-items: center; padding: 6px 0; border-bottom: 1px solid rgba(22, 36, 58, 0.3); font-size: 11.5px; }
         .rank-badge { 
             display: inline-block; min-width: 18px; height: 18px; line-height: 18px; 
@@ -90,8 +92,12 @@
         .top-rank { background: var(--accent-bright); color: #fff; }
 
         @media (max-width: 800px) {
-            .bottom-section { grid-template-columns: 1fr; }
-            .rank-grid { grid-template-columns: 1fr 1fr; } 
+            .rank-grid { 
+            grid-template-columns: repeat(2, 1fr); 
+            grid-template-rows: repeat(6, auto); /* 2열일 때는 6행으로 자동 조절 */
+            grid-auto-flow: column;
+        }
+        .bottom-section { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -159,25 +165,23 @@
         </div>
 
         <div class="card">
-            <h2>🏆 전체 태그 순위</h2>
-            <div class="rank-grid">
-                <div class="rank-item"><span class="rank-badge top-rank">1</span>#심해노래방</div>
-                <div class="rank-item"><span class="rank-badge">5</span>#시네티</div>
-                <div class="rank-item"><span class="rank-badge">9</span>#VRchat</div>
-                
-                <div class="rank-item"><span class="rank-badge top-rank">2</span>#라이브</div>
-                <div class="rank-item"><span class="rank-badge">6</span>#소통방송</div>
-                <div class="rank-item"><span class="rank-badge">10</span>#기타게임</div>
-                
-                <div class="rank-item"><span class="rank-badge top-rank">3</span>#신곡커버</div>
-                <div class="rank-item"><span class="rank-badge">7</span>#먹방</div>
-                <div class="rank-item"><span class="rank-badge">11</span>#듀엣</div>
-                
-                <div class="rank-item"><span class="rank-badge">4</span>#공포게임</div>
-                <div class="rank-item"><span class="rank-badge">8</span>#라디오</div>
-                <div class="rank-item"><span class="rank-badge">12</span>#ASMR</div>
-            </div>
-        </div>
+            <div class="card">
+    <h2>🏆 전체 태그 순위</h2>
+    <div class="rank-grid">
+        <div class="rank-item"><span class="rank-badge top-rank">1</span>#심해노래방</div>
+        <div class="rank-item"><span class="rank-badge top-rank">2</span>#라이브</div>
+        <div class="rank-item"><span class="rank-badge top-rank">3</span>#신곡커버</div>
+        <div class="rank-item"><span class="rank-badge">4</span>#공포게임</div>
+        <div class="rank-item"><span class="rank-badge">5</span>#시네티</div>
+        <div class="rank-item"><span class="rank-badge">6</span>#소통방송</div>
+        <div class="rank-item"><span class="rank-badge">7</span>#먹방</div>
+        <div class="rank-item"><span class="rank-badge">8</span>#라디오</div>
+        <div class="rank-item"><span class="rank-badge">9</span>#VRchat</div>
+        <div class="rank-item"><span class="rank-badge">10</span>#기타게임</div>
+        <div class="rank-item"><span class="rank-badge">11</span>#듀엣</div>
+        <div class="rank-item"><span class="rank-badge">12</span>#ASMR</div>
+    </div>
+</div>
     </div>
 
     <footer style="text-align: center; margin-top: 10px; color: var(--text-sub); font-size: 10px; opacity: 0.6;">
