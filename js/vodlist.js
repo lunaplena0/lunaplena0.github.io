@@ -392,7 +392,8 @@ function renderVODList(data) {
         
         vodItem.innerHTML = `
             <div class="vod-thumb">
-                <img src="${row['썸네일'] || 'default_thumb.jpg'}" alt="VOD">
+                <img src="${row['썸네일'] && row['썸네일'].trim() !== '' ? row['썸네일'] : 'https://placehold.co/160x90/16243a/5c7285?text=No+Image'}" alt="VOD">
+    </div>
             </div>
             <div class="vod-date">
                 <span class="date-day">${displayDate}</span>
