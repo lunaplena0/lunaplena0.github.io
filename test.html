@@ -14,7 +14,7 @@
             --accent-glow: rgba(0, 51, 102, 0.7);
             --text-main: #f0faff;
             --text-sub: #5c7285;
-            --border: #0a1425;
+            --border: #16243a;
         }
 
         body { 
@@ -25,98 +25,89 @@
             margin: 0; padding: 10px;
             display: flex; justify-content: center; align-items: center; 
             min-height: 100vh; box-sizing: border-box;
-            overflow-x: hidden;
         }
 
-        .wrapper { width: 100%; max-width: 1100px; display: flex; flex-direction: column; gap: 15px; padding: 10px 0; }
+        .wrapper { width: 100%; max-width: 1200px; display: flex; flex-direction: column; gap: 15px; }
 
         .card { 
             background: var(--card-bg); 
             border-radius: 12px; padding: 20px; 
             border: 1px solid var(--border); 
-            display: flex; position: relative;
+            display: flex; flex-direction: column;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
         }
 
-        .profile-box { align-items: center; gap: 20px; background: linear-gradient(145deg, #051020, #02050a); }
-        .profile-info { flex-grow: 1; min-width: 0; }
-        .profile-info h1 { margin: 0; font-size: 28px; font-weight: 700; color: var(--text-main); text-shadow: 0 0 15px var(--accent-glow); }
-        .profile-info p { color: var(--text-sub); margin: 5px 0 0; font-size: 14px; }
+        /* 상단 프로필 영역 */
+        .profile-box { flex-direction: row; align-items: center; gap: 20px; background: linear-gradient(145deg, #051020, #02050a); }
+        .profile-info { flex-grow: 1; }
+        .profile-info h1 { margin: 0; font-size: 24px; color: var(--text-main); }
+        .live-status-inline { display: flex; gap: 10px; }
 
-        .live-status-inline {
-            margin-left: auto; text-align: center; padding: 0 0 0 25px; 
-            border-left: 1px solid var(--border); 
-            min-width: 200px; display: flex; flex-direction: column; gap: 8px;
-        }
-
-        .link-btn { 
-            padding: 10px 12px; background: rgba(10, 26, 48, 0.6); border-radius: 6px; 
-            color: var(--text-main); text-decoration: none; font-size: 12px; 
-            border: 1px solid var(--accent); transition: 0.3s;
-            display: block; width: 100%; box-sizing: border-box; font-weight: bold;
-        }
-        .link-btn:hover { background: var(--accent-bright); border-color: var(--accent-bright); color: #fff; transform: translateY(-2px); }
-
-        /* [수정] 카드 높이 정렬을 위한 설정 */
+        /* 하단 3컬럼 레이아웃 */
         .bottom-section { 
             display: grid; 
-            grid-template-columns: 1fr 1fr 1fr; 
+            grid-template-columns: 1fr 1.2fr 1fr; 
             gap: 15px; 
-            align-items: stretch; /* 카드 높이를 동일하게 맞춤 */
-        }
-        .bottom-section .card { 
-            flex-direction: column; 
-            padding: 15px; 
-            justify-content: flex-start; /* 상단 정렬 */
+            align-items: start;
         }
 
-        h2 { font-size: 13px; margin-top: 0; color: var(--accent-bright); border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; gap: 5px; }
+        h2 { font-size: 13px; color: var(--accent-bright); border-bottom: 1px solid var(--border); padding-bottom: 10px; margin: 0 0 15px 0; text-transform: uppercase; letter-spacing: 1px; }
 
+        /* 리스트 공통 */
         .item-row { 
-            padding: 10px; /* 패딩 약간 축소 */
-            border-bottom: 1px solid var(--border); font-size: 13px; 
-            border-radius: 6px; transition: 0.2s; display: flex; flex-direction: column; justify-content: center;
+            padding: 10px; 
+            border-bottom: 1px solid var(--border); 
+            font-size: 13px; 
+            transition: 0.2s;
         }
-        .item-row:hover { background: rgba(51, 133, 255, 0.05); }
+        .item-row:last-child { border-bottom: none; }
 
-        .graph-bar-container { width: 100%; background: #051020; height: 6px; border-radius: 4px; margin-top: 6px; overflow: hidden; border: 1px solid #0a1425; }
+        /* 1. 방송 통계 스타일 */
+        .stat-label { color: var(--text-sub); font-size: 11px; display: block; margin-bottom: 4px; }
+        .stat-value { font-size: 17px; font-weight: bold; }
+
+        /* 2. 태그 비율 그래프 */
+        .graph-bar-container { width: 100%; background: #051020; height: 6px; border-radius: 4px; margin-top: 8px; border: 1px solid #0a1425; }
         .graph-bar { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-bright)); border-radius: 4px; }
 
+        /* 3. 전체 순위 스크롤박스 */
+        .rank-list-container {
+            max-height: 400px; /* 높이 고정 */
+            overflow-y: auto;  /* 스크롤 발생 */
+            padding-right: 5px;
+        }
+        /* 스크롤바 커스텀 */
+        .rank-list-container::-webkit-scrollbar { width: 4px; }
+        .rank-list-container::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 10px; }
+
         .rank-badge { 
-            display: inline-block; width: 22px; height: 22px; line-height: 22px; 
-            text-align: center; background: #1a2638; border-radius: 6px; 
-            font-size: 11px; margin-right: 12px; color: var(--text-sub); font-weight: bold;
+            display: inline-block; width: 24px; height: 24px; line-height: 24px; 
+            text-align: center; background: #1a2638; border-radius: 4px; 
+            font-size: 11px; margin-right: 10px; color: var(--text-sub); font-weight: bold;
+        }
+        .top-rank { background: var(--accent-bright); color: #fff; }
+
+        .link-btn { 
+            padding: 8px 15px; background: rgba(10, 26, 48, 0.6); border-radius: 6px; 
+            color: var(--text-main); text-decoration: none; font-size: 12px; border: 1px solid var(--accent);
         }
 
-        .stat-value { font-size: 18px; font-weight: bold; margin-top: 2px; color: var(--text-main); }
-        .stat-label { color: var(--text-sub); font-size: 11px; font-weight: normal; }
-
-        footer { text-align: center; padding: 30px 20px; color: var(--text-sub); font-size: 11px; border-top: 1px solid var(--border); opacity: 0.7; }
-
-        @media (max-width: 900px) {
-            .profile-box { flex-direction: column; text-align: center; padding: 25px; }
-            .live-status-inline { margin: 0; border-left: none; border-top: 1px solid var(--border); padding: 20px 0 0; width: 100%; }
+        @media (max-width: 950px) {
             .bottom-section { grid-template-columns: 1fr; }
+            .profile-box { flex-direction: column; text-align: center; }
         }
     </style>
 </head>
 <body>
 
 <div class="wrapper">
-    <div class="top-section">
-        <div class="card profile-box">
-            <div class="profile-info">
-                <h1>🎬 VOD 기록함</h1>
-                <p>바다비의 깊은 바다 속, 소중한 방송 기록들을 모아둔 아카이브입니다.</p>
-            </div>
-            <div class="live-status-inline">
-                <a href="summary.html" class="link-btn" style="border-color: var(--accent-bright); box-shadow: 0 0 10px rgba(51, 133, 255, 0.2);">
-                    📅 월/연간 요약 보고서
-                </a>
-                <a href="index.html" class="link-btn" style="border-color: var(--text-sub); color: var(--text-sub); opacity: 0.8;">
-                    ↩ 메인으로 돌아가기
-                </a>
-            </div>
+    <div class="card profile-box">
+        <div class="profile-info">
+            <h1>🎬 VOD 데이터 센터</h1>
+            <p style="color: var(--text-sub); margin: 5px 0 0; font-size: 13px;">바다비 방송의 모든 수치를 한눈에 확인하세요.</p>
+        </div>
+        <div class="live-status-inline">
+            <a href="index.html" class="link-btn">메인으로</a>
         </div>
     </div>
 
@@ -124,96 +115,77 @@
         <div class="card">
             <h2>📊 방송 통계 요약</h2>
             <div class="item-row">
-                <span class="stat-label">⏱ 누적 방송 시간</span>
-                <span class="stat-value">542<small style="font-size: 12px;">시간</small> 15<small style="font-size: 12px;">분</small></span>
+                <span class="stat-label">전체 누적 시간</span>
+                <span class="stat-value">542시간 15분</span>
             </div>
             <div class="item-row">
-                <span class="stat-label">🚀 최대 연속 방송</span>
-                <span class="stat-value" style="color: #ffcc00;">12<small style="font-size: 12px; color: var(--text-main);">시간</small> 45<small style="font-size: 12px; color: var(--text-main);">분</small></span>
+                <span class="stat-label">구독+ 방송 시간 및 비율</span>
+                <span class="stat-value" style="color: #ffcc00;">120시간 <small>(22%)</small></span>
             </div>
             <div class="item-row">
-                <span class="stat-label">🧊 최단 방송 기록</span>
-                <span class="stat-value">2<small style="font-size: 12px;">시간</small> 15<small style="font-size: 12px;">분</small></span>
+                <span class="stat-label">최대 방송 시간</span>
+                <span class="stat-value">12시간 45분</span>
             </div>
             <div class="item-row">
-                <span class="stat-label">📅 평균 주간 방송 일수</span>
-                <span class="stat-value">5.2<small style="font-size: 12px;">일</small></span>
+                <span class="stat-label">평균 방송 시간</span>
+                <span class="stat-value">4시간 20분</span>
             </div>
-            <div class="item-row" style="border-bottom: none;">
-                <span class="stat-label">⭐ 최다 시청 카테고리</span>
-                <span class="stat-value">노래 방송</span>
+            <div class="item-row">
+                <span class="stat-label">평균 방송 시간 (최근 30일)</span>
+                <span class="stat-value">3시간 55분</span>
             </div>
         </div>
 
         <div class="card">
-            <h2>📈 방송 카테고리 비율</h2>
+            <h2>📈 주요 태그 비중 (Top 5)</h2>
             <div class="item-row">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <span style="font-weight: 500;">🎤 노래 방송</span>
-                    <span style="color: var(--accent-bright); font-weight: bold;">45%</span>
-                </div>
+                <div style="display: flex; justify-content: space-between;"><span>#심해노래방</span><strong>45%</strong></div>
                 <div class="graph-bar-container"><div class="graph-bar" style="width: 45%;"></div></div>
             </div>
             <div class="item-row">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <span style="font-weight: 500;">🎮 게임 방송</span>
-                    <span style="color: var(--accent-bright); font-weight: bold;">20%</span>
-                </div>
+                <div style="display: flex; justify-content: space-between;"><span>#바다비_라이브</span><strong>20%</strong></div>
                 <div class="graph-bar-container"><div class="graph-bar" style="width: 20%;"></div></div>
             </div>
             <div class="item-row">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <span style="font-weight: 500;">💬 소통/라디오</span>
-                    <span style="color: var(--accent-bright); font-weight: bold;">15%</span>
-                </div>
+                <div style="display: flex; justify-content: space-between;"><span>#신곡커버</span><strong>15%</strong></div>
                 <div class="graph-bar-container"><div class="graph-bar" style="width: 15%;"></div></div>
             </div>
             <div class="item-row">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <span style="font-weight: 500;">👻 공포게임</span>
-                    <span style="color: var(--accent-bright); font-weight: bold;">10%</span>
-                </div>
-                <div class="graph-bar-container"><div class="graph-bar" style="width: 10%;"></div></div>
+                <div style="display: flex; justify-content: space-between;"><span>#공포게임</span><strong>12%</strong></div>
+                <div class="graph-bar-container"><div class="graph-bar" style="width: 12%;"></div></div>
             </div>
-            <div class="item-row" style="border-bottom: none;">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <span style="font-weight: 500;">🎨 기타</span>
-                    <span style="color: var(--accent-bright); font-weight: bold;">10%</span>
-                </div>
-                <div class="graph-bar-container"><div class="graph-bar" style="width: 10%;"></div></div>
+            <div class="item-row">
+                <div style="display: flex; justify-content: space-between;"><span>#시네티</span><strong>8%</strong></div>
+                <div class="graph-bar-container"><div class="graph-bar" style="width: 8%;"></div></div>
             </div>
         </div>
 
         <div class="card">
-            <h2>🏆 인기 태그 순위</h2>
-            <div class="item-row" style="flex-direction: row; align-items: center;">
-                <span class="rank-badge" style="background: linear-gradient(135deg, #ffd700, #b8860b); color: #000;">1</span>
-                <span style="font-weight: bold;">#심해노래방</span>
-            </div>
-            <div class="item-row" style="flex-direction: row; align-items: center;">
-                <span class="rank-badge" style="background: linear-gradient(135deg, #c0c0c0, #708090); color: #000;">2</span>
-                <span style="font-weight: 500;">#바다비_라이브</span>
-            </div>
-            <div class="item-row" style="flex-direction: row; align-items: center;">
-                <span class="rank-badge" style="background: linear-gradient(135deg, #cd7f32, #8b4513); color: #000;">3</span>
-                <span style="font-weight: 500;">#신곡커버</span>
-            </div>
-            <div class="item-row" style="flex-direction: row; align-items: center;">
-                <span class="rank-badge">4</span>
-                <span style="color: var(--text-sub);">#공포게임</span>
-            </div>
-            <div class="item-row" style="flex-direction: row; align-items: center; border-bottom: none;">
-                <span class="rank-badge">5</span>
-                <span style="color: var(--text-sub);">#시네티</span>
+            <h2>🏆 전체 태그 순위</h2>
+            <div class="rank-list-container">
+                <div class="item-row"><span class="rank-badge top-rank">1</span>#심해노래방</div>
+                <div class="item-row"><span class="rank-badge top-rank">2</span>#바다비_라이브</div>
+                <div class="rank-list-container">
+                    <div class="item-row"><span class="rank-badge top-rank">3</span>#신곡커버</div>
+                    <div class="item-row"><span class="rank-badge">4</span>#공포게임</div>
+                    <div class="item-row"><span class="rank-badge">5</span>#시네티</div>
+                    <div class="item-row"><span class="rank-badge">6</span>#소통방송</div>
+                    <div class="item-row"><span class="rank-badge">7</span>#먹방</div>
+                    <div class="item-row"><span class="rank-badge">8</span>#라디오</div>
+                    <div class="item-row"><span class="rank-badge">9</span>#VRchat</div>
+                    <div class="item-row"><span class="rank-badge">10</span>#기타게임</div>
+                    <div class="item-row"><span class="rank-badge">11</span>#듀엣</div>
+                    <div class="item-row"><span class="rank-badge">12</span>#ASMR</div>
+                    <div class="item-row"><span class="rank-badge">13</span>#야외방송</div>
+                    <div class="item-row"><span class="rank-badge">14</span>#작업방송</div>
+                    <div class="item-row"><span class="rank-badge">15</span>#이벤트</div>
+                </div>
             </div>
         </div>
     </div>
 
-    <footer>
-        <p>
-            <strong>바다비 비공식 팬 아카이브</strong><br>
-            모든 권리는 원저작권자(바다비/SOOP)에게 있으며 요청 시 수정·삭제됩니다.
-        </p>
+    <footer style="text-align: center; padding: 20px; color: var(--text-sub); font-size: 11px;">
+        © 2024 바다비 비공식 아카이브 데이터 센터
     </footer>
 </div>
 
