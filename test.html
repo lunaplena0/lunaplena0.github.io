@@ -444,8 +444,8 @@ function updateTagStatistics(data) {
 
         // 태그 추출 및 카운트
         let rowTags = row['컨텐츠 종류'] ? row['컨텐츠 종류'].split(',').map(t => t.trim()) : [];
-        if (row['구독플러스여부'] === '예') rowTags.push('⭐구독+');
-        if (row['성인인증 필요 여부'] === '예') rowTags.push('🔞성인인증');
+        if (row['구독플러스여부'] === '예') rowTags.push('구독+');
+        if (row['성인인증 필요 여부'] === '예') rowTags.push('19');
 
         rowTags.forEach(tag => {
             if (tag && tag !== '-') {
@@ -494,15 +494,27 @@ function updateTagStatistics(data) {
         ratioContainer.innerHTML = ratioHtml;
     }
 
-    // 5. [전체 태그 순위] 그리드 업데이트 (이 부분이 빠져있었을 확률이 높음)
+   // 5. [전체 태그 순위] 그리드 업데이트
     const rankGrid = document.querySelector('.rank-grid');
     if (rankGrid) {
         rankGrid.innerHTML = ''; 
         sortedTags.forEach(([name, count], index) => {
             const rank = index + 1;
             const isTop = rank <= 3 ? 'top-rank' : '';
-            const specialStyle = name.includes('구독') ? 'color:#ffcc00;' : (name.includes('성인') ? 'color:#ff4444;' : '');
-            const displayName = name.startsWith('⭐') || name.startsWith('🔞') ? name : '#' + name;
+            
+            // 이름 세척 및 스타일 결정
+            let finalName = name;
+            let specialStyle = '';
+            
+            if (name.includes('구독')) {
+                finalName = '구독+';
+                specialStyle = 'color:#ffcc00; font-weight:bold;';
+            } else if (name.includes('성인')) {
+                finalName = '19';
+                specialStyle = 'color:#ff4444; font-weight:bold;';
+            } else {
+                finalName = name.startsWith('#') ? name : '#' + name;
+            }
 
             const rankItem = `
                 <div class="rank-item" 
@@ -510,15 +522,24 @@ function updateTagStatistics(data) {
                      onclick="toggleTagFilter('${name}')" 
                      style="${specialStyle} cursor:pointer; padding: 6px 8px; margin: 2px 0;">
                     <span class="rank-badge ${isTop}">${rank}</span>
-                    <span class="tag-text">${displayName}</span>
+                    <span class="tag-text">${finalName}</span>
                 </div>`;
             rankGrid.insertAdjacentHTML('beforeend', rankItem);
         });
     }
 
     // 6. 요약 보고서 기본 연동 데이터
-    const topTag = sortedTags.length > 0 ? sortedTags[0][0] : '-';
-    const topTagName = topTag.startsWith('⭐') || topTag.startsWith('🔞') ? topTag : '#' + topTag;
+    let topTag = sortedTags.length > 0 ? sortedTags[0][0] : '-';
+    let topTagName = topTag;
+
+    // 요약 칸에서도 기호 제거
+    if (topTag.includes('구독')) {
+        topTagName = '구독+';
+    } else if (topTag.includes('성인')) {
+        topTagName = '19';
+    } else if (topTag !== '-') {
+        topTagName = topTag.startsWith('#') ? topTag : '#' + topTag;
+    }
     
     if(document.getElementById('sumTotalTime')) document.getElementById('sumTotalTime').innerText = secondsToText(totalSec);
     if(document.getElementById('sumTotalCount')) document.getElementById('sumTotalCount').innerText = `${totalVods}회`;
@@ -548,37 +569,35 @@ function secondsToText(totalSeconds) {
 let currentPopupTag = null; // 팝업 내 선택된 태그 상태 저장
 
 function filterPopupVodByTag(tagName) {
-    // 1. 현재 선택된 연도/월의 전체 데이터 가져오기
     const targetYear = document.getElementById('selectYear').value;
     const targetMonth = document.getElementById('selectMonth').value;
-    
-    let baseData = [];
-    if (targetMonth === 'all') {
-        baseData = Object.values(groupedData[targetYear] || {}).flat();
-    } else {
-        baseData = groupedData[targetYear]?.[targetMonth] || [];
-    }
+    let baseData = (targetMonth === 'all') 
+        ? Object.values(groupedData[targetYear] || {}).flat() 
+        : groupedData[targetYear]?.[targetMonth] || [];
 
-    // 2. [핵심] 같은 태그를 다시 눌렀는지 확인
     if (currentPopupTag === tagName) {
-        // 이미 선택된 태그를 또 누르면 필터 해제 (전체 데이터 표시)
         currentPopupTag = null; 
         renderRptVodList(baseData);
-        updatePopupTagHighlight(null); // 하이라이트 제거
-        console.log("필터 해제됨");
+        updatePopupTagHighlight(null);
     } else {
-        // 새로운 태그 선택 시 필터 적용
         currentPopupTag = tagName;
         const filtered = baseData.filter(row => {
+            // 일반 태그 리스트
             const rowTags = row['컨텐츠 종류'] ? row['컨텐츠 종류'].split(',').map(t => t.trim()) : [];
-            if (row['구독플러스여부'] === '예') rowTags.push('⭐구독+');
-            if (row['성인인증 필요 여부'] === '예') rowTags.push('🔞성인인증');
-            return rowTags.some(t => t.replace('#','') === tagName.replace('#',''));
+            
+            // 필터링 조건 분기
+            if (tagName === '구독플러스') {
+                return row['구독플러스여부'] === '예';
+            } else if (tagName === '성인인증') {
+                return row['성인인증 필요 여부'] === '예';
+            } else {
+                // 일반 #태그 필터링
+                return rowTags.some(t => t.replace('#','') === tagName.replace('#',''));
+            }
         });
 
         renderRptVodList(filtered);
-        updatePopupTagHighlight(tagName); // 클릭된 태그 하이라이트
-        console.log(`${tagName} 필터 적용됨`);
+        updatePopupTagHighlight(tagName);
     }
 }
         // [추가] 팝업 내 태그 클릭 시 시각적 효과 (선택사항)
@@ -645,12 +664,11 @@ function renderRptTags(data) {
     const tagCount = {};
     
     data.forEach(row => {
-        // 1. 일반 컨텐츠 태그 추출
         let rowTags = row['컨텐츠 종류'] ? row['컨텐츠 종류'].split(',').map(t => t.trim()) : [];
         
-        // 2. [추가] 구독플러스 및 성인인증 여부를 태그 목록에 포함
-        if (row['구독플러스여부'] === '예') rowTags.push('⭐구독+');
-        if (row['성인인증 필요 여부'] === '예') rowTags.push('🔞성인인증');
+        // 기호 대신 텍스트로 변환하여 추가
+        if (row['구독플러스여부'] === '예') rowTags.push('구독플러스'); 
+        if (row['성인인증 필요 여부'] === '예') rowTags.push('성인인증');
 
         rowTags.forEach(tag => { 
             if(tag && tag !== '-') {
@@ -663,17 +681,19 @@ function renderRptTags(data) {
     const container = document.getElementById('rptTags');
     
     container.innerHTML = sorted.map(([name, count], i) => {
-        // 특수 태그 스타일 처리
-        const isPlus = name.includes('구독');
-        const isAdult = name.includes('성인');
+        // 스타일 구분을 위한 체크
+        const isPlus = name === '구독+';
+        const isAdult = name === '19';
         const specialStyle = isPlus ? 'color:#ffcc00;' : (isAdult ? 'color:#ff4444;' : '');
-        const displayName = (name.startsWith('#') || name.startsWith('⭐') || name.startsWith('🔞')) ? name : '#' + name;
+        
+        // 기호가 없는 깔끔한 이름 생성
+        const displayName = (isPlus || isAdult) ? name : '#' + name;
 
         return `
             <div class="rank-item" onclick="filterPopupVodByTag('${name}')" 
                  style="font-size:12px; padding:6px 10px; margin-bottom:4px; cursor:pointer; ${specialStyle}">
                 <span class="rank-badge ${i < 3 ? 'top-rank' : ''}">${i + 1}</span>
-                <span style="flex:1; margin-left:8px; font-weight:${isPlus || isAdult ? 'bold' : 'normal'};">${displayName}</span>
+                <span style="flex:1; margin-left:8px;">${displayName}</span>
                 <small style="color:var(--text-sub);">${count}회</small>
             </div>
         `;
@@ -693,8 +713,8 @@ function toggleTagFilter(tagName) {
     const filteredData = currentFilter 
         ? allData.filter(row => {
             const rowTags = row['컨텐츠 종류'] ? row['컨텐츠 종류'].split(',').map(t => t.trim()) : [];
-            if (row['구독플러스여부'] === '예') rowTags.push('⭐구독+');
-            if (row['성인인증 필요 여부'] === '예') rowTags.push('🔞성인인증');
+            if (row['구독플러스여부'] === '예') rowTags.push('구독+');
+            if (row['성인인증 필요 여부'] === '예') rowTags.push('19');
             
             // #이 붙어있든 아니든 비교할 수 있게 처리
             return rowTags.some(t => t.replace('#','') === currentFilter.replace('#',''));
@@ -761,7 +781,7 @@ function renderVODList(data) {
                 </div>
                 <div class="vod-meta">
                     ${tagHtml}
-                    ${isPlus ? '<span class="vod-tag" style="background:#ffcc00; color:#000; font-weight:bold;">⭐구독+</span>' : ''}
+                    ${isPlus ? '<span class="vod-tag" style="background:#ffcc00; color:#000; font-weight:bold;">구독+</span>' : ''}
                 </div>
             </div>
             <a href="${row['링크']}" target="_blank" class="btn-watch" onclick="event.stopPropagation();">다시보기</a>
