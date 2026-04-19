@@ -614,24 +614,40 @@ function renderCategorySummary(data) {
         const gridColumns = isMobile ? '1fr' : 'repeat(6, 1fr)';
         
         let html = `<div style="width: 100%; margin-bottom: 30px;">
-                        <b style="color:var(--accent-bright); font-size:14px; display:block; margin-bottom:12px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px;">
-                            ${cat.icon} ${cat.label}
-                        </b>
-                        <div style="display: grid; grid-template-columns: ${gridColumns}; gap: 10px;">`;
-        
-        if (sortedItems.length > 0) {
-            html += sortedItems.map(([name, count]) => `
-                <div style="background:rgba(255,255,255,0.05); padding:12px 15px; border-radius:8px; border:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; box-sizing: border-box;">
-                    <span style="font-size:13px; color:var(--text-main);">${name}</span>
-                    <strong style="font-size:12px; color:var(--accent-bright);">${count}회</strong>
+                    <b style="color:var(--accent-bright); font-size:14px; display:block; margin-bottom:12px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px;">
+                        ${cat.icon} ${cat.label}
+                    </b>
+                    <div style="display: grid; grid-template-columns: ${gridColumns}; gap: 10px;">`;
+    
+    if (sortedItems.length > 0) {
+        html += sortedItems.map(([name, count]) => {
+            // 모바일과 PC 모두 세로 배치를 보장하지만, 모바일에서 더 넓은 간격을 줌
+            const itemStyle = `
+                background: rgba(255, 255, 255, 0.05);
+                padding: 15px;
+                border-radius: 10px;
+                border: 1px solid var(--border);
+                display: flex !important;
+                flex-direction: column !important; /* 핵심: 위아래 배치 */
+                align-items: flex-start !important;
+                justify-content: center !important;
+                min-height: 70px;
+                box-sizing: border-box;
+            `;
+
+            return `
+                <div style="${itemStyle}">
+                    <span style="font-size: 11px; color: var(--text-sub); margin-bottom: 6px; display: block;">${name}</span>
+                    <strong style="font-size: 17px; color: var(--accent-bright); display: block; line-height: 1.2;">${count}회</strong>
                 </div>
-            `).join('');
-        } else {
-            html += `<div style="grid-column: 1/-1; color:var(--text-sub); font-size:12px; padding:10px; text-align:center;">데이터 없음</div>`;
-        }
-        html += `</div></div>`;
-        return html;
-    };
+            `;
+        }).join('');
+    } else {
+        html += `<div style="grid-column: 1/-1; color:var(--text-sub); font-size:12px; padding:10px; text-align:center;">데이터 없음</div>`;
+    }
+    html += `</div></div>`;
+    return html;
+};
 
     const container = document.getElementById('rptCategory');
     container.style.display = 'block'; 
