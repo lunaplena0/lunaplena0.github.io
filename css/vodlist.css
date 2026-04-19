@@ -306,24 +306,27 @@ vod-control {
 
             /* 1. 상단 통계 컨테이너: 높이를 유연하게 조절 */
    .summary-grid.summary-full {
-    display: flex !important;
-    flex-direction: column !important; /* 세로로 쌓기 */
-    grid-template-columns: none !important; /* 기존 그리드 무력화 */
-    gap: 12px !important;
-    height: auto !important;
-    padding: 15px !important;
-}
+        display: flex !important;
+        flex-direction: column !important;
+        grid-template-columns: none !important;
+        gap: 12px !important;
+        height: auto !important;
+        padding: 15px !important;
+    }
     /* 2. 각 통계 항목(시간, 횟수 등)의 박스 */
     .summary-item {
         display: flex !important;
-        flex-direction: row !important;      /* 가로로 배치 */
-        justify-content: space-between !important; /* 좌우 끝으로 밀기 */
-        align-items: center !important;      /* 세로 중앙 정렬 */
+        flex-direction: column !important;   /* row에서 column으로 변경 */
+        justify-content: center !important;  /* 세로 중앙 정렬 */
+        align-items: flex-start !important;  /* 왼쪽 정렬 */
         width: 100% !important;
-        min-height: 60px !important;         /* 박스가 찌그러지지 않게 최소 높이 설정 */
-        padding: 0 15px !important;
+        min-height: 75px !important;         /* 위아래 배치에 맞는 충분한 높이 */
+        padding: 12px 15px !important;       /* 여백 조정 */
         box-sizing: border-box !important;
-        position: relative !important;       /* absolute 설정을 무력화 */
+        position: relative !important;
+        background: rgba(51, 133, 255, 0.08) !important;
+        border: 1px solid var(--border) !important;
+        border-radius: 10px !important;
     }
     .summary-item:not(:last-child) {
         border-right: none !important;
@@ -332,21 +335,25 @@ vod-control {
 
     /* 3. 라벨과 숫자 크기 조절 */
    .summary-item label {
-        flex: 0 0 auto !important;          /* 크기 고정 */
-        margin: 0 !important;
+        flex: none !important;
+        margin-bottom: 6px !important;       /* 아래 숫자와의 간격 확보 */
         padding: 0 !important;
-        position: static !important;         /* 위치 고정 해제 */
-        font-size: 13px !important;
+        position: static !important;
+        font-size: 12px !important;
+        color: var(--text-sub) !important;
+        display: block !important;
     }
     /* 4. [핵심] 큰 숫자(619시간 등) 글자 크기 조절 */
     .summary-item div {
-        flex: 1 !important;                 /* 남은 공간 다 차지 */
-        text-align: right !important;        /* 오른쪽 정렬 */
+        flex: none !important;
+        text-align: left !important;         /* 왼쪽 정렬로 통일 */
         margin: 0 !important;
         padding: 0 !important;
-        position: static !important;         /* 위치 고정 해제 */
+        position: static !important;
         font-size: 18px !important;
-        white-space: nowrap !important;      /* 숫자 줄바꿈 방지 */
+        font-weight: bold !important;
+        color: var(--accent-bright) !important;
+        white-space: nowrap !important;
     }
 
     /* 5. 숫자 사이의 구분선(border)이 있다면 조정 */
