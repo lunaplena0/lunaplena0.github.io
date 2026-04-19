@@ -409,7 +409,6 @@ function renderVODList(data) {
                     ${isPlus ? '<span class="vod-tag" style="background:#ffcc00; color:#000; font-weight:bold;">구독+</span>' : ''}
                 </div>
             </div>
-            <a href="${row['링크']}" target="_blank" class="btn-watch" onclick="event.stopPropagation();">다시보기</a>
         `;
 
         vodItem.onclick = () => openDetailedModal(row);
