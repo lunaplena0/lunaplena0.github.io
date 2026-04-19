@@ -401,7 +401,10 @@ function renderVODList(data) {
 
     // 2. 컨텐츠 종류 태그화 로직
     const tagsRaw = row['컨텐츠 종류'] ? row['컨텐츠 종류'].split(',').map(t => t.trim()) : [];
-    const maxVisibleTags = 2; 
+    // [추가] 모바일 여부 판단 (768px 미만일 때 모바일로 간주)
+const isMobile = window.innerWidth <= 768;
+// 모바일일 때는 2개만, PC일 때는 전체 다 보여줌
+const maxVisibleTags = isMobile ? 2 : tagsRaw.length;
     let tagHtml = '';
 
     // 구독+는 무조건 가장 먼저! (이제 isPlus를 안전하게 사용할 수 있습니다)
