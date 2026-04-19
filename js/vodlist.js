@@ -214,20 +214,27 @@ function filterPopupVodByTag(tagName) {
         updatePopupTagHighlight(tagName);
     }
 }
-        // [추가] 팝업 내 태그 클릭 시 시각적 효과 (선택사항)
+      // [보강] 팝업 내 태그 클릭 시 시각적 효과
 function updatePopupTagHighlight(tagName) {
     const items = document.querySelectorAll('#rptTags .rank-item');
     items.forEach(item => {
         // 태그 텍스트 추출 (예: "#게임" -> "게임")
-        const itemTag = item.querySelector('span:nth-child(2)').innerText.replace('#','').trim();
+        const tagTextElement = item.querySelector('span:nth-child(2)');
+        if (!tagTextElement) return; // 요소가 없으면 건너뜀
+
+        const itemTag = tagTextElement.innerText.replace('#','').trim();
         
+        // 클릭된 태그와 일치할 경우 (강조 효과)
         if (tagName && itemTag === tagName.replace('#','').trim()) {
             item.style.backgroundColor = 'rgba(51, 133, 255, 0.3)';
             item.style.border = '1px solid var(--accent-bright)';
             item.style.borderRadius = '6px';
-        } else {
-            item.style.backgroundColor = 'transparent';
-            item.style.border = 'none';
+        } 
+        // 선택되지 않은 경우 (원래 CSS 디자인으로 복구)
+        else {
+            item.style.backgroundColor = ''; 
+            item.style.border = '';         
+            item.style.borderRadius = '';   
         }
     });
 }
