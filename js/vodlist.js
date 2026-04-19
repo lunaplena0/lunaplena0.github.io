@@ -747,7 +747,7 @@ function openDetailedModal(data) {
         { label: '🎬 컨텐츠', key: '컨텐츠(시간)' }
     ];
 
-   // [openDetailedModal 함수 내의 상세 시간 정보 생성 부분]
+  // [openDetailedModal 함수 내의 상세 시간 정보 생성 부분]
 let detailHtml = '';
 details.forEach(d => {
     const val = data[d.key];
@@ -755,22 +755,25 @@ details.forEach(d => {
         const subItems = val.split(',');
         
         detailHtml += `
-            <div style="width:100%; margin-top:14px;">
-                <label style="display:block; font-size:11px; color:var(--accent-bright); margin-bottom:8px; font-weight:bold; letter-spacing:1px;">${d.label}</label>
-                <div style="display:flex; flex-direction:column; gap:6px;">
+            <div style="width:100%; margin-top:16px;">
+                <label style="display:block; font-size:11px; color:var(--accent-bright); margin-bottom:8px; font-weight:bold; opacity:0.8;">${d.label}</label>
+                <div style="display:flex; flex-direction:column; gap:8px;">
                     ${subItems.map(item => {
-                        // "롤(00:00:00 ~ 01:00:00)" 형태에서 이름과 시간 분리
                         let [name, time] = item.split('(');
-                        if (time) time = time.replace(')', ''); // 닫는 괄호 제거
-                        else time = ""; // 시간 정보가 없을 경우 대비
+                        if (time) time = time.replace(')', '');
+                        else time = "-";
 
                         return `
-                            <div style="display:flex; align-items:center; gap:6px; width:100%;">
-                                <div style="background:rgba(51, 133, 255, 0.15); padding:6px 10px; border-radius:6px; border:1px solid rgba(51, 133, 255, 0.3); font-size:12px; color:#fff; font-weight:bold; white-space:nowrap;">
-                                    ${name.trim()}
+                            <div style="display:flex; align-items:stretch; width:100%; gap:4px; height:32px;">
+                                <div style="flex: 4; background:rgba(51, 133, 255, 0.1); border:1px solid rgba(51, 133, 255, 0.2); border-radius:6px 0 0 6px; display:flex; align-items:center; justify-content:center; padding:0 8px; min-width:0;">
+                                    <span style="font-size:12px; color:#fff; font-weight:bold; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                                        ${name.trim()}
+                                    </span>
                                 </div>
-                                <div style="background:rgba(255, 255, 255, 0.05); padding:6px 10px; border-radius:6px; border:1px solid var(--border); font-size:11px; color:var(--text-sub); font-family:monospace; flex:1; text-align:center;">
-                                    ${time ? time.trim() : '-'}
+                                <div style="flex: 6; background:rgba(255, 255, 255, 0.03); border:1px solid var(--border); border-left:none; border-radius:0 6px 6px 0; display:flex; align-items:center; justify-content:center; padding:0 8px; min-width:0;">
+                                    <span style="font-size:11px; color:var(--text-sub); font-family:monospace; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                                        ${time.trim()}
+                                    </span>
                                 </div>
                             </div>
                         `;
