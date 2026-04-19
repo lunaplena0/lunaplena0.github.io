@@ -306,40 +306,44 @@ vod-control {
 
             /* 1. 상단 통계 컨테이너: 높이를 유연하게 조절 */
    .summary-grid.summary-full {
-        display: flex !important;
-        flex-direction: column !important; /* 모바일은 세로로 쌓기 (가장 안전) */
-        padding: 15px !important;
-        gap: 10px !important;
-    }
+    display: flex !important;
+    flex-direction: column !important; /* 무조건 세로로 한 줄씩 */
+    width: 100% !important;
+    padding: 10px !important;
+    gap: 8px !important;
+    height: auto !important; /* 높이 제한 해제 */
+}
     /* 2. 각 통계 항목(시간, 횟수 등)의 박스 */
     .summary-item {
-        flex: none !important;
-        width: 100% !important;
-        background: rgba(51, 133, 255, 0.05) !important; /* 살짝 배경색을 주어 구분감 확보 */
-        border: 1px solid var(--border) !important;
-        border-radius: 8px !important;
-        padding: 12px !important;
-        display: flex !important;
-        justify-content: space-between !important; /* 라벨은 왼쪽, 숫자는 오른쪽 */
-        align-items: center !important;
-    }
-
+    display: flex !important;
+    flex-direction: row !important;      /* 내부 글자는 가로 배치 */
+    justify-content: space-between !important; /* 라벨 왼쪽, 숫자 오른쪽 */
+    align-items: center !important;
+    width: 100% !important;
+    min-height: 55px !important;         /* 최소 높이 확보로 겹침 방지 */
+    background: rgba(51, 133, 255, 0.08) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 10px !important;
+    padding: 0 15px !important;
+    box-sizing: border-box !important;
+}
     .summary-item:not(:last-child) {
         border-right: none !important;
         border-bottom: 1px solid var(--border) !important; /* 대신 아래 선 추가 가능 */
     }
 
     /* 3. 라벨과 숫자 크기 조절 */
-    .summary-item label {
-        font-size: 11px !important;
-        margin-bottom: 0 !important; /* 양끝 정렬 시 여백 제거 */
-    }
+   .summary-item label {
+    font-size: 12px !important;
+    color: var(--text-sub) !important;
+    margin: 0 !important;
+}
     /* 4. [핵심] 큰 숫자(619시간 등) 글자 크기 조절 */
     .summary-item div {
-        font-size: 16px !important;
-        color: var(--accent-bright) !important;
-        font-weight: bold !important;
-    }
+    font-size: 18px !important;         /* 모바일에서 잘 보이게 크기 키움 */
+    color: var(--accent-bright) !important;
+    font-weight: bold !important;
+}
 
     /* 5. 숫자 사이의 구분선(border)이 있다면 조정 */
     .summary-item:not(:last-child) {
@@ -469,8 +473,6 @@ vod-control {
 
     /* 8. 통계 수치 그리드 (2열이 가장 깔끔함) */
     .summary-grid {
-        display: grid !important;
-        grid-template-columns: 1fr 1fr !important;
-        gap: 10px !important;
-    }
+    grid-template-columns: 1fr !important; /* 2열 그리드 강제 해제 */
+}
 }
