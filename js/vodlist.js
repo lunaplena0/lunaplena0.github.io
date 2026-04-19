@@ -657,7 +657,7 @@ function openDetailedModal(data) {
     
     // 19세 태그 추가
     if (isAdult) {
-        titleHtml += ` <span style="color:#ff4444; font-size:14px; vertical-align:middle; margin-left:5px;">[19]</span>`;
+        titleHtml += ` <span style="background:#ff4444; color:#fff; font-size:11px; padding:2px 6px; border-radius:4px; font-weight:bold; vertical-align:middle; margin-left:5px;">19</span>`;
     }
     // 구독+ 태그 추가
     if (isPlus) {
