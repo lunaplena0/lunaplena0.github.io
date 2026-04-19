@@ -747,28 +747,39 @@ function openDetailedModal(data) {
         { label: '🎬 컨텐츠', key: '컨텐츠(시간)' }
     ];
 
-    let detailHtml = '';
-    details.forEach(d => {
-        const val = data[d.key];
-        // 데이터가 유효한 경우에만 (예: -, 0 등이 아닐 때)
-        if (val && val !== '-' && val !== '0' && val !== '0시간') {
-            // 쉼표로 구분된 항목들을 배열로 변환
-            const subItems = val.split(',');
-            
-            detailHtml += `
-                <div style="width:100%; margin-top:12px;">
-                    <label style="display:block; font-size:11px; color:var(--accent-bright); margin-bottom:6px; font-weight:bold;">${d.label}</label>
-                    <div style="display:flex; flex-direction:column; gap:4px;">
-                        ${subItems.map(item => `
-                            <div style="background:rgba(22, 36, 58, 0.6); padding:8px 12px; border-radius:6px; border:1px solid var(--border); font-size:12px; color:var(--text-main);">
-                                ${item.trim()}
+   // [openDetailedModal 함수 내의 상세 시간 정보 생성 부분]
+let detailHtml = '';
+details.forEach(d => {
+    const val = data[d.key];
+    if (val && val !== '-' && val !== '0' && val !== '0시간') {
+        const subItems = val.split(',');
+        
+        detailHtml += `
+            <div style="width:100%; margin-top:14px;">
+                <label style="display:block; font-size:11px; color:var(--accent-bright); margin-bottom:8px; font-weight:bold; letter-spacing:1px;">${d.label}</label>
+                <div style="display:flex; flex-direction:column; gap:6px;">
+                    ${subItems.map(item => {
+                        // "롤(00:00:00 ~ 01:00:00)" 형태에서 이름과 시간 분리
+                        let [name, time] = item.split('(');
+                        if (time) time = time.replace(')', ''); // 닫는 괄호 제거
+                        else time = ""; // 시간 정보가 없을 경우 대비
+
+                        return `
+                            <div style="display:flex; align-items:center; gap:6px; width:100%;">
+                                <div style="background:rgba(51, 133, 255, 0.15); padding:6px 10px; border-radius:6px; border:1px solid rgba(51, 133, 255, 0.3); font-size:12px; color:#fff; font-weight:bold; white-space:nowrap;">
+                                    ${name.trim()}
+                                </div>
+                                <div style="background:rgba(255, 255, 255, 0.05); padding:6px 10px; border-radius:6px; border:1px solid var(--border); font-size:11px; color:var(--text-sub); font-family:monospace; flex:1; text-align:center;">
+                                    ${time ? time.trim() : '-'}
+                                </div>
                             </div>
-                        `).join('')}
-                    </div>
+                        `;
+                    }).join('')}
                 </div>
-            `;
-        }
-    });
+            </div>
+        `;
+    }
+});
 
     tagContainer.innerHTML = typeHtml + detailHtml;
 
