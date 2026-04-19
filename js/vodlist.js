@@ -606,19 +606,23 @@ function renderCategorySummary(data) {
 
     const generateHtml = (cat) => {
         const sortedItems = Object.entries(cat.items).sort((a, b) => b[1] - a[1]);
-        let html = `<div>
-                        <b style="color:var(--accent-bright); font-size:14px; display:block; margin-bottom:10px;">${cat.icon} ${cat.label}</b>
-                        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px;">`;
+        // 카테고리 그룹 간의 간격 (빨간 선 역할)
+        let html = `<div style="margin-bottom: 30px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 15px;">
+                        <b style="color:var(--accent-bright); font-size:14px; display:block; margin-bottom:12px; padding-left: 4px;">
+                            ${cat.icon} ${cat.label}
+                        </b>
+                        
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">`;
         
         if (sortedItems.length > 0) {
             html += sortedItems.map(([name, count]) => `
-                <div style="background:rgba(255,255,255,0.05); padding:8px 12px; border-radius:6px; border:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
+                <div style="background:rgba(255,255,255,0.05); padding:10px 12px; border-radius:8px; border:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; box-sizing: border-box;">
                     <span style="font-size:12px; color:var(--text-main); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${name}">${name}</span>
-                    <strong style="font-size:11px; color:var(--accent-bright);">${count}회</strong>
+                    <strong style="font-size:11px; color:var(--accent-bright); margin-left: 5px;">${count}회</strong>
                 </div>
             `).join('');
         } else {
-            html += `<span style="font-size:12px; color:var(--text-sub); grid-column: 1/-1;">데이터 없음</span>`;
+            html += `<div style="grid-column: span 3; background:rgba(255,255,255,0.02); padding:15px; border-radius:8px; text-align:center; font-size:12px; color:var(--text-sub);">데이터 없음</div>`;
         }
         html += `</div></div>`;
         return html;
