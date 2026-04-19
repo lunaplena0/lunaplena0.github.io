@@ -367,6 +367,12 @@ function updateRankHighlight() {
 function renderVODList(data) {
     const listContainer = document.querySelector('.vod-list');
     listContainer.innerHTML = ''; 
+    // 데이터가 없을 때의 처리 (디자인 유지용)
+    if (data.length === 0) {
+        listContainer.innerHTML = '<div style="grid-column: 1/-1; text-align:center; padding:50px; color:var(--text-sub);">해당 태그의 다시보기가 없습니다.</div>';
+        updatePaginationButtons(0);
+        return;
+    }
 
    // 1. 현재 표시 개수만큼만 데이터 슬라이싱
     const displayData = data.slice(0, visibleCount);
