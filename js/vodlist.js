@@ -568,30 +568,44 @@ function renderStats(curr, prev) {
     const currTotal = curr.reduce((acc, r) => acc + timeToSeconds(r['다시보기 총시간']), 0);
     const prevTotal = prev.reduce((acc, r) => acc + timeToSeconds(r['다시보기 총시간']), 0);
     
-    // 시간 표시 및 차이 계산
+    // 현재 총 시간 표시
     document.getElementById('rptTotalTime').innerText = secondsToText(currTotal);
-    setDiff('diffTotalTime', currTotal, prevTotal, "시간");
+    
+    // [수정] 시간 차이 계산 (단순 unit 전달 대신 직접 텍스트 생성)
+    setDiffTime('diffTotalTime', currTotal, prevTotal);
 
     // 방송 횟수 표시 및 차이 계산
     document.getElementById('rptCount').innerText = `${curr.length}회`;
     setDiff('diffCount', curr.length, prev.length, "회");
 
-    // 평균 시간
+    // 평균 시간 차이 계산
     const currAvg = curr.length > 0 ? currTotal / curr.length : 0;
     const prevAvg = prev.length > 0 ? prevTotal / prev.length : 0;
     document.getElementById('rptAvgTime').innerText = secondsToText(currAvg);
-    setDiff('diffAvgTime', currAvg, prevAvg, "분");
+    setDiffTime('diffAvgTime', currAvg, prevAvg);
 }
 
-function setDiff(id, curr, prev, unit) {
+function setDiffTime(id, curr, prev) {
     const el = document.getElementById(id);
-    if (prev === 0) { el.innerText = ""; return; }
+    if (!el) return;
+    if (prev === 0) { el.innerText = "신규 기록"; el.style.color = "var(--accent-bright)"; return; }
+
     const diff = curr - prev;
-    const color = diff >= 0 ? "#ff4444" : "#3385ff";
-    const sign = diff >= 0 ? "▲" : "▼";
-    // 시간/분 단위 변환 로직 필요 시 추가
+    if (diff === 0) { el.innerText = "변동 없음"; el.style.color = "var(--text-sub)"; return; }
+
+    const color = diff > 0 ? "#ff4444" : "#3385ff";
+    const sign = diff > 0 ? "▲" : "▼";
+    
+    const absDiff = Math.abs(diff);
+    const h = Math.floor(absDiff / 3600);
+    const m = Math.floor((absDiff % 3600) / 60);
+
+    let diffText = "";
+    if (h > 0) diffText += `${h}시간 `;
+    diffText += `${m}분`;
+
     el.style.color = color;
-    el.innerText = `${sign} ${Math.abs(Math.round(diff / (unit === "회" ? 1 : 60)))} ${unit}`;
+    el.innerText = `${sign} ${diffText}`;
 }
 
 // 카테고리별(게임, 노래 등) 텍스트 요약
