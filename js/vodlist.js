@@ -429,23 +429,22 @@ const maxVisibleTags = isMobile ? 2 : tagsRaw.length;
     const adultBadge = isAdult ? '<span class="badge-19" style="background:#ff4444; color:#fff; font-size:10px; padding:1px 4px; border-radius:3px; margin-left:4px; vertical-align:middle;">19</span>' : '';
 
     vodItem.innerHTML = `
-        <div class="vod-thumb">
-            <img src="${row['썸네일'] && row['썸네일'].trim() !== '' ? row['썸네일'] : 'https://placehold.co/160x90/16243a/5c7285?text=No+Image'}" alt="VOD">
+    <div class="vod-thumb">
+        <img src="${row['썸네일'] && row['썸네일'].trim() !== '' ? row['썸네일'] : 'https://placehold.co/160x90/16243a/5c7285?text=No+Image'}" alt="VOD">
+    </div>
+    <div class="vod-date">
+        <span class="date-day">${displayDate}</span>
+        <span class="date-duration">${row['다시보기 총시간']}</span>
+    </div>
+    <div class="vod-info" style="display:flex; flex-direction:column; justify-content:space-between; flex:1; min-width:0;">
+        <div class="vod-title" style="margin-bottom: 12px;"> <span class="title-text" style="display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${row['제목']}</span>
+            ${adultBadge} 
         </div>
-        <div class="vod-date">
-            <span class="date-day">${displayDate}</span>
-            <span class="date-duration">${row['다시보기 총시간']}</span>
+        <div class="vod-meta" style="display:flex; flex-wrap:wrap; gap:6px; overflow:hidden;">
+            ${tagHtml}
         </div>
-        <div class="vod-info">
-            <div class="vod-title">
-                <span class="title-text">${row['제목']}</span>
-                ${adultBadge} 
-            </div>
-            <div class="vod-meta" style="display:flex; flex-wrap:nowrap; gap:4px; overflow:hidden;">
-                ${tagHtml}
-            </div>
-        </div>
-    `;
+    </div>
+`;
 
     vodItem.onclick = () => openDetailedModal(row);
     listContainer.appendChild(vodItem);
