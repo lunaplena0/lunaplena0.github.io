@@ -606,9 +606,10 @@ function renderCategorySummary(data) {
 
     const generateHtml = (cat) => {
         const sortedItems = Object.entries(cat.items).sort((a, b) => b[1] - a[1]);
-        // 카테고리 그룹 간의 간격 (빨간 선 역할)
-        let html = `<div style="margin-bottom: 30px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 15px;">
-                        <b style="color:var(--accent-bright); font-size:14px; display:block; margin-bottom:12px; padding-left: 4px;">
+        
+        // 카테고리 한 덩어리 (전체 너비 100%)
+        let html = `<div style="width: 100%; margin-bottom: 30px; clear: both;">
+                        <b style="color:var(--accent-bright); font-size:14px; display:block; margin-bottom:12px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px;">
                             ${cat.icon} ${cat.label}
                         </b>
                         
@@ -616,24 +617,26 @@ function renderCategorySummary(data) {
         
         if (sortedItems.length > 0) {
             html += sortedItems.map(([name, count]) => `
-                <div style="background:rgba(255,255,255,0.05); padding:10px 12px; border-radius:8px; border:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; box-sizing: border-box;">
-                    <span style="font-size:12px; color:var(--text-main); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${name}">${name}</span>
-                    <strong style="font-size:11px; color:var(--accent-bright); margin-left: 5px;">${count}회</strong>
+                <div style="background:rgba(255,255,255,0.05); padding:12px 15px; border-radius:8px; border:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; box-sizing: border-box;">
+                    <span style="font-size:13px; color:var(--text-main);">${name}</span>
+                    <strong style="font-size:12px; color:var(--accent-bright);">${count}회</strong>
                 </div>
             `).join('');
         } else {
-            html += `<div style="grid-column: span 3; background:rgba(255,255,255,0.02); padding:15px; border-radius:8px; text-align:center; font-size:12px; color:var(--text-sub);">데이터 없음</div>`;
+            html += `<div style="grid-column: span 3; color:var(--text-sub); font-size:12px; padding:10px;">데이터 없음</div>`;
         }
         html += `</div></div>`;
         return html;
     };
 
-    document.getElementById('rptCategory').innerHTML = 
+    // 중요: rptCategory 자체의 그리드/플렉스 스타일을 제거하고 세로로 쌓이게 만듦
+    const container = document.getElementById('rptCategory');
+    container.style.display = 'block'; 
+    container.innerHTML = 
         generateHtml(categories.game) + 
         generateHtml(categories.song) + 
         generateHtml(categories.content);
     
-    // 리포트용 태그 리스트 업데이트 (전체 출력)
     renderRptTags(data);
 }
 // 상세 팝업 오픈 (시트 데이터 기반)
