@@ -613,7 +613,7 @@ function renderCategorySummary(data) {
                             ${cat.icon} ${cat.label}
                         </b>
                         
-                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">`;
+                        <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px;">`;
         
         if (sortedItems.length > 0) {
             html += sortedItems.map(([name, count]) => `
