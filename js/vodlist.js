@@ -666,8 +666,19 @@ function openDetailedModal(data) {
     // --- 제목 및 특수 태그 처리 추가 ---
     const isAdult = data['성인인증 필요 여부'] === '예';
     const isPlus = data['구독플러스여부'] === '예';
+    const rawUrl = data['링크'] ? data['링크'].trim() : "";
+    const isValidUrl = rawUrl.startsWith('http'); // http로 시작하는 진짜 주소인지 확인
     
-    let titleHtml = data['제목'];
+    // 제목을 클릭하면 새 창으로 이동하게 <a> 태그 적용
+    // 링크가 없을 경우를 대비해 조건부로 처리합니다.
+    let titleHtml = '';
+    if (isValidUrl) {
+        // 유효한 링크가 있을 때만 <a> 태그 적용
+        titleHtml = `<a href="${rawUrl}" target="_blank" title="다시보기 보러가기" style="color: inherit; text-decoration: none; cursor: pointer;">${data['제목']} <small style="font-size: 10px; opacity: 0.5;">🔗</small></a>`;
+    } else {
+        // 링크가 없거나 '-'인 경우 그냥 텍스트만 표시
+        titleHtml = data['제목'];
+    }
     
     // 19세 태그 추가
     if (isAdult) {
@@ -677,6 +688,13 @@ function openDetailedModal(data) {
     if (isPlus) {
         titleHtml += ` <span style="background:#ffcc00; color:#000; font-size:11px; padding:2px 6px; border-radius:4px; font-weight:bold; vertical-align:middle; margin-left:5px;">구독+</span>`;
     }
+    // 최종 제목 적용
+    const modalTitle = document.getElementById('modalTitle');
+    modalTitle.innerHTML = titleHtml;
+
+    // 제목에 호버 효과 추가 (선택 사항)
+    modalTitle.onmouseover = () => { if(vodUrl) modalTitle.style.textDecoration = 'underline'; };
+    modalTitle.onmouseout = () => { modalTitle.style.textDecoration = 'none'; };
 
     // innerText 대신 innerHTML을 사용하여 태그가 렌더링되게 합니다.
     document.getElementById('modalTitle').innerHTML = titleHtml;
