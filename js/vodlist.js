@@ -585,6 +585,22 @@ function renderStats(curr, prev) {
     setDiffTime('diffAvgTime', currAvg, prevAvg);
 }
 
+// 1. 일반 숫자 비교 함수 (방송 횟수 등에 사용)
+function setDiff(id, curr, prev, unit) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (prev === 0) { el.innerText = "신규"; el.style.color = "var(--accent-bright)"; return; }
+    
+    const diff = curr - prev;
+    if (diff === 0) { el.innerText = "변동 없음"; el.style.color = "var(--text-sub)"; return; }
+
+    const color = diff > 0 ? "#ff4444" : "#3385ff";
+    const sign = diff > 0 ? "▲" : "▼";
+    el.style.color = color;
+    el.innerText = `${sign} ${Math.abs(diff)}${unit}`;
+}
+
+// 2. 시간 전용 비교 함수 (총 방송 시간 등에 사용)
 function setDiffTime(id, curr, prev) {
     const el = document.getElementById(id);
     if (!el) return;
@@ -602,12 +618,11 @@ function setDiffTime(id, curr, prev) {
 
     let diffText = "";
     if (h > 0) diffText += `${h}시간 `;
-    diffText += `${m}분`;
+    if (m > 0 || h === 0) diffText += `${m}분`; // 0분이어도 표시하거나 분 단위 노출
 
     el.style.color = color;
-    el.innerText = `${sign} ${diffText}`;
+    el.innerText = `${sign} ${diffText.trim()}`;
 }
-
 // 카테고리별(게임, 노래 등) 텍스트 요약
 function renderCategorySummary(data) {
     const categories = {
