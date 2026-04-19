@@ -130,14 +130,13 @@ if (rankGrid) {
             finalName = name.startsWith('#') ? name : '#' + name;
         }
 
-        const rankItem = `
-            <div class="rank-item" 
-                 data-tag="${name}" 
-                 onclick="toggleTagFilter('${name}')" 
-                 style="${specialStyle} cursor:pointer; padding: 6px 8px; margin: 2px 0; display: flex; align-items: center;">
-                <span class="rank-badge ${isTop}">${rank}</span>
-                <span class="tag-text" style="margin-left: 5px;">${finalName}</span>
-            </div>`;
+       const rankItem = `
+    <div class="rank-item" 
+         data-tag="${name}" 
+         onclick="toggleTagFilter('${name}')" 
+         style="${specialStyle} cursor:pointer;"> <span class="rank-badge ${isTop}">${rank}</span>
+        <span class="tag-text">${finalName}</span>
+    </div>`;
         rankGrid.insertAdjacentHTML('beforeend', rankItem);
     });
 }
