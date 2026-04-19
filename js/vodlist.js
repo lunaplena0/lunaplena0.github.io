@@ -390,26 +390,27 @@ function renderVODList(data) {
         vodItem.className = 'vod-item';
         vodItem.style.cursor = 'pointer';
         
-        vodItem.innerHTML = `
-            <div class="vod-thumb">
-                <img src="${row['썸네일'] && row['썸네일'].trim() !== '' ? row['썸네일'] : 'https://placehold.co/160x90/16243a/5c7285?text=No+Image'}" alt="VOD">
+        const adultBadge = isAdult ? '<span class="badge-19">[19]</span>' : '';
+
+vodItem.innerHTML = `
+    <div class="vod-thumb">
+        <img src="${row['썸네일'] && row['썸네일'].trim() !== '' ? row['썸네일'] : 'https://placehold.co/160x90/16243a/5c7285?text=No+Image'}" alt="VOD">
     </div>
-            </div>
-            <div class="vod-date">
-                <span class="date-day">${displayDate}</span>
-                <span class="date-duration">${row['다시보기 총시간']}</span>
-            </div>
-            <div class="vod-info">
-                <div class="vod-title">
-                    ${row['제목']}
-                    ${isAdult ? '<span style="color:#ff4444; font-weight:bold; margin-right:5px;">[19]</span>' : ''}
-                </div>
-                <div class="vod-meta">
-                    ${tagHtml}
-                    ${isPlus ? '<span class="vod-tag" style="background:#ffcc00; color:#000; font-weight:bold;">구독+</span>' : ''}
-                </div>
-            </div>
-        `;
+    <div class="vod-date">
+        <span class="date-day">${displayDate}</span>
+        <span class="date-duration">${row['다시보기 총시간']}</span>
+    </div>
+    <div class="vod-info">
+        <div class="vod-title">
+            <span class="title-text">${row['제목']}</span>
+            ${adultBadge} 
+        </div>
+        <div class="vod-meta">
+            ${tagHtml}
+            ${isPlus ? '<span class="vod-tag" style="background:#ffcc00; color:#000; font-weight:bold;">구독+</span>' : ''}
+        </div>
+    </div>
+`;
 
         vodItem.onclick = () => openDetailedModal(row);
         listContainer.appendChild(vodItem);
