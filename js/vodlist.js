@@ -399,6 +399,11 @@ function renderVODList(data) {
         const tagsRaw = row['컨텐츠 종류'] ? row['컨텐츠 종류'].split(',').map(t => t.trim()) : [];
         const maxVisibleTags = 2; 
         let tagHtml = '';
+        
+        // --- [수정] 구독+ 뱃지를 가장 먼저 배치 ---
+        if (isPlus) {
+    tagHtml += `<span class="vod-tag" style="background:#ffcc00; color:#000; font-weight:bold; flex-shrink:0;">구독+</span>`;
+}
 
         // 실제 태그 2개까지만 생성
         tagsRaw.slice(0, maxVisibleTags).forEach(tag => {
