@@ -348,19 +348,24 @@ function toggleTagFilter(tagName) {
 // 순위표에서 선택된 태그 강조 스타일 업데이트
 function updateRankHighlight() {
     document.querySelectorAll('.rank-item').forEach(item => {
-        const tagValue = item.getAttribute('data-tag'); // 데이터 속성에서 직접 가져옴
+        const tagValue = item.getAttribute('data-tag'); 
         
         if (currentFilter && tagValue === currentFilter) {
-            // 클릭된 상태 스타일
+            // [선택된 상태] 강조 스타일 적용
             item.style.background = 'rgba(51, 133, 255, 0.25)';
             item.style.borderColor = 'var(--accent-bright)';
             item.style.borderRadius = '6px';
             item.style.boxShadow = 'inset 0 0 5px rgba(51, 133, 255, 0.2)';
+            item.style.borderWidth = '1px'; // 테두리 두께 보장
+            item.style.borderStyle = 'solid'; // 테두리 스타일 보장
         } else {
-            // 기본 상태 스타일
-            item.style.background = 'transparent';
-            item.style.borderColor = 'transparent';
-            item.style.boxShadow = 'none';
+            // [기본 상태] JS가 강제로 넣었던 스타일을 제거하여 CSS 파일 설정으로 복구
+            item.style.background = '';      
+            item.style.borderColor = '';     
+            item.style.borderRadius = '';    
+            item.style.boxShadow = '';
+            item.style.borderWidth = '';
+            item.style.borderStyle = '';
         }
     });
 }
