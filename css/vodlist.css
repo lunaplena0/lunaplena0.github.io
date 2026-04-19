@@ -460,24 +460,30 @@ vod-control {
 
    /* [3] 태그 순위 (핵심: 2열 그리드 강제 적용) */
     .rank-grid {
-        display: grid !important;
-        grid-template-columns: repeat(2, minmax(0, 1fr)) !important; /* 정확히 반반 */
-        gap: 8px !important;
-        width: 100% !important;
-        padding: 10px 0 !important;
-        box-sizing: border-box !important;
-    }
-    .rank-item {
-        width: 100% !important;
-        display: flex !important;
-        justify-content: space-between !important;
-        align-items: center !important;
-        padding: 8px 10px !important;
-        background: rgba(255, 255, 255, 0.05) !important;
-        border-radius: 6px !important;
-        font-size: 11px !important;
-        margin: 0 !important; /* 마진 때문에 밀리는 현상 방지 */
-    }
+    display: grid !important;
+    /* 무조건 2열로 고정하고 나머지는 아래로 */
+    grid-template-columns: repeat(2, 1fr) !important; 
+    gap: 10px !important;
+    width: 100% !important;
+    padding: 10px 0 !important;
+    box-sizing: border-box !important;
+    /* 추가: 자식들이 옆으로 새지 않도록 고정 */
+    grid-auto-flow: row !important; 
+}
+
+.rank-item {
+    /* 중요: 너비를 100%로 해서 그리드 한 칸을 꽉 채우게 함 */
+    width: 100% !important; 
+    display: flex !important;
+    align-items: center !important;
+    padding: 8px 10px !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-radius: 6px !important;
+    font-size: 12px !important;
+    box-sizing: border-box !important;
+    /* 기존 margin: 2px 0; 이 그리드 간격을 방해하므로 CSS에서 초기화 */
+    margin: 0 !important; 
+}
 
   /* 제목은 한 줄로 고정하고 말줄임표 처리 */
 .vod-title {
