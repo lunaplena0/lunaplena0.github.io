@@ -306,35 +306,39 @@ vod-control {
 
             /* 1. 상단 통계 컨테이너: 높이를 유연하게 조절 */
     .summary-grid.summary-full {
-        display: flex !important;
-        flex-direction: row !important; /* 가로 배열 유지하되 */
-        justify-content: space-around !important;
-        padding: 15px 5px !important;
-        gap: 0 !important;
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important; 
+        gap: 8px !important;
     }
 
     /* 2. 각 통계 항목(시간, 횟수 등)의 박스 */
     .summary-item {
-        flex: 1 !important;
-        padding: 5px !important;
-        background: none !important; /* 배경 제거해서 더 넓게 */
-        border: none !important;
+        flex: none !important;
+        width: 100% !important;
+        background: rgba(51, 133, 255, 0.05) !important; /* 살짝 배경색을 주어 구분감 확보 */
+        border: 1px solid var(--border) !important;
+        border-radius: 8px !important;
+        padding: 12px !important;
+        display: flex !important;
+        justify-content: space-between !important; /* 라벨은 왼쪽, 숫자는 오른쪽 */
+        align-items: center !important;
     }
 
-    /* 3. "총 방송 시간" 같은 라벨 글자 크기 */
+    .summary-item:not(:last-child) {
+        border-right: none !important;
+        border-bottom: 1px solid var(--border) !important; /* 대신 아래 선 추가 가능 */
+    }
+
+    /* 3. 라벨과 숫자 크기 조절 */
     .summary-item label {
-        font-size: 10px !important;
-        white-space: nowrap !important;
-        margin-bottom: 8px !important;
-        color: var(--text-sub) !important;
+        font-size: 11px !important;
+        margin-bottom: 0 !important; /* 양끝 정렬 시 여백 제거 */
     }
-
     /* 4. [핵심] 큰 숫자(619시간 등) 글자 크기 조절 */
     .summary-item div {
-        font-size: 15px !important; /* 너무 큰 폰트를 15px~16px로 축소 */
-        line-height: 1.4 !important;
-        word-break: keep-all !important; /* 단어 단위로 깔끔하게 줄바꿈 */
-        display: block !important;
+        font-size: 16px !important;
+        color: var(--accent-bright) !important;
+        font-weight: bold !important;
     }
 
     /* 5. 숫자 사이의 구분선(border)이 있다면 조정 */
