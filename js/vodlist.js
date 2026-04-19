@@ -604,16 +604,20 @@ function renderCategorySummary(data) {
         process('컨텐츠(시간)', 'content');
     });
 
+    // 현재 화면 너비 확인 (모바일 여부 판단)
+    const isMobile = window.innerWidth <= 768;
+
     const generateHtml = (cat) => {
         const sortedItems = Object.entries(cat.items).sort((a, b) => b[1] - a[1]);
         
-        // 카테고리 한 덩어리 (전체 너비 100%)
-        let html = `<div style="width: 100%; margin-bottom: 30px; clear: both;">
+        // PC는 3열(혹은 6열), 모바일은 1열로 자동 전환
+        const gridColumns = isMobile ? '1fr' : 'repeat(6, 1fr)';
+        
+        let html = `<div style="width: 100%; margin-bottom: 30px;">
                         <b style="color:var(--accent-bright); font-size:14px; display:block; margin-bottom:12px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px;">
                             ${cat.icon} ${cat.label}
                         </b>
-                        
-                        <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px;">`;
+                        <div style="display: grid; grid-template-columns: ${gridColumns}; gap: 10px;">`;
         
         if (sortedItems.length > 0) {
             html += sortedItems.map(([name, count]) => `
@@ -623,13 +627,12 @@ function renderCategorySummary(data) {
                 </div>
             `).join('');
         } else {
-            html += `<div style="grid-column: span 3; color:var(--text-sub); font-size:12px; padding:10px;">데이터 없음</div>`;
+            html += `<div style="grid-column: 1/-1; color:var(--text-sub); font-size:12px; padding:10px; text-align:center;">데이터 없음</div>`;
         }
         html += `</div></div>`;
         return html;
     };
 
-    // 중요: rptCategory 자체의 그리드/플렉스 스타일을 제거하고 세로로 쌓이게 만듦
     const container = document.getElementById('rptCategory');
     container.style.display = 'block'; 
     container.innerHTML = 
