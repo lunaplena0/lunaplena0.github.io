@@ -645,8 +645,28 @@ function renderCategorySummary(data) {
 
 // 상세 팝업 오픈 (시트 데이터 기반)
 function openDetailedModal(data) {
-    document.getElementById('modalThumb').src = data['썸네일'];
-    document.getElementById('modalTitle').innerText = data['제목'];
+    document.getElementById('modalThumb').src = data['썸네일'] && data['썸네일'].trim() !== '' 
+        ? data['썸네일'] 
+        : 'https://placehold.co/160x90/16243a/5c7285?text=No+Image';
+
+    // --- 제목 및 특수 태그 처리 추가 ---
+    const isAdult = data['성인인증 필요 여부'] === '예';
+    const isPlus = data['구독플러스여부'] === '예';
+    
+    let titleHtml = data['제목'];
+    
+    // 19세 태그 추가
+    if (isAdult) {
+        titleHtml += ` <span style="color:#ff4444; font-size:14px; vertical-align:middle; margin-left:5px;">[19]</span>`;
+    }
+    // 구독+ 태그 추가
+    if (isPlus) {
+        titleHtml += ` <span style="background:#ffcc00; color:#000; font-size:11px; padding:2px 6px; border-radius:4px; font-weight:bold; vertical-align:middle; margin-left:5px;">구독+</span>`;
+    }
+
+    // innerText 대신 innerHTML을 사용하여 태그가 렌더링되게 합니다.
+    document.getElementById('modalTitle').innerHTML = titleHtml;
+    
     document.getElementById('modalDate').innerText = data['날짜'];
     document.getElementById('modalDuration').innerText = data['다시보기 총시간'];
 
