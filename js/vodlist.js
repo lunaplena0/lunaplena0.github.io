@@ -401,8 +401,8 @@ function renderVODList(data) {
             </div>
             <div class="vod-info">
                 <div class="vod-title">
-                    ${isAdult ? '<span style="color:#ff4444; font-weight:bold; margin-right:5px;">[19]</span>' : ''}
                     ${row['제목']}
+                    ${isAdult ? '<span style="color:#ff4444; font-weight:bold; margin-right:5px;">[19]</span>' : ''}
                 </div>
                 <div class="vod-meta">
                     ${tagHtml}
