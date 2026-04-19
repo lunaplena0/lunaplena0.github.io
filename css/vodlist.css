@@ -399,22 +399,37 @@ vod-control {
 
   /* 제목은 한 줄로 고정하고 말줄임표 처리 */
 .vod-title {
-    white-space: nowrap !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-    display: block !important;
-    word-break: break-all !important; /* 혹시 모를 너비 계산 오류 방지 */
-}
+        display: flex !important;
+        align-items: center;
+        justify-content: space-between; /* 제목은 왼쪽, 배지는 오른쪽 */
+        gap: 8px;
+        width: 100%;
+        white-space: nowrap !important;
+    }
 
-/* 팝업 내부의 긴 텍스트들은 여전히 줄바꿈 유지 (가독성) */
-.modal-content h3, 
-.modal-content span, 
-.modal-content div:not(.vod-title) {
-    white-space: normal !important;
-    word-break: keep-all !important;
-    overflow-wrap: break-word !important;
-}
+    /* 실제 제목 텍스트: 여기서만 말줄임표 발생 */
+    .title-text {
+        flex: 1;                /* 가능한 넓은 공간 차지 */
+        min-width: 0;           /* flex 박스 내 말줄임표 필수 설정 */
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+        display: block !important;
+    }
 
+    /* 19금 배지: 절대로 크기가 줄어들거나 잘리지 않음 */
+    .badge-19 {
+        flex-shrink: 0;         /* 공간 부족해도 유지 */
+        color: #ff4444;
+        font-weight: bold;
+        font-size: 12px;
+    }
+    
+    /* 기존 5번 항목의 다른 요소들 줄바꿈 설정 유지 */
+    .modal-content h3, .modal-content span:not(.title-text), .modal-content div:not(.vod-title) {
+        white-space: normal !important;
+        word-break: keep-all !important;
+    }
     /* 6. 메인 화면 하단 섹션 (다시보기 리스트 등) 1열로 */
     .bottom-section { 
         display: flex !important;
