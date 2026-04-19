@@ -397,12 +397,23 @@ vod-control {
         align-items: center;
     }
 
-    /* 5. 텍스트 줄바꿈 및 넘침 방지 */
-    .vod-title, .modal-content h3, .modal-content span, .modal-content div {
-        white-space: normal !important;
-        word-break: keep-all !important; /* 단어 단위 줄바꿈으로 더 깔끔하게 */
-        overflow-wrap: break-word !important;
-    }
+  /* 제목은 한 줄로 고정하고 말줄임표 처리 */
+.vod-title {
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    display: block !important;
+    word-break: break-all !important; /* 혹시 모를 너비 계산 오류 방지 */
+}
+
+/* 팝업 내부의 긴 텍스트들은 여전히 줄바꿈 유지 (가독성) */
+.modal-content h3, 
+.modal-content span, 
+.modal-content div:not(.vod-title) {
+    white-space: normal !important;
+    word-break: keep-all !important;
+    overflow-wrap: break-word !important;
+}
 
     /* 6. 메인 화면 하단 섹션 (다시보기 리스트 등) 1열로 */
     .bottom-section { 
