@@ -379,26 +379,36 @@ function updateRankHighlight() {
 function renderVODList(data) {
     const listContainer = document.querySelector('.vod-list');
     listContainer.innerHTML = ''; 
-    // 데이터가 없을 때의 처리 (디자인 유지용)
+
     if (data.length === 0) {
         listContainer.innerHTML = '<div style="grid-column: 1/-1; text-align:center; padding:50px; color:var(--text-sub);">해당 태그의 다시보기가 없습니다.</div>';
         updatePaginationButtons(0);
         return;
     }
 
-   // 1. 현재 표시 개수만큼만 데이터 슬라이싱
     const displayData = data.slice(0, visibleCount);
 
     displayData.forEach((row) => {
         if(!row['날짜']) return;
 
-        // 1. 날짜 처리 (2026-04-12 -> 04.12)
+        // 1. 날짜 처리
         const dateParts = row['날짜'].split('-');
         const displayDate = dateParts.length === 3 ? `${dateParts[1]}.${dateParts[2]}` : row['날짜'];
 
-        // 2. 컨텐츠 종류 태그화
-        const tagsRaw = row['컨텐츠 종류'] ? row['컨텐츠 종류'].split(',') : [];
-        const tagHtml = tagsRaw.map(tag => `<span class="vod-tag">#${tag.trim()}</span>`).join('');
+        // 2. 컨텐츠 종류 태그화 (모바일 최적화: 최대 2개 노출 후 +n 표시)
+        const tagsRaw = row['컨텐츠 종류'] ? row['컨텐츠 종류'].split(',').map(t => t.trim()) : [];
+        const maxVisibleTags = 2; 
+        let tagHtml = '';
+
+        // 실제 태그 2개까지만 생성
+        tagsRaw.slice(0, maxVisibleTags).forEach(tag => {
+            if(tag) tagHtml += `<span class="vod-tag">#${tag}</span>`;
+        });
+
+        // 남은 개수가 있다면 +n 추가
+        if (tagsRaw.length > maxVisibleTags) {
+            tagHtml += `<span class="vod-tag plus-tag" style="background:rgba(255,255,255,0.1); opacity:0.7;">+${tagsRaw.length - maxVisibleTags}</span>`;
+        }
 
         // 3. '예/아니요' 여부 판별
         const isAdult = row['성인인증 필요 여부'] === '예';
@@ -408,28 +418,28 @@ function renderVODList(data) {
         vodItem.className = 'vod-item';
         vodItem.style.cursor = 'pointer';
         
-        const adultBadge = isAdult ? '<span class="badge-19">[19]</span>' : '';
+        // 성인 인증 배지 (뱃지 스타일)
+        const adultBadge = isAdult ? '<span class="badge-19" style="background:#ff4444; color:#fff; font-size:10px; padding:1px 4px; border-radius:3px; margin-left:4px; vertical-align:middle;">19</span>' : '';
 
-vodItem.innerHTML = `
-    <div class="vod-thumb">
-        <img src="${row['썸네일'] && row['썸네일'].trim() !== '' ? row['썸네일'] : 'https://placehold.co/160x90/16243a/5c7285?text=No+Image'}" alt="VOD">
-    </div>
-    <div class="vod-date">
-        <span class="date-day">${displayDate}</span>
-        <span class="date-duration">${row['다시보기 총시간']}</span>
-    </div>
-    <div class="vod-info">
-        <div class="vod-title">
-            <span class="title-text">${row['제목']}</span>
-            ${adultBadge} 
-        </div>
-        <div class="vod-meta">
-            ${tagHtml}
-            ${isPlus ? '<span class="vod-tag" style="background:#ffcc00; color:#000; font-weight:bold;">구독+</span>' : ''}
-        </div>
-    </div>
-`;
-
+        vodItem.innerHTML = `
+            <div class="vod-thumb">
+                <img src="${row['썸네일'] && row['썸네일'].trim() !== '' ? row['썸네일'] : 'https://placehold.co/160x90/16243a/5c7285?text=No+Image'}" alt="VOD">
+            </div>
+            <div class="vod-date">
+                <span class="date-day">${displayDate}</span>
+                <span class="date-duration">${row['다시보기 총시간']}</span>
+            </div>
+            <div class="vod-info">
+                <div class="vod-title">
+                    <span class="title-text">${row['제목']}</span>
+                    ${adultBadge} 
+                </div>
+                <div class="vod-meta" style="display:flex; flex-wrap:nowrap; gap:4px; overflow:hidden;">
+                    ${tagHtml}
+                    ${isPlus ? '<span class="vod-tag" style="background:#ffcc00; color:#000; font-weight:bold; flex-shrink:0;">구독+</span>' : ''}
+                </div>
+            </div>
+        `;
         vodItem.onclick = () => openDetailedModal(row);
         listContainer.appendChild(vodItem);
     });
