@@ -241,47 +241,91 @@ let currentFilter = null; // 현재 선택된 태그
 
 // 기존 loadSheetData 함수 수정
 function loadSheetData() {
-    
     Papa.parse(sheetURL, {
         download: true,
         header: true,
+        skipEmptyLines: true,
+        delimiter: "\t", 
+        quoteChar: '"', 
         complete: function(results) {
-            allData = results.data.filter(row => row['날짜']); 
-            
-            renderVODList(allData); 
-            updateTagStatistics(allData); 
-            // 리포트 데이터 그룹화 및 초기 렌더링 호출
-            initializeReportData(allData);
-            updateReport(); 
-           // 로딩 종료 (loading.js에 있는 함수)
+            // 1. 데이터 키(헤더명)에서 공백을 제거하는 전처리
+            allData = results.data.map(row => {
+                const newRow = {};
+                for (let key in row) {
+                    newRow[key.trim()] = row[key];
+                }
+                return newRow;
+            }).filter(row => {
+                // 날짜가 있거나 제목이 있는 것만 통과
+                return (row['날짜'] && row['날짜'].trim() !== '') || 
+                       (row['제목'] && row['제목'].trim() !== '');
+            });
+
+            // 2. 데이터 렌더링 및 통계 업데이트
+            if (allData.length > 0) {
+                renderVODList(allData);
+                updateTagStatistics(allData);
+                initializeReportData(allData);
+                updateReport();
+            } else {
+                // 에러 발생 시 사용자에게 보여줄 메시지만 남기고 로그는 제거
+                const listContainer = document.querySelector('.vod-list');
+                if (listContainer) {
+                    listContainer.innerHTML = 
+                        `<div style="grid-column:1/-1; text-align:center; padding:50px;">
+                            표시할 데이터가 없습니다. <br>시트 설정을 확인해주세요.
+                        </div>`;
+                }
+            }
+
+            // 3. 로딩 오버레이 숨김
             if (typeof hideLoadingOverlay === "function") {
                 hideLoadingOverlay();
             }
         }
     });
 }
+// 데이터를 안전하게 보관할 전역 변수
+window.currentDataCache = [];
         // [추가] 리포트 전용 VOD 리스트 렌더링
 function renderRptVodList(data) {
     const listContainer = document.getElementById('rptVodList');
     if (!listContainer) return;
     listContainer.innerHTML = '';
 
+    // 1. 데이터가 없을 때 처리
     if (data.length === 0) {
         listContainer.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-sub);">조건에 맞는 방송이 없습니다.</div>';
         return;
     }
 
-    data.forEach(row => {
+    // 2. 전역 변수에 현재 필터링된 데이터를 보관 (따옴표 에러 방지 핵심)
+    window.currentDataCache = data;
+
+    // 3. 리스트 생성 (데이터 전체를 HTML에 넣지 않고 '인덱스'만 사용)
+    data.forEach((row, index) => {
+        const displayDate = row['날짜'] ? row['날짜'].substring(5).replace('-', '.') : '00.00';
+        const title = row['제목'] || '제목 없음';
+        const duration = row['다시보기 총시간'] || '00:00:00';
+
         const item = `
-            <div class="item-row" style="cursor:pointer; padding:10px; border-bottom:1px solid var(--border);" onclick="openDetailedModal(${JSON.stringify(row).replace(/"/g, '&quot;')})">
+            <div class="item-row" style="cursor:pointer; padding:10px; border-bottom:1px solid var(--border);" 
+                 onclick="safeOpenModal(${index})"> 
                 <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span style="font-size:11px; font-weight:bold; color:var(--text-sub);">${row['날짜'].substring(5).replace('-','.')}</span>
-                    <span style="font-size:13px; flex:1; margin: 0 12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${row['제목']}</span>
-                    <span style="font-size:11px; color:var(--accent-bright); font-family:monospace;">${row['다시보기 총시간']}</span>
+                    <span style="font-size:11px; font-weight:bold; color:var(--text-sub);">${displayDate}</span>
+                    <span style="font-size:13px; flex:1; margin: 0 12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${title}</span>
+                    <span style="font-size:11px; color:var(--accent-bright); font-family:monospace;">${duration}</span>
                 </div>
             </div>`;
         listContainer.insertAdjacentHTML('beforeend', item);
     });
+}
+
+// 4. 안전하게 모달을 여는 연결 함수 추가
+function safeOpenModal(index) {
+    if (window.currentDataCache && window.currentDataCache[index]) {
+        openDetailedModal(window.currentDataCache[index]);
+    }
 }
         
 // 리포트용 태그 리스트 (리포트용)
@@ -654,27 +698,72 @@ function renderCategorySummary(data) {
         const sortedItems = Object.entries(cat.items).sort((a, b) => b[1] - a[1]);
         
         // PC는 3열(혹은 4열), 모바일은 1열로 자동 전환
-        const gridColumns = isMobile ? '1fr' : 'repeat(4, 1fr)';
+        const gridColumns = isMobile ? '1fr' : 'repeat(5, 1fr)';
+        const LIMIT = 40; // 제한 개수 설정
+        const hasMore = sortedItems.length > LIMIT;
+
+        // 카테고리별 고유 ID 생성 (버튼 제어용)
+        const categoryId = `grid-${cat.label.replace(/\s+/g, '')}`;
         
-        let html = `<div style="width: 100%; margin-bottom: 30px;">
-                        <b style="color:var(--accent-bright); font-size:14px; display:block; margin-bottom:12px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px;">
-                            ${cat.icon} ${cat.label}
-                        </b>
-                        <div style="display: grid; grid-template-columns: ${gridColumns}; gap: 10px;">`;
-        
-        if (sortedItems.length > 0) {
-            html += sortedItems.map(([name, count]) => `
-                <div style="background:rgba(255,255,255,0.05); padding:12px 15px; border-radius:8px; border:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; box-sizing: border-box;">
-                    <span style="font-size:13px; color:var(--text-main);">${name}</span>
-                    <strong style="font-size:12px; color:var(--accent-bright);">${count}회</strong>
-                </div>
-            `).join('');
-        } else {
-            html += `<div style="grid-column: 1/-1; color:var(--text-sub); font-size:12px; padding:10px; text-align:center;">데이터 없음</div>`;
-        }
-        html += `</div></div>`;
-        return html;
-    };
+        let html = `
+        <div style="width: 100%; margin-bottom: 30px;">
+            <b style="color:var(--accent-bright); font-size:14px; display:block; margin-bottom:12px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px;">
+                ${cat.icon} ${cat.label}
+            </b>
+            <div id="${categoryId}" style="display: grid; grid-template-columns: ${gridColumns}; gap: 10px;">`;
+
+    if (sortedItems.length > 0) {
+        html += sortedItems.map(([name, count], index) => {
+            // LIMIT 이후의 아이템은 초기 상태에서 display: none 처리
+            const isHidden = index >= LIMIT ? 'display: none;' : '';
+            const itemClass = index >= LIMIT ? `${categoryId}-more` : '';
+            
+           return `
+        <div class="${itemClass}" style="
+            background:rgba(255,255,255,0.05); 
+            padding:12px 15px; 
+            border-radius:8px; 
+            border:1px solid var(--border); 
+            display:${isHidden ? 'none' : 'flex'}; 
+            justify-content:space-between; 
+            align-items:center; 
+            box-sizing: border-box;
+            gap: 10px; /* 이름과 숫자 사이 간격 */
+            overflow: hidden; /* 자식 요소가 넘치는 것 방지 */
+        ">
+            <span style="
+                font-size:13px; 
+                color:var(--text-main);
+                white-space: nowrap;      /* 줄바꿈 금지 */
+                overflow: hidden;         /* 넘치는 부분 숨김 */
+                text-overflow: ellipsis;  /* 말줄임표(...) 적용 */
+                flex: 1;                  /* 가능한 넓은 면적 차지 */
+            " title="${name}">${name}</span>
+            <strong style="
+                font-size:12px; 
+                color:var(--accent-bright);
+                flex-shrink: 0;           /* 숫자는 줄어들지 않게 고정 */
+            ">${count}회</strong>
+        </div>
+    `;
+}).join('');
+    } else {
+        html += `<div style="grid-column: 1/-1; color:var(--text-sub); font-size:12px; padding:10px; text-align:center;">데이터 없음</div>`;
+    }
+
+    html += `</div>`;
+
+    // 40개가 넘을 경우 펼치기 버튼 추가
+    if (hasMore) {
+        html += `
+            <button onclick="toggleExpand('${categoryId}')" id="btn-${categoryId}" style="width:100%; margin-top:15px; padding:10px; background:transparent; border:1px solid var(--border); color:var(--text-sub); border-radius:8px; cursor:pointer; font-size:12px;">
+                + ${sortedItems.length - LIMIT}개 더 보기
+            </button>`;
+    }
+
+    html += `</div>`;
+    return html;
+};
 
     const container = document.getElementById('rptCategory');
     container.style.display = 'block'; 
@@ -685,7 +774,19 @@ function renderCategorySummary(data) {
     
     renderRptTags(data);
 }
+window.toggleExpand = (id) => {
+    const hiddenItems = document.querySelectorAll(`.${id}-more`);
+    const btn = document.getElementById(`btn-${id}`);
+    const isExpanding = btn.innerText.includes('더 보기');
 
+    hiddenItems.forEach(item => {
+        // flex로 다시 보여주거나 숨김 (기존 스타일이 flex이므로)
+        item.style.display = isExpanding ? 'flex' : 'none';
+    });
+
+    // 버튼 텍스트 변경
+    btn.innerText = isExpanding ? '접기' : `+ ${hiddenItems.length}개 더 보기`;
+};
 // 상세 팝업 오픈 (시트 데이터 기반)
 function openDetailedModal(data) {
     document.getElementById('modalThumb').src = data['썸네일'] && data['썸네일'].trim() !== '' 
