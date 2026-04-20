@@ -261,32 +261,47 @@ function loadSheetData() {
         }
     });
 }
+// 데이터를 안전하게 보관할 전역 변수
+window.currentDataCache = [];
         // [추가] 리포트 전용 VOD 리스트 렌더링
 function renderRptVodList(data) {
     const listContainer = document.getElementById('rptVodList');
     if (!listContainer) return;
     listContainer.innerHTML = '';
 
+    // 1. 데이터가 없을 때 처리
     if (data.length === 0) {
         listContainer.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-sub);">조건에 맞는 방송이 없습니다.</div>';
         return;
     }
 
+    // 2. 전역 변수에 현재 필터링된 데이터를 보관 (따옴표 에러 방지 핵심)
+    window.currentDataCache = data;
+
+    // 3. 리스트 생성 (데이터 전체를 HTML에 넣지 않고 '인덱스'만 사용)
     data.forEach((row, index) => {
-        // [수정] JSON 데이터를 속성에 넣지 않고, 글로벌 변수나 클로저를 활용해 안전하게 전달
+        const displayDate = row['날짜'] ? row['날짜'].substring(5).replace('-', '.') : '00.00';
+        const title = row['제목'] || '제목 없음';
+        const duration = row['다시보기 총시간'] || '00:00:00';
+
         const item = `
-            <div class="item-row" style="cursor:pointer; padding:10px; border-bottom:1px solid var(--border);" id="rpt-item-${index}">
+            <div class="item-row" style="cursor:pointer; padding:10px; border-bottom:1px solid var(--border);" 
+                 onclick="safeOpenModal(${index})"> 
                 <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span style="font-size:11px; font-weight:bold; color:var(--text-sub);">${row['날짜'].substring(5).replace('-','.')}</span>
-                    <span style="font-size:13px; flex:1; margin: 0 12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${row['제목']}</span>
-                    <span style="font-size:11px; color:var(--accent-bright); font-family:monospace;">${row['다시보기 총시간']}</span>
+                    <span style="font-size:11px; font-weight:bold; color:var(--text-sub);">${displayDate}</span>
+                    <span style="font-size:13px; flex:1; margin: 0 12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${title}</span>
+                    <span style="font-size:11px; color:var(--accent-bright); font-family:monospace;">${duration}</span>
                 </div>
             </div>`;
         listContainer.insertAdjacentHTML('beforeend', item);
-        
-        // 클릭 이벤트 따로 등록 (따옴표 충돌 방지)
-        document.getElementById(`rpt-item-${index}`).onclick = () => openDetailedModal(row);
     });
+}
+
+// 4. 안전하게 모달을 여는 연결 함수 추가
+function safeOpenModal(index) {
+    if (window.currentDataCache && window.currentDataCache[index]) {
+        openDetailedModal(window.currentDataCache[index]);
+    }
 }
         
 // 리포트용 태그 리스트 (리포트용)
