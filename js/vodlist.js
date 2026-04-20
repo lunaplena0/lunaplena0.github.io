@@ -788,19 +788,32 @@ details.forEach(d => {
     document.getElementById('vodModal').style.display = 'flex';
 }
 // 기존 팝업 닫기 및 요약 로직 유지
-function closeModal() { document.getElementById('vodModal').style.display = 'none'; }
+function closeModal() {
+    const modals = document.querySelectorAll('.modal');
+    modals.forEach(m => {
+        m.style.display = 'none';
+        
+        // 내부 스크롤 초기화 (다음번에 열 때 맨 위부터 보이게 함)
+        const content = m.querySelector('.modal-content');
+        if (content) content.scrollTop = 0;
+        
+        m.querySelectorAll('.tab-content').forEach(t => t.scrollTop = 0);
+    });
+}
 function openSummary(e) { e.preventDefault(); document.getElementById('summaryModal').style.display = 'flex'; }
-function closeSummary() { document.getElementById('summaryModal').style.display = 'none'; }
+// HTML에서 onclick="closeSummary()"를 사용 중일 수 있으니 이름만 남겨둠
+function closeSummary() { closeModal(); }
 function switchTab(id) {
     document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     document.getElementById(id).classList.add('active');
-    event.currentTarget.classList.add('active');
+    // event 객체가 있을 때만 실행
+    if (event && event.currentTarget) {
+        event.currentTarget.classList.add('active');
 }
 
 window.onclick = function(event) {
     if (event.target.classList.contains('modal')) {
-        closeModal();
-        closeSummary();
+        closeModal(); // 하나만 불러도 모든 모달이 체크되어 닫힙니다.
     }
 }
