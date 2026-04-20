@@ -104,7 +104,6 @@ const barColor = name.includes('구독') ? '#ffcc00' : (name.includes('19') || n
     }
 
    // 5. [전체 태그 순위] 그리드 업데이트
-    // 5. [전체 태그 순위] 그리드 업데이트 부분 수정
 const rankGrid = document.querySelector('.rank-grid');
 if (rankGrid) {
     rankGrid.innerHTML = ''; 
@@ -284,8 +283,8 @@ function renderRptVodList(data) {
         listContainer.insertAdjacentHTML('beforeend', item);
     });
 }
-        // [보강] 태그 순위 및 필터링 렌더링 (리포트용)
-// 리포트용 태그 리스트 (5개 제한 삭제 후 전체 출력)
+        
+// 리포트용 태그 리스트 (리포트용)
 function renderRptTags(data) {
     const tagCount = {};
     
@@ -654,8 +653,8 @@ function renderCategorySummary(data) {
     const generateHtml = (cat) => {
         const sortedItems = Object.entries(cat.items).sort((a, b) => b[1] - a[1]);
         
-        // PC는 3열(혹은 6열), 모바일은 1열로 자동 전환
-        const gridColumns = isMobile ? '1fr' : 'repeat(6, 1fr)';
+        // PC는 3열(혹은 4열), 모바일은 1열로 자동 전환
+        const gridColumns = isMobile ? '1fr' : 'repeat(4, 1fr)';
         
         let html = `<div style="width: 100%; margin-bottom: 30px;">
                         <b style="color:var(--accent-bright); font-size:14px; display:block; margin-bottom:12px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px;">
