@@ -272,9 +272,10 @@ function renderRptVodList(data) {
         return;
     }
 
-    data.forEach(row => {
+    data.forEach((row, index) => {
+        // [수정] JSON 데이터를 속성에 넣지 않고, 글로벌 변수나 클로저를 활용해 안전하게 전달
         const item = `
-            <div class="item-row" style="cursor:pointer; padding:10px; border-bottom:1px solid var(--border);" onclick="openDetailedModal(${JSON.stringify(row).replace(/"/g, '&quot;')})">
+            <div class="item-row" style="cursor:pointer; padding:10px; border-bottom:1px solid var(--border);" id="rpt-item-${index}">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
                     <span style="font-size:11px; font-weight:bold; color:var(--text-sub);">${row['날짜'].substring(5).replace('-','.')}</span>
                     <span style="font-size:13px; flex:1; margin: 0 12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${row['제목']}</span>
@@ -282,6 +283,9 @@ function renderRptVodList(data) {
                 </div>
             </div>`;
         listContainer.insertAdjacentHTML('beforeend', item);
+        
+        // 클릭 이벤트 따로 등록 (따옴표 충돌 방지)
+        document.getElementById(`rpt-item-${index}`).onclick = () => openDetailedModal(row);
     });
 }
         
