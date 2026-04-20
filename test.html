@@ -2,174 +2,31 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>D-Day Timer</title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>정보 메인 페이지</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
     <link id="favicon" rel="icon" href="data:;base64,iVBORw0KGgo=">
     <script src="js/common.js"></script>
-    <style>
-        :root {
-            --bg-color: #02050a;
-            --accent: #003366; 
-            --accent-glow: rgba(0, 51, 102, 0.7);
-            --accent-bright: #3385ff;
-            --text-main: #f0faff;
-            --text-sub: #5c7285;
-            --scale: 1; 
-            --blur: 25px;
-            --pulse-duration: 2s; 
-            --pulse-amount: 1.02; 
-        }
-
-        /* 모바일 스크롤 방지 및 높이 최적화 */
-        html, body {
-            margin: 0; padding: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            background-color: var(--bg-color);
-        }
-
-        body {
-            color: var(--text-main);
-            font-family: 'Noto Sans KR', sans-serif;
-            display: flex; 
-            justify-content: center; 
-            align-items: center;
-            height: 100dvh; 
-            background-image: radial-gradient(circle at center, #051020 0%, #02050a 100%);
-            -webkit-text-size-adjust: none;
-            -webkit-font-smoothing: antialiased;
-        }
-
-        .timer-wrapper { 
-            text-align: center; 
-            width: 100%; 
-            padding: 20px;
-            box-sizing: border-box;
-        }
-
-        .label {
-            font-size: 14px; 
-            color: var(--accent-bright);
-            font-weight: bold; 
-            letter-spacing: 5px;
-            margin-bottom: 20px; 
-            text-transform: uppercase;
-            text-shadow: 0 0 15px var(--accent-glow);
-        }
-
-        #timer {
-            font-size: clamp(32px, 12vw, 80px);
-            font-weight: 700;
-            font-variant-numeric: tabular-nums;
-            margin-bottom: 15px;
-            transform: scale(var(--scale));
-            text-shadow: 0 0 var(--blur) var(--accent-glow), 0 0 calc(var(--blur) / 2) var(--accent);
-            transition: transform 0.15s ease-out, text-shadow 0.3s ease;
-            will-change: transform, text-shadow;
-            line-height: 1.2;
-        }
-
-        .dynamic-pulse {
-            animation: heartBeat var(--pulse-duration) infinite ease-in-out;
-        }
-
-        @keyframes heartBeat {
-            0% { transform: scale(var(--scale)); }
-            50% { transform: scale(calc(var(--scale) * var(--pulse-amount))); }
-            100% { transform: scale(var(--scale)); }
-        }
-
-        .coming-soon { color: var(--accent-bright) !important; }
-        .target-date { 
-            font-size: 13px; 
-            color: var(--text-sub); 
-            opacity: 0.8; 
-            letter-spacing: 1px;
-        }
-    </style>
+    <link rel="stylesheet" href="css/loading.css">
+    <link rel="stylesheet" href="css/index.css">
 </head>
 <body>
 
-<div class="timer-wrapper">
-    <div class="label">BADABI Coming Soon</div>
-    <div id="timer">00 : 00 : 00 : 00</div>
-    <div class="target-date" id="target-display">2026.04.20 16:00:00</div>
-    <div class="target-date" style="margin-top: 6px; opacity: 0.7;">카운트다운 종료 시 방송으로 자동 이동합니다</div>
+<div id="loading-overlay">
+    <div id="wave-text" class="wave-text"></div> </div>
     
-     <footer style="text-align: center; padding: 25px 20px; color: var(--text-sub); font-size: 11px; margin-top: 20px;">
-    <div style="display: inline-block; border-top: 1px solid rgba(255, 255, 255, 0.15); padding: 15px 50px 0 50px;">
-        <p style="margin: 0; opacity: 0.8; line-height: 1.6;">
-            <strong style="color: var(--text-main);">바다비 비공식 데뷔 카운트다운 사이트</strong>
-        </p>
-    </div>
+    <div class="wrapper">
+    
+    <footer style="text-align: center; padding: 20px 10px; color: var(--text-sub); font-size: 11px; border-top: 1px solid var(--border); margin-top: 20px; width: 100%; box-sizing: border-box;">
+    <p style="margin: 0; opacity: 0.8; line-height: 1.6; word-break: keep-all; overflow-wrap: break-word;">
+        <strong style="display: block; margin-bottom: 5px; color: var(--text-main); font-size: 12px;">바다비 비공식 팬 아카이브</strong>
+        모든 권리는 원저작권자(바다비/SOOP)에게 있으며 요청 시 수정·삭제됩니다.<br>
+        <span style="display: inline-block;">비영리로 운영되며, 정보 갱신 시 데이터 반영에 차이가 있을 수 있습니다.</span>
+    </p>
 </footer>
+     
 </div>
-
-<script>
-    // --- 리다이렉트 설정: 2026년 4월 21일 00:00:00 이후 접근 시 차단 ---
-    const EXPIRE_DATE = new Date("2026-04-21T00:00:00").getTime();
-    if (new Date().getTime() >= EXPIRE_DATE) {
-        window.location.replace("https://www.sooplive.com/station/bababi");
-    }
-
-    const TARGET_DATE = new Date("2026-04-20T16:00:00").getTime();
-    let isRedirecting = false;
-
-    function updateTimer() {
-        if (isRedirecting) return;
-
-        const now = new Date().getTime();
-        const diff = TARGET_DATE - now;
-        const timerEl = document.getElementById('timer');
-
-        // 타이머 종료 및 페이지 이동 로직
-        if (diff <= 0) {
-            isRedirecting = true;
-            timerEl.innerText = "이동 중..."; 
-            window.location.replace("https://play.sooplive.com/bababi");
-            return;
-        }
-
-        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-        const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-        const secs = Math.floor((diff % (1000 * 60)) / 1000);
-
-        // 시간 표시 형식 업데이트
-        timerEl.innerText = (days > 0) ? `${days} : ${String(hours).padStart(2, '0')} : ${String(mins).padStart(2, '0')} : ${String(secs).padStart(2, '0')}` :
-                           (hours > 0) ? `${hours} : ${String(mins).padStart(2, '0')} : ${String(secs).padStart(2, '0')}` :
-                           (mins > 0) ? `${mins} : ${String(secs).padStart(2, '0')}` : `${secs}`;
-
-        // 애니메이션 효과 제어
-        let scale = 1;
-        if (diff <= 300000) scale = 1.05; 
-        if (diff <= 240000) scale = 1.1;  
-        if (diff <= 180000) scale = 1.15; 
-        if (diff <= 120000) scale = 1.2;  
-        if (diff <= 60000)  scale = 1.25; 
-        document.documentElement.style.setProperty('--scale', scale);
-
-        if (diff <= 120000) {
-            timerEl.classList.add('dynamic-pulse');
-            timerEl.classList.add('coming-soon');
-
-            let duration, amount;
-            if (diff > 90000) { duration = "2.0s"; amount = 1.02; }
-            else if (diff > 60000) { duration = "1.5s"; amount = 1.03; }
-            else if (diff > 20000) { duration = "1.2s"; amount = 1.04; }
-            else if (diff > 13000) { duration = "1.0s"; amount = 1.05; }
-            else if (diff > 10000) { duration = "0.8s"; amount = 1.06; }
-            else { duration = "0.5s"; amount = 1.07; }
-
-            document.documentElement.style.setProperty('--pulse-duration', duration);
-            document.documentElement.style.setProperty('--pulse-amount', amount);
-        }
-    }
-
-    const timerInterval = setInterval(updateTimer, 100);
-    updateTimer();
-</script>
+<script src="js/loading.js"></script>
+<script src="js/index.js"></script>
 </body>
 </html>
