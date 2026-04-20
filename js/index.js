@@ -43,7 +43,7 @@ const TSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTQ3nX6onmaf-ZH
                 let subTagsHtml = '';
                 const subStyle = `padding: 1px 5px; font-size: 8px; margin: 0; background:#121f33; line-height: 1; border: 1px solid var(--border);`;
 
-                if (!["X", "-"].includes(bGrade)) subTagsHtml += `<span class="badge" style="${subStyle} color:#FFAB91;">19</span>`;
+                if (!["X", "-", "0"].includes(bGrade)) subTagsHtml += `<span class="badge" style="${subStyle} color:#FFAB91;">19</span>`;
                 if (!["X", "-"].includes(bSubOnly)) subTagsHtml += `<span class="badge" style="${subStyle} color:#B39DDB;">구독+</span>`;
                 if (!["X", "-"].includes(bPwd)) subTagsHtml += `<span class="badge" style="${subStyle} color:#90A4AE;">비밀번호</span>`;
 
