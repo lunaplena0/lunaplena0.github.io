@@ -674,13 +674,35 @@ function renderCategorySummary(data) {
             const isHidden = index >= LIMIT ? 'display: none;' : '';
             const itemClass = index >= LIMIT ? `${categoryId}-more` : '';
             
-            return `
-                <div class="${itemClass}" style="background:rgba(255,255,255,0.05); padding:12px 15px; border-radius:8px; border:1px solid var(--border); display:${index >= LIMIT ? 'none' : 'flex'}; justify-content:space-between; align-items:center; box-sizing: border-box;">
-                    <span style="font-size:13px; color:var(--text-main);">${name}</span>
-                    <strong style="font-size:12px; color:var(--accent-bright);">${count}회</strong>
-                </div>
-            `;
-        }).join('');
+           return `
+        <div class="${itemClass}" style="
+            background:rgba(255,255,255,0.05); 
+            padding:12px 15px; 
+            border-radius:8px; 
+            border:1px solid var(--border); 
+            display:${isHidden ? 'none' : 'flex'}; 
+            justify-content:space-between; 
+            align-items:center; 
+            box-sizing: border-box;
+            gap: 10px; /* 이름과 숫자 사이 간격 */
+            overflow: hidden; /* 자식 요소가 넘치는 것 방지 */
+        ">
+            <span style="
+                font-size:13px; 
+                color:var(--text-main);
+                white-space: nowrap;      /* 줄바꿈 금지 */
+                overflow: hidden;         /* 넘치는 부분 숨김 */
+                text-overflow: ellipsis;  /* 말줄임표(...) 적용 */
+                flex: 1;                  /* 가능한 넓은 면적 차지 */
+            " title="${name}">${name}</span>
+            <strong style="
+                font-size:12px; 
+                color:var(--accent-bright);
+                flex-shrink: 0;           /* 숫자는 줄어들지 않게 고정 */
+            ">${count}회</strong>
+        </div>
+    `;
+}).join('');
     } else {
         html += `<div style="grid-column: 1/-1; color:var(--text-sub); font-size:12px; padding:10px; text-align:center;">데이터 없음</div>`;
     }
