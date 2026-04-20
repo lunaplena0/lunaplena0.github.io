@@ -5,7 +5,7 @@ function closeWidget() {
     let destinationUrl = "timer.html"; 
 
     function handleWidgetClick() {
-        window.location.href = destinationUrl;
+        window.open(destinationUrl, '_blank');
     }
 
     const TARGET_DATE = new Date("2026-04-20T16:00:00").getTime();
