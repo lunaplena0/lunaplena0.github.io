@@ -785,7 +785,27 @@ details.forEach(d => {
 
     tagContainer.innerHTML = typeHtml + detailHtml;
 
-    document.getElementById('vodModal').style.display = 'flex';
+    // 1. 먼저 팝업을 화면에 띄웁니다.
+    const modal = document.getElementById('vodModal');
+    modal.style.display = 'flex';
+
+    // 2. [핵심 추가] 나타난 직후 스크롤을 최상단(0)으로 올립니다.
+    // 브라우저가 요소를 렌더링할 시간을 벌기 위해 setTimeout을 사용하면 가장 확실합니다.
+    setTimeout(() => {
+        // 모달 검은 배경 자체가 스크롤될 경우
+        modal.scrollTop = 0; 
+
+        // 실제 내용 박스(.modal-content)가 스크롤될 경우
+        const modalContent = modal.querySelector('.modal-content');
+        if (modalContent) {
+            modalContent.scrollTo(0, 0);
+        }
+
+        // 탭 내부의 스크롤들도 모두 상단으로 초기화
+        modal.querySelectorAll('.tab-content').forEach(tab => {
+            tab.scrollTo(0, 0);
+        });
+    }, 0);
 }
 // 기존 팝업 닫기 및 요약 로직 유지
 function closeModal() {
