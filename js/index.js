@@ -132,7 +132,7 @@ const TSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTQ3nX6onmaf-ZH
     function renderPosts(data) {
         const postBox = document.getElementById('post-container');
         const postData = data.filter(p => p[1] && p[1].trim() !== "");
-        let html = '<h2>📢 최근 게시물</h2>';
+        let html = '<h2>📢 최근 공지</h2>';
         postData.forEach(p => {
             const isNotice = p[3]?.trim() === 'O' ? '<span style="color:var(--accent-bright); margin-left: 5px;">📌</span>' : ''; 
             html += `<div class="item-row" onclick="window.open('${p[2]}', '_blank')" style="display: flex; flex-direction: row; align-items: center;">
