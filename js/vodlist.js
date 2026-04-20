@@ -796,10 +796,6 @@ function switchTab(id) {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     document.getElementById(id).classList.add('active');
     event.currentTarget.classList.add('active');
-
-    // 탭 전환 시 해당 영역 스크롤을 맨 위로 (선택 사항)
-    const modalBody = document.querySelector('.modal-content');
-    targetTab.scrollTop = 0;
 }
 
 window.onclick = function(event) {
