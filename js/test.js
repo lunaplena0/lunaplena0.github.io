@@ -1,6 +1,7 @@
 let visibleCount = 10;
     // 1. 구글 시트 웹 게시 CSV URL (여기에 복사한 URL을 넣으세요)
-const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTfTHMy1hImniay9QEPDcMq5C4Yo5yFpmRtBlWo6UXK-FNxABQYbtfGpEsKom2O-OIJPnEi8LLy1Qqx/pub?gid=0&single=true&output=tsv";
+//const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTfTHMy1hImniay9QEPDcMq5C4Yo5yFpmRtBlWo6UXK-FNxABQYbtfGpEsKom2O-OIJPnEi8LLy1Qqx/pub?gid=0&single=true&output=tsv";
+const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRLx-Z2NoE9Np6qG9NNv8WYr4dWUg2-KmNkZK2VM1PHfg8EE3F8mWbA_2kMt-eBaWIEbHEmY7y_XPN3/pub?gid=0&single=true&output=tsv";
 
 document.addEventListener("DOMContentLoaded", function() {
     // 1. 글자를 먼저 생성 (이게 먼저 실행되어야 글자가 보입니다)
