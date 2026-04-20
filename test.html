@@ -10,73 +10,99 @@
     <link rel="stylesheet" href="css/loading.css">
     <link rel="stylesheet" href="css/index.css"> 
     <style>
-        /* 팝업 배경 */
-.popup-overlay {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: rgba(0, 0, 0, 0.8); /* 배경 어둡게 */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 9999; /* 최상단 */
-}
+        /* 오른쪽 하단 플로팅 위젯 스타일 */
+        .floating-widget {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 200px;
+            padding: 15px;
+            z-index: 9999;
+            
+            /* 배경 투명 설정 (0.6은 60% 정도의 불투명도) */
+            background: rgba(5, 16, 32, 0.6); 
+            backdrop-filter: blur(8px); /* 뒤쪽 배경을 살짝 흐리게 해서 글자 가독성 확보 */
+            
+            border: 1px solid rgba(51, 133, 255, 0.4);
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            color: #f0faff;
+            font-family: 'Noto Sans KR', sans-serif;
+        }
 
-/* 팝업 박스 */
-.popup-content {
-    position: relative;
-    width: 90%;
-    max-width: 400px; /* 조그만 크기 */
-    background: radial-gradient(circle at center, #051020 0%, #02050a 100%);
-    padding: 30px 20px;
-    border-radius: 20px;
-    border: 1px solid var(--accent-bright);
-    box-shadow: 0 0 30px var(--accent-glow);
-    text-align: center;
-}
+        .widget-label {
+            font-size: 11px;
+            letter-spacing: 2px;
+            color: #3385ff;
+            font-weight: 700;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
 
-/* 닫기 버튼 */
-.close-btn {
-    position: absolute;
-    top: 10px; right: 15px;
-    background: none; border: none;
-    color: white; font-size: 24px;
-    cursor: pointer; opacity: 0.7;
-}
+        #timer {
+            font-size: 22px !important; /* 위젯에 맞는 크기 */
+            font-weight: 700;
+            margin: 5px 0;
+            color: #ffffff;
+            font-variant-numeric: tabular-nums;
+            display: block;
+        }
 
-/* 타이머 폰트 크기 조정 */
-#timer {
-    font-size: 32px !important; /* 팝업에 맞게 축소 */
-    color: var(--text-main);
-    margin: 15px 0;
-}
-        </style>
+        .target-date-small {
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .close-widget-btn {
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 18px;
+            cursor: pointer;
+            opacity: 0.5;
+        }
+        
+        .close-widget-btn:hover { opacity: 1; }
+
+        /* 모바일 대응 */
+        @media (max-width: 480px) {
+            .floating-widget {
+                bottom: 15px;
+                right: 15px;
+                width: 160px;
+                padding: 10px;
+            }
+            #timer { font-size: 18px !important; }
+        }
+    </style>
 </head>
 <body>
 
 <div id="loading-overlay">
-    <div id="wave-text" class="wave-text"></div> </div>
+    <div id="wave-text" class="wave-text"></div>
+</div>
     
-    <div class="wrapper">
+<div class="wrapper">
     <div class="top-section">
         <div class="card profile-box">
             <div class="profile-img" onclick="location.href='blue-note.html'"></div>
             <div class="profile-info">
-   <div style="display: flex; align-items: center; gap: 10px;">
-    <h1 id="user-nick" style="margin-bottom: 0;">로딩 중...</h1>
-</div>
-    <p id="user-desc">정보를 불러오고 있습니다.</p>
-    
-    <div class="link-list" id="link-list">
-        <a href="https://www.sooplive.com/station/bababi" class="link-btn" target="_blank" style="border-color: var(--accent-bright); title="방송국 가기" >
-        🏠
-    </a>
-        <a href="songlist.html" class="link-btn" target="_self" style="border-color: var(--accent-bright);">📖 노래책</a>
-        <a href="vodlist.html" class="link-btn" target="_self" style="border-color: var(--accent-bright);">🎬 VOD 기록함</a>
-        
-        <div id="extra-links-target" style="display: flex; gap: 8px; flex-wrap: wrap;"></div>
-    </div>
-</div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <h1 id="user-nick" style="margin-bottom: 0;">로딩 중...</h1>
+                </div>
+                <p id="user-desc">정보를 불러오고 있습니다.</p>
+                
+                <div class="link-list" id="link-list">
+                    <a href="https://www.sooplive.com/station/bababi" class="link-btn" target="_blank" style="border-color: var(--accent-bright);" title="방송국 가기">🏠</a>
+                    <a href="songlist.html" class="link-btn" target="_self" style="border-color: var(--accent-bright);">📖 노래책</a>
+                    <a href="vodlist.html" class="link-btn" target="_self" style="border-color: var(--accent-bright);">🎬 VOD 기록함</a>
+                    <div id="extra-links-target" style="display: flex; gap: 8px; flex-wrap: wrap;"></div>
+                </div>
+            </div>
             <div class="live-status-inline">
                 <div class="badge offline">OFFLINE</div>
                 <div id="stream-title-inline">방송 준비 중</div>
@@ -95,54 +121,58 @@
     </div>
 
     <footer style="text-align: center; padding: 20px 10px; color: var(--text-sub); font-size: 11px; border-top: 1px solid var(--border); margin-top: 20px; width: 100%; box-sizing: border-box;">
-    <p style="margin: 0; opacity: 0.8; line-height: 1.6; word-break: keep-all; overflow-wrap: break-word;">
-        <strong style="display: block; margin-bottom: 5px; color: var(--text-main); font-size: 12px;">바다비 비공식 팬 아카이브</strong>
-        모든 권리는 원저작권자(바다비/SOOP)에게 있으며 요청 시 수정·삭제됩니다.<br>
-        <span style="display: inline-block;">비영리로 운영되며, 정보 갱신 시 데이터 반영에 차이가 있을 수 있습니다.</span>
-    </p>
-</footer>
-        <div id="dday-popup" class="popup-overlay">
-    <div class="popup-content">
-        <button class="close-btn" onclick="closePopup()">×</button>
-        <div class="timer-wrapper">
-            <div class="label">COMING SOON</div>
-            <div id="timer">00 : 00 : 00 : 00</div>
-            <div class="target-date" id="target-display">2026.04.20 16:00:00</div>
-        </div>
+        <p style="margin: 0; opacity: 0.8; line-height: 1.6;">
+            <strong style="display: block; margin-bottom: 5px; color: var(--text-main); font-size: 12px;">바다비 비공식 팬 아카이브</strong>
+            모든 권리는 원저작권자(바다비/SOOP)에게 있으며 요청 시 수정·삭제됩니다.
+        </p>
+    </footer>
+
+    <div id="dday-widget" class="floating-widget">
+        <button class="close-widget-btn" onclick="closeWidget()">×</button>
+        <div class="widget-label">COMING SOON</div>
+        <span id="timer">00:00:00:00</span>
+        <div class="target-date-small">2026.04.20 16:00</div>
     </div>
 </div>
-</div>
-    <script>
-        // 팝업 닫기 함수
-function closePopup() {
-    document.getElementById('dday-popup').style.display = 'none';
-}
 
-// 기존 타이머 로직 (동일하게 사용)
-const TARGET_DATE = new Date("2026-04-20T16:00:00").getTime();
-
-function updateTimer() {
-    const now = new Date().getTime();
-    const diff = TARGET_DATE - now;
-    const timerEl = document.getElementById('timer');
-
-    if (diff <= 0) {
-        timerEl.innerText = "이동 중...";
-        window.location.replace("https://play.sooplive.com/bababi");
-        return;
+<script>
+    function closeWidget() {
+        document.getElementById('dday-widget').style.display = 'none';
     }
 
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    const secs = Math.floor((diff % (1000 * 60)) / 1000);
+    const TARGET_DATE = new Date("2026-04-20T16:00:00").getTime();
 
-    timerEl.innerText = `${days}d ${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-}
+    function updateTimer() {
+        const now = new Date().getTime();
+        const diff = TARGET_DATE - now;
+        const timerEl = document.getElementById('timer');
 
-setInterval(updateTimer, 1000);
-updateTimer();
-    </script>
+        if (!timerEl) return;
+
+        if (diff <= 0) {
+            timerEl.innerText = "이동 중...";
+            window.location.replace("https://play.sooplive.com/bababi");
+            return;
+        }
+
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const secs = Math.floor((diff % (1000 * 60)) / 1000);
+
+        // 일수가 있을 때만 일수 표시, 나머지는 00:00:00 형식
+        let timeString = "";
+        if(days > 0) timeString += days + "d ";
+        timeString += String(hours).padStart(2, '0') + ":" + 
+                      String(mins).padStart(2, '0') + ":" + 
+                      String(secs).padStart(2, '0');
+        
+        timerEl.innerText = timeString;
+    }
+
+    setInterval(updateTimer, 1000);
+    updateTimer();
+</script>
 <script src="js/loading.js"></script>
 <script src="js/index.js"></script>
 </body>
