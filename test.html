@@ -136,24 +136,26 @@
     </p>
 </footer>
 
-    <div id="dday-widget" class="floating-widget" onclick="redirectToStream()" style="cursor: pointer;">
+    <div id="dday-widget" class="floating-widget" onclick="handleWidgetClick()" style="cursor: pointer;">
     <button class="close-widget-btn" onclick="event.stopPropagation(); closeWidget();">×</button>
     <div class="widget-label">BADABI Coming Soon</div>
     <span id="timer">00:00:00:00</span>
-    <div class="widget-message">클릭 시 방송국으로 이동합니다</div>    
+    <div id="widget-msg" class="widget-message">클릭 시 카운트다운으로 이동합니다</div>    
     <div class="target-date-small">2026.04.20 16:00</div>
 </div>
 </div>
 
 <script>
-    // 위젯 닫기 함수
     function closeWidget() {
         document.getElementById('dday-widget').style.display = 'none';
     }
 
-    // 클릭 시 이동 함수 (타이머 위젯 클릭 시 실행)
-    function redirectToStream() {
-        window.location.href = "https://play.sooplive.com/bababi";
+    // 이동 주소를 저장할 변수 (기본값: 타이머 페이지)
+    let destinationUrl = "timer.html"; // 타이머 페이지 파일명이나 URL을 넣으세요
+
+    // 클릭 핸들러
+    function handleWidgetClick() {
+        window.location.href = destinationUrl;
     }
 
     const TARGET_DATE = new Date("2026-04-20T16:00:00").getTime();
@@ -163,15 +165,28 @@
         const diff = TARGET_DATE - now;
         const widget = document.getElementById('dday-widget');
         const timerEl = document.getElementById('timer');
+        const msgEl = document.getElementById('widget-msg');
 
         if (!timerEl || !widget) return;
 
-        // --- 수정된 부분: 타이머 종료 시 ---
+        // 1. 타이머 종료 시 위젯 숨김
         if (diff <= 0) {
-            widget.style.display = 'none'; // 타이머가 완료되면 위젯을 숨김
+            widget.style.display = 'none';
             return;
         }
 
+        // 2. 5분(300,000ms) 남았을 때 로직 변경
+        if (diff <= 300000) { 
+            destinationUrl = "https://play.sooplive.com/bababi"; // 방송 페이지로 주소 변경
+            msgEl.innerText = "클릭 시 방송 페이지로 이동합니다"; // 메시지 변경
+            msgEl.style.color = "#ff4d4d"; // 시인성을 위해 붉은 계열로 변경 (선택 사항)
+        } else {
+            destinationUrl = "timer.html"; // 5분 전까지는 타이머 페이지
+            msgEl.innerText = "클릭 시 타이머 페이지로 이동합니다";
+            msgEl.style.color = "#3385ff";
+        }
+
+        // 3. 타이머 시간 계산 및 표시
         const days = Math.floor(diff / (1000 * 60 * 60 * 24));
         const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
         const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
