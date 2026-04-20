@@ -242,42 +242,49 @@ let currentFilter = null; // 현재 선택된 태그
 
 // 기존 loadSheetData 함수 수정
 function loadSheetData() {
-    // 로딩바가 있다면 여기서 시작 (기존 코드 유지)
-    
     Papa.parse(sheetURL, {
         download: true,
         header: true,
-        skipEmptyLines: true, // 빈 줄은 무시하여 오류 방지
-        fastMode: false,      // 데이터가 복잡하므로 정밀 모드 사용
+        skipEmptyLines: true,
+        // 중요: TSV 형식이므로 탭(\t)만 구분자로 인식하게 강제합니다.
+        delimiter: "\t", 
+        // 중요: 노래 목록의 콤마(,)가 열을 나누지 않도록 설정합니다.
+        quoteChar: '"', 
         complete: function(results) {
-            console.log("수신된 로우 개수:", results.data.length); // 디버깅용
-
-            // 날짜가 있거나 제목이 있는 데이터를 최대한 살려서 가져옵니다.
-            allData = results.data.filter(row => {
-                // '날짜' 컬럼이 비어있어도 '제목'이 있다면 일단 살려둡니다 (파싱 에러 대비)
+            console.log("수신된 로우 개수:", results.data.length);
+            
+            // 데이터 키(헤더명)에서 공백을 제거하는 전처리
+            allData = results.data.map(row => {
+                const newRow = {};
+                for (let key in row) {
+                    newRow[key.trim()] = row[key];
+                }
+                return newRow;
+            }).filter(row => {
+                // 날짜가 있거나 제목이 있는 것만 통과
                 return (row['날짜'] && row['날짜'].trim() !== '') || 
                        (row['제목'] && row['제목'].trim() !== '');
             });
 
-            console.log("필터링 후 데이터 개수:", allData.length);
+            console.log("최종 필터링 데이터:", allData);
 
             if (allData.length > 0) {
-                renderVODList(allData); 
-                updateTagStatistics(allData); 
+                renderVODList(allData);
+                updateTagStatistics(allData);
                 initializeReportData(allData);
-                updateReport(); 
+                updateReport();
             } else {
-                console.error("표시할 데이터가 없습니다. 시트의 컬럼명(날짜, 제목 등)을 확인하세요.");
-                const listContainer = document.querySelector('.vod-list');
-                if(listContainer) listContainer.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:50px;">데이터를 불러왔으나 표시할 수 있는 형식이 아닙니다.</div>';
+                // 여전히 안 나올 경우를 대비한 메시지
+                console.warn("컬럼명을 찾을 수 없습니다. 시트의 첫 줄을 확인하세요.");
+                document.querySelector('.vod-list').innerHTML = 
+                    `<div style="grid-column:1/-1; text-align:center; padding:50px;">
+                        데이터 파싱 오류입니다. <br>시트의 '날짜' 컬럼명을 확인해주세요.
+                    </div>`;
             }
 
             if (typeof hideLoadingOverlay === "function") {
                 hideLoadingOverlay();
             }
-        },
-        error: function(err) {
-            console.error("시트 로딩 중 물리적 에러 발생:", err);
         }
     });
 }
