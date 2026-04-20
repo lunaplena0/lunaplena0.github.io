@@ -242,22 +242,42 @@ let currentFilter = null; // 현재 선택된 태그
 
 // 기존 loadSheetData 함수 수정
 function loadSheetData() {
+    // 로딩바가 있다면 여기서 시작 (기존 코드 유지)
     
     Papa.parse(sheetURL, {
         download: true,
         header: true,
+        skipEmptyLines: true, // 빈 줄은 무시하여 오류 방지
+        fastMode: false,      // 데이터가 복잡하므로 정밀 모드 사용
         complete: function(results) {
-            allData = results.data.filter(row => row['날짜']); 
-            
-            renderVODList(allData); 
-            updateTagStatistics(allData); 
-            // 리포트 데이터 그룹화 및 초기 렌더링 호출
-            initializeReportData(allData);
-            updateReport(); 
-           // 로딩 종료 (loading.js에 있는 함수)
+            console.log("수신된 로우 개수:", results.data.length); // 디버깅용
+
+            // 날짜가 있거나 제목이 있는 데이터를 최대한 살려서 가져옵니다.
+            allData = results.data.filter(row => {
+                // '날짜' 컬럼이 비어있어도 '제목'이 있다면 일단 살려둡니다 (파싱 에러 대비)
+                return (row['날짜'] && row['날짜'].trim() !== '') || 
+                       (row['제목'] && row['제목'].trim() !== '');
+            });
+
+            console.log("필터링 후 데이터 개수:", allData.length);
+
+            if (allData.length > 0) {
+                renderVODList(allData); 
+                updateTagStatistics(allData); 
+                initializeReportData(allData);
+                updateReport(); 
+            } else {
+                console.error("표시할 데이터가 없습니다. 시트의 컬럼명(날짜, 제목 등)을 확인하세요.");
+                const listContainer = document.querySelector('.vod-list');
+                if(listContainer) listContainer.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:50px;">데이터를 불러왔으나 표시할 수 있는 형식이 아닙니다.</div>';
+            }
+
             if (typeof hideLoadingOverlay === "function") {
                 hideLoadingOverlay();
             }
+        },
+        error: function(err) {
+            console.error("시트 로딩 중 물리적 에러 발생:", err);
         }
     });
 }
