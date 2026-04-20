@@ -150,15 +150,15 @@
         document.getElementById('dday-widget').style.display = 'none';
     }
 
-    // 이동 주소를 저장할 변수 (기본값: 타이머 페이지)
-    let destinationUrl = "timer.html"; // 타이머 페이지 파일명이나 URL을 넣으세요
+    let destinationUrl = "timer.html"; 
 
-    // 클릭 핸들러
     function handleWidgetClick() {
         window.location.href = destinationUrl;
     }
 
     const TARGET_DATE = new Date("2026-04-20T16:00:00").getTime();
+    // 1시간을 밀리초로 계산 (3600초 * 1000)
+    const ONE_HOUR_AFTER = 3600000; 
 
     function updateTimer() {
         const now = new Date().getTime();
@@ -169,24 +169,42 @@
 
         if (!timerEl || !widget) return;
 
-        // 1. 타이머 종료 시 위젯 숨김
-        if (diff <= 0) {
+        // 1. 방송 시작 후 1시간이 지났을 때만 위젯을 숨김
+        if (diff <= -ONE_HOUR_AFTER) {
             widget.style.display = 'none';
             return;
         }
 
-        // 2. 5분(300,000ms) 남았을 때 로직 변경
-        if (diff <= 300000) { 
-            destinationUrl = "https://play.sooplive.com/bababi"; // 방송 페이지로 주소 변경
-            msgEl.innerText = "클릭 시 방송 페이지로 이동합니다"; // 메시지 변경
-            msgEl.style.color = "#ff4d4d"; // 시인성을 위해 붉은 계열로 변경 (선택 사항)
-        } else {
-            destinationUrl = "timer.html"; // 5분 전까지는 타이머 페이지
+        // 2. 시간 상태에 따른 처리
+        if (diff <= 0) {
+            // --- 방송 시작 후 (0분 ~ 60분 사이) ---
+            destinationUrl = "https://play.sooplive.com/bababi";
+            timerEl.innerText = "LIVE NOW"; // 타이머 대신 표시할 문구
+            timerEl.style.color = "#ff4d4d"; // 빨간색 강조
+            msgEl.innerText = "클릭 시 방송 페이지로 이동합니다";
+            msgEl.style.color = "#ff4d4d";
+        } 
+        else if (diff <= 300000) { 
+            // --- 방송 시작 5분 전 ---
+            destinationUrl = "https://play.sooplive.com/bababi";
+            msgEl.innerText = "클릭 시 방송 페이지로 이동합니다";
+            msgEl.style.color = "#ff4d4d";
+            
+            // 타이머 시간 계산
+            formatTimer(diff, timerEl);
+        } 
+        else {
+            // --- 평상시 ---
+            destinationUrl = "timer.html";
             msgEl.innerText = "클릭 시 타이머 페이지로 이동합니다";
             msgEl.style.color = "#3385ff";
+            
+            formatTimer(diff, timerEl);
         }
+    }
 
-        // 3. 타이머 시간 계산 및 표시
+    // 타이머 포맷팅 함수 분리
+    function formatTimer(diff, element) {
         const days = Math.floor(diff / (1000 * 60 * 60 * 24));
         const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
         const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
@@ -198,7 +216,7 @@
                       String(mins).padStart(2, '0') + ":" + 
                       String(secs).padStart(2, '0');
         
-        timerEl.innerText = timeString;
+        element.innerText = timeString;
     }
 
     setInterval(updateTimer, 1000);
