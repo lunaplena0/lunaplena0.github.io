@@ -246,14 +246,10 @@ function loadSheetData() {
         download: true,
         header: true,
         skipEmptyLines: true,
-        // 중요: TSV 형식이므로 탭(\t)만 구분자로 인식하게 강제합니다.
         delimiter: "\t", 
-        // 중요: 노래 목록의 콤마(,)가 열을 나누지 않도록 설정합니다.
         quoteChar: '"', 
         complete: function(results) {
-            console.log("수신된 로우 개수:", results.data.length);
-            
-            // 데이터 키(헤더명)에서 공백을 제거하는 전처리
+            // 1. 데이터 키(헤더명)에서 공백을 제거하는 전처리
             allData = results.data.map(row => {
                 const newRow = {};
                 for (let key in row) {
@@ -266,22 +262,24 @@ function loadSheetData() {
                        (row['제목'] && row['제목'].trim() !== '');
             });
 
-            console.log("최종 필터링 데이터:", allData);
-
+            // 2. 데이터 렌더링 및 통계 업데이트
             if (allData.length > 0) {
                 renderVODList(allData);
                 updateTagStatistics(allData);
                 initializeReportData(allData);
                 updateReport();
             } else {
-                // 여전히 안 나올 경우를 대비한 메시지
-                console.warn("컬럼명을 찾을 수 없습니다. 시트의 첫 줄을 확인하세요.");
-                document.querySelector('.vod-list').innerHTML = 
-                    `<div style="grid-column:1/-1; text-align:center; padding:50px;">
-                        데이터 파싱 오류입니다. <br>시트의 '날짜' 컬럼명을 확인해주세요.
-                    </div>`;
+                // 에러 발생 시 사용자에게 보여줄 메시지만 남기고 로그는 제거
+                const listContainer = document.querySelector('.vod-list');
+                if (listContainer) {
+                    listContainer.innerHTML = 
+                        `<div style="grid-column:1/-1; text-align:center; padding:50px;">
+                            표시할 데이터가 없습니다. <br>시트 설정을 확인해주세요.
+                        </div>`;
+                }
             }
 
+            // 3. 로딩 오버레이 숨김
             if (typeof hideLoadingOverlay === "function") {
                 hideLoadingOverlay();
             }
