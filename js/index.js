@@ -147,9 +147,15 @@ const TSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTQ3nX6onmaf-ZH
     }
 
     function renderVODs(data) {
-        const vodBox = document.getElementById('vod-container');
-        const vodData = data.filter(v => v[1] && v[1].trim() !== "");
-        let html = '<h2>🎬 최근 다시보기</h2>';
+    const vodBox = document.getElementById('vod-container');
+    // 1. 제목이 비어있지 않으면서, "[클립]"이라는 글자가 포함되지 않은 것만 필터링
+    const vodData = data.filter(v => 
+        v[1] && 
+        v[1].trim() !== "" && 
+        !v[1].includes("[클립]")
+    );
+
+    let html = '<h2>🎬 최근 다시보기</h2>';
         vodData.forEach(v => {
             const isPin = v[4]?.trim() === 'O' ? '<span style="color:var(--accent-bright); margin-left: 5px; flex-shrink: 0;">📌</span>' : '';
             
