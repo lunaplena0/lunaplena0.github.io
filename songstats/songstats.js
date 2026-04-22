@@ -3,8 +3,8 @@ const statsData = {
     all: {
         summary: [
             { label: "총 부른 곡 수", value: "154곡" },
-            { label: "최다 가수", value: "아이유" },
-            { label: "최다 장르", value: "J-POP" }
+            { label: "가장 많이 부른 노래의 가수", value: "아이유" },
+            { label: "가장 많이 부른 노래", value: "밤양갱(5회)" }
         ],
         table: [
             { rank: 1, title: "밤양갱", artist: "비비", count: "12회" },
@@ -14,9 +14,9 @@ const statsData = {
     },
     monthly: {
         summary: [
-            { label: "이달의 부른 곡 수", value: "12곡" },
-            { label: "이번 달 가수", value: "데이식스" },
-            { label: "최다 장르", value: "J-POP" }
+            { label: "00월 총 부른 곡 수", value: "12곡" },
+            { label: "00월 가장 많이 부른 노래의 가수", value: "데이식스" },
+            { label: "00월 가장 많이 부른 노래", value: "Welcome to the Show(5회)" }
         ],
         table: [
             { rank: 1, title: "한 페이지가 될 수 있게", artist: "DAY6", count: "5회" },
