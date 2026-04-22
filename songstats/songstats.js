@@ -2,7 +2,7 @@
 const statsData = {
     all: {
         summary: [
-            { label: "총 곡 수", value: "154곡" },
+            { label: "총 부른 곡 수", value: "154곡" },
             { label: "최다 가수", value: "아이유" },
             { label: "최다 장르", value: "J-POP" }
         ],
@@ -14,9 +14,9 @@ const statsData = {
     },
     monthly: {
         summary: [
-            { label: "이달의 곡 수", value: "12곡" },
+            { label: "이달의 부른 곡 수", value: "12곡" },
             { label: "이번 달 가수", value: "데이식스" },
-            { label: "기록 날짜", value: "2024.05" }
+            { label: "최다 장르", value: "J-POP" }
         ],
         table: [
             { rank: 1, title: "한 페이지가 될 수 있게", artist: "DAY6", count: "5회" },
@@ -25,9 +25,9 @@ const statsData = {
     },
     yearly: {
         summary: [
-            { label: "2024년 총 곡", value: "85곡" },
-            { label: "올해의 아티스트", value: "QWER" },
-            { label: "최고 시청자 수", value: "2,400명" }
+            { label: "2024년 총 부른 곡", value: "185곡" },
+            { label: "올해 가장 많인 부른 노래의 가수", value: "QWER" },
+            { label: "올해 가장 많이 부른 노래", value: "한 페이지가 될 수 있게(18회)" }
         ],
         table: [
             { rank: 1, title: "고민중독", artist: "QWER", count: "21회" },
