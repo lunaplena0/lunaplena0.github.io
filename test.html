@@ -3,172 +3,107 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VOD 기록함</title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
-    <link id="favicon" rel="icon" href="data:;base64,iVBORw0KGgo=">
-    <script src="js/common.js"></script>
-    <link rel="stylesheet" href="css/loading.css">
-    <link rel="stylesheet" href="css/vodlist.css"> 
+    <title>새로운 페이지 | 바다비 아카이브</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #010306;          /* 깊은 바다 블랙 배경 */
+            --card-bg: #030812;            /* 미드나잇 블루 카드 배경 */
+            --accent: #003366;            /* 메인 감청색 */
+            --accent-bright: #3385ff;    /* 강조 포인트 블루 */
+            --accent-glow: rgba(0, 51, 102, 0.7);
+            --text-main: #f0faff;         /* 아이스 화이트 메인 텍스트 */
+            --text-sub: #5c7285;          /* 차분한 블루 그레이 서브 텍스트 */
+            --border: #0a1425;            /* 어두운 네이비 테두리 */
+        }
+
+        body { 
+            background-color: var(--bg-color); 
+            background-image: radial-gradient(circle at center, #051020 0%, #02050a 100%);
+            color: var(--text-main); 
+            font-family: 'Noto Sans KR', sans-serif; 
+            margin: 0; padding: 20px;
+            display: flex; justify-content: center; align-items: flex-start; 
+            min-height: 100vh; box-sizing: border-box;
+        }
+
+        .wrapper { width: 100%; max-width: 1100px; display: flex; flex-direction: column; gap: 20px; }
+
+        /* 공통 카드 스타일 */
+        .card { 
+            background: var(--card-bg); 
+            border-radius: 12px; padding: 25px; 
+            border: 1px solid var(--border); 
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+
+        /* 헤더/제목 스타일 */
+        h2 { 
+            font-size: 18px; margin-top: 0; 
+            color: var(--accent-bright); 
+            border-bottom: 1px solid var(--border); 
+            padding-bottom: 12px; margin-bottom: 20px; 
+            text-transform: uppercase; letter-spacing: 1px; 
+        }
+
+        /* 버튼 스타일 */
+        .btn {
+            display: inline-block;
+            padding: 8px 16px;
+            background: #0a1a30;
+            border-radius: 6px;
+            color: var(--text-main);
+            text-decoration: none;
+            font-size: 13px;
+            border: 1px solid var(--accent);
+            transition: 0.3s;
+            cursor: pointer;
+        }
+        .btn:hover {
+            background: var(--accent-bright);
+            border-color: var(--accent-bright);
+            color: #fff;
+        }
+
+        /* 하단 푸터 */
+        footer {
+            text-align: center; padding: 40px 10px; 
+            color: var(--text-sub); font-size: 11px; 
+            border-top: 1px solid var(--border); 
+            margin-top: auto; width: 100%; box-sizing: border-box;
+        }
+
+        /* 모바일 대응 */
+        @media (max-width: 768px) {
+            .wrapper { gap: 15px; }
+            .card { padding: 15px; }
+        }
+    </style>
 </head>
 <body>
-<div id="loading-overlay">
-    <div id="wave-text" class="wave-text"></div>
-</div>
+
 <div class="wrapper">
-    <div class="card profile-box">
-        <div class="profile-info">
-            <h1>🎬 VOD 기록함</h1>
-            <p>바다비 VOD 통계 및 기록</p>
-        </div>
-        <div class="header-buttons">
-    <a href="#" class="link-btn btn-summary" onclick="openSummary(event)">📅 요약 보고서</a>
-    <a href="index.html" class="link-btn btn-back">돌아가기</a>
-</div>
+    <div style="display: flex; justify-content: flex-start;">
+        <a href="index.html" class="btn">← 메인으로 돌아가기</a>
     </div>
 
-    <div class="bottom-section">
-        <div class="card">
-    <h2>📊 전체 다시보기 통계</h2>
-    <div class="item-row">
-        <span class="stat-label">전체 누적 시간</span>
-        <span id="statTotalTime" class="stat-value">-</span>
-    </div>
-    <div class="item-row">
-        <span class="stat-label">구독+ 방송시간 및 비율</span>
-        <span id="statPlusTimeRatio" class="stat-value" style="color:#ffcc00;">-</span>
-    </div>
-    <div class="item-row">
-        <span class="stat-label">최대 방송시간</span>
-        <span id="statMaxTime" class="stat-value">-</span>
-    </div>
-    <div class="item-row">
-        <span class="stat-label">평균 방송시간</span>
-        <span id="statAvgTime" class="stat-value">-</span>
-    </div>
-    <div class="item-row">
-        <span class="stat-label">최소 방송시간</span>
-        <span id="statMinTime" class="stat-value">-</span>
-    </div>
-</div>
-
-        <div class="card">
-            <h2>📈 통합 태그 비중 (Top 5)</h2>
-        </div>
-
-        <div class="card">
-            <h2>🏆 전체 태그 순위 (클릭시 해당 다시보기만 골라보기)</h2>
-            <div class="rank-grid">
-                
-            </div>
-        </div>
-    </div>
-
-    <div class="card">
-        <h2>🎥 최근 다시보기 기록</h2>
-        <div class="vod-list">
-            
-            </div>
-    </div>
-
-    <footer style="text-align: center; padding: 20px 10px; color: var(--text-sub); font-size: 11px; border-top: 1px solid var(--border); margin-top: 20px; width: 100%; box-sizing: border-box;">
-    <p style="margin: 0; opacity: 0.8; line-height: 1.6; word-break: keep-all; overflow-wrap: break-word;">
-        <strong style="display: block; margin-bottom: 5px; color: var(--text-main); font-size: 12px;">바다비 비공식 팬 아카이브</strong>
-        모든 권리는 원저작권자(바다비/SOOP)에게 있으며 요청 시 수정·삭제됩니다.<br>
-        <span style="display: inline-block;">비영리로 운영되며, 정보 갱신 시 데이터 반영에 차이가 있을 수 있습니다.</span>
-    </p>
-</footer>
-</div>
-<div id="vodModal" class="modal">
-    <div class="modal-content">
-        <span class="close-btn" onclick="closeModal()">&times;</span>
+    <main class="card">
+        <h2>제목을 입력하세요</h2>
         
-        <div class="modal-body">
-            <img id="modalThumb" src="" class="modal-thumb">
-            <div class="modal-details">
-                <h3 id="modalTitle">제목</h3>
-                <div class="modal-info-grid">
-                    <div class="info-item">
-                        <label>방송 날짜</label>
-                        <span id="modalDate">0000-00-00</span>
-                    </div>
-                    <div class="info-item">
-                        <label>방송 시간</label>
-                        <span id="modalDuration">00:00:00</span>
-                    </div>
-                </div>
-                <div id="modalTags" class="modal-tags"></div>
-            </div>
+        <div id="content-area">
+            <p style="color: var(--text-sub); line-height: 1.6;">
+                여기에 내용을 입력하거나 JavaScript를 통해 동적으로 데이터를 불러올 수 있습니다. 
+                기존의 '깊은 바다' 테마 스타일이 모두 적용되어 있습니다.
+            </p>
         </div>
-    </div>
+    </main>
+
+    <footer style="opacity: 0.7;">
+        <p><strong>바다비 비공식 팬 아카이브</strong></p>
+        <p>모든 권리는 원저작권자에게 있으며 요청 시 수정·삭제됩니다.</p>
+    </footer>
 </div>
-   <div id="summaryModal" class="modal">
-    <div class="modal-content" style="max-width: 850px; width: 95%;"> 
-        <span class="close-btn" onclick="closeSummary()">&times;</span>
-        
-        <div class="modal-body" style="padding: 25px;">
-            <div style="display: grid; grid-template-columns: 1fr; gap: 20px;">
-                
-                <div class="card" style="margin:0; flex-direction: row; justify-content: space-between; align-items: center; background: linear-gradient(145deg, #051020, #02050a);">
-                    <h2 style="border:none; font-size: 20px; line-height: 1.4; color: var(--accent-bright); margin:0;">
-                        📅 다시보기 요약
-                    </h2>
-                    <div style="display: flex; gap: 10px; align-items: center;">
-                        <select id="selectYear" class="btn-back" style="padding: 6px 12px; border-radius: 6px; background: #16243a; color: white; border: 1px solid var(--border);"></select>
-                        <select id="selectMonth" class="btn-back" style="padding: 6px 12px; border-radius: 6px; background: #16243a; color: white; border: 1px solid var(--border);">
-                            <option value="all">연간 전체</option>
-                            <option value="01">1월</option><option value="02">2월</option><option value="03">3월</option>
-                            <option value="04">4월</option><option value="05">5월</option><option value="06">6월</option>
-                            <option value="07">7월</option><option value="08">8월</option><option value="09">9월</option>
-                            <option value="10">10월</option><option value="11">11월</option><option value="12">12월</option>
-                        </select>
-                    </div>
-                </div>
 
-                <div class="card" style="margin:0; flex-direction: row; justify-content: space-around; padding: 25px; text-align: center;">
-                    <div class="summary-item" style="background:none; padding:0;">
-                        <label style="font-size: 11px; color: var(--text-sub); display: block; margin-bottom: 8px;">총 방송 시간</label>
-                        <div id="rptTotalTime" style="font-size: 1.5rem; color: var(--accent-bright); font-weight: bold;">-</div>
-                        <small id="diffTotalTime" class="diff-text"></small>
-                    </div>
-                    <div style="width: 1px; background: var(--border); height: 40px; align-self: center;"></div>
-                    <div class="summary-item" style="background:none; padding:0;">
-                        <label style="font-size: 11px; color: var(--text-sub); display: block; margin-bottom: 8px;">평균 방송 시간</label>
-                        <div id="rptAvgTime" style="font-size: 1.3rem; font-weight: bold;">-</div>
-                        <small id="diffAvgTime" class="diff-text"></small>
-                    </div>
-                    <div style="width: 1px; background: var(--border); height: 40px; align-self: center;"></div>
-                    <div class="summary-item" style="background:none; padding:0;">
-                        <label style="font-size: 11px; color: var(--text-sub); display: block; margin-bottom: 8px;">방송 횟수</label>
-                        <div id="rptCount" style="font-size: 1.5rem; font-weight: bold;">-</div>
-                        <small id="diffCount" class="diff-text"></small>
-                    </div>
-                </div>
-
-                <div class="card" style="margin:0;">
-                    <h2 style="font-size: 14px; margin-bottom: 15px;">📝 카테고리별 요약</h2>
-                    <div id="rptCategory" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 15px;">
-                        </div>
-                </div>
-                
-                <div class="card" style="margin:0;">
-                    <h2 style="font-size: 14px; margin-bottom: 15px;">📊 전체 태그 순위</h2>
-                    <div id="rptTags" class="rank-grid" style="grid-template-columns: repeat(3, 1fr); column-gap: 20px;">
-                        </div>
-                </div>
-
-                <div class="card" style="margin:0;">
-                    <h2 style="font-size: 14px; margin-bottom: 15px;">🎥 방송 목록</h2>
-                    <div id="rptVodList" class="vod-list" style="max-height: 400px; overflow-y: auto;">
-                        </div>
-                </div>
-
-            </div>
-        </div>
-    </div>
-</div>
-    
-    <script src="js/loading.js"></script>
-<script src="js/test.js"></script>
 </body>
 </html>
