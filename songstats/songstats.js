@@ -107,6 +107,8 @@ function updateDateFilter(category) {
 function applyDateFilter() {
     showStats(currentCategory);
 }
+// 전역 변수로 현재 펼쳐진 상태 저장
+let isExpanded = false;
 
 function showStats(category) {
     // '전체' 탭일 경우 날짜 선택창 숨김 및 버튼 활성화 제어
@@ -175,6 +177,13 @@ function showStats(category) {
 
     filteredData.sort((a, b) => b.count - a.count);
 
+    // 표시할 데이터 로직
+    const totalCount = filteredData.length;
+    const initialLimit = 20;
+    // 펼쳐진 상태면 전체, 아니면 20개만 슬라이스
+    const displayData = isExpanded ? filteredData : filteredData.slice(0, initialLimit);
+    const currentViewCount = displayData.length;
+
     const contentArea = document.getElementById('content-area');
     contentArea.innerHTML = `
         <div class="stats-grid">
@@ -192,14 +201,43 @@ function showStats(category) {
                 </thead>
                 <tbody>
                     ${filteredData.length > 0 ? 
-                        filteredData.map((row, idx) => `
+                        displayData.map((row, idx) => `
                         <tr><td>${idx + 1}</td><td>${row.title}</td><td>${row.artist}</td><td>${row.count}회</td></tr>
                         `).join('') : `<tr><td colspan="4" style="text-align:center; padding:20px;">해당 기간의 데이터가 없습니다.</td></tr>`
                     }
                 </tbody>
             </table>
         </div>
+        
+        ${totalCount > initialLimit ? `
+            <div style="text-align: center; margin-top: 20px;">
+                <button class="filter-btn active" onclick="toggleTable()" style="width: 200px;">
+                    ${isExpanded ? `접기 (${currentViewCount}/${totalCount})` : `펼치기 (${currentViewCount}/${totalCount})`}
+                </button>
+            </div>
+        ` : ''}
     `;
 }
+// 테이블 펼치기/접기 토글 함수
+function toggleTable() {
+    isExpanded = !isExpanded;
+    applyDateFilter(); // 현재 카테고리 상태로 다시 그리기
+}
 
+// 필터 변경 시에는 항상 '접힌 상태'로 초기화
+function updateDateFilter(category) {
+    isExpanded = false; // 카테고리 바꾸면 다시 20개만 보여주기
+    currentCategory = category;
+    // ... (이하 기존 코드 동일) ...
+    const selectors = document.getElementById('date-selectors');
+    const monthSelect = document.getElementById('select-month');
+    selectors.style.display = 'flex';
+    monthSelect.style.display = (category === 'monthly') ? 'inline-block' : 'none';
+    const buttons = document.querySelectorAll('.filter-btn');
+    buttons.forEach(btn => btn.classList.remove('active'));
+    if (window.event && window.event.currentTarget) {
+        window.event.currentTarget.classList.add('active');
+    }
+    applyDateFilter();
+}
 window.onload = loadSheetData;
