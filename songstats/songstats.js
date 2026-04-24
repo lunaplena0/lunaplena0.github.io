@@ -171,7 +171,40 @@ function showStats(category) {
         
         setTimeout(() => renderAllCharts(top5Artists, genreMap), 100);
 
-    } else if (category === 'monthly') {
+    } else if (category === 'yearly') {
+        // --- [연도별 통계 로직 추가] ---
+        const target = `(${selYear}.`;
+        filteredData = rawData.map(item => {
+            const yearlyDates = item.dates.filter(d => d.includes(target));
+            return { ...item, count: yearlyDates.length };
+        }).filter(item => item.count > 0);
+
+        const yearlyGenres = {};
+        const monthCounts = {};
+        
+        filteredData.forEach(d => {
+            yearlyGenres[d.genre] = (yearlyGenres[d.genre] || 0) + d.count;
+            d.dates.filter(date => date.includes(target)).forEach(date => {
+                const month = date.substring(4, 6); // (24.05.01) 에서 05 추출
+                monthCounts[month] = (monthCounts[month] || 0) + 1;
+            });
+        });
+
+        const totalYearlyCount = filteredData.reduce((acc, cur) => acc + cur.count, 0);
+        const topYearlySong = [...filteredData].sort((a, b) => b.count - a.count)[0];
+        const topYearlyGenre = Object.entries(yearlyGenres).sort((a, b) => b[1] - a[1])[0];
+        const bestMonthEntry = Object.entries(monthCounts).sort((a, b) => b[1] - a[1])[0];
+
+        dashboardHTML = `
+            <div class="stats-grid">
+                <div class="stat-item"><span class="stat-label">${selYear}년 총 가창</span><span class="stat-value">${totalYearlyCount}회</span></div>
+                <div class="stat-item"><span class="stat-label">올해의 노래</span><span class="stat-value" style="font-size:14px">${topYearlySong ? topYearlySong.title : "-"}</span></div>
+                <div class="stat-item"><span class="stat-label">올해의 장르</span><span class="stat-value" style="font-size:14px">${topYearlyGenre ? topYearlyGenre[0] : "-"}</span></div>
+                <div class="stat-item"><span class="stat-label">가장 많이 부른 달</span><span class="stat-value">${bestMonthEntry ? parseInt(bestMonthEntry[0]) + '월' : "-"}</span></div>
+            </div>
+        `;
+
+    }else if (category === 'monthly') {
         const target = `(${selYear}.${selMonth}.`;
         const prevMonth = (parseInt(selMonth) - 1).toString().padStart(2, '0');
         const prevTarget = `(${selYear}.${prevMonth}.`;
