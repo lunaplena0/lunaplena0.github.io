@@ -3,6 +3,8 @@ const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQmWkxsDxTFSx
 let rawData = []; 
 let visibleCount = 20; // 20개 단위 표시를 위한 변수
 let currentCategory = 'all';
+let artistChartInstance = null;
+let genreChartInstance = null;
 
 async function loadSheetData() {
     try {
@@ -124,13 +126,8 @@ function applyDateFilter() {
 }
 
 function showStats(category) {
-    if (category === 'all') {
-        const selectors = document.getElementById('date-selectors');
-        if (selectors) selectors.style.display = 'none';
-        const buttons = document.querySelectorAll('.filter-btn');
-        buttons.forEach(btn => btn.classList.remove('active'));
-        if(buttons[0]) buttons[0].classList.add('active');
-    }
+    const contentArea = document.getElementById('content-area');
+    if (!contentArea) return;
 
     const yearEl = document.getElementById('select-year');
     const monthEl = document.getElementById('select-month');
@@ -138,99 +135,170 @@ function showStats(category) {
     const selMonth = monthEl ? monthEl.value : "";
 
     let filteredData = [];
-    let summary = [];
+    let dashboardHTML = "";
 
+    // 1. 데이터 필터링 및 통계 계산
     if (category === 'all') {
         filteredData = rawData.map(d => ({...d, count: d.dates.length}));
-        const artistCount = {};
-        filteredData.forEach(d => artistCount[d.artist] = (artistCount[d.artist] || 0) + d.count);
-        const topArtist = Object.entries(artistCount).sort((a,b) => b[1] - a[1])[0];
+        
+        // [전체 통계] 계산
+        const totalSingCount = filteredData.reduce((acc, cur) => acc + cur.count, 0);
+        const totalSongs = filteredData.length;
+        
+        // 가창 가수 Top 5 (차트용)
+        const artistMap = {};
+        filteredData.forEach(d => artistMap[d.artist] = (artistMap[d.artist] || 0) + d.count);
+        const top5Artists = Object.entries(artistMap).sort((a,b) => b[1] - a[1]).slice(0, 5);
+        
+        // 장르 점유율 (차트용)
+        const genreMap = {};
+        filteredData.forEach(d => genreMap[d.genre] = (genreMap[d.genre] || 0) + d.count);
+        
+        // 최다 가창 단일 곡
+        const topSong = [...filteredData].sort((a,b) => b.count - a.count)[0];
 
-        summary = [
-            { label: "전체 누적 횟수", value: `${filteredData.reduce((acc, cur) => acc + cur.count, 0)}회` },
-            { label: "등록된 곡 종류", value: `${filteredData.length}곡` },
-            { label: "가장 많이 부른 가수", value: topArtist ? topArtist[0] : "-" }
-        ];
-    }  
-    else if (category === 'monthly') {
-        const target = `(${selYear}.${selMonth}.`; 
+        dashboardHTML = `
+            <div class="stats-grid">
+                <div class="stat-item"><span class="stat-label">총 등록 곡 수</span><span class="stat-value">${totalSongs}곡</span></div>
+                <div class="stat-item"><span class="stat-label">총 가창 횟수</span><span class="stat-value">${totalSingCount}회</span></div>
+                <div class="stat-item"><span class="stat-label">최다 가창 곡</span><span class="stat-value" style="font-size:14px">${topSong ? topSong.title : "-"}</span></div>
+            </div>
+            <div class="chart-section">
+                <div class="chart-container"><canvas id="artistChart"></canvas></div>
+                <div class="chart-container"><canvas id="genreChart"></canvas></div>
+            </div>
+        `;
+        
+        setTimeout(() => renderAllCharts(top5Artists, genreMap), 100);
+
+    } else if (category === 'monthly') {
+        const target = `(${selYear}.${selMonth}.`;
+        const prevMonth = (parseInt(selMonth) - 1).toString().padStart(2, '0');
+        const prevTarget = `(${selYear}.${prevMonth}.`;
+
         filteredData = rawData.map(item => {
             const monthlyDates = item.dates.filter(d => d.includes(target));
             return { ...item, count: monthlyDates.length };
         }).filter(item => item.count > 0);
 
-        summary = [
-            { label: `20${selYear}년 ${selMonth}월 합계`, value: `${filteredData.reduce((acc, cur) => acc + cur.count, 0)}회` },
-            { label: "이달의 노래", value: filteredData.length > 0 ? filteredData.sort((a,b)=>b.count-a.count)[0].title : "-" }
-        ];
-    }
-    else if (category === 'yearly') {
-        const target = `(${selYear}.`;
-        filteredData = rawData.map(item => {
-            const yearlyDates = item.dates.filter(d => d.includes(target));
-            return { ...item, count: yearlyDates.length };
-        }).filter(item => item.count > 0);
+        // [월별 통계] 계산
+        const currentTotal = filteredData.reduce((acc, cur) => acc + cur.count, 0);
+        const prevTotal = rawData.reduce((acc, item) => 
+            acc + item.dates.filter(d => d.includes(prevTarget)).length, 0);
+        
+        const diff = currentTotal - prevTotal;
+        const diffHTML = diff > 0 ? `<span style="color:#ff4d4d; font-size:12px;">(▲${diff})</span>` : 
+                         diff < 0 ? `<span style="color:#4d94ff; font-size:12px;">(▼${Math.abs(diff)})</span>` : "";
 
-        const yearlyArtistCount = {};
+        const monthlyArtists = {};
+        const monthlyGenres = {};
+        const dailyActivity = {};
+
         filteredData.forEach(d => {
-            yearlyArtistCount[d.artist] = (yearlyArtistCount[d.artist] || 0) + d.count;
+            monthlyArtists[d.artist] = (monthlyArtists[d.artist] || 0) + d.count;
+            monthlyGenres[d.genre] = (monthlyGenres[d.genre] || 0) + d.count;
+            d.dates.filter(date => date.includes(target)).forEach(date => {
+                dailyActivity[date] = (dailyActivity[date] || 0) + 1;
+            });
         });
-        const topArtistEntry = Object.entries(yearlyArtistCount).sort((a, b) => b[1] - a[1])[0];
 
-        summary = [
-            { label: `20${selYear}년 총 합계`, value: `${filteredData.reduce((acc, cur) => acc + cur.count, 0)}회` },
-            { label: "올해 가장 많이 부른 가수", value: topArtistEntry ? topArtistEntry[0] : "-" },
-            { label: "올해 부른 곡 수", value: `${filteredData.length}곡` }
-        ];
+        const bestArtist = Object.entries(monthlyArtists).sort((a,b) => b[1]-a[1])[0];
+        const bestGenre = Object.entries(monthlyGenres).sort((a,b) => b[1]-a[1])[0];
+        const bestDay = Object.entries(dailyActivity).sort((a,b) => b[1]-a[1])[0];
+
+        dashboardHTML = `
+            <div class="stats-grid">
+                <div class="stat-item"><span class="stat-label">이달의 가창 횟수</span><span class="stat-value">${currentTotal}회 ${diffHTML}</span></div>
+                <div class="stat-item"><span class="stat-label">이달의 아티스트</span><span class="stat-value" style="font-size:14px">${bestArtist ? bestArtist[0] : "-"}</span></div>
+                <div class="stat-item"><span class="stat-label">이달의 장르</span><span class="stat-value" style="font-size:14px">${bestGenre ? bestGenre[0] : "-"}</span></div>
+                <div class="stat-item"><span class="stat-label">최다 열창일</span><span class="stat-value" style="font-size:13px">${bestDay ? bestDay[0].replace(/[()]/g, '') : "-"}</span></div>
+            </div>
+        `;
     }
 
+    // 2. 테이블 렌더링 (공통)
     filteredData.sort((a, b) => b.count - a.count);
-
     const totalCount = filteredData.length;
     const displayData = filteredData.slice(0, visibleCount);
     const currentViewCount = displayData.length;
 
-    const contentArea = document.getElementById('content-area');
-    if (!contentArea) return;
-
-    contentArea.innerHTML = `
-        <div class="stats-grid">
-            ${summary.map(item => `
-                <div class="stat-item">
-                    <span class="stat-label">${item.label}</span>
-                    <span class="stat-value">${item.value}</span>
-                </div>
-            `).join('')}
-        </div>
+    contentArea.innerHTML = dashboardHTML + `
         <div class="data-table-container">
             <table class="data-table">
-                <thead>
-                    <tr><th>순위</th><th>곡 제목</th><th>가수</th><th>횟수</th></tr>
-                </thead>
+                <thead><tr><th>순위</th><th>곡 제목</th><th>가수</th><th>횟수</th></tr></thead>
                 <tbody>
-                    ${filteredData.length > 0 ? 
-                        displayData.map((row, idx) => `
+                    ${displayData.length > 0 ? displayData.map((row, idx) => `
                         <tr><td>${idx + 1}</td><td>${row.title}</td><td>${row.artist}</td><td>${row.count}회</td></tr>
-                        `).join('') : `<tr><td colspan="4" style="text-align:center; padding:20px;">해당 기간의 데이터가 없습니다.</td></tr>`
-                    }
+                    `).join('') : `<tr><td colspan="4" style="text-align:center; padding:20px;">데이터가 없습니다.</td></tr>`}
                 </tbody>
             </table>
         </div>
-        
         ${totalCount > visibleCount ? `
             <div style="text-align: center; margin-top: 20px;">
-                <button class="filter-btn active" onclick="loadMore()" style="width: 220px;">
-                    더보기 (${currentViewCount}/${totalCount}) ▼
-                </button>
+                <button class="filter-btn active" onclick="loadMore()" style="width: 220px;">더보기 (${currentViewCount}/${totalCount}) ▼</button>
             </div>
         ` : totalCount > 20 ? `
             <div style="text-align: center; margin-top: 20px;">
-                <button class="filter-btn" onclick="resetVisibleCount()" style="width: 220px; opacity: 0.7;">
-                    처음으로 되돌리기 ▲
-                </button>
+                <button class="filter-btn" onclick="resetVisibleCount()" style="width: 220px; opacity: 0.7;">처음으로 되돌리기 ▲</button>
             </div>
         ` : ''}
     `;
 }
 
+// 3. 차트 렌더링 함수
+function renderAllCharts(artists, genres) {
+    const ctxArtist = document.getElementById('artistChart');
+    const ctxGenre = document.getElementById('genreChart');
+    if (!ctxArtist || !ctxGenre) return;
+
+    // 기존 차트 인스턴스가 있으면 삭제 (중복 방지)
+    if (artistChartInstance) artistChartInstance.destroy();
+    if (genreChartInstance) genreChartInstance.destroy();
+
+    artistChartInstance = new Chart(ctxArtist, {
+        type: 'bar',
+        data: {
+            labels: artists.map(a => a[0]),
+            datasets: [{
+                label: '가창 횟수',
+                data: artists.map(a => a[1]),
+                backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: { 
+            responsive: true, 
+            maintainAspectRatio: false,
+            plugins: { 
+                legend: { display: false }, 
+                title: { display: true, text: '최다 가창 가수 TOP 5', color: '#fff' } 
+            },
+            scales: { 
+                y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.1)' }, ticks: { color: '#aaa' } },
+                x: { ticks: { color: '#aaa' } }
+            }
+        }
+    });
+
+    genreChartInstance = new Chart(ctxGenre, {
+        type: 'doughnut',
+        data: {
+            labels: Object.keys(genres),
+            datasets: [{
+                data: Object.values(genres),
+                backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { 
+                title: { display: true, text: '장르별 점유율', color: '#fff' }, 
+                legend: { position: 'bottom', labels: { color: '#ccc', padding: 15, boxWidth: 12 } } 
+            }
+        }
+    });
+}
 window.onload = loadSheetData;
