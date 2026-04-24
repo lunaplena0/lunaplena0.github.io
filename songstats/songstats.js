@@ -1,8 +1,8 @@
 const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQmWkxsDxTFSxtnLX0nBapwtNcSW9FQiTDv61z9F89_lqZNq5pKGgmuaAKGo5Fd1r4_hfDtxSqSYdpf/pub?gid=0&single=true&output=tsv";
 
 let rawData = []; 
+let visibleCount = 20; // 20개 단위 표시를 위한 변수
 let currentCategory = 'all';
-let isExpanded = false; // 전역 변수
 
 async function loadSheetData() {
     try {
@@ -28,10 +28,12 @@ async function loadSheetData() {
     }
 }
 
+// 1. 실제 데이터가 있는 연도만 추출하여 연도 셀렉트 박스 생성
 function initDynamicSelectors() {
     const yearSelect = document.getElementById('select-year');
-    const availableYears = new Set();
+    if (!yearSelect) return;
     
+    const availableYears = new Set();
     rawData.forEach(item => {
         item.dates.forEach(dateStr => {
             const year = dateStr.substring(1, 3);
@@ -50,9 +52,12 @@ function initDynamicSelectors() {
     updateMonthSelector();
 }
 
+// 2. 선택된 연도 내 데이터가 있는 월만 추출
 function updateMonthSelector() {
     const yearSelect = document.getElementById('select-year');
     const monthSelect = document.getElementById('select-month');
+    if (!yearSelect || !monthSelect) return;
+
     const selectedYear = yearSelect.value;
     const availableMonths = new Set();
 
@@ -81,40 +86,47 @@ function onYearChange() {
     applyDateFilter();
 }
 
-// category와 클릭된 버튼(target)을 인자로 받도록 개선
+// 필터 변경 시 초기화
 function updateDateFilter(category, target) {
-    isExpanded = false; 
+    visibleCount = 20; // 탭 이동 시 다시 20개로 리셋
     currentCategory = category;
     
     const selectors = document.getElementById('date-selectors');
     const monthSelect = document.getElementById('select-month');
     
-    selectors.style.display = 'flex';
-    monthSelect.style.display = (category === 'monthly') ? 'inline-block' : 'none';
+    if (selectors) selectors.style.display = 'flex';
+    if (monthSelect) monthSelect.style.display = (category === 'monthly') ? 'inline-block' : 'none';
     
-    // 버튼 활성화 클래스 처리
     const buttons = document.querySelectorAll('.filter-btn');
     buttons.forEach(btn => btn.classList.remove('active'));
     
-    // target이 인자로 넘어오면 사용, 아니면 window.event 체크
     const activeBtn = target || (window.event && window.event.currentTarget);
     if (activeBtn) activeBtn.classList.add('active');
 
     applyDateFilter();
 }
 
+// "더보기" 버튼 클릭 시
+function loadMore() {
+    visibleCount += 20; 
+    applyDateFilter();
+}
+
+// "처음으로" 버튼 클릭 시
+function resetVisibleCount() {
+    visibleCount = 20;
+    applyDateFilter();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
 function applyDateFilter() {
     showStats(currentCategory);
 }
 
-function toggleTable() {
-    isExpanded = !isExpanded;
-    applyDateFilter();
-}
-
 function showStats(category) {
     if (category === 'all') {
-        document.getElementById('date-selectors').style.display = 'none';
+        const selectors = document.getElementById('date-selectors');
+        if (selectors) selectors.style.display = 'none';
         const buttons = document.querySelectorAll('.filter-btn');
         buttons.forEach(btn => btn.classList.remove('active'));
         if(buttons[0]) buttons[0].classList.add('active');
@@ -175,11 +187,12 @@ function showStats(category) {
     filteredData.sort((a, b) => b.count - a.count);
 
     const totalCount = filteredData.length;
-    const initialLimit = 20;
-    const displayData = isExpanded ? filteredData : filteredData.slice(0, initialLimit);
+    const displayData = filteredData.slice(0, visibleCount);
     const currentViewCount = displayData.length;
 
     const contentArea = document.getElementById('content-area');
+    if (!contentArea) return;
+
     contentArea.innerHTML = `
         <div class="stats-grid">
             ${summary.map(item => `
@@ -204,10 +217,16 @@ function showStats(category) {
             </table>
         </div>
         
-        ${totalCount > initialLimit ? `
+        ${totalCount > visibleCount ? `
             <div style="text-align: center; margin-top: 20px;">
-                <button class="filter-btn active" onclick="toggleTable()" style="width: 220px; display: inline-flex; justify-content: center; align-items: center; gap: 5px;">
-                    ${isExpanded ? `접기 (${currentViewCount}/${totalCount}) ▲` : `펼치기 (${currentViewCount}/${totalCount}) ▼`}
+                <button class="filter-btn active" onclick="loadMore()" style="width: 220px;">
+                    더보기 (${currentViewCount}/${totalCount}) ▼
+                </button>
+            </div>
+        ` : totalCount > 20 ? `
+            <div style="text-align: center; margin-top: 20px;">
+                <button class="filter-btn" onclick="resetVisibleCount()" style="width: 220px; opacity: 0.7;">
+                    처음으로 되돌리기 ▲
                 </button>
             </div>
         ` : ''}
