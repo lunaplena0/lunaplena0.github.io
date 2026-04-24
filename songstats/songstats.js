@@ -2,6 +2,7 @@ const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQmWkxsDxTFSx
 
 let rawData = []; 
 let currentCategory = 'all';
+let isExpanded = false; // 전역 변수
 
 async function loadSheetData() {
     try {
@@ -20,7 +21,6 @@ async function loadSheetData() {
             };
         }).filter(item => item.title);
 
-        // 데이터 기반으로 선택창 목록 생성
         initDynamicSelectors(); 
         showStats('all');
     } catch (error) {
@@ -28,14 +28,13 @@ async function loadSheetData() {
     }
 }
 
-// 1. 실제 데이터가 있는 연도만 추출하여 연도 셀렉트 박스 생성
 function initDynamicSelectors() {
     const yearSelect = document.getElementById('select-year');
     const availableYears = new Set();
     
     rawData.forEach(item => {
         item.dates.forEach(dateStr => {
-            const year = dateStr.substring(1, 3); // (26.04.24) -> 26
+            const year = dateStr.substring(1, 3);
             availableYears.add(year);
         });
     });
@@ -48,11 +47,9 @@ function initDynamicSelectors() {
         yearSelect.appendChild(opt);
     });
 
-    // 연도 로드 후 해당 연도에 맞는 월 목록 로드
     updateMonthSelector();
 }
 
-// 2. 선택된 연도 내에서 데이터가 있는 월만 추출하여 월 셀렉트 박스 생성
 function updateMonthSelector() {
     const yearSelect = document.getElementById('select-year');
     const monthSelect = document.getElementById('select-month');
@@ -79,27 +76,29 @@ function updateMonthSelector() {
     });
 }
 
-// 연도 변경 시 실행
 function onYearChange() {
     updateMonthSelector();
     applyDateFilter();
 }
 
-// 필터 카테고리(전체/월별/연도별) 변경
-function updateDateFilter(category) {
+// category와 클릭된 버튼(target)을 인자로 받도록 개선
+function updateDateFilter(category, target) {
+    isExpanded = false; 
     currentCategory = category;
+    
     const selectors = document.getElementById('date-selectors');
     const monthSelect = document.getElementById('select-month');
     
     selectors.style.display = 'flex';
     monthSelect.style.display = (category === 'monthly') ? 'inline-block' : 'none';
     
+    // 버튼 활성화 클래스 처리
     const buttons = document.querySelectorAll('.filter-btn');
     buttons.forEach(btn => btn.classList.remove('active'));
     
-    if (window.event && window.event.currentTarget) {
-        window.event.currentTarget.classList.add('active');
-    }
+    // target이 인자로 넘어오면 사용, 아니면 window.event 체크
+    const activeBtn = target || (window.event && window.event.currentTarget);
+    if (activeBtn) activeBtn.classList.add('active');
 
     applyDateFilter();
 }
@@ -107,11 +106,13 @@ function updateDateFilter(category) {
 function applyDateFilter() {
     showStats(currentCategory);
 }
-// 전역 변수로 현재 펼쳐진 상태 저장
-let isExpanded = false;
+
+function toggleTable() {
+    isExpanded = !isExpanded;
+    applyDateFilter();
+}
 
 function showStats(category) {
-    // '전체' 탭일 경우 날짜 선택창 숨김 및 버튼 활성화 제어
     if (category === 'all') {
         document.getElementById('date-selectors').style.display = 'none';
         const buttons = document.querySelectorAll('.filter-btn');
@@ -138,7 +139,7 @@ function showStats(category) {
             { label: "등록된 곡 종류", value: `${filteredData.length}곡` },
             { label: "가장 많이 부른 가수", value: topArtist ? topArtist[0] : "-" }
         ];
-    } 
+    }  
     else if (category === 'monthly') {
         const target = `(${selYear}.${selMonth}.`; 
         filteredData = rawData.map(item => {
@@ -158,29 +159,23 @@ function showStats(category) {
             return { ...item, count: yearlyDates.length };
         }).filter(item => item.count > 0);
 
-        // 연도별 데이터 내에서 가수별 횟수 재집계
         const yearlyArtistCount = {};
         filteredData.forEach(d => {
             yearlyArtistCount[d.artist] = (yearlyArtistCount[d.artist] || 0) + d.count;
         });
-        
-        // 가장 많이 부른 가수 추출
         const topArtistEntry = Object.entries(yearlyArtistCount).sort((a, b) => b[1] - a[1])[0];
-        const topArtistName = topArtistEntry ? topArtistEntry[0] : "-";
 
         summary = [
             { label: `20${selYear}년 총 합계`, value: `${filteredData.reduce((acc, cur) => acc + cur.count, 0)}회` },
-            { label: "올해 가장 많이 부른 가수", value: topArtistName },
+            { label: "올해 가장 많이 부른 가수", value: topArtistEntry ? topArtistEntry[0] : "-" },
             { label: "올해 부른 곡 수", value: `${filteredData.length}곡` }
         ];
     }
 
     filteredData.sort((a, b) => b.count - a.count);
 
-    // 표시할 데이터 로직
     const totalCount = filteredData.length;
     const initialLimit = 20;
-    // 펼쳐진 상태면 전체, 아니면 20개만 슬라이스
     const displayData = isExpanded ? filteredData : filteredData.slice(0, initialLimit);
     const currentViewCount = displayData.length;
 
@@ -211,33 +206,12 @@ function showStats(category) {
         
         ${totalCount > initialLimit ? `
             <div style="text-align: center; margin-top: 20px;">
-                <button class="filter-btn active" onclick="toggleTable()" style="width: 200px;">
-                    ${isExpanded ? `접기 (${currentViewCount}/${totalCount})` : `펼치기 (${currentViewCount}/${totalCount})`}
+                <button class="filter-btn active" onclick="toggleTable()" style="width: 220px; display: inline-flex; justify-content: center; align-items: center; gap: 5px;">
+                    ${isExpanded ? `접기 (${currentViewCount}/${totalCount}) ▲` : `펼치기 (${currentViewCount}/${totalCount}) ▼`}
                 </button>
             </div>
         ` : ''}
     `;
 }
-// 테이블 펼치기/접기 토글 함수
-function toggleTable() {
-    isExpanded = !isExpanded;
-    applyDateFilter(); // 현재 카테고리 상태로 다시 그리기
-}
 
-// 필터 변경 시에는 항상 '접힌 상태'로 초기화
-function updateDateFilter(category) {
-    isExpanded = false; // 카테고리 바꾸면 다시 20개만 보여주기
-    currentCategory = category;
-    // ... (이하 기존 코드 동일) ...
-    const selectors = document.getElementById('date-selectors');
-    const monthSelect = document.getElementById('select-month');
-    selectors.style.display = 'flex';
-    monthSelect.style.display = (category === 'monthly') ? 'inline-block' : 'none';
-    const buttons = document.querySelectorAll('.filter-btn');
-    buttons.forEach(btn => btn.classList.remove('active'));
-    if (window.event && window.event.currentTarget) {
-        window.event.currentTarget.classList.add('active');
-    }
-    applyDateFilter();
-}
 window.onload = loadSheetData;
