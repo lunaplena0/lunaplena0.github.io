@@ -20,38 +20,72 @@ async function loadSheetData() {
             };
         }).filter(item => item.title);
 
-        initSelectors(); // 선택 박스 초기화
+        // 데이터 기반으로 선택창 목록 생성
+        initDynamicSelectors(); 
         showStats('all');
     } catch (error) {
         console.error("데이터 로드 실패:", error);
     }
 }
 
-// 연도 및 월 선택 박스 초기화
-function initSelectors() {
+// 1. 실제 데이터가 있는 연도만 추출하여 연도 셀렉트 박스 생성
+function initDynamicSelectors() {
     const yearSelect = document.getElementById('select-year');
-    const monthSelect = document.getElementById('select-month');
+    const availableYears = new Set();
     
-    // 2024년부터 2026년까지 (필요시 조정)
-    for (let i = 24; i <= 26; i++) {
-        let opt = document.createElement('option');
-        opt.value = i;
-        opt.innerHTML = `20${i}년`;
-        yearSelect.appendChild(opt);
-    }
-    yearSelect.value = "26"; // 기본값 26년
+    rawData.forEach(item => {
+        item.dates.forEach(dateStr => {
+            const year = dateStr.substring(1, 3); // (26.04.24) -> 26
+            availableYears.add(year);
+        });
+    });
 
-    for (let i = 1; i <= 12; i++) {
+    yearSelect.innerHTML = "";
+    [...availableYears].sort((a, b) => b - a).forEach(year => {
         let opt = document.createElement('option');
-        opt.value = String(i).padStart(2, '0');
-        opt.innerHTML = `${i}월`;
-        monthSelect.appendChild(opt);
-    }
-    const currentMonth = String(new Date().getMonth() + 1).padStart(2, '0');
-    monthSelect.value = currentMonth;
+        opt.value = year;
+        opt.innerHTML = `20${year}년`;
+        yearSelect.appendChild(opt);
+    });
+
+    // 연도 로드 후 해당 연도에 맞는 월 목록 로드
+    updateMonthSelector();
 }
 
-// 필터 버튼 클릭 시 호출
+// 2. 선택된 연도 내에서 데이터가 있는 월만 추출하여 월 셀렉트 박스 생성
+function updateMonthSelector() {
+    const yearSelect = document.getElementById('select-year');
+    const monthSelect = document.getElementById('select-month');
+    const selectedYear = yearSelect.value;
+    const availableMonths = new Set();
+
+    if (!selectedYear) return;
+
+    rawData.forEach(item => {
+        item.dates.forEach(dateStr => {
+            if (dateStr.startsWith(`(${selectedYear}.`)) {
+                const month = dateStr.substring(4, 6);
+                availableMonths.add(month);
+            }
+        });
+    });
+
+    monthSelect.innerHTML = "";
+    [...availableMonths].sort((a, b) => a - b).forEach(month => {
+        let opt = document.createElement('option');
+        opt.value = month;
+        opt.innerHTML = `${parseInt(month)}월`;
+        monthSelect.appendChild(opt);
+    });
+}
+
+// 연도 변경 시 실행
+function onYearChange() {
+    updateMonthSelector();
+    applyDateFilter();
+}
+
+// 필터 카테고리(전체/월별/연도별) 변경
 function updateDateFilter(category) {
     currentCategory = category;
     const selectors = document.getElementById('date-selectors');
@@ -60,10 +94,12 @@ function updateDateFilter(category) {
     selectors.style.display = 'flex';
     monthSelect.style.display = (category === 'monthly') ? 'inline-block' : 'none';
     
-    // 버튼 활성화 처리
     const buttons = document.querySelectorAll('.filter-btn');
     buttons.forEach(btn => btn.classList.remove('active'));
-    event.currentTarget.classList.add('active');
+    
+    if (window.event && window.event.currentTarget) {
+        window.event.currentTarget.classList.add('active');
+    }
 
     applyDateFilter();
 }
@@ -73,15 +109,18 @@ function applyDateFilter() {
 }
 
 function showStats(category) {
+    // '전체' 탭일 경우 날짜 선택창 숨김 및 버튼 활성화 제어
     if (category === 'all') {
         document.getElementById('date-selectors').style.display = 'none';
         const buttons = document.querySelectorAll('.filter-btn');
         buttons.forEach(btn => btn.classList.remove('active'));
-        buttons[0].classList.add('active');
+        if(buttons[0]) buttons[0].classList.add('active');
     }
 
-    const selYear = document.getElementById('select-year').value;
-    const selMonth = document.getElementById('select-month').value;
+    const yearEl = document.getElementById('select-year');
+    const monthEl = document.getElementById('select-month');
+    const selYear = yearEl ? yearEl.value : "";
+    const selMonth = monthEl ? monthEl.value : "";
 
     let filteredData = [];
     let summary = [];
@@ -106,7 +145,7 @@ function showStats(category) {
         }).filter(item => item.count > 0);
 
         summary = [
-            { label: `20${selYear}년 ${selMonth}월 총 합계`, value: `${filteredData.reduce((acc, cur) => acc + cur.count, 0)}회` },
+            { label: `20${selYear}년 ${selMonth}월 합계`, value: `${filteredData.reduce((acc, cur) => acc + cur.count, 0)}회` },
             { label: "이달의 노래", value: filteredData.length > 0 ? filteredData.sort((a,b)=>b.count-a.count)[0].title : "-" }
         ];
     }
@@ -144,7 +183,7 @@ function showStats(category) {
                     ${filteredData.length > 0 ? 
                         filteredData.map((row, idx) => `
                         <tr><td>${idx + 1}</td><td>${row.title}</td><td>${row.artist}</td><td>${row.count}회</td></tr>
-                        `).join('') : `<tr><td colspan="4" style="text-align:center; padding:20px;">데이터가 없습니다.</td></tr>`
+                        `).join('') : `<tr><td colspan="4" style="text-align:center; padding:20px;">해당 기간의 데이터가 없습니다.</td></tr>`
                     }
                 </tbody>
             </table>
