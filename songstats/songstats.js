@@ -156,9 +156,20 @@ function showStats(category) {
             return { ...item, count: yearlyDates.length };
         }).filter(item => item.count > 0);
 
+        // 연도별 데이터 내에서 가수별 횟수 재집계
+        const yearlyArtistCount = {};
+        filteredData.forEach(d => {
+            yearlyArtistCount[d.artist] = (yearlyArtistCount[d.artist] || 0) + d.count;
+        });
+        
+        // 가장 많이 부른 가수 추출
+        const topArtistEntry = Object.entries(yearlyArtistCount).sort((a, b) => b[1] - a[1])[0];
+        const topArtistName = topArtistEntry ? topArtistEntry[0] : "-";
+
         summary = [
             { label: `20${selYear}년 총 합계`, value: `${filteredData.reduce((acc, cur) => acc + cur.count, 0)}회` },
-            { label: "해당 연도 곡 수", value: `${filteredData.length}곡` }
+            { label: "올해 가장 많이 부른 가수", value: topArtistName },
+            { label: "올해 부른 곡 수", value: `${filteredData.length}곡` }
         ];
     }
 
