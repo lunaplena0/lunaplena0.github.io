@@ -366,8 +366,16 @@ function openModal(encodedTitle) {
     
     if (!song) return;
 
-    document.getElementById('modal-title').innerText = song.title;
-    document.getElementById('modal-artist').innerText = song.artist;
+    // 🎵 아이콘 추가 및 곡 제목 업데이트
+    document.getElementById('modal-title').innerHTML = `🎵 ${song.title}`;
+    
+    // 🎤 아이콘 추가 및 가수가 어두울 경우 대비해 직접 스타일(밝은색) 지정
+    const artistElement = document.getElementById('modal-artist');
+    artistElement.innerHTML = `🎤 ${song.artist}`;
+    artistElement.style.color = "#ffffff"; // 가수 이름을 밝은 흰색으로 강제 지정
+    artistElement.style.fontWeight = "bold";
+
+    // 횟수 아이콘 추가
     document.getElementById('modal-count').innerText = song.dates.length;
 
     // 날짜 목록 생성
