@@ -93,34 +93,27 @@ function updateDateFilter(category, target) {
     visibleCount = 20; 
     currentCategory = category;
     
+    // 1. 셀렉트 박스 표시 제어
     const selectors = document.getElementById('date-selectors');
     const monthSelect = document.getElementById('select-month');
     
-    // 1. 셀렉트 박스 표시 제어
-    if (selectors) {
-        // 'all'일 때는 연도/월 선택창 전체를 숨김
-        selectors.style.display = (category === 'all') ? 'none' : 'flex';
-    }
-    if (monthSelect) {
-        // 'monthly'일 때만 월 선택창을 보여줌
-        monthSelect.style.display = (category === 'monthly') ? 'inline-block' : 'none';
-    }
+    if (selectors) selectors.style.display = (category === 'all') ? 'none' : 'flex';
+    if (monthSelect) monthSelect.style.display = (category === 'monthly') ? 'inline-block' : 'none';
     
     // 2. 버튼 활성화 스타일 제어
     const buttons = document.querySelectorAll('.filter-btn');
-    buttons.forEach(btn => btn.classList.remove('active'));
+    buttons.forEach(btn => btn.classList.remove('active')); // 모든 버튼에서 active 제거
     
-    // 클릭된 버튼에 active 추가
     if (target) {
-        target.classList.add('active');
+        target.classList.add('active'); // 클릭된 버튼에만 active 추가
     } else {
-        // 직접 호출 시(예: 초기 로드) 첫 번째 버튼(전체)을 활성화
-        buttons[0].classList.add('active');
+        // 만약 target이 없이 호출되었다면(예: 초기 로드), 첫 번째 버튼을 찾아서 active 추가
+        const allBtn = document.querySelector(".filter-btn[onclick*='all']");
+        if (allBtn) allBtn.classList.add('active');
     }
 
     applyDateFilter();
 }
-
 // "더보기" 버튼 클릭 시
 function loadMore() {
     visibleCount += 20; 
@@ -302,31 +295,37 @@ function renderAllCharts(artists, genres) {
     if (genreChartInstance) genreChartInstance.destroy();
 
     artistChartInstance = new Chart(ctxArtist, {
-        type: 'bar',
-        data: {
-            labels: artists.map(a => a[0]),
-            datasets: [{
-                label: '가창 횟수',
-                data: artists.map(a => a[1]),
-                backgroundColor: 'rgba(54, 162, 235, 0.5)',
-                borderColor: 'rgba(54, 162, 235, 1)',
-                borderWidth: 1
-            }]
+    type: 'bar', // 그대로 bar로 둡니다.
+    data: {
+        labels: artists.map(a => a[0]),
+        datasets: [{
+            label: '가창 횟수',
+            data: artists.map(a => a[1]),
+            backgroundColor: 'rgba(54, 162, 235, 0.5)',
+            borderColor: 'rgba(54, 162, 235, 1)',
+            borderWidth: 1
+        }]
+    },
+    options: { 
+        indexAxis: 'y', // 가로 막대형으로 만드는 핵심 옵션!
+        responsive: true, 
+        maintainAspectRatio: false,
+        plugins: { 
+            legend: { display: false }, 
+            title: { display: true, text: '최다 가창 가수 TOP 5', color: '#fff' } 
         },
-        options: { 
-            responsive: true, 
-            maintainAspectRatio: false,
-            plugins: { 
-                legend: { display: false }, 
-                title: { display: true, text: '최다 가창 가수 TOP 5', color: '#fff' } 
+        scales: { 
+            x: { // 가로축이 수치가 되므로 beginAtZero를 x로 이동
+                beginAtZero: true, 
+                grid: { color: 'rgba(255,255,255,0.1)' }, 
+                ticks: { color: '#aaa' } 
             },
-            scales: { 
-                y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.1)' }, ticks: { color: '#aaa' } },
-                x: { ticks: { color: '#aaa' } }
+            y: { // 세로축이 이름이 됨
+                ticks: { color: '#aaa' } 
             }
         }
-    });
-
+    }
+});
     genreChartInstance = new Chart(ctxGenre, {
         type: 'doughnut',
         data: {
