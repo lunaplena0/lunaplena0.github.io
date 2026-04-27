@@ -7,6 +7,13 @@ let artistChartInstance = null;
 let genreChartInstance = null;
 
 async function loadSheetData() {
+    // --- [로딩 시작 코드 추가] ---
+    const overlay = document.getElementById('loading-overlay');
+    if (typeof prepareWaveText === "function") {
+        prepareWaveText("노래 기록을 정리하고 있어요 . . .");
+    }
+    // -------------------------
+
     try {
         const response = await fetch(SHEET_URL);
         const data = await response.text();
@@ -27,6 +34,20 @@ async function loadSheetData() {
         showStats('all');
     } catch (error) {
         console.error("데이터 로드 실패:", error);
+        const contentArea = document.getElementById('content-area');
+        if (contentArea) contentArea.innerHTML = `<p style="text-align:center; color:#ff4b4b;">데이터 로드 중 오류가 발생했습니다.</p>`;
+    } finally {
+        // --- [로딩 종료 및 페이드아웃 추가] ---
+        if (overlay) {
+            setTimeout(() => {
+                overlay.style.opacity = '0';
+                setTimeout(() => {
+                    overlay.style.visibility = 'hidden';
+                    document.body.style.overflow = 'auto'; 
+                }, 500);
+            }, 800);
+        }
+        // ----------------------------------
     }
 }
 
