@@ -21,23 +21,72 @@
     <main class="card content-card">
         <h2>상세 정보</h2>
         <div id="content-area">
-           <div class="calculator-container">
-    <h3>조건 충족 여부 확인</h3>
-    <div class="input-group">
-        <label for="target-value">목표 수치</label>
-        <input type="number" id="target-value" placeholder="예: 100" />
-    </div>
-    <div class="input-group">
-        <label for="current-value">현재 수치</label>
-        <input type="number" id="current-value" placeholder="예: 85" />
-    </div>
-    <button onclick="checkCondition()" class="btn" style="width: 100%; margin-top: 10px;">결과 확인하기</button>
+         <div id="content-area">
+    <style>
+        .calc-section { margin-bottom: 25px; }
+        .cond-item { 
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 12px; border-bottom: 1px solid var(--border);
+        }
+        .cond-label { font-size: 14px; color: var(--text-main); font-weight: 500; }
+        .cond-input-wrap { display: flex; align-items: center; gap: 8px; }
+        .cond-input { 
+            width: 80px; padding: 6px; border: 1px solid var(--border); 
+            border-radius: 4px; text-align: right; background: var(--bg-body); color: var(--text-main);
+        }
+        .unit { font-size: 13px; color: var(--text-sub); }
+        
+        .check-box { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+        .shortcut { font-size: 12px; color: #3498db; text-decoration: none; margin-left: 5px; }
 
-    <div id="result-display" class="result-box" style="display: none;">
-        <p id="result-text"></p>
-        <div class="progress-bar-bg">
-            <div id="progress-bar-fill" class="progress-bar-fill"></div>
+        #result-panel {
+            margin-top: 20px; padding: 20px; border-radius: 10px;
+            text-align: center; display: none; transition: all 0.3s;
+        }
+        .pass { background: rgba(76, 175, 80, 0.1); border: 1px solid #4caf50; color: #4caf50; }
+        .fail { background: rgba(244, 67, 54, 0.1); border: 1px solid #f44336; color: #f44336; }
+    </style>
+
+    <div class="calc-section">
+        <div class="cond-item">
+            <span class="cond-label">누적 방송 시간</span>
+            <div class="cond-input-wrap">
+                <input type="number" id="time-val" class="cond-input" placeholder="0">
+                <span class="unit">시간 / 100</span>
+            </div>
         </div>
+        <div class="cond-item">
+            <span class="cond-label">애청자 수</span>
+            <div class="cond-input-wrap">
+                <input type="number" id="fan-val" class="cond-input" placeholder="0">
+                <span class="unit">명 / 500</span>
+            </div>
+        </div>
+        <div class="cond-item">
+            <span class="cond-label">최근 3개월 방송 일수</span>
+            <div class="cond-input-wrap">
+                <input type="number" id="day-val" class="cond-input" placeholder="0">
+                <span class="unit">일 / 30</span>
+            </div>
+        </div>
+        <div class="cond-item">
+            <span class="cond-label">최근 3개월 정지 기록 없음 <a href="#" class="shortcut">▶</a></span>
+            <input type="checkbox" id="punish-check" style="width:18px; height:18px;">
+        </div>
+        <div class="cond-item">
+            <span class="cond-label">스트리머 교육 (5개 이상) <a href="#" class="shortcut">▶</a></span>
+            <div class="cond-input-wrap">
+                <input type="number" id="edu-val" class="cond-input" placeholder="0">
+                <span class="unit">개 / 5</span>
+            </div>
+        </div>
+    </div>
+
+    <button onclick="calculateBestBJ()" class="btn" style="width: 100%; height: 50px; font-weight: bold;">조건 충족 확인</button>
+
+    <div id="result-panel">
+        <h3 id="result-title" style="margin: 0 0 10px 0;">결과 확인</h3>
+        <p id="result-desc" style="margin: 0; font-size: 14px;"></p>
     </div>
 </div>
         </div>
