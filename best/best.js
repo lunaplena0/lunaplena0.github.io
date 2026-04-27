@@ -21,7 +21,12 @@ const scoreTable = {
         { limit: 500, s: 60 }, { limit: 100, s: 50 }
     ]
 };
-
+function resetData() {
+    if(confirm("입력한 모든 데이터를 삭제할까요?")) {
+        localStorage.removeItem('badabi_calc_data');
+        location.reload(); // 페이지 새로고침
+    }
+}
 function getPoint(val, type) {
     if (!val || val < 0) return 0;
     const list = scoreTable[type];
