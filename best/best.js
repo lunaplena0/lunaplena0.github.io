@@ -32,7 +32,7 @@ function getPoint(val, type) {
 }
 
 function updateScores() {
-    // 값 수집
+    // 1. 값 수집
     const viewer = parseInt(document.getElementById('score-viewer').value) || 0;
     const fan = parseInt(document.getElementById('score-fan').value) || 0;
     const time = parseInt(document.getElementById('score-time').value) || 0;
@@ -48,45 +48,47 @@ function updateScores() {
     const resultPanel = document.getElementById('result-panel');
     const resultDesc = document.getElementById('result-desc');
 
-    // 1. 필수 조건 체크
+    // 2. 필수 조건 체크
     let failReasons = [];
     if (time < 100) failReasons.push("방송 시간 100시간 미달");
     if (fan < 500) failReasons.push("애청자 500명 미달");
     if (day < 30) failReasons.push("방송 일수 30일 미달");
     if (edu < 5) failReasons.push("교육 수강 5개 미달");
-    if (!noPunish) failReasons.push("정지 기록 있음 체크 해제됨");
+    if (!noPunish) failReasons.push("정지 기록 체크 안됨");
 
-   // 2. 점수 계산
+    // 3. 점수 계산
     const vPoint = getPoint(viewer, 'viewer');
     const fPoint = getPoint(fan, 'fan');
     const tPoint = getPoint(time, 'time');
     
-    // 기본 점수(100) + 가산점(15) = 총 115점 만점 설계
+    // 가중치 적용 (동접 0.4, 애청자 0.4, 시간 0.2)
     const baseTotal = (vPoint * 0.4) + (fPoint * 0.4) + (tPoint * 0.2);
     const finalTotal = baseTotal + vodScore + rateScore + expertScore;
 
     totalScoreElement.innerText = finalTotal.toFixed(1);
 
-    // 3. 결과 및 합격 가이드 출력
+    // 4. 결과 출력 및 상태 업데이트
     if (failReasons.length > 0) {
-        resultPanel.className = "result-box fail"; // 클래스명 유지
+        resultPanel.className = "result-box fail"; 
         resultDesc.innerHTML = `<span style="color: #f44336; font-weight:bold;">[신청 불가 - 기본 조건 미달]</span><br><small>${failReasons.join(", ")}</small>`;
     } else {
-        // 기본 조건은 충족했을 때 점수별 가이드
         if (finalTotal >= 85) {
             resultPanel.className = "result-box pass";
-            resultDesc.innerHTML = `<span style="color: #4caf50; font-weight:bold;">[합격 안정권]</span><br>75점을 크게 상회합니다. 선발 가능성이 매우 높습니다!`;
+            resultDesc.innerHTML = `<span style="color: #00ffcc; font-weight:bold;">[합격 안정권]</span><br>75점을 크게 상회합니다. 선발 가능성이 매우 높습니다!`;
         } else if (finalTotal >= 75) {
             resultPanel.className = "result-box pass";
-            resultDesc.innerHTML = `<span style="color: #3385ff; font-weight:bold;">[합격권 - 경합 예상]</span><br>75점을 넘겼으나 인원 초과 시 [동접>애청자] 순으로 밀릴 수 있으니 지표 관리에 유의하세요.`;
+            resultDesc.innerHTML = `<span style="color: #3385ff; font-weight:bold;">[합격권 - 경합 예상]</span><br>75점을 넘겼으나 인원 초과 시 상대평가(동접 등)가 중요해집니다.`;
         } else {
-            resultPanel.className = "result-box warning"; // 경고 스타일 추가 필요
-            resultDesc.innerHTML = `<span style="color: #ff9800; font-weight:bold;">[점수 미달 - 차순위 대기]</span><br>75점 미만입니다. 신청 인원이 40명 미만일 경우에만 선발을 기대할 수 있습니다.`;
+            resultPanel.className = "result-box warning"; 
+            resultDesc.innerHTML = `<span style="color: #ff9800; font-weight:bold;">[점수 미달 - 차순위 대기]</span><br>75점 미만입니다. 신청 인원이 40명 미만일 경우에만 선발될 수 있습니다.`;
         }
     }
     
-    // 프로그레스 바 업데이트 (75점 기준 시각화)
-    const progress = Math.min((finalTotal / 100) * 100, 100);
-    document.querySelector('.progress-bar-fill').style.width = progress + "%";
-}
+    // 5. 프로그레스 바 업데이트 (75점 기준 시각화)
+    // .progress-bar-fill 클래스를 가진 요소를 찾아 너비 조절
+    const progressBar = document.querySelector('.progress-bar-fill');
+    if (progressBar) {
+        const progress = Math.min((finalTotal / 100) * 100, 100);
+        progressBar.style.width = progress + "%";
+    }
 }
