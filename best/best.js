@@ -31,6 +31,46 @@ function getPoint(val, type) {
     return 0;
 }
 
+// 페이지 로드 시 실행 (저장된 데이터 불러오기)
+window.onload = function() {
+    loadSavedData();
+    updateScores(); // 불러온 데이터로 점수 초기 계산
+};
+
+// 데이터를 localStorage에 저장하는 함수
+function saveCurrentData() {
+    const data = {
+        viewer: document.getElementById('score-viewer').value,
+        fan: document.getElementById('score-fan').value,
+        time: document.getElementById('score-time').value,
+        day: document.getElementById('day-val').value,
+        edu: document.getElementById('edu-val').value,
+        punish: document.getElementById('punish-check').checked,
+        vodCount: document.getElementById('add-vod-count').value,
+        vodRate: document.getElementById('add-vod-rate').value,
+        expert: document.getElementById('add-expert').checked
+    };
+    localStorage.setItem('badabi_calc_data', JSON.stringify(data));
+}
+
+// 저장된 데이터를 불러오는 함수
+function loadSavedData() {
+    const savedData = localStorage.getItem('badabi_calc_data');
+    if (!savedData) return;
+
+    const data = JSON.parse(savedData);
+    document.getElementById('score-viewer').value = data.viewer || '';
+    document.getElementById('score-fan').value = data.fan || '';
+    document.getElementById('score-time').value = data.time || '';
+    document.getElementById('day-val').value = data.day || '';
+    document.getElementById('edu-val').value = data.edu || '';
+    document.getElementById('punish-check').checked = data.punish || false;
+    document.getElementById('add-vod-count').value = data.vodCount || '0';
+    document.getElementById('add-vod-rate').value = data.vodRate || '0';
+    document.getElementById('add-expert').checked = data.expert || false;
+}
+
+// 기존 updateScores 함수 끝부분에 저장 실행 추가
 function updateScores() {
     // 1. 값 수집
     const viewer = parseInt(document.getElementById('score-viewer').value) || 0;
@@ -91,4 +131,5 @@ function updateScores() {
         const progress = Math.min((finalTotal / 100) * 100, 100);
         progressBar.style.width = progress + "%";
     }
+    saveCurrentData();
 }
