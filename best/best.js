@@ -1,27 +1,32 @@
-function checkCondition() {
-    const target = parseFloat(document.getElementById('target-value').value);
-    const current = parseFloat(document.getElementById('current-value').value);
-    const resultDisplay = document.getElementById('result-display');
-    const resultText = document.getElementById('result-text');
-    const progressBar = document.getElementById('progress-bar-fill');
+function calculateBestBJ() {
+    // 값 가져오기
+    const time = parseInt(document.getElementById('time-val').value) || 0;
+    const fan = parseInt(document.getElementById('fan-val').value) || 0;
+    const day = parseInt(document.getElementById('day-val').value) || 0;
+    const edu = parseInt(document.getElementById('edu-val').value) || 0;
+    const noPunish = document.getElementById('punish-check').checked;
 
-    if (isNaN(target) || isNaN(current)) {
-        alert("수치를 모두 입력해주세요.");
-        return;
-    }
+    const resultPanel = document.getElementById('result-panel');
+    const resultTitle = document.getElementById('result-title');
+    const resultDesc = document.getElementById('result-desc');
 
-    resultDisplay.style.display = 'block';
-    
-    // 달성률 계산
-    const percentage = Math.min((current / target) * 100, 100);
-    progressBar.style.width = percentage + "%";
+    // 조건 판별
+    let fails = [];
+    if (time < 100) fails.push(`방송 시간 ${100 - time}시간 부족`);
+    if (fan < 500) fails.push(`애청자 ${500 - fan}명 부족`);
+    if (day < 30) fails.push(`방송 일수 ${30 - day}일 부족`);
+    if (edu < 5) fails.push(`교육 수강 ${5 - edu}개 부족`);
+    if (!noPunish) fails.push(`정지 기록 확인 필요`);
 
-    if (current >= target) {
-        resultText.innerHTML = `<strong style="color: #4caf50;">조건 충족!</strong> (달성률: ${percentage.toFixed(1)}%)`;
-        progressBar.style.backgroundColor = '#4caf50';
+    resultPanel.style.display = 'block';
+
+    if (fails.length === 0) {
+        resultPanel.className = 'pass';
+        resultTitle.innerText = "신청 가능 대상입니다!";
+        resultDesc.innerText = "모든 필수 조건을 충족하셨습니다. 베스트 BJ에 도전해보세요!";
     } else {
-        const diff = target - current;
-        resultText.innerHTML = `<strong style="color: #f44336;">조건 미달</strong> (앞으로 <b>${diff}</b>만큼 더 필요합니다)`;
-        progressBar.style.backgroundColor = '#ff9800';
+        resultPanel.className = 'fail';
+        resultTitle.innerText = "조건 미충족";
+        resultDesc.innerHTML = fails.join('<br>');
     }
 }
