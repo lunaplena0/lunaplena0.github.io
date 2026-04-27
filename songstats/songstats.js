@@ -266,10 +266,14 @@ function showStats(category) {
             <table class="data-table">
                 <thead><tr><th>순위</th><th>곡 제목</th><th>가수</th><th>횟수</th></tr></thead>
                 <tbody>
-                    ${displayData.length > 0 ? displayData.map((row, idx) => `
-                        <tr><td>${idx + 1}</td><td>${row.title}</td><td>${row.artist}</td><td>${row.count}회</td></tr>
-                    `).join('') : `<tr><td colspan="4" style="text-align:center; padding:20px;">데이터가 없습니다.</td></tr>`}
-                </tbody>
+    ${displayData.length > 0 ? displayData.map((row, idx) => `
+        <tr onclick="openModal('${encodeURIComponent(row.title)}')"> <td>${idx + 1}</td>
+            <td style="color:var(--text-main); font-weight:500;">${row.title}</td>
+            <td>${row.artist}</td>
+            <td>${row.count}회</td>
+        </tr>
+    `).join('') : `<tr><td colspan="4" style="text-align:center; padding:20px;">데이터가 없습니다.</td></tr>`}
+</tbody>
             </table>
         </div>
         ${totalCount > visibleCount ? `
@@ -345,5 +349,38 @@ function renderAllCharts(artists, genres) {
             }
         }
     });
+}
+// 팝업 열기
+function openModal(encodedTitle) {
+    const title = decodeURIComponent(encodedTitle);
+    // rawData에서 해당 곡 찾기
+    const song = rawData.find(item => item.title === title);
+    
+    if (!song) return;
+
+    document.getElementById('modal-title').innerText = song.title;
+    document.getElementById('modal-artist').innerText = song.artist;
+    document.getElementById('modal-count').innerText = song.dates.length;
+
+    // 날짜 목록 생성
+    const dateContainer = document.getElementById('modal-dates');
+    dateContainer.innerHTML = song.dates.map(d => 
+        `<span class="date-tag">${d.replace(/[()]/g, '')}</span>`
+    ).join('');
+
+    document.getElementById('song-modal').style.display = 'flex';
+}
+
+// 팝업 닫기
+function closeModal() {
+    document.getElementById('song-modal').style.display = 'none';
+}
+
+// 배경 클릭 시 닫기
+window.onclick = function(event) {
+    const modal = document.getElementById('song-modal');
+    if (event.target == modal) {
+        closeModal();
+    }
 }
 window.onload = loadSheetData;
