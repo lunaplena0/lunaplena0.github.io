@@ -371,7 +371,7 @@ function openModal(encodedTitle) {
     
     // 🎤 아이콘 추가 및 가수가 어두울 경우 대비해 직접 스타일(밝은색) 지정
     const artistElement = document.getElementById('modal-artist');
-    artistElement.innerHTML = `🎤 ${song.artist}`;
+    artistElement.innerHTML = `${song.artist}`;
     artistElement.style.color = "#ffffff"; // 가수 이름을 밝은 흰색으로 강제 지정
     artistElement.style.fontWeight = "bold";
 
