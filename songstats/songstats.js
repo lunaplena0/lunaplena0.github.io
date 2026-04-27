@@ -143,30 +143,22 @@ function showStats(category) {
     let filteredData = [];
     let dashboardHTML = "";
 
-    // 1. 데이터 필터링 및 통계 계산
     if (category === 'all') {
         filteredData = rawData.map(d => ({...d, count: d.dates.length}));
         
-        // [전체 통계] 계산
-        const totalSingCount = filteredData.reduce((acc, cur) => acc + cur.count, 0);
-        const totalSongs = filteredData.length;
-        
-        // 가창 가수 Top 5 (차트용)
         const artistMap = {};
         filteredData.forEach(d => artistMap[d.artist] = (artistMap[d.artist] || 0) + d.count);
         const top5Artists = Object.entries(artistMap).sort((a,b) => b[1] - a[1]).slice(0, 5);
         
-        // 장르 점유율 (차트용)
         const genreMap = {};
         filteredData.forEach(d => genreMap[d.genre] = (genreMap[d.genre] || 0) + d.count);
         
-        // 최다 가창 단일 곡
         const topSong = [...filteredData].sort((a,b) => b.count - a.count)[0];
 
         dashboardHTML = `
             <div class="stats-grid">
-                <div class="stat-item"><span class="stat-label">총 등록 곡 수</span><span class="stat-value">${totalSongs}곡</span></div>
-                <div class="stat-item"><span class="stat-label">총 가창 횟수</span><span class="stat-value">${totalSingCount}회</span></div>
+                <div class="stat-item"><span class="stat-label">총 등록 곡 수</span><span class="stat-value">${filteredData.length}곡</span></div>
+                <div class="stat-item"><span class="stat-label">총 가창 횟수</span><span class="stat-value">${filteredData.reduce((acc, cur) => acc + cur.count, 0)}회</span></div>
                 <div class="stat-item"><span class="stat-label">최다 가창 곡</span><span class="stat-value" style="font-size:14px">${topSong ? topSong.title : "-"}</span></div>
             </div>
             <div class="chart-section">
@@ -178,7 +170,6 @@ function showStats(category) {
         setTimeout(() => renderAllCharts(top5Artists, genreMap), 100);
 
     } else if (category === 'yearly') {
-        // --- [연도별 통계 로직 추가] ---
         const target = `(${selYear}.`;
         filteredData = rawData.map(item => {
             const yearlyDates = item.dates.filter(d => d.includes(target));
@@ -186,16 +177,19 @@ function showStats(category) {
         }).filter(item => item.count > 0);
 
         const yearlyGenres = {};
+        const artistMap = {}; // 연도별 차트용
         const monthCounts = {};
         
         filteredData.forEach(d => {
+            artistMap[d.artist] = (artistMap[d.artist] || 0) + d.count;
             yearlyGenres[d.genre] = (yearlyGenres[d.genre] || 0) + d.count;
             d.dates.filter(date => date.includes(target)).forEach(date => {
-                const month = date.substring(4, 6); // (24.05.01) 에서 05 추출
+                const month = date.substring(4, 6);
                 monthCounts[month] = (monthCounts[month] || 0) + 1;
             });
         });
 
+        const top5Artists = Object.entries(artistMap).sort((a,b) => b[1] - a[1]).slice(0, 5);
         const totalYearlyCount = filteredData.reduce((acc, cur) => acc + cur.count, 0);
         const topYearlySong = [...filteredData].sort((a, b) => b.count - a.count)[0];
         const topYearlyGenre = Object.entries(yearlyGenres).sort((a, b) => b[1] - a[1])[0];
@@ -208,54 +202,46 @@ function showStats(category) {
                 <div class="stat-item"><span class="stat-label">올해의 장르</span><span class="stat-value" style="font-size:14px">${topYearlyGenre ? topYearlyGenre[0] : "-"}</span></div>
                 <div class="stat-item"><span class="stat-label">가장 많이 부른 달</span><span class="stat-value">${bestMonthEntry ? parseInt(bestMonthEntry[0]) + '월' : "-"}</span></div>
             </div>
+            <div class="chart-section">
+                <div class="chart-container"><canvas id="artistChart"></canvas></div>
+                <div class="chart-container"><canvas id="genreChart"></canvas></div>
+            </div>
         `;
+        setTimeout(() => renderAllCharts(top5Artists, yearlyGenres), 100);
 
-    }else if (category === 'monthly') {
+    } else if (category === 'monthly') {
         const target = `(${selYear}.${selMonth}.`;
-        const prevMonth = (parseInt(selMonth) - 1).toString().padStart(2, '0');
-        const prevTarget = `(${selYear}.${prevMonth}.`;
-
         filteredData = rawData.map(item => {
             const monthlyDates = item.dates.filter(d => d.includes(target));
             return { ...item, count: monthlyDates.length };
         }).filter(item => item.count > 0);
 
-        // [월별 통계] 계산
-        const currentTotal = filteredData.reduce((acc, cur) => acc + cur.count, 0);
-        const prevTotal = rawData.reduce((acc, item) => 
-            acc + item.dates.filter(d => d.includes(prevTarget)).length, 0);
-        
-        const diff = currentTotal - prevTotal;
-        const diffHTML = diff > 0 ? `<span style="color:#ff4d4d; font-size:12px;">(▲${diff})</span>` : 
-                         diff < 0 ? `<span style="color:#4d94ff; font-size:12px;">(▼${Math.abs(diff)})</span>` : "";
-
         const monthlyArtists = {};
         const monthlyGenres = {};
-        const dailyActivity = {};
-
+        
         filteredData.forEach(d => {
             monthlyArtists[d.artist] = (monthlyArtists[d.artist] || 0) + d.count;
             monthlyGenres[d.genre] = (monthlyGenres[d.genre] || 0) + d.count;
-            d.dates.filter(date => date.includes(target)).forEach(date => {
-                dailyActivity[date] = (dailyActivity[date] || 0) + 1;
-            });
         });
 
-        const bestArtist = Object.entries(monthlyArtists).sort((a,b) => b[1]-a[1])[0];
-        const bestGenre = Object.entries(monthlyGenres).sort((a,b) => b[1]-a[1])[0];
-        const bestDay = Object.entries(dailyActivity).sort((a,b) => b[1]-a[1])[0];
+        const top5Artists = Object.entries(monthlyArtists).sort((a,b) => b[1] - a[1]).slice(0, 5);
+        const currentTotal = filteredData.reduce((acc, cur) => acc + cur.count, 0);
 
         dashboardHTML = `
             <div class="stats-grid">
-                <div class="stat-item"><span class="stat-label">이달의 가창 횟수</span><span class="stat-value">${currentTotal}회 ${diffHTML}</span></div>
-                <div class="stat-item"><span class="stat-label">이달의 아티스트</span><span class="stat-value" style="font-size:14px">${bestArtist ? bestArtist[0] : "-"}</span></div>
-                <div class="stat-item"><span class="stat-label">이달의 장르</span><span class="stat-value" style="font-size:14px">${bestGenre ? bestGenre[0] : "-"}</span></div>
-                <div class="stat-item"><span class="stat-label">최다 열창일</span><span class="stat-value" style="font-size:13px">${bestDay ? bestDay[0].replace(/[()]/g, '') : "-"}</span></div>
+                <div class="stat-item"><span class="stat-label">이달의 가창 횟수</span><span class="stat-value">${currentTotal}회</span></div>
+                <div class="stat-item"><span class="stat-label">이달의 아티스트</span><span class="stat-value" style="font-size:14px">${top5Artists[0] ? top5Artists[0][0] : "-"}</span></div>
+                <div class="stat-item"><span class="stat-label">이달의 장르</span><span class="stat-value" style="font-size:14px">${Object.entries(monthlyGenres).sort((a,b)=>b[1]-a[1])[0]?.[0] || "-"}</span></div>
+            </div>
+            <div class="chart-section">
+                <div class="chart-container"><canvas id="artistChart"></canvas></div>
+                <div class="chart-container"><canvas id="genreChart"></canvas></div>
             </div>
         `;
+        setTimeout(() => renderAllCharts(top5Artists, monthlyGenres), 100);
     }
 
-    // 2. 테이블 렌더링 (공통)
+    // 하단 테이블 렌더링 로직 (기존과 동일)
     filteredData.sort((a, b) => b.count - a.count);
     const totalCount = filteredData.length;
     const displayData = filteredData.slice(0, visibleCount);
@@ -266,14 +252,15 @@ function showStats(category) {
             <table class="data-table">
                 <thead><tr><th>순위</th><th>곡 제목</th><th>가수</th><th>횟수</th></tr></thead>
                 <tbody>
-    ${displayData.length > 0 ? displayData.map((row, idx) => `
-        <tr onclick="openModal('${encodeURIComponent(row.title)}')"> <td>${idx + 1}</td>
-            <td style="color:var(--text-main); font-weight:500;">${row.title}</td>
-            <td>${row.artist}</td>
-            <td>${row.count}회</td>
-        </tr>
-    `).join('') : `<tr><td colspan="4" style="text-align:center; padding:20px;">데이터가 없습니다.</td></tr>`}
-</tbody>
+                    ${displayData.length > 0 ? displayData.map((row, idx) => `
+                        <tr onclick="openModal('${encodeURIComponent(row.title)}')">
+                            <td>${idx + 1}</td>
+                            <td style="color:var(--text-main); font-weight:500;">${row.title}</td>
+                            <td>${row.artist}</td>
+                            <td>${row.count}회</td>
+                        </tr>
+                    `).join('') : `<tr><td colspan="4" style="text-align:center; padding:20px;">데이터가 없습니다.</td></tr>`}
+                </tbody>
             </table>
         </div>
         ${totalCount > visibleCount ? `
