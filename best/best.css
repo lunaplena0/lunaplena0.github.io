@@ -1,7 +1,6 @@
 :root {
-    /* 기존 변수 활용 + 계산기 전용 포인트 컬러 */
     --calc-accent: #3385ff;
-    --calc-bg: rgba(3, 8, 18, 0.8);
+    --calc-bg: rgba(3, 8, 18, 0.9); /* 고정 시 뒤에 글자가 안 비치게 투명도 조절 */
     --input-focus: rgba(51, 133, 255, 0.3);
 }
 
@@ -10,10 +9,14 @@
     padding: 25px;
     border-radius: 16px;
     border: 1px solid var(--border);
-    backdrop-filter: blur(10px); /* 유리 질감 효과 */
+    backdrop-filter: blur(10px);
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    position: relative;
 }
 
+/* 입력 그룹 스타일 */
 .input-group {
     margin-bottom: 18px;
     display: flex;
@@ -23,9 +26,8 @@
 .input-group label {
     font-size: 14px;
     margin-bottom: 8px;
-    color: var(--text-sub); /* 라벨은 살짝 차분하게 */
+    color: var(--text-sub);
     font-weight: 500;
-    transition: 0.3s;
 }
 
 .input-group input, .input-group select {
@@ -39,40 +41,59 @@
     transition: all 0.3s ease;
 }
 
-/* 입력창 포커스 시 네온 효과 */
 .input-group input:focus {
     border-color: var(--calc-accent);
     box-shadow: 0 0 10px var(--input-focus);
 }
 
+/* 링크 스타일 */
+.input-group label a {
+    opacity: 0.7;
+    transition: 0.3s;
+    text-decoration: none;
+}
+
+.input-group label a:hover {
+    opacity: 1;
+    text-decoration: underline;
+    text-shadow: 0 0 8px var(--accent-glow);
+}
+
+/* 결과 박스 (중복 제거 및 Sticky 통합) */
 .result-box {
-    margin-top: 25px;
+    position: sticky;
+    bottom: 10px; /* 화면 하단에 고정 */
+    z-index: 10;
+    margin-top: 30px;
     padding: 20px;
     border-radius: 12px;
-    background: linear-gradient(145deg, #050c1a, #02060e);
-    border: 1px solid var(--border);
+    background: linear-gradient(145deg, #0a1425, #02060e);
+    border: 1px solid var(--calc-accent); 
+    box-shadow: 0 -10px 25px rgba(0, 0, 0, 0.6); /* 위쪽 그림자 강조 */
+    backdrop-filter: blur(15px);
     text-align: center;
 }
 
 #total-score {
-    font-size: 28px;
+    font-size: 32px;
     font-weight: 700;
     color: var(--accent-bright);
     text-shadow: 0 0 15px var(--accent-glow);
 }
 
-/* 프로그레스 바 업그레이드 */
+/* 프로그레스 바 관련 스타일 */
 .progress-bar-bg {
+    position: relative;
     background: #0a1425;
     height: 12px;
     border-radius: 20px;
-    overflow: hidden;
-    margin-top: 15px;
+    margin-top: 25px; /* 기준선 텍스트 공간 확보 */
     border: 1px solid rgba(255, 255, 255, 0.05);
+    overflow: visible; 
 }
 
 .progress-bar-fill {
-    background: linear-gradient(90deg, #3385ff, #00ffcc); /* 그라데이션 적용 */
+    background: linear-gradient(90deg, #3385ff, #00ffcc);
     height: 100%;
     width: 0%;
     border-radius: 20px;
@@ -80,24 +101,11 @@
     transition: width 0.8s cubic-bezier(0.17, 0.67, 0.83, 0.67);
 }
 
-/* 신청 가능/불가 상태 메시지 스타일 */
-#result-desc {
-    margin-top: 10px;
-    font-size: 13px;
-    font-weight: 400;
-}
-.progress-bar-bg {
-    position: relative;
-    background: #0a1425;
-    overflow: visible; /* 눈금을 보여주기 위해 수정 */
-}
-
-/* 75점 지점 커트라인 표시 */
 .progress-bar-bg::after {
     content: '75점 기준선';
     position: absolute;
     left: 75%;
-    top: -20px;
+    top: -18px;
     font-size: 10px;
     color: var(--accent-bright);
     white-space: nowrap;
@@ -115,44 +123,25 @@
     box-shadow: 0 0 10px var(--accent-bright);
 }
 
-/* 점수 미달 상태(Warning) 색상 추가 */
-.result-box.warning {
-    border: 1px solid #ff9800;
-    background: rgba(255, 152, 0, 0.05);
-}
-/* 링크 스타일 */
-.input-group label a {
-    opacity: 0.7;
-    transition: 0.3s;
-}
+/* 상태별 스타일 */
+.result-box.warning { border-color: #ff9800; background: rgba(255, 152, 0, 0.08); }
+.result-box.fail { border-color: #f44336; }
 
-.input-group label a:hover {
-    opacity: 1;
-    text-decoration: underline;
-    text-shadow: 0 0 8px var(--accent-glow);
-}
-/* 모바일 화면 (너비 900px 이하) 대응 */
+/* 모바일 대응 (900px 이하) */
 @media (max-width: 900px) {
-    /* 1fr 1fr로 설정했던 그리드를 1열로 변경 */
     .calculator-container > div[style*="display: grid"] {
         grid-template-columns: 1fr !important; 
-        gap: 0 !important; /* 간격 제거 (input-group의 margin 활용) */
+        gap: 0 !important;
     }
 
-    /* 그리드 안의 항목들도 아래쪽 여백 추가 */
     .calculator-container > div[style*="display: grid"] .input-group {
         margin-bottom: 18px !important;
     }
 
-    /* 모바일에서 결과창 글씨 크기 살짝 조절 */
-    #total-score {
-        font-size: 24px;
-    }
-
-    /* 정지 기록 확인 레이아웃 조정 (필요 시) */
-    .input-group[style*="flex-direction: row"] {
-        flex-direction: column !important;
-        align-items: flex-start !important;
-        gap: 10px;
+    .result-box {
+        bottom: 0;
+        border-radius: 16px 16px 0 0; /* 상단만 둥글게 */
+        margin: 30px -25px -25px -25px; /* 컨테이너 패딩 무시하고 꽉 차게 */
+        padding-bottom: 30px; /* 아이폰 하단 바 고려 */
     }
 }
