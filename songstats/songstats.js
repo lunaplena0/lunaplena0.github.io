@@ -90,20 +90,33 @@ function onYearChange() {
 
 // 필터 변경 시 초기화
 function updateDateFilter(category, target) {
-    visibleCount = 20; // 탭 이동 시 다시 20개로 리셋
+    visibleCount = 20; 
     currentCategory = category;
     
     const selectors = document.getElementById('date-selectors');
     const monthSelect = document.getElementById('select-month');
     
-    if (selectors) selectors.style.display = 'flex';
-    if (monthSelect) monthSelect.style.display = (category === 'monthly') ? 'inline-block' : 'none';
+    // 1. 셀렉트 박스 표시 제어
+    if (selectors) {
+        // 'all'일 때는 연도/월 선택창 전체를 숨김
+        selectors.style.display = (category === 'all') ? 'none' : 'flex';
+    }
+    if (monthSelect) {
+        // 'monthly'일 때만 월 선택창을 보여줌
+        monthSelect.style.display = (category === 'monthly') ? 'inline-block' : 'none';
+    }
     
+    // 2. 버튼 활성화 스타일 제어
     const buttons = document.querySelectorAll('.filter-btn');
     buttons.forEach(btn => btn.classList.remove('active'));
     
-    const activeBtn = target || (window.event && window.event.currentTarget);
-    if (activeBtn) activeBtn.classList.add('active');
+    // 클릭된 버튼에 active 추가
+    if (target) {
+        target.classList.add('active');
+    } else {
+        // 직접 호출 시(예: 초기 로드) 첫 번째 버튼(전체)을 활성화
+        buttons[0].classList.add('active');
+    }
 
     applyDateFilter();
 }
