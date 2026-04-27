@@ -21,108 +21,84 @@
     <main class="card content-card">
         <h2>상세 정보</h2>
         <div id="content-area">
-         <div id="content-area">
-    <style>
-        .calc-section { margin-bottom: 25px; }
-        .cond-item { 
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 12px; border-bottom: 1px solid var(--border);
-        }
-        .cond-label { font-size: 14px; color: var(--text-main); font-weight: 500; }
-        .cond-input-wrap { display: flex; align-items: center; gap: 8px; }
-        .cond-input { 
-            width: 80px; padding: 6px; border: 1px solid var(--border); 
-            border-radius: 4px; text-align: right; background: var(--bg-body); color: var(--text-main);
-        }
-        .unit { font-size: 13px; color: var(--text-sub); }
-        
-        .check-box { display: flex; align-items: center; gap: 10px; cursor: pointer; }
-        .shortcut { font-size: 12px; color: #3498db; text-decoration: none; margin-left: 5px; }
-
-        #result-panel {
-            margin-top: 20px; padding: 20px; border-radius: 10px;
-            text-align: center; display: none; transition: all 0.3s;
-        }
-        .pass { background: rgba(76, 175, 80, 0.1); border: 1px solid #4caf50; color: #4caf50; }
-        .fail { background: rgba(244, 67, 54, 0.1); border: 1px solid #f44336; color: #f44336; }
-    </style>
-
     <div class="calc-section">
         <div class="cond-item">
             <span class="cond-label">누적 방송 시간</span>
             <div class="cond-input-wrap">
-                <input type="number" id="time-val" class="cond-input" placeholder="0">
+                <input type="number" id="score-time" class="cond-input" placeholder="0" oninput="updateScores()">
                 <span class="unit">시간 / 100</span>
             </div>
         </div>
         <div class="cond-item">
             <span class="cond-label">애청자 수</span>
             <div class="cond-input-wrap">
-                <input type="number" id="fan-val" class="cond-input" placeholder="0">
+                <input type="number" id="score-fan" class="cond-input" placeholder="0" oninput="updateScores()">
                 <span class="unit">명 / 500</span>
+            </div>
+        </div>
+        <div class="cond-item">
+            <span class="cond-label">평균 동접 (가중치 40%)</span>
+            <div class="cond-input-wrap">
+                <input type="number" id="score-viewer" class="cond-input" placeholder="0" oninput="updateScores()">
+                <span class="unit">명</span>
             </div>
         </div>
         <div class="cond-item">
             <span class="cond-label">최근 3개월 방송 일수</span>
             <div class="cond-input-wrap">
-                <input type="number" id="day-val" class="cond-input" placeholder="0">
+                <input type="number" id="day-val" class="cond-input" placeholder="0" oninput="updateScores()">
                 <span class="unit">일 / 30</span>
             </div>
         </div>
         <div class="cond-item">
             <span class="cond-label">최근 3개월 정지 기록 없음 <a href="#" class="shortcut">▶</a></span>
-            <input type="checkbox" id="punish-check" style="width:18px; height:18px;">
+            <input type="checkbox" id="punish-check" onchange="updateScores()" style="width:18px; height:18px;">
         </div>
         <div class="cond-item">
             <span class="cond-label">스트리머 교육 (5개 이상) <a href="#" class="shortcut">▶</a></span>
             <div class="cond-input-wrap">
-                <input type="number" id="edu-val" class="cond-input" placeholder="0">
+                <input type="number" id="edu-val" class="cond-input" placeholder="0" oninput="updateScores()">
                 <span class="unit">개 / 5</span>
             </div>
         </div>
+
         <div class="calc-section" style="margin-top: 20px; background: rgba(0,0,0,0.02); padding: 15px; border-radius: 8px;">
-    <h4 style="margin-bottom: 10px; font-size: 14px;">추가 가산점 (최대 15점)</h4>
-    
-    <div class="cond-item" style="border:none; padding: 5px 0;">
-        <span class="cond-label" style="font-size: 13px;">등록 VOD 개수 (3개월 내)</span>
-        <select id="add-vod-count" class="cond-input" onchange="updateScores()" style="width: 120px;">
-            <option value="0">0개 (0점)</option>
-            <option value="1">1~3개 (1점)</option>
-            <option value="2">4~6개 (2점)</option>
-            <option value="3">7~9개 (3점)</option>
-            <option value="4">10~12개 (4점)</option>
-            <option value="5">13개 이상 (5점)</option>
-        </select>
-    </div>
-
-    <div class="cond-item" style="border:none; padding: 5px 0;">
-        <span class="cond-label" style="font-size: 13px;">다시보기 유지율 (LIVE)</span>
-        <select id="add-vod-rate" class="cond-input" onchange="updateScores()" style="width: 120px;">
-            <option value="0">70% 미만 (0점)</option>
-            <option value="1">70% 이상 (1점)</option>
-            <option value="3">80% 이상 (3점)</option>
-            <option value="5">90% 이상 (5점)</option>
-        </select>
-    </div>
-
-    <div class="cond-item" style="border:none; padding: 5px 0;">
-        <span class="cond-label" style="font-size: 13px;">전문 자격 보유 (뮤즈/테크 등)</span>
-        <div class="check-box">
-            <input type="checkbox" id="add-expert" onchange="updateScores()" style="width:18px; height:18px;">
-            <span class="unit">충족 시 5점</span>
+            <h4 style="margin-bottom: 10px; font-size: 14px;">추가 가산점 (최대 15점)</h4>
+            <div class="cond-item" style="border:none; padding: 5px 0;">
+                <span class="cond-label" style="font-size: 13px;">등록 VOD 개수</span>
+                <select id="add-vod-count" class="cond-input" onchange="updateScores()" style="width: 120px;">
+                    <option value="0">0개 (0점)</option>
+                    <option value="1">1~3개 (1점)</option>
+                    <option value="2">4~6개 (2점)</option>
+                    <option value="3">7~9개 (3점)</option>
+                    <option value="4">10~12개 (4점)</option>
+                    <option value="5">13개 이상 (5점)</option>
+                </select>
+            </div>
+            <div class="cond-item" style="border:none; padding: 5px 0;">
+                <span class="cond-label" style="font-size: 13px;">다시보기 유지율</span>
+                <select id="add-vod-rate" class="cond-input" onchange="updateScores()" style="width: 120px;">
+                    <option value="0">70% 미만 (0점)</option>
+                    <option value="1">70% 이상 (1점)</option>
+                    <option value="3">80% 이상 (3점)</option>
+                    <option value="5">90% 이상 (5점)</option>
+                </select>
+            </div>
+            <div class="cond-item" style="border:none; padding: 5px 0;">
+                <span class="cond-label" style="font-size: 13px;">전문 자격 보유</span>
+                <div class="check-box">
+                    <input type="checkbox" id="add-expert" onchange="updateScores()" style="width:18px; height:18px;">
+                    <span class="unit">충족 시 5점</span>
+                </div>
+            </div>
         </div>
     </div>
-</div>
-    </div>
 
-    <button onclick="calculateBestBJ()" class="btn" style="width: 100%; height: 50px; font-weight: bold;">조건 충족 확인</button>
-
-    <div id="result-panel">
-        <h3 id="result-title" style="margin: 0 0 10px 0;">결과 확인</h3>
-        <p id="result-desc" style="margin: 0; font-size: 14px;"></p>
+    <div id="result-panel" class="fail" style="display: block; margin-bottom: 20px;">
+        <h3 id="result-title" style="margin: 0 0 10px 0;">예상 점수: <span id="total-score">0.0</span>점</h3>
+        <p id="result-desc" style="margin: 0; font-size: 14px;">지표를 입력해주세요.</p>
     </div>
 </div>
-        </div>
     </main>
 
     <footer style="text-align: center; padding: 20px 10px; color: var(--text-sub); font-size: 11px; border-top: 1px solid var(--border); margin-top: 20px; width: 100%; box-sizing: border-box;">
