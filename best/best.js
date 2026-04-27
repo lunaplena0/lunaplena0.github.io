@@ -101,14 +101,23 @@ function updateScores() {
     if (edu < 5) failReasons.push("교육 수강 5개 미달");
     if (!noPunish) failReasons.push("정지 기록 체크 안됨");
 
-    // 3. 점수 계산
+   // 3. 점수 계산
     const vPoint = getPoint(viewer, 'viewer');
     const fPoint = getPoint(fan, 'fan');
     const tPoint = getPoint(time, 'time');
     
-    // 가중치 적용 (동접 0.4, 애청자 0.4, 시간 0.2)
-    const baseTotal = (vPoint * 0.4) + (fPoint * 0.4) + (tPoint * 0.2);
-    const finalTotal = baseTotal + vodScore + rateScore + expertScore;
+    // 가중치 적용 계산
+    const vWeighted = vPoint * 0.4;
+    const fWeighted = fPoint * 0.4;
+    const tWeighted = tPoint * 0.2;
+
+    // 각각의 위치에 가중치 적용 점수 표시
+    document.getElementById('val-viewer').innerText = `(${vWeighted.toFixed(1)}점)`;
+    document.getElementById('val-fan').innerText = `(${fWeighted.toFixed(1)}점)`;
+    document.getElementById('val-time').innerText = `(${tWeighted.toFixed(1)}점)`;
+
+    // 최종 합계
+    const finalTotal = vWeighted + fWeighted + tWeighted + vodScore + rateScore + expertScore;
 
     totalScoreElement.innerText = finalTotal.toFixed(1);
 
