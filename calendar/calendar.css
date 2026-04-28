@@ -1,96 +1,137 @@
+/* 1. 변수 및 기본 설정 */
 :root {
-            --bg-card: #ffffff;
-            --border: #eeeeee;
-            --text-main: #333333;
-            --text-sub: #777777;
-            --point-color: #5d5fef; /* 포인트 색상 (바다비 브랜드색에 맞춰 변경 가능) */
-        }
+    --bg-card: #ffffff;
+    --border: #eeeeee;
+    --text-main: #333333;
+    --text-sub: #777777;
+    --point-color: #5d5fef;
+    --sunday-color: #ff5f5f;
+    --saturday-color: #5fafff;
+}
 
-        .calendar-container {
-            width: 100%;
-            border-collapse: collapse;
-        }
+/* 2. 상단 헤더 및 선택창 */
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 0 5px;
+}
 
-        /* 달력 헤더 (연/월) */
-        .calendar-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
+.calendar-header h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    color: var(--text-main);
+    font-weight: 700;
+}
 
-        .calendar-header h3 {
-            margin: 0;
-            font-size: 1.25rem;
-            color: var(--text-main);
-        }
+.month-selector {
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background-color: #fff;
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 0.9rem;
+    color: var(--text-main);
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
 
-        /* 달력 그리드 설정 */
-        .calendar-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 1px;
-            background-color: var(--border);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            overflow: hidden;
-        }
+.month-selector:focus {
+    border-color: var(--point-color);
+    outline: none;
+}
 
-        /* 요일 및 날짜 칸 공통 스타일 */
-        .calendar-grid > div {
-            background-color: var(--bg-card);
-            padding: 10px;
-            min-height: 80px;
-        }
+/* 3. 달력 그리드 레이아웃 */
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr); /* 7열 구조 */
+    gap: 1px;
+    background-color: var(--border); /* 그리드 선 역할 */
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    min-height: 500px;
+}
 
-        /* 요일 헤더 */
-        .day-label {
-            min-height: auto !important;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            font-size: 0.85rem;
-            background-color: #f9f9f9 !important;
-            color: var(--text-sub);
-        }
+/* 4. 공통 셀 스타일 */
+.calendar-grid > div {
+    background-color: var(--bg-card);
+    padding: 10px;
+    min-height: 100px;
+    box-sizing: border-word;
+}
 
-        /* 일요일/토요일 색상 강조 */
-        .day-label:nth-child(1) { color: #ff5f5f; }
-        .day-label:nth-child(7) { color: #5fafff; }
+/* 요일 라벨 (일~토) */
+.day-label {
+    height: 45px !important;
+    min-height: auto !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.85rem;
+    background-color: #fcfcfc !important;
+    color: var(--text-sub);
+}
 
-        /* 날짜 숫자 */
-        .date-num {
-            display: block;
-            font-size: 0.9rem;
-            margin-bottom: 5px;
-            font-weight: 400;
-        }
+/* 주말 색상 */
+.day-label:nth-child(1) { color: var(--sunday-color); }
+.day-label:nth-child(7) { color: var(--saturday-color); }
 
-        /* 일정 아이템 */
-        .event {
-            font-size: 0.75rem;
-            padding: 2px 6px;
-            background-color: var(--point-color);
-            color: white;
-            border-radius: 4px;
-            margin-bottom: 2px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
+/* 날짜 숫자 */
+.date-num {
+    display: block;
+    font-size: 0.85rem;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: var(--text-main);
+}
 
-        /* 오늘 날짜 표시 */
-        .today {
-            background-color: #f0f1ff !important;
-        }
-        .today .date-num {
-            color: var(--point-color);
-            font-weight: 700;
-        }
+/* 5. 일정(Event) 상세 스타일 */
+.event {
+    font-size: 0.75rem;
+    padding: 4px 6px;
+    border-radius: 4px;
+    margin-bottom: 4px;
+    color: white;
+    line-height: 1.3;
+    font-weight: 400;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
 
-        /* 다른 달의 날짜 */
-        .other-month {
-            opacity: 0.3;
-        }
+.event strong {
+    font-weight: 700;
+    margin-right: 3px;
+}
+
+/* 방송 유형별 배경색 */
+.type-방송 { background-color: #5d5fef; } /* 바다비 포인트 블루 */
+.type-합방 { background-color: #2ecc71; } /* 네온 그린 */
+.type-휴방 { background-color: #ff4757; } /* 로즈 레드 */
+.type-기타 { background-color: #747d8c; } /* 그레이 */
+
+/* 컨텐츠 태그 (소통, 노래 등) */
+.content-tag {
+    display: block;
+    font-size: 0.65rem;
+    margin-top: 3px;
+    padding-top: 3px;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    opacity: 0.9;
+}
+
+/* 6. 특수 상태 */
+.today {
+    background-color: #f8f9ff !important;
+}
+
+.today .date-num {
+    color: var(--point-color);
+    font-weight: 700;
+}
+
+.other-month {
+    background-color: #fcfcfc !important;
+    opacity: 0.4;
+}
