@@ -123,20 +123,21 @@ function renderCalendar(yearMonth) {
     const evDiv = document.createElement('div');
     evDiv.className = `event-item`;
 
-    // --- 태그 제한 처리 로직 ---
+    // --- 태그 2개 제한 및 +n 상자 로직 ---
     const allTags = ev.content ? ev.content.split(',').map(tag => tag.trim()).filter(tag => tag !== "") : [];
-    const limit = 3; // 한 줄에 보여줄 태그 개수 제한
+    const limit = 2; // 한 줄 유지를 위해 2개로 제한
     let tagsHtml = "";
 
     if (allTags.length > 0) {
         const visibleTags = allTags.slice(0, limit);
         const remainingCount = allTags.length - limit;
 
+        // 일반 태그 생성
         tagsHtml = visibleTags.map(tag => `<span class="hash-tag">#${tag}</span>`).join('');
         
-        // 남은 개수가 있다면 +n 표시 추가
+        // 남은 개수가 있다면 태그와 동일한 스타일의 상자로 추가
         if (remainingCount > 0) {
-            tagsHtml += `<span class="tag-more">+${remainingCount}</span>`;
+            tagsHtml += `<span class="hash-tag tag-more-box">+${remainingCount}</span>`;
         }
     }
 
