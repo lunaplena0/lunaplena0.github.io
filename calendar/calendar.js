@@ -101,17 +101,16 @@ function renderCalendar(yearMonth) {
         }
 
         const dayEvents = allEvents.filter(e => e.date === dateStr);
-        const mainType = dayEvents.length > 0 ? dayEvents[0].type : '';
-        const typeBadge = mainType ? `<span class="type-badge type-${mainType}">${mainType}</span>` : '';
         
+        // --- 날짜 헤더 (배지 제거하고 숫자만 깔끔하게 유지) ---
         cell.innerHTML = `
             <div class="date-header">
                 <span class="date-num">${d}</span>
-                ${typeBadge}
             </div>
         `;
 
         dayEvents.forEach(ev => {
+            // 휴방 처리
             if (ev.type === "휴방") {
                 const offDiv = document.createElement('div');
                 offDiv.className = "event-item off-day";
@@ -126,8 +125,12 @@ function renderCalendar(yearMonth) {
             const tagsHtml = ev.content ? ev.content.split(',')
                 .map(tag => `<span class="hash-tag">#${tag.trim()}</span>`).join('') : '';
 
+            // --- 시간 옆에 방송유형 배지 배치 ---
             evDiv.innerHTML = `
-                ${ev.time ? `<div class="event-time">${ev.time}</div>` : ''}
+                <div class="event-meta" style="display: flex; align-items: center; gap: 5px; margin-bottom: 3px;">
+                    ${ev.time ? `<div class="event-time" style="margin-bottom:0;">${ev.time}</div>` : ''}
+                    <span class="type-badge type-${ev.type}" style="font-size: 0.6rem; padding: 1px 4px;">${ev.type}</span>
+                </div>
                 <div class="event-title">${ev.title}</div>
                 <div class="tag-container">${tagsHtml}</div>
             `;
