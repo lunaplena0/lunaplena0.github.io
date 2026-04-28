@@ -76,19 +76,40 @@ function renderCalendar(yearMonth) {
         const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
         const cell = document.createElement('div');
         
-        // 오늘 날짜 하이라이트 (실제 오늘일 경우만)
         const realToday = new Date();
         if (realToday.getFullYear() === year && (realToday.getMonth() + 1) === month && realToday.getDate() === d) {
             cell.classList.add('today');
         }
 
-        cell.innerHTML = `<span class="date-num">${d}</span>`;
-
+        // --- 1. 날짜와 유형을 한 줄에 배치 ---
         const dayEvents = allEvents.filter(e => e.date === dateStr);
+        // 해당 날짜에 일정이 있다면 첫 번째 일정의 유형을 가져옴
+        const firstEventType = dayEvents.length > 0 ? dayEvents[0].type : '';
+        const typeBadge = firstEventType ? `<span class="type-badge type-${firstEventType}">${firstEventType}</span>` : '';
+        
+        cell.innerHTML = `
+            <div class="date-header">
+                <span class="date-num">${d}</span>
+                ${typeBadge}
+            </div>
+        `;
+
+        // --- 2. 일정 제목 및 태그 렌더링 ---
         dayEvents.forEach(ev => {
             const evDiv = document.createElement('div');
-            evDiv.className = `event type-${ev.type}`;
-            evDiv.innerHTML = `<strong>[${ev.type}]</strong> ${ev.title}<span class="content-tag">${ev.content}</span>`;
+            evDiv.className = `event-item`;
+
+            // 컨텐츠 종류를 쉼표(,)로 나누어 #태그 생성
+            const tagsHtml = ev.content.split(',')
+                .map(tag => tag.trim())
+                .filter(tag => tag !== "")
+                .map(tag => `<span class="hash-tag">#${tag}</span>`)
+                .join('');
+
+            evDiv.innerHTML = `
+                <div class="event-title">${ev.title}</div>
+                <div class="tag-container">${tagsHtml}</div>
+            `;
             cell.appendChild(evDiv);
         });
 
@@ -97,5 +118,6 @@ function renderCalendar(yearMonth) {
 }
 
 document.getElementById('month-select').addEventListener('change', (e) => renderCalendar(e.target.value));
+fetchSchedule();
 
 fetchSchedule();
