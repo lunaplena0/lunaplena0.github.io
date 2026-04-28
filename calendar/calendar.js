@@ -128,14 +128,15 @@ function renderCalendar(yearMonth) {
                 .map(tag => `<span class="hash-tag">#${tag.trim()}</span>`).join('') : '';
 
             // --- 시간 옆에 방송유형 배지 배치 ---
-            evDiv.innerHTML = `
-                <div class="event-meta" style="display: flex; align-items: center; gap: 5px; margin-bottom: 3px;">
-                    ${ev.time ? `<div class="event-time" style="margin-bottom:0;">${ev.time}</div>` : ''}
-                    <span class="type-badge type-${ev.type}" style="font-size: 0.6rem; padding: 1px 4px;">${ev.type}</span>
-                </div>
-                <div class="event-title">${ev.title}</div>
-                <div class="tag-container">${tagsHtml}</div>
-            `;
+            // calendar.js 내 렌더링 부분 수정 예시
+evDiv.innerHTML = `
+    <div class="event-meta" style="display: flex; align-items: center; gap: 5px; margin-bottom: 3px;">
+        ${ev.time ? `<div class="event-time" style="margin-bottom:0;">${ev.time}</div>` : ''}
+        <span class="type-badge type-${ev.type}" style="font-size: 0.6rem; padding: 1px 4px;">${ev.type}</span>
+    </div>
+    <div class="event-title" title="${ev.title}">${ev.title}</div>
+    <div class="tag-container">${tagsHtml}</div>
+`;
             cell.appendChild(evDiv);
         });
         body.appendChild(cell);
