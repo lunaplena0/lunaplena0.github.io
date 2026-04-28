@@ -1,15 +1,12 @@
-/* 1. 변수 및 기본 설정 */
+/* 1. 달력 전용 변수 (메인 변수 상속 및 보정) */
 :root {
-    --bg-card: #ffffff;
-    --border: #eeeeee;
-    --text-main: #333333;
-    --text-sub: #777777;
-    --point-color: #5d5fef;
     --sunday-color: #ff5f5f;
     --saturday-color: #5fafff;
+    --calendar-bg: var(--card-bg); /* 메인 카드 배경 사용 */
+    --calendar-border: var(--border); /* 메인 경계선 사용 */
 }
 
-/* 2. 상단 헤더 및 선택창 */
+/* 2. 상단 헤더 및 선택창 보정 */
 .calendar-header {
     display: flex;
     justify-content: space-between;
@@ -21,45 +18,40 @@
 .calendar-header h3 {
     margin: 0;
     font-size: 1.25rem;
-    color: var(--text-main);
+    color: var(--accent-bright); /* 밝은 강조색 사용 */
     font-weight: 700;
+    text-shadow: 0 0 10px var(--accent-glow);
 }
 
 .month-selector {
-    padding: 8px 12px;
+    background-color: var(--bg-color) !important;
+    border: 1px solid var(--accent) !important;
+    color: var(--text-main) !important;
+    padding: 6px 12px;
     border-radius: 8px;
-    border: 1px solid var(--border);
-    background-color: #fff;
-    font-family: 'Noto Sans KR', sans-serif;
-    font-size: 0.9rem;
-    color: var(--text-main);
+    font-family: inherit;
     cursor: pointer;
-    transition: border-color 0.2s;
-}
-
-.month-selector:focus {
-    border-color: var(--point-color);
-    outline: none;
 }
 
 /* 3. 달력 그리드 레이아웃 */
 .calendar-grid {
     display: grid;
-    grid-template-columns: repeat(7, 1fr); /* 7열 구조 */
+    grid-template-columns: repeat(7, 1fr);
     gap: 1px;
-    background-color: var(--border); /* 그리드 선 역할 */
+    background-color: var(--border); /* 그리드 선 색상 */
     border: 1px solid var(--border);
     border-radius: 12px;
     overflow: hidden;
-    min-height: 500px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
 }
 
 /* 4. 공통 셀 스타일 */
 .calendar-grid > div {
-    background-color: var(--bg-card);
-    padding: 10px;
-    min-height: 100px;
-    box-sizing: border-word;
+    background-color: var(--calendar-bg);
+    padding: 12px;
+    min-height: 120px;
+    box-sizing: border-box;
+    transition: background 0.2s;
 }
 
 /* 요일 라벨 (일~토) */
@@ -71,108 +63,81 @@
     justify-content: center;
     font-weight: 700;
     font-size: 0.85rem;
-    background-color: #fcfcfc !important;
+    background-color: #051020 !important; /* 헤더와 비슷한 짙은 색 */
     color: var(--text-sub);
 }
 
-/* 주말 색상 */
 .day-label:nth-child(1) { color: var(--sunday-color); }
 .day-label:nth-child(7) { color: var(--saturday-color); }
 
-/* 날짜 숫자 */
+/* 날짜 헤더 및 구분선 */
+.date-header {
+    display: flex;
+    justify-content: flex-start;
+    margin-bottom: 4px;
+}
+
 .date-num {
-    display: block;
-    font-size: 0.85rem;
-    margin-bottom: 8px;
+    font-size: 0.9rem;
     font-weight: 500;
     color: var(--text-main);
 }
 
-/* 5. 일정(Event) 상세 스타일 */
-.event {
-    font-size: 0.75rem;
-    padding: 4px 6px;
-    border-radius: 4px;
-    margin-bottom: 4px;
-    color: white;
-    line-height: 1.3;
-    font-weight: 400;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-}
-
-.event strong {
-    font-weight: 700;
-    margin-right: 3px;
-}
-
-/* 시간과 배지를 감싸는 메타 정보 컨테이너 */
-.event-meta {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap; /* 공간 부족 시 다음 줄로 */
-    gap: 6px;
-}
-
-/* 날짜 아래 구분선 스타일 */
 .date-divider {
     width: 100%;
     height: 1px;
-    background-color: var(--border); /* 기존 설정된 연한 회색 */
-    margin: 5px 0 10px 0; /* 위아래 여백 */
-    opacity: 0.8;
+    background: linear-gradient(to right, var(--accent), transparent);
+    margin: 5px 0 12px 0;
 }
 
-/* 날짜 헤더 여백 조정 */
-.date-header {
-    margin-bottom: 0; /* 선이 생겼으므로 하단 여백 제거 */
-}
-
-/* 오늘 날짜일 때 선 색상을 포인트 컬러로 변경 (선택 사항) */
-.today .date-divider {
-    background-color: var(--point-color);
-    opacity: 0.5;
-}
-
-/* 배지 스타일 보정 */
-.type-badge {
-    display: inline-block;
-    line-height: 1.2;
-    white-space: nowrap;
-    border-radius: 4px;
-    padding: 2px 6px !important; /* 안쪽 여백 추가 */
-    font-size: 0.7rem !important; /* 글씨 크기 조절 */
-    font-weight: 700;
-    color: #ffffff !important;   /* 글씨 색상을 흰색으로 강제 설정 */
-    box-shadow: 0 1px 2px rgba(0,0,0,0.1); /* 약간의 입체감 */
-}
-
-/* 일정 아이템 간격 보정 */
+/* 5. 일정(Event) 스타일 */
 .event-item {
     margin-bottom: 12px;
-    padding: 4px 0;
-    display: flex;
-    flex-direction: column;
+    padding: 2px 0;
 }
 
-/* 일정 제목 스타일 수정 */
+.event-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 4px;
+}
+
+.event-time {
+    font-size: 0.7rem;
+    color: var(--accent-bright);
+    font-weight: 700;
+}
+
+/* 배지 스타일 (다크 모드에 맞춰 선명하게) */
+.type-badge {
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: #ffffff !important;
+}
+
+.type-방송 { background-color: #3b3dbf; }
+.type-합방 { background-color: #1e854a; }
+.type-휴방 { background-color: #c0392b; }
+.type-기타 { background-color: #4a5568; }
+
+/* 제목 말줄임표 처리 */
 .event-title {
     font-size: 0.85rem;
-    line-height: 1.4;      /* 줄 간격 */
-    margin-bottom: 6px;
+    line-height: 1.4;
     color: var(--text-main);
-    font-weight: 700;
-    
-    /* --- 2줄 이상 말줄임표 처리 (Multi-line Ellipsis) --- */
+    font-weight: 500;
     display: -webkit-box;
-    -webkit-line-clamp: 2; /* 보여줄 줄 수 */
+    -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
     text-overflow: ellipsis;
-    word-break: break-all; /* 단어가 길어도 강제 줄바꿈 */
-    max-height: 2.8em;     /* line-height * 2줄 (보정용) */
+    margin-bottom: 6px;
 }
 
-/* 태그 컨테이너 및 해시태그 스타일 */
+/* 태그 스타일 (다크 테마용 어두운 칩) */
 .tag-container {
     display: flex;
     flex-wrap: wrap;
@@ -180,56 +145,40 @@
 }
 
 .hash-tag {
-    background-color: #f1f2f6;
-    color: #57606f;
+    background-color: rgba(0, 51, 102, 0.3);
+    color: var(--accent-bright);
     font-size: 0.65rem;
-    padding: 1px 5px;
-    border-radius: 3px;
-    border: 1px solid #dfe4ea;
-}
-
-/* 기존 유형별 색상 (배지에 적용) */
-.type-방송 { background-color: #5d5fef; }
-.type-합방 { background-color: #2ecc71; }
-.type-휴방 { background-color: #ff4757; }
-.type-기타 { background-color: #747d8c; }
-
-/* 컨텐츠 태그 (소통, 노래 등) */
-.content-tag {
-    display: block;
-    font-size: 0.65rem;
-    margin-top: 3px;
-    padding-top: 3px;
-    border-top: 1px solid rgba(255, 255, 255, 0.2);
-    opacity: 0.9;
+    padding: 1px 6px;
+    border-radius: 4px;
+    border: 1px solid var(--accent);
 }
 
 /* 6. 특수 상태 */
 .today {
-    background-color: #f8f9ff !important;
+    background-color: rgba(51, 133, 255, 0.05) !important;
+    position: relative;
+}
+
+.today::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 2px;
+    background: var(--accent-bright);
+    box-shadow: 0 0 10px var(--accent-bright);
 }
 
 .today .date-num {
-    color: var(--point-color);
+    color: var(--accent-bright);
     font-weight: 700;
 }
 
 .other-month {
-    background-color: #fcfcfc !important;
-    opacity: 0.4;
+    background-color: #010306 !important;
+    opacity: 0.3;
 }
-/* 휴방일 때 셀 배경을 아주 살짝 어둡게 */
-.off-day {
-    opacity: 0.8;
+
+.off-day .event-title {
+    color: var(--text-sub) !important;
     font-style: italic;
-}
-
-/* 시간이 없을 때 레이아웃 보정 */
-.event-time:empty {
-    display: none;
-}
-
-/* 태그가 없을 때 레이아웃 보정 */
-.tag-container:empty {
-    display: none;
+    opacity: 0.7;
 }
