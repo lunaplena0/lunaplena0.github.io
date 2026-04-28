@@ -1,70 +1,76 @@
-// 1. 일정 데이터 (여기에 일정을 추가하세요)
-    const eventData = {
-        "2024-05-01": [{ title: "정기 뱅송", color: "#5d5fef" }],
-        "2024-05-06": [{ title: "유튜브 업로드", color: "#ff9f43" }],
-        "2024-05-15": [{ title: "합방 일정", color: "#2ecc71" }],
-        "2024-04-10": [{ title: "4월 특별방송", color: "#e74c3c" }]
-    };
+const TSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT8obAx_3kA2YbdK5stQqyyWWgnakjlEjLXjS6hLzQRU5gb4XeewNQUVpxkDQtQGyivJAG86GqxziOn/pub?gid=0&single=true&output=tsv';
+    let allEvents = [];
 
-    const calendarBody = document.getElementById('calendar-body');
-    const monthSelect = document.getElementById('month-select');
-    const monthDisplay = document.getElementById('current-month-display');
+    // 1. 데이터 가져오기
+    async function fetchSchedule() {
+        try {
+            const response = await fetch(TSV_URL);
+            const data = await response.text();
+            const rows = data.split('\n').slice(1); // 헤더 제외
 
+            allEvents = rows.map(row => {
+                const [date, type, title, content] = row.split('\t');
+                if (!date) return null;
+                
+                // '26.04.28' -> '2026-04-28' 변환
+                const formattedDate = '20' + date.trim().replace(/\./g, '-');
+                return { date: formattedDate, type: type.trim(), title: title.trim(), content: content.trim() };
+            }).filter(Boolean);
+
+            renderCalendar(document.getElementById('month-select').value);
+        } catch (error) {
+            console.error("데이터 로드 실패:", error);
+            document.getElementById('current-month-display').innerText = "데이터를 불러올 수 없습니다.";
+        }
+    }
+
+    // 2. 달력 그리기
     function renderCalendar(yearMonth) {
         const [year, month] = yearMonth.split('-').map(Number);
         const firstDay = new Date(year, month - 1, 1).getDay();
         const lastDate = new Date(year, month, 0).getDate();
         
-        monthDisplay.innerText = `${year}년 ${month}월`;
-        calendarBody.innerHTML = ''; // 초기화
+        document.getElementById('current-month-display').innerText = `${year}년 ${month}월`;
+        const body = document.getElementById('calendar-body');
+        body.innerHTML = '';
 
-        // 요일 생성
-        const days = ['일', '월', '화', '수', '목', '금', '토'];
-        days.forEach(d => {
+        // 요일 헤더
+        ['일','월','화','수','목','금','토'].forEach(d => {
             const div = document.createElement('div');
             div.className = 'day-label';
             div.innerText = d;
-            calendarBody.appendChild(div);
+            body.appendChild(div);
         });
 
-        // 빈칸 (지난달)
+        // 시작 빈칸
         for (let i = 0; i < firstDay; i++) {
-            const div = document.createElement('div');
-            div.className = 'other-month';
-            calendarBody.appendChild(div);
+            body.appendChild(document.createElement('div'));
         }
 
-        // 날짜 생성
-        for (let date = 1; date <= lastDate; date++) {
-            const dateCell = document.createElement('div');
-            dateCell.className = 'date-cell';
-            
-            const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(date).padStart(2, '0')}`;
-            
-            // 오늘 날짜 표시 (실제 오늘 기준)
-            const today = new Date();
-            if(today.getFullYear() === year && today.getMonth()+1 === month && today.getDate() === date) {
-                dateCell.classList.add('today');
-            }
+        // 날짜 채우기
+        for (let d = 1; d <= lastDate; d++) {
+            const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+            const cell = document.createElement('div');
+            cell.innerHTML = `<span class="date-num">${d}</span>`;
 
-            let html = `<span class="date-num">${date}</span>`;
-            
-            // 일정 데이터 매칭
-            if (eventData[dateStr]) {
-                eventData[dateStr].forEach(ev => {
-                    html += `<div class="event" style="background-color: ${ev.color}">${ev.title}</div>`;
-                });
-            }
+            // 해당 날짜 일정 필터링
+            const dayEvents = allEvents.filter(e => e.date === dateStr);
+            dayEvents.forEach(ev => {
+                const evDiv = document.createElement('div');
+                evDiv.className = `event type-${ev.type}`;
+                evDiv.innerHTML = `
+                    <strong>[${ev.type}]</strong> ${ev.title}
+                    <span class="content-tag">${ev.content}</span>
+                `;
+                cell.appendChild(evDiv);
+            });
 
-            dateCell.innerHTML = html;
-            calendarBody.appendChild(dateCell);
+            body.appendChild(cell);
         }
     }
 
-    // 선택 박스 변경 이벤트
-    monthSelect.addEventListener('change', (e) => {
-        renderCalendar(e.target.value);
-    });
+    // 이벤트 리스너
+    document.getElementById('month-select').addEventListener('change', (e) => renderCalendar(e.target.value));
 
-    // 초기 실행 (5월)
-    renderCalendar('2024-05');
+    // 실행
+    fetchSchedule();
