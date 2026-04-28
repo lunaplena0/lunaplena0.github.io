@@ -91,25 +91,27 @@ function renderCalendar(yearMonth) {
     }
 
     // 날짜 채우기
-    for (let d = 1; d <= lastDate; d++) {
-        const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-        const cell = document.createElement('div');
-        
-        const realToday = new Date();
-        if (realToday.getFullYear() === year && (realToday.getMonth() + 1) === month && realToday.getDate() === d) {
-            cell.classList.add('today');
-        }
+  for (let d = 1; d <= lastDate; d++) {
+    const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    const cell = document.createElement('div');
+    
+    // 오늘 표시 로직
+    const realToday = new Date();
+    if (realToday.getFullYear() === year && (realToday.getMonth() + 1) === month && realToday.getDate() === d) {
+        cell.classList.add('today');
+    }
 
-        const dayEvents = allEvents.filter(e => e.date === dateStr);
-        
-        // --- 날짜 헤더 (배지 제거하고 숫자만 깔끔하게 유지) ---
-        cell.innerHTML = `
-            <div class="date-header">
-                <span class="date-num">${d}</span>
-            </div>
-        `;
+    // --- 날짜 헤더와 아래 일정 사이에 선(divider) 추가 ---
+    cell.innerHTML = `
+        <div class="date-header">
+            <span class="date-num">${d}</span>
+        </div>
+        <div class="date-divider"></div> 
+    `;
 
-        dayEvents.forEach(ev => {
+    const dayEvents = allEvents.filter(e => e.date === dateStr);
+    
+    dayEvents.forEach(ev => {
             // 휴방 처리
             if (ev.type === "휴방") {
                 const offDiv = document.createElement('div');
