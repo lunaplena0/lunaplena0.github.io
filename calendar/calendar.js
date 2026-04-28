@@ -7,24 +7,45 @@ async function fetchSchedule() {
         const data = await response.text();
         const rows = data.split('\n').slice(1);
 
+        let lastValidDate = ""; 
+
         allEvents = rows.map(row => {
             const columns = row.split('\t');
-            if (columns.length < 4) return null;
-            const [date, type, title, content] = columns;
+            if (columns.length < 5) return null;
             
-            // '26.04.28' -> '2026-04-28' 변환
-            const formattedDate = '20' + date.trim().replace(/\./g, '-');
-            return { date: formattedDate, type: type.trim(), title: title.trim(), content: content.trim() };
-        }).filter(Boolean);
+            let [date, time, type, title, content] = columns.map(col => col ? col.trim() : "");
 
-        // 1. 데이터가 있는 모든 월 추출 (중복 제거)
+            // 1. 날짜 상속 로직
+            if (!date || date === "") {
+                date = lastValidDate;
+            } else {
+                lastValidDate = date;
+            }
+
+            if (!date) return null;
+
+            // 2. 날짜 포맷 변환 (26.04.28 -> 2026-04-28)
+            const formattedDate = '20' + date.replace(/\./g, '-');
+
+            // 3. 휴방 및 "-" 처리
+            if (title === "-" || type === "휴방") {
+                title = (type === "휴방") ? "휴방" : ""; 
+            }
+
+            return { 
+                date: formattedDate, 
+                time: time === "-" ? "" : time,
+                type: type, 
+                title: title, 
+                content: content === "-" ? "" : content 
+            };
+        }).filter(ev => ev && (ev.title !== "" || ev.type === "휴방"));
+
+        // 4. 월 선택기(Select) 업데이트
         const availableMonths = [...new Set(allEvents.map(e => e.date.substring(0, 7)))].sort();
-
         if (availableMonths.length > 0) {
             const monthSelect = document.getElementById('month-select');
-            monthSelect.innerHTML = ''; // 기존 옵션 초기화
-
-            // 2. 셀렉트 박스 옵션 동적 생성
+            monthSelect.innerHTML = ''; 
             availableMonths.forEach(ym => {
                 const [y, m] = ym.split('-');
                 const option = document.createElement('option');
@@ -33,17 +54,15 @@ async function fetchSchedule() {
                 monthSelect.appendChild(option);
             });
 
-            // 3. 가장 마지막 월(최신 데이터가 있는 월)을 기본값으로 설정
             const latestMonth = availableMonths[availableMonths.length - 1];
             monthSelect.value = latestMonth;
             renderCalendar(latestMonth);
         } else {
             document.getElementById('current-month-display').innerText = "등록된 일정이 없습니다.";
         }
-        
     } catch (error) {
         console.error("데이터 로드 실패:", error);
-        document.getElementById('current-month-display').innerText = "데이터를 불러올 수 없습니다.";
+        document.getElementById('current-month-display').innerText = "데이터 로드 실패";
     }
 }
 
@@ -81,11 +100,9 @@ function renderCalendar(yearMonth) {
             cell.classList.add('today');
         }
 
-        // --- 1. 날짜와 유형을 한 줄에 배치 ---
         const dayEvents = allEvents.filter(e => e.date === dateStr);
-        // 해당 날짜에 일정이 있다면 첫 번째 일정의 유형을 가져옴
-        const firstEventType = dayEvents.length > 0 ? dayEvents[0].type : '';
-        const typeBadge = firstEventType ? `<span class="type-badge type-${firstEventType}">${firstEventType}</span>` : '';
+        const mainType = dayEvents.length > 0 ? dayEvents[0].type : '';
+        const typeBadge = mainType ? `<span class="type-badge type-${mainType}">${mainType}</span>` : '';
         
         cell.innerHTML = `
             <div class="date-header">
@@ -94,30 +111,33 @@ function renderCalendar(yearMonth) {
             </div>
         `;
 
-        // --- 2. 일정 제목 및 태그 렌더링 ---
         dayEvents.forEach(ev => {
+            if (ev.type === "휴방") {
+                const offDiv = document.createElement('div');
+                offDiv.className = "event-item off-day";
+                offDiv.innerHTML = `<div class="event-title" style="color: #ff4757; font-weight: bold;">🚫 휴방</div>`;
+                cell.appendChild(offDiv);
+                return;
+            }
+
             const evDiv = document.createElement('div');
             evDiv.className = `event-item`;
 
-            // 컨텐츠 종류를 쉼표(,)로 나누어 #태그 생성
-            const tagsHtml = ev.content.split(',')
-                .map(tag => tag.trim())
-                .filter(tag => tag !== "")
-                .map(tag => `<span class="hash-tag">#${tag}</span>`)
-                .join('');
+            const tagsHtml = ev.content ? ev.content.split(',')
+                .map(tag => `<span class="hash-tag">#${tag.trim()}</span>`).join('') : '';
 
             evDiv.innerHTML = `
+                ${ev.time ? `<div class="event-time">${ev.time}</div>` : ''}
                 <div class="event-title">${ev.title}</div>
                 <div class="tag-container">${tagsHtml}</div>
             `;
             cell.appendChild(evDiv);
         });
-
         body.appendChild(cell);
     }
 }
 
 document.getElementById('month-select').addEventListener('change', (e) => renderCalendar(e.target.value));
-fetchSchedule();
 
+// 실행
 fetchSchedule();
