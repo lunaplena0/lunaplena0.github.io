@@ -15,7 +15,6 @@ async function fetchSchedule() {
             
             let [date, time, type, title, content] = columns.map(col => col ? col.trim() : "");
 
-            // 1. 날짜 상속 로직
             if (!date || date === "") {
                 date = lastValidDate;
             } else {
@@ -24,10 +23,8 @@ async function fetchSchedule() {
 
             if (!date) return null;
 
-            // 2. 날짜 포맷 변환 (26.04.28 -> 2026-04-28)
             const formattedDate = '20' + date.replace(/\./g, '-');
 
-            // 3. 휴방 및 "-" 처리
             if (title === "-" || type === "휴방") {
                 title = (type === "휴방") ? "휴방" : ""; 
             }
@@ -41,7 +38,6 @@ async function fetchSchedule() {
             };
         }).filter(ev => ev && (ev.title !== "" || ev.type === "휴방"));
 
-        // 4. 월 선택기(Select) 업데이트
         const availableMonths = [...new Set(allEvents.map(e => e.date.substring(0, 7)))].sort();
         if (availableMonths.length > 0) {
             const monthSelect = document.getElementById('month-select');
@@ -62,7 +58,6 @@ async function fetchSchedule() {
         }
     } catch (error) {
         console.error("데이터 로드 실패:", error);
-        document.getElementById('current-month-display').innerText = "데이터 로드 실패";
     }
 }
 
@@ -75,7 +70,6 @@ function renderCalendar(yearMonth) {
     const body = document.getElementById('calendar-body');
     body.innerHTML = '';
 
-    // 요일 헤더
     ['일','월','화','수','목','금','토'].forEach(d => {
         const div = document.createElement('div');
         div.className = 'day-label';
@@ -83,79 +77,93 @@ function renderCalendar(yearMonth) {
         body.appendChild(div);
     });
 
-    // 시작 빈칸
     for (let i = 0; i < firstDay; i++) {
         const emptyDiv = document.createElement('div');
         emptyDiv.className = 'other-month';
         body.appendChild(emptyDiv);
     }
 
-    // 날짜 채우기
-  for (let d = 1; d <= lastDate; d++) {
-    const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-    const cell = document.createElement('div');
-    
-    // 오늘 표시 로직
-    const realToday = new Date();
-    if (realToday.getFullYear() === year && (realToday.getMonth() + 1) === month && realToday.getDate() === d) {
-        cell.classList.add('today');
-    }
-
-    // --- 날짜 헤더와 아래 일정 사이에 선(divider) 추가 ---
-    cell.innerHTML = `
-        <div class="date-header">
-            <span class="date-num">${d}</span>
-        </div>
-        <div class="date-divider"></div> 
-    `;
-
-    const dayEvents = allEvents.filter(e => e.date === dateStr);
-    
-    dayEvents.forEach(ev => {
-    if (ev.type === "휴방") {
-        const offDiv = document.createElement('div');
-        offDiv.className = "event-item off-day";
-        offDiv.innerHTML = `<div class="event-title" style="color: var(--text-sub); opacity: 0.7;">🚫 휴방</div>`;
-        cell.appendChild(offDiv);
-        return;
-    }
-
-    const evDiv = document.createElement('div');
-    evDiv.className = `event-item`;
-
-    // --- 태그 2개 제한 및 +n 상자 로직 ---
-    const allTags = ev.content ? ev.content.split(',').map(tag => tag.trim()).filter(tag => tag !== "") : [];
-    const limit = 2; // 한 줄 유지를 위해 2개로 제한
-    let tagsHtml = "";
-
-    if (allTags.length > 0) {
-        const visibleTags = allTags.slice(0, limit);
-        const remainingCount = allTags.length - limit;
-
-        // 일반 태그 생성
-        tagsHtml = visibleTags.map(tag => `<span class="hash-tag">#${tag}</span>`).join('');
+    for (let d = 1; d <= lastDate; d++) {
+        const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        const cell = document.createElement('div');
         
-        // 남은 개수가 있다면 태그와 동일한 스타일의 상자로 추가
-        if (remainingCount > 0) {
-            tagsHtml += `<span class="hash-tag tag-more-box">+${remainingCount}</span>`;
+        const realToday = new Date();
+        if (realToday.getFullYear() === year && (realToday.getMonth() + 1) === month && realToday.getDate() === d) {
+            cell.classList.add('today');
         }
-    }
 
-    evDiv.innerHTML = `
-        <div class="event-meta">
-            ${ev.time ? `<div class="event-time">${ev.time}</div>` : ''}
-            <span class="type-badge type-${ev.type}">${ev.type}</span>
-        </div>
-        <div class="event-title" title="${ev.title}">${ev.title}</div>
-        <div class="tag-container">${tagsHtml}</div>
-    `;
-    cell.appendChild(evDiv);
-});
+        cell.innerHTML = `
+            <div class="date-header"><span class="date-num">${d}</span></div>
+            <div class="date-divider"></div> 
+        `;
+
+        const dayEvents = allEvents.filter(e => e.date === dateStr);
+        
+        dayEvents.forEach(ev => {
+            const evDiv = document.createElement('div');
+            
+            if (ev.type === "휴방") {
+                evDiv.className = "event-item off-day";
+                evDiv.innerHTML = `<div class="event-title" style="color: var(--text-sub); opacity: 0.7;">🚫 휴방</div>`;
+            } else {
+                evDiv.className = `event-item clickable`;
+                evDiv.onclick = () => openModal(ev);
+
+                const allTags = ev.content ? ev.content.split(',').map(tag => tag.trim()).filter(tag => tag !== "") : [];
+                const limit = 2;
+                let tagsHtml = "";
+
+                if (allTags.length > 0) {
+                    const visibleTags = allTags.slice(0, limit);
+                    const remainingCount = allTags.length - limit;
+                    tagsHtml = visibleTags.map(tag => `<span class="hash-tag">#${tag}</span>`).join('');
+                    if (remainingCount > 0) {
+                        tagsHtml += `<span class="hash-tag tag-more-box">+${remainingCount}</span>`;
+                    }
+                }
+
+                evDiv.innerHTML = `
+                    <div class="event-meta">
+                        ${ev.time ? `<div class="event-time">${ev.time}</div>` : ''}
+                        <span class="type-badge type-${ev.type}">${ev.type}</span>
+                    </div>
+                    <div class="event-title">${ev.title}</div>
+                    <div class="tag-container">${tagsHtml}</div>
+                `;
+            }
+            cell.appendChild(evDiv);
+        });
         body.appendChild(cell);
     }
 }
 
+// --- 모달 제어 (함수 밖으로 뺌) ---
+function openModal(ev) {
+    const modal = document.getElementById('event-modal');
+    document.getElementById('modal-type').className = `type-badge type-${ev.type}`;
+    document.getElementById('modal-type').innerText = ev.type;
+    document.getElementById('modal-date').innerText = ev.date.replace(/-/g, '.');
+    document.getElementById('modal-title').innerText = ev.title;
+    document.getElementById('modal-time').innerText = ev.time ? `방송 시작 시간: ${ev.time}` : '시간 정보 없음';
+    
+    const tagsContainer = document.getElementById('modal-tags');
+    tagsContainer.innerHTML = ev.content 
+        ? ev.content.split(',').map(tag => `<span class="hash-tag">#${tag.trim()}</span>`).join('') 
+        : '';
+
+    modal.style.display = 'flex';
+}
+
+// 이벤트 리스너 등록
+document.querySelector('.modal-close-btn').onclick = () => {
+    document.getElementById('event-modal').style.display = 'none';
+};
+
+window.onclick = (event) => {
+    const modal = document.getElementById('event-modal');
+    if (event.target === modal) modal.style.display = 'none';
+};
+
 document.getElementById('month-select').addEventListener('change', (e) => renderCalendar(e.target.value));
 
-// 실행
 fetchSchedule();
