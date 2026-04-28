@@ -11,9 +11,11 @@ async function fetchSchedule() {
 
         allEvents = rows.map(row => {
             const columns = row.split('\t');
+            // 6개 열(다시보기 주소 포함)을 체크하지만, 주소가 없을 수도 있으므로 유연하게 처리
             if (columns.length < 5) return null;
             
-            let [date, time, type, title, content] = columns.map(col => col ? col.trim() : "");
+            // 데이터 매핑 (6번째 열 추가)
+            let [date, time, type, title, content, replayUrl] = columns.map(col => col ? col.trim() : "");
 
             if (!date || date === "") {
                 date = lastValidDate;
@@ -34,7 +36,8 @@ async function fetchSchedule() {
                 time: time === "-" ? "" : time,
                 type: type, 
                 title: title, 
-                content: content === "-" ? "" : content 
+                content: content === "-" ? "" : content,
+                replayUrl: replayUrl // 다시보기 주소 저장
             };
         }).filter(ev => ev && (ev.title !== "" || ev.type === "휴방"));
 
@@ -137,7 +140,7 @@ function renderCalendar(yearMonth) {
     }
 }
 
-// --- 모달 제어 (함수 밖으로 뺌) ---
+// --- 모달 제어 함수 수정 ---
 function openModal(ev) {
     const modal = document.getElementById('event-modal');
     document.getElementById('modal-type').className = `type-badge type-${ev.type}`;
@@ -146,10 +149,23 @@ function openModal(ev) {
     document.getElementById('modal-title').innerText = ev.title;
     document.getElementById('modal-time').innerText = ev.time ? `방송 시작 시간: ${ev.time}` : '시간 정보 없음';
     
+    // 태그 전체 표시
     const tagsContainer = document.getElementById('modal-tags');
     tagsContainer.innerHTML = ev.content 
         ? ev.content.split(',').map(tag => `<span class="hash-tag">#${tag.trim()}</span>`).join('') 
         : '';
+
+    // --- 다시보기 버튼 처리 ---
+    const replayBtnContainer = document.getElementById('modal-replay-container');
+    if (ev.replayUrl && ev.replayUrl !== "" && ev.replayUrl !== "-") {
+        replayBtnContainer.innerHTML = `
+            <a href="${ev.replayUrl}" target="_blank" class="btn replay-btn">
+                <span>🎬 다시보기 보러가기</span>
+            </a>
+        `;
+    } else {
+        replayBtnContainer.innerHTML = ''; // 주소가 없으면 버튼 안 보임
+    }
 
     modal.style.display = 'flex';
 }
