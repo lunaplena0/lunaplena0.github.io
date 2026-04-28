@@ -112,33 +112,44 @@ function renderCalendar(yearMonth) {
     const dayEvents = allEvents.filter(e => e.date === dateStr);
     
     dayEvents.forEach(ev => {
-            // 휴방 처리
-            if (ev.type === "휴방") {
-                const offDiv = document.createElement('div');
-                offDiv.className = "event-item off-day";
-                offDiv.innerHTML = `<div class="event-title" style="color: #ff4757; font-weight: bold;">🚫 휴방</div>`;
-                cell.appendChild(offDiv);
-                return;
-            }
+    if (ev.type === "휴방") {
+        const offDiv = document.createElement('div');
+        offDiv.className = "event-item off-day";
+        offDiv.innerHTML = `<div class="event-title" style="color: var(--text-sub); opacity: 0.7;">🚫 휴방</div>`;
+        cell.appendChild(offDiv);
+        return;
+    }
 
-            const evDiv = document.createElement('div');
-            evDiv.className = `event-item`;
+    const evDiv = document.createElement('div');
+    evDiv.className = `event-item`;
 
-            const tagsHtml = ev.content ? ev.content.split(',')
-                .map(tag => `<span class="hash-tag">#${tag.trim()}</span>`).join('') : '';
+    // --- 태그 제한 처리 로직 ---
+    const allTags = ev.content ? ev.content.split(',').map(tag => tag.trim()).filter(tag => tag !== "") : [];
+    const limit = 3; // 한 줄에 보여줄 태그 개수 제한
+    let tagsHtml = "";
 
-            // --- 시간 옆에 방송유형 배지 배치 ---
-            // calendar.js 내 렌더링 부분 수정 예시
-evDiv.innerHTML = `
-    <div class="event-meta" style="display: flex; align-items: center; gap: 5px; margin-bottom: 3px;">
-        ${ev.time ? `<div class="event-time" style="margin-bottom:0;">${ev.time}</div>` : ''}
-        <span class="type-badge type-${ev.type}" style="font-size: 0.6rem; padding: 1px 4px;">${ev.type}</span>
-    </div>
-    <div class="event-title" title="${ev.title}">${ev.title}</div>
-    <div class="tag-container">${tagsHtml}</div>
-`;
-            cell.appendChild(evDiv);
-        });
+    if (allTags.length > 0) {
+        const visibleTags = allTags.slice(0, limit);
+        const remainingCount = allTags.length - limit;
+
+        tagsHtml = visibleTags.map(tag => `<span class="hash-tag">#${tag}</span>`).join('');
+        
+        // 남은 개수가 있다면 +n 표시 추가
+        if (remainingCount > 0) {
+            tagsHtml += `<span class="tag-more">+${remainingCount}</span>`;
+        }
+    }
+
+    evDiv.innerHTML = `
+        <div class="event-meta">
+            ${ev.time ? `<div class="event-time">${ev.time}</div>` : ''}
+            <span class="type-badge type-${ev.type}">${ev.type}</span>
+        </div>
+        <div class="event-title" title="${ev.title}">${ev.title}</div>
+        <div class="tag-container">${tagsHtml}</div>
+    `;
+    cell.appendChild(evDiv);
+});
         body.appendChild(cell);
     }
 }
