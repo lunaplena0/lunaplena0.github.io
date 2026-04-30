@@ -170,7 +170,7 @@ function openModal(ev) {
     document.getElementById('modal-type').innerText = ev.type;
     document.getElementById('modal-date').innerText = ev.date.replace(/-/g, '.');
     document.getElementById('modal-title').innerText = ev.title;
-    document.getElementById('modal-time').innerText = ev.time ? `방송 시작 시간: ${ev.time}` : '시간 정보 없음';
+    document.getElementById('modal-time').innerText = ev.time ? `방송 시작 시간 : ${ev.time}` : '시간 정보 없음';
     
     // 태그 전체 표시
     const tagsContainer = document.getElementById('modal-tags');
