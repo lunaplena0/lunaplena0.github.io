@@ -1,12 +1,11 @@
-/* 1. 달력 전용 변수 (메인 변수 상속 및 보정) */
 :root {
     --sunday-color: #ff5f5f;
     --saturday-color: #5fafff;
-    --calendar-bg: var(--card-bg); /* 메인 카드 배경 사용 */
-    --calendar-border: var(--border); /* 메인 경계선 사용 */
+    --calendar-bg: var(--card-bg);
+    --calendar-border: var(--border);
 }
 
-/* 2. 상단 헤더 및 선택창 보정 */
+/* 1. 레이아웃 및 헤더 */
 .calendar-header {
     display: flex;
     justify-content: space-between;
@@ -18,7 +17,7 @@
 .calendar-header h3 {
     margin: 0;
     font-size: 1.25rem;
-    color: var(--accent-bright); /* 밝은 강조색 사용 */
+    color: var(--accent-bright);
     font-weight: 700;
     text-shadow: 0 0 10px var(--accent-glow);
 }
@@ -29,290 +28,79 @@
     color: var(--text-main) !important;
     padding: 6px 12px;
     border-radius: 8px;
-    font-family: inherit;
     cursor: pointer;
 }
 
-/* 3. 달력 그리드 레이아웃 */
+/* 2. 그리드 레이아웃 */
 .calendar-grid {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     gap: 1px;
-    background-color: var(--border); /* 그리드 선 색상 */
+    background-color: var(--border);
     border: 1px solid var(--border);
     border-radius: 12px;
     overflow: hidden;
     box-shadow: 0 10px 30px rgba(0,0,0,0.5);
 }
 
-/* 4. 공통 셀 스타일 */
+/* 3. 셀 스타일 (색상 고정) */
 .calendar-grid > div {
-    background-color: var(--calendar-bg);
+    background-color: #0a0e14 !important; /* 강제 배경색 지정 */
     padding: 12px;
     min-height: 120px;
     box-sizing: border-box;
     transition: background 0.2s;
 }
 
-/* 요일 라벨 (일~토) */
 .day-label {
     height: 45px !important;
-    min-height: auto !important;
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 700;
     font-size: 0.85rem;
-    background-color: #051020 !important; /* 헤더와 비슷한 짙은 색 */
+    background-color: #051020 !important;
     color: var(--text-sub);
 }
 
 .day-label:nth-child(1) { color: var(--sunday-color); }
 .day-label:nth-child(7) { color: var(--saturday-color); }
 
-/* 날짜 헤더 및 구분선 */
-.date-header {
-    display: flex;
-    justify-content: flex-start;
-    margin-bottom: 4px;
-}
+/* 4. 날짜 및 이벤트 표시 */
+.date-header { display: flex; justify-content: flex-start; margin-bottom: 4px; }
+.date-num { font-size: 0.9rem; font-weight: 500; color: var(--text-main); }
+.date-divider { width: 100%; height: 1px; background: linear-gradient(to right, var(--accent), transparent); margin: 5px 0 12px 0; }
 
-.date-num {
-    font-size: 0.9rem;
-    font-weight: 500;
-    color: var(--text-main);
-}
+.event-item { margin-bottom: 12px; padding: 2px 0; }
+.event-meta { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+.event-time { font-size: 0.7rem; color: var(--accent-bright); font-weight: 700; }
 
-.date-divider {
-    width: 100%;
-    height: 1px;
-    background: linear-gradient(to right, var(--accent), transparent);
-    margin: 5px 0 12px 0;
-}
-
-/* 5. 일정(Event) 스타일 */
-.event-item {
-    margin-bottom: 12px;
-    padding: 2px 0;
-}
-
-.event-meta {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    margin-bottom: 4px;
-}
-
-.event-time {
-    font-size: 0.7rem;
-    color: var(--accent-bright);
-    font-weight: 700;
-}
-
-/* 배지 스타일 (다크 모드에 맞춰 선명하게) */
-.type-badge {
-    padding: 1px 5px;
-    border-radius: 3px;
-    font-size: 0.65rem;
-    font-weight: 700;
-    color: #ffffff !important;
-}
-
+.type-badge { padding: 1px 5px; border-radius: 3px; font-size: 0.65rem; font-weight: 700; color: #ffffff !important; }
 .type-방송 { background-color: #3b3dbf; }
 .type-합방 { background-color: #1e854a; }
 .type-휴방 { background-color: #c0392b; }
 .type-기타 { background-color: #4a5568; }
 
-/* 제목 말줄임표 처리 */
-.event-title {
-    font-size: 0.85rem;
-    line-height: 1.4;
-    color: var(--text-main);
-    font-weight: 500;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    margin-bottom: 6px;
-}
+.tag-container { display: flex; align-items: center; gap: 4px; flex-wrap: nowrap; overflow: hidden; margin-top: 4px; }
+.hash-tag { background-color: rgba(0, 51, 102, 0.3); color: var(--accent-bright); font-size: 0.65rem; padding: 1px 6px; border-radius: 4px; border: 1px solid var(--accent); flex-shrink: 0; white-space: nowrap; }
+.tag-more-box { background-color: var(--accent); color: #fff; border-color: var(--accent-bright); }
 
-/* 태그 컨테이너: 절대 줄바꿈 금지 */
-.tag-container {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    flex-wrap: nowrap; /* 줄바꿈 절대 방지 */
-    overflow: hidden;  /* 영역 밖으로 나가는 것 방지 */
-}
+/* 5. 상태 및 모달 */
+.today { background-color: rgba(51, 133, 255, 0.05) !important; position: relative; }
+.today::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 2px; background: var(--accent-bright); box-shadow: 0 0 10px var(--accent-bright); }
+.today .date-num { color: var(--accent-bright); font-weight: 700; }
 
-/* 해시태그 및 +n 상자 공통 스타일 */
-.hash-tag {
-    background-color: rgba(0, 51, 102, 0.3);
-    color: var(--accent-bright);
-    font-size: 0.65rem;
-    padding: 1px 6px;
-    border-radius: 4px;
-    border: 1px solid var(--accent);
-    flex-shrink: 0; /* 상자 크기 축소 방지 */
-    white-space: nowrap;
-}
+.other-month { background-color: #05070a !important; opacity: 1 !important; }
+.clickable { cursor: pointer; transition: transform 0.1s; }
+.clickable:hover { transform: translateY(-2px); }
 
-/* +n 상자 (필요 시 색상 차별화를 원하면 사용, 현재는 동일함) */
-.tag-more-box {
-    background-color: var(--accent); /* 조금 더 진한 배경으로 통일감 증대 */
-    color: #fff;
-    border-color: var(--accent-bright);
-}
-
-/* 6. 특수 상태 */
-.today {
-    background-color: rgba(51, 133, 255, 0.05) !important;
-    position: relative;
-}
-
-.today::after {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; width: 100%; height: 2px;
-    background: var(--accent-bright);
-    box-shadow: 0 0 10px var(--accent-bright);
-}
-
-.today .date-num {
-    color: var(--accent-bright);
-    font-weight: 700;
-}
-
-.other-month {
-    background-color: #010306 !important;
-    opacity: 0.3;
-}
-
-.off-day .event-title {
-    color: var(--text-sub) !important;
-    font-style: italic;
-    opacity: 0.7;
-}
-/* 모달창 오버레이 */
-.modal-overlay {
-    display: none;
-    position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0, 0, 0, 0.8);
-    backdrop-filter: blur(5px);
-    z-index: 1000;
-    justify-content: center;
-    align-items: center;
-}
-
-/* 모달 박스 */
-.modal-content {
-    width: 90%;
-    max-width: 450px;
-    border: 1px solid var(--accent);
-    animation: fadeIn 0.3s ease;
-}
-
-.modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
-}
-
-.modal-close-btn {
-    background: none;
-    border: none;
-    color: var(--text-sub);
-    font-size: 24px;
-    cursor: pointer;
-}
-
-.modal-date-text {
-    font-size: 13px;
-    color: var(--accent-bright);
-    margin-bottom: 8px;
-}
-
-.modal-full-title {
-    font-size: 20px !important; /* 팝업에선 크게 */
-    color: var(--text-main);
-    line-height: 1.5;
-    margin: 10px 0 !important;
-    border: none !important; /* 기존 h2 스타일 상속 방지 */
-}
-
-.modal-time-info {
-    font-size: 14px;
-    color: var(--text-sub);
-    margin-bottom: 20px;
-}
-
-/* 클릭 가능한 일정에 마우스 커서 추가 */
-.clickable {
-    cursor: pointer;
-    transition: transform 0.1s;
-}
-.clickable:hover {
-    transform: translateY(-2px);
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-/* 다시보기 버튼 컨테이너 (여백 확보) */
-#modal-replay-container {
-    width: 100%;
-    margin-top: 20px;
-    display: flex;
-    justify-content: center;
-}
-
-/* 다시보기 버튼 상세 보정 */
+/* 모달 및 버튼 */
 .replay-btn {
-    display: flex !important;           /* flex 레이아웃 강제 */
-    width: 100% !important;              /* 가로 꽉 차게 */
-    height: 48px;                        /* 적당한 높이 고정 */
-    align-items: center;                 /* 세로 중앙 */
-    justify-content: center;             /* 가로 중앙 */
-    
-    padding: 0 16px !important;          /* 내부 좌우 여백 */
+    display: flex !important; width: 100% !important; height: 48px;
+    align-items: center; justify-content: center;
     background: linear-gradient(135deg, var(--accent) 0%, #051a30 100%) !important;
     border: 1px solid var(--accent-bright) !important;
-    border-radius: 8px !important;
-    
-    color: var(--text-main) !important;
-    font-size: 14px !important;
-    font-weight: 700 !important;
-    text-decoration: none !important;    /* 링크 밑줄 제거 */
-    
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-    transition: all 0.2s ease;
-    cursor: pointer;
+    border-radius: 8px !important; color: var(--text-main) !important;
+    font-weight: 700 !important; cursor: pointer;
 }
-.replay-btn:hover {
-    background: var(--accent-bright) !important;
-    color: #ffffff !important;
-    box-shadow: 0 0 20px var(--accent-glow);
-    transform: translateY(-2px);
-}
-
-.replay-btn span {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    pointer-events: none;                /* 클릭 방해 방지 */
-}
-/* 1. 달력의 모든 기본 셀을 확실한 다크 배경으로 고정 */
-.calendar-grid > div {
-    background-color: #0a0e14 !important; /* 여기서 확실한 어두운 색 지정 */
-}
-
-/* 2. '다른 달'의 빈칸 (날짜 없는 곳) 색상 고정 */
-.other-month {
-    background-color: #05070a !important; /* 아주 어두운 검정색으로 고정 */
-    opacity: 1 !important; /* 불투명도를 1로 올려서 확실하게 보임 */
-}
+.replay-btn:hover { background: var(--accent-bright) !important; transform: translateY(-2px); }
