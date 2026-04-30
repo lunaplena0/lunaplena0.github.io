@@ -143,6 +143,16 @@ function renderCalendar(yearMonth) {
 });
         body.appendChild(cell);
     }
+    
+// [추가 코드] 달력의 마지막 주 빈칸 채우기 (grid 완성)
+    const totalCells = firstDay + lastDate;
+    const remainingCells = (7 - (totalCells % 7)) % 7;
+
+    for (let i = 0; i < remainingCells; i++) {
+        const emptyDiv = document.createElement('div');
+        emptyDiv.className = 'other-month'; // 이 클래스 덕분에 배경색이 어둡게 고정됩니다!
+        body.appendChild(emptyDiv);
+    }
 }
 
 // --- 모달 제어 함수 수정 ---
