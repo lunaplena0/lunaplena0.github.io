@@ -53,9 +53,17 @@ async function fetchSchedule() {
                 monthSelect.appendChild(option);
             });
 
-            const latestMonth = availableMonths[availableMonths.length - 1];
-            monthSelect.value = latestMonth;
-            renderCalendar(latestMonth);
+            // [수정된 부분] 오늘 날짜 구하기
+            const now = new Date();
+            const currentYearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+            
+            // 오늘 날짜가 달력 데이터에 있는지 확인 (있으면 그 달을, 없으면 마지막 달을 선택)
+            const targetMonth = availableMonths.includes(currentYearMonth) 
+                                ? currentYearMonth 
+                                : availableMonths[availableMonths.length - 1];
+
+            monthSelect.value = targetMonth;
+            renderCalendar(targetMonth);
         } else {
             document.getElementById('current-month-display').innerText = "등록된 일정이 없습니다.";
         }
