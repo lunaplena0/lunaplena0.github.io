@@ -103,39 +103,27 @@ function renderCalendar(yearMonth) {
         const dayEvents = allEvents.filter(e => e.date === dateStr);
         
         dayEvents.forEach(ev => {
-            const evDiv = document.createElement('div');
-            
-            if (ev.type === "휴방") {
-                evDiv.className = "event-item off-day";
-                evDiv.innerHTML = `<div class="event-title" style="color: var(--text-sub); opacity: 0.7;">🚫 휴방</div>`;
-            } else {
-                evDiv.className = `event-item clickable`;
-                evDiv.onclick = () => openModal(ev);
+    const evDiv = document.createElement('div');
+    
+    if (ev.type === "휴방") {
+        evDiv.className = "event-item off-day";
+        // 휴방은 제목이 없어도 되지만, 구분하기 쉽게 텍스트만 유지
+        evDiv.innerHTML = `<div class="event-title" style="color: var(--text-sub); opacity: 0.7; font-size: 0.75rem;">🚫 휴방</div>`;
+    } else {
+        evDiv.className = `event-item clickable`;
+        evDiv.onclick = () => openModal(ev);
 
-                const allTags = ev.content ? ev.content.split(',').map(tag => tag.trim()).filter(tag => tag !== "") : [];
-                const limit = 2;
-                let tagsHtml = "";
-
-                if (allTags.length > 0) {
-                    const visibleTags = allTags.slice(0, limit);
-                    const remainingCount = allTags.length - limit;
-                    tagsHtml = visibleTags.map(tag => `<span class="hash-tag">#${tag}</span>`).join('');
-                    if (remainingCount > 0) {
-                        tagsHtml += `<span class="hash-tag tag-more-box">+${remainingCount}</span>`;
-                    }
-                }
-
-                evDiv.innerHTML = `
-                    <div class="event-meta">
-                        ${ev.time ? `<div class="event-time">${ev.time}</div>` : ''}
-                        <span class="type-badge type-${ev.type}">${ev.type}</span>
-                    </div>
-                    <div class="event-title">${ev.title}</div>
-                    <div class="tag-container">${tagsHtml}</div>
-                `;
-            }
-            cell.appendChild(evDiv);
-        });
+        // [변경점] 제목(event-title)과 태그(tag-container) 생성 로직을 제거하고
+        // 방송 유형(type-badge)과 시간(event-time)만 표시합니다.
+        evDiv.innerHTML = `
+            <div class="event-meta" style="flex-direction: column; align-items: flex-start; gap: 2px;">
+                <span class="type-badge type-${ev.type}">${ev.type}</span>
+                ${ev.time ? `<div class="event-time" style="font-size: 0.7rem; color: var(--text-sub);">${ev.time}</div>` : ''}
+            </div>
+        `;
+    }
+    cell.appendChild(evDiv);
+});
         body.appendChild(cell);
     }
 }
