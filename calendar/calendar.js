@@ -128,10 +128,15 @@ function renderCalendar(yearMonth) {
 
         // [변경점] .event-title 제거
         evDiv.innerHTML = `
-            <div class="event-meta">
-                ${ev.time ? `<div class="event-time">${ev.time}</div>` : ''}
-                <span class="type-badge type-${ev.type}">${ev.type}</span>
-            </div>
+            // renderCalendar 안의 evDiv.innerHTML 생성 부분
+<div class="event-meta">
+    ${ev.time ? `
+        <div class="event-time" style="${ev.time === '이어서' ? 'font-style: italic; color: var(--text-sub);' : ''}">
+            ${ev.time}
+        </div>
+    ` : ''}
+    <span class="type-badge type-${ev.type}">${ev.type}</span>
+</div>
             <div class="tag-container" style="margin-top: 4px;">${tagsHtml}</div>
         `;
     }
