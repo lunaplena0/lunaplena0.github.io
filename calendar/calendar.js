@@ -128,7 +128,6 @@ function renderCalendar(yearMonth) {
 
         // [변경점] .event-title 제거
         evDiv.innerHTML = `
-            // renderCalendar 안의 evDiv.innerHTML 생성 부분
 <div class="event-meta">
     ${ev.time ? `
         <div class="event-time" style="${ev.time === '이어서' ? 'font-style: italic; color: var(--text-sub);' : ''}">
