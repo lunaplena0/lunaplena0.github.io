@@ -97,9 +97,43 @@
 .color-결과발표 { color: #f295f5; }
 .color-공방참여 { color: #e67e22; }
 
-.tag-container { display: flex; align-items: center; gap: 4px; flex-wrap: nowrap; overflow: hidden; margin-top: 4px; }
-.hash-tag { background-color: rgba(0, 51, 102, 0.3); color: var(--accent-bright); font-size: 0.65rem; padding: 1px 6px; border-radius: 4px; border: 1px solid var(--accent); flex-shrink: 0; white-space: nowrap; }
-.tag-more-box { background-color: var(--accent); color: #fff; border-color: var(--accent-bright); }
+.tag-container {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 4px;
+    
+    /* [핵심] 태그들이 좁은 공간에서 한 줄로 유지되게 함 */
+    flex-wrap: nowrap; 
+    width: 100%;       /* 부모 칸 너비 상속 */
+    overflow: hidden;  /* 혹시라도 넘치면 숨김 */
+}
+.hash-tag {
+    background-color: rgba(0, 51, 102, 0.3);
+    color: var(--accent-bright);
+    font-size: 0.65rem;
+    padding: 1px 6px;
+    border-radius: 4px;
+    border: 1px solid var(--accent);
+    
+    /* --- [핵심] 태그 글자가 칸보다 길면 '...' 처리 --- */
+    display: inline-block; /* 텍스트 개념 부여 */
+    max-width: 80px;      /* 태그 하나의 최대 너비를 적절히 제한 */
+    white-space: nowrap;  /* 줄바꿈 방지 */
+    overflow: hidden;     /* 넘치는 부분 숨김 */
+    text-overflow: ellipsis; /* ... 표시 */
+    
+    flex-shrink: 1;       /* 공간 부족 시 태그 크기를 줄임 (핵심) */
+}
+/* '+2' 더보기 뱃지는 줄어들지 않게 설정 */
+.tag-more-box {
+    background-color: var(--accent);
+    color: #fff;
+    border-color: var(--accent-bright);
+    
+    flex-shrink: 0;       /* 어떤 상황에서도 크기가 고정됨 (핵심) */
+    max-width: none;      /* 너비 제한 해제 */
+}
 
 /* 5. 상태 및 모달 */
 .today { background-color: rgba(51, 133, 255, 0.05) !important; position: relative; }
