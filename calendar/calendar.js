@@ -113,40 +113,36 @@ function renderCalendar(yearMonth) {
         dayEvents.forEach(ev => {
     const evDiv = document.createElement('div');
     
-    if (ev.type === "휴방") {
-        evDiv.className = "event-item off-day";
-        evDiv.innerHTML = `<div class="event-title" style="color: var(--text-sub); opacity: 0.7; font-size: 0.75rem;">🚫 휴방</div>`;
-    } else {
-        evDiv.className = `event-item clickable`;
-        evDiv.onclick = () => openModal(ev);
+    // 1. 모든 아이템에 공통 클래스 및 클릭 이벤트 부여
+    evDiv.className = `event-item clickable`;
+    evDiv.onclick = (e) => {
+        e.stopPropagation();
+        openModal(ev);
+    };
 
-        // 태그 로직 유지
-        const allTags = ev.content ? ev.content.split(',').map(tag => tag.trim()).filter(tag => tag !== "") : [];
-        const limit = 2;
-        let tagsHtml = "";
+    // 2. 태그 처리 (휴방은 태그가 없을 테니 빈 값 유지)
+    const allTags = ev.content ? ev.content.split(',').map(tag => tag.trim()).filter(tag => tag !== "") : [];
+    const limit = 2;
+    let tagsHtml = "";
 
-        if (allTags.length > 0) {
-            const visibleTags = allTags.slice(0, limit);
-            const remainingCount = allTags.length - limit;
-            tagsHtml = visibleTags.map(tag => `<span class="hash-tag">#${tag}</span>`).join('');
-            if (remainingCount > 0) {
-                tagsHtml += `<span class="hash-tag tag-more-box">+${remainingCount}</span>`;
-            }
+    if (allTags.length > 0) {
+        const visibleTags = allTags.slice(0, limit);
+        const remainingCount = allTags.length - limit;
+        tagsHtml = visibleTags.map(tag => `<span class="hash-tag">#${tag}</span>`).join('');
+        if (remainingCount > 0) {
+            tagsHtml += `<span class="hash-tag tag-more-box">+${remainingCount}</span>`;
         }
-
-        // [변경점] .event-title 제거
-        evDiv.innerHTML = `
-<div class="event-meta">
-    ${ev.time ? `
-        <div class="event-time" style="${ev.time === '이어서' ? 'font-style: italic; color: var(--text-sub);' : ''}">
-            ${ev.time}
-        </div>
-    ` : ''}
-    <span class="type-badge type-${ev.type}">${ev.type}</span>
-</div>
-            <div class="tag-container" style="margin-top: 4px;">${tagsHtml}</div>
-        `;
     }
+
+    // 3. HTML 구조 통일 (휴방도 동일하게 뱃지가 표시됨)
+    evDiv.innerHTML = `
+        <div class="event-meta">
+            ${ev.time ? `<div class="event-time" style="${ev.time === '이어서' ? 'font-style: italic; color: var(--text-sub);' : ''}">${ev.time}</div>` : ''}
+            <span class="type-badge type-${ev.type}">${ev.type}</span>
+        </div>
+        <div class="tag-container" style="margin-top: 4px;">${tagsHtml}</div>
+    `;
+    
     cell.appendChild(evDiv);
 });
         body.appendChild(cell);
