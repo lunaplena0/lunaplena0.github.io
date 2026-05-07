@@ -132,7 +132,14 @@ const TSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTQ3nX6onmaf-ZH
     function renderPosts(data) {
         const postBox = document.getElementById('post-container');
         const postData = data.filter(p => p[1] && p[1].trim() !== "");
-        let html = '<h2>📢 최근 공지</h2>';
+        
+        // 헤더 부분 유지 (HTML 구조와 동일하게)
+        let html = `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h2 style="margin: 0;">📢 최근 공지</h2>
+                <a href="https://www.sooplive.com/station/bababi/posts" target="_blank" class="link-btn" style="font-size: 11px; padding: 4px 8px; border-color: var(--accent-bright);">전체보기</a>
+            </div>`;
+
         postData.forEach(p => {
             const isNotice = p[3]?.trim() === 'O' ? '<span style="color:var(--accent-bright); margin-left: 5px;">📌</span>' : ''; 
             html += `<div class="item-row" onclick="window.open('${p[2]}', '_blank')" style="display: flex; flex-direction: row; align-items: center;">
@@ -147,15 +154,20 @@ const TSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTQ3nX6onmaf-ZH
     }
 
     function renderVODs(data) {
-    const vodBox = document.getElementById('vod-container');
-    // 1. 제목이 비어있지 않으면서, "[클립]"이라는 글자가 포함되지 않은 것만 필터링
-    const vodData = data.filter(v => 
-        v[1] && 
-        v[1].trim() !== "" && 
-        !v[1].includes("[클립]")
-    );
+        const vodBox = document.getElementById('vod-container');
+        const vodData = data.filter(v => 
+            v[1] && 
+            v[1].trim() !== "" && 
+            !v[1].includes("[클립]")
+        );
 
-    let html = '<h2>🎬 최근 다시보기</h2>';
+        // 헤더 부분 유지 (HTML 구조와 동일하게)
+        let html = `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h2 style="margin: 0;">🎬 최근 다시보기</h2>
+                <a href="vodlist.html" class="link-btn" style="font-size: 11px; padding: 4px 8px; border-color: var(--accent-bright);">통계보기</a>
+            </div>`;
+
         vodData.forEach(v => {
             const isPin = v[4]?.trim() === 'O' ? '<span style="color:var(--accent-bright); margin-left: 5px; flex-shrink: 0;">📌</span>' : '';
             
@@ -173,46 +185,44 @@ const TSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTQ3nX6onmaf-ZH
         vodBox.innerHTML = html;
     }
     function renderSchedule(data) {
-    const container = document.getElementById('schedule-container');
-    if(!container) return;
-    container.innerHTML = '';
-    const todayStr = new Date().toLocaleDateString('en-CA'); 
-    
-    data.forEach(row => {
-        const date = row[0]?.trim() || '';   
-        const day = row[1]?.trim() || '';    
-        const time = row[2]?.trim() || '';   
-        const content = row[3]?.trim() || ''; 
-        const category = row[4]?.trim() || ''; 
-
-        if(!date && !content) return; 
-
-        const isToday = date === todayStr;
-        const isDayOff = category.includes('휴방'); 
+        const container = document.getElementById('schedule-container');
+        if(!container) return;
         
-        // 1. 내용은 이제 항상 기본색입니다.
-        const contentStyle = 'color: var(--text-main);';
+        // 스케줄 카드는 부모(card)가 아닌 내부 container만 비우므로 
+        // HTML에서 이미 헤더를 만들었다면 여기서는 데이터만 넣으면 됩니다.
+        container.innerHTML = '';
+        const todayStr = new Date().toLocaleDateString('en-CA'); 
         
-        // 2. 시간 표시 여부 (휴방일 땐 숨김)
-        const timeInfo = (time && !isDayOff) ? `<span style="color:var(--accent-bright); font-weight:bold; margin-right:5px;">${time}</span>` : '';
+        data.forEach(row => {
+            const date = row[0]?.trim() || '';   
+            const day = row[1]?.trim() || '';    
+            const time = row[2]?.trim() || '';   
+            const content = row[3]?.trim() || ''; 
+            const category = row[4]?.trim() || ''; 
 
-        // 3. 분류(category) 스타일: 휴방일 때만 빨간색 bold 적용
-        const categoryStyle = isDayOff ? 'color: #ff4d4d; font-weight: bold;' : 'color: var(--text-sub);';
+            if(!date && !content) return; 
 
-        const rowDiv = document.createElement('div');
-        rowDiv.className = `item-row schedule-row ${isToday ? 'today-highlight' : ''}`;
-        
-        rowDiv.innerHTML = `
-            <div style="display:flex; flex-direction:column; gap:1px; flex:1; min-width:0;">
-                <span class="day" style="font-size:10px;">${date} (${day})${isToday ? '<span class="badge today-tag" style="font-size:8px; padding:1px 4px;">TODAY</span>' : ''}</span>
-                <div style="font-size:12px; ${contentStyle} display:flex; align-items:center;">
-                    ${timeInfo} <span class="ellipsis">${content || '일정 없음'}</span>
+            const isToday = date === todayStr;
+            const isDayOff = category.includes('휴방'); 
+            
+            const contentStyle = 'color: var(--text-main);';
+            const timeInfo = (time && !isDayOff) ? `<span style="color:var(--accent-bright); font-weight:bold; margin-right:5px;">${time}</span>` : '';
+            const categoryStyle = isDayOff ? 'color: #ff4d4d; font-weight: bold;' : 'color: var(--text-sub);';
+
+            const rowDiv = document.createElement('div');
+            rowDiv.className = `item-row schedule-row ${isToday ? 'today-highlight' : ''}`;
+            
+            rowDiv.innerHTML = `
+                <div style="display:flex; flex-direction:column; gap:1px; flex:1; min-width:0;">
+                    <span class="day" style="font-size:10px;">${date} (${day})${isToday ? '<span class="badge today-tag" style="font-size:8px; padding:1px 4px;">TODAY</span>' : ''}</span>
+                    <div style="font-size:12px; ${contentStyle} display:flex; align-items:center;">
+                        ${timeInfo} <span class="ellipsis">${content || '일정 없음'}</span>
+                    </div>
                 </div>
-            </div>
-            <div style="font-size:10px; ${categoryStyle}">${category}</div>
-        `;
-        container.appendChild(rowDiv);
-    });
-}
+                <div style="font-size:10px; ${categoryStyle}">${category}</div>
+            `;
+            container.appendChild(rowDiv);
+        });
+    }
     // 10분마다 새로고침
     window.onload = () => { init(); setInterval(init, 1000 * 60 * 10); };
