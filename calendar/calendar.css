@@ -84,6 +84,14 @@
 .type-휴방 { background-color: #c0392b; }
 .type-기타 { background-color: #4a5568; }
 .type-결과발표 { background-color: #f295f5; }
+.type-공방참여 { background-color: #e67e22; }
+/* --- 모바일용 글자색 정의 (기존 뱃지 색상을 그대로 활용) --- */
+.color-방송 { color: #3b3dbf; }
+.color-합방 { color: #1e854a; }
+.color-휴방 { color: #c0392b; }
+.color-기타 { color: #4a5568; }
+.color-결과발표 { color: #f295f5; }
+.color-공방참여 { color: #e67e22; }
 
 .tag-container { display: flex; align-items: center; gap: 4px; flex-wrap: nowrap; overflow: hidden; margin-top: 4px; }
 .hash-tag { background-color: rgba(0, 51, 102, 0.3); color: var(--accent-bright); font-size: 0.65rem; padding: 1px 6px; border-radius: 4px; border: 1px solid var(--accent); flex-shrink: 0; white-space: nowrap; }
@@ -184,13 +192,12 @@
     color: #ffffff; /* 마우스 올리면 밝게 */
 }
 @media (max-width: 900px) {
-    /* 1. 셀 높이 축소 */
+    /* 1. 셀 및 날짜 기본 스타일 조정 */
     .calendar-grid > div {
-        min-height: 70px !important; 
-        padding: 4px !important;
+        min-height: 85px !important; 
+        padding: 6px 4px !important;
     }
 
-    /* 2. 날짜 번호 크기 조절 */
     .date-num {
         font-size: 0.75rem !important;
     }
@@ -199,37 +206,31 @@
         margin: 2px 0 4px 0 !important;
     }
 
-    /* 3. 모바일에서 일정 텍스트를 한 줄로 요약 */
-    .event-meta {
-        flex-direction: column; /* 시간과 뱃지를 세로로 (필요시) */
-        align-items: flex-start !important;
-        gap: 2px !important;
-    }
-
-    /* 뱃지는 숨기고 텍스트만 보여주거나, 아주 작게 처리 */
-    .type-badge {
-        display: none; /* 모바일 그리드에선 뱃지 숨김 (클릭 후 모달에선 보임) */
-    }
-
-    .event-time {
-        font-size: 0.65rem !important;
-        white-space: nowrap;
-    }
-
-    /* 4. "시간 + 방송" 텍스트만 보이게 설정 */
-    .mobile-summary {
-        display: block !important; /* 모바일용 텍스트 노출 */
-        font-size: 0.65rem;
-        color: var(--text-main);
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        margin-top: 2px;
-    }
-
-    /* 5. 태그 컨테이너 숨김 */
-    .tag-container {
+    /* 2. PC용 요소 강제 숨김 (뱃지, 태그 등) */
+    .event-meta, .tag-container, .type-badge {
         display: none !important;
+    }
+
+    /* 3. 모바일 요약 레이아웃 노출 (시간 아래 타입 텍스트) */
+    .mobile-summary {
+        display: flex !important;
+        flex-direction: column; /* 세로 정렬: 시간 아래 타입 */
+        gap: 2px;
+        margin-top: 4px;
+        white-space: nowrap;
+    }
+
+    .mobile-time {
+        font-size: 0.65rem;
+        font-weight: 700;
+        color: var(--accent-bright);
+        line-height: 1;
+    }
+
+    .mobile-type-text {
+        font-size: 0.65rem;
+        font-weight: 800;
+        line-height: 1.2;
     }
 }
 
