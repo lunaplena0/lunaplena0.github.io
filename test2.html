@@ -3,95 +3,93 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>새로운 페이지 | 바다비 아카이브</title>
+    <title>타임라인 변환기 | 바다비 아카이브</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/mainpages.css">
 </head>
 <body>
 <div class="wrapper">
     <header class="card header-box">
-    <div class="title-group">
-        <h1 class="page-title">페이지 제목</h1>
-        <p class="page-desc">이 페이지에 대한 간단한 보조 설명을 이곳에 작성하세요.</p>
-    </div>
-    <a href="index.html" class="btn">← 메인으로</a>
-</header>
+        <div class="title-group">
+            <h1 class="page-title">타임라인 변환기</h1>
+            <p class="page-desc">포맷 변환 후 직접 수정하여 복사할 수 있습니다.</p>
+        </div>
+        <a href="index.html" class="btn">← 메인으로</a>
+    </header>
 
     <main class="card content-card">
-    <h2>타임라인 포맷 변환기</h2>
-    <div id="content-area">
-        <!-- 입력 칸 -->
-        <div style="margin-bottom: 15px;">
-            <label style="display: block; margin-bottom: 8px; font-size: 13px; color: var(--text-sub);">타임라인 입력 (복사한 내용 전체)</label>
-            <textarea id="inputText" style="width: 100%; height: 150px; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: rgba(255,255,255,0.05); color: var(--text-main); resize: vertical; box-sizing: border-box; font-family: 'Noto Sans KR', sans-serif;" placeholder="00:32:55 🎵 여행 - 볼빨간사춘기... 형식의 내용을 넣어주세요."></textarea>
-        </div>
+        <div id="content-area">
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 8px; font-size: 13px; color: var(--text-sub);">원본 타임라인 입력</label>
+                <textarea id="inputText" style="width: 100%; height: 150px; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: rgba(255,255,255,0.05); color: var(--text-main); resize: vertical; box-sizing: border-box; font-family: inherit;" placeholder="내용을 붙여넣으세요..."></textarea>
+            </div>
 
-        <!-- 변환 버튼 -->
-        <div style="margin-bottom: 20px;">
-            <button onclick="convertTimeline()" class="btn" style="width: 100%; background: #007aff; color: #fff; font-weight: bold; padding: 15px;">곡 제목(시간) 형식으로 변환하기 ↓</button>
-        </div>
+            <button onclick="convertTimeline()" class="btn" style="width: 100%; background: #007aff; color: #fff; font-weight: bold; padding: 12px; margin-bottom: 20px; border: none; cursor: pointer;">형식 변환하기 ↓</button>
 
-        <!-- 결과 칸 -->
-        <div>
-            <label style="display: block; margin-bottom: 8px; font-size: 13px; color: var(--text-sub);">변환 결과</label>
-            <textarea id="outputText" style="width: 100%; height: 150px; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: rgba(0,0,0,0.2); color: #00ffcc; resize: vertical; box-sizing: border-box; font-family: 'Noto Sans KR', sans-serif;" readonly placeholder="변환된 결과가 여기에 표시됩니다."></textarea>
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 8px; font-size: 13px; color: var(--text-sub);">변환 결과 (여기서 직접 수정 가능)</label>
+                <textarea id="outputText" style="width: 100%; height: 150px; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: rgba(0,0,0,0.2); color: #00ffcc; resize: vertical; box-sizing: border-box; font-family: inherit;" placeholder="변환된 결과가 여기에 표시됩니다."></textarea>
+            </div>
+            
+            <button onclick="copyToClipboard()" class="btn" style="width: 100%; background: var(--text-main); color: #000; font-weight: bold; padding: 12px; border: none; cursor: pointer;">수정된 결과 복사하기</button>
         </div>
-        
-        <button onclick="copyToClipboard()" class="btn" style="width: 100%; margin-top: 10px; background: var(--text-main); color: #000;">결과 복사하기</button>
-    </div>
-</main>
+    </main>
+
+    <footer style="text-align: center; padding: 20px 10px; color: var(--text-sub); font-size: 11px; border-top: 1px solid var(--border); margin-top: 20px;">
+        <p><strong>바다비 비공식 팬 아카이브</strong></p>
+    </footer>
+</div>
 
 <script>
     function convertTimeline() {
         const input = document.getElementById('inputText').value;
-        
-        // 1. 각 줄을 나눕니다.
         const lines = input.split('\n');
         const resultList = [];
-
-        // 2. 시간(00:00:00 또는 00:00)과 제목을 추출하는 정규식
-        // 시간 포맷 뒤에 오는 이모지나 하이픈(-)을 기준으로 제목을 분리합니다.
+        
+        // 시간 정규식 (00:00:00 또는 00:00)
         const timeRegex = /(\d{1,2}:\d{2}:\d{2}|\d{1,2}:\d{2})/;
 
         lines.forEach(line => {
             const timeMatch = line.match(timeRegex);
             if (timeMatch) {
                 const time = timeMatch[0];
-                // 시간 이후의 텍스트만 가져오기
                 let titlePart = line.split(time)[1].trim();
                 
-                // 🎵 이모지 제거, 하이픈(-) 앞부분 제목만 추출 (가수 이름 제외 시)
-                // 만약 가수 이름까지 포함하고 싶으시면 아래 replace/split 로직을 조정하세요.
-                titlePart = titlePart.replace(/🎵/g, '').trim();
+                // 🎵 이모지 및 특수문자 제거
+                titlePart = titlePart.replace(/[🎵🎶▶️]/g, '').trim();
                 
-                // "제목 - 가수" 형태에서 제목만 추출 (원치 않으시면 이 줄을 삭제하세요)
-                const titleOnly = titlePart.split('-')[0].trim();
+                // 하이픈(-) 앞의 제목만 추출
+                let finalTitle = titlePart.split('-')[0].trim();
                 
-                resultList.push(`${titleOnly}(${time})`);
+                // 만약 split 후 내용이 없다면(하이픈이 없는 경우 등) 대비
+                if(!finalTitle && titlePart) finalTitle = titlePart;
+
+                resultList.push(`${finalTitle}(${time})`);
             }
         });
 
-        // 3. 결과물을 쉼표와 공백으로 연결
+        // 결과창에 출력 (수정 가능하도록 설정됨)
         document.getElementById('outputText').value = resultList.join(', ');
     }
 
     function copyToClipboard() {
         const output = document.getElementById('outputText');
-        if (!output.value) return;
+        if (!output.value) {
+            alert('복사할 내용이 없습니다.');
+            return;
+        }
         
+        // 텍스트 영역 선택 및 복사
         output.select();
-        document.execCommand('copy');
-        alert('변환된 텍스트가 복사되었습니다!');
+        output.setSelectionRange(0, 99999); // 모바일 대응
+
+        try {
+            document.execCommand('copy');
+            alert('내용이 클립보드에 복사되었습니다!');
+        } catch (err) {
+            alert('복사에 실패했습니다. 직접 선택해서 복사해주세요.');
+        }
     }
 </script>
-
-    <footer style="text-align: center; padding: 20px 10px; color: var(--text-sub); font-size: 11px; border-top: 1px solid var(--border); margin-top: 20px; width: 100%; box-sizing: border-box;">
-    <p style="margin: 0; opacity: 0.8; line-height: 1.6; word-break: keep-all; overflow-wrap: break-word;">
-        <strong style="display: block; margin-bottom: 5px; color: var(--text-main); font-size: 12px;">바다비 비공식 팬 아카이브</strong>
-        모든 권리는 원저작권자(바다비/SOOP)에게 있으며 요청 시 수정·삭제됩니다.<br>
-        <span style="display: inline-block;">비영리로 운영되며, 정보 갱신 시 데이터 반영에 차이가 있을 수 있습니다.</span>
-    </p>
-</footer>
-</div>
 </body>
 </html>
