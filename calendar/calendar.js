@@ -136,12 +136,18 @@ function renderCalendar(yearMonth) {
 
     // 3. HTML 구조 통일 (휴방도 동일하게 뱃지가 표시됨)
     evDiv.innerHTML = `
-        <div class="event-meta">
-            ${ev.time ? `<div class="event-time" style="${ev.time === '이어서' ? 'font-style: italic; color: var(--text-sub);' : ''}">${ev.time}</div>` : ''}
-            <span class="type-badge type-${ev.type}">${ev.type}</span>
-        </div>
-        <div class="tag-container" style="margin-top: 4px;">${tagsHtml}</div>
-    `;
+    <div class="event-meta pc-only">
+        ${ev.time ? `<div class="event-time" style="${ev.time === '이어서' ? 'font-style: italic; color: var(--text-sub);' : ''}">${ev.time}</div>` : ''}
+        <span class="type-badge type-${ev.type}">${ev.type}</span>
+    </div>
+    
+    <div class="mobile-only mobile-event-info">
+        ${ev.time ? `<div class="mobile-time">${ev.time}</div>` : ''}
+        <div class="mobile-type color-${ev.type}">${ev.type}</div>
+    </div>
+
+    <div class="tag-container pc-only" style="margin-top: 4px;">${tagsHtml}</div>
+`;
     
     cell.appendChild(evDiv);
 });
