@@ -6,6 +6,30 @@
     <title>타임라인 변환기 | 바다비 아카이브</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/mainpages.css">
+    <style>
+        /* 추가 스타일 */
+        .option-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+        .option-group input[type="checkbox"] {
+            margin-right: 8px;
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+        .option-group label {
+            font-size: 14px;
+            color: var(--text-main);
+            cursor: pointer;
+            user-select: none;
+        }
+    </style>
 </head>
 <body>
 <div class="wrapper">
@@ -23,14 +47,19 @@
             <div style="margin-bottom: 15px;">
                 <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 8px;">
                     <label style="font-size: 13px; color: var(--text-sub);">원본 타임라인 입력</label>
-                    <!-- 초기화 버튼 추가 -->
-                    <button onclick="resetAll()" style="background: none; border: 1px solid #ff4d4d; color: #ff4d4d; font-size: 11px; padding: 2px 8px; border-radius: 4px; cursor: pointer; transition: 0.2s;">입력 초기화 ↻</button>
+                    <button onclick="resetAll()" style="background: none; border: 1px solid #ff4d4d; color: #ff4d4d; font-size: 11px; padding: 2px 8px; border-radius: 4px; cursor: pointer;">입력 초기화 ↻</button>
                 </div>
                 <textarea id="inputText" style="width: 100%; height: 150px; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: rgba(255,255,255,0.05); color: var(--text-main); resize: vertical; box-sizing: border-box; font-family: inherit;" placeholder="내용을 붙여넣으세요..."></textarea>
             </div>
 
+            <!-- 옵션 체크박스 추가 -->
+            <div class="option-group">
+                <input type="checkbox" id="etcCheck">
+                <label for="etcCheck">[기타] 머리말 추가</label>
+            </div>
+
             <!-- 2. 변환 버튼 -->
-            <button onclick="convertTimeline()" class="btn" style="width: 100%; background: #007aff; color: #fff; font-weight: bold; padding: 12px; margin-bottom: 20px; border: none; cursor: pointer;">형식 변환하기 (쉼표 제거) ↓</button>
+            <button onclick="convertTimeline()" class="btn" style="width: 100%; background: #007aff; color: #fff; font-weight: bold; padding: 12px; margin-bottom: 20px; border: none; cursor: pointer;">형식 변환하기 ↓</button>
 
             <!-- 3. 결과 칸 -->
             <div style="margin-bottom: 15px;">
@@ -49,17 +78,18 @@
 </div>
 
 <script>
-    // 모든 텍스트 초기화 함수
     function resetAll() {
         if(confirm("입력한 내용과 결과를 모두 삭제하시겠습니까?")) {
             document.getElementById('inputText').value = "";
             document.getElementById('outputText').value = "";
+            document.getElementById('etcCheck').checked = false;
             document.getElementById('inputText').focus();
         }
     }
 
     function convertTimeline() {
         const input = document.getElementById('inputText').value;
+        const isEtc = document.getElementById('etcCheck').checked; // 체크박스 상태 확인
         const lines = input.split('\n');
         const resultList = [];
         const timeRegex = /(\d{1,2}:\d{2}:\d{2}|\d{1,2}:\d{2})/;
@@ -70,15 +100,17 @@
                 const time = timeMatch[0];
                 let titlePart = line.split(time)[1].trim();
                 
-                // 1. 이모지 제거
+                // 이모지 제거
                 titlePart = titlePart.replace(/[🎵🎶▶️]/g, '').trim();
                 
-                // 2. 하이픈 앞 제목 추출 및 제목 내 쉼표 제거
+                // 하이픈 앞 제목 추출 및 쉼표 제거
                 let finalTitle = titlePart.split('-')[0].trim();
                 finalTitle = finalTitle.replace(/,/g, '');
 
                 if (finalTitle) {
-                    resultList.push(`${finalTitle}(${time})`);
+                    // 체크박스가 켜져 있으면 [기타] 추가
+                    const prefix = isEtc ? "[기타] " : "";
+                    resultList.push(`${prefix}${finalTitle}(${time})`);
                 }
             }
         });
