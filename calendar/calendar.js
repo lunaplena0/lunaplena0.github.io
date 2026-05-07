@@ -75,6 +75,22 @@ async function fetchSchedule() {
         }
     } catch (error) {
         console.error("데이터 로드 실패:", error);
+    } finally {
+        // 데이터 로드가 끝났을 때
+        if (overlay) {
+            // 1. 살짝 대기 후 페이드아웃 시작 (너무 빨리 사라지면 어색함)
+            setTimeout(() => {
+                overlay.style.opacity = '0';
+                overlay.style.visibility = 'hidden'; // 투명해짐과 동시에 클릭 차단 해제
+                
+                // 2. 완전히 사라진 후(0.5초 뒤) 스크롤 허용 및 정리
+                setTimeout(() => {
+                    document.body.style.overflow = 'auto'; 
+                    // 필요하다면 아예 요소를 제거하거나 display none 처리
+                    // overlay.style.display = 'none'; 
+                }, 500);
+            }, 800);
+        }
     }
 }
 
