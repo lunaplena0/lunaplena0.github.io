@@ -12,25 +12,29 @@
     <header class="card header-box">
         <div class="title-group">
             <h1 class="page-title">타임라인 변환기</h1>
-            <p class="page-desc">포맷 변환 후 직접 수정하여 복사할 수 있습니다.</p>
+            <p class="page-desc">제목 내 쉼표 제거 및 포맷 변환 후 자유롭게 수정하세요.</p>
         </div>
         <a href="index.html" class="btn">← 메인으로</a>
     </header>
 
     <main class="card content-card">
         <div id="content-area">
+            <!-- 1. 입력 칸 -->
             <div style="margin-bottom: 15px;">
                 <label style="display: block; margin-bottom: 8px; font-size: 13px; color: var(--text-sub);">원본 타임라인 입력</label>
                 <textarea id="inputText" style="width: 100%; height: 150px; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: rgba(255,255,255,0.05); color: var(--text-main); resize: vertical; box-sizing: border-box; font-family: inherit;" placeholder="내용을 붙여넣으세요..."></textarea>
             </div>
 
-            <button onclick="convertTimeline()" class="btn" style="width: 100%; background: #007aff; color: #fff; font-weight: bold; padding: 12px; margin-bottom: 20px; border: none; cursor: pointer;">형식 변환하기 ↓</button>
+            <!-- 2. 변환 버튼 -->
+            <button onclick="convertTimeline()" class="btn" style="width: 100%; background: #007aff; color: #fff; font-weight: bold; padding: 12px; margin-bottom: 20px; border: none; cursor: pointer;">형식 변환하기 (쉼표 제거) ↓</button>
 
+            <!-- 3. 결과 칸 (수정 가능) -->
             <div style="margin-bottom: 15px;">
-                <label style="display: block; margin-bottom: 8px; font-size: 13px; color: var(--text-sub);">변환 결과 (여기서 직접 수정 가능)</label>
-                <textarea id="outputText" style="width: 100%; height: 150px; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: rgba(0,0,0,0.2); color: #00ffcc; resize: vertical; box-sizing: border-box; font-family: inherit;" placeholder="변환된 결과가 여기에 표시됩니다."></textarea>
+                <label style="display: block; margin-bottom: 8px; font-size: 13px; color: var(--text-sub);">변환 결과 (수정 후 복사 가능)</label>
+                <textarea id="outputText" style="width: 100%; height: 150px; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: rgba(0,0,0,0.2); color: #00ffcc; resize: vertical; box-sizing: border-box; font-family: inherit; line-height: 1.5;" placeholder="변환된 결과가 여기에 표시됩니다."></textarea>
             </div>
             
+            <!-- 4. 복사 버튼 -->
             <button onclick="copyToClipboard()" class="btn" style="width: 100%; background: var(--text-main); color: #000; font-weight: bold; padding: 12px; border: none; cursor: pointer;">수정된 결과 복사하기</button>
         </div>
     </main>
@@ -55,20 +59,26 @@
                 const time = timeMatch[0];
                 let titlePart = line.split(time)[1].trim();
                 
-                // 🎵 이모지 및 특수문자 제거
+                // 1. 🎵 이모지 및 특수문자 제거
                 titlePart = titlePart.replace(/[🎵🎶▶️]/g, '').trim();
                 
-                // 하이픈(-) 앞의 제목만 추출
+                // 2. 하이픈(-) 앞의 제목만 추출
                 let finalTitle = titlePart.split('-')[0].trim();
                 
-                // 만약 split 후 내용이 없다면(하이픈이 없는 경우 등) 대비
-                if(!finalTitle && titlePart) finalTitle = titlePart;
+                // 3. 제목 안에 쉼표(,)가 있으면 제거 (핵심 추가 사항)
+                if (finalTitle) {
+                    finalTitle = finalTitle.replace(/,/g, ''); 
+                } else if (titlePart) {
+                    finalTitle = titlePart.replace(/,/g, '');
+                }
 
-                resultList.push(`${finalTitle}(${time})`);
+                if (finalTitle) {
+                    resultList.push(`${finalTitle}(${time})`);
+                }
             }
         });
 
-        // 결과창에 출력 (수정 가능하도록 설정됨)
+        // 결과창에 출력 (쉼표와 공백으로 곡 구분)
         document.getElementById('outputText').value = resultList.join(', ');
     }
 
@@ -79,15 +89,14 @@
             return;
         }
         
-        // 텍스트 영역 선택 및 복사
         output.select();
         output.setSelectionRange(0, 99999); // 모바일 대응
 
         try {
             document.execCommand('copy');
-            alert('내용이 클립보드에 복사되었습니다!');
+            alert('클립보드에 복사되었습니다!');
         } catch (err) {
-            alert('복사에 실패했습니다. 직접 선택해서 복사해주세요.');
+            alert('복사에 실패했습니다.');
         }
     }
 </script>
