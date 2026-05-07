@@ -2,6 +2,12 @@ const TSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT8obAx_3kA2Ybd
 let allEvents = [];
 
 async function fetchSchedule() {
+    // --- [로딩 시작 코드 추가] ---
+    const overlay = document.getElementById('loading-overlay');
+    if (typeof prepareWaveText === "function") {
+        prepareWaveText("일정들을 확인하고 있어요 . . .");
+    }
+    // -------------------------
     try {
         const response = await fetch(TSV_URL);
         const data = await response.text();
