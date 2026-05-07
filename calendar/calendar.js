@@ -134,16 +134,25 @@ function renderCalendar(yearMonth) {
         }
     }
 
+   // 제목을 보여줄 타입들 (여기에 추가하고 싶은 타입을 넣으세요)
+    const showTitleTypes = ["결과발표", "공방참여", "기타"];
+
+    // 1. 해당 타입이고 + 제목이 있을 때만 제목 HTML 생성
+    const titleHtml = (showTitleTypes.includes(ev.type) && ev.title) 
+        ? `<div class="event-title-summary">${ev.title}</div>` 
+        : '';
     // 3. HTML 구조 통일 (휴방도 동일하게 뱃지가 표시됨)
     evDiv.innerHTML = `
     <div class="event-meta pc-only">
         ${ev.time ? `<div class="event-time" style="${ev.time === '이어서' ? 'font-style: italic; color: var(--text-sub);' : ''}">${ev.time}</div>` : ''}
         <span class="type-badge type-${ev.type}">${ev.type}</span>
     </div>
+    ${titleHtml ? `<div class="pc-only" style="margin-top:2px;">${titleHtml}</div>` : ''}
     
     <div class="mobile-only mobile-event-info">
         ${ev.time ? `<div class="mobile-time">${ev.time}</div>` : ''}
         <div class="mobile-type color-${ev.type}">${ev.type}</div>
+        ${titleHtml} 
     </div>
 
     <div class="tag-container pc-only" style="margin-top: 4px;">${tagsHtml}</div>
