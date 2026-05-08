@@ -284,10 +284,18 @@ function loadSheetData() {
 
             // 2. 데이터 렌더링 및 통계 업데이트
             if (allData.length > 0) {
+                // [추가] 날짜 기준 최신순 정렬 (내림차순)
+                allData.sort((a, b) => {
+                    const dateA = new Date(a['날짜'] || 0);
+                    const dateB = new Date(b['날짜'] || 0);
+                    return dateB - dateA; // 최신날짜가 위로 오게 함
+                });
+
                 renderVODList(allData);
                 updateTagStatistics(allData);
                 initializeReportData(allData);
                 updateReport();
+            }
             } else {
                 // 에러 발생 시 사용자에게 보여줄 메시지만 남기고 로그는 제거
                 const listContainer = document.querySelector('.vod-list');
