@@ -369,19 +369,19 @@ function renderRptTags(data) {
 
     const sorted = Object.entries(tagCount).sort((a, b) => b[1] - a[1]);
     // 요약 보고서용 태그 순위 업데이트 (가로 3열 정렬 + 스크롤)
-const container = document.getElementById('rptTags'); // 기존 변수명 유지
+const container = document.getElementById('rptTags'); 
 if (container) {
-    // [레이아웃 강제 설정] 가로 3열 정렬 및 스크롤 부여
+    // [레이아웃 설정] 가로 3열 정렬 및 내부 스크롤 부여
     container.style.display = 'grid';
-    container.style.gridTemplateColumns = 'repeat(3, 1fr)'; // 가로 3칸
-    container.style.gridAutoFlow = 'row';                  // 왼쪽에서 오른쪽으로 채움
+    container.style.gridTemplateColumns = 'repeat(3, 1fr)'; 
+    container.style.gridAutoFlow = 'row';                  
     container.style.gap = '8px';
-    container.style.maxHeight = '180px';                   // 4줄 높이 고정
+    container.style.maxHeight = '180px';                   
     container.style.overflowY = 'auto';
     container.style.paddingRight = '5px';
     
-    // 상위 30개 태그 표시 (스크롤로 확인 가능)
-    const reportTags = sorted.slice(0, 30);
+    // 상위 30개 태그 표시
+    const reportTags = sorted.slice(0, 30); 
     
     container.innerHTML = reportTags.map(([name, count], index) => {
         const rank = index + 1;
@@ -389,7 +389,6 @@ if (container) {
         let finalName = name.startsWith('#') ? name : '#' + name;
         let colorStyle = '';
 
-        // 특수 태그 처리
         if (name.includes('구독')) {
             finalName = '#구독+';
             colorStyle = 'color:#ffcc00; font-weight:bold;';
@@ -398,17 +397,18 @@ if (container) {
             colorStyle = 'color:#ff4444; font-weight:bold;';
         }
 
-       return `
-                <div class="rank-item" 
-                     onclick="toggleTagFilter('${name}')" 
-                     style="display: flex; align-items: center; border-bottom: 1px solid rgba(22, 36, 58, 0.3); cursor:pointer; ${colorStyle}">
-                    <span class="rank-badge ${isTop}">${rank}</span>
-                    <span class="tag-text" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; font-size: 11px;">
-                        ${finalName}
-                    </span>
-                </div>
-            `;
-        }).join('');
+        // [핵심] filterPopupVodByTag('${name}')를 호출하여 보고서 내 리스트를 필터링합니다.
+        return `
+            <div class="rank-item" 
+                 onclick="filterPopupVodByTag('${name}')" 
+                 style="display: flex; align-items: center; border-bottom: 1px solid rgba(22, 36, 58, 0.3); cursor:pointer; ${colorStyle}">
+                <span class="rank-badge ${isTop}">${rank}</span>
+                <span class="tag-text" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; font-size: 11px;">
+                    ${finalName}
+                </span>
+            </div>
+        `;
+    }).join('');
 }
 }
 function toggleTagFilter(tagName) {
