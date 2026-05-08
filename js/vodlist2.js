@@ -400,7 +400,7 @@ if (container) {
 
        return `
                 <div class="rank-item" 
-                     onclick="toggleTagFilter('${name}'); closeModal();" 
+                     onclick="toggleTagFilter('${name}')" 
                      style="display: flex; align-items: center; border-bottom: 1px solid rgba(22, 36, 58, 0.3); cursor:pointer; ${colorStyle}">
                     <span class="rank-badge ${isTop}">${rank}</span>
                     <span class="tag-text" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; font-size: 11px;">
