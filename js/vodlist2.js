@@ -106,38 +106,55 @@ const barColor = name.includes('구독') ? '#ffcc00' : (name.includes('19') || n
 // 5. [전체 태그 순위] 그리드 업데이트
 const rankGrid = document.querySelector('.rank-grid');
 if (rankGrid) {
-    // [중요] 박스 크기를 고정하고 내부 스크롤을 만듭니다.
-    rankGrid.style.maxHeight = '280px'; // 3~4줄 정도 높이로 고정
-    rankGrid.style.overflowY = 'auto';  // 내용이 많아지면 내부 스크롤 발생
-    rankGrid.style.paddingRight = '5px'; // 스크롤바와 겹치지 않게 여백
+    // [스타일 보정] 부모 컨테이너의 높이를 제한하고 스크롤을 부여합니다.
+    rankGrid.style.display = 'grid'; // 그리드 유지
+    rankGrid.style.maxHeight = '200px'; // 이미지상의 3~4줄 높이 (필요시 조절)
+    rankGrid.style.overflowY = 'auto';  // 세로 스크롤 허용
+    rankGrid.style.overflowX = 'hidden'; // 가로 스크롤 방지
+    rankGrid.style.gap = '8px';         // 아이템 간격
+    rankGrid.style.paddingRight = '8px'; // 스크롤바와 아이템 사이 간격
+    
     rankGrid.innerHTML = '';
     
-    // 초기에는 전체 태그를 미리 다 생성합니다 (이미 스크롤 박스가 되었으므로)
+    // 전체 태그 데이터 생성
     sortedTags.forEach(([name, count], index) => {
         const rank = index + 1;
         const isTop = rank <= 3 ? 'top-rank' : '';
         
         let finalName = name;
-        let specialStyle = 'display: flex;'; // 처음부터 모두 생성하되 스크롤로 보여줌
+        let colorStyle = '';
 
         if (name.includes('구독')) {
             finalName = '#구독+'; 
-            specialStyle += 'color:#ffcc00; font-weight:bold;';
+            colorStyle = 'color:#ffcc00; font-weight:bold;';
         } else if (name.includes('19')) {
             finalName = '#19';    
-            specialStyle += 'color:#ff4444; font-weight:bold;';
+            colorStyle = 'color:#ff4444; font-weight:bold;';
         } else {
             finalName = name.startsWith('#') ? name : '#' + name;
         }
 
+        // 아이템 생성 (flex-shrink: 0을 넣어 그리드 내에서 찌그러짐 방지)
         const rankItem = `
             <div class="rank-item" data-tag="${name}" onclick="toggleTagFilter('${name}')" 
-                 style="${specialStyle} cursor:pointer; flex-shrink: 0;">
+                 style="display: flex; cursor:pointer; align-items: center; ${colorStyle}">
                 <span class="rank-badge ${isTop}">${rank}</span>
                 <span class="tag-text">${finalName}</span>
             </div>`;
         rankGrid.insertAdjacentHTML('beforeend', rankItem);
     });
+
+    // 스크롤바 커스텀 (CSS 파일 대신 JS로 삽입 - 디자인 일관성)
+    if (!document.getElementById('custom-scroll-style')) {
+        const style = document.createElement('style');
+        style.id = 'custom-scroll-style';
+        style.innerHTML = `
+            .rank-grid::-webkit-scrollbar { width: 4px; }
+            .rank-grid::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); }
+            .rank-grid::-webkit-scrollbar-thumb { background: var(--accent-bright); border-radius: 10px; }
+        `;
+        document.head.appendChild(style);
+    }
 }
 
     // 6. 요약 보고서 기본 연동 데이터
