@@ -156,6 +156,9 @@ function showStats(category) {
     const contentArea = document.getElementById('content-area');
     if (!contentArea) return;
 
+    // 🔍 1. 검색어 가져오기
+    const searchTerm = document.getElementById('search-input')?.value.toLowerCase() || "";
+    
     const yearEl = document.getElementById('select-year');
     const monthEl = document.getElementById('select-month');
     const selYear = yearEl ? yearEl.value : "";
@@ -164,31 +167,57 @@ function showStats(category) {
     let filteredData = [];
     let dashboardHTML = "";
 
+    // 📅 2. 카테고리별 기본 필터링 (기존 로직 유지)
     if (category === 'all') {
         filteredData = rawData.map(d => ({...d, count: d.dates.length}));
-        
-        const artistMap = {};
-        filteredData.forEach(d => artistMap[d.artist] = (artistMap[d.artist] || 0) + d.count);
-        const top5Artists = Object.entries(artistMap).sort((a,b) => b[1] - a[1]).slice(0, 5);
-        
-        const genreMap = {};
-        filteredData.forEach(d => genreMap[d.genre] = (genreMap[d.genre] || 0) + d.count);
-        
-        const topSong = [...filteredData].sort((a,b) => b.count - a.count)[0];
+    } else if (category === 'yearly') {
+        const target = `(${selYear}.`;
+        filteredData = rawData.map(item => {
+            const yearlyDates = item.dates.filter(d => d.includes(target));
+            return { ...item, count: yearlyDates.length };
+        }).filter(item => item.count > 0);
+    } else if (category === 'monthly') {
+        const target = `(${selYear}.${selMonth}.`;
+        filteredData = rawData.map(item => {
+            const monthlyDates = item.dates.filter(d => d.includes(target));
+            return { ...item, count: monthlyDates.length };
+        }).filter(item => item.count > 0);
+    }
 
-        dashboardHTML = `
-            <div class="stats-grid">
-                <div class="stat-item"><span class="stat-label">총 등록 곡 수</span><span class="stat-value">${filteredData.length}곡</span></div>
-                <div class="stat-item"><span class="stat-label">총 가창 횟수</span><span class="stat-value">${filteredData.reduce((acc, cur) => acc + cur.count, 0)}회</span></div>
-                <div class="stat-item"><span class="stat-label">최다 가창 곡</span><span class="stat-value" style="font-size:14px">${topSong ? topSong.title : "-"}</span></div>
-            </div>
-            <div class="chart-section">
-                <div class="chart-container"><canvas id="artistChart"></canvas></div>
-                <div class="chart-container"><canvas id="genreChart"></canvas></div>
-            </div>
-        `;
-        
-        setTimeout(() => renderAllCharts(top5Artists, genreMap), 100);
+    // 🔍 3. 검색어 필터링 적용 (데이터가 생성된 후 검색어로 재필터)
+    if (searchTerm) {
+        filteredData = filteredData.filter(item => 
+            item.title.toLowerCase().includes(searchTerm) || 
+            item.artist.toLowerCase().includes(searchTerm)
+        );
+    }
+
+    // 📊 4. 통계 및 차트 데이터 계산 (필터링된 최종 데이터를 기준으로)
+    const artistMap = {};
+    const genreMap = {};
+    filteredData.forEach(d => {
+        artistMap[d.artist] = (artistMap[d.artist] || 0) + d.count;
+        genreMap[d.genre] = (genreMap[d.genre] || 0) + d.count;
+    });
+
+    const top5Artists = Object.entries(artistMap).sort((a,b) => b[1] - a[1]).slice(0, 5);
+    const totalCountVal = filteredData.reduce((acc, cur) => acc + cur.count, 0);
+    const topSong = [...filteredData].sort((a,b) => b.count - a.count)[0];
+
+    // 🖥️ 5. 대시보드 HTML 생성 (검색 결과에 따라 수치가 변함)
+    dashboardHTML = `
+        <div class="stats-grid">
+            <div class="stat-item"><span class="stat-label">검색/필터 곡 수</span><span class="stat-value">${filteredData.length}곡</span></div>
+            <div class="stat-item"><span class="stat-label">총 가창 횟수</span><span class="stat-value">${totalCountVal}회</span></div>
+            <div class="stat-item"><span class="stat-label">해당 조건 최다 가창</span><span class="stat-value" style="font-size:14px">${topSong ? topSong.title : "-"}</span></div>
+        </div>
+        <div class="chart-section">
+            <div class="chart-container"><canvas id="artistChart"></canvas></div>
+            <div class="chart-container"><canvas id="genreChart"></canvas></div>
+        </div>
+    `;
+    
+    setTimeout(() => renderAllCharts(top5Artists, genreMap), 100);
 
     } else if (category === 'yearly') {
         const target = `(${selYear}.`;
@@ -260,6 +289,14 @@ function showStats(category) {
             </div>
         `;
         setTimeout(() => renderAllCharts(top5Artists, monthlyGenres), 100);
+    }
+
+    // 🔍 검색어 필터링 적용
+    if (searchTerm) {
+        filteredData = filteredData.filter(item => 
+            item.title.toLowerCase().includes(searchTerm) || 
+            item.artist.toLowerCase().includes(searchTerm)
+        );
     }
 
     // 하단 테이블 렌더링 로직 (기존과 동일)
@@ -399,4 +436,17 @@ window.onclick = function(event) {
         closeModal();
     }
 }
+// 엔터키 입력 처리
+function handleSearch(event) {
+    if (event.key === 'Enter') {
+        applySearch();
+    }
+}
+
+// 검색 버튼 클릭 시 호출
+function applySearch() {
+    visibleCount = 20; // 검색 결과는 처음부터 보여줌
+    applyDateFilter(); // 현재 필터 상태(전체/월별/연도별) 유지하며 검색 적용
+}
+
 window.onload = loadSheetData;
