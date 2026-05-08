@@ -156,9 +156,8 @@ function showStats(category) {
     const contentArea = document.getElementById('content-area');
     if (!contentArea) return;
 
-    // 🔍 1. 검색어 가져오기
-    const searchTerm = document.getElementById('search-input')?.value.toLowerCase() || "";
-    
+    // 🔍 1. 입력값 가져오기
+    const searchTerm = document.getElementById('search-input')?.value.toLowerCase().trim() || "";
     const yearEl = document.getElementById('select-year');
     const monthEl = document.getElementById('select-month');
     const selYear = yearEl ? yearEl.value : "";
@@ -167,9 +166,9 @@ function showStats(category) {
     let filteredData = [];
     let dashboardHTML = "";
 
-    // 📅 2. 카테고리별 기본 필터링 (기존 로직 유지)
+    // 📅 2. 카테고리별 날짜 필터링
     if (category === 'all') {
-        filteredData = rawData.map(d => ({...d, count: d.dates.length}));
+        filteredData = rawData.map(d => ({ ...d, count: d.dates.length }));
     } else if (category === 'yearly') {
         const target = `(${selYear}.`;
         filteredData = rawData.map(item => {
@@ -184,7 +183,7 @@ function showStats(category) {
         }).filter(item => item.count > 0);
     }
 
-    // 🔍 3. 검색어 필터링 적용 (데이터가 생성된 후 검색어로 재필터)
+    // 🔍 3. 검색어 필터링 (날짜 필터된 결과에서 검색어 적용)
     if (searchTerm) {
         filteredData = filteredData.filter(item => 
             item.title.toLowerCase().includes(searchTerm) || 
@@ -192,118 +191,60 @@ function showStats(category) {
         );
     }
 
-    // 📊 4. 통계 및 차트 데이터 계산 (필터링된 최종 데이터를 기준으로)
+    // 📊 4. 통계 데이터 계산 (필터링이 완료된 최종 데이터 기준)
     const artistMap = {};
     const genreMap = {};
+    const monthCounts = {};
+    const yearTarget = `(${selYear}.`;
+
     filteredData.forEach(d => {
         artistMap[d.artist] = (artistMap[d.artist] || 0) + d.count;
         genreMap[d.genre] = (genreMap[d.genre] || 0) + d.count;
+        
+        // 연도별 보기일 때만 월별 통계 추가 계산
+        if (category === 'yearly') {
+            d.dates.filter(date => date.includes(yearTarget)).forEach(date => {
+                const m = date.substring(4, 6);
+                monthCounts[m] = (monthCounts[m] || 0) + 1;
+            });
+        }
     });
 
-    const top5Artists = Object.entries(artistMap).sort((a,b) => b[1] - a[1]).slice(0, 5);
+    const top5Artists = Object.entries(artistMap).sort((a, b) => b[1] - a[1]).slice(0, 5);
     const totalCountVal = filteredData.reduce((acc, cur) => acc + cur.count, 0);
-    const topSong = [...filteredData].sort((a,b) => b.count - a.count)[0];
+    const topSong = [...filteredData].sort((a, b) => b.count - a.count)[0];
 
-    // 🖥️ 5. 대시보드 HTML 생성 (검색 결과에 따라 수치가 변함)
+    // 🖥️ 5. 대시보드 UI 구성
+    let statLabel1 = "총 가창 횟수";
+    let statLabel3 = "최다 가창 곡";
+    let statValue3 = topSong ? topSong.title : "-";
+
+    if (category === 'yearly') {
+        statLabel1 = `${selYear}년 가창`;
+        const bestMonthEntry = Object.entries(monthCounts).sort((a, b) => b[1] - a[1])[0];
+        statLabel3 = "가장 많이 부른 달";
+        statValue3 = bestMonthEntry ? `${parseInt(bestMonthEntry[0])}월` : "-";
+    } else if (category === 'monthly') {
+        statLabel1 = `${parseInt(selMonth)}월 가창`;
+        statLabel3 = "이달의 아티스트";
+        statValue3 = top5Artists[0] ? top5Artists[0][0] : "-";
+    }
+
     dashboardHTML = `
         <div class="stats-grid">
             <div class="stat-item"><span class="stat-label">검색/필터 곡 수</span><span class="stat-value">${filteredData.length}곡</span></div>
-            <div class="stat-item"><span class="stat-label">총 가창 횟수</span><span class="stat-value">${totalCountVal}회</span></div>
-            <div class="stat-item"><span class="stat-label">해당 조건 최다 가창</span><span class="stat-value" style="font-size:14px">${topSong ? topSong.title : "-"}</span></div>
+            <div class="stat-item"><span class="stat-label">${statLabel1}</span><span class="stat-value">${totalCountVal}회</span></div>
+            <div class="stat-item"><span class="stat-label">${statLabel3}</span><span class="stat-value" style="font-size:13px">${statValue3}</span></div>
         </div>
         <div class="chart-section">
             <div class="chart-container"><canvas id="artistChart"></canvas></div>
             <div class="chart-container"><canvas id="genreChart"></canvas></div>
         </div>
     `;
-    
-    setTimeout(() => renderAllCharts(top5Artists, genreMap), 100);
 
-    } else if (category === 'yearly') {
-        const target = `(${selYear}.`;
-        filteredData = rawData.map(item => {
-            const yearlyDates = item.dates.filter(d => d.includes(target));
-            return { ...item, count: yearlyDates.length };
-        }).filter(item => item.count > 0);
-
-        const yearlyGenres = {};
-        const artistMap = {}; // 연도별 차트용
-        const monthCounts = {};
-        
-        filteredData.forEach(d => {
-            artistMap[d.artist] = (artistMap[d.artist] || 0) + d.count;
-            yearlyGenres[d.genre] = (yearlyGenres[d.genre] || 0) + d.count;
-            d.dates.filter(date => date.includes(target)).forEach(date => {
-                const month = date.substring(4, 6);
-                monthCounts[month] = (monthCounts[month] || 0) + 1;
-            });
-        });
-
-        const top5Artists = Object.entries(artistMap).sort((a,b) => b[1] - a[1]).slice(0, 5);
-        const totalYearlyCount = filteredData.reduce((acc, cur) => acc + cur.count, 0);
-        const topYearlySong = [...filteredData].sort((a, b) => b.count - a.count)[0];
-        const topYearlyGenre = Object.entries(yearlyGenres).sort((a, b) => b[1] - a[1])[0];
-        const bestMonthEntry = Object.entries(monthCounts).sort((a, b) => b[1] - a[1])[0];
-
-        dashboardHTML = `
-            <div class="stats-grid">
-                <div class="stat-item"><span class="stat-label">${selYear}년 총 가창</span><span class="stat-value">${totalYearlyCount}회</span></div>
-                <div class="stat-item"><span class="stat-label">올해의 노래</span><span class="stat-value" style="font-size:14px">${topYearlySong ? topYearlySong.title : "-"}</span></div>
-                <div class="stat-item"><span class="stat-label">올해의 장르</span><span class="stat-value" style="font-size:14px">${topYearlyGenre ? topYearlyGenre[0] : "-"}</span></div>
-                <div class="stat-item"><span class="stat-label">가장 많이 부른 달</span><span class="stat-value">${bestMonthEntry ? parseInt(bestMonthEntry[0]) + '월' : "-"}</span></div>
-            </div>
-            <div class="chart-section">
-                <div class="chart-container"><canvas id="artistChart"></canvas></div>
-                <div class="chart-container"><canvas id="genreChart"></canvas></div>
-            </div>
-        `;
-        setTimeout(() => renderAllCharts(top5Artists, yearlyGenres), 100);
-
-    } else if (category === 'monthly') {
-        const target = `(${selYear}.${selMonth}.`;
-        filteredData = rawData.map(item => {
-            const monthlyDates = item.dates.filter(d => d.includes(target));
-            return { ...item, count: monthlyDates.length };
-        }).filter(item => item.count > 0);
-
-        const monthlyArtists = {};
-        const monthlyGenres = {};
-        
-        filteredData.forEach(d => {
-            monthlyArtists[d.artist] = (monthlyArtists[d.artist] || 0) + d.count;
-            monthlyGenres[d.genre] = (monthlyGenres[d.genre] || 0) + d.count;
-        });
-
-        const top5Artists = Object.entries(monthlyArtists).sort((a,b) => b[1] - a[1]).slice(0, 5);
-        const currentTotal = filteredData.reduce((acc, cur) => acc + cur.count, 0);
-
-        dashboardHTML = `
-            <div class="stats-grid">
-                <div class="stat-item"><span class="stat-label">이달의 가창 횟수</span><span class="stat-value">${currentTotal}회</span></div>
-                <div class="stat-item"><span class="stat-label">이달의 아티스트</span><span class="stat-value" style="font-size:14px">${top5Artists[0] ? top5Artists[0][0] : "-"}</span></div>
-                <div class="stat-item"><span class="stat-label">이달의 장르</span><span class="stat-value" style="font-size:14px">${Object.entries(monthlyGenres).sort((a,b)=>b[1]-a[1])[0]?.[0] || "-"}</span></div>
-            </div>
-            <div class="chart-section">
-                <div class="chart-container"><canvas id="artistChart"></canvas></div>
-                <div class="chart-container"><canvas id="genreChart"></canvas></div>
-            </div>
-        `;
-        setTimeout(() => renderAllCharts(top5Artists, monthlyGenres), 100);
-    }
-
-    // 🔍 검색어 필터링 적용
-    if (searchTerm) {
-        filteredData = filteredData.filter(item => 
-            item.title.toLowerCase().includes(searchTerm) || 
-            item.artist.toLowerCase().includes(searchTerm)
-        );
-    }
-
-    // 하단 테이블 렌더링 로직 (기존과 동일)
+    // 📋 6. 테이블 및 버튼 렌더링
     filteredData.sort((a, b) => b.count - a.count);
-    const totalCount = filteredData.length;
     const displayData = filteredData.slice(0, visibleCount);
-    const currentViewCount = displayData.length;
 
     contentArea.innerHTML = dashboardHTML + `
         <div class="data-table-container">
@@ -316,21 +257,23 @@ function showStats(category) {
                             <td style="color:var(--text-main); font-weight:500;">${row.title}</td>
                             <td>${row.artist}</td>
                             <td>${row.count}회</td>
-                        </tr>
-                    `).join('') : `<tr><td colspan="4" style="text-align:center; padding:20px;">데이터가 없습니다.</td></tr>`}
+                        </tr>`).join('') : `<tr><td colspan="4" style="text-align:center; padding:40px; color:var(--text-sub);">결과가 없습니다.</td></tr>`}
                 </tbody>
             </table>
         </div>
-        ${totalCount > visibleCount ? `
+        ${filteredData.length > visibleCount ? `
             <div style="text-align: center; margin-top: 20px;">
-                <button class="filter-btn active" onclick="loadMore()" style="width: 220px;">더보기 (${currentViewCount}/${totalCount}) ▼</button>
+                <button class="filter-btn active" onclick="loadMore()" style="width: 220px;">더보기 (${displayData.length}/${filteredData.length}) ▼</button>
             </div>
-        ` : totalCount > 20 ? `
+        ` : (filteredData.length > 20 ? `
             <div style="text-align: center; margin-top: 20px;">
-                <button class="filter-btn" onclick="resetVisibleCount()" style="width: 220px; opacity: 0.7;">처음으로 되돌리기 ▲</button>
+                <button class="filter-btn" onclick="resetVisibleCount()" style="width: 220px; opacity: 0.7;">처음으로 ▲</button>
             </div>
-        ` : ''}
+        ` : '')}
     `;
+
+    // 📊 7. 차트 그리기 (DOM 업데이트 후 실행)
+    setTimeout(() => renderAllCharts(top5Artists, genreMap), 50);
 }
 
 // 3. 차트 렌더링 함수
