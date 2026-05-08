@@ -106,8 +106,14 @@ const barColor = name.includes('구독') ? '#ffcc00' : (name.includes('19') || n
    // 5. [전체 태그 순위] 그리드 업데이트
 const rankGrid = document.querySelector('.rank-grid');
 if (rankGrid) {
-    rankGrid.innerHTML = ''; 
-    sortedTags.forEach(([name, count], index) => {
+    rankGrid.innerHTML = '';
+    
+    // PC 여부 확인 (화면 너비 768px 이상)
+    const isPC = window.innerWidth > 768;
+    // PC라면 11개만 보여주고 12번째에 버튼 배치, 모바일은 전체 노출
+    const displayTags = (isPC && sortedTags.length > 12) ? sortedTags.slice(0, 11) : sortedTags;
+
+    displayTags.forEach(([name, count], index) => {
         const rank = index + 1;
         const isTop = rank <= 3 ? 'top-rank' : '';
         
@@ -129,17 +135,24 @@ if (rankGrid) {
             finalName = name.startsWith('#') ? name : '#' + name;
         }
 
-       const rankItem = `
-    <div class="rank-item" 
-         data-tag="${name}" 
-         onclick="toggleTagFilter('${name}')" 
-         style="${specialStyle} cursor:pointer;"> <span class="rank-badge ${isTop}">${rank}</span>
-        <span class="tag-text">${finalName}</span>
-    </div>`;
+      const rankItem = `
+            <div class="rank-item" data-tag="${name}" onclick="toggleTagFilter('${name}')" style="${specialStyle} cursor:pointer;">
+                <span class="rank-badge ${isTop}">${rank}</span>
+                <span class="tag-text">${finalName}</span>
+            </div>`;
         rankGrid.insertAdjacentHTML('beforeend', rankItem);
     });
-}
 
+    // PC에서 태그가 12개를 초과할 때만 '+ 더보기' 버튼 생성
+    if (isPC && sortedTags.length > 12) {
+        const moreBtn = `
+            <div class="rank-item more-btn" onclick="openReportModal()" 
+                 style="cursor:pointer; background: rgba(255,255,255,0.05); border: 1px dashed #555; justify-content: center;">
+                <span class="tag-text" style="color:var(--text-sub); font-size: 11px;">+ 전체 ${sortedTags.length}개</span>
+            </div>`;
+        rankGrid.insertAdjacentHTML('beforeend', moreBtn);
+    }
+}
     // 6. 요약 보고서 기본 연동 데이터
     let topTag = sortedTags.length > 0 ? sortedTags[0][0] : '-';
     let topTagName = topTag;
