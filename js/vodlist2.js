@@ -612,6 +612,7 @@ let groupedData = {}; // { "2026": { "04": [...], "03": [...] } }
 function initializeReportData(data) {
     groupedData = {};
     const yearSelect = document.getElementById('selectYear');
+    const monthSelect = document.getElementById('selectMonth'); // 월 선택 요소 가져오기
     const years = new Set();
 
     data.forEach(row => {
@@ -626,10 +627,33 @@ function initializeReportData(data) {
     // 연도 셀렉트박스 채우기
     yearSelect.innerHTML = Array.from(years).sort().reverse()
         .map(y => `<option value="${y}">${y}년</option>`).join('');
+
+    // [수정] 선택된 연도에 따라 월 목록을 업데이트하는 함수 연결
+    yearSelect.onchange = () => {
+        updateMonthOptions();
+        updateReport();
+    };
+    monthSelect.onchange = updateReport;
+
+    // 초기 실행: 첫 번째 연도의 월 목록 생성
+    updateMonthOptions();
+}
+
+// [추가] 데이터가 있는 월만 드롭다운에 넣어주는 함수
+function updateMonthOptions() {
+    const yearSelect = document.getElementById('selectYear');
+    const monthSelect = document.getElementById('selectMonth');
+    const selectedYear = yearSelect.value;
     
-    // 이벤트 리스너 등록
-    document.getElementById('selectYear').addEventListener('change', updateReport);
-    document.getElementById('selectMonth').addEventListener('change', updateReport);
+    if (!groupedData[selectedYear]) return;
+
+    // 해당 연도에 데이터가 있는 월들을 가져와서 정렬 (내림차순)
+    const availableMonths = Object.keys(groupedData[selectedYear]).sort((a, b) => b - a);
+
+    let monthHtml = '<option value="all">전체 월</option>';
+    monthHtml += availableMonths.map(m => `<option value="${m}">${parseInt(m)}월</option>`).join('');
+    
+    monthSelect.innerHTML = monthHtml;
 }
 
 // 2. 리포트 업데이트 함수
