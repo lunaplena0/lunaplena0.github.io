@@ -381,7 +381,7 @@ if (container) {
     container.style.paddingRight = '5px';
     
     // 상위 30개 태그 표시 (스크롤로 확인 가능)
-    const reportTags = sortedTags.slice(0, 30); 
+    const reportTags = sorted.slice(0, 30);
     
     container.innerHTML = reportTags.map(([name, count], index) => {
         const rank = index + 1;
