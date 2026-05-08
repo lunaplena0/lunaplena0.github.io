@@ -106,20 +106,18 @@ const barColor = name.includes('구독') ? '#ffcc00' : (name.includes('19') || n
 // 5. [전체 태그 순위] 3x4 가로 정렬 + 내부 스크롤형
 const rankGrid = document.querySelector('.rank-grid');
 if (rankGrid) {
-    // [레이아웃 설정] 3열(3x4) 그리드 및 스크롤 설정
+    // [레이아웃 설정] 3열 그리드 강제 및 내부 스크롤 부여 [cite: 209-212]
     rankGrid.style.display = 'grid';
-    rankGrid.style.gridTemplateColumns = 'repeat(3, 1fr)'; // 무조건 가로로 3개씩 배치
-    rankGrid.style.gap = '8px';                           // 아이템 간 간격
-    
-    // [스크롤 설정] 4줄 분량(약 180~200px) 고정 후 스크롤
-    rankGrid.style.maxHeight = '190px'; 
+    rankGrid.style.gridTemplateColumns = 'repeat(3, 1fr)'; // 가로로 1, 2, 3위 배치 [cite: 210]
+    rankGrid.style.gap = '8px';
+    rankGrid.style.maxHeight = '190px'; // 4줄 정도 높이에서 스크롤 발생 [cite: 211]
     rankGrid.style.overflowY = 'auto';
     rankGrid.style.overflowX = 'hidden';
     rankGrid.style.paddingRight = '5px';
     
     rankGrid.innerHTML = '';
     
-    // 데이터 삽입 (기본적으로 순서대로 넣으면 1, 2, 3이 가로로 들어갑니다)
+    // 데이터 삽입: sortedTags 순서대로 가로 방향으로 채워짐 [cite: 213]
     sortedTags.forEach(([name, count], index) => {
         const rank = index + 1;
         const isTop = rank <= 3 ? 'top-rank' : '';
@@ -127,7 +125,7 @@ if (rankGrid) {
         let finalName = name;
         let colorStyle = '';
 
-        // 특수 태그 처리
+        // 특수 태그(구독, 19) 스타일 처리 [cite: 214-215]
         if (name.includes('구독')) {
             finalName = '#구독+'; 
             colorStyle = 'color:#ffcc00; font-weight:bold;';
@@ -142,14 +140,14 @@ if (rankGrid) {
             <div class="rank-item" data-tag="${name}" onclick="toggleTagFilter('${name}')" 
                  style="display: flex; align-items: center; cursor:pointer; width: 100%; box-sizing: border-box; ${colorStyle}">
                 <span class="rank-badge ${isTop}">${rank}</span>
-                <span class="tag-text" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1;">
+                <span class="tag-text" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; margin-left: 5px;">
                     ${finalName}
                 </span>
             </div>`;
         rankGrid.insertAdjacentHTML('beforeend', rankItem);
     });
 
-    // 얇은 스크롤바 디자인 적용
+    // 스크롤바 디자인 (푸른색 포인트) [cite: 217]
     if (!document.getElementById('custom-tag-scroll')) {
         const style = document.createElement('style');
         style.id = 'custom-tag-scroll';
