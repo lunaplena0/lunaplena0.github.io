@@ -146,14 +146,13 @@ if (rankGrid) {
 
     // PC에서 태그가 12개를 초과할 때만 '+ 전체보기' 버튼 생성
     if (isPC && sortedTags.length > 12) {
-        // 기존 openReportModal() 대신 실제 ID인 summaryModal을 여는 함수 호출
-        const moreBtn = `
-            <div class="rank-item more-btn" onclick="openSummaryModal()" 
-                 style="cursor:pointer; background: rgba(51, 133, 255, 0.1); border: 1px dashed var(--accent-bright); justify-content: center; grid-column: auto;">
-                <span class="tag-text" style="color:var(--accent-bright); font-size: 11px; font-weight: bold;">+ 전체 ${sortedTags.length}개</span>
-            </div>`;
-        rankGrid.insertAdjacentHTML('beforeend', moreBtn);
-    }
+    const moreBtn = `
+        <div class="rank-item more-btn" onclick="openSummaryModal()" 
+             style="cursor:pointer; background: rgba(51, 133, 255, 0.1); border: 1px dashed var(--accent-bright); justify-content: center;">
+            <span class="tag-text" style="color:var(--accent-bright); font-size: 11px; font-weight: bold;">+ 전체 ${sortedTags.length}개</span>
+        </div>`;
+    rankGrid.insertAdjacentHTML('beforeend', moreBtn);
+}
 }
 
 // [추가] '더보기' 버튼 클릭 시 실행될 함수
