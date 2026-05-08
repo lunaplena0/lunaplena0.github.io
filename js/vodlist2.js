@@ -157,22 +157,23 @@ if (rankGrid) {
 
 // [추가] '더보기' 버튼 클릭 시 실행될 함수
 function openSummaryModal() {
-    const modal = document.getElementById('summaryModal'); // HTML에 있는 모달 ID 확인
+    const modal = document.getElementById('summaryModal');
     if (modal) {
         modal.style.display = 'flex';
-        // 팝업이 열릴 때 데이터가 즉시 계산되도록 리포트 업데이트 함수 실행
+        // 팝업이 열릴 때 데이터가 최신화되도록 업데이트 함수 호출
         if (typeof updateReport === "function") {
             updateReport();
         }
     } else {
-        console.error("ID가 'summaryModal'인 요소를 찾을 수 없습니다. HTML 코드를 확인해주세요.");
+        // 만약 안 열린다면 콘솔창(F12)에 이 메시지가 뜹니다.
+        console.error("ID가 'summaryModal'인 요소를 찾을 수 없습니다.");
     }
 }
 
-// 기존에 혹시 사용 중일지 모를 함수와 연결 (호환성 유지)
-function openSummary(e) {
-    if (e && e.preventDefault) e.preventDefault();
-    openSummaryModal();
+// 닫기 함수도 하나로 통일
+function closeSummary() {
+    const modal = document.getElementById('summaryModal');
+    if (modal) modal.style.display = 'none';
 }
     // 6. 요약 보고서 기본 연동 데이터
     let topTag = sortedTags.length > 0 ? sortedTags[0][0] : '-';
