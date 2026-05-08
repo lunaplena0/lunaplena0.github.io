@@ -103,13 +103,14 @@ const barColor = name.includes('구독') ? '#ffcc00' : (name.includes('19') || n
         ratioContainer.innerHTML = ratioHtml;
     }
 
-   // 5. [전체 태그 순위] 그리드 업데이트
+// 5. [전체 태그 순위] 그리드 업데이트
 const rankGrid = document.querySelector('.rank-grid');
 if (rankGrid) {
     rankGrid.innerHTML = '';
     
-    // PC 여부 확인 (화면 너비 768px 이상)
-    const isPC = window.innerWidth > 768;
+    // PC 여부 확인 (작성하신 미디어쿼리 800px에 맞춰 800으로 조정 가능)
+    const isPC = window.innerWidth > 800; 
+    
     // PC라면 11개만 보여주고 12번째에 버튼 배치, 모바일은 전체 노출
     const displayTags = (isPC && sortedTags.length > 12) ? sortedTags.slice(0, 11) : sortedTags;
 
@@ -135,7 +136,7 @@ if (rankGrid) {
             finalName = name.startsWith('#') ? name : '#' + name;
         }
 
-      const rankItem = `
+        const rankItem = `
             <div class="rank-item" data-tag="${name}" onclick="toggleTagFilter('${name}')" style="${specialStyle} cursor:pointer;">
                 <span class="rank-badge ${isTop}">${rank}</span>
                 <span class="tag-text">${finalName}</span>
@@ -143,15 +144,31 @@ if (rankGrid) {
         rankGrid.insertAdjacentHTML('beforeend', rankItem);
     });
 
-    // PC에서 태그가 12개를 초과할 때만 '+ 더보기' 버튼 생성
+    // PC에서 태그가 12개를 초과할 때만 '+ 전체보기' 버튼 생성
     if (isPC && sortedTags.length > 12) {
+        // 기존 openReportModal() 대신 실제 ID인 summaryModal을 여는 함수 호출
         const moreBtn = `
-            <div class="rank-item more-btn" onclick="openReportModal()" 
-                 style="cursor:pointer; background: rgba(255,255,255,0.05); border: 1px dashed #555; justify-content: center;">
-                <span class="tag-text" style="color:var(--text-sub); font-size: 11px;">+ 전체 ${sortedTags.length}개</span>
+            <div class="rank-item more-btn" onclick="openSummaryModal()" 
+                 style="cursor:pointer; background: rgba(51, 133, 255, 0.1); border: 1px dashed var(--accent-bright); justify-content: center; grid-column: auto;">
+                <span class="tag-text" style="color:var(--accent-bright); font-size: 11px; font-weight: bold;">+ 전체 ${sortedTags.length}개</span>
             </div>`;
         rankGrid.insertAdjacentHTML('beforeend', moreBtn);
     }
+}
+
+// [추가] '더보기' 버튼 클릭 시 실행될 함수
+function openSummaryModal() {
+    const modal = document.getElementById('summaryModal');
+    if (modal) {
+        modal.style.display = 'flex';
+        updateReport(); // 열 때마다 최신 데이터로 리포트 갱신
+    }
+}
+
+// 기존 HTML의 onclick="openSummary(event)" 대응용
+function openSummary(e) { 
+    if(e) e.preventDefault(); 
+    openSummaryModal(); 
 }
     // 6. 요약 보고서 기본 연동 데이터
     let topTag = sortedTags.length > 0 ? sortedTags[0][0] : '-';
@@ -561,11 +578,16 @@ function resetVods() {
 
 // 현재 필터 상태의 데이터를 가져오는 보조 함수
 function getFilteredData() {
+    if (!currentFilter) return allData;
+    
     return allData.filter(row => {
         const rowTags = row['컨텐츠 종류'] ? row['컨텐츠 종류'].split(',').map(t => t.trim()) : [];
         if (row['구독플러스여부'] === '예') rowTags.push('구독+');
         if (row['성인인증 필요 여부'] === '예') rowTags.push('19');
-        return rowTags.some(t => t.replace('#','') === currentFilter.replace('#',''));
+        
+        // 검색 대상과 원본 태그 모두에서 #을 떼고 비교 (안전성)
+        const target = currentFilter.replace('#', '').trim();
+        return rowTags.some(t => t.replace('#', '').trim() === target);
     });
 }
 // 전역 변수 설정
@@ -810,16 +832,12 @@ function openDetailedModal(data) {
     const isAdult = data['성인인증 필요 여부'] === '예';
     const isPlus = data['구독플러스여부'] === '예';
     const rawUrl = data['링크'] ? data['링크'].trim() : "";
-    const isValidUrl = rawUrl.startsWith('http'); // http로 시작하는 진짜 주소인지 확인
+    const isValidUrl = rawUrl.startsWith('http'); 
     
-    // 제목을 클릭하면 새 창으로 이동하게 <a> 태그 적용
-    // 링크가 없을 경우를 대비해 조건부로 처리합니다.
     let titleHtml = '';
     if (isValidUrl) {
-        // 유효한 링크가 있을 때만 <a> 태그 적용
-        titleHtml = `<a href="${rawUrl}" target="_blank" title="다시보기 보러가기" style="color: inherit; text-decoration: none; cursor: pointer;">${data['제목']} <small style="font-size: 10px; opacity: 0.5;">🔗</small></a>`;
+        titleHtml = `<a href="${rawUrl}" target="_blank" style="color: inherit; text-decoration: none; cursor: pointer;">${data['제목']} <small style="font-size: 10px; opacity: 0.5;">🔗</small></a>`;
     } else {
-        // 링크가 없거나 '-'인 경우 그냥 텍스트만 표시
         titleHtml = data['제목'];
     }
     
@@ -835,8 +853,8 @@ function openDetailedModal(data) {
     const modalTitle = document.getElementById('modalTitle');
     modalTitle.innerHTML = titleHtml;
 
-    // 제목에 호버 효과 추가 (선택 사항)
-    modalTitle.onmouseover = () => { if(vodUrl) modalTitle.style.textDecoration = 'underline'; };
+    // 호버 효과 수정 (isValidUrl 변수 활용)
+    modalTitle.onmouseover = () => { if(isValidUrl) modalTitle.style.textDecoration = 'underline'; };
     modalTitle.onmouseout = () => { modalTitle.style.textDecoration = 'none'; };
 
     // innerText 대신 innerHTML을 사용하여 태그가 렌더링되게 합니다.
