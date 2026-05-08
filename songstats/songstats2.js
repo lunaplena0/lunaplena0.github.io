@@ -243,34 +243,45 @@ function showStats(category) {
     `;
 
     // 📋 6. 테이블 및 버튼 렌더링
-    filteredData.sort((a, b) => b.count - a.count);
-    const displayData = filteredData.slice(0, visibleCount);
+   filteredData.sort((a, b) => b.count - a.count);
+const displayData = filteredData.slice(0, visibleCount);
 
-    contentArea.innerHTML = dashboardHTML + `
-        <div class="data-table-container">
-            <table class="data-table">
-                <thead><tr><th>순위</th><th>곡 제목</th><th>가수</th><th>횟수</th></tr></thead>
-                <tbody>
-                    ${displayData.length > 0 ? displayData.map((row, idx) => `
-                        <tr onclick="openModal('${encodeURIComponent(row.title)}')">
-                            <td>${idx + 1}</td>
-                            <td style="color:var(--text-main); font-weight:500;">${row.title}</td>
-                            <td>${row.artist}</td>
-                            <td>${row.count}회</td>
-                        </tr>`).join('') : `<tr><td colspan="4" style="text-align:center; padding:40px; color:var(--text-sub);">결과가 없습니다.</td></tr>`}
-                </tbody>
-            </table>
+// 차트 아래에 들어갈 검색창 HTML
+const searchBarHTML = `
+    <div class="search-container" style="margin: 20px 0; display: flex; gap: 8px;">
+        <input type="text" id="search-input" placeholder="곡 제목 또는 가수 검색..." 
+               onkeyup="handleSearch(event)" value="${searchTerm}"
+               style="flex: 1; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border); border-radius: 20px; padding: 10px 15px; color: var(--text-main); outline: none;">
+        <button class="search-btn" onclick="applySearch()">검색</button>
+    </div>
+`;
+
+// 최종 결합: 대시보드(차트포함) + 검색창 + 테이블
+contentArea.innerHTML = dashboardHTML + searchBarHTML + `
+    <div class="data-table-container">
+        <table class="data-table">
+            <thead><tr><th>순위</th><th>곡 제목</th><th>가수</th><th>횟수</th></tr></thead>
+            <tbody>
+                ${displayData.length > 0 ? displayData.map((row, idx) => `
+                    <tr onclick="openModal('${encodeURIComponent(row.title)}')">
+                        <td>${idx + 1}</td>
+                        <td style="color:var(--text-main); font-weight:500;">${row.title}</td>
+                        <td>${row.artist}</td>
+                        <td>${row.count}회</td>
+                    </tr>`).join('') : `<tr><td colspan="4" style="text-align:center; padding:40px; color:var(--text-sub);">결과가 없습니다.</td></tr>`}
+            </tbody>
+        </table>
+    </div>
+    ${filteredData.length > visibleCount ? `
+        <div style="text-align: center; margin-top: 20px;">
+            <button class="filter-btn active" onclick="loadMore()" style="width: 220px;">더보기 (${displayData.length}/${filteredData.length}) ▼</button>
         </div>
-        ${filteredData.length > visibleCount ? `
-            <div style="text-align: center; margin-top: 20px;">
-                <button class="filter-btn active" onclick="loadMore()" style="width: 220px;">더보기 (${displayData.length}/${filteredData.length}) ▼</button>
-            </div>
-        ` : (filteredData.length > 20 ? `
-            <div style="text-align: center; margin-top: 20px;">
-                <button class="filter-btn" onclick="resetVisibleCount()" style="width: 220px; opacity: 0.7;">처음으로 ▲</button>
-            </div>
-        ` : '')}
-    `;
+    ` : (filteredData.length > 20 ? `
+        <div style="text-align: center; margin-top: 20px;">
+            <button class="filter-btn" onclick="resetVisibleCount()" style="width: 220px; opacity: 0.7;">처음으로 ▲</button>
+        </div>
+    ` : '')}
+`;
 
     // 📊 7. 차트 그리기 (DOM 업데이트 후 실행)
     setTimeout(() => renderAllCharts(top5Artists, genreMap), 50);
