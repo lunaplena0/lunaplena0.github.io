@@ -368,26 +368,45 @@ function renderRptTags(data) {
     });
 
     const sorted = Object.entries(tagCount).sort((a, b) => b[1] - a[1]);
-    const container = document.getElementById('rptTags');
+    // 요약 보고서용 태그 순위 업데이트 (가로 3열 정렬 + 스크롤)
+const container = document.getElementById('rptTags'); // 기존 변수명 유지
+if (container) {
+    // [레이아웃 강제 설정] 가로 3열 정렬 및 스크롤 부여
+    container.style.display = 'grid';
+    container.style.gridTemplateColumns = 'repeat(3, 1fr)'; // 가로 3칸
+    container.style.gridAutoFlow = 'row';                  // 왼쪽에서 오른쪽으로 채움
+    container.style.gap = '8px';
+    container.style.maxHeight = '180px';                   // 4줄 높이 고정
+    container.style.overflowY = 'auto';
+    container.style.paddingRight = '5px';
     
-    container.innerHTML = sorted.map(([name, count], i) => {
-        // 스타일 구분을 위한 체크
-        const isPlus = name === '구독+';
-        const isAdult = name === '19';
-        const specialStyle = isPlus ? 'color:#ffcc00;' : (isAdult ? 'color:#ff4444;' : '');
-        
-        // [수정] 모든 태그 앞에 #이 붙도록 통일 (이미 #이 있으면 중복 방지)
-        const displayName = name.startsWith('#') ? name : '#' + name;
+    // 상위 30개 태그 표시 (스크롤로 확인 가능)
+    const reportTags = sortedTags.slice(0, 30); 
+    
+    container.innerHTML = reportTags.map(([name, count], index) => {
+        const rank = index + 1;
+        const isTop = rank <= 3 ? 'top-rank' : '';
+        let finalName = name.startsWith('#') ? name : '#' + name;
+        let colorStyle = '';
+
+        // 특수 태그 처리
+        if (name.includes('구독')) {
+            finalName = '#구독+';
+            colorStyle = 'color:#ffcc00; font-weight:bold;';
+        } else if (name.includes('19')) {
+            finalName = '#19';
+            colorStyle = 'color:#ff4444; font-weight:bold;';
+        }
 
         return `
-            <div class="rank-item" onclick="filterPopupVodByTag('${name}')" 
-                 style="font-size:12px; padding:6px 10px; margin-bottom:4px; cursor:pointer; ${specialStyle}">
-                <span class="rank-badge ${i < 3 ? 'top-rank' : ''}">${i + 1}</span>
-                <span style="flex:1; margin-left:8px;">${displayName}</span>
-                <small style="color:var(--text-sub);">${count}회</small>
+            <div class="rank-item" style="display: flex; align-items: center; border-bottom: 1px solid rgba(22, 36, 58, 0.3); ${colorStyle}">
+                <span class="rank-badge ${isTop}">${rank}</span>
+                <span class="tag-text" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; font-size: 11px;">
+                    ${finalName}
+                </span>
             </div>
         `;
-    }).join('') || '<p style="color:var(--text-sub); font-size:12px;">데이터 없음</p>';
+    }).join('');
 }
 function toggleTagFilter(tagName) {
     visibleCount = 10;
