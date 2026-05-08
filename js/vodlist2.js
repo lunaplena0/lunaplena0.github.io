@@ -103,41 +103,83 @@ const barColor = name.includes('구독') ? '#ffcc00' : (name.includes('19') || n
         ratioContainer.innerHTML = ratioHtml;
     }
 
-   // 5. [전체 태그 순위] 그리드 업데이트
+// 5. [전체 태그 순위] 그리드 업데이트 (스크롤/확장 형식)
 const rankGrid = document.querySelector('.rank-grid');
 if (rankGrid) {
-    rankGrid.innerHTML = ''; 
-    sortedTags.forEach(([name, count], index) => {
-        const rank = index + 1;
-        const isTop = rank <= 3 ? 'top-rank' : '';
-        
-        let finalName = name;
-        let specialStyle = '';
+    rankGrid.innerHTML = '';
+    
+    // PC/모바일 상관없이 초기에는 11개만 생성
+    const initialTags = sortedTags.slice(0, 11);
+    const hiddenTags = sortedTags.slice(11);
 
-        // 이름에 '구독'이 포함된 경우 (구독+)
-        if (name.includes('구독')) {
-            finalName = '#구독+'; 
-            specialStyle = 'color:#ffcc00; font-weight:bold;';
-        } 
-        // 이름에 '19'가 포함된 경우 (성인인증)
-        else if (name.includes('19')) {
-            finalName = '#19';    
-            specialStyle = 'color:#ff4444; font-weight:bold;';
-        } 
-        // 그 외 일반 태그
-        else {
-            finalName = name.startsWith('#') ? name : '#' + name;
-        }
-
-       const rankItem = `
-    <div class="rank-item" 
-         data-tag="${name}" 
-         onclick="toggleTagFilter('${name}')" 
-         style="${specialStyle} cursor:pointer;"> <span class="rank-badge ${isTop}">${rank}</span>
-        <span class="tag-text">${finalName}</span>
-    </div>`;
-        rankGrid.insertAdjacentHTML('beforeend', rankItem);
+    // 1. 처음 보여줄 11개 태그 생성
+    initialTags.forEach(([name, count], index) => {
+        rankGrid.insertAdjacentHTML('beforeend', createTagItemHtml(name, count, index + 1));
     });
+
+    // 2. 12개 이상일 경우 '더보기' 버튼과 숨겨진 태그들 생성
+    if (sortedTags.length > 11) {
+        // 숨겨진 태그들 (초기에는 display: none)
+        hiddenTags.forEach(([name, count], index) => {
+            const rank = index + 12;
+            const tagHtml = createTagItemHtml(name, count, rank, true);
+            rankGrid.insertAdjacentHTML('beforeend', tagHtml);
+        });
+
+        // 펼치기/접기 버튼
+        const toggleBtn = `
+            <div id="tag-more-btn" class="rank-item" onclick="toggleTagGrid()" 
+                 style="cursor:pointer; background: rgba(51, 133, 255, 0.1); border: 1px dashed var(--accent-bright); justify-content: center; grid-column: auto;">
+                <span class="tag-text" style="color:var(--accent-bright); font-size: 11px; font-weight: bold;">+ 전체 ${sortedTags.length}개 보기</span>
+            </div>`;
+        rankGrid.insertAdjacentHTML('beforeend', toggleBtn);
+    }
+}
+
+// 태그 아이템 HTML 생성을 위한 보조 함수
+function createTagItemHtml(name, count, rank, isHidden = false) {
+    const isTop = rank <= 3 ? 'top-rank' : '';
+    let finalName = name;
+    let specialStyle = isHidden ? 'display: none;' : ''; // 숨김 처리
+
+    if (name.includes('구독')) {
+        finalName = '#구독+'; 
+        specialStyle += 'color:#ffcc00; font-weight:bold;';
+    } else if (name.includes('19')) {
+        finalName = '#19';    
+        specialStyle += 'color:#ff4444; font-weight:bold;';
+    } else {
+        finalName = name.startsWith('#') ? name : '#' + name;
+    }
+
+    return `
+        <div class="rank-item ${isHidden ? 'tag-hidden-item' : ''}" data-tag="${name}" onclick="toggleTagFilter('${name}')" 
+             style="${specialStyle} cursor:pointer;">
+            <span class="rank-badge ${isTop}">${rank}</span>
+            <span class="tag-text">${finalName}</span>
+        </div>`;
+}
+
+// 버튼 클릭 시 태그를 펼쳤다 접었다 하는 함수
+function toggleTagGrid() {
+    const hiddenItems = document.querySelectorAll('.tag-hidden-item');
+    const btn = document.getElementById('tag-more-btn');
+    const btnText = btn.querySelector('.tag-text');
+    
+    // 현재 첫 번째 숨겨진 아이템이 보이는지 확인
+    const isExpanded = hiddenItems[0].style.display === 'flex';
+
+    if (isExpanded) {
+        // 접기
+        hiddenItems.forEach(item => item.style.display = 'none');
+        btnText.innerText = `+ 전체 ${hiddenItems.length + 11}개 보기`;
+        // 접을 때 상단으로 부드럽게 스크롤 (선택 사항)
+        document.querySelector('.rank-grid').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    } else {
+        // 펼치기
+        hiddenItems.forEach(item => item.style.display = 'flex');
+        btnText.innerText = `▲ 접기`;
+    }
 }
 
     // 6. 요약 보고서 기본 연동 데이터
