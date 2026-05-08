@@ -408,6 +408,7 @@ if (container) {
         `;
     }).join('');
 }
+}
 function toggleTagFilter(tagName) {
     visibleCount = 10;
     const listContainer = document.querySelector('.vod-list');
