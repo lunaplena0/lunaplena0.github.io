@@ -3,73 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VOD 기록함</title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
-    <link id="favicon" rel="icon" href="data:;base64,iVBORw0KGgo=">
-    <script src="js/common.js"></script>
-    <link rel="stylesheet" href="css/loading.css">
-    <link rel="stylesheet" href="css/vodlist.css"> 
+    <title>🎶 바다비 노래기록 🎶</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="css/loading.css"> 
+    <link rel="stylesheet" href="css/mainpages.css">
+    <link rel="stylesheet" href="songstats/songstats.css">
 </head>
+    
 <body>
-<div id="loading-overlay">
-    <div id="wave-text" class="wave-text"></div>
-</div>
+    <div id="loading-overlay">
+    <div id="wave-text" class="wave-text"></div></div>
+        
 <div class="wrapper">
-    <div class="card profile-box">
-        <div class="profile-info">
-            <h1>🎬 VOD 기록함</h1>
-            <p>바다비 VOD 통계 및 기록</p>
-        </div>
-        <div class="header-buttons">
-    <a href="#" class="link-btn btn-summary" onclick="openSummary(event)">📅 요약 보고서</a>
-    <a href="index.html" class="link-btn btn-back">돌아가기</a>
-</div>
+    <header class="card header-box">
+    <div class="title-group">
+        <h1 class="page-title">🎶노래 기록장</h1>
+        <p class="page-desc">전체, 월별, 연도별 노래기록</p>
     </div>
+    
+    <div class="header-buttons" style="display: flex; gap: 8px;">
+        <a href="songlist.html" class="btn">📊 이전 통계</a>
+        <a href="index.html" class="btn">← 메인으로</a>
+    </div>
+</header>
 
-    <div class="bottom-section">
-        <div class="card">
-    <h2>📊 전체 다시보기 통계</h2>
-    <div class="item-row">
-        <span class="stat-label">전체 다시보기 시간</span>
-        <span id="statTotalTime" class="stat-value">-</span>
-    </div>
-    <div class="item-row">
-        <span class="stat-label">구독+ 다시보기 시간 및 비율</span>
-        <span id="statPlusTimeRatio" class="stat-value" style="color:#ffcc00;">-</span>
-    </div>
-    <div class="item-row">
-        <span class="stat-label">최대 다시보기 시간</span>
-        <span id="statMaxTime" class="stat-value">-</span>
-    </div>
-    <div class="item-row">
-        <span class="stat-label">평균 다시보기 시간</span>
-        <span id="statAvgTime" class="stat-value">-</span>
-    </div>
-    <div class="item-row">
-        <span class="stat-label">최소 다시보기 시간</span>
-        <span id="statMinTime" class="stat-value">-</span>
-    </div>
+    <main class="card content-card">
+    <h2>상세 정보</h2>
+    
+   <div class="stats-filter">
+    <button class="filter-btn active" onclick="updateDateFilter('all', this)">전체</button>
+    <button class="filter-btn" onclick="updateDateFilter('monthly', this)">월별</button>
+    <button class="filter-btn" onclick="updateDateFilter('yearly', this)">연도별</button>
+    
+    <div id="date-selectors" style="display: none; margin-left: auto; gap: 5px;">
+    <select id="select-year" onchange="onYearChange()"></select>
+    <select id="select-month" onchange="applyDateFilter()" style="display: none;"></select>
+</div>
 </div>
 
-        <div class="card">
-            <h2>📈 통합 태그 비중 (Top 5)</h2>
-        </div>
+<div id="content-area">
+    <p style="text-align:center; padding:50px;">데이터를 불러오는 중입니다...</p>
+</div>
 
-        <div class="card">
-            <h2>🏆 전체 태그 순위 (클릭시 해당 다시보기만 골라보기)</h2>
-            <div class="rank-grid">
-                
-            </div>
-        </div>
-    </div>
-
-    <div class="card">
-        <h2>🎥 최근 다시보기 기록</h2>
-        <div class="vod-list">
-            
-            </div>
-    </div>
+</main>
 
     <footer style="text-align: center; padding: 20px 10px; color: var(--text-sub); font-size: 11px; border-top: 1px solid var(--border); margin-top: 20px; width: 100%; box-sizing: border-box;">
     <p style="margin: 0; opacity: 0.8; line-height: 1.6; word-break: keep-all; overflow-wrap: break-word;">
@@ -79,96 +56,25 @@
     </p>
 </footer>
 </div>
-<div id="vodModal" class="modal">
-    <div class="modal-content">
-        <span class="close-btn" onclick="closeModal()">&times;</span>
-        
+    <div id="song-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-content card">
+        <div class="modal-header">
+            <h3 id="modal-title">곡 제목</h3>
+            <button class="close-btn" onclick="closeModal()">×</button>
+        </div>
         <div class="modal-body">
-            <img id="modalThumb" src="" class="modal-thumb">
-            <div class="modal-details">
-                <h3 id="modalTitle">제목</h3>
-                <div class="modal-info-grid">
-                    <div class="info-item">
-                        <label>다시보기 날짜</label>
-                        <span id="modalDate">0000-00-00</span>
-                    </div>
-                    <div class="info-item">
-                        <label>다시보기 시간</label>
-                        <span id="modalDuration">00:00:00</span>
-                    </div>
-                </div>
-                <div id="modalTags" class="modal-tags"></div>
+            <hr style="border: 0; border-top: 1px solid var(--border); margin: 15px 0;">
+            <div class="modal-info">
+                <p><strong>🎤 </strong> <span id="modal-artist">-</span></p>
+                <p><strong>가창 횟수:</strong> <span id="modal-count">0</span>회</p>
             </div>
+            <p><strong>부른 날짜</strong></p>
+            <div id="modal-dates" class="date-list">
+                </div>
         </div>
     </div>
 </div>
-   <div id="summaryModal" class="modal">
-    <div class="modal-content" style="max-width: 850px; width: 95%;"> 
-        <span class="close-btn" onclick="closeSummary()">&times;</span>
-        
-        <div class="modal-body" style="padding: 25px;">
-            <div style="display: grid; grid-template-columns: 1fr; gap: 20px;">
-                
-                <div class="card" style="margin:0; flex-direction: row; justify-content: space-between; align-items: center; background: linear-gradient(145deg, #051020, #02050a);">
-                    <h2 style="border:none; font-size: 20px; line-height: 1.4; color: var(--accent-bright); margin:0;">
-                        📅 다시보기 요약
-                    </h2>
-                    <div style="display: flex; gap: 10px; align-items: center;">
-                        <select id="selectYear" class="btn-back" style="padding: 6px 12px; border-radius: 6px; background: #16243a; color: white; border: 1px solid var(--border);"></select>
-                        <select id="selectMonth" class="btn-back" style="padding: 6px 12px; border-radius: 6px; background: #16243a; color: white; border: 1px solid var(--border);">
-                            <option value="all">연간 전체</option>
-                            <option value="01">1월</option><option value="02">2월</option><option value="03">3월</option>
-                            <option value="04">4월</option><option value="05">5월</option><option value="06">6월</option>
-                            <option value="07">7월</option><option value="08">8월</option><option value="09">9월</option>
-                            <option value="10">10월</option><option value="11">11월</option><option value="12">12월</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="card" style="margin:0; flex-direction: row; justify-content: space-around; padding: 25px; text-align: center;">
-                    <div class="summary-item" style="background:none; padding:0;">
-                        <label style="font-size: 11px; color: var(--text-sub); display: block; margin-bottom: 8px;">총 다시보기 시간</label>
-                        <div id="rptTotalTime" style="font-size: 1.5rem; color: var(--accent-bright); font-weight: bold;">-</div>
-                        <small id="diffTotalTime" class="diff-text"></small>
-                    </div>
-                    <div style="width: 1px; background: var(--border); height: 40px; align-self: center;"></div>
-                    <div class="summary-item" style="background:none; padding:0;">
-                        <label style="font-size: 11px; color: var(--text-sub); display: block; margin-bottom: 8px;">평균 다시보기 시간</label>
-                        <div id="rptAvgTime" style="font-size: 1.3rem; font-weight: bold;">-</div>
-                        <small id="diffAvgTime" class="diff-text"></small>
-                    </div>
-                    <div style="width: 1px; background: var(--border); height: 40px; align-self: center;"></div>
-                    <div class="summary-item" style="background:none; padding:0;">
-                        <label style="font-size: 11px; color: var(--text-sub); display: block; margin-bottom: 8px;">다시보기 횟수</label>
-                        <div id="rptCount" style="font-size: 1.5rem; font-weight: bold;">-</div>
-                        <small id="diffCount" class="diff-text"></small>
-                    </div>
-                </div>
-
-                <div class="card" style="margin:0;">
-                    <h2 style="font-size: 14px; margin-bottom: 15px;">📝 카테고리별 요약</h2>
-                    <div id="rptCategory" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 15px;">
-                        </div>
-                </div>
-                
-                <div class="card" style="margin:0;">
-                    <h2 style="font-size: 14px; margin-bottom: 15px;">📊 전체 태그 순위</h2>
-                    <div id="rptTags" class="rank-grid" style="grid-template-columns: repeat(3, 1fr); column-gap: 20px;">
-                        </div>
-                </div>
-
-                <div class="card" style="margin:0;">
-                    <h2 style="font-size: 14px; margin-bottom: 15px;">🎥 다시보기 목록</h2>
-                    <div id="rptVodList" class="vod-list" style="max-height: 400px; overflow-y: auto;">
-                        </div>
-                </div>
-
-            </div>
-        </div>
-    </div>
-</div>
-    
     <script src="js/loading.js"></script>
-<script src="js/vodlist2.js"></script>
+    <script src="songstats/songstats.js"></script>
 </body>
 </html>
