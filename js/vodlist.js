@@ -103,43 +103,64 @@ const barColor = name.includes('구독') ? '#ffcc00' : (name.includes('19') || n
         ratioContainer.innerHTML = ratioHtml;
     }
 
-   // 5. [전체 태그 순위] 그리드 업데이트
+// 5. [전체 태그 순위] 3x4 가로 정렬 + 내부 스크롤형
 const rankGrid = document.querySelector('.rank-grid');
 if (rankGrid) {
-    rankGrid.innerHTML = ''; 
+    // [레이아웃 강제 설정] CSS의 column 흐름을 무효화하고 가로로 배치합니다.
+    rankGrid.style.display = 'grid';
+    rankGrid.style.gridTemplateColumns = 'repeat(3, 1fr)'; // 가로 3열 고정
+    rankGrid.style.gridAutoFlow = 'row';                  // 위에서 아래가 아닌 왼쪽에서 오른쪽으로 채움 (중요)
+    rankGrid.style.gap = '8px';
+    
+    // [스크롤 설정] 4줄(3x4) 분량 유지
+    rankGrid.style.maxHeight = '190px'; 
+    rankGrid.style.overflowY = 'auto';
+    rankGrid.style.overflowX = 'hidden';
+    rankGrid.style.paddingRight = '5px';
+    
+    rankGrid.innerHTML = '';
+    
+    // 데이터 삽입
     sortedTags.forEach(([name, count], index) => {
         const rank = index + 1;
         const isTop = rank <= 3 ? 'top-rank' : '';
         
         let finalName = name;
-        let specialStyle = '';
+        let colorStyle = '';
 
-        // 이름에 '구독'이 포함된 경우 (구독+)
         if (name.includes('구독')) {
             finalName = '#구독+'; 
-            specialStyle = 'color:#ffcc00; font-weight:bold;';
-        } 
-        // 이름에 '19'가 포함된 경우 (성인인증)
-        else if (name.includes('19')) {
+            colorStyle = 'color:#ffcc00; font-weight:bold;';
+        } else if (name.includes('19')) {
             finalName = '#19';    
-            specialStyle = 'color:#ff4444; font-weight:bold;';
-        } 
-        // 그 외 일반 태그
-        else {
+            colorStyle = 'color:#ff4444; font-weight:bold;';
+        } else {
             finalName = name.startsWith('#') ? name : '#' + name;
         }
 
-       const rankItem = `
-    <div class="rank-item" 
-         data-tag="${name}" 
-         onclick="toggleTagFilter('${name}')" 
-         style="${specialStyle} cursor:pointer;"> <span class="rank-badge ${isTop}">${rank}</span>
-        <span class="tag-text">${finalName}</span>
-    </div>`;
+        const rankItem = `
+            <div class="rank-item" data-tag="${name}" onclick="toggleTagFilter('${name}')" 
+                 style="display: flex; align-items: center; cursor:pointer; width: 100%; box-sizing: border-box; border-bottom: 1px solid rgba(22, 36, 58, 0.3); ${colorStyle}">
+                <span class="rank-badge ${isTop}">${rank}</span>
+                <span class="tag-text" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; font-size: 11.5px;">
+                    ${finalName}
+                </span>
+            </div>`;
         rankGrid.insertAdjacentHTML('beforeend', rankItem);
     });
-}
 
+    // 얇은 스크롤바 디자인 (디자인 일관성 유지)
+    if (!document.getElementById('custom-tag-scroll')) {
+        const style = document.createElement('style');
+        style.id = 'custom-tag-scroll';
+        style.innerHTML = `
+            .rank-grid::-webkit-scrollbar { width: 4px; }
+            .rank-grid::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); }
+            .rank-grid::-webkit-scrollbar-thumb { background: var(--accent-bright); border-radius: 10px; }
+        `;
+        document.head.appendChild(style);
+    }
+}
     // 6. 요약 보고서 기본 연동 데이터
     let topTag = sortedTags.length > 0 ? sortedTags[0][0] : '-';
     let topTagName = topTag;
@@ -263,6 +284,13 @@ function loadSheetData() {
 
             // 2. 데이터 렌더링 및 통계 업데이트
             if (allData.length > 0) {
+                // [추가] 날짜 기준 최신순 정렬 (내림차순)
+                allData.sort((a, b) => {
+                    const dateA = new Date(a['날짜'] || 0);
+                    const dateB = new Date(b['날짜'] || 0);
+                    return dateB - dateA; // 최신날짜가 위로 오게 함
+                });
+
                 renderVODList(allData);
                 updateTagStatistics(allData);
                 initializeReportData(allData);
@@ -347,26 +375,48 @@ function renderRptTags(data) {
     });
 
     const sorted = Object.entries(tagCount).sort((a, b) => b[1] - a[1]);
-    const container = document.getElementById('rptTags');
+    // 요약 보고서용 태그 순위 업데이트 (가로 3열 정렬 + 스크롤)
+const container = document.getElementById('rptTags'); 
+if (container) {
+    // [레이아웃 설정] 가로 3열 정렬 및 내부 스크롤 부여
+    container.style.display = 'grid';
+    container.style.gridTemplateColumns = 'repeat(3, 1fr)'; 
+    container.style.gridAutoFlow = 'row';                  
+    container.style.gap = '8px';
+    container.style.maxHeight = '180px';                   
+    container.style.overflowY = 'auto';
+    container.style.paddingRight = '5px';
     
-    container.innerHTML = sorted.map(([name, count], i) => {
-        // 스타일 구분을 위한 체크
-        const isPlus = name === '구독+';
-        const isAdult = name === '19';
-        const specialStyle = isPlus ? 'color:#ffcc00;' : (isAdult ? 'color:#ff4444;' : '');
-        
-        // [수정] 모든 태그 앞에 #이 붙도록 통일 (이미 #이 있으면 중복 방지)
-        const displayName = name.startsWith('#') ? name : '#' + name;
+    // 상위 30개 태그 표시
+    const reportTags = sorted.slice(0, 30); 
+    
+    container.innerHTML = reportTags.map(([name, count], index) => {
+        const rank = index + 1;
+        const isTop = rank <= 3 ? 'top-rank' : '';
+        let finalName = name.startsWith('#') ? name : '#' + name;
+        let colorStyle = '';
 
+        if (name.includes('구독')) {
+            finalName = '#구독+';
+            colorStyle = 'color:#ffcc00; font-weight:bold;';
+        } else if (name.includes('19')) {
+            finalName = '#19';
+            colorStyle = 'color:#ff4444; font-weight:bold;';
+        }
+
+        // [핵심] filterPopupVodByTag('${name}')를 호출하여 보고서 내 리스트를 필터링합니다.
         return `
-            <div class="rank-item" onclick="filterPopupVodByTag('${name}')" 
-                 style="font-size:12px; padding:6px 10px; margin-bottom:4px; cursor:pointer; ${specialStyle}">
-                <span class="rank-badge ${i < 3 ? 'top-rank' : ''}">${i + 1}</span>
-                <span style="flex:1; margin-left:8px;">${displayName}</span>
-                <small style="color:var(--text-sub);">${count}회</small>
+            <div class="rank-item" 
+                 onclick="filterPopupVodByTag('${name}')" 
+                 style="display: flex; align-items: center; border-bottom: 1px solid rgba(22, 36, 58, 0.3); cursor:pointer; ${colorStyle}">
+                <span class="rank-badge ${isTop}">${rank}</span>
+                <span class="tag-text" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; font-size: 11px;">
+                    ${finalName}
+                </span>
             </div>
         `;
-    }).join('') || '<p style="color:var(--text-sub); font-size:12px;">데이터 없음</p>';
+    }).join('');
+}
 }
 function toggleTagFilter(tagName) {
     visibleCount = 10;
@@ -562,8 +612,10 @@ let groupedData = {}; // { "2026": { "04": [...], "03": [...] } }
 function initializeReportData(data) {
     groupedData = {};
     const yearSelect = document.getElementById('selectYear');
+    const monthSelect = document.getElementById('selectMonth');
     const years = new Set();
 
+    // 데이터에서 실제 존재하는 연도와 월 추출
     data.forEach(row => {
         if (!row['날짜']) return;
         const [y, m] = row['날짜'].split('-');
@@ -573,13 +625,47 @@ function initializeReportData(data) {
         years.add(y);
     });
 
-    // 연도 셀렉트박스 채우기
-    yearSelect.innerHTML = Array.from(years).sort().reverse()
-        .map(y => `<option value="${y}">${y}년</option>`).join('');
+    // 1. 데이터가 있는 연도만 내림차순으로 채우기
+    const sortedYears = Array.from(years).sort((a, b) => b - a);
+    yearSelect.innerHTML = sortedYears.map(y => `<option value="${y}">${y}년</option>`).join('');
+
+    // 2. 이벤트 리스너 설정
+    yearSelect.onchange = () => {
+        updateMonthOptions(); // 연도 변경 시 해당 연도의 월 목록 갱신
+        updateReport();
+    };
     
-    // 이벤트 리스너 등록
-    document.getElementById('selectYear').addEventListener('change', updateReport);
-    document.getElementById('selectMonth').addEventListener('change', updateReport);
+    if (monthSelect) {
+        monthSelect.onchange = updateReport;
+    }
+
+    // 3. 초기 실행: 가장 최근 연도에 맞는 월 목록 생성
+    updateMonthOptions();
+}
+
+// [핵심] 선택된 연도에 데이터가 있는 월만 드롭다운에 넣어주는 함수
+function updateMonthOptions() {
+    const yearSelect = document.getElementById('selectYear');
+    const monthSelect = document.getElementById('selectMonth');
+    if (!yearSelect || !monthSelect) return;
+
+    const selectedYear = yearSelect.value;
+    const monthsInYear = groupedData[selectedYear];
+
+    if (!monthsInYear) {
+        monthSelect.innerHTML = '<option value="all">전체 월</option>';
+        return;
+    }
+
+    // 해당 연도에 실제 데이터가 있는 월만 추출하여 내림차순 정렬
+    const availableMonths = Object.keys(monthsInYear).sort((a, b) => b - a);
+
+    let monthHtml = '<option value="all">전체 월</option>';
+    monthHtml += availableMonths.map(m => {
+        return `<option value="${m}">${parseInt(m)}월</option>`;
+    }).join('');
+    
+    monthSelect.innerHTML = monthHtml;
 }
 
 // 2. 리포트 업데이트 함수
