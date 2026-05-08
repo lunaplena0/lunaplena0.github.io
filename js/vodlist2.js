@@ -398,15 +398,17 @@ if (container) {
             colorStyle = 'color:#ff4444; font-weight:bold;';
         }
 
-        return `
-            <div class="rank-item" style="display: flex; align-items: center; border-bottom: 1px solid rgba(22, 36, 58, 0.3); ${colorStyle}">
-                <span class="rank-badge ${isTop}">${rank}</span>
-                <span class="tag-text" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; font-size: 11px;">
-                    ${finalName}
-                </span>
-            </div>
-        `;
-    }).join('');
+       return `
+                <div class="rank-item" 
+                     onclick="toggleTagFilter('${name}'); closeModal();" 
+                     style="display: flex; align-items: center; border-bottom: 1px solid rgba(22, 36, 58, 0.3); cursor:pointer; ${colorStyle}">
+                    <span class="rank-badge ${isTop}">${rank}</span>
+                    <span class="tag-text" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; font-size: 11px;">
+                        ${finalName}
+                    </span>
+                </div>
+            `;
+        }).join('');
 }
 }
 function toggleTagFilter(tagName) {
