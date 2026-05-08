@@ -295,7 +295,6 @@ function loadSheetData() {
                 updateTagStatistics(allData);
                 initializeReportData(allData);
                 updateReport();
-            }
             } else {
                 // 에러 발생 시 사용자에게 보여줄 메시지만 남기고 로그는 제거
                 const listContainer = document.querySelector('.vod-list');
