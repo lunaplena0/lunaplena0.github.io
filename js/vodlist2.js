@@ -612,9 +612,10 @@ let groupedData = {}; // { "2026": { "04": [...], "03": [...] } }
 function initializeReportData(data) {
     groupedData = {};
     const yearSelect = document.getElementById('selectYear');
-    const monthSelect = document.getElementById('selectMonth'); // 월 선택 요소 가져오기
+    const monthSelect = document.getElementById('selectMonth');
     const years = new Set();
 
+    // 데이터에서 실제 존재하는 연도와 월 추출
     data.forEach(row => {
         if (!row['날짜']) return;
         const [y, m] = row['날짜'].split('-');
@@ -624,34 +625,45 @@ function initializeReportData(data) {
         years.add(y);
     });
 
-    // 연도 셀렉트박스 채우기
-    yearSelect.innerHTML = Array.from(years).sort().reverse()
-        .map(y => `<option value="${y}">${y}년</option>`).join('');
+    // 1. 데이터가 있는 연도만 내림차순으로 채우기
+    const sortedYears = Array.from(years).sort((a, b) => b - a);
+    yearSelect.innerHTML = sortedYears.map(y => `<option value="${y}">${y}년</option>`).join('');
 
-    // [수정] 선택된 연도에 따라 월 목록을 업데이트하는 함수 연결
+    // 2. 이벤트 리스너 설정
     yearSelect.onchange = () => {
-        updateMonthOptions();
+        updateMonthOptions(); // 연도 변경 시 해당 연도의 월 목록 갱신
         updateReport();
     };
-    monthSelect.onchange = updateReport;
+    
+    if (monthSelect) {
+        monthSelect.onchange = updateReport;
+    }
 
-    // 초기 실행: 첫 번째 연도의 월 목록 생성
+    // 3. 초기 실행: 가장 최근 연도에 맞는 월 목록 생성
     updateMonthOptions();
 }
 
-// [추가] 데이터가 있는 월만 드롭다운에 넣어주는 함수
+// [핵심] 선택된 연도에 데이터가 있는 월만 드롭다운에 넣어주는 함수
 function updateMonthOptions() {
     const yearSelect = document.getElementById('selectYear');
     const monthSelect = document.getElementById('selectMonth');
-    const selectedYear = yearSelect.value;
-    
-    if (!groupedData[selectedYear]) return;
+    if (!yearSelect || !monthSelect) return;
 
-    // 해당 연도에 데이터가 있는 월들을 가져와서 정렬 (내림차순)
-    const availableMonths = Object.keys(groupedData[selectedYear]).sort((a, b) => b - a);
+    const selectedYear = yearSelect.value;
+    const monthsInYear = groupedData[selectedYear];
+
+    if (!monthsInYear) {
+        monthSelect.innerHTML = '<option value="all">전체 월</option>';
+        return;
+    }
+
+    // 해당 연도에 실제 데이터가 있는 월만 추출하여 내림차순 정렬
+    const availableMonths = Object.keys(monthsInYear).sort((a, b) => b - a);
 
     let monthHtml = '<option value="all">전체 월</option>';
-    monthHtml += availableMonths.map(m => `<option value="${m}">${parseInt(m)}월</option>`).join('');
+    monthHtml += availableMonths.map(m => {
+        return `<option value="${m}">${parseInt(m)}월</option>`;
+    }).join('');
     
     monthSelect.innerHTML = monthHtml;
 }
