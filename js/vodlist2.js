@@ -106,88 +106,39 @@ const barColor = name.includes('구독') ? '#ffcc00' : (name.includes('19') || n
 // 5. [전체 태그 순위] 그리드 업데이트
 const rankGrid = document.querySelector('.rank-grid');
 if (rankGrid) {
+    // [중요] 박스 크기를 고정하고 내부 스크롤을 만듭니다.
+    rankGrid.style.maxHeight = '280px'; // 3~4줄 정도 높이로 고정
+    rankGrid.style.overflowY = 'auto';  // 내용이 많아지면 내부 스크롤 발생
+    rankGrid.style.paddingRight = '5px'; // 스크롤바와 겹치지 않게 여백
     rankGrid.innerHTML = '';
     
-    // 초기 노출 개수 (PC/모바일 공통 11개)
-    const initialTags = sortedTags.slice(0, 11);
-    const hiddenTags = sortedTags.slice(11);
+    // 초기에는 전체 태그를 미리 다 생성합니다 (이미 스크롤 박스가 되었으므로)
+    sortedTags.forEach(([name, count], index) => {
+        const rank = index + 1;
+        const isTop = rank <= 3 ? 'top-rank' : '';
+        
+        let finalName = name;
+        let specialStyle = 'display: flex;'; // 처음부터 모두 생성하되 스크롤로 보여줌
 
-    // [1] 기본 11개 태그 생성
-    initialTags.forEach(([name, count], index) => {
-        rankGrid.insertAdjacentHTML('beforeend', createTagItemHtml(name, count, index + 1));
-    });
+        if (name.includes('구독')) {
+            finalName = '#구독+'; 
+            specialStyle += 'color:#ffcc00; font-weight:bold;';
+        } else if (name.includes('19')) {
+            finalName = '#19';    
+            specialStyle += 'color:#ff4444; font-weight:bold;';
+        } else {
+            finalName = name.startsWith('#') ? name : '#' + name;
+        }
 
-    // [2] 12개 이상일 때만 더보기 버튼과 숨겨진 아이템 생성
-    if (sortedTags.length > 11) {
-        hiddenTags.forEach(([name, count], index) => {
-            const rank = index + 12;
-            // 초기 상태는 무조건 숨김(display: none)
-            const tagHtml = createTagItemHtml(name, count, rank, true);
-            rankGrid.insertAdjacentHTML('beforeend', tagHtml);
-        });
-
-        // 더보기 버튼 추가 (isPC 조건을 제거하여 어디서든 보이게 함)
-        const toggleBtn = `
-            <div id="tag-more-btn" class="rank-item" onclick="window.toggleTagGrid()" 
-                 style="cursor:pointer; background: rgba(51, 133, 255, 0.1); border: 1px dashed var(--accent-bright); justify-content: center; grid-column: auto;">
-                <span class="tag-text" style="color:var(--accent-bright); font-size: 11px; font-weight: bold;">+ 전체 ${sortedTags.length}개 보기</span>
+        const rankItem = `
+            <div class="rank-item" data-tag="${name}" onclick="toggleTagFilter('${name}')" 
+                 style="${specialStyle} cursor:pointer; flex-shrink: 0;">
+                <span class="rank-badge ${isTop}">${rank}</span>
+                <span class="tag-text">${finalName}</span>
             </div>`;
-        rankGrid.insertAdjacentHTML('beforeend', toggleBtn);
-    }
+        rankGrid.insertAdjacentHTML('beforeend', rankItem);
+    });
 }
-
-// [보조 함수] 태그 아이템 HTML 생성
-function createTagItemHtml(name, count, rank, isHidden = false) {
-    const isTop = rank <= 3 ? 'top-rank' : '';
-    let finalName = name;
-    // 숨겨진 아이템은 초기 display를 none으로 설정
-    let baseStyle = isHidden ? 'display: none !important;' : 'display: flex;';
-    let colorStyle = '';
-
-    if (name.includes('구독')) {
-        finalName = '#구독+'; 
-        colorStyle = 'color:#ffcc00; font-weight:bold;';
-    } else if (name.includes('19')) {
-        finalName = '#19';    
-        colorStyle = 'color:#ff4444; font-weight:bold;';
-    } else {
-        finalName = name.startsWith('#') ? name : '#' + name;
-    }
-
-    return `
-        <div class="rank-item ${isHidden ? 'tag-hidden-item' : ''}" data-tag="${name}" onclick="toggleTagFilter('${name}')" 
-             style="${baseStyle} ${colorStyle} cursor:pointer;">
-            <span class="rank-badge ${isTop}">${rank}</span>
-            <span class="tag-text">${finalName}</span>
-        </div>`;
-}
-
-// [실행 함수] 전역 윈도우 객체에 직접 할당 (클릭 반응 보장)
-window.toggleTagGrid = function() {
-    const hiddenItems = document.querySelectorAll('.tag-hidden-item');
-    const btn = document.getElementById('tag-more-btn');
-    if (!btn || hiddenItems.length === 0) return;
-
-    const btnText = btn.querySelector('.tag-text');
-    // 첫 번째 아이템의 display 상태로 판단
-    const isCurrentlyHidden = window.getComputedStyle(hiddenItems[0]).display === 'none';
-
-    if (isCurrentlyHidden) {
-        // 펼치기
-        hiddenItems.forEach(item => {
-            item.style.setProperty('display', 'flex', 'important');
-        });
-        btnText.innerText = `▲ 접기`;
-    } else {
-        // 접기
-        hiddenItems.forEach(item => {
-            item.style.setProperty('display', 'none', 'important');
-        });
-        btnText.innerText = `+ 전체 ${hiddenItems.length + 11}개 보기`;
-        // 리스트 상단으로 이동
-        document.querySelector('.rank-grid').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
-};
 
     // 6. 요약 보고서 기본 연동 데이터
     let topTag = sortedTags.length > 0 ? sortedTags[0][0] : '-';
