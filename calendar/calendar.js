@@ -158,7 +158,7 @@ function renderCalendar(yearMonth) {
     }
 
    // 제목을 보여줄 타입들 (여기에 추가하고 싶은 타입을 넣으세요)
-    const showTitleTypes = ["결과발표", "공방참여", "기타", "드롭스", "휴방"];
+    const showTitleTypes = ["결과발표", "공방참여", "기타", "드롭스", "휴방", "달성"];
 
     // 1. 해당 타입이고 + 제목이 있을 때만 제목 HTML 생성
     const titleHtml = (showTitleTypes.includes(ev.type) && ev.title) 
