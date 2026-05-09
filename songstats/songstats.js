@@ -185,11 +185,12 @@ function showStats(category) {
 
     // 🔍 3. 검색어 필터링 (날짜 필터된 결과에서 검색어 적용)
     if (searchTerm) {
-        filteredData = filteredData.filter(item => 
-            item.title.toLowerCase().includes(searchTerm) || 
-            item.artist.toLowerCase().includes(searchTerm)
-        );
-    }
+    filteredData = filteredData.filter(item => 
+        item.title.toLowerCase().includes(searchTerm) || 
+        item.artist.toLowerCase().includes(searchTerm) ||
+        (item.genre && item.genre.toLowerCase().includes(searchTerm)) // 장르 검색 조건 추가
+    );
+}
 
     // 📊 4. 통계 데이터 계산 (필터링이 완료된 최종 데이터 기준)
     const artistMap = {};
@@ -249,7 +250,7 @@ const displayData = filteredData.slice(0, visibleCount);
 // 차트 아래에 들어갈 검색창 HTML
 const searchBarHTML = `
     <div class="search-container" style="margin: 20px 0; display: flex; gap: 8px;">
-        <input type="text" id="search-input" placeholder="곡 제목 또는 가수 검색..." 
+        <input type="text" id="search-input" placeholder="곡 제목, 가수 또는 장르 검색..."  // <- 문구 수정
                onkeyup="handleSearch(event)" value="${searchTerm}"
                style="flex: 1; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border); border-radius: 20px; padding: 10px 15px; color: var(--text-main); outline: none;">
         <button class="search-btn" onclick="applySearch()">검색</button>
