@@ -33,9 +33,10 @@ async function fetchSchedule() {
 
             const formattedDate = '20' + date.replace(/\./g, '-');
 
-            if (title === "-" || type === "휴방") {
-                title = (type === "휴방") ? "휴방" : ""; 
-            }
+            // [수정 후]
+if (title === "-") {
+    title = ""; 
+}
 
             return { 
                 date: formattedDate, 
