@@ -51,7 +51,7 @@ async function loadSheetData() {
     }
 }
 
-// 1. 실제 데이터가 있는 연도만 추출하여 연도 셀렉트 박스 생성
+// 1. 실제 데이터가 있는 연도 추출 및 오늘 연도 자동 선택
 function initDynamicSelectors() {
     const yearSelect = document.getElementById('select-year');
     if (!yearSelect) return;
@@ -64,27 +64,36 @@ function initDynamicSelectors() {
         });
     });
 
+    // 오늘 날짜 정보 (YY 형식)
+    const today = new Date();
+    const currentYearYY = String(today.getFullYear()).substring(2);
+
     yearSelect.innerHTML = "";
-    [...availableYears].sort((a, b) => b - a).forEach(year => {
+    const sortedYears = [...availableYears].sort((a, b) => b - a);
+    
+    sortedYears.forEach(year => {
         let opt = document.createElement('option');
         opt.value = year;
         opt.innerHTML = `20${year}년`;
+        // 오늘 연도와 일치하면 기본 선택
+        if (year === currentYearYY) opt.selected = true;
         yearSelect.appendChild(opt);
     });
 
-    updateMonthSelector();
-}
+    if (!yearSelect.value && sortedYears.length > 0) {
+        yearSelect.value = sortedYears[0];
+    }
 
-// 2. 선택된 연도 내 데이터가 있는 월만 추출
-function updateMonthSelector() {
+    updateMonthSelector(true); // 초기화 시 true 전달
+}
+// 2. 선택된 연도 내 데이터가 있는 월 추출 및 오늘 월 자동 선택
+function updateMonthSelector(isInitial = false) {
     const yearSelect = document.getElementById('select-year');
     const monthSelect = document.getElementById('select-month');
     if (!yearSelect || !monthSelect) return;
 
     const selectedYear = yearSelect.value;
     const availableMonths = new Set();
-
-    if (!selectedYear) return;
 
     rawData.forEach(item => {
         item.dates.forEach(dateStr => {
@@ -95,40 +104,46 @@ function updateMonthSelector() {
         });
     });
 
+    // 오늘 월 정보 (MM 형식)
+    const today = new Date();
+    const currentMonthMM = String(today.getMonth() + 1).padStart(2, '0');
+
     monthSelect.innerHTML = "";
-    [...availableMonths].sort((a, b) => a - b).forEach(month => {
+    const sortedMonths = [...availableMonths].sort((a, b) => a - b);
+    
+    sortedMonths.forEach(month => {
         let opt = document.createElement('option');
         opt.value = month;
         opt.innerHTML = `${parseInt(month)}월`;
+        
+        // 초기 로드 시 오늘 월과 일치하면 선택
+        if (isInitial && month === currentMonthMM) opt.selected = true;
         monthSelect.appendChild(opt);
     });
+
+    // 만약 오늘 월의 데이터가 없으면 데이터가 있는 마지막 달 선택
+    if (isInitial && !monthSelect.value && sortedMonths.length > 0) {
+        monthSelect.value = sortedMonths[sortedMonths.length - 1];
+    }
 }
 
-function onYearChange() {
-    updateMonthSelector();
-    applyDateFilter();
-}
-
-// 필터 변경 시 초기화
+// 3. 필터 변경 시 호출 (연도별/월별 클릭 시 바로 오늘 날짜 데이터 반영)
 function updateDateFilter(category, target) {
     visibleCount = 20; 
     currentCategory = category;
     
-    // 1. 셀렉트 박스 표시 제어
     const selectors = document.getElementById('date-selectors');
     const monthSelect = document.getElementById('select-month');
     
     if (selectors) selectors.style.display = (category === 'all') ? 'none' : 'flex';
     if (monthSelect) monthSelect.style.display = (category === 'monthly') ? 'inline-block' : 'none';
     
-    // 2. 버튼 활성화 스타일 제어
     const buttons = document.querySelectorAll('.filter-btn');
-    buttons.forEach(btn => btn.classList.remove('active')); // 모든 버튼에서 active 제거
+    buttons.forEach(btn => btn.classList.remove('active'));
     
     if (target) {
-        target.classList.add('active'); // 클릭된 버튼에만 active 추가
+        target.classList.add('active');
     } else {
-        // 만약 target이 없이 호출되었다면(예: 초기 로드), 첫 번째 버튼을 찾아서 active 추가
         const allBtn = document.querySelector(".filter-btn[onclick*='all']");
         if (allBtn) allBtn.classList.add('active');
     }
@@ -152,11 +167,11 @@ function applyDateFilter() {
     showStats(currentCategory);
 }
 
+// 4. 통계 및 검색 필터링 (장르 검색 포함)
 function showStats(category) {
     const contentArea = document.getElementById('content-area');
     if (!contentArea) return;
 
-    // 🔍 1. 입력값 가져오기
     const searchTerm = document.getElementById('search-input')?.value.toLowerCase().trim() || "";
     const yearEl = document.getElementById('select-year');
     const monthEl = document.getElementById('select-month');
@@ -164,9 +179,8 @@ function showStats(category) {
     const selMonth = monthEl ? monthEl.value : "";
 
     let filteredData = [];
-    let dashboardHTML = "";
 
-    // 📅 2. 카테고리별 날짜 필터링
+    // 날짜 필터링
     if (category === 'all') {
         filteredData = rawData.map(d => ({ ...d, count: d.dates.length }));
     } else if (category === 'yearly') {
@@ -183,14 +197,14 @@ function showStats(category) {
         }).filter(item => item.count > 0);
     }
 
-    // 🔍 3. 검색어 필터링 (날짜 필터된 결과에서 검색어 적용)
+    // 🔍 검색어 필터링 (장르 포함)
     if (searchTerm) {
-    filteredData = filteredData.filter(item => 
-        item.title.toLowerCase().includes(searchTerm) || 
-        item.artist.toLowerCase().includes(searchTerm) ||
-        (item.genre && item.genre.toLowerCase().includes(searchTerm)) // 장르 검색 조건 추가
-    );
-}
+        filteredData = filteredData.filter(item => 
+            item.title.toLowerCase().includes(searchTerm) || 
+            item.artist.toLowerCase().includes(searchTerm) ||
+            (item.genre && item.genre.toLowerCase().includes(searchTerm))
+        );
+    }
 
     // 📊 4. 통계 데이터 계산 (필터링이 완료된 최종 데이터 기준)
     const artistMap = {};
