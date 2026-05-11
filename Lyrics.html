@@ -2,120 +2,123 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>LRC Lyric Player (TSV)</title>
+    <title>Manual Sync Lyrics</title>
     <style>
+        /* OBS 송출을 위해 배경은 투명하게, 글자는 잘 보이게 설정 */
         body { background: transparent; color: white; font-family: 'Pretendard', sans-serif; text-align: center; margin: 0; overflow: hidden; }
-        #player-container { width: 560px; height: 315px; margin: 20px auto; display: block; }
+        
         #lyrics-box { 
-            font-size: 38px; 
-            font-weight: bold; 
-            text-shadow: 3px 3px 12px rgba(0,0,0,1); 
-            color: #ffffff; 
-            margin-top: 20px;
-            padding: 0 20px;
-            line-height: 1.5;
-            min-height: 2em;
+            font-size: 48px; font-weight: bold; 
+            text-shadow: 3px 3px 15px rgba(0,0,0,1), -2px -2px 10px rgba(0,0,0,1); 
+            height: 100vh; display: flex; align-items: center; justify-content: center;
+            line-height: 1.4; padding: 0 40px;
         }
-        .input-area { margin: 10px; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 8px; }
-        input { width: 300px; padding: 8px; }
+
+        /* 설정 창 - OBS 상호작용 창에서만 사용 */
+        .admin-panel {
+            position: fixed; top: 10px; left: 10px; background: rgba(0,0,0,0.7);
+            padding: 15px; border-radius: 8px; text-align: left; font-size: 14px;
+        }
+        button { padding: 8px 16px; cursor: pointer; border: none; border-radius: 4px; font-weight: bold; margin-right: 5px; }
+        .btn-start { background: #2ecc71; color: white; }
+        .btn-reset { background: #e74c3c; color: white; }
+        .timer-display { font-family: monospace; font-size: 20px; color: #ffd700; margin-top: 10px; }
     </style>
 </head>
 <body>
-    <div class="input-area">
-        <input type="text" id="youtube-url" placeholder="유튜브 주소를 입력하세요">
-        <button onclick="loadVideo()">영상 로드</button>
+
+    <div id="lyrics-box">가사를 불러오는 중...</div>
+
+    <div class="admin-panel">
+        <button class="btn-start" onclick="startSync()">시작 (Space)</button>
+        <button class="btn-reset" onclick="resetSync()">리셋 (R)</button>
+        <div class="timer-display">TIME: <span id="current-time">0.00</span>s</div>
     </div>
 
-    <div id="player-container"><div id="video-placeholder"></div></div>
-    <div id="lyrics-box">주소를 입력하고 로드 버튼을 눌러주세요.</div>
-
-    <script src="https://www.youtube.com/iframe_api"></script>
     <script>
+        // 사용자님의 TSV 주소
         const TSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRgjgI5Ut2uiEeXFOGUBb4tvYv-ghCfSfAvA1rvaYKuxiIH-vt02INQ34CaeksH6ZwGyXEKGeAh2p7L/pub?output=tsv';
 
-        let player;
         let lyrics = [];
-        let updateInterval;
+        let startTime = 0;
+        let isRunning = false;
+        let animationFrame;
 
-        // [01:12.738] 형식을 초 단위로 변환
-        function parseTime(timeStr) {
-            const match = timeStr.match(/\[(\d{2}):(\d{2}\.\d+)\]/);
-            if (match) {
-                return (parseFloat(match[1]) * 60) + parseFloat(match[2]);
-            }
-            return null;
-        }
-
-        async function fetchLyricsFromSheet() {
+        // 1. 구글 시트에서 가사 데이터 가져오기 (TSV 파싱)
+        async function fetchLyrics() {
             try {
-                const response = await fetch(TSV_URL);
-                const data = await response.text();
-                const rows = data.split('\n').map(row => row.split('\t')); // 탭(TSV) 기준으로 분리
+                const res = await fetch(TSV_URL);
+                const data = await res.text();
+                const rows = data.split('\n').map(r => r.split('\t'));
 
                 lyrics = [];
-                // C열(index 2)에 있는 모든 행의 가사 데이터를 통합 파싱
+                // C열(index 2)에서 LRC 형식 가사 추출
                 rows.slice(1).forEach(cols => {
                     if (cols[2]) {
-                        const lines = cols[2].split(/[\r\n]+/); // 한 셀 안의 줄바꿈 처리
+                        const lines = cols[2].split(/[\r\n]+/);
                         lines.forEach(line => {
-                            const time = parseTime(line);
-                            const text = line.replace(/\[.*?\]/, "").trim();
-                            if (time !== null && text) {
-                                lyrics.push({ time, text });
+                            const match = line.match(/\[(\d{2}):(\d{2}\.\d+)\]/);
+                            if (match) {
+                                const seconds = (parseFloat(match[1]) * 60) + parseFloat(match[2]);
+                                const text = line.replace(/\[.*?\]/, "").trim();
+                                if (text) lyrics.push({ time: seconds, text: text });
                             }
                         });
                     }
                 });
-
                 lyrics.sort((a, b) => a.time - b.time);
-                console.log("가사 로드 완료:", lyrics);
+                document.getElementById('lyrics-box').innerText = "준비 완료! 시작 버튼을 누르세요.";
             } catch (e) {
-                console.error("데이터 로드 실패:", e);
                 document.getElementById('lyrics-box').innerText = "시트 로드 실패";
             }
         }
 
-        function extractVideoID(url) {
-            const regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
-            const match = url.match(regExp);
-            return (match && match[7].length == 11) ? match[7] : false;
+        // 2. 타이머 로직
+        function startSync() {
+            if (isRunning) return;
+            startTime = performance.now();
+            isRunning = true;
+            update();
         }
 
-        function onYouTubeIframeAPIReady() {
-            player = new YT.Player('video-placeholder', {
-                height: '315', width: '560',
-                events: { 'onStateChange': onPlayerStateChange }
-            });
-            fetchLyricsFromSheet();
+        function resetSync() {
+            isRunning = false;
+            cancelAnimationFrame(animationFrame);
+            document.getElementById('current-time').innerText = "0.00";
+            document.getElementById('lyrics-box').innerText = "준비 완료";
         }
 
-        function loadVideo() {
-            const url = document.getElementById('youtube-url').value;
-            const videoId = extractVideoID(url);
-            if (videoId) {
-                player.loadVideoById(videoId);
-                document.getElementById('lyrics-box').innerText = "재생 버튼을 눌러주세요.";
-            } else {
-                alert("유튜브 주소를 확인해주세요.");
+        function update() {
+            if (!isRunning) return;
+
+            const elapsed = (performance.now() - startTime) / 1000;
+            document.getElementById('current-time').innerText = elapsed.toFixed(2);
+
+            // 현재 시간에 맞는 가사 찾기
+            let currentText = "";
+            for (let i = 0; i < lyrics.length; i++) {
+                if (lyrics[i].time <= elapsed) {
+                    currentText = lyrics[i].text;
+                } else {
+                    break;
+                }
             }
+
+            const box = document.getElementById('lyrics-box');
+            if (box.innerText !== currentText) {
+                box.innerText = currentText;
+            }
+
+            animationFrame = requestAnimationFrame(update);
         }
 
-        function onPlayerStateChange(event) {
-            if (event.data == YT.PlayerState.PLAYING) {
-                if (updateInterval) clearInterval(updateInterval);
-                updateInterval = setInterval(() => {
-                    const now = player.getCurrentTime();
-                    let current = { text: "" };
-                    for (let i = 0; i < lyrics.length; i++) {
-                        if (lyrics[i].time <= now) current = lyrics[i];
-                        else break;
-                    }
-                    document.getElementById('lyrics-box').innerText = current.text;
-                }, 100);
-            } else {
-                clearInterval(updateInterval);
-            }
-        }
+        // 단축키 지원 (OBS 상호작용 창 클릭 후 사용 가능)
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') startSync();
+            if (e.code === 'KeyR') resetSync();
+        });
+
+        fetchLyrics();
     </script>
 </body>
 </html>
