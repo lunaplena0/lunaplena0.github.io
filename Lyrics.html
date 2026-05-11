@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>가사 & 유튜브 통합 플레이어</title>
+    <style>
+        body { background: transparent; color: white; font-family: sans-serif; text-align: center; overflow: hidden; }
+        #video-placeholder { width: 640px; height: 360px; } /* 영상 크기 */
+        #lyrics-box { font-size: 30px; margin-top: 20px; text-shadow: 2px 2px 5px black; min-height: 1.5em; }
+    </style>
+</head>
+<body>
+    <div id="video-placeholder"></div>
+    <div id="lyrics-box">영상을 재생하면 가사가 나옵니다.</div>
+
+    <script src="https://www.youtube.com/iframe_api"></script>
+    <script>
+        const SHEET_CSV_URL = '여기에_복사한_웹게시_CSV_주소를_넣으세요';
+        let player;
+        let lyrics = [];
+
+        // 1. 구글 시트 데이터 불러오기
+        async function fetchLyrics() {
+            const response = await fetch(SHEET_CSV_URL);
+            const data = await response.text();
+            const rows = data.split('\n').slice(1); // 첫 줄 제외
+            
+            lyrics = rows.map(row => {
+                const [time, text, videoUrl] = row.split(',');
+                return { time: parseFloat(time), text: text, url: videoUrl };
+            });
+
+            // 첫 번째 행에 있는 유튜브 URL에서 ID 추출
+            const videoId = lyrics[0].url.split('v=')[1]?.split('&')[0];
+            initPlayer(videoId);
+        }
+
+        // 2. 유튜브 플레이어 초기화
+        function onYouTubeIframeAPIReady() {
+            fetchLyrics();
+        }
+
+        function initPlayer(videoId) {
+            player = new YT.Player('video-placeholder', {
+                height: '360', width: '640', videoId: videoId,
+                events: { 'onStateChange': onPlayerStateChange }
+            });
+        }
+
+        // 3. 재생 상태에 따른 가사 업데이트
+        function onPlayerStateChange(event) {
+            if (event.data == YT.PlayerState.PLAYING) {
+                setInterval(() => {
+                    const currentTime = player.getCurrentTime();
+                    // 현재 시간에 맞는 가사 찾기
+                    const currentLyric = lyrics.reduce((prev, curr) => 
+                        (curr.time <= currentTime) ? curr : prev
+                    );
+                    document.getElementById('lyrics-box').innerText = currentLyric.text;
+                }, 100);
+            }
+        }
+    </script>
+</body>
+</html>
