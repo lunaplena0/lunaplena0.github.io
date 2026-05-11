@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>가사 & 유튜브 링크 입력 테스트</title>
+    <title>가사 플레이어 - 주소 직접 입력</title>
     <style>
         body { 
             background: #222; 
@@ -16,69 +16,105 @@
             height: 100vh; 
             margin: 0; 
         }
+        /* 입력창 영역 스타일 */
+        .input-area {
+            margin-bottom: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+        }
+        input {
+            padding: 10px;
+            width: 300px;
+            border-radius: 5px;
+            border: none;
+            outline: none;
+        }
+        button {
+            padding: 10px 20px;
+            cursor: pointer;
+            background: #ff0000;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+        }
         #video-placeholder { 
             width: 560px; 
             height: 315px; 
-            border-radius: 8px; 
+            background: #000; /* 영상 로드 전 배경 */
         }
         #lyrics-box { 
             font-size: 32px; 
             margin-top: 30px; 
             text-shadow: 2px 2px 8px black; 
             min-height: 1.5em; 
-            font-weight: bold; 
+            color: #ffd700; /* 가사 강조색 */
         }
     </style>
 </head>
 <body>
+
+    <div class="input-area">
+        <input type="text" id="youtube-url" placeholder="유튜브 주소를 입력하세요">
+        <button onclick="loadVideo()">영상 로드</button>
+    </div>
+
     <div id="video-placeholder"></div>
-    <div id="lyrics-box">영상을 재생하면 가사가 나옵니다.</div>
+    <div id="lyrics-box">주소를 입력하고 로드 버튼을 눌러주세요.</div>
 
     <script src="https://www.youtube.com/iframe_api"></script>
     <script>
-        // 1. [유튜브 링크 입력] 여기에 주소를 직접 넣으세요!
-        const TEST_VIDEO_URL = 'https://www.youtube.com/watch?v=ioNng23DkIM'; 
+        let player;
+        let updateInterval;
         
-        // 2. 가사 데이터
+        // 가사 데이터 (추후 구글 시트 연동 가능)
         const testLyrics = [
-            { time: 0, text: "(준비 중)" },
-            { time: 5, text: "테스트 가사 1번입니다" },
-            { time: 10, text: "유튜브 링크 연동 성공!" },
-            { time: 15, text: "가사가 잘 나오나요?" }
+            { time: 0, text: "재생 대기 중..." },
+            { time: 3, text: "노래가 시작되었습니다!" },
+            { time: 7, text: "입력하신 주소로 영상이 재생됩니다." },
+            { time: 12, text: "가사와 싱크가 맞는지 확인해보세요." }
         ];
 
-        // 유튜브 링크에서 ID만 추출하는 함수
+        // 유튜브 ID 추출 함수
         function extractVideoID(url) {
             const regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
             const match = url.match(regExp);
             return (match && match[7].length == 11) ? match[7] : false;
         }
 
-        let player;
-        const videoId = extractVideoID(TEST_VIDEO_URL);
-
+        // 유튜브 API 초기화 (플레이어 객체만 먼저 생성)
         function onYouTubeIframeAPIReady() {
-            if (!videoId) {
-                document.getElementById('lyrics-box').innerText = "유튜브 주소가 올바르지 않습니다.";
-                return;
-            }
-
             player = new YT.Player('video-placeholder', {
                 height: '315',
                 width: '560',
-                videoId: videoId,
                 events: {
                     'onStateChange': onPlayerStateChange
                 }
             });
         }
 
-        let updateInterval;
+        // 버튼 클릭 시 호출되는 함수
+        function loadVideo() {
+            const url = document.getElementById('youtube-url').value;
+            const videoId = extractVideoID(url);
+
+            if (videoId) {
+                player.loadVideoById(videoId); // 영상 즉시 교체 및 로드
+                document.getElementById('lyrics-box').innerText = "영상을 재생하세요.";
+            } else {
+                alert("올바른 유튜브 주소를 입력해주세요!");
+            }
+        }
+
         function onPlayerStateChange(event) {
             if (event.data == YT.PlayerState.PLAYING) {
+                if (updateInterval) clearInterval(updateInterval);
+                
                 updateInterval = setInterval(() => {
                     const currentTime = player.getCurrentTime();
                     let currentLyric = testLyrics[0]; 
+                    
                     for (let i = 0; i < testLyrics.length; i++) {
                         if (testLyrics[i].time <= currentTime) {
                             currentLyric = testLyrics[i];
