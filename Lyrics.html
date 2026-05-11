@@ -2,85 +2,83 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>LRC Lyric Player</title>
+    <title>LRC Lyric Player (TSV)</title>
     <style>
         body { background: transparent; color: white; font-family: 'Pretendard', sans-serif; text-align: center; margin: 0; overflow: hidden; }
-        #player-container { width: 560px; height: 315px; margin: 20px auto; display: block; } /* 필요 없으면 display: none; */
+        #player-container { width: 560px; height: 315px; margin: 20px auto; display: block; }
         #lyrics-box { 
-            font-size: 36px; 
+            font-size: 38px; 
             font-weight: bold; 
-            text-shadow: 2px 2px 10px rgba(0,0,0,0.9); 
+            text-shadow: 3px 3px 12px rgba(0,0,0,1); 
             color: #ffffff; 
             margin-top: 20px;
             padding: 0 20px;
-            line-height: 1.4;
+            line-height: 1.5;
+            min-height: 2em;
         }
+        .input-area { margin: 10px; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 8px; }
+        input { width: 300px; padding: 8px; }
     </style>
 </head>
 <body>
+    <div class="input-area">
+        <input type="text" id="youtube-url" placeholder="유튜브 주소를 입력하세요">
+        <button onclick="loadVideo()">영상 로드</button>
+    </div>
+
     <div id="player-container"><div id="video-placeholder"></div></div>
-    <div id="lyrics-box">데이터 로딩 중...</div>
+    <div id="lyrics-box">주소를 입력하고 로드 버튼을 눌러주세요.</div>
 
     <script src="https://www.youtube.com/iframe_api"></script>
     <script>
-        // 1. 구글 시트 웹 게시(CSV) 주소
-        const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRgjgI5Ut2uiEeXFOGUBb4tvYv-ghCfSfAvA1rvaYKuxiIH-vt02INQ34CaeksH6ZwGyXEKGeAh2p7L/pub?output=tsv'; 
+        const TSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRgjgI5Ut2uiEeXFOGUBb4tvYv-ghCfSfAvA1rvaYKuxiIH-vt02INQ34CaeksH6ZwGyXEKGeAh2p7L/pub?output=tsv';
 
         let player;
         let lyrics = [];
         let updateInterval;
 
-        // 시간 형식 [01:12.738]을 초 단위(float)로 변환하는 함수
+        // [01:12.738] 형식을 초 단위로 변환
         function parseTime(timeStr) {
             const match = timeStr.match(/\[(\d{2}):(\d{2}\.\d+)\]/);
             if (match) {
-                const mins = parseFloat(match[1]);
-                const secs = parseFloat(match[2]);
-                return (mins * 60) + secs;
+                return (parseFloat(match[1]) * 60) + parseFloat(match[2]);
             }
-            return 0;
+            return null;
         }
 
-        async function loadSheetData() {
+        async function fetchLyricsFromSheet() {
             try {
-                const response = await fetch(SHEET_CSV_URL);
+                const response = await fetch(TSV_URL);
                 const data = await response.text();
-                // CSV 파싱 (쉼표로 구분되지만 가사 안에 쉼표가 있을 수 있으므로 주의가 필요할 수 있음)
-                const rows = data.split('\n').slice(1); 
+                const rows = data.split('\n').map(row => row.split('\t')); // 탭(TSV) 기준으로 분리
 
-                // 예시 구조: A(제목), B(가수), C(가사/URL 등)
-                // 가사는 C열(index 2)에 뭉쳐져 있는 상태를 가정
-                let fullLyricsText = "";
-                let videoId = "ioNng23DkIM"; // 기본값 (추후 시트에서 추출 가능)
-
-                rows.forEach(row => {
-                    const cols = row.split(',');
-                    if (cols.length >= 3) {
-                        fullLyricsText += cols[2] + "\n"; // C열 데이터 합치기
-                    }
-                });
-
-                // LRC 형식 파싱
-                const lines = fullLyricsText.split('\n');
                 lyrics = [];
-                lines.forEach(line => {
-                    const time = parseTime(line);
-                    const text = line.replace(/\[.*?\]/, "").trim();
-                    if (text) {
-                        lyrics.push({ time, text });
+                // C열(index 2)에 있는 모든 행의 가사 데이터를 통합 파싱
+                rows.slice(1).forEach(cols => {
+                    if (cols[2]) {
+                        const lines = cols[2].split(/[\r\n]+/); // 한 셀 안의 줄바꿈 처리
+                        lines.forEach(line => {
+                            const time = parseTime(line);
+                            const text = line.replace(/\[.*?\]/, "").trim();
+                            if (time !== null && text) {
+                                lyrics.push({ time, text });
+                            }
+                        });
                     }
                 });
 
-                // 시간순 정렬
                 lyrics.sort((a, b) => a.time - b.time);
-
-                if (player && videoId) {
-                    player.cueVideoById(videoId);
-                    document.getElementById('lyrics-box').innerText = "재생 준비 완료";
-                }
+                console.log("가사 로드 완료:", lyrics);
             } catch (e) {
-                document.getElementById('lyrics-box').innerText = "데이터 로드 실패";
+                console.error("데이터 로드 실패:", e);
+                document.getElementById('lyrics-box').innerText = "시트 로드 실패";
             }
+        }
+
+        function extractVideoID(url) {
+            const regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
+            const match = url.match(regExp);
+            return (match && match[7].length == 11) ? match[7] : false;
         }
 
         function onYouTubeIframeAPIReady() {
@@ -88,22 +86,29 @@
                 height: '315', width: '560',
                 events: { 'onStateChange': onPlayerStateChange }
             });
-            loadSheetData();
+            fetchLyricsFromSheet();
+        }
+
+        function loadVideo() {
+            const url = document.getElementById('youtube-url').value;
+            const videoId = extractVideoID(url);
+            if (videoId) {
+                player.loadVideoById(videoId);
+                document.getElementById('lyrics-box').innerText = "재생 버튼을 눌러주세요.";
+            } else {
+                alert("유튜브 주소를 확인해주세요.");
+            }
         }
 
         function onPlayerStateChange(event) {
             if (event.data == YT.PlayerState.PLAYING) {
+                if (updateInterval) clearInterval(updateInterval);
                 updateInterval = setInterval(() => {
                     const now = player.getCurrentTime();
                     let current = { text: "" };
-                    
-                    // 현재 시간에 맞는 가사 찾기
                     for (let i = 0; i < lyrics.length; i++) {
-                        if (lyrics[i].time <= now) {
-                            current = lyrics[i];
-                        } else {
-                            break;
-                        }
+                        if (lyrics[i].time <= now) current = lyrics[i];
+                        else break;
                     }
                     document.getElementById('lyrics-box').innerText = current.text;
                 }, 100);
