@@ -1,62 +1,115 @@
 <!DOCTYPE html>
-<html>
+<html lang="ko">
 <head>
-    <title>가사 & 유튜브 통합 플레이어</title>
+    <meta charset="UTF-8">
+    <title>가사 & 유튜브 통합 테스트</title>
     <style>
-        body { background: transparent; color: white; font-family: sans-serif; text-align: center; overflow: hidden; }
-        #video-placeholder { width: 640px; height: 360px; } /* 영상 크기 */
-        #lyrics-box { font-size: 30px; margin-top: 20px; text-shadow: 2px 2px 5px black; min-height: 1.5em; }
+        body { 
+            background: #222; /* 테스트를 위해 약간 어두운 배경 */
+            color: white; 
+            font-family: 'Pretendard', sans-serif; 
+            text-align: center; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            height: 100vh; 
+            margin: 0; 
+            overflow: hidden; 
+        }
+        #video-placeholder { 
+            width: 560px; /* OBS에서 배치하기 적당한 크기 */
+            height: 315px; 
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5); 
+            border-radius: 8px; 
+        }
+        #lyrics-box { 
+            font-size: 32px; 
+            margin-top: 30px; 
+            text-shadow: 2px 2px 8px black; 
+            min-height: 1.5em; 
+            font-weight: bold; 
+            transition: all 0.3s ease; /* 가사 바뀔 때 부드럽게 */
+        }
     </style>
 </head>
 <body>
+    <!-- 유튜브 플레이어가 들어갈 자리 -->
     <div id="video-placeholder"></div>
+    
+    <!-- 가사가 표시될 자리 -->
     <div id="lyrics-box">영상을 재생하면 가사가 나옵니다.</div>
 
+    <!-- 유튜브 IFrame API 로드 -->
     <script src="https://www.youtube.com/iframe_api"></script>
     <script>
-        const SHEET_CSV_URL = '여기에_복사한_웹게시_CSV_주소를_넣으세요';
+        // 1. [테스트용 데이터] 여기에 직접 입력
+        const TEST_VIDEO_ID = 'ioNng23DkIM'; // 블랙핑크 HYLT MV
+        
+        const testLyrics = [
+            { time: 0, text: "(Intro 중)" },
+            { time: 10.5, text: "BLACKPINK!" },
+            { time: 13.0, text: "보란 듯이 무너졌어" },
+            { time: 15.5, text: "바닥을 뚫고 저 지하까지" },
+            { time: 19.0, text: "옷 끝자락 잡겠다고" },
+            { time: 21.0, text: "저 높이 두 손을 뻗어봐도" },
+            { time: 24.5, text: "다시 캄캄한 이곳에 light up the sky" },
+            { time: 29.5, text: "네 눈을 보며 I'll kiss you goodbye" },
+            { time: 34.0, text: "Laugh at me while you can" },
+            { time: 36.5, text: "종이 울리면 How you like that" },
+            { time: 41.5, text: "How you like that, that, that, that, that" }
+            // 여기에 계속 추가할 수 있습니다.
+        ];
+
         let player;
-        let lyrics = [];
 
-        // 1. 구글 시트 데이터 불러오기
-        async function fetchLyrics() {
-            const response = await fetch(SHEET_CSV_URL);
-            const data = await response.text();
-            const rows = data.split('\n').slice(1); // 첫 줄 제외
-            
-            lyrics = rows.map(row => {
-                const [time, text, videoUrl] = row.split(',');
-                return { time: parseFloat(time), text: text, url: videoUrl };
-            });
-
-            // 첫 번째 행에 있는 유튜브 URL에서 ID 추출
-            const videoId = lyrics[0].url.split('v=')[1]?.split('&')[0];
-            initPlayer(videoId);
-        }
-
-        // 2. 유튜브 플레이어 초기화
+        // 2. 유튜브 API 준비 완료 시 호출
         function onYouTubeIframeAPIReady() {
-            fetchLyrics();
-        }
-
-        function initPlayer(videoId) {
             player = new YT.Player('video-placeholder', {
-                height: '360', width: '640', videoId: videoId,
-                events: { 'onStateChange': onPlayerStateChange }
+                height: '315',
+                width: '560',
+                videoId: TEST_VIDEO_ID,
+                playerVars: {
+                    'playsinline': 1, // 모바일 웹에서 전체화면 방지
+                    'rel': 0,        // 관련 영상 추천 방지
+                    'modestbranding': 1 // 유튜브 로고 최소화
+                },
+                events: {
+                    'onReady': onPlayerReady,
+                    'onStateChange': onPlayerStateChange
+                }
             });
         }
 
-        // 3. 재생 상태에 따른 가사 업데이트
+        function onPlayerReady(event) {
+            // 브라우저 정책 상 자동 재생은 대개 차단되므로 그냥 둠
+            console.log("Player Ready");
+        }
+
+        // 3. 재생 상태에 따른 가사 업데이트 로직
+        let updateInterval;
+
         function onPlayerStateChange(event) {
             if (event.data == YT.PlayerState.PLAYING) {
-                setInterval(() => {
+                // 재생 중일 때 0.1초마다 가사 체크
+                updateInterval = setInterval(() => {
                     const currentTime = player.getCurrentTime();
-                    // 현재 시간에 맞는 가사 찾기
-                    const currentLyric = lyrics.reduce((prev, curr) => 
-                        (curr.time <= currentTime) ? curr : prev
-                    );
+                    
+                    // 현재 시간에 맞는 가장 최근 가사 찾기
+                    let currentLyric = testLyrics[0]; 
+                    for (let i = 0; i < testLyrics.length; i++) {
+                        if (testLyrics[i].time <= currentTime) {
+                            currentLyric = testLyrics[i];
+                        } else {
+                            break; // 시간 순으로 정렬되어 있으므로 넘어가면 루프 중단
+                        }
+                    }
+                    
                     document.getElementById('lyrics-box').innerText = currentLyric.text;
                 }, 100);
+            } else {
+                // 일시정지나 종료 시 타이머 해제
+                clearInterval(updateInterval);
             }
         }
     </script>
