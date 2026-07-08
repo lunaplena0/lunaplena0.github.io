@@ -48,6 +48,7 @@
 
     <main class="card content-card">
         <div id="content-area">
+            <!-- 1. 입력 칸 -->
             <div style="margin-bottom: 15px;">
                 <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 8px;">
                     <label id="inputLabel" style="font-size: 13px; color: var(--text-sub);">텍스트 입력</label>
@@ -56,22 +57,26 @@
                 <textarea id="inputText" style="width: 100%; height: 150px; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: rgba(255,255,255,0.05); color: var(--text-main); resize: vertical; box-sizing: border-box; font-family: inherit;" placeholder="여기에 내용을 입력하세요..."></textarea>
             </div>
 
+            <!-- 옵션 체크박스 -->
             <div class="option-group">
                 <input type="checkbox" id="etcCheck">
                 <label for="etcCheck">[기타] 머리말 수동 일괄 추가</label>
             </div>
 
+            <!-- 2. 기능 버튼 구역 -->
             <div class="btn-group">
                 <button onclick="convertTimeline()" class="btn" style="flex: 1; background: #007aff; color: #fff; font-weight: bold; padding: 12px; border: none; cursor: pointer;">형식 변환하기 ↓</button>
                 <button onclick="extractTimesOnly()" class="btn" style="flex: 1; background: #ff9500; color: #fff; font-weight: bold; padding: 12px; border: none; cursor: pointer;">1단계: 시간만 추출 ⏱️</button>
                 <button onclick="replaceWithNewSongs()" class="btn" style="flex: 1; background: #34c759; color: #fff; font-weight: bold; padding: 12px; border: none; cursor: pointer;">2단계: 노래 제목 교체 ⇄</button>
             </div>
 
+            <!-- 3. 결과 칸 -->
             <div style="margin-bottom: 15px;">
                 <label style="display: block; margin-bottom: 8px; font-size: 13px; color: var(--text-sub);">변환 결과 (수정 가능)</label>
                 <textarea id="outputText" style="width: 100%; height: 150px; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: rgba(0,0,0,0.2); color: #00ffcc; resize: vertical; box-sizing: border-box; font-family: inherit; line-height: 1.5;" placeholder="변환된 결과가 여기에 표시됩니다."></textarea>
             </div>
             
+            <!-- 4. 복사 버튼 -->
             <button onclick="copyToClipboard()" class="btn" style="width: 100%; background: var(--text-main); color: #000; font-weight: bold; padding: 12px; border: none; cursor: pointer;">수정된 결과 복사하기</button>
         </div>
     </main>
@@ -108,7 +113,7 @@
                 const time = timeMatch[0];
                 let titlePart = line.split(time)[1].trim();
                 
-                // 🎸 이모지가 본문에 있는지 미리 확인
+                // 🎸 이모지가 본문에 있는지 확인
                 const hasGuitar = titlePart.includes('🎸');
 
                 // 불필요한 이모지 제거 (🎸 포함)
@@ -154,7 +159,7 @@
         document.getElementById('inputText').focus();
     }
 
-    // [새 기능 - 2단계] 새로 입력된 곡 목록과 1단계에서 기억한 시간을 조합하는 함수
+    // [새 기능 - 2단계] 새로 입력된 곡 목록과 1단계에서 기억한 시간을 조합하는 함수 (🎸 유지 버전)
     function replaceWithNewSongs() {
         const input = document.getElementById('inputText').value;
         const isEtcChecked = document.getElementById('etcCheck').checked;
@@ -173,18 +178,12 @@
                               .filter(song => song.length > 0);
 
         const resultList = [];
+        const prefix = isEtcChecked ? "[기타] " : "";
 
         extractedTimes.forEach((time, index) => {
             if (index < newSongs.length) {
+                // 🎸 제거 없이 입력된 곡 제목을 그대로 결합합니다.
                 let currentSong = newSongs[index];
-                
-                // 새 목록에 들어있는 🎸 이모지도 감지해서 [기타]로 치환
-                const hasGuitar = currentSong.includes('🎸');
-                if (hasGuitar) {
-                    currentSong = currentSong.replace(/🎸/g, '').trim();
-                }
-
-                const prefix = (hasGuitar || isEtcChecked) ? "[기타] " : "";
                 resultList.push(`${time} ${prefix}${currentSong}`);
             } else {
                 resultList.push(`${time} 🎵 (매칭할 새 노래 없음)`);
@@ -206,7 +205,7 @@
 
         try {
             document.execCommand('copy');
-            alert('클립보드에 복사되었습니다!');
+            alert('클립보드에 보사되었습니다!');
         } catch (err) {
             alert('복사에 실패했습니다.');
         }
