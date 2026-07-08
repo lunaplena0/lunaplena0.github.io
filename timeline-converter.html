@@ -48,6 +48,7 @@
 
     <main class="card content-card">
         <div id="content-area">
+            <!-- 1. 입력 칸 -->
             <div style="margin-bottom: 15px;">
                 <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 8px;">
                     <label id="inputLabel" style="font-size: 13px; color: var(--text-sub);">텍스트 입력</label>
@@ -56,22 +57,26 @@
                 <textarea id="inputText" style="width: 100%; height: 150px; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: rgba(255,255,255,0.05); color: var(--text-main); resize: vertical; box-sizing: border-box; font-family: inherit;" placeholder="여기에 내용을 입력하세요..."></textarea>
             </div>
 
+            <!-- 옵션 체크박스 -->
             <div class="option-group">
                 <input type="checkbox" id="etcCheck">
                 <label for="etcCheck">[기타] 머리말 추가</label>
             </div>
 
+            <!-- 2. 기능 버튼 구역 -->
             <div class="btn-group">
                 <button onclick="convertTimeline()" class="btn" style="flex: 1; background: #007aff; color: #fff; font-weight: bold; padding: 12px; border: none; cursor: pointer;">형식 변환하기 ↓</button>
                 <button onclick="extractTimesOnly()" class="btn" style="flex: 1; background: #ff9500; color: #fff; font-weight: bold; padding: 12px; border: none; cursor: pointer;">1단계: 시간만 추출 ⏱️</button>
                 <button onclick="replaceWithNewSongs()" class="btn" style="flex: 1; background: #34c759; color: #fff; font-weight: bold; padding: 12px; border: none; cursor: pointer;">2단계: 노래 제목 교체 ⇄</button>
             </div>
 
+            <!-- 3. 결과 칸 -->
             <div style="margin-bottom: 15px;">
                 <label style="display: block; margin-bottom: 8px; font-size: 13px; color: var(--text-sub);">변환 결과 (수정 가능)</label>
                 <textarea id="outputText" style="width: 100%; height: 150px; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: rgba(0,0,0,0.2); color: #00ffcc; resize: vertical; box-sizing: border-box; font-family: inherit; line-height: 1.5;" placeholder="변환된 결과가 여기에 표시됩니다."></textarea>
             </div>
             
+            <!-- 4. 복사 버튼 -->
             <button onclick="copyToClipboard()" class="btn" style="width: 100%; background: var(--text-main); color: #000; font-weight: bold; padding: 12px; border: none; cursor: pointer;">수정된 결과 복사하기</button>
         </div>
     </main>
@@ -82,7 +87,6 @@
 </div>
 
 <script>
-    // 추출한 시간을 임시 보관할 배열
     let extractedTimes = [];
 
     function resetAll() {
@@ -131,7 +135,6 @@
             return;
         }
 
-        // 정규식으로 시간 패턴 추출
         const timeRegex = /(\d{1,2}:\d{2}:\d{2}|\d{1,2}:\d{2})/g;
         const matches = input.match(timeRegex);
 
@@ -140,11 +143,9 @@
             return;
         }
 
-        // 메모리에 저장 및 결과창에 안내용 표시
         extractedTimes = matches;
-        document.getElementById('outputText').value = `[시스템] 총 ${extractedTimes.length}개의 시간이 추출되어 기억되었습니다!\n\n이제 '입력창'의 내용을 모두 지우고, 교체할 새 노래 목록(줄바꿈 혹은 쉼표 구분)을 넣은 뒤 [2단계: 노래 제목 교체] 버튼을 눌러주세요.`;
+        document.getElementById('outputText').value = `[시스템] 총 ${extractedTimes.length}개의 시간이 추출되어 기억되었습니다!\n\n이제 '입력창'의 내용을 모두 지우고, 교체할 새 노래 목록을 '한 줄에 한 곡씩(엔터 구분)' 넣은 뒤 [2단계: 노래 제목 교체] 버튼을 눌러주세요.`;
         
-        // 입력창 비우고 포커스 주기
         document.getElementById('inputText').value = "";
         document.getElementById('inputText').focus();
     }
@@ -163,27 +164,22 @@
             return;
         }
 
-        // 입력된 새 곡 목록을 줄바꿈(\n) 또는 쉼표(,) 기준으로 분리하여 배열화
-        // 양쪽 공백 및 빈 줄 제거
-        const newSongs = input.split(/[\n,]+/)
+        // 오직 줄바꿈(\n) 기준으로만 분리하여 제목 내 쉼표가 끊기지 않도록 수정
+        const newSongs = input.split('\n')
                               .map(song => song.trim())
                               .filter(song => song.length > 0);
 
         const resultList = [];
         const prefix = isEtc ? "[기타] " : "";
 
-        // 기억해둔 시간들을 순서대로 돌면서 새 노래 목록과 매칭
         extractedTimes.forEach((time, index) => {
             if (index < newSongs.length) {
-                // 형식: 02:20:29 🎵 안녕 - 조이
                 resultList.push(`${time} ${prefix}${newSongs[index]}`);
             } else {
-                // 매칭할 노래 제목이 부족할 경우 시간만 표시
                 resultList.push(`${time} ${prefix}🎵 (매칭할 새 노래 없음)`);
             }
         });
 
-        // 결과창에 줄바꿈 형태로 최종 출력
         document.getElementById('outputText').value = resultList.join('\n');
     }
 
