@@ -48,7 +48,6 @@
 
     <main class="card content-card">
         <div id="content-area">
-            <!-- 1. 입력 칸 -->
             <div style="margin-bottom: 15px;">
                 <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 8px;">
                     <label id="inputLabel" style="font-size: 13px; color: var(--text-sub);">텍스트 입력</label>
@@ -57,26 +56,22 @@
                 <textarea id="inputText" style="width: 100%; height: 150px; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: rgba(255,255,255,0.05); color: var(--text-main); resize: vertical; box-sizing: border-box; font-family: inherit;" placeholder="여기에 내용을 입력하세요..."></textarea>
             </div>
 
-            <!-- 옵션 체크박스 -->
             <div class="option-group">
                 <input type="checkbox" id="etcCheck">
-                <label for="etcCheck">[기타] 머리말 추가</label>
+                <label for="etcCheck">[기타] 머리말 수동 일괄 추가</label>
             </div>
 
-            <!-- 2. 기능 버튼 구역 -->
             <div class="btn-group">
                 <button onclick="convertTimeline()" class="btn" style="flex: 1; background: #007aff; color: #fff; font-weight: bold; padding: 12px; border: none; cursor: pointer;">형식 변환하기 ↓</button>
                 <button onclick="extractTimesOnly()" class="btn" style="flex: 1; background: #ff9500; color: #fff; font-weight: bold; padding: 12px; border: none; cursor: pointer;">1단계: 시간만 추출 ⏱️</button>
                 <button onclick="replaceWithNewSongs()" class="btn" style="flex: 1; background: #34c759; color: #fff; font-weight: bold; padding: 12px; border: none; cursor: pointer;">2단계: 노래 제목 교체 ⇄</button>
             </div>
 
-            <!-- 3. 결과 칸 -->
             <div style="margin-bottom: 15px;">
                 <label style="display: block; margin-bottom: 8px; font-size: 13px; color: var(--text-sub);">변환 결과 (수정 가능)</label>
                 <textarea id="outputText" style="width: 100%; height: 150px; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: rgba(0,0,0,0.2); color: #00ffcc; resize: vertical; box-sizing: border-box; font-family: inherit; line-height: 1.5;" placeholder="변환된 결과가 여기에 표시됩니다."></textarea>
             </div>
             
-            <!-- 4. 복사 버튼 -->
             <button onclick="copyToClipboard()" class="btn" style="width: 100%; background: var(--text-main); color: #000; font-weight: bold; padding: 12px; border: none; cursor: pointer;">수정된 결과 복사하기</button>
         </div>
     </main>
@@ -99,10 +94,10 @@
         }
     }
 
-    // [기존 기능] 원본 데이터를 쉼표 포맷으로 변환하는 함수 (괄호 제거 기능 추가)
+    // [기존 기능] 원본 데이터를 쉼표 포맷으로 변환하는 함수
     function convertTimeline() {
         const input = document.getElementById('inputText').value;
-        const isEtc = document.getElementById('etcCheck').checked;
+        const isEtcChecked = document.getElementById('etcCheck').checked;
         const lines = input.split('\n');
         const resultList = [];
         const timeRegex = /(\d{1,2}:\d{2}:\d{2}|\d{1,2}:\d{2})/;
@@ -112,16 +107,22 @@
             if (timeMatch) {
                 const time = timeMatch[0];
                 let titlePart = line.split(time)[1].trim();
-                titlePart = titlePart.replace(/[🎵🎶▶️]/g, '').trim();
+                
+                // 🎸 이모지가 본문에 있는지 미리 확인
+                const hasGuitar = titlePart.includes('🎸');
+
+                // 불필요한 이모지 제거 (🎸 포함)
+                titlePart = titlePart.replace(/[🎵🎶▶️🎸]/g, '').trim();
                 
                 let finalTitle = titlePart.split('-')[0].trim();
                 finalTitle = finalTitle.replace(/,/g, '');
 
-                // 괄호와 괄호 안의 내용 전체를 지우는 정규식 적용 (ex: (TAEYEON ) -> 삭제)
+                // 괄호 내용 제거
                 finalTitle = finalTitle.replace(/\([^)]*\)/g, '').trim();
 
                 if (finalTitle) {
-                    const prefix = isEtc ? "[기타] " : "";
+                    // 🎸가 있었거나 수동 체크박스가 켜져 있다면 [기타] 추가
+                    const prefix = (hasGuitar || isEtcChecked) ? "[기타] " : "";
                     resultList.push(`${prefix}${finalTitle}(${time})`);
                 }
             }
@@ -156,7 +157,7 @@
     // [새 기능 - 2단계] 새로 입력된 곡 목록과 1단계에서 기억한 시간을 조합하는 함수
     function replaceWithNewSongs() {
         const input = document.getElementById('inputText').value;
-        const isEtc = document.getElementById('etcCheck').checked;
+        const isEtcChecked = document.getElementById('etcCheck').checked;
 
         if (extractedTimes.length === 0) {
             alert("1단계: 시간만 추출 버튼을 먼저 눌러서 시간을 기억시켜야 합니다.");
@@ -172,13 +173,21 @@
                               .filter(song => song.length > 0);
 
         const resultList = [];
-        const prefix = isEtc ? "[기타] " : "";
 
         extractedTimes.forEach((time, index) => {
             if (index < newSongs.length) {
-                resultList.push(`${time} ${prefix}${newSongs[index]}`);
+                let currentSong = newSongs[index];
+                
+                // 새 목록에 들어있는 🎸 이모지도 감지해서 [기타]로 치환
+                const hasGuitar = currentSong.includes('🎸');
+                if (hasGuitar) {
+                    currentSong = currentSong.replace(/🎸/g, '').trim();
+                }
+
+                const prefix = (hasGuitar || isEtcChecked) ? "[기타] " : "";
+                resultList.push(`${time} ${prefix}${currentSong}`);
             } else {
-                resultList.push(`${time} ${prefix}🎵 (매칭할 새 노래 없음)`);
+                resultList.push(`${time} 🎵 (매칭할 새 노래 없음)`);
             }
         });
 
