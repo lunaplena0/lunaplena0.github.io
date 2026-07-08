@@ -99,7 +99,7 @@
         }
     }
 
-    // [기존 기능] 원본 데이터를 쉼표 포맷으로 변환하는 함수
+    // [기존 기능] 원본 데이터를 쉼표 포맷으로 변환하는 함수 (괄호 제거 기능 추가)
     function convertTimeline() {
         const input = document.getElementById('inputText').value;
         const isEtc = document.getElementById('etcCheck').checked;
@@ -116,6 +116,9 @@
                 
                 let finalTitle = titlePart.split('-')[0].trim();
                 finalTitle = finalTitle.replace(/,/g, '');
+
+                // 괄호와 괄호 안의 내용 전체를 지우는 정규식 적용 (ex: (TAEYEON ) -> 삭제)
+                finalTitle = finalTitle.replace(/\([^)]*\)/g, '').trim();
 
                 if (finalTitle) {
                     const prefix = isEtc ? "[기타] " : "";
@@ -164,7 +167,6 @@
             return;
         }
 
-        // 오직 줄바꿈(\n) 기준으로만 분리하여 제목 내 쉼표가 끊기지 않도록 수정
         const newSongs = input.split('\n')
                               .map(song => song.trim())
                               .filter(song => song.length > 0);
