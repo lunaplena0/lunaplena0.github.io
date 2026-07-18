@@ -196,24 +196,22 @@
         <div id="extra-links-target" class="flex flex-wrap gap-2.5 mt-6 justify-center"></div>
 
         <!-- [3] 타임라인 전용 공간 확보 영역 -->
-       <!-- [3] 타임라인 전용 공간 -->
-<div id="timeline-section" class="mt-8 bg-marine-reef/60 border border-marine-border rounded-3xl p-6 shadow-xl">
-    <div class="flex items-center justify-between mb-6 border-b border-marine-border/40 pb-4">
-        <div class="flex items-center gap-2">
-            <i class="fa-solid fa-timeline text-marine-cyan text-lg"></i>
-            <h3 class="font-bold text-base text-marine-foam">방송 히스토리 타임라인</h3>
-        </div>
-        <span id="timeline-count" class="text-[10px] text-marine-spray"></span>
+      <!-- [3] 타임라인 전용 공간 -->
+<div id="timeline-section" class="mt-8 bg-marine-reef/60 border border-marine-border rounded-3xl p-6 shadow-xl max-w-3xl mx-auto">
+    <div class="flex items-center gap-2 mb-8 border-b border-marine-border/40 pb-4">
+        <i class="fa-solid fa-timeline text-marine-cyan text-lg"></i>
+        <h3 class="font-bold text-base text-marine-foam">방송 히스토리 타임라인</h3>
     </div>
     
-    <!-- 스크롤 대신 grid 레이아웃 유지 -->
-    <div id="timeline-body" class="grid grid-cols-1 lg:grid-cols-2 gap-x-12 gap-y-2 transition-all duration-500 overflow-hidden">
-        <!-- 데이터가 들어올 자리 -->
+    <!-- grid 대신 flex로 1열 유지, 좌우 배치 -->
+    <div id="timeline-body" class="flex flex-col relative">
+        <!-- 선이 끊기지 않게 전체를 감싸는 가이드라인 (선 스타일) -->
+        <div class="absolute left-[88px] top-0 bottom-0 w-[1px] bg-marine-border/30"></div>
     </div>
 
     <!-- 더보기 버튼 -->
-    <div id="timeline-btn-container" class="mt-6 text-center hidden">
-        <button onclick="toggleTimeline()" id="timeline-toggle-btn" class="px-6 py-2 bg-marine-shallow/40 hover:bg-marine-cyan hover:text-marine-deep border border-marine-cyan/30 text-marine-cyan transition-all duration-300 rounded-xl text-xs font-bold shadow-sm">
+    <div id="timeline-btn-container" class="mt-8 text-center hidden">
+        <button onclick="toggleTimeline()" id="timeline-toggle-btn" class="px-6 py-2 bg-marine-shallow/40 hover:bg-marine-cyan hover:text-marine-deep border border-marine-cyan/30 text-marine-cyan transition-all duration-300 rounded-xl text-xs font-bold">
             더보기 <i class="fa-solid fa-chevron-down ml-1"></i>
         </button>
     </div>
@@ -514,25 +512,29 @@ async function renderTimeline() {
 
 function updateTimelineDisplay(isExpanded) {
     const container = document.getElementById('timeline-body');
-    const btnContainer = document.getElementById('timeline-btn-container');
-    const btn = document.getElementById('timeline-toggle-btn');
-    
     const displayData = isExpanded ? allTimelineData : allTimelineData.slice(0, INITIAL_SHOW);
     
-    let html = '';
-    displayData.forEach(row => {
+    // 선을 그리는 메인 컨테이너 내부에 아이템을 채웁니다.
+    let html = '<div class="absolute left-[88px] top-0 bottom-0 w-[1px] bg-marine-border/30"></div>';
+    
+    displayData.forEach((row) => {
         html += `
-            <div class="relative pl-6 py-2">
-                <div class="absolute left-0 top-3 w-2 h-2 rounded-full bg-marine-cyan shadow-[0_0_8px_#00e5ff] border-2 border-marine-deep"></div>
-                <div class="absolute left-[3px] top-5 bottom-[-10px] w-[2px] bg-marine-border/30"></div>
-                <div class="flex flex-col">
-                    <span class="text-[9px] font-display text-marine-spray tracking-widest">${row[0].trim()}</span>
-                    <p class="text-xs text-marine-foam leading-relaxed mt-0.5">${row[1].trim()}</p>
+            <div class="flex items-start mb-8 relative">
+                <!-- 날짜 (고정폭) -->
+                <div class="w-[80px] shrink-0 text-[10px] text-marine-cyan font-display pt-1 text-right pr-6">
+                    ${row[0].trim()}
+                </div>
+                <!-- 점 -->
+                <div class="w-2 h-2 rounded-full bg-marine-cyan mt-1.5 shadow-[0_0_8px_#00e5ff] shrink-0 z-10"></div>
+                <!-- 내용 -->
+                <div class="pl-6 text-xs text-marine-foam leading-relaxed">
+                    ${row[1].trim()}
                 </div>
             </div>`;
     });
     
     container.innerHTML = html;
+}
     
     // 데이터가 초기 개수보다 많을 때만 버튼 표시
     if (allTimelineData.length > INITIAL_SHOW) {
