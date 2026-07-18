@@ -529,24 +529,25 @@ let allTimelineData = [];
     const container = document.getElementById('timeline-body');
     const displayData = expanded ? allTimelineData : allTimelineData.slice(0, INITIAL_SHOW);
     
-    // 모바일은 1열, 태블릿 3열, PC 5열
-    container.className = "grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-x-4 gap-y-8 mt-6"; 
+    // 부모에 overflow-hidden 추가하여 튀어나가는 선을 자름
+    container.className = "grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-x-4 gap-y-8 mt-6 overflow-hidden"; 
     
     let html = '';
     
     displayData.forEach((row, index) => {
-        // 마지막 항목인지 확인하여 선을 숨김 처리
-        const isLast = index === displayData.length - 1;
+        // 줄의 마지막 요소인지 계산 (5열 기준)
+        const isLastInRow = (index + 1) % 5 === 0;
+        const isLastOverall = index === displayData.length - 1;
         
         html += `
             <div class="relative flex flex-col items-center">
-                <!-- 가로/세로 연결선: 카드의 높이를 100% 채우며, 선이 이어지도록 함 -->
-                ${!isLast ? `
-                    <div class="absolute top-2 left-[calc(50%+10px)] w-[calc(100%-20px)] h-[2px] bg-marine-cyan/20 hidden lg:block"></div>
+                <!-- 가로선: 마지막 요소가 아니면서 줄의 끝이 아닐 때만 렌더링 -->
+                ${!isLastOverall ? `
+                    <div class="absolute top-2 left-[50%] w-full h-[2px] bg-marine-cyan/20 hidden lg:block ${isLastInRow ? 'hidden' : ''}"></div>
                     <div class="absolute top-[20px] left-[50%] h-[calc(100%+20px)] w-[2px] bg-marine-cyan/20 lg:hidden"></div>
                 ` : ''}
                 
-                <!-- 노드 점 (z-index를 높게 설정) -->
+                <!-- 노드 점 -->
                 <div class="relative z-10 w-4 h-4 rounded-full bg-marine-deep border-2 border-marine-cyan shadow-[0_0_10px_#00e5ff]"></div>
                 
                 <!-- 컨텐츠 박스 -->
