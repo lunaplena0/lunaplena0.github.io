@@ -80,10 +80,14 @@
     if (columns.length < 5) return null;
     let [date, time, type, title, content, replayUrl] = columns.map(col => col ? col.trim() : "");
     
-    // 방송 유형에 따라 시간 처리
+    // 방송 유형에 따른 시간 표기 로직
     let displayTime = time;
     if (time === "-") {
-        displayTime = (type === "방송") ? "휴방" : "-";
+        if (type === "방송") {
+            displayTime = "휴방"; // 방송 유형은 '휴방'으로
+        } else {
+            displayTime = type; // 방송이 아닌 경우 해당 유형 이름(예: 공지, 영상)으로 표시
+        }
     }
     
     if (!date) date = lastValidDate; else lastValidDate = date;
