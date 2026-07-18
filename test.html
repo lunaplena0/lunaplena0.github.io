@@ -44,7 +44,7 @@
             background-color: #060e16;
             background-image: radial-gradient(circle at 50% 0%, #0d233a 0%, #060e16 70%);
         }
-        /* 스크롤바 제어 (필요시 노출용 예외처리 유지) */
+        /* 스크롤바 제어 */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: rgba(6, 14, 22, 0.5); }
         ::-webkit-scrollbar-thumb {
@@ -119,17 +119,16 @@
             </div>
         </div>
 
-        <!-- [2] 3단 레이아웃 그리드 (★스크롤바 없이 내부량에 맞게 오토피팅 제어 마감) -->
+        <!-- [2] 3단 레이아웃 그리드 -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             
-            <!-- 1열: 주간일정 (★월간일정 바로가기 신설) -->
+            <!-- 1열: 주간일정 -->
             <div class="bg-marine-reef border border-marine-border rounded-3xl p-5 shadow-xl flex flex-col justify-between">
                 <div>
                     <div class="flex justify-between items-center mb-4 h-8">
                         <h2 class="font-bold text-base text-marine-foam flex items-center gap-2">
                             <i class="fa-solid fa-calendar-week text-marine-cyan"></i> 주간 일정
                         </h2>
-                        <!-- 월간일정 연결 버튼 타겟 -->
                         <a href="#" target="_blank" class="text-[11px] text-marine-cyan hover:text-marine-mint transition font-bold flex items-center gap-1 bg-marine-shallow/50 px-2 py-0.5 rounded border border-marine-border">
                             월간일정 <i class="fa-solid fa-angles-right text-[9px] ml-0.5"></i>
                         </a>
@@ -352,7 +351,7 @@
             }
         }
 
-        // 최근 공지 (스크롤리스 오토피팅 피드백 반영)
+        // 최근 공지
         function renderPosts(data) {
             const postBox = document.getElementById('post-container');
             if(!postBox) return;
@@ -376,7 +375,7 @@
             postBox.innerHTML = html || `<div class="text-xs text-marine-spray/40 text-center py-8">등록된 공지사항이 없습니다.</div>`;
         }
 
-        // 최근 다시보기 (스크롤리스 오토피팅 피드백 반영)
+        // 최근 다시보기 (★요청 반영: 썸네일 박스 16:9 와이드 비율 완벽 적용)
         function renderVODs(data) {
             const vodBox = document.getElementById('vod-container');
             if(!vodBox) return;
@@ -387,7 +386,7 @@
                 const isPin = v[4]?.trim() === 'O';
                 html += `
                     <div onclick="window.open('${v[2]}', '_blank')" class="flex items-center gap-2.5 p-1 h-[48px] bg-marine-deep/40 border ${isPin ? 'border-marine-cyan/35 bg-marine-cyan/5' : 'border-marine-border'} hover:border-marine-cyan rounded-xl transition-all duration-300 cursor-pointer group">
-                        <div class="relative w-10 h-full rounded-lg overflow-hidden shrink-0 bg-marine-void border border-marine-border/60">
+                        <div class="relative aspect-[16/9] h-full rounded-lg overflow-hidden shrink-0 bg-marine-void border border-marine-border/60">
                             <img src="${v[3]}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" alt="VOD">
                         </div>
                         <div class="min-w-0 flex-grow flex flex-col justify-center">
@@ -400,7 +399,7 @@
             vodBox.innerHTML = html || `<div class="text-xs text-marine-spray/40 text-center py-8">가져온 다시보기가 없습니다.</div>`;
         }
 
-        // 주간 일정 (스크롤리스 오토피팅 피드백 반영)
+        // 주간 일정
         function renderSchedule(data) {
             const container = document.getElementById('schedule-container');
             if(!container) return;
