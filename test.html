@@ -525,25 +525,29 @@ let allTimelineData = [];
             }
         }
 
-      function updateTimelineDisplay(expanded) {
+     function updateTimelineDisplay(expanded) {
     const container = document.getElementById('timeline-body');
-    const displayData = expanded ? allTimelineData : allTimelineData.slice(0, 5); // 5개 표시
+    const displayData = expanded ? allTimelineData : allTimelineData.slice(0, 5);
     
-    // 모바일에서 전체 세로선을 그리기 위한 relative 클래스
+    // 모바일 전용 세로선을 위해 relative 유지
     container.className = "relative grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-x-4 gap-y-8 mt-6"; 
     
     let html = '';
     
-    // 1. 모바일 전용 세로선 추가 (PC에선 숨김)
+    // 모바일 전용 전체 세로선
     html += `<div class="absolute top-2 left-[7px] h-full w-[2px] bg-marine-cyan/20 lg:hidden"></div>`;
     
     displayData.forEach((row, index) => {
+        // 줄의 마지막 요소인지 확인 (5열 기준)
         const isLastInRow = (index + 1) % 5 === 0;
         
         html += `
             <div class="relative flex flex-row lg:flex-col items-start lg:items-center">
-                <!-- PC 가로선 (행 단위) -->
-                <div class="absolute top-2 left-[50%] w-full h-[2px] bg-marine-cyan/20 hidden lg:block ${isLastInRow ? 'hidden' : ''}"></div>
+                
+                <!-- PC 가로선: 줄의 마지막 요소가 아닐 때만 렌더링 -->
+                ${!isLastInRow ? `
+                    <div class="absolute top-2 left-[50%] w-[calc(100%-16px)] h-[2px] bg-marine-cyan/20 hidden lg:block translate-x-4"></div>
+                ` : ''}
                 
                 <!-- 노드 점 -->
                 <div class="relative z-10 w-4 h-4 rounded-full bg-marine-deep border-2 border-marine-cyan shadow-[0_0_10px_#00e5ff] flex-shrink-0"></div>
