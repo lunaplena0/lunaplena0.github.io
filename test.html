@@ -519,22 +519,24 @@ let allTimelineData = [];
     const container = document.getElementById('timeline-body');
     const displayData = expanded ? allTimelineData : allTimelineData.slice(0, INITIAL_SHOW);
     
-    // 1. 그리드 설정: PC에서는 3열, 태블릿 2열, 모바일 1열
-    container.className = "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"; 
+    // grid로 가로 배치 + gap으로 간격 확보
+    container.className = "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"; 
     
     let html = '';
     
-    displayData.forEach((row) => {
-        // 2. 각 항목을 하나의 카드로 구성
+    displayData.forEach((row, index) => {
         html += `
-            <div class="bg-marine-reef/40 border border-marine-border p-4 rounded-xl hover:border-marine-cyan/50 transition-all">
-                <div class="flex items-center gap-2 mb-2">
-                    <div class="text-[10px] text-marine-cyan font-display font-bold px-1.5 py-0.5 bg-marine-deep rounded">
+            <div class="relative pl-4 border-l-2 border-marine-cyan/30 group">
+                <!-- 시간 흐름을 보여주는 점(Node) -->
+                <div class="absolute -left-[5px] top-0 w-2.5 h-2.5 rounded-full bg-marine-cyan shadow-[0_0_8px_#00e5ff] group-hover:scale-125 transition-transform"></div>
+                
+                <div class="bg-marine-reef/30 p-4 rounded-r-xl border-y border-r border-marine-border hover:border-marine-cyan/30 transition-colors">
+                    <div class="text-[10px] text-marine-cyan font-display font-bold mb-1">
                         ${row[0].trim()}
                     </div>
-                </div>
-                <div class="text-xs text-marine-foam leading-relaxed word-keep">
-                    ${row[1].trim()}
+                    <div class="text-xs text-marine-foam leading-relaxed word-keep">
+                        ${row[1].trim()}
+                    </div>
                 </div>
             </div>`;
     });
