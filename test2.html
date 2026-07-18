@@ -18,24 +18,27 @@
     <style>
         body { background-color: #060e16; color: #e3f2fd; font-family: 'Noto Sans KR', sans-serif; }
         .calendar-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); }
-        .calendar-cell { 
-    min-height: 100px; 
-    cursor: pointer; 
-    border-bottom: 1px solid rgba(0, 229, 255, 0.1); 
-    border-right: 1px solid rgba(0, 229, 255, 0.1); 
-}
-/* 빈 칸을 위한 클래스 추가 */
-.empty-cell { 
-    border-bottom: 1px solid rgba(0, 229, 255, 0.1); 
-    border-right: 1px solid rgba(0, 229, 255, 0.1); 
-}
+        .calendar-cell { min-height: 100px; cursor: pointer; border-bottom: 1px solid rgba(0, 229, 255, 0.1); border-right: 1px solid rgba(0, 229, 255, 0.1); }
+        .empty-cell { border-bottom: 1px solid rgba(0, 229, 255, 0.1); border-right: 1px solid rgba(0, 229, 255, 0.1); }
         .calendar-cell:hover { background: rgba(0, 229, 255, 0.05); }
         .day-label { text-align: center; font-size: 0.75rem; font-weight: bold; color: #8fa5b5; padding: 0.5rem 0; }
         .date-header { padding: 0.5rem; }
         .date-num { color: #00e5ff; font-weight: bold; font-size: 0.875rem; }
+        @keyframes loadingBar { 0% { transform: translateX(-100%); } 50% { transform: translateX(0%); } 100% { transform: translateX(100%); } }
     </style>
 </head>
 <body class="pb-32">
+
+    <!-- 로딩 오버레이 -->
+    <div id="loading-overlay" class="fixed inset-0 bg-marine-deep z-50 flex flex-col items-center justify-center transition-all duration-700">
+        <div class="relative flex flex-col items-center">
+            <i class="fa-solid fa-submarine text-marine-cyan text-5xl animate-bounce mb-8"></i>
+            <p class="text-marine-foam animate-pulse tracking-[0.2em] text-sm">DATA LOADING . . .</p>
+            <div class="w-32 h-1 bg-marine-reef mt-6 rounded-full overflow-hidden">
+                <div class="h-full bg-marine-cyan animate-[loadingBar_2s_ease-in-out_infinite]"></div>
+            </div>
+        </div>
+    </div>
 
     <nav class="border-b border-marine-border bg-marine-deep/90 backdrop-blur-md sticky top-0 z-40 px-4 py-3.5 mb-8">
         <div class="max-w-4xl mx-auto flex justify-between items-center">
@@ -49,9 +52,7 @@
             <h2 id="current-month-display" class="text-xl font-black text-marine-cyan tracking-widest">날짜 로딩 중...</h2>
             <select id="month-select" class="bg-marine-reef text-white px-2 py-1 rounded border border-marine-cyan/30 text-sm"></select>
         </div>
-
         <div id="calendar-body" class="calendar-grid border-t border-l border-marine-border"></div>
-
         <div id="date-detail-info" class="mt-8 p-6 bg-marine-reef border border-marine-cyan/20 rounded-2xl hidden shadow-2xl">
             <div id="status-display-area"></div>
         </div>
@@ -76,30 +77,15 @@
                 let lastValidDate = "";
 
                 allEvents = rows.map(row => {
-    const columns = row.split('\t');
-    if (columns.length < 5) return null;
-    let [date, time, type, title, content, replayUrl] = columns.map(col => col ? col.trim() : "");
-    
-    // 방송 유형에 따른 시간 표기 로직
-    let displayTime = time;
-    if (time === "-") {
-        if (type === "방송") {
-            displayTime = "휴방"; // 방송 유형은 '휴방'으로
-        } else {
-            displayTime = type; // 방송이 아닌 경우 해당 유형 이름(예: 공지, 영상)으로 표시
-        }
-    }
-    
-    if (!date) date = lastValidDate; else lastValidDate = date;
-    return { 
-        date: '20' + date.replace(/\./g, '-'), 
-        time: displayTime, 
-        type, 
-        title: title === "-" ? "" : title, 
-        content, 
-        replayUrl 
-    };
-}).filter(ev => ev);
+                    const columns = row.split('\t');
+                    if (columns.length < 5) return null;
+                    let [date, time, type, title, content, replayUrl] = columns.map(col => col ? col.trim() : "");
+                    
+                    let displayTime = time === "-" ? (type === "방송" ? "휴방" : type) : time;
+                    
+                    if (!date) date = lastValidDate; else lastValidDate = date;
+                    return { date: '20' + date.replace(/\./g, '-'), time: displayTime, type, title: title === "-" ? "" : title, content, replayUrl };
+                }).filter(ev => ev);
 
                 const now = new Date();
                 const currentYM = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
@@ -114,6 +100,7 @@
                     monthSelect.appendChild(option);
                 });
                 renderCalendar(monthSelect.value || availableMonths[availableMonths.length - 1]);
+                document.getElementById('loading-overlay').style.display = 'none';
             } catch (e) { console.error(e); }
         }
 
@@ -124,29 +111,19 @@
             document.getElementById('current-month-display').innerText = `${year}년 ${month}월`;
             const body = document.getElementById('calendar-body');
             body.innerHTML = '';
-            
             ['일','월','화','수','목','금','토'].forEach(d => {
-                const div = document.createElement('div');
-                div.className = 'day-label';
-                div.innerText = d;
-                body.appendChild(div);
+                const div = document.createElement('div'); div.className = 'day-label'; div.innerText = d; body.appendChild(div);
             });
-
-            for (let i = 0; i < firstDay; i++) {
-    const emptyDiv = document.createElement('div');
-    emptyDiv.className = 'empty-cell'; // 테두리 클래스 적용
-    body.appendChild(emptyDiv);
-}
-
+            for (let i = 0; i < firstDay; i++) { const div = document.createElement('div'); div.className = 'empty-cell'; body.appendChild(div); }
             for (let d = 1; d <= lastDate; d++) {
                 const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
                 const cell = document.createElement('div');
                 cell.className = 'calendar-cell p-2';
                 cell.innerHTML = `<div class="date-header"><span class="date-num">${d}</span></div>`;
                 cell.onclick = () => showDateInfo(dateStr);
-                
                 allEvents.filter(e => e.date === dateStr).forEach(ev => {
-                    cell.innerHTML += `<div class="text-[10px] text-marine-cyan mt-1 truncate">🔹${ev.time || '방송'}</div>`;
+                    const colorClass = ev.time === '휴방' ? 'text-marine-coral' : 'text-marine-cyan';
+                    cell.innerHTML += `<div class="text-[10px] ${colorClass} mt-1 truncate">🔹${ev.time}</div>`;
                 });
                 body.appendChild(cell);
             }
@@ -159,22 +136,20 @@
             const liveText = document.getElementById('live-status-text');
 
             if (dayEvents.length > 0) {
-                displayArea.innerHTML = `<div class="space-y-4">` + dayEvents.map(ev => `
-                    <div class="border-b border-marine-border pb-3 last:border-0">
+                displayArea.innerHTML = `<div class="space-y-4">` + dayEvents.map(ev => {
+                    const timeColor = ev.time === '휴방' ? 'text-marine-coral' : 'text-marine-cyan';
+                    return `<div class="border-b border-marine-border pb-3 last:border-0">
                         <div class="flex items-center justify-between mb-1">
-                            <span class="text-xs text-marine-cyan font-bold">[${ev.type}] ${ev.time}</span>
+                            <span class="text-xs ${timeColor} font-bold">[${ev.type}] ${ev.time}</span>
                             ${ev.replayUrl && ev.replayUrl !== "-" ? `<a href="${ev.replayUrl}" target="_blank" class="text-[10px] text-marine-mint underline">다시보기</a>` : ''}
                         </div>
                         <div class="text-marine-foam font-bold">${ev.title || ''}</div>
-                    </div>
-                `).join('') + `</div>`;
-                
+                    </div>`;
+                }).join('') + `</div>`;
                 liveText.textContent = `선택한 날짜: ${dateStr.replace(/-/g, '.')} (${dayEvents.length}개 일정)`;
                 infoBox.classList.remove('hidden');
                 infoBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            } else {
-                infoBox.classList.add('hidden');
-            }
+            } else infoBox.classList.add('hidden');
         }
 
         document.getElementById('month-select').addEventListener('change', (e) => renderCalendar(e.target.value));
