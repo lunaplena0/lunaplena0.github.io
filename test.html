@@ -44,7 +44,7 @@
             background-color: #060e16;
             background-image: radial-gradient(circle at 50% 0%, #0d233a 0%, #060e16 70%);
         }
-        /* 스크롤바 커스텀 */
+        /* 스크롤바 제어 (필요시 노출용 예외처리 유지) */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: rgba(6, 14, 22, 0.5); }
         ::-webkit-scrollbar-thumb {
@@ -94,7 +94,7 @@
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
         
-        <!-- [1] 프로필 배너 섹션 (★최근방송 중복 배지 제거 완료) -->
+        <!-- [1] 프로필 배너 섹션 -->
         <div class="bg-marine-reef border border-marine-border rounded-3xl p-6 mb-8 relative overflow-hidden flex flex-col md:flex-row items-center gap-6 shadow-2xl w-full">
             <div class="absolute -top-16 -right-16 w-64 h-64 bg-marine-cyan/5 rounded-full blur-3xl pointer-events-none"></div>
             <div class="absolute -bottom-16 -left-16 w-64 h-64 bg-marine-mint/5 rounded-full blur-3xl pointer-events-none"></div>
@@ -119,19 +119,23 @@
             </div>
         </div>
 
-        <!-- [2] 3단 레이아웃 그리드 (★내부 아이템 높이 h-[48px]로 슬림하게 압축 완료) -->
+        <!-- [2] 3단 레이아웃 그리드 (★스크롤바 없이 내부량에 맞게 오토피팅 제어 마감) -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             
-            <!-- 1열: 주간일정 -->
+            <!-- 1열: 주간일정 (★월간일정 바로가기 신설) -->
             <div class="bg-marine-reef border border-marine-border rounded-3xl p-5 shadow-xl flex flex-col justify-between">
                 <div>
                     <div class="flex justify-between items-center mb-4 h-8">
                         <h2 class="font-bold text-base text-marine-foam flex items-center gap-2">
                             <i class="fa-solid fa-calendar-week text-marine-cyan"></i> 주간 일정
                         </h2>
+                        <!-- 월간일정 연결 버튼 타겟 -->
+                        <a href="#" target="_blank" class="text-[11px] text-marine-cyan hover:text-marine-mint transition font-bold flex items-center gap-1 bg-marine-shallow/50 px-2 py-0.5 rounded border border-marine-border">
+                            월간일정 <i class="fa-solid fa-angles-right text-[9px] ml-0.5"></i>
+                        </a>
                     </div>
-                    <div id="schedule-container" class="space-y-2 h-[255px] overflow-y-auto pr-1">
-                        <!-- 동적 로드항목 배치 (h-[48px] 고정) -->
+                    <div id="schedule-container" class="space-y-2 min-h-[240px] h-auto pb-1">
+                        <!-- 동적 로드항목 배치 -->
                     </div>
                 </div>
             </div>
@@ -147,8 +151,8 @@
                             전체보기 <i class="fa-solid fa-angles-right text-[9px] ml-0.5"></i>
                         </a>
                     </div>
-                    <div id="post-container" class="space-y-2 h-[255px] overflow-y-auto pr-1">
-                        <!-- 동적 로드항목 배치 (h-[48px] 고정) -->
+                    <div id="post-container" class="space-y-2 min-h-[240px] h-auto pb-1">
+                        <!-- 동적 로드항목 배치 -->
                     </div>
                 </div>
             </div>
@@ -164,8 +168,8 @@
                             통계보기 <i class="fa-solid fa-angles-right text-[9px] ml-0.5"></i>
                         </a>
                     </div>
-                    <div id="vod-container" class="space-y-2 h-[255px] overflow-y-auto pr-1">
-                        <!-- 동적 로드항목 배치 (h-[48px] 고정) -->
+                    <div id="vod-container" class="space-y-2 min-h-[240px] h-auto pb-1">
+                        <!-- 동적 로드항목 배치 -->
                     </div>
                 </div>
             </div>
@@ -175,13 +179,12 @@
         <!-- 외부 링크 버튼 컨테이너 -->
         <div id="extra-links-target" class="flex flex-wrap gap-2.5 mt-6 justify-center"></div>
 
-        <!-- [3] ★타임라인 전용 공간 확보 영역 -->
+        <!-- [3] 타임라인 전용 공간 확보 영역 -->
         <div id="timeline-section" class="mt-8 bg-marine-reef/60 border border-marine-border rounded-3xl p-6 shadow-xl">
             <div class="flex items-center gap-2 mb-4">
                 <i class="fa-solid fa-timeline text-marine-cyan text-lg"></i>
                 <h3 class="font-bold text-base text-marine-foam">방송 히스토리 타임라인</h3>
             </div>
-            <!-- 이 내부에 타임라인 컴포넌트나 리스트 구조를 이어서 구현하시면 됩니다 -->
             <div class="border border-dashed border-marine-border/60 rounded-xl py-12 text-center text-xs text-marine-spray/40">
                 <i class="fa-solid fa-hourglass-half text-lg mb-2 block text-marine-cyan/30"></i>
                 타임라인 데이터가 입력될 공간입니다.
@@ -349,7 +352,7 @@
             }
         }
 
-        // 최근 공지 (h-[48px] 슬림화)
+        // 최근 공지 (스크롤리스 오토피팅 피드백 반영)
         function renderPosts(data) {
             const postBox = document.getElementById('post-container');
             if(!postBox) return;
@@ -373,7 +376,7 @@
             postBox.innerHTML = html || `<div class="text-xs text-marine-spray/40 text-center py-8">등록된 공지사항이 없습니다.</div>`;
         }
 
-        // 최근 다시보기 (h-[48px] 슬림화)
+        // 최근 다시보기 (스크롤리스 오토피팅 피드백 반영)
         function renderVODs(data) {
             const vodBox = document.getElementById('vod-container');
             if(!vodBox) return;
@@ -397,7 +400,7 @@
             vodBox.innerHTML = html || `<div class="text-xs text-marine-spray/40 text-center py-8">가져온 다시보기가 없습니다.</div>`;
         }
 
-        // 주간 일정 (h-[48px] 슬림화)
+        // 주간 일정 (스크롤리스 오토피팅 피드백 반영)
         function renderSchedule(data) {
             const container = document.getElementById('schedule-container');
             if(!container) return;
