@@ -504,7 +504,12 @@ async function renderTimeline() {
         allTimelineData = rows.slice(1).filter(r => r[0] && r[1]);
         allTimelineData.sort((a, b) => new Date(a[0]) - new Date(b[0]));
 
-        updateTimelineDisplay(false); // 일단 접힌 상태로 렌더링
+        updateTimelineDisplay(false); 
+
+        // [수정 포인트] 여기서 버튼 표시 여부를 결정해야 합니다
+        if (allTimelineData.length > INITIAL_SHOW) {
+            btnContainer.classList.remove('hidden');
+        }
     } catch (e) {
         timelineContainer.innerHTML = '<p class="text-xs text-marine-spray text-center col-span-2 py-10">데이터를 불러올 수 없습니다.</p>';
     }
@@ -515,6 +520,7 @@ function updateTimelineDisplay(isExpanded) {
     const displayData = isExpanded ? allTimelineData : allTimelineData.slice(0, INITIAL_SHOW);
     
     // 선을 그리는 메인 컨테이너 내부에 아이템을 채웁니다.
+    // 기존 내용을 유지하면서 선을 다시 그립니다.
     let html = '<div class="absolute left-[88px] top-0 bottom-0 w-[1px] bg-marine-border/30"></div>';
     
     displayData.forEach((row) => {
