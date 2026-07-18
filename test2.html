@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>월간 일정 - 바다비 아카이브</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: { extend: { colors: { marine: {
+                deep: '#060e16', reef: '#112235', foam: '#e3f2fd', 
+                cyan: '#00e5ff', mint: '#05ffa6', coral: '#ff5c8a', 
+                border: 'rgba(0, 229, 255, 0.12)', shallow: '#1a334d'
+            }}}}
+        }
+    </script>
+    <style>
+        body { background-color: #060e16; color: #e3f2fd; font-family: 'Noto Sans KR', sans-serif; }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); }
+        .calendar-cell { min-height: 100px; cursor: pointer; border-bottom: 1px solid rgba(0, 229, 255, 0.1); border-right: 1px solid rgba(0, 229, 255, 0.1); }
+        .calendar-cell:hover { background: rgba(0, 229, 255, 0.05); }
+        .day-label { text-align: center; font-size: 0.75rem; font-weight: bold; color: #8fa5b5; padding: 0.5rem 0; }
+        .date-header { padding: 0.5rem; }
+        .date-num { color: #00e5ff; font-weight: bold; font-size: 0.875rem; }
+    </style>
+</head>
+<body class="pb-32">
+
+    <!-- 네비게이션 -->
+    <nav class="border-b border-marine-border bg-marine-deep/90 backdrop-blur-md sticky top-0 z-40 px-4 py-3.5 mb-8">
+        <div class="max-w-4xl mx-auto flex justify-between items-center">
+            <span class="font-black text-sm tracking-widest text-marine-foam">BABABI ARCHIVE</span>
+            <a href="index.html" class="text-xs font-bold text-marine-cyan">메인으로</a>
+        </div>
+    </nav>
+
+    <div class="max-w-4xl mx-auto px-4">
+        <div class="flex justify-between items-center mb-6">
+            <h2 id="current-month-display" class="text-xl font-black text-marine-cyan tracking-widest">날짜 로딩 중...</h2>
+            <select id="month-select" class="bg-marine-reef text-white px-2 py-1 rounded border border-marine-cyan/30 text-sm"></select>
+        </div>
+
+        <div id="calendar-body" class="calendar-grid border-t border-l border-marine-border"></div>
+
+        <!-- 상세 정보창 -->
+        <div id="date-detail-info" class="mt-8 p-6 bg-marine-reef border border-marine-cyan/20 rounded-2xl hidden shadow-2xl">
+            <div id="status-display-area"></div>
+        </div>
+    </div>
+
+    <!-- 하단 고정 방송 상태 바 -->
+    <div class="fixed bottom-0 left-0 right-0 border-t border-marine-border bg-marine-deep/95 backdrop-blur-lg z-50 px-4 py-3 shadow-[0_-10px_30px_rgba(0,0,0,0.6)]">
+        <div class="max-w-4xl mx-auto flex items-center justify-between text-xs text-marine-spray">
+            <span id="live-status-text">날짜를 클릭하세요.</span>
+            <span class="text-marine-cyan font-bold">LIVE STATUS</span>
+        </div>
+    </div>   
+
+    <script>
+        const TSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT8obAx_3kA2YbdK5stQqyyWWgnakjlEjLXjS6hLzQRU5gb4XeewNQUVpxkDQtQGyivJAG86GqxziOn/pub?gid=0&single=true&output=tsv';
+        let allEvents = [];
+
+        async function fetchSchedule() {
+            try {
+                const response = await fetch(TSV_URL);
+                const data = await response.text();
+                const rows = data.split('\n').slice(1);
+                let lastValidDate = "";
+
+                allEvents = rows.map(row => {
+                    const columns = row.split('\t');
+                    if (columns.length < 5) return null;
+                    let [date, time, type, title, content, replayUrl] = columns.map(col => col ? col.trim() : "");
+                    if (!date) date = lastValidDate; else lastValidDate = date;
+                    return { date: '20' + date.replace(/\./g, '-'), time, type, title: title === "-" ? "" : title, content, replayUrl };
+                }).filter(ev => ev);
+
+                const availableMonths = [...new Set(allEvents.map(e => e.date.substring(0, 7)))].sort();
+                const monthSelect = document.getElementById('month-select');
+                availableMonths.forEach(ym => {
+                    const option = document.createElement('option');
+                    option.value = ym;
+                    option.innerText = ym.replace('-', '년 ') + '월';
+                    monthSelect.appendChild(option);
+                });
+                renderCalendar(availableMonths[availableMonths.length - 1]);
+            } catch (e) { console.error(e); }
+        }
+
+        function renderCalendar(yearMonth) {
+            const [year, month] = yearMonth.split('-').map(Number);
+            const firstDay = new Date(year, month - 1, 1).getDay();
+            const lastDate = new Date(year, month, 0).getDate();
+            document.getElementById('current-month-display').innerText = `${year}년 ${month}월`;
+            const body = document.getElementById('calendar-body');
+            body.innerHTML = '';
+            
+            ['일','월','화','수','목','금','토'].forEach(d => {
+                const div = document.createElement('div');
+                div.className = 'day-label';
+                div.innerText = d;
+                body.appendChild(div);
+            });
+
+            for (let i = 0; i < firstDay; i++) body.appendChild(document.createElement('div'));
+
+            for (let d = 1; d <= lastDate; d++) {
+                const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                const cell = document.createElement('div');
+                cell.className = 'calendar-cell p-2';
+                cell.innerHTML = `<div class="date-header"><span class="date-num">${d}</span></div>`;
+                cell.onclick = () => showDateInfo(dateStr);
+                
+                const dayEvents = allEvents.filter(e => e.date === dateStr);
+                dayEvents.forEach(ev => {
+                    cell.innerHTML += `<div class="text-[10px] text-marine-spray mt-1 truncate">${ev.title || ev.type}</div>`;
+                });
+                body.appendChild(cell);
+            }
+        }
+
+        function showDateInfo(dateStr) {
+            const ev = allEvents.find(e => e.date === dateStr);
+            const infoBox = document.getElementById('date-detail-info');
+            const displayArea = document.getElementById('status-display-area');
+            const liveText = document.getElementById('live-status-text');
+
+            if (ev) {
+                displayArea.innerHTML = `
+                    <div class="space-y-2">
+                        <h3 class="text-marine-foam font-bold">${ev.date} - ${ev.title || ev.type}</h3>
+                        <p class="text-xs text-marine-spray">시간: ${ev.time} | 타입: ${ev.type}</p>
+                        ${ev.replayUrl && ev.replayUrl !== "-" ? `<a href="${ev.replayUrl}" target="_blank" class="text-marine-cyan text-xs underline">다시보기 보러가기</a>` : ''}
+                    </div>
+                `;
+                liveText.textContent = `선택일: ${ev.title || ev.type}`;
+            } else {
+                displayArea.innerHTML = `<p class="text-marine-spray text-sm">일정이 없습니다.</p>`;
+                liveText.textContent = "방송 정보 없음";
+            }
+            infoBox.classList.remove('hidden');
+            infoBox.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        document.getElementById('month-select').addEventListener('change', (e) => renderCalendar(e.target.value));
+        fetchSchedule();
+    </script>
+</body>
+</html>
+```[cite: 1]
