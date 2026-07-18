@@ -94,7 +94,9 @@
         /* 국문 줄바꿈 최적화 클래스 */
         .word-keep { word-break: keep-all; overflow-wrap: break-word; }
     </style>
+    
 </head>
+    
 <body class="text-marine-spray min-h-screen pb-32 overflow-x-hidden">
 
    <!-- 로딩 오버레이 -->
@@ -620,6 +622,40 @@ let allTimelineData = [];
                 renderTimeline();
             }, 1000 * 60 * 10);
         });
+
+        const CONFIG_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTQ3nX6onmaf-ZHhXGox2s4ChGos7ki7iFjQ_47lArZR6dV935gCIbLbvlDDAS65rTEnswSLIk_7v3R/pub?gid=0&single=true&output=tsv';
+
+async function updateFavicon() {
+    try {
+        const response = await fetch(CONFIG_URL + `&t=${Date.now()}`);
+        const text = await response.text();
+        const rows = text.split(/\r?\n/).map(row => row.split('\t'));
+        
+        // 3번째 줄(index 2), 3번째 칸(index 2)의 URL 가져오기
+        const newFaviconUrl = rows[2][2]?.trim(); 
+
+        if (newFaviconUrl && newFaviconUrl.startsWith('http')) {
+            // 1. 기존 파비콘 태그 찾기 (없으면 새로 생성)
+            let favicon = document.querySelector("link[rel~='icon']");
+            if (!favicon) {
+                favicon = document.createElement('link');
+                favicon.rel = 'icon';
+                document.head.appendChild(favicon);
+            }
+            
+            // 2. URL 적용 (캐시 방지용 쿼리스트링 추가)
+            favicon.href = newFaviconUrl + `?t=${Date.now()}`;
+            
+            console.log("Favicon updated to:", newFaviconUrl);
+        }
+    } catch (e) {
+        console.error("Favicon update error:", e);
+    }
+}
+
+// 페이지가 열리자마자 실행
+updateFavicon();
     </script>
+    
 </body>
 </html>
