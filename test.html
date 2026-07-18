@@ -72,7 +72,7 @@
 </head>
 <body class="text-marine-spray min-h-screen pb-32 overflow-x-hidden">
 
-    <!-- 로딩 오버레이 (구조 유지) -->
+    <!-- 로딩 오버레이 -->
     <div id="loading-overlay" class="fixed inset-0 bg-marine-deep z-50 flex flex-col items-center justify-center transition-all duration-500 opacity-100 visibility-visible">
         <div class="text-center">
             <i class="fa-solid fa-spinner text-marine-cyan text-4xl animate-spin mb-4"></i>
@@ -80,7 +80,7 @@
         </div>
     </div>
 
-    <!-- 상단 네비게이션 바 (슬림 마감) -->
+    <!-- 상단 네비게이션 바 -->
     <nav class="border-b border-marine-border bg-marine-deep/90 backdrop-blur-md sticky top-0 z-40 px-4 sm:px-6 py-3.5">
         <div class="max-w-7xl mx-auto flex justify-between items-center">
             <span class="font-display font-black text-sm tracking-widest text-marine-foam">BABABI ARCHIVE</span>
@@ -94,7 +94,7 @@
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
         
-        <!-- [1] 프로필 배너 섹션 -->
+        <!-- [1] 프로필 배너 섹션 (★최근방송 중복 배지 제거 완료) -->
         <div class="bg-marine-reef border border-marine-border rounded-3xl p-6 mb-8 relative overflow-hidden flex flex-col md:flex-row items-center gap-6 shadow-2xl w-full">
             <div class="absolute -top-16 -right-16 w-64 h-64 bg-marine-cyan/5 rounded-full blur-3xl pointer-events-none"></div>
             <div class="absolute -bottom-16 -left-16 w-64 h-64 bg-marine-mint/5 rounded-full blur-3xl pointer-events-none"></div>
@@ -106,16 +106,12 @@
 
             <div class="relative flex-shrink-0 z-10">
                 <div class="absolute -inset-1.5 bg-gradient-to-r from-marine-cyan to-marine-mint rounded-2xl opacity-30 blur-sm"></div>
-                <!-- 프로필 이미지 컨테이너 -->
                 <div id="profile-img-bg" class="relative w-24 h-24 rounded-2xl bg-cover bg-center shadow-xl border border-marine-border" style="background-image: url('https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&q=80&w=200');"></div>
             </div>
             
             <div class="flex-grow text-center md:text-left z-10">
                 <div class="flex flex-col md:flex-row md:items-center gap-3 mb-2 justify-center md:justify-start">
                     <h1 id="user-nick" class="font-bold text-xl tracking-tight text-marine-foam">로딩 중..</h1>
-                    <span id="last-stream-time-badge" class="inline-block px-3 py-0.5 bg-marine-shallow border border-marine-border rounded-full text-xs text-marine-cyan font-semibold">
-                        최근 방송: 확인 중
-                    </span>
                 </div>
                 <p id="user-desc" class="text-marine-spray text-xs leading-relaxed max-w-4xl">
                     데이터 해류를 탐색하여 불러오는 중입니다. 잠시만 기다려주세요.
@@ -123,7 +119,7 @@
             </div>
         </div>
 
-        <!-- [2] 3단 레이아웃 그리드 (★요청 반영: 내부 상자 크기 완벽 통일형 고정 그리드) -->
+        <!-- [2] 3단 레이아웃 그리드 (★내부 아이템 높이 h-[48px]로 슬림하게 압축 완료) -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             
             <!-- 1열: 주간일정 -->
@@ -134,8 +130,8 @@
                             <i class="fa-solid fa-calendar-week text-marine-cyan"></i> 주간 일정
                         </h2>
                     </div>
-                    <div id="schedule-container" class="space-y-2.5 h-[325px] overflow-y-auto pr-1">
-                        <!-- 동적 로드항목 배치 (각 항목당 h-[62px] 절대 동기화 고정) -->
+                    <div id="schedule-container" class="space-y-2 h-[255px] overflow-y-auto pr-1">
+                        <!-- 동적 로드항목 배치 (h-[48px] 고정) -->
                     </div>
                 </div>
             </div>
@@ -151,8 +147,8 @@
                             전체보기 <i class="fa-solid fa-angles-right text-[9px] ml-0.5"></i>
                         </a>
                     </div>
-                    <div id="post-container" class="space-y-2.5 h-[325px] overflow-y-auto pr-1">
-                        <!-- 동적 로드항목 배치 (각 항목당 h-[62px] 절대 동기화 고정) -->
+                    <div id="post-container" class="space-y-2 h-[255px] overflow-y-auto pr-1">
+                        <!-- 동적 로드항목 배치 (h-[48px] 고정) -->
                     </div>
                 </div>
             </div>
@@ -168,26 +164,38 @@
                             통계보기 <i class="fa-solid fa-angles-right text-[9px] ml-0.5"></i>
                         </a>
                     </div>
-                    <div id="vod-container" class="space-y-2.5 h-[325px] overflow-y-auto pr-1">
-                        <!-- 동적 로드항목 배치 (각 항목당 h-[62px] 절대 동기화 고정) -->
+                    <div id="vod-container" class="space-y-2 h-[255px] overflow-y-auto pr-1">
+                        <!-- 동적 로드항목 배치 (h-[48px] 고정) -->
                     </div>
                 </div>
             </div>
 
         </div>
 
-        <!-- 외부 링크 버튼 생성 컨테이너 추가 패널 -->
+        <!-- 외부 링크 버튼 컨테이너 -->
         <div id="extra-links-target" class="flex flex-wrap gap-2.5 mt-6 justify-center"></div>
+
+        <!-- [3] ★타임라인 전용 공간 확보 영역 -->
+        <div id="timeline-section" class="mt-8 bg-marine-reef/60 border border-marine-border rounded-3xl p-6 shadow-xl">
+            <div class="flex items-center gap-2 mb-4">
+                <i class="fa-solid fa-timeline text-marine-cyan text-lg"></i>
+                <h3 class="font-bold text-base text-marine-foam">방송 히스토리 타임라인</h3>
+            </div>
+            <!-- 이 내부에 타임라인 컴포넌트나 리스트 구조를 이어서 구현하시면 됩니다 -->
+            <div class="border border-dashed border-marine-border/60 rounded-xl py-12 text-center text-xs text-marine-spray/40">
+                <i class="fa-solid fa-hourglass-half text-lg mb-2 block text-marine-cyan/30"></i>
+                타임라인 데이터가 입력될 공간입니다.
+            </div>
+        </div>
 
     </div>
 
-    <!-- [3] 하단 고정형 방송 상태 바 (★요청 반영: 완벽 하단 고정 및 레이아웃 통합화형) -->
+    <!-- [4] 하단 고정형 방송 상태 바 -->
     <div class="fixed bottom-0 left-0 right-0 border-t border-marine-border bg-marine-deep/95 backdrop-blur-lg z-50 px-4 py-3 shadow-[0_-10px_30px_rgba(0,0,0,0.6)]">
         <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-3">
             
-            <!-- 실시간 동적 상태가 연동 및 주입될 인라인 타겟 타겟 컨테이너 -->
             <div id="live-status-target" class="live-status-inline flex items-center justify-between md:justify-start gap-4 flex-grow min-w-0 w-full md:w-auto">
-                <!-- 스크립트를 통해 동적 데이터가 이곳 구조 안으로 깔끔하게 매핑 마감처리됩니다 -->
+                <!-- 스크립트 동적 연동 레이아웃 -->
             </div>
             
             <div class="hidden md:flex flex-col items-end text-right select-none tracking-wider shrink-0">
@@ -201,9 +209,7 @@
     <!-- 스크립트 제어 백엔드 파이프라인 -->
     <script>
         const TSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTQ3nX6onmaf-ZHhXGox2s4ChGos7ki7iFjQ_47lArZR6dV935gCIbLbvlDDAS65rTEnswSLIk_7v3R/pub?gid=0&single=true&output=tsv';
-        const SONG_BOOK_URL = 'songlist.html'; 
 
-        // 외부 파일 연동 대응 핸들러 안전핀 처리
         function prepareWaveText(msg) {
             const el = document.getElementById('loading-text');
             if(el) el.innerText = msg;
@@ -245,7 +251,6 @@
 
                 const isOnline = liveData && liveData[5] !== "방송 정보 없음" && liveData[5] !== undefined && liveData[5] !== "";
 
-                // [A] 하단 방송 상태창 컴팩트 반응형 렌더링 마감
                 if (isOnline) {
                     const bTitle = liveData[5];
                     const bTime = liveData[6];
@@ -296,25 +301,19 @@
                     `;
                 }
 
-                // 프로필 상단 영역 바인딩
                 if (profile) {
                     document.getElementById('user-nick').innerText = profile[0] || '닉네임';
                     document.getElementById('user-desc').innerText = profile[1] || '';
                     if(profile[2]) {
                         document.getElementById('profile-img-bg').style.backgroundImage = `url('${profile[2]}')`;
                     }
-                    if(profile[3]) {
-                        document.getElementById('last-stream-time-badge').innerText = `최근 방송: ${profile[3].trim()}`;
-                    }
                 }
 
-                // 우측 하단 시간 동기화 출력 
                 if (updateTimeData) {
                     const timeContainer = document.getElementById('update-time-container');
                     if(timeContainer) timeContainer.innerText = `갱신: ${updateTimeData}`;
                 }
 
-                // 3단 그리드 데이터 위임 렌더링
                 renderLinks(rows[5]);
                 renderPosts(rows.slice(8, 13));
                 renderVODs(rows.slice(16, 21));
@@ -327,7 +326,6 @@
             }
         }
 
-        // 링크 처리 파서
         function renderLinks(extraLinks) {
             const targetBox = document.getElementById('extra-links-target');
             if (!targetBox) return;
@@ -341,7 +339,7 @@
                     
                     if (url.startsWith('http')) {
                         const a = document.createElement('a');
-                        a.className = 'px-3.5 py-1.5 bg-marine-shallow/40 hover:bg-marine-cyan hover:text-marine-deep border border-marine-cyan/30 text-marine-foam transition-all duration-300 rounded-xl text-xs font-bold shadow-sm';
+                        a.className = 'px-3 py-1.5 bg-marine-shallow/40 hover:bg-marine-cyan hover:text-marine-deep border border-marine-cyan/30 text-marine-foam transition-all duration-300 rounded-xl text-xs font-bold shadow-sm';
                         a.href = url;
                         a.target = '_blank';
                         a.innerText = name.trim();
@@ -351,7 +349,7 @@
             }
         }
 
-        // [최근 공지] 렌더링 함수 (★항목당 고정 높이 h-[62px] 통일 세로 레이아웃 일치)
+        // 최근 공지 (h-[48px] 슬림화)
         function renderPosts(data) {
             const postBox = document.getElementById('post-container');
             if(!postBox) return;
@@ -361,21 +359,21 @@
             postData.forEach(p => {
                 const isNotice = p[3]?.trim() === 'O';
                 html += `
-                    <div onclick="window.open('${p[2]}', '_blank')" class="flex items-center justify-between px-3 h-[62px] rounded-xl border ${isNotice ? 'bg-marine-coral/5 border-marine-coral/25' : 'bg-marine-deep/50 border-marine-border'} hover:border-marine-cyan/30 transition-all duration-300 cursor-pointer group">
+                    <div onclick="window.open('${p[2]}', '_blank')" class="flex items-center justify-between px-3 h-[48px] rounded-xl border ${isNotice ? 'bg-marine-coral/5 border-marine-coral/25' : 'bg-marine-deep/50 border-marine-border'} hover:border-marine-cyan/30 transition-all duration-300 cursor-pointer group">
                         <div class="min-w-0 flex-grow pr-2">
-                            <div class="flex items-center gap-1 mb-0.5">
-                                ${isNotice ? '<span class="px-1 py-0.2 bg-marine-coral text-marine-deep text-[8px] font-extrabold rounded shrink-0">공지</span>' : ''}
+                            <div class="flex items-center gap-1">
+                                ${isNotice ? '<span class="px-1 bg-marine-coral text-marine-deep text-[8px] font-extrabold rounded shrink-0 leading-none py-0.5">공지</span>' : ''}
                                 <h4 class="text-xs font-bold text-marine-foam group-hover:text-marine-cyan truncate transition-colors leading-tight">${p[1]}</h4>
                             </div>
-                            <span class="text-[10px] text-marine-spray/50 block">${p[0]}</span>
+                            <span class="text-[9px] text-marine-spray/40 block mt-0.5">${p[0]}</span>
                         </div>
-                        ${isNotice ? '<i class="fa-solid fa-thumbtack text-[10px] text-marine-coral shrink-0 ml-1"></i>' : '<i class="fa-regular fa-file-lines text-[10px] text-marine-spray/30 shrink-0 ml-1"></i>'}
+                        ${isNotice ? '<i class="fa-solid fa-thumbtack text-[9px] text-marine-coral shrink-0 ml-1"></i>' : '<i class="fa-regular fa-file-lines text-[9px] text-marine-spray/30 shrink-0 ml-1"></i>'}
                     </div>`;
             });
             postBox.innerHTML = html || `<div class="text-xs text-marine-spray/40 text-center py-8">등록된 공지사항이 없습니다.</div>`;
         }
 
-        // [최근 다시보기] 렌더링 함수 (★항목당 고정 높이 h-[62px] 통일 세로 레이아웃 일치)
+        // 최근 다시보기 (h-[48px] 슬림화)
         function renderVODs(data) {
             const vodBox = document.getElementById('vod-container');
             if(!vodBox) return;
@@ -385,21 +383,21 @@
             vodData.forEach(v => {
                 const isPin = v[4]?.trim() === 'O';
                 html += `
-                    <div onclick="window.open('${v[2]}', '_blank')" class="flex items-center gap-3 p-1.5 h-[62px] bg-marine-deep/40 border ${isPin ? 'border-marine-cyan/35 bg-marine-cyan/5' : 'border-marine-border'} hover:border-marine-cyan rounded-xl transition-all duration-300 cursor-pointer group">
-                        <div class="relative w-14 h-full rounded-lg overflow-hidden shrink-0 bg-marine-void border border-marine-border/60">
+                    <div onclick="window.open('${v[2]}', '_blank')" class="flex items-center gap-2.5 p-1 h-[48px] bg-marine-deep/40 border ${isPin ? 'border-marine-cyan/35 bg-marine-cyan/5' : 'border-marine-border'} hover:border-marine-cyan rounded-xl transition-all duration-300 cursor-pointer group">
+                        <div class="relative w-10 h-full rounded-lg overflow-hidden shrink-0 bg-marine-void border border-marine-border/60">
                             <img src="${v[3]}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" alt="VOD">
                         </div>
                         <div class="min-w-0 flex-grow flex flex-col justify-center">
                             <h4 class="text-xs font-bold text-marine-foam group-hover:text-marine-cyan truncate leading-tight transition-colors">${v[1]}</h4>
-                            <span class="text-[10px] text-marine-spray/50 block mt-0.5">${v[0]}</span>
+                            <span class="text-[9px] text-marine-spray/40 block mt-0.5">${v[0]}</span>
                         </div>
-                        ${isPin ? '<i class="fa-solid fa-star text-[10px] text-marine-cyan shrink-0 mr-1.5"></i>' : ''}
+                        ${isPin ? '<i class="fa-solid fa-star text-[9px] text-marine-cyan shrink-0 mr-1"></i>' : ''}
                     </div>`;
             });
             vodBox.innerHTML = html || `<div class="text-xs text-marine-spray/40 text-center py-8">가져온 다시보기가 없습니다.</div>`;
         }
 
-        // [주간 일정] 렌더링 함수 (★항목당 고정 높이 h-[62px] 통일 세로 레이아웃 일치)
+        // 주간 일정 (h-[48px] 슬림화)
         function renderSchedule(data) {
             const container = document.getElementById('schedule-container');
             if(!container) return;
@@ -427,21 +425,20 @@
                 else if (category.includes('소통')) badgeColor = "bg-marine-mint/10 border-marine-mint/20 text-marine-mint";
 
                 const rowDiv = document.createElement('div');
-                // 동일 외곽 높이 유지를 위해 h-[62px] 부여 및 정렬 보정
-                rowDiv.className = `flex items-center justify-between px-3 h-[62px] border rounded-xl transition-all duration-300 ${isToday ? 'bg-marine-cyan/5 border-marine-cyan shadow-[0_0_8px_rgba(0,229,255,0.1)]' : 'bg-marine-deep/50 border-marine-border'} hover:border-marine-cyan/20`;
+                rowDiv.className = `flex items-center justify-between px-3 h-[48px] border rounded-xl transition-all duration-300 ${isToday ? 'bg-marine-cyan/5 border-marine-cyan shadow-[0_0_8px_rgba(0,229,255,0.1)]' : 'bg-marine-deep/50 border-marine-border'} hover:border-marine-cyan/20`;
                 
                 rowDiv.innerHTML = `
                     <div class="min-w-0 flex-grow pr-2 flex flex-col justify-center">
-                        <div class="flex items-center gap-1.5 mb-0.5">
-                            <span class="font-display font-extrabold text-[10px] text-marine-cyan">${date}</span>
-                            <span class="text-[9px] text-marine-foam px-1 bg-marine-shallow border border-marine-border rounded shrink-0">${day}</span>
+                        <div class="flex items-center gap-1.5">
+                            <span class="font-display font-extrabold text-[9px] text-marine-cyan">${date}</span>
+                            <span class="text-[8px] text-marine-foam px-1 bg-marine-shallow border border-marine-border rounded shrink-0 leading-none py-0.5">${day}</span>
                             ${isToday ? '<span class="px-1 bg-marine-mint text-marine-deep text-[8px] font-extrabold rounded tracking-tighter scale-90 origin-left">TODAY</span>' : ''}
                         </div>
-                        <div class="text-xs text-marine-foam truncate font-semibold leading-tight">
+                        <div class="text-xs text-marine-foam truncate font-semibold leading-tight mt-0.5">
                             ${time && !isDayOff ? `<span class="text-marine-mint font-bold mr-1">${time}</span>` : ''}${content || '일정 없음'}
                         </div>
                     </div>
-                    <span class="px-1.5 py-0.5 border rounded text-[9px] font-bold shrink-0 ${badgeColor}">${category || '미정'}</span>
+                    <span class="px-1.5 py-0.5 border rounded text-[8px] font-bold shrink-0 ${badgeColor}">${category || '미정'}</span>
                 `;
                 container.appendChild(rowDiv);
             });
@@ -451,7 +448,6 @@
             }
         }
 
-        // 초기 수동 구동 및 타이머 바인딩 자동화 (10분 루프 주기 보존)
         window.addEventListener('DOMContentLoaded', () => {
             init();
             setInterval(init, 1000 * 60 * 10);
