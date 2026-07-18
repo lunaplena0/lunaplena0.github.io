@@ -76,12 +76,26 @@
                 let lastValidDate = "";
 
                 allEvents = rows.map(row => {
-                    const columns = row.split('\t');
-                    if (columns.length < 5) return null;
-                    let [date, time, type, title, content, replayUrl] = columns.map(col => col ? col.trim() : "");
-                    if (!date) date = lastValidDate; else lastValidDate = date;
-                    return { date: '20' + date.replace(/\./g, '-'), time, type, title: title === "-" ? "" : title, content, replayUrl };
-                }).filter(ev => ev);
+    const columns = row.split('\t');
+    if (columns.length < 5) return null;
+    let [date, time, type, title, content, replayUrl] = columns.map(col => col ? col.trim() : "");
+    
+    // 방송 유형에 따라 시간 처리
+    let displayTime = time;
+    if (time === "-") {
+        displayTime = (type === "방송") ? "휴방" : "-";
+    }
+    
+    if (!date) date = lastValidDate; else lastValidDate = date;
+    return { 
+        date: '20' + date.replace(/\./g, '-'), 
+        time: displayTime, 
+        type, 
+        title: title === "-" ? "" : title, 
+        content, 
+        replayUrl 
+    };
+}).filter(ev => ev);
 
                 const now = new Date();
                 const currentYM = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
