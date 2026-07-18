@@ -529,29 +529,32 @@ let allTimelineData = [];
     const container = document.getElementById('timeline-body');
     const displayData = expanded ? allTimelineData : allTimelineData.slice(0, INITIAL_SHOW);
     
-    // PC에서 5~6열, 모바일에서 1열 (gap-y를 키워야 선이 행마다 잘 보임)
-    container.className = "relative grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-x-4 gap-y-12 mt-6"; 
+    // 모바일은 1열, 태블릿 3열, PC 5열
+    container.className = "grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-x-4 gap-y-8 mt-6"; 
     
     let html = '';
     
-    // 배경선 생성 (각 행마다 하나씩)
-    const rowCount = Math.ceil(displayData.length / 5); // 5열 기준
-    for(let i = 0; i < rowCount; i++) {
-        html += `<div class="timeline-row-line" style="top: ${i * 128 + 8}px;"></div>`;
-    }
-    
     displayData.forEach((row, index) => {
+        // 마지막 항목인지 확인하여 선을 숨김 처리
+        const isLast = index === displayData.length - 1;
+        
         html += `
-            <div class="relative z-10 flex flex-col items-center text-center">
-                <!-- 노드 점 -->
-                <div class="w-4 h-4 rounded-full bg-marine-deep border-2 border-marine-cyan shadow-[0_0_10px_#00e5ff] mb-4"></div>
+            <div class="relative flex flex-col items-center">
+                <!-- 가로/세로 연결선: 카드의 높이를 100% 채우며, 선이 이어지도록 함 -->
+                ${!isLast ? `
+                    <div class="absolute top-2 left-[calc(50%+10px)] w-[calc(100%-20px)] h-[2px] bg-marine-cyan/20 hidden lg:block"></div>
+                    <div class="absolute top-[20px] left-[50%] h-[calc(100%+20px)] w-[2px] bg-marine-cyan/20 lg:hidden"></div>
+                ` : ''}
+                
+                <!-- 노드 점 (z-index를 높게 설정) -->
+                <div class="relative z-10 w-4 h-4 rounded-full bg-marine-deep border-2 border-marine-cyan shadow-[0_0_10px_#00e5ff]"></div>
                 
                 <!-- 컨텐츠 박스 -->
-                <div class="w-full px-2">
-                    <div class="text-[10px] text-marine-cyan font-bold font-display mb-1">
+                <div class="w-full mt-4 px-2 z-10">
+                    <div class="text-[10px] text-marine-cyan font-bold font-display mb-1 text-center">
                         ${row[0].trim()}
                     </div>
-                    <div class="text-xs text-marine-foam p-3 bg-marine-reef/20 border border-marine-border rounded-lg shadow-sm">
+                    <div class="text-xs text-marine-foam p-3 bg-marine-reef/40 border border-marine-border rounded-lg shadow-sm">
                         ${row[1].trim()}
                     </div>
                 </div>
@@ -560,7 +563,6 @@ let allTimelineData = [];
     
     container.innerHTML = html;
 }
-
         function toggleTimeline() {
             isExpanded = !isExpanded;
             updateTimelineDisplay(isExpanded);
