@@ -3,78 +3,459 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎶 바다비 노래기록 🎶</title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="stylesheet" href="css/loading.css"> 
-    <link rel="stylesheet" href="css/mainpages.css">
-    <link rel="stylesheet" href="songstats/songstats2.css">
+    <title>바다비 비공식 팬 아카이브</title>
+    <!-- Tailwind CSS & FontAwesome CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        marine: {
+                            deep: '#060e16',      /* 심해 배경 */
+                            void: '#0a1622',      
+                            reef: '#112235',      /* 카드 배경 */
+                            shallow: '#1a334d',   /* 호버 강조색 */
+                            foam: '#e3f2fd',      /* 메인 텍스트 */
+                            spray: '#8fa5b5',     /* 서브 텍스트 */
+                            cyan: '#00e5ff',      /* 네온 사이언 */
+                            mint: '#05ffa6',      /* 네온 그린 */
+                            coral: '#ff5c8a',     /* 산호초 핑크 */
+                            border: 'rgba(0, 229, 255, 0.12)'
+                        }
+                    },
+                    fontFamily: {
+                        display: ['Orbitron', 'Noto Sans KR', 'sans-serif'],
+                        body: ['Noto Sans KR', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #060e16;
+            background-image: radial-gradient(circle at 50% 0%, #0d233a 0%, #060e16 70%);
+        }
+        /* 스크롤바 커스텀 */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(6, 14, 22, 0.5); }
+        ::-webkit-scrollbar-thumb {
+            background: #112235;
+            border: 1px solid rgba(0, 229, 255, 0.15);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover { background: #00e5ff; }
+
+        @keyframes bubbleUp {
+            0% { transform: translateY(120%) scale(0.6); opacity: 0; }
+            10% { opacity: 0.4; }
+            90% { opacity: 0.4; }
+            100% { transform: translateY(-100px) scale(1.1); opacity: 0; }
+        }
+        .bubble-effect {
+            position: absolute;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(0, 229, 255, 0.15), rgba(5, 255, 166, 0.05));
+            border-radius: 50%;
+            pointer-events: none;
+            animation: bubbleUp 6s infinite linear;
+        }
+    </style>
 </head>
-    
-<body>
-    <div id="loading-overlay">
-    <div id="wave-text" class="wave-text"></div></div>
-        
-<div class="wrapper">
-    <header class="card header-box">
-    <div class="title-group">
-        <h1 class="page-title">🎶노래 기록장</h1>
-        <p class="page-desc">전체, 월별, 연도별 노래기록</p>
-    </div>
-    
-    <div class="header-buttons" style="display: flex; gap: 8px;">
-        <a href="https://meloming.com/channel/badabi" class="btn">🎵노래책</a>
-        <a href="index.html" class="btn">← 메인으로</a>
-    </div>
-</header>
+<body class="text-marine-spray min-h-screen pb-32 overflow-x-hidden">
 
-    <main class="card content-card">
-    <h2>상세 정보</h2>
-    
-   <div class="stats-filter">
-    <button class="filter-btn active" onclick="updateDateFilter('all', this)">전체</button>
-    <button class="filter-btn" onclick="updateDateFilter('monthly', this)">월별</button>
-    <button class="filter-btn" onclick="updateDateFilter('yearly', this)">연도별</button>
-    
-    <div id="date-selectors" style="display: none; margin-left: auto; gap: 5px;">
-    <select id="select-year" onchange="onYearChange()"></select>
-    <select id="select-month" onchange="applyDateFilter()" style="display: none;"></select>
-</div>
-</div>
-
-<div id="content-area">
-    <p style="text-align:center; padding:50px;">데이터를 불러오는 중입니다...</p>
-</div>
-
-</main>
-
-    <footer style="text-align: center; padding: 20px 10px; color: var(--text-sub); font-size: 11px; border-top: 1px solid var(--border); margin-top: 20px; width: 100%; box-sizing: border-box;">
-    <p style="margin: 0; opacity: 0.8; line-height: 1.6; word-break: keep-all; overflow-wrap: break-word;">
-        <strong style="display: block; margin-bottom: 5px; color: var(--text-main); font-size: 12px;">바다비 비공식 팬 아카이브</strong>
-        모든 권리는 원저작권자(바다비/SOOP)에게 있으며 요청 시 수정·삭제됩니다.<br>
-        <span style="display: inline-block;">비영리로 운영되며, 정보 갱신 시 데이터 반영에 차이가 있을 수 있습니다.</span>
-    </p>
-</footer>
-</div>
-    <div id="song-modal" class="modal-overlay" style="display: none;">
-    <div class="modal-content card">
-        <div class="modal-header">
-            <h3 id="modal-title">곡 제목</h3>
-            <button class="close-btn" onclick="closeModal()">×</button>
+    <!-- 로딩 오버레이 (구조 유지) -->
+    <div id="loading-overlay" class="fixed inset-0 bg-marine-deep z-50 flex flex-col items-center justify-center transition-all duration-500 opacity-100 visibility-visible">
+        <div class="text-center">
+            <i class="fa-solid fa-spinner text-marine-cyan text-4xl animate-spin mb-4"></i>
+            <p id="loading-text" class="font-display tracking-widest text-xs text-marine-foam">바닷속에서 찾고 있어요 . . .</p>
         </div>
-        <div class="modal-body">
-            <hr style="border: 0; border-top: 1px solid var(--border); margin: 15px 0;">
-            <div class="modal-info">
-                <p><strong>🎤 </strong> <span id="modal-artist">-</span></p>
-                <p><strong>가창 횟수:</strong> <span id="modal-count">0</span>회</p>
+    </div>
+
+    <!-- 상단 네비게이션 바 (슬림 마감) -->
+    <nav class="border-b border-marine-border bg-marine-deep/90 backdrop-blur-md sticky top-0 z-40 px-4 sm:px-6 py-3.5">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <span class="font-display font-black text-sm tracking-widest text-marine-foam">BABABI ARCHIVE</span>
+            <div class="flex items-center gap-3">
+                <a href="songlist.html" class="flex items-center gap-1.5 bg-marine-shallow/50 hover:bg-marine-shallow text-marine-foam border border-marine-border transition px-3 py-1.5 rounded-xl text-xs font-bold">
+                    <i class="fa-solid fa-music text-marine-cyan"></i> 송북 바로가기
+                </a>
             </div>
-            <p><strong>부른 날짜</strong></p>
-            <div id="modal-dates" class="date-list">
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
+        
+        <!-- [1] 프로필 배너 섹션 -->
+        <div class="bg-marine-reef border border-marine-border rounded-3xl p-6 mb-8 relative overflow-hidden flex flex-col md:flex-row items-center gap-6 shadow-2xl w-full">
+            <div class="absolute -top-16 -right-16 w-64 h-64 bg-marine-cyan/5 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute -bottom-16 -left-16 w-64 h-64 bg-marine-mint/5 rounded-full blur-3xl pointer-events-none"></div>
+            
+            <div class="absolute inset-0 overflow-hidden pointer-events-none opacity-40">
+                <div class="bubble-effect w-3 h-3 left-10" style="animation-delay: 0s; animation-duration: 5s;"></div>
+                <div class="bubble-effect w-5 h-5 left-1/4" style="animation-delay: 1.5s; animation-duration: 7s;"></div>
+            </div>
+
+            <div class="relative flex-shrink-0 z-10">
+                <div class="absolute -inset-1.5 bg-gradient-to-r from-marine-cyan to-marine-mint rounded-2xl opacity-30 blur-sm"></div>
+                <!-- 프로필 이미지 컨테이너 -->
+                <div id="profile-img-bg" class="relative w-24 h-24 rounded-2xl bg-cover bg-center shadow-xl border border-marine-border" style="background-image: url('https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&q=80&w=200');"></div>
+            </div>
+            
+            <div class="flex-grow text-center md:text-left z-10">
+                <div class="flex flex-col md:flex-row md:items-center gap-3 mb-2 justify-center md:justify-start">
+                    <h1 id="user-nick" class="font-bold text-xl tracking-tight text-marine-foam">로딩 중..</h1>
+                    <span id="last-stream-time-badge" class="inline-block px-3 py-0.5 bg-marine-shallow border border-marine-border rounded-full text-xs text-marine-cyan font-semibold">
+                        최근 방송: 확인 중
+                    </span>
                 </div>
+                <p id="user-desc" class="text-marine-spray text-xs leading-relaxed max-w-4xl">
+                    데이터 해류를 탐색하여 불러오는 중입니다. 잠시만 기다려주세요.
+                </p>
+            </div>
+        </div>
+
+        <!-- [2] 3단 레이아웃 그리드 (★요청 반영: 내부 상자 크기 완벽 통일형 고정 그리드) -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <!-- 1열: 주간일정 -->
+            <div class="bg-marine-reef border border-marine-border rounded-3xl p-5 shadow-xl flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-center mb-4 h-8">
+                        <h2 class="font-bold text-base text-marine-foam flex items-center gap-2">
+                            <i class="fa-solid fa-calendar-week text-marine-cyan"></i> 주간 일정
+                        </h2>
+                    </div>
+                    <div id="schedule-container" class="space-y-2.5 h-[325px] overflow-y-auto pr-1">
+                        <!-- 동적 로드항목 배치 (각 항목당 h-[62px] 절대 동기화 고정) -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2열: 최근공지 -->
+            <div class="bg-marine-reef border border-marine-border rounded-3xl p-5 shadow-xl flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-center mb-4 h-8">
+                        <h2 class="font-bold text-base text-marine-foam flex items-center gap-2">
+                            <i class="fa-solid fa-bullhorn text-marine-mint"></i> 최근 공지
+                        </h2>
+                        <a href="https://www.sooplive.com/station/bababi/posts" target="_blank" class="text-[11px] text-marine-cyan hover:text-marine-mint transition font-bold flex items-center gap-1 bg-marine-shallow/50 px-2 py-0.5 rounded border border-marine-border">
+                            전체보기 <i class="fa-solid fa-angles-right text-[9px] ml-0.5"></i>
+                        </a>
+                    </div>
+                    <div id="post-container" class="space-y-2.5 h-[325px] overflow-y-auto pr-1">
+                        <!-- 동적 로드항목 배치 (각 항목당 h-[62px] 절대 동기화 고정) -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3열: 최근다시보기 -->
+            <div class="bg-marine-reef border border-marine-border rounded-3xl p-5 shadow-xl flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-center mb-4 h-8">
+                        <h2 class="font-bold text-base text-marine-foam flex items-center gap-2">
+                            <i class="fa-solid fa-clapperboard text-marine-coral"></i> 최근 다시보기
+                        </h2>
+                        <a href="vodlist.html" class="text-[11px] text-marine-cyan hover:text-marine-mint transition font-bold flex items-center gap-1 bg-marine-shallow/50 px-2 py-0.5 rounded border border-marine-border">
+                            통계보기 <i class="fa-solid fa-angles-right text-[9px] ml-0.5"></i>
+                        </a>
+                    </div>
+                    <div id="vod-container" class="space-y-2.5 h-[325px] overflow-y-auto pr-1">
+                        <!-- 동적 로드항목 배치 (각 항목당 h-[62px] 절대 동기화 고정) -->
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- 외부 링크 버튼 생성 컨테이너 추가 패널 -->
+        <div id="extra-links-target" class="flex flex-wrap gap-2.5 mt-6 justify-center"></div>
+
+    </div>
+
+    <!-- [3] 하단 고정형 방송 상태 바 (★요청 반영: 완벽 하단 고정 및 레이아웃 통합화형) -->
+    <div class="fixed bottom-0 left-0 right-0 border-t border-marine-border bg-marine-deep/95 backdrop-blur-lg z-50 px-4 py-3 shadow-[0_-10px_30px_rgba(0,0,0,0.6)]">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-3">
+            
+            <!-- 실시간 동적 상태가 연동 및 주입될 인라인 타겟 타겟 컨테이너 -->
+            <div id="live-status-target" class="live-status-inline flex items-center justify-between md:justify-start gap-4 flex-grow min-w-0 w-full md:w-auto">
+                <!-- 스크립트를 통해 동적 데이터가 이곳 구조 안으로 깔끔하게 매핑 마감처리됩니다 -->
+            </div>
+            
+            <div class="hidden md:flex flex-col items-end text-right select-none tracking-wider shrink-0">
+                <span class="text-[10px] font-display text-marine-cyan/80 font-bold">SOOP REALTIME ENGINE</span>
+                <div id="update-time-container" class="text-[9px] text-marine-spray/50 mt-0.5"></div>
+            </div>
         </div>
     </div>
-</div>
-    <script src="js/loading.js"></script>
-    <script src="songstats/songstats2.js"></script>
+
+
+    <!-- 스크립트 제어 백엔드 파이프라인 -->
+    <script>
+        const TSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTQ3nX6onmaf-ZHhXGox2s4ChGos7ki7iFjQ_47lArZR6dV935gCIbLbvlDDAS65rTEnswSLIk_7v3R/pub?gid=0&single=true&output=tsv';
+        const SONG_BOOK_URL = 'songlist.html'; 
+
+        // 외부 파일 연동 대응 핸들러 안전핀 처리
+        function prepareWaveText(msg) {
+            const el = document.getElementById('loading-text');
+            if(el) el.innerText = msg;
+        }
+        function hideLoadingOverlay() {
+            const overlay = document.getElementById('loading-overlay');
+            if(overlay) {
+                overlay.style.opacity = '0';
+                setTimeout(() => overlay.style.visibility = 'hidden', 500);
+            }
+        }
+
+        async function init() {
+            const overlay = document.getElementById('loading-overlay');
+            try {
+                prepareWaveText("바닷속에서 찾고 있어요 . . .");
+                if(overlay) {
+                    overlay.style.opacity = '1';
+                    overlay.style.visibility = 'visible';
+                }
+
+                const cacheBuster = `&t=${new Date().getTime()}`;
+                const finalUrl = TSV_URL + cacheBuster;
+
+                const response = await fetch(finalUrl, {
+                    cache: 'no-store',
+                    headers: { 'Pragma': 'no-cache', 'Cache-Control': 'no-cache' }
+                });
+
+                if (!response.ok) throw new Error('Network error');
+
+                const text = await response.text();
+                const rows = text.split(/\r?\n/).map(row => row.split('\t'));
+
+                const profile = rows[2];
+                const liveData = rows[6]; 
+                const updateTimeData = rows[1] ? rows[1][5] : null; 
+                const statusBox = document.getElementById('live-status-target');
+
+                const isOnline = liveData && liveData[5] !== "방송 정보 없음" && liveData[5] !== undefined && liveData[5] !== "";
+
+                // [A] 하단 방송 상태창 컴팩트 반응형 렌더링 마감
+                if (isOnline) {
+                    const bTitle = liveData[5];
+                    const bTime = liveData[6];
+                    const bGrade = liveData[7];
+                    const bSubOnly = liveData[8];
+                    const bPwd = liveData[9];
+
+                    let subTagsHtml = '';
+                    if (!["X", "-", "0"].includes(bGrade)) {
+                        subTagsHtml += `<span class="px-1.5 py-0.5 bg-marine-reef border border-marine-coral/40 text-marine-coral rounded text-[9px] font-bold">19</span>`;
+                    }
+                    if (!["X", "-"].includes(bSubOnly)) {
+                        subTagsHtml += `<span class="px-1.5 py-0.5 bg-marine-reef border border-purple-400/40 text-purple-400 rounded text-[9px] font-bold">구독+</span>`;
+                    }
+                    if (!["X", "-"].includes(bPwd)) {
+                        subTagsHtml += `<span class="px-1.5 py-0.5 bg-marine-reef border border-marine-spray/40 text-marine-spray rounded text-[9px] font-bold">비밀번호</span>`;
+                    }
+
+                    statusBox.innerHTML = `
+                        <div class="flex items-center gap-3 min-w-0 flex-grow">
+                            <div class="relative flex-shrink-0 flex items-center justify-center">
+                                <span class="absolute inline-flex h-3 w-3 rounded-full bg-red-500 opacity-75 animate-ping"></span>
+                                <div class="w-3 h-3 rounded-full bg-red-500 shadow-[0_0_8px_#ef4444]"></div>
+                            </div>
+                            <span class="font-display font-black text-[10px] bg-red-500/10 border border-red-500/30 text-red-400 px-1.5 py-0.5 rounded tracking-wider shrink-0">ONLINE</span>
+                            <div class="flex items-center gap-2 min-w-0">
+                                <a href="https://play.sooplive.com/bababi" target="_blank" class="text-xs sm:text-sm font-bold text-marine-foam hover:text-marine-cyan truncate max-w-[160px] sm:max-w-[320px] md:max-w-[480px] transition-colors decoration-none">
+                                    ${bTitle}
+                                </a>
+                                <div class="flex items-center gap-1 shrink-0 ml-1">${subTagsHtml}</div>
+                            </div>
+                        </div>
+                        <div class="text-[10px] text-marine-spray shrink-0 bg-marine-shallow/60 px-2 py-0.5 rounded-lg border border-marine-border ml-2">
+                            <i class="fa-regular fa-clock mr-1 text-[9px]"></i>시작: ${bTime}
+                        </div>
+                    `;
+                } else {
+                    const lastTime = (profile && profile[3]) ? profile[3].trim() : "확인 중";
+                    statusBox.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <div class="w-3 h-3 rounded-full bg-marine-spray/40"></div>
+                            <span class="font-display font-black text-[10px] bg-marine-shallow border border-marine-border text-marine-spray px-1.5 py-0.5 rounded tracking-wider">OFFLINE</span>
+                            <span class="text-xs sm:text-sm font-bold text-marine-spray/80">방송 준비 중</span>
+                        </div>
+                        <div class="text-[10px] text-marine-spray/70 shrink-0 bg-marine-deep px-2 py-0.5 rounded border border-marine-border ml-2">
+                            최근 방송: ${lastTime}
+                        </div>
+                    `;
+                }
+
+                // 프로필 상단 영역 바인딩
+                if (profile) {
+                    document.getElementById('user-nick').innerText = profile[0] || '닉네임';
+                    document.getElementById('user-desc').innerText = profile[1] || '';
+                    if(profile[2]) {
+                        document.getElementById('profile-img-bg').style.backgroundImage = `url('${profile[2]}')`;
+                    }
+                    if(profile[3]) {
+                        document.getElementById('last-stream-time-badge').innerText = `최근 방송: ${profile[3].trim()}`;
+                    }
+                }
+
+                // 우측 하단 시간 동기화 출력 
+                if (updateTimeData) {
+                    const timeContainer = document.getElementById('update-time-container');
+                    if(timeContainer) timeContainer.innerText = `갱신: ${updateTimeData}`;
+                }
+
+                // 3단 그리드 데이터 위임 렌더링
+                renderLinks(rows[5]);
+                renderPosts(rows.slice(8, 13));
+                renderVODs(rows.slice(16, 21));
+                renderSchedule(rows.slice(24, 29));
+
+            } catch (e) { 
+                console.error("Data Load Error:", e);
+            } finally {
+                hideLoadingOverlay();
+            }
+        }
+
+        // 링크 처리 파서
+        function renderLinks(extraLinks) {
+            const targetBox = document.getElementById('extra-links-target');
+            if (!targetBox) return;
+            targetBox.innerHTML = '';
+
+            if (extraLinks && Array.isArray(extraLinks)) {
+                extraLinks.forEach(l => {
+                    if (!l || !l.includes(': ')) return;
+                    const [name, ...urlParts] = l.split(': ');
+                    const url = urlParts.join(': ').trim();
+                    
+                    if (url.startsWith('http')) {
+                        const a = document.createElement('a');
+                        a.className = 'px-3.5 py-1.5 bg-marine-shallow/40 hover:bg-marine-cyan hover:text-marine-deep border border-marine-cyan/30 text-marine-foam transition-all duration-300 rounded-xl text-xs font-bold shadow-sm';
+                        a.href = url;
+                        a.target = '_blank';
+                        a.innerText = name.trim();
+                        targetBox.appendChild(a);
+                    }
+                });
+            }
+        }
+
+        // [최근 공지] 렌더링 함수 (★항목당 고정 높이 h-[62px] 통일 세로 레이아웃 일치)
+        function renderPosts(data) {
+            const postBox = document.getElementById('post-container');
+            if(!postBox) return;
+            const postData = data.filter(p => p[1] && p[1].trim() !== "");
+            
+            let html = '';
+            postData.forEach(p => {
+                const isNotice = p[3]?.trim() === 'O';
+                html += `
+                    <div onclick="window.open('${p[2]}', '_blank')" class="flex items-center justify-between px-3 h-[62px] rounded-xl border ${isNotice ? 'bg-marine-coral/5 border-marine-coral/25' : 'bg-marine-deep/50 border-marine-border'} hover:border-marine-cyan/30 transition-all duration-300 cursor-pointer group">
+                        <div class="min-w-0 flex-grow pr-2">
+                            <div class="flex items-center gap-1 mb-0.5">
+                                ${isNotice ? '<span class="px-1 py-0.2 bg-marine-coral text-marine-deep text-[8px] font-extrabold rounded shrink-0">공지</span>' : ''}
+                                <h4 class="text-xs font-bold text-marine-foam group-hover:text-marine-cyan truncate transition-colors leading-tight">${p[1]}</h4>
+                            </div>
+                            <span class="text-[10px] text-marine-spray/50 block">${p[0]}</span>
+                        </div>
+                        ${isNotice ? '<i class="fa-solid fa-thumbtack text-[10px] text-marine-coral shrink-0 ml-1"></i>' : '<i class="fa-regular fa-file-lines text-[10px] text-marine-spray/30 shrink-0 ml-1"></i>'}
+                    </div>`;
+            });
+            postBox.innerHTML = html || `<div class="text-xs text-marine-spray/40 text-center py-8">등록된 공지사항이 없습니다.</div>`;
+        }
+
+        // [최근 다시보기] 렌더링 함수 (★항목당 고정 높이 h-[62px] 통일 세로 레이아웃 일치)
+        function renderVODs(data) {
+            const vodBox = document.getElementById('vod-container');
+            if(!vodBox) return;
+            const vodData = data.filter(v => v[1] && v[1].trim() !== "" && !v[1].includes("[클립]"));
+
+            let html = '';
+            vodData.forEach(v => {
+                const isPin = v[4]?.trim() === 'O';
+                html += `
+                    <div onclick="window.open('${v[2]}', '_blank')" class="flex items-center gap-3 p-1.5 h-[62px] bg-marine-deep/40 border ${isPin ? 'border-marine-cyan/35 bg-marine-cyan/5' : 'border-marine-border'} hover:border-marine-cyan rounded-xl transition-all duration-300 cursor-pointer group">
+                        <div class="relative w-14 h-full rounded-lg overflow-hidden shrink-0 bg-marine-void border border-marine-border/60">
+                            <img src="${v[3]}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" alt="VOD">
+                        </div>
+                        <div class="min-w-0 flex-grow flex flex-col justify-center">
+                            <h4 class="text-xs font-bold text-marine-foam group-hover:text-marine-cyan truncate leading-tight transition-colors">${v[1]}</h4>
+                            <span class="text-[10px] text-marine-spray/50 block mt-0.5">${v[0]}</span>
+                        </div>
+                        ${isPin ? '<i class="fa-solid fa-star text-[10px] text-marine-cyan shrink-0 mr-1.5"></i>' : ''}
+                    </div>`;
+            });
+            vodBox.innerHTML = html || `<div class="text-xs text-marine-spray/40 text-center py-8">가져온 다시보기가 없습니다.</div>`;
+        }
+
+        // [주간 일정] 렌더링 함수 (★항목당 고정 높이 h-[62px] 통일 세로 레이아웃 일치)
+        function renderSchedule(data) {
+            const container = document.getElementById('schedule-container');
+            if(!container) return;
+            container.innerHTML = '';
+            
+            const todayStr = new Date().toLocaleDateString('en-CA'); 
+            let count = 0;
+
+            data.forEach(row => {
+                const date = row[0]?.trim() || '';   
+                const day = row[1]?.trim() || '';    
+                const time = row[2]?.trim() || '';   
+                const content = row[3]?.trim() || ''; 
+                const category = row[4]?.trim() || ''; 
+
+                if(!date && !content) return; 
+                count++;
+
+                const isToday = date === todayStr;
+                const isDayOff = category.includes('휴방'); 
+                
+                let badgeColor = "bg-marine-shallow border-marine-border text-marine-spray";
+                if (isDayOff) badgeColor = "bg-red-500/10 border-red-500/20 text-red-400 font-bold";
+                else if (category.includes('노래') || category.includes('뱅온')) badgeColor = "bg-marine-cyan/10 border-marine-cyan/20 text-marine-cyan";
+                else if (category.includes('소통')) badgeColor = "bg-marine-mint/10 border-marine-mint/20 text-marine-mint";
+
+                const rowDiv = document.createElement('div');
+                // 동일 외곽 높이 유지를 위해 h-[62px] 부여 및 정렬 보정
+                rowDiv.className = `flex items-center justify-between px-3 h-[62px] border rounded-xl transition-all duration-300 ${isToday ? 'bg-marine-cyan/5 border-marine-cyan shadow-[0_0_8px_rgba(0,229,255,0.1)]' : 'bg-marine-deep/50 border-marine-border'} hover:border-marine-cyan/20`;
+                
+                rowDiv.innerHTML = `
+                    <div class="min-w-0 flex-grow pr-2 flex flex-col justify-center">
+                        <div class="flex items-center gap-1.5 mb-0.5">
+                            <span class="font-display font-extrabold text-[10px] text-marine-cyan">${date}</span>
+                            <span class="text-[9px] text-marine-foam px-1 bg-marine-shallow border border-marine-border rounded shrink-0">${day}</span>
+                            ${isToday ? '<span class="px-1 bg-marine-mint text-marine-deep text-[8px] font-extrabold rounded tracking-tighter scale-90 origin-left">TODAY</span>' : ''}
+                        </div>
+                        <div class="text-xs text-marine-foam truncate font-semibold leading-tight">
+                            ${time && !isDayOff ? `<span class="text-marine-mint font-bold mr-1">${time}</span>` : ''}${content || '일정 없음'}
+                        </div>
+                    </div>
+                    <span class="px-1.5 py-0.5 border rounded text-[9px] font-bold shrink-0 ${badgeColor}">${category || '미정'}</span>
+                `;
+                container.appendChild(rowDiv);
+            });
+            
+            if(count === 0) {
+                container.innerHTML = `<div class="text-xs text-marine-spray/40 text-center py-8">편성된 주간 일정이 없습니다.</div>`;
+            }
+        }
+
+        // 초기 수동 구동 및 타이머 바인딩 자동화 (10분 루프 주기 보존)
+        window.addEventListener('DOMContentLoaded', () => {
+            init();
+            setInterval(init, 1000 * 60 * 10);
+        });
+    </script>
 </body>
 </html>
