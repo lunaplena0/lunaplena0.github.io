@@ -519,22 +519,26 @@ let allTimelineData = [];
     const container = document.getElementById('timeline-body');
     const displayData = expanded ? allTimelineData : allTimelineData.slice(0, INITIAL_SHOW);
     
-    // grid로 가로 배치 + gap으로 간격 확보
-    container.className = "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"; 
+    // 1. 그리드로 가로 배치를 잡되, 각 카드가 선을 포함하게 함
+    container.className = "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-y-12 gap-x-4 mt-6"; 
     
     let html = '';
     
     displayData.forEach((row, index) => {
         html += `
-            <div class="relative pl-4 border-t-2 border-marine-cyan/30 group">
-                <!-- 시간 흐름을 보여주는 점(Node) -->
-                <div class="absolute -left-[5px] top-0 w-2.5 h-2.5 rounded-full bg-marine-cyan shadow-[0_0_8px_#00e5ff] group-hover:scale-125 transition-transform"></div>
+            <div class="relative flex flex-col">
+                <!-- 1. 가로선 (각 카드마다 선이 이어져서 가로 흐름 생성) -->
+                <div class="absolute top-2 left-0 right-4 h-[1px] bg-marine-border/50"></div>
                 
-                <div class="bg-marine-reef/30 p-4 rounded-r-xl border-y border-r border-marine-border hover:border-marine-cyan/30 transition-colors">
-                    <div class="text-[10px] text-marine-cyan font-display font-bold mb-1">
+                <!-- 2. 타임라인 점 (Node) -->
+                <div class="relative w-4 h-4 rounded-full bg-marine-deep border-2 border-marine-cyan shadow-[0_0_10px_#00e5ff] z-10"></div>
+                
+                <!-- 3. 날짜 및 제목 컨텐츠 -->
+                <div class="mt-4 pr-6">
+                    <div class="text-[10px] text-marine-cyan font-bold font-display mb-1">
                         ${row[0].trim()}
                     </div>
-                    <div class="text-xs text-marine-foam leading-relaxed word-keep">
+                    <div class="text-xs text-marine-foam leading-relaxed word-keep bg-marine-reef/50 p-3 rounded-lg border border-marine-border/30">
                         ${row[1].trim()}
                     </div>
                 </div>
