@@ -496,7 +496,7 @@ const TIMELINE_TSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQapO6
 
 // [2] 타임라인 렌더링 함수
 let allTimelineData = [];
-        const INITIAL_SHOW = 6;
+        const INITIAL_SHOW = 5;
         let isExpanded = false;
 
         async function renderTimeline() {
@@ -525,34 +525,36 @@ let allTimelineData = [];
             }
         }
 
-       function updateTimelineDisplay(expanded) {
+      function updateTimelineDisplay(expanded) {
     const container = document.getElementById('timeline-body');
     const displayData = expanded ? allTimelineData : allTimelineData.slice(0, INITIAL_SHOW);
     
-    // 부모에 overflow-hidden 추가하여 튀어나가는 선을 자름
-    container.className = "grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-x-4 gap-y-8 mt-6 overflow-hidden"; 
+    // PC 5열, 모바일 1열 유지
+    container.className = "grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-x-4 gap-y-8 mt-6"; 
     
     let html = '';
     
     displayData.forEach((row, index) => {
-        // 줄의 마지막 요소인지 계산 (5열 기준)
         const isLastInRow = (index + 1) % 5 === 0;
         const isLastOverall = index === displayData.length - 1;
         
         html += `
-            <div class="relative flex flex-col items-center">
-                <!-- 가로선: 마지막 요소가 아니면서 줄의 끝이 아닐 때만 렌더링 -->
+            <div class="relative flex flex-row lg:flex-col items-start lg:items-center">
+                <!-- 
+                  연결선 설정:
+                  PC(lg): 상단 가로선
+                  모바일(기본): 왼쪽 세로선 (items-start 덕분에 왼쪽으로 붙음)
+                -->
                 ${!isLastOverall ? `
-                    <div class="absolute top-2 left-[50%] w-full h-[2px] bg-marine-cyan/20 hidden lg:block ${isLastInRow ? 'hidden' : ''}"></div>
-                    <div class="absolute top-[20px] left-[50%] h-[calc(100%+20px)] w-[2px] bg-marine-cyan/20 lg:hidden"></div>
+                    <div class="absolute top-[7px] left-[7px] lg:left-[50%] w-[2px] h-[calc(100%+32px)] lg:w-full lg:h-[2px] lg:top-2 bg-marine-cyan/20 ${isLastInRow ? 'hidden' : ''} lg:block"></div>
                 ` : ''}
                 
                 <!-- 노드 점 -->
-                <div class="relative z-10 w-4 h-4 rounded-full bg-marine-deep border-2 border-marine-cyan shadow-[0_0_10px_#00e5ff]"></div>
+                <div class="relative z-10 w-4 h-4 rounded-full bg-marine-deep border-2 border-marine-cyan shadow-[0_0_10px_#00e5ff] flex-shrink-0"></div>
                 
                 <!-- 컨텐츠 박스 -->
-                <div class="w-full mt-4 px-2 z-10">
-                    <div class="text-[10px] text-marine-cyan font-bold font-display mb-1 text-center">
+                <div class="w-full ml-4 lg:ml-0 lg:mt-4 px-2 z-10">
+                    <div class="text-[10px] text-marine-cyan font-bold font-display mb-1 text-left lg:text-center">
                         ${row[0].trim()}
                     </div>
                     <div class="text-xs text-marine-foam p-3 bg-marine-reef/40 border border-marine-border rounded-lg shadow-sm">
