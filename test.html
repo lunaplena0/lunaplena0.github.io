@@ -488,76 +488,77 @@
 const TIMELINE_TSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQapO60c8dgTwJr4Ua8otMnwxJ9yx9gqE2jsoY5YAgwc3nzVTbBx-b0YcnyIADrv0PsYQRRBgjKlZSY/pub?output=tsv';
 
 // [2] 타임라인 렌더링 함수
-let allTimelineData = []; // 데이터를 전역에 저장
-const INITIAL_SHOW = 6;   // 처음에 보여줄 개수
+let allTimelineData = [];
+        const INITIAL_SHOW = 6;
+        let isExpanded = false;
 
-async function renderTimeline() {
-    const timelineContainer = document.getElementById('timeline-body');
-    const btnContainer = document.getElementById('timeline-btn-container');
-    if (!timelineContainer) return;
+        async function renderTimeline() {
+            const timelineContainer = document.getElementById('timeline-body');
+            const btnContainer = document.getElementById('timeline-btn-container');
+            if (!timelineContainer) return;
 
-    try {
-        const response = await fetch(TIMELINE_TSV_URL + `&t=${new Date().getTime()}`);
-        const text = await response.text();
-        const rows = text.split(/\r?\n/).map(row => row.split('\t'));
-        
-        allTimelineData = rows.slice(1).filter(r => r[0] && r[1]);
-        allTimelineData.sort((a, b) => new Date(a[0]) - new Date(b[0]));
+            try {
+                const response = await fetch(TIMELINE_TSV_URL + `&t=${new Date().getTime()}`);
+                const text = await response.text();
+                const rows = text.split(/\r?\n/).map(row => row.split('\t'));
+                
+                // 날짜 기준 정렬 및 데이터 저장
+                allTimelineData = rows.slice(1).filter(r => r[0] && r[1]);
+                allTimelineData.sort((a, b) => new Date(a[0]) - new Date(b[0]));
 
-        updateTimelineDisplay(false); 
+                updateTimelineDisplay(isExpanded);
 
-        // [수정 포인트] 여기서 버튼 표시 여부를 결정해야 합니다
-        if (allTimelineData.length > INITIAL_SHOW) {
-            btnContainer.classList.remove('hidden');
+                // 초기 데이터가 많을 때만 버튼 표시
+                if (allTimelineData.length > INITIAL_SHOW) {
+                    btnContainer.classList.remove('hidden');
+                }
+            } catch (e) {
+                console.error("Timeline Load Error:", e);
+                timelineContainer.innerHTML = '<p class="text-xs text-marine-spray text-center py-10">히스토리를 불러올 수 없습니다.</p>';
+            }
         }
-    } catch (e) {
-        timelineContainer.innerHTML = '<p class="text-xs text-marine-spray text-center col-span-2 py-10">데이터를 불러올 수 없습니다.</p>';
-    }
-}
 
-function updateTimelineDisplay(isExpanded) {
-    const container = document.getElementById('timeline-body');
-    const displayData = isExpanded ? allTimelineData : allTimelineData.slice(0, INITIAL_SHOW);
-    
-    // 선을 그리는 메인 컨테이너 내부에 아이템을 채웁니다.
-    // 기존 내용을 유지하면서 선을 다시 그립니다.
-    let html = '<div class="absolute left-[88px] top-0 bottom-0 w-[1px] bg-marine-border/30"></div>';
-    
-    displayData.forEach((row) => {
-        html += `
-            <div class="flex items-start mb-8 relative">
-                <!-- 날짜 (고정폭) -->
-                <div class="w-[80px] shrink-0 text-[10px] text-marine-cyan font-display pt-1 text-right pr-6">
-                    ${row[0].trim()}
-                </div>
-                <!-- 점 -->
-                <div class="w-2 h-2 rounded-full bg-marine-cyan mt-1.5 shadow-[0_0_8px_#00e5ff] shrink-0 z-10"></div>
-                <!-- 내용 -->
-                <div class="pl-6 text-xs text-marine-foam leading-relaxed">
-                    ${row[1].trim()}
-                </div>
-            </div>`;
-    });
-    
-    container.innerHTML = html;
-}
-    
-    // 데이터가 초기 개수보다 많을 때만 버튼 표시
-    if (allTimelineData.length > INITIAL_SHOW) {
-        btnContainer.classList.remove('hidden');
-    }
-}
+        function updateTimelineDisplay(expanded) {
+            const container = document.getElementById('timeline-body');
+            const displayData = expanded ? allTimelineData : allTimelineData.slice(0, INITIAL_SHOW);
+            
+            let html = '<div class="absolute left-[88px] top-0 bottom-0 w-[1px] bg-marine-border/30"></div>';
+            
+            displayData.forEach((row) => {
+                html += `
+                    <div class="flex items-start mb-8 relative">
+                        <div class="w-[80px] shrink-0 text-[10px] text-marine-cyan font-display pt-1 text-right pr-6">
+                            ${row[0].trim()}
+                        </div>
+                        <div class="w-2 h-2 rounded-full bg-marine-cyan mt-1.5 shadow-[0_0_8px_#00e5ff] shrink-0 z-10"></div>
+                        <div class="pl-6 text-xs text-marine-foam leading-relaxed word-keep">
+                            ${row[1].trim()}
+                        </div>
+                    </div>`;
+            });
+            container.innerHTML = html;
+        }
 
-let isExpanded = false;
-function toggleTimeline() {
-    isExpanded = !isExpanded;
-    updateTimelineDisplay(isExpanded);
-    
-    const btn = document.getElementById('timeline-toggle-btn');
-    btn.innerHTML = isExpanded ? 
-        '접기 <i class="fa-solid fa-chevron-up ml-1"></i>' : 
-        '더보기 <i class="fa-solid fa-chevron-down ml-1"></i>';
-}
+        function toggleTimeline() {
+            isExpanded = !isExpanded;
+            updateTimelineDisplay(isExpanded);
+            
+            const btn = document.getElementById('timeline-toggle-btn');
+            btn.innerHTML = isExpanded ? 
+                '접기 <i class="fa-solid fa-chevron-up ml-1"></i>' : 
+                '더보기 <i class="fa-solid fa-chevron-down ml-1"></i>';
+        }
+
+        // 초기화 로직 통합
+        window.addEventListener('DOMContentLoaded', () => {
+            init();
+            renderTimeline(); 
+            // 10분마다 자동 갱신
+            setInterval(() => {
+                init();
+                renderTimeline();
+            }, 1000 * 60 * 10);
+        });
     </script>
 </body>
 </html>
