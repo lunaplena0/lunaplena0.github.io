@@ -121,31 +121,43 @@
         }
 
         function showDateInfo(dateStr) {
-            const ev = allEvents.find(e => e.date === dateStr);
-            const infoBox = document.getElementById('date-detail-info');
-            const displayArea = document.getElementById('status-display-area');
-            const liveText = document.getElementById('live-status-text');
+    const dayEvents = allEvents.filter(e => e.date === dateStr);
+    const infoBox = document.getElementById('date-detail-info');
+    const displayArea = document.getElementById('status-display-area');
 
-            if (ev) {
-                displayArea.innerHTML = `
-                    <div class="space-y-2">
-                        <h3 class="text-marine-foam font-bold">${ev.date} - ${ev.title || ev.type}</h3>
-                        <p class="text-xs text-marine-spray">시간: ${ev.time} | 타입: ${ev.type}</p>
-                        ${ev.replayUrl && ev.replayUrl !== "-" ? `<a href="${ev.replayUrl}" target="_blank" class="text-marine-cyan text-xs underline">다시보기 보러가기</a>` : ''}
-                    </div>
-                `;
-                liveText.textContent = `선택일: ${ev.title || ev.type}`;
-            } else {
-                displayArea.innerHTML = `<p class="text-marine-spray text-sm">일정이 없습니다.</p>`;
-                liveText.textContent = "방송 정보 없음";
-            }
-            infoBox.classList.remove('hidden');
-            infoBox.scrollIntoView({ behavior: 'smooth' });
-        }
+    if (dayEvents.length > 0) {
+        // 첫 번째 일정만 표시 (여러 개일 경우 루프를 사용하여 추가할 수 있습니다)
+        const ev = dayEvents[0]; 
+        
+        displayArea.innerHTML = `
+            <div class="space-y-3">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-marine-foam font-bold text-lg">${ev.date.replace(/-/g, '.')} 방송 정보</h3>
+                    ${ev.replayUrl && ev.replayUrl !== "-" ? 
+                      `<a href="${ev.replayUrl}" target="_blank" class="px-3 py-1 bg-marine-cyan/20 text-marine-cyan border border-marine-cyan/30 rounded-lg text-[10px] font-bold hover:bg-marine-cyan hover:text-marine-deep transition">🎬 다시보기</a>` 
+                      : ''}
+                </div>
+                <div class="text-marine-foam">
+                    <span class="text-xs text-marine-cyan font-bold">[${ev.type}]</span> 
+                    <span class="font-bold">${ev.title || ''}</span>
+                </div>
+                ${ev.time ? `<p class="text-marine-spray text-sm">시간: ${ev.time}</p>` : ''}
+                <div class="flex gap-2 flex-wrap">
+                    ${ev.content ? ev.content.split(',').map(tag => `<span class="px-2 py-0.5 bg-marine-shallow text-[10px] rounded border border-marine-border text-marine-cyan">#${tag.trim()}</span>`).join('') : ''}
+                </div>
+            </div>
+        `;
+        
+        infoBox.classList.remove('hidden');
+        infoBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    } else {
+        // 일정이 없는 경우 창을 숨기거나 안내 문구 표시
+        infoBox.classList.add('hidden');
+    }
+}
 
         document.getElementById('month-select').addEventListener('change', (e) => renderCalendar(e.target.value));
         fetchSchedule();
     </script>
 </body>
 </html>
-```[cite: 1]
