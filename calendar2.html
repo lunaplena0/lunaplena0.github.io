@@ -4,20 +4,32 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>월간 일정 - 바다비 아카이브</title>
+    <!-- Tailwind CSS & FontAwesome CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    
     <script>
         tailwind.config = {
             theme: { extend: { colors: { marine: {
                 deep: '#060e16', reef: '#112235', foam: '#e3f2fd', 
                 cyan: '#00e5ff', mint: '#05ffa6', coral: '#ff5c8a', 
                 border: 'rgba(0, 229, 255, 0.12)', shallow: '#1a334d'
-            }}}}
+            }},
+            fontFamily: {
+                display: ['Orbitron', 'Noto Sans KR', 'sans-serif'],
+                body: ['Noto Sans KR', 'sans-serif']
+            }}}
         }
     </script>
     <style>
         body { 
-            background: radial-gradient(circle at 50% 0%, #0d233a 0%, #060e16 70%) fixed; 
+            background-color: #060e16;
+            background-image: radial-gradient(circle at 50% 0%, #0d233a 0%, #060e16 70%);
+            background-attachment: fixed;
             color: #e3f2fd; 
             font-family: 'Noto Sans KR', sans-serif; 
         }
@@ -31,15 +43,12 @@
         .empty-cell { border: 1px solid rgba(0, 229, 255, 0.05); }
         .calendar-cell:hover { background: rgba(0, 229, 255, 0.1) !important; }
         .day-label { text-align: center; font-size: 0.75rem; font-weight: 900; color: #00e5ff; padding: 0.5rem 0; border-bottom: 2px solid rgba(0, 229, 255, 0.2); }
-        .date-header { padding: 0.5rem; }
         .date-num { color: #00e5ff; font-weight: bold; font-size: 0.875rem; }
-        
         #date-detail-info {
             background: rgba(17, 34, 53, 0.6) !important;
             backdrop-filter: blur(12px);
             border: 1px solid rgba(0, 229, 255, 0.2) !important;
         }
-
         @keyframes loadingBar { 0% { transform: translateX(-100%); } 50% { transform: translateX(0%); } 100% { transform: translateX(100%); } }
     </style>
 </head>
@@ -49,35 +58,39 @@
     <div id="loading-overlay" class="fixed inset-0 bg-marine-deep z-[100] flex flex-col items-center justify-center transition-all duration-700">
         <div class="relative flex flex-col items-center">
             <i class="fa-solid fa-submarine text-marine-cyan text-5xl animate-bounce mb-8"></i>
-            <p class="tracking-[0.2em] text-sm text-marine-foam animate-pulse">일정을 확인하고 있어요...</p>
+            <p class="font-display tracking-[0.2em] text-sm text-marine-foam animate-pulse">DATA LOADING . . .</p>
             <div class="w-32 h-1 bg-marine-reef mt-6 rounded-full overflow-hidden">
                 <div class="h-full bg-marine-cyan animate-[loadingBar_2s_ease-in-out_infinite]"></div>
             </div>
         </div>
     </div>
 
+    <!-- 상단 네비게이션 -->
     <nav class="border-b border-marine-border bg-marine-deep/90 backdrop-blur-md sticky top-0 z-40 px-4 py-3.5 mb-8">
         <div class="max-w-4xl mx-auto flex justify-between items-center">
-            <span class="font-black text-sm tracking-widest text-marine-foam">BABABI ARCHIVE</span>
-            <a href="index.html" class="text-xs font-bold text-marine-cyan">메인으로</a>
+            <span class="font-display font-black text-sm tracking-widest text-marine-foam">BABABI ARCHIVE</span>
+            <a href="index.html" class="text-xs font-bold text-marine-cyan hover:text-marine-mint transition">메인으로</a>
         </div>
     </nav>
 
     <div class="max-w-4xl mx-auto px-4">
         <div class="flex justify-between items-center mb-6">
-            <h2 id="current-month-display" class="text-xl font-black text-marine-cyan tracking-widest">날짜 로딩 중...</h2>
-            <select id="month-select" class="bg-marine-reef text-white px-2 py-1 rounded border border-marine-cyan/30 text-sm"></select>
+            <h2 id="current-month-display" class="font-display text-xl font-black text-marine-cyan tracking-widest">LOADING...</h2>
+            <select id="month-select" class="bg-marine-reef text-white px-3 py-1.5 rounded-lg border border-marine-cyan/30 text-sm focus:outline-none focus:border-marine-cyan"></select>
         </div>
-        <div id="calendar-body" class="calendar-grid border-t border-l border-marine-border"></div>
+        
+        <div id="calendar-body" class="calendar-grid border-t border-l border-marine-border rounded-tl-lg overflow-hidden"></div>
+        
         <div id="date-detail-info" class="mt-8 p-6 rounded-2xl hidden shadow-2xl">
             <div id="status-display-area"></div>
         </div>
     </div>
 
+    <!-- 하단 고정 상태 바 -->
     <div class="fixed bottom-0 left-0 right-0 border-t border-marine-border bg-marine-deep/95 backdrop-blur-lg z-50 px-4 py-3">
         <div class="max-w-4xl mx-auto flex items-center justify-between text-xs text-marine-foam/70">
-            <span id="live-status-text">날짜를 클릭하세요.</span>
-            <span class="text-marine-cyan font-bold">LIVE STATUS</span>
+            <span id="live-status-text">날짜를 클릭하여 일정을 확인하세요.</span>
+            <span class="font-display text-marine-cyan font-bold">LIVE STATUS</span>
         </div>
     </div>   
 
@@ -115,7 +128,8 @@
                     monthSelect.appendChild(option);
                 });
                 renderCalendar(monthSelect.value || availableMonths[availableMonths.length - 1]);
-                document.getElementById('loading-overlay').style.display = 'none';
+                document.getElementById('loading-overlay').style.opacity = '0';
+                setTimeout(() => document.getElementById('loading-overlay').style.display = 'none', 700);
             } catch (e) { console.error(e); }
         }
 
@@ -167,24 +181,7 @@
             } else infoBox.classList.add('hidden');
         }
 
-        async function updateFavicon() {
-            try {
-                const response = await fetch(CONFIG_URL + `&t=${Date.now()}`);
-                const text = await response.text();
-                const rows = text.split(/\r?\n/).map(row => row.split('\t'));
-                const newFaviconUrl = rows[2] ? rows[2][2]?.trim() : null; 
-                if (newFaviconUrl?.startsWith('http')) {
-                    let favicon = document.querySelector("link[rel~='icon']") || document.createElement('link');
-                    favicon.rel = 'icon';
-                    favicon.href = newFaviconUrl + `?t=${Date.now()}`;
-                    document.head.appendChild(favicon);
-                }
-            } catch (e) { console.error("Favicon error:", e); }
-        }
-
-        document.getElementById('month-select').addEventListener('change', (e) => renderCalendar(e.target.value));
         fetchSchedule();
-        updateFavicon();
     </script>
 </body>
 </html>
