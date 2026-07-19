@@ -52,77 +52,84 @@
         }
 
         async function initStats() {
-            try {
-                const [detailRes, metaRes] = await Promise.all([
-                    fetch(DETAIL_URL).then(r => r.text()),
-                    fetch(META_URL).then(r => r.text())
-                ]);
+    try {
+        const [detailRes, metaRes] = await Promise.all([
+            fetch(DETAIL_URL).then(r => r.text()),
+            fetch(META_URL).then(r => r.text())
+        ]);
 
-                const metaMap = new Map();
-                const metaRows = metaRes.split(/\r?\n/).slice(1);
-                metaRows.forEach(row => {
-                    const [title, artist, genre] = row.split('\t');
-                    if (title) metaMap.set(title.trim(), { artist, genre });
-                });
-
-                const detailRows = detailRes.split(/\r?\n/).slice(1);
-                const statsContainer = document.getElementById('stats-container');
-                let html = '';
-                let totalSongCount = 0;
-
-                detailRows.forEach(row => {
-    const cols = row.split('\t');
-    if (cols.length < 9) return; 
-
-    const date = cols[0];
-    const songListRaw = cols[8];
-    const link = cols[2];
-
-    // 여기서 '-' 체크
-    if (!songListRaw || songListRaw.trim() === '-') return;
-
-    const songs = songListRaw.split(',');
-    songs.forEach(rawSong => {
-                        const cleanSong = rawSong.trim();
-                        if (!cleanSong) return;
-
-                        const title = cleanSong.split('(')[0].trim();
-                        const timeMatch = cleanSong.match(/\(([^)]+)\)/);
-                        const time = timeMatch ? timeMatch[1] : '';
-                        
-                        // URL 생성 로직
-                        const seconds = timeToSeconds(time);
-                        const vodUrl = seconds > 0 ? `${link}${link.includes('?') ? '&' : '?'}change_second=${seconds}` : link;
-                        
-                        const meta = metaMap.get(title) || { artist: '정보 없음', genre: '-' };
-
-                        totalSongCount++;
-
-                        html += `
-                            <a href="${vodUrl}" target="_blank" class="block p-4 bg-marine-deep/40 border border-marine-border rounded-xl hover:bg-marine-reef transition-colors group">
-                                <div class="flex justify-between items-center">
-                                    <div>
-                                        <div class="font-bold text-marine-foam group-hover:text-marine-cyan transition-colors">${title}</div>
-                                        <div class="text-[11px] text-marine-spray mt-1">
-                                            ${date} | ${meta.artist} | ${meta.genre}
-                                        </div>
-                                    </div>
-                                    <div class="text-xs font-mono text-marine-foam/50 flex items-center gap-2">
-                                        ${time} <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
-                                    </div>
-                                </div>
-                            </a>
-                        `;
-                    });
-                });
-
-                statsContainer.innerHTML = html;
-                document.getElementById('total-song-count').innerText = totalSongCount;
-            } catch (err) {
-                console.error("데이터 로드 실패:", err);
+        // 1. 메타데이터 매핑 (정규화 로직 적용)
+        const metaMap = new Map();
+        const metaRows = metaRes.split(/\r?\n/).slice(1);
+        metaRows.forEach(row => {
+            const [title, artist, genre] = row.split('\t');
+            if (title) {
+                // 쉼표 제거, () 안의 내용 제거, 공백 제거 후 정규화
+                const cleanTitle = title.replace(/,/g, '').replace(/\([^)]*\)/g, '').trim();
+                metaMap.set(cleanTitle, { artist, genre });
             }
-        }
+        });
 
+        const detailRows = detailRes.split(/\r?\n/).slice(1);
+        const statsContainer = document.getElementById('stats-container');
+        let html = '';
+        let totalSongCount = 0;
+
+        detailRows.forEach(row => {
+            const cols = row.split('\t');
+            if (cols.length < 9) return; 
+
+            const date = cols[0];
+            const songListRaw = cols[8];
+            const link = cols[2];
+
+            if (!songListRaw || songListRaw.trim() === '-') return;
+
+            const songs = songListRaw.split(',');
+            songs.forEach(rawSong => {
+                const cleanSong = rawSong.trim();
+                if (!cleanSong) return;
+
+                // 곡 제목 정규화 (메타맵과 비교하기 위함)
+                const title = cleanSong.split('(')[0].trim();
+                const normalizedTitle = title.replace(/,/g, '').trim();
+                
+                const timeMatch = cleanSong.match(/\(([^)]+)\)/);
+                const time = timeMatch ? timeMatch[1] : '';
+                
+                // URL 생성 로직
+                const seconds = timeToSeconds(time);
+                const vodUrl = seconds > 0 ? `${link}${link.includes('?') ? '&' : '?'}change_second=${seconds}` : link;
+                
+                // 메타데이터 매칭 (정규화된 제목으로 조회)
+                const meta = metaMap.get(normalizedTitle) || { artist: '정보 없음', genre: '-' };
+
+                totalSongCount++;
+
+                html += `
+                    <a href="${vodUrl}" target="_blank" class="block p-4 bg-marine-deep/40 border border-marine-border rounded-xl hover:bg-marine-reef transition-colors group">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <div class="font-bold text-marine-foam group-hover:text-marine-cyan transition-colors">${title}</div>
+                                <div class="text-[11px] text-marine-spray mt-1">
+                                    ${date} | ${meta.artist} | ${meta.genre}
+                                </div>
+                            </div>
+                            <div class="text-xs font-mono text-marine-foam/50 flex items-center gap-2">
+                                ${time} <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                            </div>
+                        </div>
+                    </a>
+                `;
+            });
+        });
+
+        statsContainer.innerHTML = html;
+        document.getElementById('total-song-count').innerText = totalSongCount;
+    } catch (err) {
+        console.error("데이터 로드 실패:", err);
+    }
+}
         document.addEventListener('DOMContentLoaded', initStats);
     </script>
 </body>
