@@ -213,18 +213,21 @@ const TSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTQ3nX6onmaf-ZH
                 rowDiv.className = `flex items-center justify-between px-3 h-[48px] transition-all duration-300 ${isToday ? 'bg-marine-cyan/10' : 'hover:bg-marine-shallow/20'} cursor-pointer`;
                 
                 rowDiv.innerHTML = `
-                    <div class="min-w-0 flex-grow pr-2 flex flex-col justify-center">
-                        <div class="flex items-center gap-1.5">
-                            <span class="font-display font-extrabold text-[9px] text-marine-cyan">${date}</span>
-                            <span class="text-[8px] text-marine-foam px-1 bg-marine-shallow border border-marine-border/40 rounded shrink-0 leading-none py-0.5">${day}</span>
-                            ${isToday ? '<span class="px-1 bg-marine-mint text-marine-deep text-[8px] font-extrabold rounded tracking-tighter scale-90 origin-left">TODAY</span>' : ''}
-                        </div>
-                        <div class="text-xs text-marine-foam truncate font-semibold leading-tight mt-0.5">
-                            ${time && !isDayOff ? `<span class="text-marine-mint font-bold mr-1">${time}</span>` : ''}${content || '일정 없음'}
-                        </div>
-                    </div>
-                    <span class="px-1.5 py-0.5 border rounded text-[8px] font-bold shrink-0 ${badgeColor}">${category || '미정'}</span>
-                `;
+    <div class="min-w-0 flex-grow pr-2 flex flex-col justify-center">
+        <div class="flex items-center gap-1.5">
+            <!-- 날짜/요일 컨테이너에 고정 너비(w-24) 추가 -->
+            <div class="w-24 flex items-center gap-1.5 shrink-0">
+                <span class="font-display font-extrabold text-[9px] text-marine-cyan">${date}</span>
+                <span class="text-[8px] text-marine-foam px-1 bg-marine-shallow border border-marine-border/40 rounded shrink-0 leading-none py-0.5">${day}</span>
+            </div>
+            ${isToday ? '<span class="px-1 bg-marine-mint text-marine-deep text-[8px] font-extrabold rounded tracking-tighter scale-90 origin-left">TODAY</span>' : ''}
+        </div>
+        <div class="text-xs text-marine-foam truncate font-semibold leading-tight mt-0.5">
+            ${time && !isDayOff ? `<span class="text-marine-mint font-bold mr-1">${time}</span>` : ''}${content || '일정 없음'}
+        </div>
+    </div>
+    <span class="px-1.5 py-0.5 border rounded text-[8px] font-bold shrink-0 ${badgeColor}">${category || '미정'}</span>
+`;
                 container.appendChild(rowDiv);
             });
             
