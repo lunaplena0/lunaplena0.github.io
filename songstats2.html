@@ -27,7 +27,6 @@
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
             <div class="bg-marine-reef border border-marine-border p-4 rounded-2xl text-center">
                 <div class="text-marine-spray text-[10px] uppercase tracking-widest">총 곡 수</div>
-                <!-- ID 추가 -->
                 <div id="total-song-count" class="text-marine-cyan text-2xl font-display font-black">000</div>
             </div>
         </div>
@@ -36,15 +35,21 @@
             <h2 class="text-lg font-bold mb-6 flex items-center gap-2">
                 <i class="fa-solid fa-music text-marine-cyan"></i> 전체 노래 목록
             </h2>
-            <!-- 스크립트를 밖으로 뺌 -->
             <div id="stats-container" class="space-y-2"></div>
         </div>
     </div>
 
-    <!-- 스크립트를 여기로 이동 -->
     <script>
         const DETAIL_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTfTHMy1hImniay9QEPDcMq5C4Yo5yFpmRtBlWo6UXK-FNxABQYbtfGpEsKom2O-OIJPnEi8LLy1Qqx/pub?gid=0&single=true&output=tsv';
         const META_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQmWkxsDxTFSxtnLX0nBapwtNcSW9FQiTDv61z9F89_lqZNq5pKGgmuaAKGo5Fd1r4_hfDtxSqSYdpf/pub?gid=0&single=true&output=tsv';
+
+        // 시간을 초로 변환하는 함수
+        function timeToSeconds(timeStr) {
+            const parts = timeStr.split(':').map(Number);
+            if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
+            if (parts.length === 2) return parts[0] * 60 + parts[1];
+            return 0;
+        }
 
         async function initStats() {
             try {
@@ -81,13 +86,19 @@
                         if (!cleanSong) return;
 
                         const title = cleanSong.split('(')[0].trim();
-                        const time = cleanSong.match(/\(([^)]+)\)/) ? cleanSong.match(/\(([^)]+)\)/)[1] : '';
+                        const timeMatch = cleanSong.match(/\(([^)]+)\)/);
+                        const time = timeMatch ? timeMatch[1] : '';
+                        
+                        // URL 생성 로직
+                        const seconds = timeToSeconds(time);
+                        const vodUrl = seconds > 0 ? `${link}${link.includes('?') ? '&' : '?'}change_second=${seconds}` : link;
+                        
                         const meta = metaMap.get(title) || { artist: '정보 없음', genre: '-' };
 
                         totalSongCount++;
 
                         html += `
-                            <a href="${link}" target="_blank" class="block p-4 bg-marine-deep/40 border border-marine-border rounded-xl hover:bg-marine-reef transition-colors group">
+                            <a href="${vodUrl}" target="_blank" class="block p-4 bg-marine-deep/40 border border-marine-border rounded-xl hover:bg-marine-reef transition-colors group">
                                 <div class="flex justify-between items-center">
                                     <div>
                                         <div class="font-bold text-marine-foam group-hover:text-marine-cyan transition-colors">${title}</div>
