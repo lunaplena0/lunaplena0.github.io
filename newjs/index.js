@@ -146,7 +146,7 @@ const TSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTQ3nX6onmaf-ZH
                     <div onclick="window.open('${p[2]}', '_blank')" class="flex items-center justify-between px-3 h-[48px] hover:bg-marine-shallow/20 transition-all duration-300 cursor-pointer group relative">
                         <div class="min-w-0 flex-grow pr-2">
                             <div class="flex items-center gap-1.5">
-                                ${isNotice ? '<span class="px-1 bg-marine-coral text-marine-deep text-[8px] font-extrabold rounded shrink-0 leading-none py-0.5">공지</span>' : ''}
+                                ${isNotice ? '<span class="px-1 bg-marine-coral text-marine-deep text-[8px] font-extrabold rounded shrink-0 leading-none py-0.5">고정</span>' : ''}
                                 <h4 class="text-xs font-bold text-marine-foam group-hover:text-marine-cyan truncate transition-colors leading-tight">${p[1]}</h4>
                             </div>
                             <span class="text-[9px] text-marine-spray/40 block mt-0.5">${p[0]}</span>
