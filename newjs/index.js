@@ -212,12 +212,15 @@ const TSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTQ3nX6onmaf-ZH
                 // border-l-2 관련 요소 완전 제외, TODAY일 때만 소프트한 배경으로만 마킹
                 rowDiv.className = `flex items-center justify-between px-3 h-[48px] transition-all duration-300 ${isToday ? 'bg-marine-cyan/10' : 'hover:bg-marine-shallow/20'} cursor-pointer`;
                 
-               rowDiv.innerHTML = `
+              rowDiv.innerHTML = `
     <div class="min-w-0 flex-grow pr-2 flex flex-col justify-center">
         <div class="flex items-center gap-1">
-            <!-- 날짜를 w-17 고정, 요일을 w-6(약 24px) 고정하여 위치 고정 -->
-            <span class="font-display font-extrabold text-[11px] text-marine-cyan w-17 text-right shrink-0">${date}</span>
-            <span class="text-[8px] text-marine-foam px-1 bg-marine-shallow border border-marine-border/40 rounded shrink-0 w-6 text-center leading-none py-0.5">${day}</span>
+            <!-- 1. w-16(64px) 클래스 사용 -->
+            <!-- 2. text-left로 고정하여 날짜가 길어져도 왼쪽 정렬되게 함 (혹은 text-right) -->
+            <span class="font-display font-extrabold text-[11px] text-marine-cyan w-16 text-left shrink-0">${date}</span>
+            
+            <!-- 요일 칸은 w-7(28px) 정도로 약간 여유를 주는 것이 더 깔끔합니다 -->
+            <span class="text-[8px] text-marine-foam px-1 bg-marine-shallow border border-marine-border/40 rounded shrink-0 w-7 text-center leading-none py-0.5">${day}</span>
             
             ${isToday ? '<span class="ml-1 px-1 bg-marine-mint text-marine-deep text-[8px] font-extrabold rounded tracking-tighter scale-90 origin-left">TODAY</span>' : ''}
         </div>
