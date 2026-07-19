@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>노래 통계 - 바다비 비공식 팬 아카이브</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    
+    <script>
+        // 기존 인덱스와 동일한 테마 설정
+        tailwind.config = { theme: { extend: { colors: { marine: { deep: '#060e16', reef: '#112235', foam: '#e3f2fd', cyan: '#00e5ff', mint: '#05ffa6', coral: '#ff5c8a', border: 'rgba(0, 229, 255, 0.12)' } } } } }
+    </script>
+    <style>
+        body { background-color: #060e16; background-image: radial-gradient(circle at 50% 0%, #0d233a 0%, #060e16 70%); }
+    </style>
+</head>
+<body class="text-marine-foam min-h-screen pb-20">
+
+    <!-- 네비게이션 -->
+    <nav class="border-b border-marine-border bg-marine-deep/90 backdrop-blur-md sticky top-0 z-40 px-4 py-4">
+        <div class="max-w-5xl mx-auto flex justify-between items-center">
+            <span class="font-display font-black text-sm tracking-widest text-marine-foam">SONG STATISTICS</span>
+            <a href="index.html" class="text-xs font-bold text-marine-cyan hover:underline">메인으로 돌아가기</a>
+        </div>
+    </nav>
+
+    <div class="max-w-5xl mx-auto px-4 mt-8">
+        <!-- 통계 요약 카드 예시 -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <div class="bg-marine-reef border border-marine-border p-4 rounded-2xl text-center">
+                <div class="text-marine-spray text-[10px] uppercase tracking-widest">총 곡 수</div>
+                <div class="text-marine-cyan text-2xl font-display font-black">000</div>
+            </div>
+            <!-- 추가 통계 카드들.. -->
+        </div>
+
+        <!-- 노래 리스트 영역 -->
+        <div class="bg-marine-reef border border-marine-border rounded-3xl p-6 shadow-xl">
+            <h2 class="text-lg font-bold mb-6 flex items-center gap-2">
+                <i class="fa-solid fa-music text-marine-cyan"></i> 전체 노래 목록
+            </h2>
+            
+            <div id="stats-container" class="space-y-2">
+                <script>
+    const DETAIL_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTfTHMy1hImniay9QEPDcMq5C4Yo5yFpmRtBlWo6UXK-FNxABQYbtfGpEsKom2O-OIJPnEi8LLy1Qqx/pub?gid=0&single=true&output=tsv';
+    const META_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQmWkxsDxTFSxtnLX0nBapwtNcSW9FQiTDv61z9F89_lqZNq5pKGgmuaAKGo5Fd1r4_hfDtxSqSYdpf/pub?gid=0&single=true&output=tsv';
+
+    async function initStats() {
+        try {
+            const [detailRes, metaRes] = await Promise.all([
+                fetch(DETAIL_URL).then(r => r.text()),
+                fetch(META_URL).then(r => r.text())
+            ]);
+
+            // 1. 메타데이터 매핑
+            const metaMap = new Map();
+            const metaRows = metaRes.split(/\r?\n/).slice(1);
+            metaRows.forEach(row => {
+                const [title, artist, genre, dates] = row.split('\t');
+                if (title) metaMap.set(title.trim(), { artist, genre });
+            });
+
+            // 2. 상세 데이터 처리
+            const detailRows = detailRes.split(/\r?\n/).slice(1);
+            const statsContainer = document.getElementById('stats-container');
+            let html = '';
+
+            detailRows.forEach(row => {
+                const cols = row.split('\t');
+                if (cols.length < 3) return;
+
+                const date = cols[0];      // A열: 날짜
+                const rawSong = cols[1];   // B열: 노래제목(시간)
+                const link = cols[2];      // C열: VOD 링크
+
+                const title = rawSong.split('(')[0].trim();
+                const time = rawSong.match(/\(([^)]+)\)/) ? rawSong.match(/\(([^)]+)\)/)[1] : '';
+                const meta = metaMap.get(title) || { artist: '정보 없음', genre: '-' };
+
+                html += `
+                    <a href="${link}" target="_blank" class="block p-4 bg-marine-deep/40 border border-marine-border rounded-xl hover:bg-marine-reef transition-colors group">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <div class="font-bold text-marine-foam group-hover:text-marine-cyan transition-colors">${title}</div>
+                                <div class="text-[11px] text-marine-spray mt-1">
+                                    ${date} | ${meta.artist} | ${meta.genre}
+                                </div>
+                            </div>
+                            <div class="text-xs font-mono text-marine-foam/50 flex items-center gap-2">
+                                ${time} <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                            </div>
+                        </div>
+                    </a>
+                `;
+            });
+
+            statsContainer.innerHTML = html;
+            document.querySelector('.text-2xl').innerText = detailRows.length;
+
+        } catch (err) {
+            console.error("데이터 로드 실패:", err);
+        }
+    }
+
+    initStats();
+</script>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
