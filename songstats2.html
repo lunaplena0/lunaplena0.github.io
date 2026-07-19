@@ -52,15 +52,14 @@
 
         
         async function initStats() {
-            try {
-                const [detailRes, metaRes] = await Promise.all([
-                    fetch(DETAIL_URL).then(r => r.text()),
-                    fetch(META_URL).then(r => r.text())
-                ]);
-                // --- [이곳으로 옮겨주세요] 데이터 비교 로그 로직 ---
-        const detailSongs = new Set();
-        const metaSongs = new Set();
+    try {
+        const [detailRes, metaRes] = await Promise.all([
+            fetch(DETAIL_URL).then(r => r.text()),
+            fetch(META_URL).then(r => r.text())
+        ]);
 
+        // 1. 상세 시트에서 이미 등장한 모든 곡을 Set에 저장
+        const appearedSongs = new Set();
         detailRes.split(/\r?\n/).slice(1).forEach(row => {
             const cols = row.split('\t');
             if (cols.length < 9) return;
@@ -68,100 +67,93 @@
             if (!songListRaw || songListRaw.trim() === '-') return;
             songListRaw.split(',').forEach(rawSong => {
                 const title = rawSong.split('(')[0].trim();
-                if (title) detailSongs.add(title);
+                if (title) appearedSongs.add(title);
             });
         });
 
+        // 2. 메타 데이터를 가져올 때, 상세 시트에 등장한 곡만 필터링하여 저장
+        const metaMap = new Map();
         metaRes.split(/\r?\n/).slice(1).forEach(row => {
-            const [title] = row.split('\t');
+            const cols = row.split('\t');
+            const title = cols[0];
+            const artist = cols[1] || '정보 없음';
+            const genre = cols[2] || '-';
+            
             if (title) {
                 const cleanTitle = title.replace(/,/g, '').replace(/\([^)]*\)/g, '').trim();
-                if (cleanTitle) metaSongs.add(cleanTitle);
+                // [필터링] 방송 로그에 있는 곡만 메타 데이터로 사용
+                if (appearedSongs.has(cleanTitle)) {
+                    metaMap.set(cleanTitle, { artist, genre });
+                }
             }
         });
 
-        console.log(`[통계 비교] 상세 시트 고유 곡 수: ${detailSongs.size}곡, 메타 시트 곡 수: ${metaSongs.size}곡`);
+        // 3. 상세 시트를 돌며 그룹화 (기존 로직 유지)
+        const songGroups = new Map();
+        let totalSongCount = 0;
 
-                const metaMap = new Map();
-                metaRes.split(/\r?\n/).slice(1).forEach(row => {
-                    const [title, artist, genre] = row.split('\t');
-                    if (title) {
-                        const cleanTitle = title.replace(/,/g, '').replace(/\([^)]*\)/g, '').trim();
-                        metaMap.set(cleanTitle, { artist, genre });
-                    }
-                });
+        detailRes.split(/\r?\n/).slice(1).forEach(row => {
+            const cols = row.split('\t');
+            if (cols.length < 9) return;
+            const date = cols[0];
+            const songListRaw = cols[8];
+            const link = cols[2];
 
-                const songGroups = new Map(); // 노래별 그룹화 저장
-                let totalSongCount = 0;
+            if (!songListRaw || songListRaw.trim() === '-') return;
 
-                detailRes.split(/\r?\n/).slice(1).forEach(row => {
-                    const cols = row.split('\t');
-                    if (cols.length < 9) return; 
+            songListRaw.split(',').forEach(rawSong => {
+                const cleanSong = rawSong.trim();
+                if (!cleanSong) return;
 
-                    const date = cols[0];
-                    const songListRaw = cols[8];
-                    const link = cols[2];
+                const title = cleanSong.split('(')[0].trim();
+                const timeMatch = cleanSong.match(/\(([^)]+)\)/);
+                const time = timeMatch ? timeMatch[1] : '';
+                const seconds = timeToSeconds(time);
+                const vodUrl = seconds > 0 ? `${link}${link.includes('?') ? '&' : '?'}change_second=${seconds}` : link;
 
-                    if (!songListRaw || songListRaw.trim() === '-') return;
+                if (!songGroups.has(title)) songGroups.set(title, []);
+                songGroups.get(title).push({ date, vodUrl, time });
+                totalSongCount++;
+            });
+        });
 
-                    songListRaw.split(',').forEach(rawSong => {
-                        const cleanSong = rawSong.trim();
-                        if (!cleanSong) return;
+        // 4. UI 렌더링
+        const statsContainer = document.getElementById('stats-container');
+        let html = '';
+        
+        songGroups.forEach((occurrences, title) => {
+            const meta = metaMap.get(title) || { artist: '정보 없음', genre: '-' };
 
-                        const title = cleanSong.split('(')[0].trim();
-                        const timeMatch = cleanSong.match(/\(([^)]+)\)/);
-                        const time = timeMatch ? timeMatch[1] : '';
-                        const seconds = timeToSeconds(time);
-                        const vodUrl = seconds > 0 ? `${link}${link.includes('?') ? '&' : '?'}change_second=${seconds}` : link;
-
-                        if (!songGroups.has(title)) songGroups.set(title, []);
-                        songGroups.get(title).push({ date, vodUrl, time });
-                        totalSongCount++;
-                    });
-                });
-
-                const statsContainer = document.getElementById('stats-container');
-                let html = '';
-                
-                songGroups.forEach((occurrences, title) => {
-    const normalizedTitle = title.replace(/,/g, '').trim();
-    const meta = metaMap.get(normalizedTitle) || { artist: '정보 없음', genre: '-' };
-
-    html += `
-        <div class="bg-marine-deep/40 border border-marine-border rounded-xl overflow-hidden mb-3">
-            <!-- 노래 제목 버튼 -->
-            <button onclick="this.nextElementSibling.classList.toggle('hidden')" class="w-full p-4 flex justify-between items-center hover:bg-marine-reef/50 transition-colors">
-                <div class="text-left">
-                    <div class="font-bold text-marine-foam">${title}</div>
-                    <div class="text-[11px] text-marine-spray mt-1">${meta.artist} | ${meta.genre} | ${occurrences.length}회</div>
+            html += `
+                <div class="bg-marine-deep/40 border border-marine-border rounded-xl overflow-hidden mb-3">
+                    <button onclick="this.nextElementSibling.classList.toggle('hidden')" class="w-full p-4 flex justify-between items-center hover:bg-marine-reef/50 transition-colors">
+                        <div class="text-left">
+                            <div class="font-bold text-marine-foam">${title}</div>
+                            <div class="text-[11px] text-marine-spray mt-1">${meta.artist} | ${meta.genre} | ${occurrences.length}회</div>
+                        </div>
+                        <div class="text-marine-cyan text-sm"><i class="fa-solid fa-chevron-down"></i></div>
+                    </button>
+                    <div class="hidden bg-marine-reef/20 p-3 space-y-2 border-t border-marine-border">
+                        ${occurrences.map(occ => `
+                            <a href="${occ.vodUrl}" target="_blank" class="flex justify-between items-center p-3 bg-marine-deep/60 border border-marine-border rounded-lg hover:border-marine-cyan hover:bg-marine-reef/50 transition-all group">
+                                <span class="text-xs font-bold text-marine-foam group-hover:text-marine-cyan">${occ.date}</span>
+                                <div class="flex items-center gap-3">
+                                    <span class="font-mono text-xs text-marine-foam/70">${occ.time}</span>
+                                    <i class="fa-solid fa-play-circle text-marine-cyan text-sm opacity-50 group-hover:opacity-100"></i>
+                                </div>
+                            </a>
+                        `).join('')}
+                    </div>
                 </div>
-                <div class="text-marine-cyan text-sm"><i class="fa-solid fa-chevron-down"></i></div>
-            </button>
-            
-            <!-- 펼쳐지는 VOD 목록 (상자 디자인) -->
-            <div class="hidden bg-marine-reef/20 p-3 space-y-2 border-t border-marine-border">
-                ${occurrences.map(occ => `
-                    <a href="${occ.vodUrl}" target="_blank" class="flex justify-between items-center p-3 bg-marine-deep/60 border border-marine-border rounded-lg hover:border-marine-cyan hover:bg-marine-reef/50 transition-all group">
-                        <div class="flex flex-col">
-                            <span class="text-xs font-bold text-marine-foam group-hover:text-marine-cyan">${occ.date}</span>
-                        </div>
-                        <div class="flex items-center gap-3">
-                            <span class="font-mono text-xs text-marine-foam/70">${occ.time}</span>
-                            <i class="fa-solid fa-play-circle text-marine-cyan text-sm opacity-50 group-hover:opacity-100"></i>
-                        </div>
-                    </a>
-                `).join('')}
-            </div>
-        </div>
-    `;
-});
+            `;
+        });
 
-                statsContainer.innerHTML = html;
-                document.getElementById('total-song-count').innerText = totalSongCount;
-            } catch (err) {
-                console.error("데이터 로드 실패:", err);
-            }
-        }
+        statsContainer.innerHTML = html;
+        document.getElementById('total-song-count').innerText = totalSongCount;
+    } catch (err) {
+        console.error("데이터 로드 실패:", err);
+    }
+}
         document.addEventListener('DOMContentLoaded', initStats);
     </script>
 </body>
