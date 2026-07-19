@@ -50,92 +50,102 @@
             return 0;
         }
 
-        
-       async function initStats() {
-    try {
-        const [detailRes, metaRes] = await Promise.all([
-            fetch(DETAIL_URL).then(r => r.text()),
-            fetch(META_URL).then(r => r.text())
-        ]);
+        let sortedSongs = [];
+        let currentPage = 1;
+        const ITEMS_PER_PAGE = 50;
 
-        const normalize = (str) => str.replace(/,/g, '').replace(/\([^)]*\)/g, '').trim();
+        async function initStats() {
+            try {
+                const [detailRes, metaRes] = await Promise.all([
+                    fetch(DETAIL_URL).then(r => r.text()),
+                    fetch(META_URL).then(r => r.text())
+                ]);
 
-        // 1. 메타 데이터 먼저 로드 (Map에 저장)
-        const metaMap = new Map();
-        metaRes.split(/\r?\n/).slice(1).forEach(row => {
-            const cols = row.split('\t');
-            if (!cols[0]) return;
-            const normalizedTitle = normalize(cols[0]);
-            metaMap.set(normalizedTitle, { artist: cols[1] || '정보 없음', genre: cols[2] || '-' });
-        });
+                const normalize = (str) => str.replace(/,/g, '').replace(/\([^)]*\)/g, '').trim();
 
-        // 2. 상세 시트 파싱 및 횟수 카운트
-        const songGroups = new Map();
-        let totalPlayCount = 0; // [수정] 정확한 총 부른 횟수 변수
+                const metaMap = new Map();
+                metaRes.split(/\r?\n/).slice(1).forEach(row => {
+                    const cols = row.split('\t');
+                    if (!cols[0]) return;
+                    metaMap.set(normalize(cols[0]), { artist: cols[1] || '정보 없음', genre: cols[2] || '-' });
+                });
 
-        detailRes.split(/\r?\n/).slice(1).forEach(row => {
-            const cols = row.split('\t');
-            if (cols.length < 9) return;
-            const date = cols[0];
-            const link = cols[2];
-            const songListRaw = cols[8];
-            if (!songListRaw || songListRaw.trim() === '-') return;
+                const songGroups = new Map();
+                let totalPlayCount = 0;
 
-            songListRaw.split(',').forEach(rawSong => {
-                const title = rawSong.split('(')[0].trim();
-                if (!title) return;
+                detailRes.split(/\r?\n/).slice(1).forEach(row => {
+                    const cols = row.split('\t');
+                    if (cols.length < 9) return;
+                    const date = cols[0];
+                    const link = cols[2];
+                    const songListRaw = cols[8];
+                    if (!songListRaw || songListRaw.trim() === '-') return;
+
+                    songListRaw.split(',').forEach(rawSong => {
+                        const title = rawSong.split('(')[0].trim();
+                        if (!title) return;
+                        
+                        const timeMatch = rawSong.match(/\(([^)]+)\)/);
+                        const time = timeMatch ? timeMatch[1] : '';
+                        const vodUrl = timeToSeconds(time) > 0 ? `${link}${link.includes('?') ? '&' : '?'}change_second=${timeToSeconds(time)}` : link;
+
+                        if (!songGroups.has(title)) songGroups.set(title, []);
+                        songGroups.get(title).push({ date, vodUrl, time });
+                        totalPlayCount++;
+                    });
+                });
+
+                // 많이 불린 순 정렬
+                sortedSongs = Array.from(songGroups.entries()).sort((a, b) => b[1].length - a[1].length);
                 
-                const timeMatch = rawSong.match(/\(([^)]+)\)/);
-                const time = timeMatch ? timeMatch[1] : '';
-                const seconds = timeToSeconds(time);
-                const vodUrl = seconds > 0 ? `${link}${link.includes('?') ? '&' : '?'}change_second=${seconds}` : link;
+                document.getElementById('total-song-count').innerText = totalPlayCount;
+                renderPage();
 
-                if (!songGroups.has(title)) songGroups.set(title, []);
-                songGroups.get(title).push({ date, vodUrl, time });
-                totalPlayCount++; // [수정] 한 곡씩 읽을 때마다 카운트 증가
-            });
-        });
+            } catch (err) {
+                console.error("데이터 로드 실패:", err);
+            }
+        }
 
-        // 3. UI 렌더링
-        const statsContainer = document.getElementById('stats-container');
-        let html = '';
-        
-        songGroups.forEach((occurrences, title) => {
-            const normalizedTitle = normalize(title);
-            const meta = metaMap.get(normalizedTitle) || { artist: '정보 없음', genre: '-' };
-            const count = occurrences.length; // [핵심] 이 곡을 부른 횟수
-
-            html += `
-                <div class="bg-marine-deep/40 border border-marine-border rounded-xl overflow-hidden mb-3">
-                    <button onclick="this.nextElementSibling.classList.toggle('hidden')" class="w-full p-4 flex justify-between items-center hover:bg-marine-reef/50 transition-colors">
-                        <div class="text-left">
-                            <div class="font-bold text-marine-foam">${title}</div>
-                            <div class="text-[11px] text-marine-spray mt-1">${meta.artist} | ${meta.genre} | ${count}회</div>
-                        </div>
-                        <div class="text-marine-cyan text-sm"><i class="fa-solid fa-chevron-down"></i></div>
-                    </button>
-                    <div class="hidden bg-marine-reef/20 p-3 space-y-2 border-t border-marine-border">
-                        ${occurrences.map(occ => `
-                            <a href="${occ.vodUrl}" target="_blank" class="flex justify-between items-center p-3 bg-marine-deep/60 border border-marine-border rounded-lg hover:border-marine-cyan hover:bg-marine-reef/50 transition-all group">
-                                <span class="text-xs font-bold text-marine-foam group-hover:text-marine-cyan">${occ.date}</span>
-                                <div class="flex items-center gap-3">
+        function renderPage() {
+            const container = document.getElementById('stats-container');
+            const end = currentPage * ITEMS_PER_PAGE;
+            const songsToRender = sortedSongs.slice(0, end);
+            
+            let html = '';
+            songsToRender.forEach(([title, occurrences]) => {
+                const meta = metaMap.get(title) || { artist: '정보 없음', genre: '-' }; // 주의: 상위 스코프 사용
+                html += `
+                    <div class="bg-marine-deep/40 border border-marine-border rounded-xl overflow-hidden mb-3">
+                        <button onclick="this.nextElementSibling.classList.toggle('hidden')" class="w-full p-4 flex justify-between items-center hover:bg-marine-reef/50 transition-colors">
+                            <div class="text-left">
+                                <div class="font-bold text-marine-foam">${title}</div>
+                                <div class="text-[11px] text-marine-spray mt-1">${meta.artist} | ${meta.genre} | ${occurrences.length}회</div>
+                            </div>
+                            <div class="text-marine-cyan text-sm"><i class="fa-solid fa-chevron-down"></i></div>
+                        </button>
+                        <div class="hidden bg-marine-reef/20 p-3 space-y-2 border-t border-marine-border">
+                            ${occurrences.map(occ => `
+                                <a href="${occ.vodUrl}" target="_blank" class="flex justify-between items-center p-3 bg-marine-deep/60 border border-marine-border rounded-lg hover:border-marine-cyan hover:bg-marine-reef/50 transition-all group">
+                                    <span class="text-xs font-bold text-marine-foam group-hover:text-marine-cyan">${occ.date}</span>
                                     <span class="font-mono text-xs text-marine-foam/70">${occ.time}</span>
-                                    <i class="fa-solid fa-play-circle text-marine-cyan text-sm opacity-50 group-hover:opacity-100"></i>
-                                </div>
-                            </a>
-                        `).join('')}
+                                </a>
+                            `).join('')}
+                        </div>
                     </div>
-                </div>
-            `;
-        });
+                `;
+            });
 
-        statsContainer.innerHTML = html;
-        document.getElementById('total-song-count').innerText = totalPlayCount; // [수정] 324가 출력될 자리
-        console.log(`[통계 완료] 고유 곡 수: ${songGroups.size}곡, 총 부른 횟수: ${totalPlayCount}회`);
-    } catch (err) {
-        console.error("데이터 로드 실패:", err);
-    }
-}
+            if (end < sortedSongs.length) {
+                html += `<button onclick="loadMore()" class="w-full py-4 text-marine-cyan font-bold hover:bg-marine-reef/50 rounded-xl border border-marine-border transition-all mt-4">더보기 (${end} / ${sortedSongs.length})</button>`;
+            }
+            container.innerHTML = html;
+        }
+
+        function loadMore() {
+            currentPage++;
+            renderPage();
+        }
+
         document.addEventListener('DOMContentLoaded', initStats);
     </script>
 </body>
