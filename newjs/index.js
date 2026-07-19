@@ -217,10 +217,10 @@ const TSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTQ3nX6onmaf-ZH
         <div class="flex items-center gap-1">
             <!-- 1. w-16(64px) 클래스 사용 -->
             <!-- 2. text-left로 고정하여 날짜가 길어져도 왼쪽 정렬되게 함 (혹은 text-right) -->
-            <span class="font-display font-extrabold text-[11px] text-marine-cyan w-16 text-left shrink-0">${date}</span>
+            <span class="font-display font-extrabold text-[11px] text-marine-cyan w-20 text-left shrink-0">${date}</span>
             
             <!-- 요일 칸은 w-7(28px) 정도로 약간 여유를 주는 것이 더 깔끔합니다 -->
-            <span class="text-[8px] text-marine-foam px-1 bg-marine-shallow border border-marine-border/40 rounded shrink-0 w-7 text-center leading-none py-0.5">${day}</span>
+            <span class="text-[8px] text-marine-foam px-1 bg-marine-shallow border border-marine-border/40 rounded shrink-0 w-8 text-center leading-none py-0.5">${day}</span>
             
             ${isToday ? '<span class="ml-1 px-1 bg-marine-mint text-marine-deep text-[8px] font-extrabold rounded tracking-tighter scale-90 origin-left">TODAY</span>' : ''}
         </div>
