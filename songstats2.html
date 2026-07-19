@@ -171,39 +171,39 @@
                 }
 
                 const div = document.createElement('div');
-    // 상자 스타일을 유지하면서 테두리 강조 및 간격 조정
-    div.className = "group bg-marine-deep/40 border border-marine-border rounded-xl overflow-hidden mb-3 hover:border-marine-cyan/50 transition-all";
+    // 상자 스타일을 제거하고 하단 테두리만 남김
+    div.className = "border-b border-marine-border group hover:bg-marine-reef/20 transition-colors";
     
     div.innerHTML = `
-        <button onclick="this.nextElementSibling.classList.toggle('hidden')" class="w-full p-4 flex items-center hover:bg-marine-reef/50 transition-colors">
-            <!-- 순위 표시 (목록 느낌 추가) -->
-            <div class="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full bg-marine-reef text-marine-cyan font-black text-xs mr-4 border border-marine-border">
-                ${index + 1}
+        <button onclick="this.nextElementSibling.classList.toggle('hidden')" class="w-full p-4 flex items-center">
+            <!-- 순위 표시 -->
+            <div class="flex-shrink-0 w-8 text-marine-spray font-mono text-sm mr-4">
+                ${(index + 1).toString().padStart(2, '0')}
             </div>
             
             <div class="text-left flex-grow">
                 <div class="font-bold text-marine-foam group-hover:text-marine-cyan transition-colors">${title}</div>
-                <div class="text-[11px] text-marine-spray mt-1 flex gap-2 items-center">
-                    <span class="bg-marine-cyan/10 text-marine-cyan px-1.5 py-0.5 rounded">${bestMeta.artist}</span>
-                    <span class="opacity-50">|</span>
-                    <span class="text-marine-mint">${occurrences.length}회 재생</span>
+                <div class="text-[11px] text-marine-spray mt-0.5 flex gap-3 items-center">
+                    <span class="text-marine-mint">${bestMeta.artist}</span>
+                    <span class="text-marine-border">|</span>
+                    <span>${occurrences.length}회 재생</span>
                 </div>
             </div>
-            <div class="text-marine-spray text-xs opacity-50"><i class="fa-solid fa-chevron-down"></i></div>
+            <div class="text-marine-spray/50 text-xs pl-4"><i class="fa-solid fa-chevron-down"></i></div>
         </button>
-                    <div class="hidden bg-marine-reef/20 p-4 border-t border-marine-border">
-                        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
-                            ${occurrences.map(occ => `
-                                <a href="${occ.vodUrl}" target="_blank" rel="noopener noreferrer" class="block p-2 bg-marine-deep/60 border border-marine-border rounded text-center hover:border-marine-cyan hover:bg-marine-reef/50 transition-all group">
-                                    <div class="text-[12px] font-bold text-marine-foam group-hover:text-marine-cyan">${occ.date}</div>
-                                    ${occ.time ? `<div class="text-[10px] text-marine-cyan/70 font-mono">${occ.time}</div>` : ''}
-                                </a>
-                            `).join('')}
-                        </div>
-                    </div>
-                `;
-                fragment.appendChild(div);
-            });
+        <!-- 접기/펼치기 영역은 동일하되, 배경색 제거 -->
+        <div class="hidden p-4 bg-marine-deep/30">
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                ${occurrences.map(occ => `
+                    <a href="${occ.vodUrl}" target="_blank" rel="noopener noreferrer" class="block p-2 bg-marine-deep/60 border border-marine-border rounded text-center hover:border-marine-cyan transition-all">
+                        <div class="text-[11px] font-bold text-marine-foam">${occ.date}</div>
+                    </a>
+                `).join('')}
+            </div>
+        </div>
+    `;
+    fragment.appendChild(div);
+});
 
             if (end < filteredSongs.length) {
                 const btn = document.createElement('button');
