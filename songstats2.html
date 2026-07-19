@@ -81,15 +81,13 @@
             
             if (title) {
                 const cleanTitle = title.replace(/,/g, '').replace(/\([^)]*\)/g, '').trim();
-                // [필터링] 방송 로그에 있는 곡만 메타 데이터로 사용
                 if (appearedSongs.has(cleanTitle)) {
                     metaMap.set(cleanTitle, { artist, genre });
                 }
             }
         });
-        console.log(`[통계 비교] 상세 시트 고유 곡 수: ${detailSongs.size}곡, 메타 시트 곡 수: ${metaSongs.size}곡`);
 
-        // 3. 상세 시트를 돌며 그룹화 (기존 로직 유지)
+        // 3. 상세 시트를 돌며 그룹화
         const songGroups = new Map();
         let totalSongCount = 0;
 
@@ -151,8 +149,10 @@
 
         statsContainer.innerHTML = html;
         document.getElementById('total-song-count').innerText = totalSongCount;
+        
+        console.log("통계 로딩 완료! 총 곡 수:", totalSongCount); // 정상적으로 로드된 후 로그 출력
     } catch (err) {
-        console.error("데이터 로드 실패:", err);
+        console.error("데이터 로드 중 오류 발생:", err);
     }
 }
         document.addEventListener('DOMContentLoaded', initStats);
