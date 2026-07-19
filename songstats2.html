@@ -71,17 +71,18 @@
                 let totalSongCount = 0;
 
                 detailRows.forEach(row => {
-                    const cols = row.split('\t');
-                    if (cols.length < 9) return; 
+    const cols = row.split('\t');
+    if (cols.length < 9) return; 
 
-                    const date = cols[0];
-                    const songListRaw = cols[8];
-                    const link = cols[2];
+    const date = cols[0];
+    const songListRaw = cols[8];
+    const link = cols[2];
 
-                    if (!songListRaw) return;
+    // 여기서 '-' 체크
+    if (!songListRaw || songListRaw.trim() === '-') return;
 
-                    const songs = songListRaw.split(',');
-                    songs.forEach(rawSong => {
+    const songs = songListRaw.split(',');
+    songs.forEach(rawSong => {
                         const cleanSong = rawSong.trim();
                         if (!cleanSong) return;
 
