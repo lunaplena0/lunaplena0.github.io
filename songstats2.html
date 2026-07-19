@@ -16,6 +16,11 @@
     </style>
 </head>
 <body class="text-marine-foam min-h-screen pb-20">
+    <!-- 로딩 오버레이 -->
+<div id="loading-overlay" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-marine-deep transition-opacity duration-500">
+    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-marine-cyan mb-4"></div>
+    <div class="text-marine-foam font-bold tracking-widest animate-pulse">데이터 불러오는 중...</div>
+</div>
 
     <nav class="border-b border-marine-border bg-marine-deep/90 backdrop-blur-md sticky top-0 z-40 px-4 py-4">
     <div class="max-w-5xl mx-auto flex justify-between items-center">
@@ -170,6 +175,7 @@
         }
 
         async function initStats() {
+            const overlay = document.getElementById('loading-overlay');
             try {
                 const [detailRes, metaRes] = await Promise.all([
                     fetch(DETAIL_URL).then(r => r.text()),
@@ -246,9 +252,16 @@
                 document.getElementById('new-song-count-30').innerText = newSongsCount;
 
                 renderPage();
-            } catch (err) { console.error("데이터 로드 실패:", err); }
+                // 로딩 숨김 (페이드 아웃 효과)
+        overlay.style.opacity = '0';
+        setTimeout(() => { overlay.classList.add('hidden'); }, 500);
+            } catch (err) { 
+                console.error("데이터 로드 실패:", err); 
+                // 2. 예외 처리 보완: 에러 발생 시 로딩 화면 즉시 제거
+                overlay.style.display = 'none';
         }
         document.addEventListener('DOMContentLoaded', initStats);
     </script>
+    
 </body>
 </html>
