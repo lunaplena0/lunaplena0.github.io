@@ -161,50 +161,38 @@
             const fragment = document.createDocumentFragment();
             
             songsToRender.forEach(([title, occurrences]) => {
-                const normalizedTitle = title.replace(/,/g, '').replace(/\([^)]*\)/g, '').trim();
-                const metas = metaMap.get(normalizedTitle);
-                const broadcastDate = parseSheetDate(occurrences[0].date);
-                let bestMeta = metas ? metas[0] : { artist: '정보 없음', genre: '-' };
-                if (metas && metas.length > 1) {
-                    const match = metas.find(m => m.date && Math.abs(m.date - broadcastDate) <= 86400000);
-                    if (match) bestMeta = match;
-                }
+    const normalizedTitle = title.replace(/,/g, '').replace(/\([^)]*\)/g, '').trim();
+    const metas = metaMap.get(normalizedTitle);
+    const broadcastDate = parseSheetDate(occurrences[0].date);
+    let bestMeta = metas ? metas[0] : { artist: '정보 없음', genre: '-' };
+    if (metas && metas.length > 1) {
+        const match = metas.find(m => m.date && Math.abs(m.date - broadcastDate) <= 86400000);
+        if (match) bestMeta = match;
+    }
 
-                const div = document.createElement('div');
-    // 항목 간 구분선 스타일
+    const div = document.createElement('div');
     div.className = "border-b border-marine-border group hover:bg-marine-reef/20 transition-colors";
     
+    // 버튼 내부에 3개 열(제목, 아티스트/횟수, 화살표)을 배치
     div.innerHTML = `
         <button onclick="this.nextElementSibling.classList.toggle('hidden')" class="w-full p-4 flex items-center justify-between">
-            <!-- 그리드 적용: PC에서는 60%/30%/10% 비율 유지 -->
-            <div class="grid grid-cols-[6fr_3fr_1fr] items-center w-full gap-2">
+            <div class="grid grid-cols-[1fr_auto_auto] items-center w-full gap-4">
                 
-                <!-- 제목 (60%) -->
-                <div class="font-bold text-marine-foam group-hover:text-marine-cyan transition-colors truncate text-xs sm:text-sm text-left pr-2">
+                <!-- 제목 (좌측 정렬) -->
+                <div class="font-bold text-marine-foam group-hover:text-marine-cyan transition-colors truncate text-xs sm:text-sm text-left">
                     ${title}
                 </div>
 
-              <!-- 아티스트 및 정보 (30%) -->
-<div class="flex flex-col items-end justify-center gap-0.5 overflow-hidden text-[10px] sm:text-[11px] text-marine-spray">
-    <!-- 가수 이름 -->
-    <span class="text-marine-mint truncate max-w-[80px] sm:max-w-[120px]">${bestMeta.artist}</span>
-    
-    <!-- 재생 횟수 -->
-    <span class="shrink-0 text-marine-cyan font-bold text-[9px] sm:text-[10px]">${occurrences.length}회</span>
-</div>
-    
-    <!-- 모바일에서도 보이도록 hidden 제거 및 구분자 조정 -->
-    <div class="flex items-center gap-1">
-        <span class="text-marine-border hidden sm:inline">|</span>
-        <span class="shrink-0 text-marine-cyan font-bold">${occurrences.length}회</span>
-    </div>
-</div>
-
-                <!-- 화살표 (10%) -->
-                <div class="text-marine-spray/50 text-xs text-right shrink-0">
-                    <i class="fa-solid fa-chevron-down"></i>
+                <!-- 아티스트 및 횟수 (중앙-우측 정렬) -->
+                <div class="flex flex-col items-end justify-center gap-0.5 overflow-hidden text-right">
+                    <span class="text-marine-mint text-[10px] sm:text-[11px] truncate max-w-[80px] sm:max-w-[120px]">${bestMeta.artist}</span>
+                    <span class="text-marine-cyan font-bold text-[9px] sm:text-[10px]">${occurrences.length}회</span>
                 </div>
                 
+                <!-- 화살표 -->
+                <div class="text-marine-spray/50 text-xs text-right pl-2">
+                    <i class="fa-solid fa-chevron-down"></i>
+                </div>
             </div>
         </button>
         <div class="hidden p-4">
@@ -219,7 +207,6 @@
     `;
     fragment.appendChild(div);
 });
-
             if (end < filteredSongs.length) {
                 const btn = document.createElement('button');
                 // py-4(상하 패딩 16px)를 py-2(상하 패딩 8px)로 줄여 버튼 높이를 낮춤
