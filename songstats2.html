@@ -160,7 +160,7 @@
             const songsToRender = filteredSongs.slice(0, end);
             const fragment = document.createDocumentFragment();
             
-            songsToRender.forEach(([title, occurrences], index) => {
+            songsToRender.forEach(([title, occurrences]) => {
                 const normalizedTitle = title.replace(/,/g, '').replace(/\([^)]*\)/g, '').trim();
                 const metas = metaMap.get(normalizedTitle);
                 const broadcastDate = parseSheetDate(occurrences[0].date);
@@ -171,16 +171,11 @@
                 }
 
                 const div = document.createElement('div');
-    // 상자 스타일을 제거하고 하단 테두리만 남김
+    // 항목 간 구분선 스타일
     div.className = "border-b border-marine-border group hover:bg-marine-reef/20 transition-colors";
     
     div.innerHTML = `
-        <button onclick="this.nextElementSibling.classList.toggle('hidden')" class="w-full p-4 flex items-center">
-            <!-- 순위 표시 -->
-            <div class="flex-shrink-0 w-8 text-marine-spray font-mono text-sm mr-4">
-                ${(index + 1).toString().padStart(2, '0')}
-            </div>
-            
+        <button onclick="this.nextElementSibling.classList.toggle('hidden')" class="w-full p-4 flex items-center justify-between">
             <div class="text-left flex-grow">
                 <div class="font-bold text-marine-foam group-hover:text-marine-cyan transition-colors">${title}</div>
                 <div class="text-[11px] text-marine-spray mt-0.5 flex gap-3 items-center">
@@ -189,13 +184,13 @@
                     <span>${occurrences.length}회 재생</span>
                 </div>
             </div>
-            <div class="text-marine-spray/50 text-xs pl-4"><i class="fa-solid fa-chevron-down"></i></div>
+            <div class="text-marine-spray/50 text-xs ml-4"><i class="fa-solid fa-chevron-down"></i></div>
         </button>
-        <!-- 접기/펼치기 영역은 동일하되, 배경색 제거 -->
-        <div class="hidden p-4 bg-marine-deep/30">
+        <!-- 배경색을 투명하게 설정하여 메인 배경색(marine-deep)과 통일 -->
+        <div class="hidden p-4">
             <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
                 ${occurrences.map(occ => `
-                    <a href="${occ.vodUrl}" target="_blank" rel="noopener noreferrer" class="block p-2 bg-marine-deep/60 border border-marine-border rounded text-center hover:border-marine-cyan transition-all">
+                    <a href="${occ.vodUrl}" target="_blank" rel="noopener noreferrer" class="block p-2 bg-marine-reef/30 border border-marine-border rounded text-center hover:border-marine-cyan transition-all">
                         <div class="text-[11px] font-bold text-marine-foam">${occ.date}</div>
                     </a>
                 `).join('')}
