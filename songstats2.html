@@ -11,11 +11,14 @@
         tailwind.config = { theme: { extend: { colors: { marine: { deep: '#060e16', reef: '#112235', foam: '#e3f2fd', cyan: '#00e5ff', mint: '#05ffa6', coral: '#ff5c8a', border: 'rgba(0, 229, 255, 0.12)' } } } } }
     </script>
     <style>
-        body { background-color: #060e16; background-image: radial-gradient(circle at 50% 0%, #0d233a 0%, #060e16 70%); }
+        body { 
+            background-color: #060e16; 
+            background-image: radial-gradient(circle at 50% 0%, #0d233a 0%, #060e16 70%); 
+            background-attachment: fixed; /* 배경 깜빡임 방지 핵심 */
+        }
         #stats-container {
-    /* 기존 스타일 유지 */
-    min-height: 500px; /* 컨테이너가 텅 빌 때 발생하는 높이 변화 방지 */
-}
+            min-height: 500px; 
+        }
     </style>
 </head>
 <body class="text-marine-foam min-h-screen pb-20">
@@ -35,7 +38,6 @@
             </div>
         </div>
 
-        <!-- 검색창 -->
         <div class="mb-8">
             <input type="text" id="search-input" placeholder="곡 제목 또는 가수 이름으로 검색..." 
                    class="w-full bg-marine-reef border border-marine-border rounded-xl p-4 text-marine-foam focus:outline-none focus:border-marine-cyan transition-all placeholder:text-marine-spray/50"
@@ -136,7 +138,6 @@
 
         function renderPage() {
             const container = document.getElementById('stats-container');
-            
             const filteredSongs = sortedSongs.filter(([title, occurrences]) => {
                 const normalizedTitle = title.replace(/,/g, '').replace(/\([^)]*\)/g, '').trim();
                 const metas = metaMap.get(normalizedTitle);
@@ -152,7 +153,9 @@
             const end = currentPage * ITEMS_PER_PAGE;
             const songsToRender = filteredSongs.slice(0, end);
             
-            let html = '';
+            // Fragment로 조립하여 깜빡임 방지
+            const fragment = document.createDocumentFragment();
+            
             songsToRender.forEach(([title, occurrences]) => {
                 const normalizedTitle = title.replace(/,/g, '').replace(/\([^)]*\)/g, '').trim();
                 const metas = metaMap.get(normalizedTitle);
@@ -164,33 +167,40 @@
                     if (match) bestMeta = match;
                 }
 
-                html += `
-                    <div class="bg-marine-deep/40 border border-marine-border rounded-xl overflow-hidden mb-3">
-                        <button onclick="this.nextElementSibling.classList.toggle('hidden')" class="w-full p-4 flex justify-between items-center hover:bg-marine-reef/50 transition-colors">
-                            <div class="text-left">
-                                <div class="font-bold text-marine-foam">${title}</div>
-                                <div class="text-[11px] text-marine-spray mt-1">
-                                    <span class="text-marine-mint font-bold">${bestMeta.artist}</span> | ${bestMeta.genre} | ${occurrences.length}회
-                                </div>
+                const div = document.createElement('div');
+                div.className = "bg-marine-deep/40 border border-marine-border rounded-xl overflow-hidden mb-3";
+                div.innerHTML = `
+                    <button onclick="this.nextElementSibling.classList.toggle('hidden')" class="w-full p-4 flex justify-between items-center hover:bg-marine-reef/50 transition-colors">
+                        <div class="text-left">
+                            <div class="font-bold text-marine-foam">${title}</div>
+                            <div class="text-[11px] text-marine-spray mt-1">
+                                <span class="text-marine-mint font-bold">${bestMeta.artist}</span> | ${bestMeta.genre} | ${occurrences.length}회
                             </div>
-                            <div class="text-marine-cyan text-sm"><i class="fa-solid fa-chevron-down"></i></div>
-                        </button>
-                        <div class="hidden bg-marine-reef/20 p-3 space-y-2 border-t border-marine-border">
-                            ${occurrences.map(occ => `
-                                <a href="${occ.vodUrl}" target="_blank" class="flex justify-between items-center p-3 bg-marine-deep/60 border border-marine-border rounded-lg hover:border-marine-cyan hover:bg-marine-reef/50 transition-all group">
-                                    <span class="text-xs font-bold text-marine-foam group-hover:text-marine-cyan">${occ.date}</span>
-                                    <span class="font-mono text-xs text-marine-foam/70">${occ.time}</span>
-                                </a>
-                            `).join('')}
                         </div>
+                        <div class="text-marine-cyan text-sm"><i class="fa-solid fa-chevron-down"></i></div>
+                    </button>
+                    <div class="hidden bg-marine-reef/20 p-3 space-y-2 border-t border-marine-border">
+                        ${occurrences.map(occ => `
+                            <a href="${occ.vodUrl}" target="_blank" class="flex justify-between items-center p-3 bg-marine-deep/60 border border-marine-border rounded-lg hover:border-marine-cyan hover:bg-marine-reef/50 transition-all group">
+                                <span class="text-xs font-bold text-marine-foam group-hover:text-marine-cyan">${occ.date}</span>
+                                <span class="font-mono text-xs text-marine-foam/70">${occ.time}</span>
+                            </a>
+                        `).join('')}
                     </div>
                 `;
+                fragment.appendChild(div);
             });
 
             if (end < filteredSongs.length) {
-                html += `<button onclick="loadMore()" class="w-full py-4 text-marine-cyan font-bold hover:bg-marine-reef/50 rounded-xl border border-marine-border transition-all mt-4">더보기 (${end} / ${filteredSongs.length})</button>`;
+                const btn = document.createElement('button');
+                btn.className = "w-full py-4 text-marine-cyan font-bold hover:bg-marine-reef/50 rounded-xl border border-marine-border transition-all mt-4";
+                btn.innerText = `더보기 (${end} / ${filteredSongs.length})`;
+                btn.onclick = loadMore;
+                fragment.appendChild(btn);
             }
-            container.innerHTML = html;
+
+            container.innerHTML = '';
+            container.appendChild(fragment);
         }
 
         document.addEventListener('DOMContentLoaded', initStats);
