@@ -160,7 +160,7 @@
             const songsToRender = filteredSongs.slice(0, end);
             const fragment = document.createDocumentFragment();
             
-            songsToRender.forEach(([title, occurrences]) => {
+            songsToRender.forEach(([title, occurrences], index) => {
                 const normalizedTitle = title.replace(/,/g, '').replace(/\([^)]*\)/g, '').trim();
                 const metas = metaMap.get(normalizedTitle);
                 const broadcastDate = parseSheetDate(occurrences[0].date);
@@ -171,17 +171,26 @@
                 }
 
                 const div = document.createElement('div');
-                div.className = "bg-marine-deep/40 border border-marine-border rounded-xl overflow-hidden mb-3";
-                div.innerHTML = `
-                    <button onclick="this.nextElementSibling.classList.toggle('hidden')" class="w-full p-4 flex justify-between items-center hover:bg-marine-reef/50 transition-colors">
-                    <div class="text-left">
-                        <div class="font-bold text-marine-foam">${title}</div>
-                        <div class="text-[12px] text-marine-spray mt-1">
-                            <span class="text-marine-mint font-bold">${bestMeta.artist}</span> | ${occurrences.length}회
-                        </div>
-                    </div>
-                    <div class="text-marine-cyan text-sm"><i class="fa-solid fa-chevron-down"></i></div>
-                </button>
+    // 상자 스타일을 유지하면서 테두리 강조 및 간격 조정
+    div.className = "group bg-marine-deep/40 border border-marine-border rounded-xl overflow-hidden mb-3 hover:border-marine-cyan/50 transition-all";
+    
+    div.innerHTML = `
+        <button onclick="this.nextElementSibling.classList.toggle('hidden')" class="w-full p-4 flex items-center hover:bg-marine-reef/50 transition-colors">
+            <!-- 순위 표시 (목록 느낌 추가) -->
+            <div class="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full bg-marine-reef text-marine-cyan font-black text-xs mr-4 border border-marine-border">
+                ${index + 1}
+            </div>
+            
+            <div class="text-left flex-grow">
+                <div class="font-bold text-marine-foam group-hover:text-marine-cyan transition-colors">${title}</div>
+                <div class="text-[11px] text-marine-spray mt-1 flex gap-2 items-center">
+                    <span class="bg-marine-cyan/10 text-marine-cyan px-1.5 py-0.5 rounded">${bestMeta.artist}</span>
+                    <span class="opacity-50">|</span>
+                    <span class="text-marine-mint">${occurrences.length}회 재생</span>
+                </div>
+            </div>
+            <div class="text-marine-spray text-xs opacity-50"><i class="fa-solid fa-chevron-down"></i></div>
+        </button>
                     <div class="hidden bg-marine-reef/20 p-4 border-t border-marine-border">
                         <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
                             ${occurrences.map(occ => `
