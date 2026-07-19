@@ -99,29 +99,38 @@
                 let html = '';
                 
                 songGroups.forEach((occurrences, title) => {
-                    const normalizedTitle = title.replace(/,/g, '').trim();
-                    const meta = metaMap.get(normalizedTitle) || { artist: '정보 없음', genre: '-' };
+    const normalizedTitle = title.replace(/,/g, '').trim();
+    const meta = metaMap.get(normalizedTitle) || { artist: '정보 없음', genre: '-' };
 
-                    html += `
-                        <div class="bg-marine-deep/40 border border-marine-border rounded-xl overflow-hidden">
-                            <button onclick="this.nextElementSibling.classList.toggle('hidden')" class="w-full p-4 flex justify-between items-center hover:bg-marine-reef transition-colors">
-                                <div class="text-left">
-                                    <div class="font-bold text-marine-foam">${title}</div>
-                                    <div class="text-[11px] text-marine-spray mt-1">${meta.artist} | ${meta.genre} | ${occurrences.length}회</div>
-                                </div>
-                                <div class="text-marine-cyan text-sm"><i class="fa-solid fa-chevron-down"></i></div>
-                            </button>
-                            <div class="hidden bg-marine-reef/50 p-2 border-t border-marine-border">
-                                ${occurrences.map(occ => `
-                                    <a href="${occ.vodUrl}" target="_blank" class="block p-3 text-xs hover:bg-marine-cyan/10 hover:text-marine-cyan flex justify-between border-b border-marine-border/30 last:border-0 rounded-lg">
-                                        <span>${occ.date}</span>
-                                        <span class="font-mono">${occ.time}</span>
-                                    </a>
-                                `).join('')}
-                            </div>
+    html += `
+        <div class="bg-marine-deep/40 border border-marine-border rounded-xl overflow-hidden mb-3">
+            <!-- 노래 제목 버튼 -->
+            <button onclick="this.nextElementSibling.classList.toggle('hidden')" class="w-full p-4 flex justify-between items-center hover:bg-marine-reef/50 transition-colors">
+                <div class="text-left">
+                    <div class="font-bold text-marine-foam">${title}</div>
+                    <div class="text-[11px] text-marine-spray mt-1">${meta.artist} | ${meta.genre} | ${occurrences.length}회</div>
+                </div>
+                <div class="text-marine-cyan text-sm"><i class="fa-solid fa-chevron-down"></i></div>
+            </button>
+            
+            <!-- 펼쳐지는 VOD 목록 (상자 디자인) -->
+            <div class="hidden bg-marine-reef/20 p-3 space-y-2 border-t border-marine-border">
+                ${occurrences.map(occ => `
+                    <a href="${occ.vodUrl}" target="_blank" class="flex justify-between items-center p-3 bg-marine-deep/60 border border-marine-border rounded-lg hover:border-marine-cyan hover:bg-marine-reef/50 transition-all group">
+                        <div class="flex flex-col">
+                            <span class="text-xs font-bold text-marine-foam group-hover:text-marine-cyan">${occ.date}</span>
+                            <span class="text-[10px] text-marine-spray">방송 기록 이동</span>
                         </div>
-                    `;
-                });
+                        <div class="flex items-center gap-3">
+                            <span class="font-mono text-xs text-marine-foam/70">${occ.time}</span>
+                            <i class="fa-solid fa-play-circle text-marine-cyan text-sm opacity-50 group-hover:opacity-100"></i>
+                        </div>
+                    </a>
+                `).join('')}
+            </div>
+        </div>
+    `;
+});
 
                 statsContainer.innerHTML = html;
                 document.getElementById('total-song-count').innerText = totalSongCount;
