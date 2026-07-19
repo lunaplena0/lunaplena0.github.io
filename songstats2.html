@@ -50,33 +50,29 @@
 
     <div class="max-w-5xl mx-auto px-4 mt-8">
         <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-8">
-    <!-- 총 곡 수 -->
-    <div class="bg-marine-reef border border-marine-border p-3 rounded-xl text-center">
-        <div class="text-marine-spray text-[10px] uppercase tracking-widest mb-0.5">총 곡 수</div>
-        <div id="total-song-count" class="text-marine-cyan text-lg font-display font-black">0</div>
-    </div>
-    <!-- 최근 30일 애창곡 -->
-    <div class="bg-marine-reef border border-marine-border p-3 rounded-xl text-center">
-        <div class="text-marine-spray text-[10px] uppercase tracking-widest mb-0.5">최근 30일 애창곡</div>
-        <div id="top-song-30" class="text-marine-cyan text-lg font-display font-black truncate">--</div>
-    </div>
-    <!-- 최근 30일 최다 아티스트 -->
-    <div class="bg-marine-reef border border-marine-border p-3 rounded-xl text-center">
-        <div class="text-marine-spray text-[10px] uppercase tracking-widest mb-0.5">최근 30일 최다 아티스트</div>
-        <div id="top-artist-30" class="text-marine-mint text-lg font-display font-black truncate">--</div>
-    </div>
-    <!-- 30일간 신규 곡 -->
-    <div class="bg-marine-reef border border-marine-border p-3 rounded-xl text-center">
-        <div class="text-marine-spray text-[10px] uppercase tracking-widest mb-0.5">30일간 신규 곡</div>
-        <div id="new-song-count-30" class="text-marine-coral text-lg font-display font-black">0</div>
-    </div>
-</div>
+            <div class="bg-marine-reef border border-marine-border p-3 rounded-xl text-center">
+                <div class="text-marine-spray text-[10px] uppercase tracking-widest mb-0.5">총 곡 수</div>
+                <div id="total-song-count" class="text-marine-cyan text-lg font-display font-black">0</div>
+            </div>
+            <div class="bg-marine-reef border border-marine-border p-3 rounded-xl text-center">
+                <div class="text-marine-spray text-[10px] uppercase tracking-widest mb-0.5">최근 30일 애창곡</div>
+                <div id="top-song-30" class="text-marine-cyan text-lg font-display font-black truncate">--</div>
+            </div>
+            <div class="bg-marine-reef border border-marine-border p-3 rounded-xl text-center">
+                <div class="text-marine-spray text-[10px] uppercase tracking-widest mb-0.5">최근 30일 최다 아티스트</div>
+                <div id="top-artist-30" class="text-marine-mint text-lg font-display font-black truncate">--</div>
+            </div>
+            <div class="bg-marine-reef border border-marine-border p-3 rounded-xl text-center">
+                <div class="text-marine-spray text-[10px] uppercase tracking-widest mb-0.5">30일간 신규 곡</div>
+                <div id="new-song-count-30" class="text-marine-coral text-lg font-display font-black">0</div>
+            </div>
+        </div>
 
         <div class="mb-8">
-    <input type="text" id="search-input" placeholder="곡 제목 또는 가수 이름으로 검색..." 
-           class="w-full bg-marine-reef border border-marine-border rounded-xl p-3 text-sm text-marine-foam focus:outline-none focus:border-marine-cyan transition-all placeholder:text-marine-spray/50"
-           oninput="handleSearch(this.value)">
-</div>
+            <input type="text" id="search-input" placeholder="곡 제목 또는 가수 이름으로 검색..." 
+                   class="w-full bg-marine-reef border border-marine-border rounded-xl p-3 text-sm text-marine-foam focus:outline-none focus:border-marine-cyan transition-all placeholder:text-marine-spray/50"
+                   oninput="handleSearch(this.value)">
+        </div>
 
         <div class="bg-marine-reef border border-marine-border rounded-3xl p-6 shadow-xl">
             <h2 class="text-lg font-bold mb-6 flex items-center gap-2">
@@ -96,20 +92,6 @@
         let searchTerm = "";
         const ITEMS_PER_PAGE = 50;
 
-        function prepareWaveText(msg) {
-            const el = document.getElementById('loading-text');
-            if(el) el.innerText = msg;
-        }
-
-        // 로딩 종료 함수
-        function hideLoadingOverlay() {
-            const overlay = document.getElementById('loading-overlay');
-            if(overlay) {
-                overlay.style.opacity = '0';
-                setTimeout(() => overlay.style.display = 'none', 700);
-            }
-        }
-
         function parseSheetDate(dateStr) {
             if (!dateStr) return null;
             let clean = dateStr.toString().replace(/[() ]/g, '').trim();
@@ -122,7 +104,6 @@
             return null;
         }
 
-        // 시간 문자열(mm:ss)을 초로 변환하는 함수
         function timeToSeconds(timeStr) {
             if (!timeStr) return 0;
             const parts = timeStr.split(':').map(Number);
@@ -161,55 +142,50 @@
             const fragment = document.createDocumentFragment();
             
             songsToRender.forEach(([title, occurrences]) => {
-    const normalizedTitle = title.replace(/,/g, '').replace(/\([^)]*\)/g, '').trim();
-    const metas = metaMap.get(normalizedTitle);
-    const broadcastDate = parseSheetDate(occurrences[0].date);
-    let bestMeta = metas ? metas[0] : { artist: '정보 없음', genre: '-' };
-    if (metas && metas.length > 1) {
-        const match = metas.find(m => m.date && Math.abs(m.date - broadcastDate) <= 86400000);
-        if (match) bestMeta = match;
-    }
-
-    const div = document.createElement('div');
-    div.className = "border-b border-marine-border group hover:bg-marine-reef/20 transition-colors";
-    
-    // 버튼 내부에 3개 열(제목, 아티스트/횟수, 화살표)을 배치
-    div.innerHTML = `
-        <button onclick="this.nextElementSibling.classList.toggle('hidden')" class="w-full p-4 flex items-center justify-between">
-            <div class="grid grid-cols-[1fr_auto_auto] items-center w-full gap-4">
+                const normalizedTitle = title.replace(/,/g, '').replace(/\([^)]*\)/g, '').trim();
+                const metas = metaMap.get(normalizedTitle);
+                const broadcastDate = parseSheetDate(occurrences[0].date);
                 
-                <!-- 제목 (좌측 정렬) -->
-                <div class="font-bold text-marine-foam group-hover:text-marine-cyan transition-colors truncate text-xs sm:text-sm text-left">
-                    ${title}
-                </div>
+                let bestMeta = metas ? metas[0] : { title: title, artist: '정보 없음', genre: '-' };
+                if (metas && metas.length > 1) {
+                    const match = metas.find(m => m.date && Math.abs(m.date - broadcastDate) <= 86400000);
+                    if (match) bestMeta = match;
+                }
 
-                <!-- 아티스트 및 횟수 (중앙-우측 정렬) -->
-                <div class="flex flex-col items-end justify-center gap-0.5 overflow-hidden text-right">
-                    <span class="text-marine-mint text-[10px] sm:text-[11px] truncate max-w-[80px] sm:max-w-[120px]">${bestMeta.artist}</span>
-                    <span class="text-marine-cyan font-bold text-[9px] sm:text-[10px]">${occurrences.length}회</span>
-                </div>
-                
-                <!-- 화살표 -->
-                <div class="text-marine-spray/50 text-xs text-right pl-2">
-                    <i class="fa-solid fa-chevron-down"></i>
-                </div>
-            </div>
-        </button>
-        <div class="hidden p-4">
-            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-                ${occurrences.map(occ => `
-                    <a href="${occ.vodUrl}" target="_blank" rel="noopener noreferrer" class="block p-2 bg-marine-reef/30 border border-marine-border rounded text-center hover:border-marine-cyan transition-all">
-                        <div class="text-[10px] sm:text-[11px] font-bold text-marine-foam">${occ.date}</div>
-                    </a>
-                `).join('')}
-            </div>
-        </div>
-    `;
-    fragment.appendChild(div);
-});
+                const displayTitle = bestMeta.title || title;
+
+                const div = document.createElement('div');
+                div.className = "border-b border-marine-border group hover:bg-marine-reef/20 transition-colors";
+                div.innerHTML = `
+                    <button onclick="this.nextElementSibling.classList.toggle('hidden')" class="w-full p-4 flex items-center justify-between">
+                        <div class="grid grid-cols-[1fr_auto_auto] items-center w-full gap-4">
+                            <div class="font-bold text-marine-foam group-hover:text-marine-cyan transition-colors truncate text-xs sm:text-sm text-left">
+                                ${displayTitle}
+                            </div>
+                            <div class="flex flex-col items-end justify-center gap-0.5 overflow-hidden text-right">
+                                <span class="text-marine-mint text-[10px] sm:text-[11px] truncate max-w-[80px] sm:max-w-[120px]">${bestMeta.artist}</span>
+                                <span class="text-marine-cyan font-bold text-[9px] sm:text-[10px]">${occurrences.length}회</span>
+                            </div>
+                            <div class="text-marine-spray/50 text-xs text-right pl-2">
+                                <i class="fa-solid fa-chevron-down"></i>
+                            </div>
+                        </div>
+                    </button>
+                    <div class="hidden p-4">
+                        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                            ${occurrences.map(occ => `
+                                <a href="${occ.vodUrl}" target="_blank" rel="noopener noreferrer" class="block p-2 bg-marine-reef/30 border border-marine-border rounded text-center hover:border-marine-cyan transition-all">
+                                    <div class="text-[10px] sm:text-[11px] font-bold text-marine-foam">${occ.date}</div>
+                                </a>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+                fragment.appendChild(div);
+            });
+
             if (end < filteredSongs.length) {
                 const btn = document.createElement('button');
-                // py-4(상하 패딩 16px)를 py-2(상하 패딩 8px)로 줄여 버튼 높이를 낮춤
                 btn.className = "w-full py-2 text-marine-cyan font-bold hover:bg-marine-reef/50 rounded-xl border border-marine-border transition-all mt-4";
                 btn.innerText = `더보기 (${end} / ${filteredSongs.length})`;
                 btn.onclick = loadMore;
@@ -234,7 +210,12 @@
                     if (!cols[0]) return;
                     const title = normalize(cols[0]);
                     if (!metaMap.has(title)) metaMap.set(title, []);
-                    metaMap.get(title).push({ artist: cols[1] || '정보 없음', genre: cols[2] || '-', date: parseSheetDate(cols[3]) });
+                    metaMap.get(title).push({ 
+                        title: cols[0], 
+                        artist: cols[1] || '정보 없음', 
+                        genre: cols[2] || '-', 
+                        date: parseSheetDate(cols[3]) 
+                    });
                 });
 
                 const rows = detailRes.split(/\r?\n/).slice(1);
@@ -262,7 +243,6 @@
                         const title = rawSong.split('(')[0].trim();
                         if (!title) return;
                         
-                        // 시간 추출 및 URL 처리
                         const timeMatch = rawSong.match(/\(([^)]+)\)/);
                         const time = timeMatch ? timeMatch[1] : null;
                         const seconds = timeToSeconds(time);
@@ -297,12 +277,10 @@
                 document.getElementById('new-song-count-30').innerText = newSongsCount;
 
                 renderPage();
-                // 로딩 숨김 (페이드 아웃 효과)
-        overlay.style.opacity = '0';
-        setTimeout(() => { overlay.classList.add('hidden'); }, 500);
+                overlay.style.opacity = '0';
+                setTimeout(() => { overlay.classList.add('hidden'); }, 500);
             } catch (err) { 
                 console.error("데이터 로드 실패:", err); 
-                // 2. 예외 처리 보완: 에러 발생 시 로딩 화면 즉시 제거
                 overlay.style.display = 'none';
             }
         }
@@ -310,38 +288,24 @@
 
         const CONFIG_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTQ3nX6onmaf-ZHhXGox2s4ChGos7ki7iFjQ_47lArZR6dV935gCIbLbvlDDAS65rTEnswSLIk_7v3R/pub?gid=0&single=true&output=tsv';
 
-async function updateFavicon() {
-    try {
-        const response = await fetch(CONFIG_URL + `&t=${Date.now()}`);
-        const text = await response.text();
-        const rows = text.split(/\r?\n/).map(row => row.split('\t'));
-        
-        // 3번째 줄(index 2), 3번째 칸(index 2)의 URL 가져오기
-        const newFaviconUrl = rows[2][2]?.trim(); 
-
-        if (newFaviconUrl && newFaviconUrl.startsWith('http')) {
-            // 1. 기존 파비콘 태그 찾기 (없으면 새로 생성)
-            let favicon = document.querySelector("link[rel~='icon']");
-            if (!favicon) {
-                favicon = document.createElement('link');
-                favicon.rel = 'icon';
-                document.head.appendChild(favicon);
-            }
-            
-            // 2. URL 적용 (캐시 방지용 쿼리스트링 추가)
-            favicon.href = newFaviconUrl + `?t=${Date.now()}`;
-            
-            console.log("Favicon updated to:", newFaviconUrl);
+        async function updateFavicon() {
+            try {
+                const response = await fetch(CONFIG_URL + `&t=${Date.now()}`);
+                const text = await response.text();
+                const rows = text.split(/\r?\n/).map(row => row.split('\t'));
+                const newFaviconUrl = rows[2][2]?.trim(); 
+                if (newFaviconUrl && newFaviconUrl.startsWith('http')) {
+                    let favicon = document.querySelector("link[rel~='icon']");
+                    if (!favicon) {
+                        favicon = document.createElement('link');
+                        favicon.rel = 'icon';
+                        document.head.appendChild(favicon);
+                    }
+                    favicon.href = newFaviconUrl + `?t=${Date.now()}`;
+                }
+            } catch (e) { console.error("Favicon update error:", e); }
         }
-    } catch (e) {
-        console.error("Favicon update error:", e);
-    }
-}
-
-// 페이지가 열리자마자 실행
-updateFavicon();
-
+        updateFavicon();
     </script>
-    
 </body>
 </html>
