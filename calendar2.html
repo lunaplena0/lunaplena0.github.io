@@ -144,44 +144,45 @@
         }
 
         function renderCalendar(yearMonth) {
-            const [year, month] = yearMonth.split('-').map(Number);
-            const firstDay = new Date(year, month - 1, 1).getDay();
-            const lastDate = new Date(year, month, 0).getDate();
-            document.getElementById('current-month-display').innerText = `${year}년 ${month}월`;
-            const body = document.getElementById('calendar-body');
-            body.innerHTML = '';
-            ['일','월','화','수','목','금','토'].forEach(d => {
-                const div = document.createElement('div'); div.className = 'day-label'; div.innerText = d; body.appendChild(div);
-            });
-            for (let i = 0; i < firstDay; i++) { const div = document.createElement('div'); div.className = 'empty-cell'; body.appendChild(div); }
-            for (let d = 1; d <= lastDate; d++) {
-    const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    const [year, month] = yearMonth.split('-').map(Number);
+    const firstDay = new Date(year, month - 1, 1).getDay();
+    const lastDate = new Date(year, month, 0).getDate();
+    document.getElementById('current-month-display').innerText = `${year}년 ${month}월`;
+    const body = document.getElementById('calendar-body');
+    body.innerHTML = '';
     
-    // 해당 날짜의 요일을 계산 (0: 일요일, 6: 토요일)
-    const dayOfWeek = new Date(year, month - 1, d).getDay();
+    ['일','월','화','수','목','금','토'].forEach(d => {
+        const div = document.createElement('div'); div.className = 'day-label'; div.innerText = d; body.appendChild(div);
+    });
     
-    // 요일에 따른 색상 클래스 결정
-    let dateColorClass = 'text-marine-cyan'; // 평일 기본색
-    if (dayOfWeek === 0) dateColorClass = 'text-marine-coral'; // 일요일 빨간색
-    if (dayOfWeek === 6) dateColorClass = 'text-blue-400';    // 토요일 파란색
+    for (let i = 0; i < firstDay; i++) { const div = document.createElement('div'); div.className = 'empty-cell'; body.appendChild(div); }
+    
+    for (let d = 1; d <= lastDate; d++) {
+        const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        
+        // 요일 색상 계산
+        const dayOfWeek = new Date(year, month - 1, d).getDay();
+        let dateColorClass = 'text-marine-cyan'; 
+        if (dayOfWeek === 0) dateColorClass = 'text-marine-coral'; // 일요일 빨강
+        if (dayOfWeek === 6) dateColorClass = 'text-blue-400';    // 토요일 파랑
 
-    const cell = document.createElement('div');
-    cell.className = 'calendar-cell p-2';
-    
-    // date-num에 위에서 결정한 dateColorClass 적용
-    cell.innerHTML = `<div class="date-header"><span class="date-num ${dateColorClass}">${d}</span></div>`;
-    
-    cell.onclick = () => showDateInfo(dateStr);
-                cell.innerHTML = `<div class="date-header"><span class="date-num">${d}</span></div>`;
-                cell.onclick = () => showDateInfo(dateStr);
-                allEvents.filter(e => e.date === dateStr).forEach(ev => {
-                    const colorClass = ev.time === '휴방' ? 'text-marine-coral' : 'text-marine-cyan';
-                    cell.innerHTML += `<div class="text-[8px] ${colorClass} mt-1 truncate">🔹${ev.time}</div>`;
-});
-                body.appendChild(cell);
-            }
-        }
-
+        const cell = document.createElement('div');
+        cell.className = 'calendar-cell p-2';
+        cell.onclick = () => showDateInfo(dateStr);
+        
+        // 날짜 숫자 표시
+        cell.innerHTML = `<div class="date-header"><span class="date-num ${dateColorClass}">${d}</span></div>`;
+        
+        // 일정 표시 (모바일 환경에서만 text-[8px] 적용)
+        allEvents.filter(e => e.date === dateStr).forEach(ev => {
+            const colorClass = ev.time === '휴방' ? 'text-marine-coral' : 'text-marine-cyan';
+            // md:text-[10px]는 화면이 커지면(PC) 원래 크기(10px)로, 기본은 모바일용(8px)으로 설정
+            cell.innerHTML += `<div class="text-[8px] md:text-[10px] ${colorClass} mt-1 truncate">🔹${ev.time}</div>`;
+        });
+        
+        body.appendChild(cell);
+    }
+}
         function showDateInfo(dateStr) {
             const dayEvents = allEvents.filter(e => e.date === dateStr);
             const infoBox = document.getElementById('date-detail-info');
