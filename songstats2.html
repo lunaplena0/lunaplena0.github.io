@@ -58,7 +58,7 @@
             fetch(META_URL).then(r => r.text())
         ]);
 
-        // 1. 상세 시트에서 이미 등장한 모든 곡을 Set에 저장
+        // 1. 상세 시트(방송 기록)에서 등장한 모든 고유 곡 추출
         const appearedSongs = new Set();
         detailRes.split(/\r?\n/).slice(1).forEach(row => {
             const cols = row.split('\t');
@@ -71,15 +71,21 @@
             });
         });
 
-        // 2. 메타 데이터를 가져올 때, 상세 시트에 등장한 곡만 필터링하여 저장
+        // 2. 메타 시트에서 날짜가 입력된 노래(메타 정보가 있는 곡) 중 상세 시트에도 있는 곡 확인
         const metaMap = new Map();
+        let metaWithDateCount = 0; // 메타 시트에서 날짜가 포함된 곡 카운트
+
         metaRes.split(/\r?\n/).slice(1).forEach(row => {
             const cols = row.split('\t');
             const title = cols[0];
-            const artist = cols[1] || '정보 없음';
-            const genre = cols[2] || '-';
+            const artist = cols[1];
+            const genre = cols[2];
             
             if (title) {
+                // 날짜 데이터가 입력되어 있는지 확인 (메타 시트의 4번째 열이 날짜라고 가정)
+                const hasDate = cols[3] && cols[3].trim() !== ''; 
+                if (hasDate) metaWithDateCount++;
+
                 const cleanTitle = title.replace(/,/g, '').replace(/\([^)]*\)/g, '').trim();
                 if (appearedSongs.has(cleanTitle)) {
                     metaMap.set(cleanTitle, { artist, genre });
@@ -87,70 +93,8 @@
             }
         });
 
-        // 3. 상세 시트를 돌며 그룹화
-        const songGroups = new Map();
-        let totalSongCount = 0;
-
-        detailRes.split(/\r?\n/).slice(1).forEach(row => {
-            const cols = row.split('\t');
-            if (cols.length < 9) return;
-            const date = cols[0];
-            const songListRaw = cols[8];
-            const link = cols[2];
-
-            if (!songListRaw || songListRaw.trim() === '-') return;
-
-            songListRaw.split(',').forEach(rawSong => {
-                const cleanSong = rawSong.trim();
-                if (!cleanSong) return;
-
-                const title = cleanSong.split('(')[0].trim();
-                const timeMatch = cleanSong.match(/\(([^)]+)\)/);
-                const time = timeMatch ? timeMatch[1] : '';
-                const seconds = timeToSeconds(time);
-                const vodUrl = seconds > 0 ? `${link}${link.includes('?') ? '&' : '?'}change_second=${seconds}` : link;
-
-                if (!songGroups.has(title)) songGroups.set(title, []);
-                songGroups.get(title).push({ date, vodUrl, time });
-                totalSongCount++;
-            });
-        });
-
-        // 4. UI 렌더링
-        const statsContainer = document.getElementById('stats-container');
-        let html = '';
-        
-        songGroups.forEach((occurrences, title) => {
-            const meta = metaMap.get(title) || { artist: '정보 없음', genre: '-' };
-
-            html += `
-                <div class="bg-marine-deep/40 border border-marine-border rounded-xl overflow-hidden mb-3">
-                    <button onclick="this.nextElementSibling.classList.toggle('hidden')" class="w-full p-4 flex justify-between items-center hover:bg-marine-reef/50 transition-colors">
-                        <div class="text-left">
-                            <div class="font-bold text-marine-foam">${title}</div>
-                            <div class="text-[11px] text-marine-spray mt-1">${meta.artist} | ${meta.genre} | ${occurrences.length}회</div>
-                        </div>
-                        <div class="text-marine-cyan text-sm"><i class="fa-solid fa-chevron-down"></i></div>
-                    </button>
-                    <div class="hidden bg-marine-reef/20 p-3 space-y-2 border-t border-marine-border">
-                        ${occurrences.map(occ => `
-                            <a href="${occ.vodUrl}" target="_blank" class="flex justify-between items-center p-3 bg-marine-deep/60 border border-marine-border rounded-lg hover:border-marine-cyan hover:bg-marine-reef/50 transition-all group">
-                                <span class="text-xs font-bold text-marine-foam group-hover:text-marine-cyan">${occ.date}</span>
-                                <div class="flex items-center gap-3">
-                                    <span class="font-mono text-xs text-marine-foam/70">${occ.time}</span>
-                                    <i class="fa-solid fa-play-circle text-marine-cyan text-sm opacity-50 group-hover:opacity-100"></i>
-                                </div>
-                            </a>
-                        `).join('')}
-                    </div>
-                </div>
-            `;
-        });
-
-        statsContainer.innerHTML = html;
-        document.getElementById('total-song-count').innerText = totalSongCount;
-        
-        console.log("통계 로딩 완료! 총 곡 수:", totalSongCount); // 정상적으로 로드된 후 로그 출력
+        console.log(`[통계 비교] 상세 시트에서 확인된 고유 곡 수: ${appearedSongs.size}곡`);
+        console.log(`[통계 비교] 메타 시트에서 날짜가 입력된 노래 수: ${metaWithDateCount}곡`);
     } catch (err) {
         console.error("데이터 로드 중 오류 발생:", err);
     }
