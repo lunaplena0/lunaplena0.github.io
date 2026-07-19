@@ -215,8 +215,8 @@ const TSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTQ3nX6onmaf-ZH
                rowDiv.innerHTML = `
     <div class="min-w-0 flex-grow pr-2 flex flex-col justify-center">
         <div class="flex items-center gap-1">
-            <!-- 날짜를 w-10(약 40px) 고정, 요일을 w-6(약 24px) 고정하여 위치 고정 -->
-            <span class="font-display font-extrabold text-[9px] text-marine-cyan w-20 text-right shrink-0">${date}</span>
+            <!-- 날짜를 w-20(약 80px) 고정, 요일을 w-6(약 24px) 고정하여 위치 고정 -->
+            <span class="font-display font-extrabold text-[14px] text-marine-cyan w-20 text-right shrink-0">${date}</span>
             <span class="text-[8px] text-marine-foam px-1 bg-marine-shallow border border-marine-border/40 rounded shrink-0 w-6 text-center leading-none py-0.5">${day}</span>
             
             ${isToday ? '<span class="ml-1 px-1 bg-marine-mint text-marine-deep text-[8px] font-extrabold rounded tracking-tighter scale-90 origin-left">TODAY</span>' : ''}
