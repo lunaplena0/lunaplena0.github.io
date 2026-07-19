@@ -82,108 +82,104 @@
 
         function parseSheetDate(dateStr) {
             if (!dateStr) return null;
-            const cleanDate = dateStr.replace(/[()]/g, ''); 
-            const parts = cleanDate.split('.');
-            return new Date(`20${parts[0]}-${parts[1]}-${parts[2]}`);
-        }
-
-        function handleSearch(val) {
-            searchTerm = val.toLowerCase();
-            currentPage = 1;
-            renderPage();
-        }
-
-        function loadMore() {
-            currentPage++;
-            renderPage();
+            // 괄호, 공백 제거 및 정제
+            let clean = dateStr.toString().replace(/[() ]/g, '').trim();
+            
+            // YYYY-MM-DD (2026-07-20)
+            if (clean.includes('-')) return new Date(clean);
+            
+            // YY.MM.DD (26.04.21)
+            if (clean.includes('.')) {
+                const parts = clean.split('.');
+                const year = parts[0].length === 2 ? `20${parts[0]}` : parts[0];
+                return new Date(`${year}-${parts[1]}-${parts[2]}`);
+            }
+            return null;
         }
 
         async function initStats() {
-    try {
-        const [detailRes, metaRes] = await Promise.all([
-            fetch(DETAIL_URL).then(r => r.text()),
-            fetch(META_URL).then(r => r.text())
-        ]);
+            try {
+                const [detailRes, metaRes] = await Promise.all([
+                    fetch(DETAIL_URL).then(r => r.text()),
+                    fetch(META_URL).then(r => r.text())
+                ]);
 
-        const normalize = (str) => str.replace(/,/g, '').replace(/\([^)]*\)/g, '').trim();
+                const normalize = (str) => str.replace(/,/g, '').replace(/\([^)]*\)/g, '').trim();
 
-        // 1. Meta 데이터 로드
-        metaRes.split(/\r?\n/).slice(1).forEach(row => {
-            const cols = row.split('\t');
-            if (!cols[0]) return;
-            const title = normalize(cols[0]);
-            if (!metaMap.has(title)) metaMap.set(title, []);
-            metaMap.get(title).push({ artist: cols[1] || '정보 없음', genre: cols[2] || '-', date: parseSheetDate(cols[3]) });
-        });
+                // 1. Meta 데이터 로드
+                metaRes.split(/\r?\n/).slice(1).forEach(row => {
+                    const cols = row.split('\t');
+                    if (!cols[0]) return;
+                    const title = normalize(cols[0]);
+                    if (!metaMap.has(title)) metaMap.set(title, []);
+                    metaMap.get(title).push({ artist: cols[1] || '정보 없음', genre: cols[2] || '-', date: parseSheetDate(cols[3]) });
+                });
 
-        // 2. 통계 계산 준비
-        const songGroups = new Map();
-        const allOccurrences = [];
-        const oldSongs = new Set();
-        let totalPlayCount = 0;
-        
-        const now = new Date(); // 오늘 날짜
-        const thirtyDaysAgo = new Date(now.getTime() - (30 * 24 * 60 * 60 * 1000));
-
-        detailRes.split(/\r?\n/).slice(1).forEach(row => {
-            const cols = row.split('\t');
-            if (cols.length < 9) return;
-            
-            const date = parseSheetDate(cols[0]);
-            if (!date) return; // 날짜 파싱 실패 건은 건너뜀
-
-            const songListRaw = cols[8];
-            if (!songListRaw || songListRaw.trim() === '-') return;
-
-            songListRaw.split(',').forEach(rawSong => {
-                const title = rawSong.split('(')[0].trim();
-                if (!title) return;
+                // 2. [기준점 설정] 첫 번째 시트에서 가장 최신 날짜 찾기
+                const rows = detailRes.split(/\r?\n/).slice(1);
+                let latestDate = new Date(0);
                 
-                // 그룹화 및 전체 통계
-                if (!songGroups.has(title)) songGroups.set(title, []);
-                songGroups.get(title).push({ date: cols[0], vodUrl: cols[2], time: '' });
-                totalPlayCount++;
+                rows.forEach(row => {
+                    const d = parseSheetDate(row.split('\t')[0]);
+                    if (d && d > latestDate) latestDate = d;
+                });
 
-                // 30일 통계 판별
-                if (date >= thirtyDaysAgo) {
-                    allOccurrences.push({ title, date });
-                } else {
-                    oldSongs.add(title);
-                }
-            });
-        });
+                const thirtyDaysAgo = new Date(latestDate.getTime() - (30 * 24 * 60 * 60 * 1000));
+                console.log("통계 기준일(시트 최신):", latestDate, "30일 전:", thirtyDaysAgo);
 
-        console.log("최근 30일 데이터 개수:", allOccurrences.length); // 브라우저 콘솔에서 확인 가능
+                // 3. 통계 계산
+                const songGroups = new Map();
+                const allOccurrences = [];
+                const oldSongs = new Set();
+                let totalPlayCount = 0;
 
-        // 3. UI 업데이트
-        sortedSongs = Array.from(songGroups.entries()).sort((a, b) => b[1].length - a[1].length);
-        document.getElementById('total-song-count').innerText = totalPlayCount;
+                rows.forEach(row => {
+                    const cols = row.split('\t');
+                    if (cols.length < 9) return;
+                    const date = parseSheetDate(cols[0]);
+                    const songListRaw = cols[8];
+                    if (!songListRaw || songListRaw.trim() === '-') return;
 
-        const songCount30 = {};
-        const artistCount30 = {};
-        allOccurrences.forEach(s => {
-            songCount30[s.title] = (songCount30[s.title] || 0) + 1;
-            const meta = metaMap.get(normalize(s.title));
-            const artist = meta ? meta[0].artist : '정보 없음';
-            artistCount30[artist] = (artistCount30[artist] || 0) + 1;
-        });
+                    songListRaw.split(',').forEach(rawSong => {
+                        const title = rawSong.split('(')[0].trim();
+                        if (!title) return;
+                        
+                        if (!songGroups.has(title)) songGroups.set(title, []);
+                        songGroups.get(title).push({ date: cols[0], vodUrl: cols[2], time: '' });
+                        totalPlayCount++;
 
-        // 결과 반영
-        const topSong30 = Object.entries(songCount30).sort((a, b) => b[1] - a[1])[0];
-        const topArtist30 = Object.entries(artistCount30).sort((a, b) => b[1] - a[1])[0];
-        
-        // 신규 곡 계산: 30일 내 목록 중 oldSongs에 없는 것만
-        const newSongsCount = [...new Set(allOccurrences.map(s => s.title))]
-                                .filter(s => !oldSongs.has(s)).length;
+                        if (date && date >= thirtyDaysAgo) {
+                            allOccurrences.push({ title, date });
+                        } else {
+                            oldSongs.add(title);
+                        }
+                    });
+                });
 
-        document.getElementById('top-song-30').innerText = topSong30 ? topSong30[0] : '-';
-        document.getElementById('top-artist-30').innerText = topArtist30 ? topArtist30[0] : '-';
-        document.getElementById('new-song-count-30').innerText = newSongsCount;
+                // 4. UI 업데이트
+                sortedSongs = Array.from(songGroups.entries()).sort((a, b) => b[1].length - a[1].length);
+                document.getElementById('total-song-count').innerText = totalPlayCount;
 
-        renderPage();
-    } catch (err) { console.error("데이터 로드 실패:", err); }
-}
+                const songCount30 = {};
+                const artistCount30 = {};
+                allOccurrences.forEach(s => {
+                    songCount30[s.title] = (songCount30[s.title] || 0) + 1;
+                    const meta = metaMap.get(normalize(s.title));
+                    const artist = meta ? meta[0].artist : '정보 없음';
+                    artistCount30[artist] = (artistCount30[artist] || 0) + 1;
+                });
 
+                const topSong30 = Object.entries(songCount30).sort((a, b) => b[1] - a[1])[0];
+                const topArtist30 = Object.entries(artistCount30).sort((a, b) => b[1] - a[1])[0];
+                const newSongsCount = [...new Set(allOccurrences.map(s => s.title))].filter(s => !oldSongs.has(s)).length;
+
+                document.getElementById('top-song-30').innerText = topSong30 ? topSong30[0] : '-';
+                document.getElementById('top-artist-30').innerText = topArtist30 ? topArtist30[0] : '-';
+                document.getElementById('new-song-count-30').innerText = newSongsCount;
+
+                renderPage();
+            } catch (err) { console.error("데이터 로드 실패:", err); }
+        }
         function renderPage() { /* 기존 renderPage 동일 */ 
             const container = document.getElementById('stats-container');
             const filteredSongs = sortedSongs.filter(([title, occurrences]) => {
