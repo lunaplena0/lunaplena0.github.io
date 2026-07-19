@@ -216,7 +216,7 @@ const TSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTQ3nX6onmaf-ZH
     <div class="min-w-0 flex-grow pr-2 flex flex-col justify-center">
         <div class="flex items-center gap-1.5">
             <!-- 날짜/요일 컨테이너에 고정 너비(w-24) 추가 -->
-            <div class="w-24 flex items-center gap-1.5 shrink-0">
+            <div class="w-28 flex items-center gap-1.5 shrink-0">
                 <span class="font-display font-extrabold text-[9px] text-marine-cyan">${date}</span>
                 <span class="text-[8px] text-marine-foam px-1 bg-marine-shallow border border-marine-border/40 rounded shrink-0 leading-none py-0.5">${day}</span>
             </div>
