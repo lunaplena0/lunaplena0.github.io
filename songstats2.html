@@ -58,11 +58,21 @@
             fetch(META_URL).then(r => r.text())
         ]);
 
-        // 정규화 함수: 공백 제거, 괄호 내용 제거
         const normalize = (str) => str.replace(/,/g, '').replace(/\([^)]*\)/g, '').trim();
 
-        // 1. 상세 시트 파싱
+        // 1. 메타 데이터 먼저 로드 (Map에 저장)
+        const metaMap = new Map();
+        metaRes.split(/\r?\n/).slice(1).forEach(row => {
+            const cols = row.split('\t');
+            if (!cols[0]) return;
+            const normalizedTitle = normalize(cols[0]);
+            metaMap.set(normalizedTitle, { artist: cols[1] || '정보 없음', genre: cols[2] || '-' });
+        });
+
+        // 2. 상세 시트 파싱 및 횟수 카운트
         const songGroups = new Map();
+        let totalPlayCount = 0; // [수정] 정확한 총 부른 횟수 변수
+
         detailRes.split(/\r?\n/).slice(1).forEach(row => {
             const cols = row.split('\t');
             if (cols.length < 9) return;
@@ -82,33 +92,25 @@
 
                 if (!songGroups.has(title)) songGroups.set(title, []);
                 songGroups.get(title).push({ date, vodUrl, time });
+                totalPlayCount++; // [수정] 한 곡씩 읽을 때마다 카운트 증가
             });
-        });
-
-        // 2. 메타 시트 파싱
-        const metaMap = new Map();
-        metaRes.split(/\r?\n/).slice(1).forEach(row => {
-            const cols = row.split('\t');
-            if (!cols[0]) return;
-            const normalizedTitle = normalize(cols[0]);
-            metaMap.set(normalizedTitle, { artist: cols[1] || '정보 없음', genre: cols[2] || '-' });
         });
 
         // 3. UI 렌더링
         const statsContainer = document.getElementById('stats-container');
         let html = '';
         
-        // songGroups(상세)를 순회하며 metaMap(메타)과 매칭
         songGroups.forEach((occurrences, title) => {
             const normalizedTitle = normalize(title);
             const meta = metaMap.get(normalizedTitle) || { artist: '정보 없음', genre: '-' };
+            const count = occurrences.length; // [핵심] 이 곡을 부른 횟수
 
             html += `
                 <div class="bg-marine-deep/40 border border-marine-border rounded-xl overflow-hidden mb-3">
                     <button onclick="this.nextElementSibling.classList.toggle('hidden')" class="w-full p-4 flex justify-between items-center hover:bg-marine-reef/50 transition-colors">
                         <div class="text-left">
                             <div class="font-bold text-marine-foam">${title}</div>
-                            <div class="text-[11px] text-marine-spray mt-1">${meta.artist} | ${meta.genre} | ${occurrences.length}회</div>
+                            <div class="text-[11px] text-marine-spray mt-1">${meta.artist} | ${meta.genre} | ${count}회</div>
                         </div>
                         <div class="text-marine-cyan text-sm"><i class="fa-solid fa-chevron-down"></i></div>
                     </button>
@@ -128,8 +130,8 @@
         });
 
         statsContainer.innerHTML = html;
-        document.getElementById('total-song-count').innerText = songGroups.size; // 고유 곡 수 표시
-        console.log("데이터 렌더링 완료. 고유 곡 수:", songGroups.size);
+        document.getElementById('total-song-count').innerText = totalPlayCount; // [수정] 324가 출력될 자리
+        console.log(`[통계 완료] 고유 곡 수: ${songGroups.size}곡, 총 부른 횟수: ${totalPlayCount}회`);
     } catch (err) {
         console.error("데이터 로드 실패:", err);
     }
