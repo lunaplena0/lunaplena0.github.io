@@ -31,6 +31,13 @@
             </div>
         </div>
 
+        <!-- 검색창 -->
+        <div class="mb-8">
+            <input type="text" id="search-input" placeholder="곡 제목 또는 가수 이름으로 검색..." 
+                   class="w-full bg-marine-reef border border-marine-border rounded-xl p-4 text-marine-foam focus:outline-none focus:border-marine-cyan transition-all placeholder:text-marine-spray/50"
+                   oninput="handleSearch(this.value)">
+        </div>
+
         <div class="bg-marine-reef border border-marine-border rounded-3xl p-6 shadow-xl">
             <h2 class="text-lg font-bold mb-6 flex items-center gap-2">
                 <i class="fa-solid fa-music text-marine-cyan"></i> 전체 노래 목록
@@ -43,10 +50,10 @@
         const DETAIL_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTfTHMy1hImniay9QEPDcMq5C4Yo5yFpmRtBlWo6UXK-FNxABQYbtfGpEsKom2O-OIJPnEi8LLy1Qqx/pub?gid=0&single=true&output=tsv';
         const META_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQmWkxsDxTFSxtnLX0nBapwtNcSW9FQiTDv61z9F89_lqZNq5pKGgmuaAKGo5Fd1r4_hfDtxSqSYdpf/pub?gid=0&single=true&output=tsv';
 
-        // 전역 변수들
         let sortedSongs = [];
-        let metaMap = new Map(); // 여기서 미리 선언
+        let metaMap = new Map();
         let currentPage = 1;
+        let searchTerm = "";
         const ITEMS_PER_PAGE = 50;
 
         function timeToSeconds(timeStr) {
@@ -63,6 +70,17 @@
             return new Date(`20${parts[0]}-${parts[1]}-${parts[2]}`);
         }
 
+        function handleSearch(val) {
+            searchTerm = val.toLowerCase();
+            currentPage = 1;
+            renderPage();
+        }
+
+        function loadMore() {
+            currentPage++;
+            renderPage();
+        }
+
         async function initStats() {
             try {
                 const [detailRes, metaRes] = await Promise.all([
@@ -72,28 +90,24 @@
 
                 const normalize = (str) => str.replace(/,/g, '').replace(/\([^)]*\)/g, '').trim();
 
-                // metaMap에 날짜까지 포함하여 데이터 채우기
                 metaRes.split(/\r?\n/).slice(1).forEach(row => {
                     const cols = row.split('\t');
                     if (!cols[0]) return;
                     const title = normalize(cols[0]);
-                    
                     if (!metaMap.has(title)) metaMap.set(title, []);
-                    
                     metaMap.get(title).push({ 
                         artist: cols[1] || '정보 없음', 
                         genre: cols[2] || '-',
-                        date: parseSheetDate(cols[3]) // 4번째 열 날짜 저장
+                        date: parseSheetDate(cols[3])
                     });
                 });
 
-                // ... songGroups 로직은 그대로 유지 ...
                 const songGroups = new Map();
                 let totalPlayCount = 0;
                 detailRes.split(/\r?\n/).slice(1).forEach(row => {
                     const cols = row.split('\t');
                     if (cols.length < 9) return;
-                    const date = cols[0]; // (26.04.21) 형식
+                    const date = cols[0];
                     const link = cols[2];
                     const songListRaw = cols[8];
                     if (!songListRaw || songListRaw.trim() === '-') return;
@@ -101,11 +115,9 @@
                     songListRaw.split(',').forEach(rawSong => {
                         const title = rawSong.split('(')[0].trim();
                         if (!title) return;
-                        
                         const timeMatch = rawSong.match(/\(([^)]+)\)/);
                         const time = timeMatch ? timeMatch[1] : '';
                         const vodUrl = timeToSeconds(time) > 0 ? `${link}${link.includes('?') ? '&' : '?'}change_second=${timeToSeconds(time)}` : link;
-
                         if (!songGroups.has(title)) songGroups.set(title, []);
                         songGroups.get(title).push({ date, vodUrl, time });
                         totalPlayCount++;
@@ -120,21 +132,31 @@
 
         function renderPage() {
             const container = document.getElementById('stats-container');
+            
+            const filteredSongs = sortedSongs.filter(([title, occurrences]) => {
+                const normalizedTitle = title.replace(/,/g, '').replace(/\([^)]*\)/g, '').trim();
+                const metas = metaMap.get(normalizedTitle);
+                const broadcastDate = parseSheetDate(occurrences[0].date);
+                let bestMeta = metas ? metas[0] : { artist: '정보 없음', genre: '-' };
+                if (metas && metas.length > 1) {
+                    const match = metas.find(m => m.date && Math.abs(m.date - broadcastDate) <= 86400000);
+                    if (match) bestMeta = match;
+                }
+                return title.toLowerCase().includes(searchTerm) || bestMeta.artist.toLowerCase().includes(searchTerm);
+            });
+
             const end = currentPage * ITEMS_PER_PAGE;
-            const songsToRender = sortedSongs.slice(0, end);
+            const songsToRender = filteredSongs.slice(0, end);
             
             let html = '';
             songsToRender.forEach(([title, occurrences]) => {
                 const normalizedTitle = title.replace(/,/g, '').replace(/\([^)]*\)/g, '').trim();
                 const metas = metaMap.get(normalizedTitle);
-                
-                // 날짜 근접 매칭 로직
                 const broadcastDate = parseSheetDate(occurrences[0].date);
                 let bestMeta = metas ? metas[0] : { artist: '정보 없음', genre: '-' };
                 
                 if (metas && metas.length > 1) {
-                    const ONE_DAY = 86400000;
-                    const match = metas.find(m => m.date && Math.abs(m.date - broadcastDate) <= ONE_DAY);
+                    const match = metas.find(m => m.date && Math.abs(m.date - broadcastDate) <= 86400000);
                     if (match) bestMeta = match;
                 }
 
@@ -161,15 +183,10 @@
                 `;
             });
 
-            if (end < sortedSongs.length) {
-                html += `<button onclick="loadMore()" class="w-full py-4 text-marine-cyan font-bold hover:bg-marine-reef/50 rounded-xl border border-marine-border transition-all mt-4">더보기 (${end} / ${sortedSongs.length})</button>`;
+            if (end < filteredSongs.length) {
+                html += `<button onclick="loadMore()" class="w-full py-4 text-marine-cyan font-bold hover:bg-marine-reef/50 rounded-xl border border-marine-border transition-all mt-4">더보기 (${end} / ${filteredSongs.length})</button>`;
             }
             container.innerHTML = html;
-        }
-
-        function loadMore() {
-            currentPage++;
-            renderPage();
         }
 
         document.addEventListener('DOMContentLoaded', initStats);
