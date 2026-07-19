@@ -11,11 +11,7 @@
         tailwind.config = { theme: { extend: { colors: { marine: { deep: '#060e16', reef: '#112235', foam: '#e3f2fd', cyan: '#00e5ff', mint: '#05ffa6', coral: '#ff5c8a', border: 'rgba(0, 229, 255, 0.12)' } } } } }
     </script>
     <style>
-        body { 
-            background-color: #060e16; 
-            background-image: radial-gradient(circle at 50% 0%, #0d233a 0%, #060e16 70%); 
-            background-attachment: fixed;
-        }
+        body { background-color: #060e16; background-image: radial-gradient(circle at 50% 0%, #0d233a 0%, #060e16 70%); background-attachment: fixed; }
         #stats-container { min-height: 500px; }
     </style>
 </head>
@@ -29,7 +25,6 @@
     </nav>
 
     <div class="max-w-5xl mx-auto px-4 mt-8">
-        <!-- 통계 카드 영역 -->
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
             <div class="bg-marine-reef border border-marine-border p-4 rounded-2xl text-center">
                 <div class="text-marine-spray text-[10px] uppercase tracking-widest mb-1">총 곡 수</div>
@@ -51,8 +46,8 @@
 
         <div class="mb-8">
             <input type="text" id="search-input" placeholder="곡 제목 또는 가수 이름으로 검색..." 
-                   class="w-full bg-marine-reef border border-marine-border rounded-xl p-4 text-marine-foam focus:outline-none focus:border-marine-cyan transition-all placeholder:text-marine-spray/50"
-                   oninput="handleSearch(this.value)">
+                    class="w-full bg-marine-reef border border-marine-border rounded-xl p-4 text-marine-foam focus:outline-none focus:border-marine-cyan transition-all placeholder:text-marine-spray/50"
+                    oninput="handleSearch(this.value)">
         </div>
 
         <div class="bg-marine-reef border border-marine-border rounded-3xl p-6 shadow-xl">
@@ -73,7 +68,6 @@
         let searchTerm = "";
         const ITEMS_PER_PAGE = 50;
 
-        // 필수 유틸리티 함수
         function parseSheetDate(dateStr) {
             if (!dateStr) return null;
             let clean = dateStr.toString().replace(/[() ]/g, '').trim();
@@ -86,7 +80,15 @@
             return null;
         }
 
-        // 검색 및 페이지네이션 핸들러
+        // 시간 문자열(mm:ss)을 초로 변환하는 함수
+        function timeToSeconds(timeStr) {
+            if (!timeStr) return 0;
+            const parts = timeStr.split(':').map(Number);
+            if (parts.length === 2) return parts[0] * 60 + parts[1];
+            if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
+            return 0;
+        }
+
         function handleSearch(val) {
             searchTerm = val.toLowerCase();
             currentPage = 1;
@@ -98,7 +100,6 @@
             renderPage();
         }
 
-        // 렌더링 함수
         function renderPage() {
             const container = document.getElementById('stats-container');
             const filteredSongs = sortedSongs.filter(([title, occurrences]) => {
@@ -106,7 +107,6 @@
                 const metas = metaMap.get(normalizedTitle);
                 const broadcastDate = parseSheetDate(occurrences[0].date);
                 let bestMeta = metas ? metas[0] : { artist: '정보 없음', genre: '-' };
-                
                 if (metas && metas.length > 1) {
                     const match = metas.find(m => m.date && Math.abs(m.date - broadcastDate) <= 86400000);
                     if (match) bestMeta = match;
@@ -123,7 +123,6 @@
                 const metas = metaMap.get(normalizedTitle);
                 const broadcastDate = parseSheetDate(occurrences[0].date);
                 let bestMeta = metas ? metas[0] : { artist: '정보 없음', genre: '-' };
-                
                 if (metas && metas.length > 1) {
                     const match = metas.find(m => m.date && Math.abs(m.date - broadcastDate) <= 86400000);
                     if (match) bestMeta = match;
@@ -132,25 +131,26 @@
                 const div = document.createElement('div');
                 div.className = "bg-marine-deep/40 border border-marine-border rounded-xl overflow-hidden mb-3";
                 div.innerHTML = `
-    <button onclick="this.nextElementSibling.classList.toggle('hidden')" class="w-full p-4 flex justify-between items-center hover:bg-marine-reef/50 transition-colors">
-        <div class="text-left">
-            <div class="font-bold text-marine-foam">${title}</div>
-            <div class="text-[12px] text-marine-spray mt-1">
-                <span class="text-marine-mint font-bold">${bestMeta.artist}</span> | ${bestMeta.genre} | ${occurrences.length}회
-            </div>
-        </div>
-        <div class="text-marine-cyan text-sm"><i class="fa-solid fa-chevron-down"></i></div>
-    </button>
-    <div class="hidden bg-marine-reef/20 p-4 border-t border-marine-border">
-        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
-            ${occurrences.map(occ => `
-                <a href="${occ.vodUrl}" target="_blank" rel="noopener noreferrer" class="block p-2 bg-marine-deep/60 border border-marine-border rounded text-center hover:border-marine-cyan hover:bg-marine-reef/50 transition-all group">
-                    <span class="text-[12px] font-bold text-marine-foam group-hover:text-marine-cyan">${occ.date}</span>
-                </a>
-            `).join('')}
-        </div>
-    </div>
-`;
+                    <button onclick="this.nextElementSibling.classList.toggle('hidden')" class="w-full p-4 flex justify-between items-center hover:bg-marine-reef/50 transition-colors">
+                        <div class="text-left">
+                            <div class="font-bold text-marine-foam">${title}</div>
+                            <div class="text-[12px] text-marine-spray mt-1">
+                                <span class="text-marine-mint font-bold">${bestMeta.artist}</span> | ${bestMeta.genre} | ${occurrences.length}회
+                            </div>
+                        </div>
+                        <div class="text-marine-cyan text-sm"><i class="fa-solid fa-chevron-down"></i></div>
+                    </button>
+                    <div class="hidden bg-marine-reef/20 p-4 border-t border-marine-border">
+                        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
+                            ${occurrences.map(occ => `
+                                <a href="${occ.vodUrl}" target="_blank" rel="noopener noreferrer" class="block p-2 bg-marine-deep/60 border border-marine-border rounded text-center hover:border-marine-cyan hover:bg-marine-reef/50 transition-all group">
+                                    <div class="text-[12px] font-bold text-marine-foam group-hover:text-marine-cyan">${occ.date}</div>
+                                    ${occ.time ? `<div class="text-[10px] text-marine-cyan/70 font-mono">${occ.time}</div>` : ''}
+                                </a>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
                 fragment.appendChild(div);
             });
 
@@ -161,12 +161,10 @@
                 btn.onclick = loadMore;
                 fragment.appendChild(btn);
             }
-
             container.innerHTML = '';
             container.appendChild(fragment);
         }
 
-        // 초기 데이터 로드
         async function initStats() {
             try {
                 const [detailRes, metaRes] = await Promise.all([
@@ -190,7 +188,6 @@
                     const d = parseSheetDate(row.split('\t')[0]);
                     if (d && d > latestDate) latestDate = d;
                 });
-
                 const thirtyDaysAgo = new Date(latestDate.getTime() - (30 * 24 * 60 * 60 * 1000));
                 
                 const songGroups = new Map();
@@ -201,17 +198,26 @@
                 rows.forEach(row => {
                     const cols = row.split('\t');
                     if (cols.length < 9) return;
-                    const date = parseSheetDate(cols[0]);
+                    const dateVal = parseSheetDate(cols[0]);
+                    const link = cols[2];
                     const songListRaw = cols[8];
                     if (!songListRaw || songListRaw.trim() === '-') return;
 
                     songListRaw.split(',').forEach(rawSong => {
                         const title = rawSong.split('(')[0].trim();
                         if (!title) return;
+                        
+                        // 시간 추출 및 URL 처리
+                        const timeMatch = rawSong.match(/\(([^)]+)\)/);
+                        const time = timeMatch ? timeMatch[1] : null;
+                        const seconds = timeToSeconds(time);
+                        const vodUrl = seconds > 0 ? `${link}${link.includes('?') ? '&' : '?'}t=${seconds}` : link;
+
                         if (!songGroups.has(title)) songGroups.set(title, []);
-                        songGroups.get(title).push({ date: cols[0], vodUrl: cols[2] });
+                        songGroups.get(title).push({ date: cols[0], vodUrl, time });
+                        
                         totalPlayCount++;
-                        if (date && date >= thirtyDaysAgo) allOccurrences.push({ title, date });
+                        if (dateVal && dateVal >= thirtyDaysAgo) allOccurrences.push({ title, date: cols[0] });
                         else oldSongs.add(title);
                     });
                 });
@@ -238,7 +244,6 @@
                 renderPage();
             } catch (err) { console.error("데이터 로드 실패:", err); }
         }
-
         document.addEventListener('DOMContentLoaded', initStats);
     </script>
 </body>
