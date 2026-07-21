@@ -239,7 +239,7 @@
 
                         html += `
                             <div class="bg-marine-deep/30 border border-marine-border/50 rounded-2xl p-4 sm:p-5 shadow-inner space-y-3">
-                                <div class="flex items-center justify-between border-b border-marine-border/30 pb-2.5 mb-3">
+                                <div class="flex items-center justify-between border-b border-marine-border/30 pb-2.5 mb-2">
                                     <h3 class="font-display font-bold text-sm text-marine-foam flex items-center gap-2">
                                         <i class="fa-solid fa-folder-open text-marine-mint text-xs"></i> ${Number(month)}월
                                     </h3>
@@ -247,10 +247,10 @@
                                         총 ${monthRows.length}회 기록
                                     </span>
                                 </div>
-                                <div class="space-y-2.5">
+                                <div class="divide-y divide-marine-border/30">
                         `;
 
-                        monthRows.forEach(row => {
+                        monthRows.forEach((row, index) => {
                             const date = row[0]?.trim() || '';
                             const description = row[1]?.trim() || '내용 없음';
                             const timecode = row[2]?.trim() || '';
@@ -278,10 +278,10 @@
                                 `;
                             }
 
-                            // 모바일(sm 미만): 2줄 레이아웃 유지 / PC(sm 이상): 가로 한 줄 레이아웃 (날짜 | 설명 | 타임코드 | 다시보기)
+                            // 월별 상자 안에서 개별 상자 테두리를 제거하고 구분선(divide-y) 및 리스트 형식으로 배치
                             html += `
-                                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 px-3.5 py-3.5 bg-marine-deep/50 hover:bg-marine-shallow/50 border border-marine-border/40 rounded-xl transition-all duration-300 group shadow-sm">
-                                    <!-- 모바일 상단 줄 / PC 좌측 영역 (날짜 + 설명) -->
+                                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 py-3.5 first:pt-2 last:pb-2 group">
+                                    <!-- 날짜 + 설명 영역 -->
                                     <div class="flex items-center justify-between sm:justify-start gap-3 w-full sm:w-auto sm:flex-grow sm:pr-4">
                                         <span class="font-body font-bold text-xs sm:text-sm text-marine-cyan w-[115px] sm:w-[135px] shrink-0 flex items-center gap-2 whitespace-nowrap">
                                             <div class="w-1.5 h-1.5 rounded-full bg-marine-mint shadow-[0_0_6px_#05ffa6] shrink-0"></div>
@@ -294,8 +294,8 @@
                                         <span class="hidden sm:inline-block text-sm text-marine-foam truncate font-medium group-hover:text-marine-cyan transition-colors flex-grow">${description}</span>
                                     </div>
 
-                                    <!-- 모바일 하단 줄 / PC 우측 영역 (설명 및 타임코드/다시보기 버튼) -->
-                                    <div class="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto border-t sm:border-t-0 pt-2 sm:pt-0 border-marine-border/30 shrink-0">
+                                    <!-- 타임코드 / 다시보기 버튼 영역 -->
+                                    <div class="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto pt-1 sm:pt-0 shrink-0">
                                         <span class="block sm:hidden text-xs text-marine-foam font-medium group-hover:text-marine-cyan transition-colors flex-grow truncate">${description}</span>
                                         <div class="hidden sm:flex items-center gap-2 shrink-0">
                                             ${timecodeHtml}
