@@ -159,6 +159,25 @@
         const CRY_TSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRaLjP1nClrC7K6dnBraEYxSapXRDZWy48v0h71BeMUws7ItzqlmOYihwc4DCSDC1LDQasHdMaDY3JE/pub?output=tsv';
         const CONFIG_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTQ3nX6onmaf-ZHhXGox2s4ChGos7ki7iFjQ_47lArZR6dV935gCIbLbvlDDAS65rTEnswSLIk_7v3R/pub?gid=0&single=true&output=tsv';
 
+        async function updateFavicon() {
+            try {
+                const response = await fetch(CONFIG_URL + `&t=${Date.now()}`);
+                const text = await response.text();
+                const rows = text.split(/\r?\n/).map(row => row.split('\t'));
+                const newFaviconUrl = rows[2] ? rows[2][2]?.trim() : null; 
+                if (newFaviconUrl && newFaviconUrl.startsWith('http')) {
+                    let favicon = document.querySelector("link[rel~='icon']");
+                    if (!favicon) {
+                        favicon = document.createElement('link');
+                        favicon.rel = 'icon';
+                        document.head.appendChild(favicon);
+                    }
+                    favicon.href = newFaviconUrl + `?t=${Date.now()}`;
+                }
+            } catch (e) { console.error("Favicon update error:", e); }
+        }
+
+        
         // 시간을 초(Second)로 변환하는 함수
         function convertTimeToSeconds(timeStr) {
             if (!timeStr) return 0;
@@ -348,34 +367,6 @@
                 }
             }
         }
-
-        async function updateFavicon() {
-    try {
-        const cacheBuster = `&t=${Date.now()}`;
-        const response = await fetch(CONFIG_URL + cacheBuster, {
-            cache: 'no-store',
-            headers: { 'Pragma': 'no-cache', 'Cache-Control': 'no-cache' }
-        });
-        const text = await response.text();
-        const rows = text.split(/\r?\n/).map(row => row.split('\t'));
-        
-        const newFaviconUrl = rows[2]?.[2]?.trim(); 
-
-        if (newFaviconUrl && newFaviconUrl.startsWith('http')) {
-            let favicon = document.querySelector("link[rel~='icon']");
-            if (!favicon) {
-                favicon = document.createElement('link');
-                favicon.rel = 'icon';
-                document.head.appendChild(favicon);
-            }
-            
-            favicon.href = newFaviconUrl + `?t=${Date.now()}`;
-            console.log("Favicon updated to:", newFaviconUrl);
-        }
-    } catch (e) {
-        console.error("Favicon update error:", e);
-    }
-}
 
         window.addEventListener('DOMContentLoaded', () => {
             renderCryNote();
