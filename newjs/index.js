@@ -225,7 +225,7 @@ function renderSchedule(data) {
         rowDiv.innerHTML = `
             <div class="min-w-0 flex-grow pr-2 flex flex-col justify-center">
                 <div class="flex items-center gap-1">
-                    <span class=" font-extrabold text-[11px] text-marine-cyan w-[75px] text-left shrink-0">${date}</span>
+                    <span class=" font-extrabold text-[11px] text-marine-cyan w-[70px] text-left shrink-0">${date}</span>
                     <span class="text-[8px] text-marine-foam px-1 bg-marine-shallow border border-marine-border/40 rounded shrink-0 w-7 text-center leading-none py-0.5">${day}</span>
                     ${isToday ? '<span class="ml-1 px-1 bg-marine-mint text-marine-deep text-[8px] font-extrabold rounded tracking-tighter scale-90 origin-left">TODAY</span>' : ''}
                 </div>
