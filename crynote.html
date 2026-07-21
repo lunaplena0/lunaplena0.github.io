@@ -256,51 +256,42 @@
                             const timecode = row[2]?.trim() || '';
                             const address = row[3]?.trim() || '';
 
-                            let timecodeHtml = '';
-                            if (timecode) {
-                                timecodeHtml = `
-                                    <span class="px-2 py-1 bg-marine-deep/80 border border-marine-cyan/20 text-marine-mint rounded-lg text-[10px] font-mono shrink-0 flex items-center gap-1">
-                                        <i class="fa-regular fa-clock text-[9px]"></i> ${timecode}
-                                    </span>
-                                `;
-                            }
-
-                            let addressHtml = '';
+                            let actionButtonHtml = '';
                             if (address && address.startsWith('http')) {
                                 const totalSeconds = convertTimeToSeconds(timecode);
                                 const separator = address.includes('?') ? '&' : '?';
                                 const finalAddress = `${address}${separator}change_second=${totalSeconds}`;
 
-                                addressHtml = `
-                                    <a href="${finalAddress}" target="_blank" class="px-3.5 py-1.5 bg-marine-cyan/10 hover:bg-marine-cyan hover:text-marine-deep border border-marine-cyan/30 text-marine-cyan transition-all duration-300 rounded-xl text-xs font-bold shrink-0 flex items-center gap-1.5 shadow-sm">
-                                        <i class="fa-solid fa-link text-[10px]"></i> 다시보기
+                                // 타임코드와 링크 버튼을 통합한 형태 (링크가 있는 경우)
+                                actionButtonHtml = `
+                                    <a href="${finalAddress}" target="_blank" class="px-3 py-1.5 bg-marine-cyan/10 hover:bg-marine-cyan hover:text-marine-deep border border-marine-cyan/30 text-marine-cyan transition-all duration-300 rounded-xl text-xs font-bold shrink-0 flex items-center gap-1.5 shadow-sm">
+                                        <i class="fa-regular fa-clock text-[10px]"></i>
+                                        <span>${timecode || '00:00'}</span>
+                                        <i class="fa-solid fa-arrow-up-right-from-square text-[9px] ml-0.5 opacity-70"></i>
                                     </a>
+                                `;
+                            } else if (timecode) {
+                                // 링크는 없고 타임코드만 있는 경우
+                                actionButtonHtml = `
+                                    <span class="px-3 py-1.5 bg-marine-deep/80 border border-marine-cyan/20 text-marine-mint rounded-xl text-xs font-mono shrink-0 flex items-center gap-1.5">
+                                        <i class="fa-regular fa-clock text-[10px]"></i>
+                                        <span>${timecode}</span>
+                                    </span>
                                 `;
                             }
 
-                            // 월별 상자 안에서 개별 상자 테두리를 제거하고 구분선(divide-y) 및 리스트 형식으로 배치
+                            // PC/모바일 모두 한 줄(flex) 구조 유지, 리스트 형태(상자 테두리 없이 밑줄 구분)
                             html += `
-                                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 py-3.5 first:pt-2 last:pb-2 group">
-                                    <!-- 날짜 + 설명 영역 -->
-                                    <div class="flex items-center justify-between sm:justify-start gap-3 w-full sm:w-auto sm:flex-grow sm:pr-4">
+                                <div class="flex items-center justify-between gap-3 py-3 first:pt-2 last:pb-2 group">
+                                    <div class="flex items-center gap-3 sm:gap-4 flex-grow min-w-0 pr-2">
                                         <span class="font-body font-bold text-xs sm:text-sm text-marine-cyan w-[115px] sm:w-[135px] shrink-0 flex items-center gap-2 whitespace-nowrap">
                                             <div class="w-1.5 h-1.5 rounded-full bg-marine-mint shadow-[0_0_6px_#05ffa6] shrink-0"></div>
                                             ${date}
                                         </span>
-                                        <div class="flex sm:hidden items-center gap-2 shrink-0">
-                                            ${timecodeHtml}
-                                            ${addressHtml}
-                                        </div>
-                                        <span class="hidden sm:inline-block text-sm text-marine-foam truncate font-medium group-hover:text-marine-cyan transition-colors flex-grow">${description}</span>
+                                        <span class="text-xs sm:text-sm text-marine-foam truncate font-medium group-hover:text-marine-cyan transition-colors flex-grow">${description}</span>
                                     </div>
-
-                                    <!-- 타임코드 / 다시보기 버튼 영역 -->
-                                    <div class="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto pt-1 sm:pt-0 shrink-0">
-                                        <span class="block sm:hidden text-xs text-marine-foam font-medium group-hover:text-marine-cyan transition-colors flex-grow truncate">${description}</span>
-                                        <div class="hidden sm:flex items-center gap-2 shrink-0">
-                                            ${timecodeHtml}
-                                            ${addressHtml}
-                                        </div>
+                                    <div class="shrink-0">
+                                        ${actionButtonHtml}
                                     </div>
                                 </div>
                             `;
