@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>바다비 비공식 팬 아카이브 - 울보노트</title>
+    <!-- Tailwind CSS & FontAwesome CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        marine: {
+                            deep: '#060e16',      /* 심해 배경 */
+                            void: '#0a1622',      
+                            reef: '#112235',      /* 카드 배경 */
+                            shallow: '#1a334d',   /* 호버 강조색 */
+                            foam: '#e3f2fd',      /* 메인 텍스트 */
+                            spray: '#8fa5b5',     /* 서브 텍스트 */
+                            cyan: '#00e5ff',      /* 네온 사이언 */
+                            mint: '#05ffa6',      /* 네온 그린 */
+                            coral: '#ff5c8a',     /* 산호초 핑크 */
+                            border: 'rgba(0, 229, 255, 0.12)'
+                        }
+                    },
+                    fontFamily: {
+                        display: ['Orbitron', 'Noto Sans KR', 'sans-serif'],
+                        body: ['Noto Sans KR', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script> 
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #060e16;
+            background-image: radial-gradient(circle at 50% 0%, #0d233a 0%, #060e16 70%);
+        }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(6, 14, 22, 0.5); }
+        ::-webkit-scrollbar-thumb {
+            background: #112235;
+            border: 1px solid rgba(0, 229, 255, 0.15);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover { background: #00e5ff; }
+
+        @keyframes bubbleUp {
+            0% { transform: translateY(120%) scale(0.6); opacity: 0; }
+            10% { opacity: 0.4; }
+            90% { opacity: 0.4; }
+            100% { transform: translateY(-100px) scale(1.1); opacity: 0; }
+        }
+        .bubble-effect {
+            position: absolute;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(0, 229, 255, 0.15), rgba(5, 255, 166, 0.05));
+            border-radius: 50%;
+            pointer-events: none;
+            animation: bubbleUp 6s infinite linear;
+        }
+    </style>
+</head>
+<body class="text-marine-spray min-h-screen pb-24 overflow-x-hidden">
+
+    <!-- 상단 네비게이션 바 -->
+    <nav class="border-b border-marine-border bg-marine-deep/90 backdrop-blur-md sticky top-0 z-40 px-4 sm:px-6 py-3.5">
+        <div class="max-w-4xl mx-auto flex justify-between items-center">
+            <span class="font-display font-black text-sm tracking-widest text-marine-foam flex items-center gap-2">
+                <i class="fa-solid fa-droplet text-marine-cyan"></i> BABABI CRY NOTE
+            </span>
+            <a href="index.html" class="text-xs text-marine-cyan hover:text-marine-mint transition font-bold flex items-center gap-1.5 bg-marine-shallow/40 px-3 py-1.5 rounded-xl border border-marine-cyan/30">
+                <i class="fa-solid fa-arrow-left"></i> 메인으로
+            </a>
+        </div>
+    </nav>
+
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 mt-8">
+        
+        <!-- 메인 스테이지: 울보 노트 단독 집중 배치 -->
+        <div id="cry-note-section" class="bg-marine-reef border border-marine-border rounded-3xl p-6 sm:p-8 shadow-2xl w-full relative overflow-hidden">
+            <div class="absolute -top-24 -right-24 w-64 h-64 bg-marine-cyan/10 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute -bottom-24 -left-24 w-64 h-64 bg-marine-coral/10 rounded-full blur-3xl pointer-events-none"></div>
+
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 border-b border-marine-border/40 pb-6 relative z-10">
+                <div class="flex items-center gap-3.5">
+                    <div class="w-12 h-12 rounded-2xl bg-marine-cyan/10 border border-marine-cyan/30 flex items-center justify-center text-marine-cyan shadow-inner">
+                        <i class="fa-solid fa-droplet text-xl"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h2 class="font-display font-black text-xl text-marine-foam tracking-tight">울보 노트</h2>
+                            <span class="px-2 py-0.5 bg-marine-coral/10 border border-marine-coral/30 text-marine-coral text-[10px] font-bold rounded-full">Tear Archive</span>
+                        </div>
+                        <p class="text-xs text-marine-spray/70 mt-0.5">2026년 4월 20일 이후 기록된 소중한 눈물 방울들입니다</p>
+                    </div>
+                </div>
+
+                <!-- 누적 통계 배지 -->
+                <div id="cry-counter-badge" class="text-xs bg-marine-shallow/80 border border-marine-cyan/30 text-marine-cyan px-4 py-2.5 rounded-2xl font-bold flex items-center gap-3 shadow-lg backdrop-blur-md shrink-0">
+                    <div class="flex items-center gap-1.5">
+                        <i class="fa-regular fa-calendar-days text-marine-mint"></i>
+                        <span>경과 <span id="cry-days-count" class="text-marine-foam font-black">0</span>일째</span>
+                    </div>
+                    <span class="text-marine-border">|</span>
+                    <div class="flex items-center gap-1.5">
+                        <i class="fa-solid fa-droplet text-marine-coral"></i>
+                        <span>총 울음 <span id="cry-total-count" class="text-marine-coral font-black">0</span>회</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 리스트 컨테이너 -->
+            <div id="cry-container" class="space-y-2.5 min-h-[300px] relative z-10">
+                <div class="text-xs text-marine-spray/40 text-center py-16">울보 기록을 불러오는 중입니다...</div>
+            </div>
+        </div>
+
+        <!-- 푸터 -->
+        <footer style="text-align: center; padding: 25px 10px; color: #b3cde0; font-size: 11px; border-top: 1px solid rgba(0, 229, 255, 0.12); margin-top: 40px; width: 100%; box-sizing: border-box;">
+            <p style="margin: 0; opacity: 0.8; line-height: 1.6; word-break: keep-all; overflow-wrap: break-word;">
+                <strong style="display: block; margin-bottom: 5px; color: #e3f2fd; font-size: 12px;">바다비 비공식 팬 아카이브 - 울보노트</strong>
+                모든 권리는 원저작권자(바다비/SOOP)에게 있으며 요청 시 수정·삭제됩니다.
+            </p>
+        </footer>
+    </div>
+
+    <!-- 스크립트 로직 (데이터 구조 매핑 반영) -->
+    <script>
+        const CRY_TSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRaLjP1nClrC7K6dnBraEYxSapXRDZWy48v0h71BeMUws7ItzqlmOYihwc4DCSDC1LDQasHdMaDY3JE/pub?output=tsv';
+
+        async function renderCryNote() {
+            const container = document.getElementById('cry-container');
+            const daysCountEl = document.getElementById('cry-days-count');
+            const totalCountEl = document.getElementById('cry-total-count');
+            if (!container) return;
+
+            const startDate = new Date('2026-04-20');
+            const today = new Date();
+            const diffTime = Math.abs(today - startDate);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+            if(daysCountEl) daysCountEl.innerText = diffDays > 0 ? diffDays : 1;
+
+            try {
+                const response = await fetch(CRY_TSV_URL + `&t=${new Date().getTime()}`);
+                const text = await response.text();
+                const rows = text.split(/\r?\n/).map(row => row.split('\t'));
+                
+                let cryData = rows.slice(1).filter(r => r[0] && r[0].trim() !== "");
+
+                // 날짜 오름차순(오래된 순) 정렬
+                cryData.sort((a, b) => new Date(a[0].trim()) - new Date(b[0].trim()));
+
+                if(totalCountEl) totalCountEl.innerText = cryData.length;
+
+                if (cryData.length === 0) {
+                    container.innerHTML = `<div class="text-xs text-marine-spray/40 text-center py-16">기록된 울보 노트가 없습니다.</div>`;
+                    return;
+                }
+
+                let html = '';
+                cryData.forEach(row => {
+                    // 구글 시트 구조 매핑: [0]: 날짜, [1]: 설명, [2]: 표시시간, [3]: 주소
+                    const date = row[0]?.trim() || '';
+                    const description = row[1]?.trim() || '내용 없음';
+                    const timecode = row[2]?.trim() || '';
+                    const address = row[3]?.trim() || '';
+
+                    let timecodeHtml = '';
+                    if (timecode) {
+                        timecodeHtml = `
+                            <span class="px-2 py-1 bg-marine-deep/80 border border-marine-cyan/20 text-marine-mint rounded-lg text-[10px] font-mono shrink-0 flex items-center gap-1">
+                                <i class="fa-regular fa-clock text-[9px]"></i> ${timecode}
+                            </span>
+                        `;
+                    }
+
+                    let addressHtml = '';
+                    if (address && address.startsWith('http')) {
+                        addressHtml = `
+                            <a href="${address}" target="_blank" class="px-3.5 py-1.5 bg-marine-cyan/10 hover:bg-marine-cyan hover:text-marine-deep border border-marine-cyan/30 text-marine-cyan transition-all duration-300 rounded-xl text-xs font-bold shrink-0 flex items-center gap-1.5 shadow-sm">
+                                <i class="fa-solid fa-link text-[10px]"></i> 다시보기
+                            </a>
+                        `;
+                    }
+
+                    html += `
+                        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 px-4 py-4 bg-marine-deep/40 hover:bg-marine-shallow/40 border border-marine-border/60 rounded-2xl transition-all duration-300 group shadow-sm">
+                            <div class="flex items-center gap-4 min-w-0 flex-grow pr-2">
+                                <span class="font-display font-extrabold text-xs text-marine-cyan w-[100px] shrink-0 flex items-center gap-2">
+                                    <div class="w-2 h-2 rounded-full bg-marine-mint shadow-[0_0_6px_#05ffa6]"></div>
+                                    ${date}
+                                </span>
+                                <span class="text-xs sm:text-sm text-marine-foam truncate font-medium group-hover:text-marine-cyan transition-colors">${description}</span>
+                            </div>
+                            <div class="shrink-0 flex items-center gap-2 w-full sm:w-auto justify-end border-t sm:border-t-0 pt-2 sm:pt-0 border-marine-border/40">
+                                ${timecodeHtml}
+                                ${addressHtml}
+                            </div>
+                        </div>
+                    `;
+                });
+
+                container.innerHTML = html;
+
+            } catch (e) {
+                console.error("Cry Note Load Error:", e);
+                container.innerHTML = `<div class="text-xs text-marine-spray/40 text-center py-16">울보 노트를 불러올 수 없습니다.</div>`;
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            renderCryNote();
+        });
+    </script>
+</body>
+</html>
