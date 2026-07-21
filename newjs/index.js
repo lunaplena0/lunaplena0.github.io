@@ -1,7 +1,6 @@
 const TSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTQ3nX6onmaf-ZHhXGox2s4ChGos7ki7iFjQ_47lArZR6dV935gCIbLbvlDDAS65rTEnswSLIk_7v3R/pub?gid=0&single=true&output=tsv';
 const CONFIG_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTQ3nX6onmaf-ZHhXGox2s4ChGos7ki7iFjQ_47lArZR6dV935gCIbLbvlDDAS65rTEnswSLIk_7v3R/pub?gid=0&single=true&output=tsv';
 const TIMELINE_TSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQapO60c8dgTwJr4Ua8otMnwxJ9yx9gqE2jsoY5YAgwc3nzVTbBx-b0YcnyIADrv0PsYQRRBgjKlZSY/pub?output=tsv';
-const CRY_TSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRaLjP1nClrC7K6dnBraEYxSapXRDZWy48v0h71BeMUws7ItzqlmOYihwc4DCSDC1LDQasHdMaDY3JE/pub?output=tsv';
 
 let allTimelineData = [];
 const INITIAL_SHOW = 5;
@@ -202,7 +201,7 @@ function renderSchedule(data) {
     let count = 0;
 
     data.forEach(row => {
-        const date = row[0]?.trim() || '';    
+        const date = row[0]?.trim() || '';   
         const day = row[1]?.trim() || '';    
         const time = row[2]?.trim() || '';   
         const content = row[3]?.trim() || '';  
@@ -226,7 +225,7 @@ function renderSchedule(data) {
             <div class="min-w-0 flex-grow pr-2 flex flex-col justify-center">
                 <div class="flex items-center gap-1">
                     <span class=" font-extrabold text-[11px] text-marine-cyan w-[70px] text-left shrink-0">${date}</span>
-                    <span class="text-[8px] text-marine-foam px-1 bg-marine-shallow border border-marine-border/40 rounded shrink-0 w-7 text-center leading-none py-0.5">${day}</span>
+                    <span class="text-[8px] text-marine-foam px-1 bg-marine-shallow border border-marine-border/40 rounded shrink-0 w-8 text-center leading-none py-0.5">${day}</span>
                     ${isToday ? '<span class="ml-1 px-1 bg-marine-mint text-marine-deep text-[8px] font-extrabold rounded tracking-tighter scale-90 origin-left">TODAY</span>' : ''}
                 </div>
                 <div class="text-xs text-marine-foam truncate font-semibold leading-tight mt-0.5">
@@ -314,200 +313,6 @@ function toggleTimeline() {
         '더보기 <i class="fa-solid fa-chevron-down ml-1"></i>';
 }
 
-// 울보 노트 시간을 초(Second)로 변환하는 함수
-function convertTimeToSeconds(timeStr) {
-    if (!timeStr) return 0;
-    const parts = timeStr.trim().split(':').map(Number);
-    if (parts.some(isNaN)) return 0;
-
-    let seconds = 0;
-    if (parts.length === 3) {
-        seconds = parts[0] * 3600 + parts[1] * 60 + parts[2];
-    } else if (parts.length === 2) {
-        seconds = parts[0] * 60 + parts[1];
-    } else if (parts.length === 1) {
-        seconds = parts[0];
-    }
-    return seconds;
-}
-
-// 울보 노트 데이터 렌더링 (부분 스피너 적용)
-async function renderCryNote() {
-    const container = document.getElementById('cry-container');
-    const daysCountEl = document.getElementById('cry-days-count');
-    const totalCountEl = document.getElementById('cry-total-count');
-    const avgIntervalEl = document.getElementById('cry-avg-interval');
-    if (!container) return;
-
-    // 🔥 울보 노트 영역 내부만 부분 스피너 로딩 표시
-    container.innerHTML = `
-        <div class="flex flex-col items-center justify-center py-20 gap-4">
-            <div class="relative w-12 h-12">
-                <div class="absolute inset-0 border-2 border-marine-cyan/20 rounded-full"></div>
-                <div class="absolute inset-0 border-2 border-marine-cyan border-t-transparent rounded-full animate-spin"></div>
-                <div class="absolute inset-0 flex items-center justify-center text-marine-cyan text-sm">
-                    <i class="fa-solid fa-droplet animate-pulse"></i>
-                </div>
-            </div>
-            <p class="text-xs text-marine-spray/70 font-display tracking-wider animate-pulse">눈물을 모으고 있어요 . . .</p>
-        </div>
-    `;
-
-    const startDate = new Date('2026-04-20');
-    const today = new Date();
-    const diffTime = Math.abs(today - startDate);
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
-    const activeDays = diffDays > 0 ? diffDays : 1;
-    
-    if(daysCountEl) daysCountEl.innerText = activeDays;
-
-    try {
-        const response = await fetch(CRY_TSV_URL + `&t=${new Date().getTime()}`);
-        const text = await response.text();
-        const rows = text.split(/\r?\n/).map(row => row.split('\t'));
-        
-        let cryData = rows.slice(1).filter(r => r[0] && r[0].trim() !== "");
-
-        // 오래된 날짜가 위로 오도록 오름차순 정렬
-        cryData.sort((a, b) => new Date(a[0].trim()) - new Date(b[0].trim()));
-
-        const totalCount = cryData.length;
-        if(totalCountEl) totalCountEl.innerText = totalCount;
-
-        if(avgIntervalEl) {
-            if (totalCount > 0) {
-                const avg = (activeDays / totalCount).toFixed(1);
-                avgIntervalEl.innerText = avg;
-            } else {
-                avgIntervalEl.innerText = '0';
-            }
-        }
-
-        if (totalCount === 0) {
-            container.innerHTML = `<div class="text-xs text-marine-spray/40 text-center py-16">기록된 울보 노트가 없습니다.</div>`;
-            return;
-        }
-
-        // 데이터 구조화: 연도별 -> 월별 그룹화
-        let groupedData = {};
-        cryData.forEach(row => {
-            const dateStr = row[0]?.trim() || '';
-            const dateObj = new Date(dateStr);
-            
-            let year = '기타';
-            let month = '기타';
-
-            if (!isNaN(dateObj)) {
-                year = dateObj.getFullYear().toString();
-                month = String(dateObj.getMonth() + 1).padStart(2, '0');
-            } else {
-                const parts = dateStr.split(/[-./]/);
-                if (parts.length >= 2) {
-                    year = parts[0];
-                    month = parts[1].padStart(2, '0');
-                }
-            }
-
-            if (!groupedData[year]) groupedData[year] = {};
-            if (!groupedData[year][month]) groupedData[year][month] = [];
-            groupedData[year][month].push(row);
-        });
-
-        // 연도 오름차순
-        const sortedYears = Object.keys(groupedData).sort((a, b) => a.localeCompare(b));
-
-        let html = '';
-        sortedYears.forEach(year => {
-            const sortedMonths = Object.keys(groupedData[year]).sort((a, b) => a.localeCompare(b));
-            
-            html += `
-                <div class="space-y-6">
-                    <div class="flex items-center gap-3">
-                        <span class="font-display font-black text-lg text-marine-cyan tracking-wider">${year}년</span>
-                        <div class="flex-grow h-[1px] bg-marine-border"></div>
-                    </div>
-            `;
-
-            sortedMonths.forEach(month => {
-                const monthRows = groupedData[year][month];
-                monthRows.sort((a, b) => new Date(a[0].trim()) - new Date(b[0].trim()));
-
-                html += `
-                    <div class="bg-marine-deep/30 border border-marine-border/50 rounded-2xl p-4 sm:p-5 shadow-inner space-y-3">
-                        <div class="flex items-center justify-between border-b border-marine-border/30 pb-2.5 mb-2">
-                            <h3 class="font-display font-bold text-sm text-marine-foam flex items-center gap-2">
-                                <i class="fa-solid fa-folder-open text-marine-mint text-xs"></i> ${Number(month)}월
-                            </h3>
-                            <span class="text-[10px] bg-marine-shallow/80 text-marine-spray px-2.5 py-0.5 rounded-full border border-marine-border font-medium">
-                                총 ${monthRows.length}회 기록
-                            </span>
-                        </div>
-                        <div class="divide-y divide-marine-border/30">
-                `;
-
-                monthRows.forEach((row) => {
-                    const date = row[0]?.trim() || '';
-                    const description = row[1]?.trim() || '내용 없음';
-                    const timecode = row[2]?.trim() || '';
-                    const address = row[3]?.trim() || '';
-
-                    let actionButtonHtml = '';
-                    if (address && address.startsWith('http')) {
-                        const totalSeconds = convertTimeToSeconds(timecode);
-                        const separator = address.includes('?') ? '&' : '?';
-                        const finalAddress = `${address}${separator}change_second=${totalSeconds}`;
-
-                        actionButtonHtml = `
-                            <a href="${finalAddress}" target="_blank" class="px-3 py-1.5 bg-marine-cyan/10 hover:bg-marine-cyan hover:text-marine-deep border border-marine-cyan/30 text-marine-cyan transition-all duration-300 rounded-xl text-xs font-bold shrink-0 flex items-center gap-1.5 shadow-sm">
-                                <i class="fa-regular fa-clock text-[10px]"></i>
-                                <span>${timecode || '00:00'}</span>
-                                <i class="fa-solid fa-arrow-up-right-from-square text-[9px] ml-0.5 opacity-70"></i>
-                            </a>
-                        `;
-                    } else if (timecode) {
-                        actionButtonHtml = `
-                            <span class="px-3 py-1.5 bg-marine-deep/80 border border-marine-cyan/20 text-marine-mint rounded-xl text-xs font-mono shrink-0 flex items-center gap-1.5">
-                                <i class="fa-regular fa-clock text-[10px]"></i>
-                                <span>${timecode}</span>
-                            </span>
-                        `;
-                    }
-
-                    html += `
-                        <div class="flex items-center justify-between gap-3 py-3 first:pt-2 last:pb-2 group">
-                            <div class="flex items-center gap-3 sm:gap-4 flex-grow min-w-0 pr-2">
-                                <span class="font-body font-bold text-xs sm:text-sm text-marine-cyan w-[115px] sm:w-[135px] shrink-0 flex items-center gap-2 whitespace-nowrap">
-                                    <div class="w-1.5 h-1.5 rounded-full bg-marine-mint shadow-[0_0_6px_#05ffa6] shrink-0"></div>
-                                    ${date}
-                                </span>
-                                <span class="text-xs sm:text-sm text-marine-foam truncate font-medium group-hover:text-marine-cyan transition-colors flex-grow">${description}</span>
-                            </div>
-                            <div class="shrink-0">
-                                ${actionButtonHtml}
-                            </div>
-                        </div>
-                    `;
-                });
-
-                html += `
-                        </div>
-                    </div>
-                `;
-            });
-
-            html += `
-                </div>
-            `;
-        });
-
-        container.innerHTML = html;
-
-    } catch (e) {
-        console.error("Cry Note Load Error:", e);
-        container.innerHTML = `<div class="text-xs text-marine-spray/40 text-center py-16">울보 노트를 불러올 수 없습니다.</div>`;
-    }
-}
-
 // 파비콘 동적 업데이트 (캐시 방지 적용)
 async function updateFavicon() {
     try {
@@ -541,14 +346,12 @@ async function updateFavicon() {
 window.addEventListener('DOMContentLoaded', () => {
     init();
     renderTimeline();
-    renderCryNote();
     updateFavicon();
 
     // 10분마다 자동 갱신
     setInterval(() => {
         init();
         renderTimeline();
-        renderCryNote();
         updateFavicon();
     }, 1000 * 60 * 10);
 });
