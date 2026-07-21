@@ -11,15 +11,16 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <script src="newjs/index.js"></script>
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
                         marine: {
-                            deep: '#060e16',     /* 심해 배경 */
+                            deep: '#060e16',      /* 심해 배경 */
                             void: '#0a1622',      
-                            reef: '#112235',     /* 카드 배경 */
+                            reef: '#112235',      /* 카드 배경 */
                             shallow: '#1a334d',   /* 호버 강조색 */
                             foam: '#e3f2fd',      /* 메인 텍스트 */
                             spray: '#8fa5b5',     /* 서브 텍스트 */
@@ -68,23 +69,28 @@
             animation: bubbleUp 6s infinite linear;
         }
         .timeline-row-line {
-            position: absolute;
-            top: 8px; /* 노드 점 위치 */
-            left: 0;
-            right: 0;
-            height: 1px;
-            background: linear-gradient(to right, #00e5ff33, transparent);
-            z-index: 0;
-            pointer-events: none;
-        }
+    position: absolute;
+    top: 8px; /* 노드 점 위치 */
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(to right, #00e5ff33, transparent);
+    z-index: 0;
+    pointer-events: none;
+}
         /* 타임라인 숫자 클래스 또는 타임라인 전체 컨테이너 */
-        .timeline-number, 
-        .timeline-item span {
-            font-family: inherit; 
-            font-variant-numeric: tabular-nums;
-            font-style: normal;
-            font-weight: inherit;
-        }
+.timeline-number, 
+.timeline-item span {
+    /* 1. 폰트 패밀리를 본문과 동일하게 강제 지정 */
+    font-family: inherit; 
+    
+    /* 2. 숫자를 다른 글자와 같은 폭으로 정렬 (일관성 핵심) */
+    font-variant-numeric: tabular-nums;
+    
+    /* 3. 굵기나 스타일이 튀지 않게 설정 */
+    font-style: normal;
+    font-weight: inherit;
+}
         /* 국문 줄바꿈 최적화 클래스 */
         .word-keep { word-break: keep-all; overflow-wrap: break-word; }
     </style>
@@ -93,7 +99,7 @@
     
 <body class="text-marine-spray min-h-screen pb-32 overflow-x-hidden">
 
-   <!-- 로딩 오버레이 (페이지 전체 첫 진입 시) -->
+   <!-- 로딩 오버레이 -->
 <div id="loading-overlay" class="fixed inset-0 bg-marine-deep z-50 flex flex-col items-center justify-center transition-all duration-700 opacity-100 visibility-visible">
     <div class="relative flex flex-col items-center">
         <!-- 메인 애니메이션 아이콘 -->
@@ -175,7 +181,7 @@
             </div>
         </div>
 
-        <!-- [2] 3단 레이아웃 그리드 (오픈형 플랫 구조) -->
+        <!-- [2] 3단 레이아웃 그리드 (오픈형 플랫 구조 - 왼쪽 세로 구분선 전면 삭제) -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             
             <!-- 1열: 주간일정 -->
@@ -189,12 +195,9 @@
                             월간일정 <i class="fa-solid fa-angles-right text-[9px] ml-0.5"></i>
                         </a>
                     </div>
-                    <!-- 개별 로딩 인디케이터가 포함된 컨테이너 -->
-                    <div id="schedule-container" class="divide-y divide-dashed divide-marine-border/40 min-h-[240px] flex flex-col justify-center items-center">
-                        <div class="text-center py-10">
-                            <i class="fa-solid fa-spinner animate-spin text-marine-cyan text-xl mb-2"></i>
-                            <p class="text-xs text-marine-spray font-display">주간 일정을 불러오는 중...</p>
-                        </div>
+                    <!-- 아이템 사이 가로 점선 처리 -->
+                    <div id="schedule-container" class="divide-y divide-dashed divide-marine-border/40 min-h-[240px] h-auto">
+                        <!-- 동적 로드항목 배치 -->
                     </div>
                 </div>
             </div>
@@ -210,12 +213,8 @@
                             전체보기 <i class="fa-solid fa-angles-right text-[9px] ml-0.5"></i>
                         </a>
                     </div>
-                    <!-- 개별 로딩 인디케이터가 포함된 컨테이너 -->
-                    <div id="post-container" class="divide-y divide-dashed divide-marine-border/40 min-h-[240px] flex flex-col justify-center items-center">
-                        <div class="text-center py-10">
-                            <i class="fa-solid fa-spinner animate-spin text-marine-mint text-xl mb-2"></i>
-                            <p class="text-xs text-marine-spray font-display">최근 공지를 불러오는 중...</p>
-                        </div>
+                    <div id="post-container" class="divide-y divide-dashed divide-marine-border/40 min-h-[240px] h-auto">
+                        <!-- 동적 로드항목 배치 -->
                     </div>
                 </div>
             </div>
@@ -231,12 +230,8 @@
                             통계보기 <i class="fa-solid fa-angles-right text-[9px] ml-0.5"></i>
                         </a>
                     </div>
-                    <!-- 개별 로딩 인디케이터가 포함된 컨테이너 -->
-                    <div id="vod-container" class="divide-y divide-dashed divide-marine-border/40 min-h-[240px] flex flex-col justify-center items-center">
-                        <div class="text-center py-10">
-                            <i class="fa-solid fa-spinner animate-spin text-marine-coral text-xl mb-2"></i>
-                            <p class="text-xs text-marine-spray font-display">최근 다시보기를 불러오는 중...</p>
-                        </div>
+                    <div id="vod-container" class="divide-y divide-dashed divide-marine-border/40 min-h-[240px] h-auto">
+                        <!-- 동적 로드항목 배치 -->
                     </div>
                 </div>
             </div>
@@ -246,37 +241,33 @@
         <!-- 하단 외부 링크 배치용 컨테이너 (스프레드시트 연동용) -->
         <div id="extra-links-target" class="flex flex-wrap gap-2.5 mt-6 justify-center"></div>
 
-        <!-- [3] 타임라인 전용 공간 -->
-        <div id="timeline-section" class="mt-8 bg-marine-reef/60 border border-marine-border rounded-3xl p-6 shadow-xl w-full">
-            <div class="flex items-center gap-2 mb-8 border-b border-marine-border/40 pb-4">
-                <i class="fa-solid fa-timeline text-marine-cyan text-lg"></i>
-                <h3 class="font-bold text-base text-marine-foam">바다비 타임라인</h3>
-            </div>
-            
-            <!-- 개별 로딩 인디케이터가 포함된 타임라인 내용 공간 -->
-            <div id="timeline-body" class="relative px-2 flex flex-col justify-center items-center min-h-[120px]">
-                <div class="text-center py-6">
-                    <i class="fa-solid fa-spinner animate-spin text-marine-cyan text-xl mb-2"></i>
-                    <p class="text-xs text-marine-spray font-display tracking-wider">타임라인 데이터를 불러오는 중...</p>
-                </div>
-            </div>
+      <!-- [3] 타임라인 전용 공간 -->
+<div id="timeline-section" class="mt-8 bg-marine-reef/60 border border-marine-border rounded-3xl p-6 shadow-xl w-full">
+    <div class="flex items-center gap-2 mb-8 border-b border-marine-border/40 pb-4">
+        <i class="fa-solid fa-timeline text-marine-cyan text-lg"></i>
+        <h3 class="font-bold text-base text-marine-foam">바다비 타임라인</h3>
+    </div>
+    
+    <!-- 내용이 들어갈 곳 -->
+    <div id="timeline-body" class="relative px-2">
+        <!-- 타임라인 데이터가 여기 렌더링됩니다 -->
+    </div>
 
-            <!-- 더보기 버튼 -->
-            <div id="timeline-btn-container" class="hidden text-center mt-6">
-                <button id="timeline-toggle-btn" onclick="toggleTimeline()" class="text-xs text-marine-cyan hover:text-white transition-colors">
-                    더보기 <i class="fa-solid fa-chevron-down ml-1"></i>
-                </button>
-            </div>
-        </div>
-
+    <!-- 더보기 버튼 -->
+    <div id="timeline-btn-container" class="hidden text-center mt-6">
+        <button id="timeline-toggle-btn" onclick="toggleTimeline()" class="text-xs text-marine-cyan hover:text-white transition-colors">
+            더보기 <i class="fa-solid fa-chevron-down ml-1"></i>
+        </button>
+    </div>
+</div>
         <!-- [4] 공식 안내 및 카피라이트 푸터 영역 -->
         <footer style="text-align: center; padding: 20px 10px; color: #b3cde0; font-size: 11px; border-top: 1px solid rgba(0, 229, 255, 0.12); margin-top: 20px; width: 100%; box-sizing: border-box;">
-            <p style="margin: 0; opacity: 0.8; line-height: 1.6; word-break: keep-all; overflow-wrap: break-word;">
-                <strong style="display: block; margin-bottom: 5px; color: #e3f2fd; font-size: 12px;">바다비 비공식 팬 아카이브</strong>
-                모든 권리는 원저작권자(바다비/SOOP)에게 있으며 요청 시 수정·삭제됩니다.<br>
-                <span style="display: inline-block;">비영리로 운영되며, 정보 갱신 시 데이터 반영에 차이가 있을 수 있습니다.</span>
-            </p>
-        </footer>
+    <p style="margin: 0; opacity: 0.8; line-height: 1.6; word-break: keep-all; overflow-wrap: break-word;">
+        <strong style="display: block; margin-bottom: 5px; color: #e3f2fd; font-size: 12px;">바다비 비공식 팬 아카이브</strong>
+        모든 권리는 원저작권자(바다비/SOOP)에게 있으며 요청 시 수정·삭제됩니다.<br>
+        <span style="display: inline-block;">비영리로 운영되며, 정보 갱신 시 데이터 반영에 차이가 있을 수 있습니다.</span>
+    </p>
+</footer>
 
     </div>
 
@@ -288,8 +279,5 @@
             </div>
         </div>
     </div>   
-
-    <!-- 자바스크립트 연결 -->
-    <script src="newjs/index.js"></script>
 </body>
 </html>
