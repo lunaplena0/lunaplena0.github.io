@@ -505,16 +505,16 @@
                 // 태그 배열 조합 (구독+ -> 19 -> 일반 컨텐츠 태그 순서로 정렬)
                 let tagList = [];
                 if (isSub) {
-                    tagList.push(`<span class="px-2 py-0.5 bg-purple-500/10 border border-purple-500/30 text-purple-400 rounded-md text-[10px] font-bold">구독+</span>`);
+                    tagList.push(`<span class="px-2 py-0.5 bg-purple-500/10 border border-purple-500/30 text-purple-400 rounded-md text-[10px] font-bold shrink-0">구독+</span>`);
                 }
                 if (isAdult) {
-                    tagList.push(`<span class="px-2 py-0.5 bg-red-500/10 border border-red-500/30 text-red-400 rounded-md text-[10px] font-bold">19</span>`);
+                    tagList.push(`<span class="px-2 py-0.5 bg-red-500/10 border border-red-500/30 text-red-400 rounded-md text-[10px] font-bold shrink-0">19</span>`);
                 }
                 if (item.contentType && item.contentType.trim() !== "" && item.contentType !== "-") {
                     item.contentType.split(',').forEach(tag => {
                         const cleanTag = tag.trim();
                         if (cleanTag) {
-                            tagList.push(`<span class="px-2 py-0.5 bg-marine-reef border border-marine-border text-marine-spray rounded-md text-[10px] font-semibold">#${cleanTag}</span>`);
+                            tagList.push(`<span class="px-2 py-0.5 bg-marine-reef border border-marine-border text-marine-spray rounded-md text-[10px] font-semibold shrink-0">#${cleanTag}</span>`);
                         }
                     });
                 }
@@ -525,18 +525,19 @@
                         <div class="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
                             <!-- 좌측: 썸네일 및 기본 정보 -->
                             <div class="flex items-start gap-3.5 min-w-0 flex-grow w-full">
-                                <a href="${item.link}" target="_blank" class="relative aspect-[16/9] w-36 sm:w-44 rounded-xl overflow-hidden shrink-0 bg-marine-void border border-marine-border/40 group block">
+                                <a href="${item.link}" target="_blank" class="relative aspect-[16/9] w-32 sm:w-44 rounded-xl overflow-hidden shrink-0 bg-marine-void border border-marine-border/40 group block">
                                     <img src="${item.thumbnail}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" alt="썸네일" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'100\' height=\'100\'><rect width=\'100\' height=\'100\' fill=\'%23112235\'/><text x=\'50%\' y=\'50%\' fill=\'%238fa5b5\' font-size=\'12\' text-anchor=\'middle\' dominant-baseline=\'middle\'>No Image</text></svg>'">
                                     <div class="absolute inset-0 bg-black/20 group-hover:bg-transparent transition"></div>
                                 </a>
-                                <div class="min-w-0 flex-grow">
+                                <div class="min-w-0 flex-grow overflow-hidden">
                                     <div class="flex items-center gap-2 mb-1 flex-wrap">
-                                        <span class="text-[10px] text-marine-cyan font-bold bg-marine-cyan/10 px-2 py-0.5 rounded border border-marine-cyan/20">${item.date}</span>
-                                        <span class="text-[10px] text-marine-spray"><i class="fa-regular fa-clock mr-1"></i>${item.vodTime}</span>
+                                        <span class="text-[10px] text-marine-cyan font-bold bg-marine-cyan/10 px-2 py-0.5 rounded border border-marine-cyan/20 shrink-0">${item.date}</span>
+                                        <span class="text-[10px] text-marine-spray shrink-0"><i class="fa-regular fa-clock mr-1"></i>${item.vodTime}</span>
                                     </div>
-                                    <a href="${item.link}" target="_blank" title="${item.title}" class="text-xs sm:text-sm font-bold text-marine-foam hover:text-marine-cyan transition-colors block mb-2">
+                                    <a href="${item.link}" target="_blank" title="${item.title}" class="text-xs sm:text-sm font-bold text-marine-foam hover:text-marine-cyan transition-colors block mb-2 break-words">
                                         ${truncatedTitleText}
                                     </a>
+                                    <!-- PC 전용 태그 영역 (침범 방지 정렬) -->
                                     <div class="hidden md:flex flex-wrap gap-1.5 mt-1">
                                         ${tagsHtml}
                                     </div>
@@ -554,13 +555,13 @@
                             </div>
                         </div>
 
-                        <!-- 모바일 태그 -->
-                        <div class="flex md:hidden flex-wrap gap-1.5 mt-3">
+                        <!-- 모바일 전용 태그 영역 (공간 침범 없는 독립 줄바꿈 배치) -->
+                        <div class="flex md:hidden flex-wrap gap-1.5 mt-3 pt-2.5 border-t border-marine-border/20">
                             ${tagsHtml}
                         </div>
 
                         <!-- 모바일 버튼 -->
-                        <div class="flex lg:hidden items-center gap-2 justify-end mt-3 pt-3 border-t border-marine-border/20">
+                        <div class="flex lg:hidden items-center gap-2 justify-end mt-3 pt-2.5 border-t border-marine-border/20">
                             <button onclick="toggleDetail(${item.id})" id="btn-toggle-${item.id}" class="px-3 py-2 bg-marine-shallow/40 hover:bg-marine-shallow border border-marine-border text-marine-foam rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-1.5">
                                 <i class="fa-solid fa-chart-bar text-marine-cyan"></i> 상세 통계 <i class="fa-solid fa-chevron-down text-[10px] transition-transform duration-300" id="icon-toggle-${item.id}"></i>
                             </button>
