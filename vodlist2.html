@@ -82,7 +82,7 @@
             <h1 class="font-bold text-2xl text-marine-foam flex items-center gap-2.5">
                 <i class="fa-solid fa-chart-pie text-marine-cyan"></i> VOD 방송 통계 및 아카이브
             </h1>
-            <p class="text-xs text-marine-spray mt-1">월별 탭을 선택해 해당 기간의 방송 기록을 확인하세요.</p>
+            <p class="text-xs text-marine-spray mt-1">연도별, 월별 탭을 선택해 해당 기간의 방송 기록을 확인하세요.</p>
         </div>
 
         <!-- [1] 상단 요약 통계 카드 영역 -->
@@ -129,7 +129,7 @@
             
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 pb-4 border-b border-marine-border/40">
                 <h2 class="font-bold text-base text-marine-foam flex items-center gap-2">
-                    <i class="fa-solid fa-list-ul text-marine-mint"></i> 월별 VOD 아카이브
+                    <i class="fa-solid fa-list-ul text-marine-mint"></i> 연도별 / 월별 VOD 아카이브
                 </h2>
                 <!-- 검색 입력창 -->
                 <div class="w-full md:w-72">
@@ -137,9 +137,9 @@
                 </div>
             </div>
 
-            <!-- 월별 선택 탭 버튼 생성 영역 -->
-            <div id="month-tabs-container" class="flex flex-wrap gap-2 mb-6 pb-4 border-b border-marine-border/30">
-                <!-- 자바스크립트로 동적 생성 -->
+            <!-- 연도별 / 월별 선택 탭 구역 생성 영역 -->
+            <div id="month-tabs-container" class="space-y-4 mb-6 pb-6 border-b border-marine-border/30">
+                <!-- 자바스크립트로 연도 구역별 동적 생성 -->
             </div>
 
             <!-- VOD 목록 출력 영역 -->
@@ -245,7 +245,6 @@
             let totalTagOccurrences = 0;
 
             data.forEach(item => {
-                // 1. 기존 컨텐츠 태그 파싱
                 if (item.contentType && item.contentType.trim() !== "" && item.contentType !== "-") {
                     const tags = item.contentType.split(',');
                     tags.forEach(tag => {
@@ -257,14 +256,12 @@
                     });
                 }
 
-                // 2. 구독+ 여부 태그 추가
                 const isSub = item.subPlus.includes('예') || item.subPlus.includes('O');
                 if (isSub) {
                     tagCounts['구독+'] = (tagCounts['구독+'] || 0) + 1;
                     totalTagOccurrences++;
                 }
 
-                // 3. 성인인증(19) 여부 태그 추가
                 const isAdult = item.adult.includes('예') || item.adult.includes('O');
                 if (isAdult) {
                     tagCounts['19'] = (tagCounts['19'] || 0) + 1;
@@ -344,22 +341,52 @@
                 return;
             }
 
-            let html = '';
+            // 연도별로 월 그룹화하기
+            const yearGroups = {};
             months.forEach(month => {
                 const [year, mm] = month.split('-');
-                const label = `${year}년 ${parseInt(mm, 10)}월`;
-                const count = groupedByMonth[month].length;
-                const isActive = (month === selectedMonth);
+                if (!yearGroups[year]) {
+                    yearGroups[year] = [];
+                }
+                yearGroups[year].push({ month, mm });
+            });
 
-                const activeClass = isActive 
-                    ? 'bg-marine-cyan text-marine-deep font-black border-marine-cyan shadow-md shadow-marine-cyan/20' 
-                    : 'bg-marine-deep/60 text-marine-spray hover:text-marine-foam border-marine-border';
+            // 내림차순 정렬 (최신 연도가 위로)
+            const sortedYears = Object.keys(yearGroups).sort((a, b) => b.localeCompare(a));
+
+            let html = '';
+            sortedYears.forEach(year => {
+                html += `
+                    <div class="bg-marine-deep/30 border border-marine-border/40 rounded-2xl p-3.5">
+                        <div class="flex items-center gap-2 mb-2.5">
+                            <span class="text-xs font-bold text-marine-cyan font-mono px-2 py-0.5 bg-marine-cyan/10 rounded border border-marine-cyan/20">
+                                <i class="fa-solid fa-calendar-days mr-1"></i> ${year}년
+                            </span>
+                            <div class="h-[1px] flex-grow bg-marine-border/30"></div>
+                        </div>
+                        <div class="flex flex-wrap gap-2">
+                `;
+
+                // 해당 연도의 월들을 내림차순 정렬
+                yearGroups[year].sort((a, b) => b.month.localeCompare(a.month)).forEach(item => {
+                    const count = groupedByMonth[item.month].length;
+                    const isActive = (item.month === selectedMonth);
+
+                    const activeClass = isActive 
+                        ? 'bg-marine-cyan text-marine-deep font-black border-marine-cyan shadow-md shadow-marine-cyan/25' 
+                        : 'bg-marine-deep/80 text-marine-spray hover:text-marine-foam border-marine-border';
+
+                    html += `
+                        <button onclick="changeMonth('${item.month}')" class="px-3.5 py-1.5 rounded-xl border text-xs transition-all flex items-center gap-1.5 ${activeClass}">
+                            <span>${parseInt(item.mm, 10)}월</span>
+                            <span class="text-[10px] px-1.5 py-0.2 rounded-full ${isActive ? 'bg-marine-deep text-marine-cyan' : 'bg-marine-reef text-marine-spray'}">${count}</span>
+                        </button>
+                    `;
+                });
 
                 html += `
-                    <button onclick="changeMonth('${month}')" class="px-3.5 py-1.5 rounded-xl border text-xs transition-all flex items-center gap-1.5 ${activeClass}">
-                        <span>${label}</span>
-                        <span class="text-[10px] px-1.5 py-0.2 rounded-full ${isActive ? 'bg-marine-deep text-marine-cyan' : 'bg-marine-reef text-marine-spray'}">${count}</span>
-                    </button>
+                        </div>
+                    </div>
                 `;
             });
 
@@ -430,7 +457,7 @@
             const monthData = groupedByMonth[selectedMonth] || [];
 
             if (monthData.length === 0) {
-                container.innerHTML = `<div class="text-center py-12 text-xs text-marine-spray">해당 월에 등록된 VOD 데이터가 없습니다.</div>`;
+                container.innerHTML = `<div class="text-center py-12 text-xs text-marine-spray">해당 기간에 등록된 VOD 데이터가 없습니다.</div>`;
                 loadMoreContainer.classList.add('hidden');
                 return;
             }
@@ -482,7 +509,7 @@
                             </div>
                         </div>
 
-                        <!-- 상세 아코디언 영역 (PC 4열 가로 배치 / 모바일 1열) -->
+                        <!-- 상세 아코디언 영역 -->
                         <div id="detail-box-${item.id}" class="hidden mt-4 pt-4 border-t border-marine-border/35 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3.5 text-xs">
                             <div class="bg-marine-reef/60 p-3.5 rounded-2xl border border-marine-border/30">
                                 <span class="font-bold text-marine-cyan flex items-center gap-1.5 mb-2"><i class="fa-solid fa-gamepad"></i> 게임 시간</span>
@@ -548,12 +575,10 @@
                 const titleMatch = v.title.toLowerCase().includes(keyword);
                 const tagMatch = v.contentType.toLowerCase().includes(keyword);
                 
-                // 구독+ 여부 판별 문자열 구성
                 const isSub = v.subPlus.includes('예') || v.subPlus.includes('O');
                 const subKeywords = ['구독', '구독+'];
                 const subMatch = subKeywords.some(k => keyword.includes(k)) && isSub;
 
-                // 성인인증 여부 판별 문자열 구성
                 const isAdult = v.adult.includes('예') || v.adult.includes('O');
                 const adultKeywords = ['성인', '성인인증', '19'];
                 const adultMatch = adultKeywords.some(k => keyword.includes(k)) && isAdult;
