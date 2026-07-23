@@ -122,7 +122,7 @@
                 <h2 class="font-bold text-base text-marine-foam flex items-center gap-2">
                     <i class="fa-solid fa-list-ul text-marine-mint"></i> 월별 VOD 아카이브
                 </h2>
-                <!-- 검색 입력창 (디바운스 적용으로 입력 시 깜빡임 및 과도한 연산 방지) -->
+                <!-- 검색 입력창 -->
                 <div class="w-full md:w-72">
                     <input type="text" id="vod-search" placeholder="제목, 컨텐츠, 게임 검색..." oninput="debounceFilterVODs()" class="w-full bg-marine-deep border border-marine-border rounded-xl px-3 py-2 text-xs text-marine-foam focus:outline-none focus:border-marine-cyan transition-colors">
                 </div>
@@ -153,11 +153,11 @@
         const VOD_TSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTfTHMy1hImniay9QEPDcMq5C4Yo5yFpmRtBlWo6UXK-FNxABQYbtfGpEsKom2O-OIJPnEi8LLy1Qqx/pub?gid=0&single=true&output=tsv';
         
         let allVodData = [];
-        let filteredVodData = []; // 검색이 적용된 데이터 저장
+        let filteredVodData = []; 
         let groupedByMonth = {};
         let selectedMonth = ''; 
         let displayLimit = 10;  
-        let searchTimer = null; // 디바운스 타이머
+        let searchTimer = null; 
 
         async function loadVodData() {
             try {
@@ -191,7 +191,7 @@
                     }));
 
                 allVodData.sort((a, b) => b.date.localeCompare(a.date));
-                filteredVodData = [...allVodData]; // 초기화
+                filteredVodData = [...allVodData]; 
 
                 updateGlobalStats(allVodData);
                 renderTagAnalysis(allVodData);
@@ -510,12 +510,11 @@
             }
         }
 
-        // 입력할 때마다 매번 실행되지 않고 타이핑이 멈춘 직후에 실행되도록 디바운스 적용
         function debounceFilterVODs() {
             clearTimeout(searchTimer);
             searchTimer = setTimeout(() => {
                 filterVODs();
-            }, 150); // 0.15초 지연
+            }, 150); 
         }
 
         function filterVODs() {
@@ -524,8 +523,7 @@
             filteredVodData = allVodData.filter(v => 
                 v.title.toLowerCase().includes(keyword) || 
                 v.contentType.toLowerCase().includes(keyword) ||
-                v.gameTime.toLowerCase().includes(keyword) ||
-                v.date.includes(keyword)
+                v.gameTime.toLowerCase().includes(keyword)
             );
             
             processMonthGrouping(filteredVodData);
