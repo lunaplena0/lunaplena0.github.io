@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>바다비 VOD 통계 아카이브</title>
+    <!-- Tailwind CSS & FontAwesome CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        marine: {
+                            deep: '#060e16',      /* 심해 배경 */
+                            void: '#0a1622',      
+                            reef: '#112235',      /* 카드 배경 */
+                            shallow: '#1a334d',   /* 호버 강조색 */
+                            foam: '#e3f2fd',      /* 메인 텍스트 */
+                            spray: '#8fa5b5',     /* 서브 텍스트 */
+                            cyan: '#00e5ff',      /* 네온 사이언 */
+                            mint: '#05ffa6',      /* 네온 그린 */
+                            coral: '#ff5c8a',     /* 산호초 핑크 */
+                            border: 'rgba(0, 229, 255, 0.12)'
+                        }
+                    },
+                    fontFamily: {
+                        display: ['Noto Sans KR', 'sans-serif'],
+                        body: ['Noto Sans KR', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script> 
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #060e16;
+            background-image: radial-gradient(circle at 50% 0%, #0d233a 0%, #060e16 70%);
+        }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(6, 14, 22, 0.5); }
+        ::-webkit-scrollbar-thumb {
+            background: #112235;
+            border: 1px solid rgba(0, 229, 255, 0.15);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover { background: #00e5ff; }
+        .word-keep { word-break: keep-all; overflow-wrap: break-word; }
+    </style>
+</head>
+<body class="text-marine-spray min-h-screen pb-20 overflow-x-hidden">
+
+    <!-- 상단 네비게이션 바 -->
+    <nav class="border-b border-marine-border bg-marine-deep/90 backdrop-blur-md sticky top-0 z-40 px-4 sm:px-6 py-3.5">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <a href="index.html" class="font-display font-black text-sm tracking-widest text-marine-foam flex items-center gap-2">
+                <i class="fa-solid fa-arrow-left text-marine-cyan"></i> BABABI ARCHIVE
+            </a>
+            <span class="text-xs text-marine-cyan font-bold">VOD 통계 분석실</span>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
+        
+        <!-- 페이지 타이틀 섹션 -->
+        <div class="mb-6">
+            <h1 class="font-bold text-2xl text-marine-foam flex items-center gap-2.5">
+                <i class="fa-solid fa-chart-pie text-marine-cyan"></i> VOD 방송 통계 및 아카이브
+            </h1>
+            <p class="text-xs text-marine-spray mt-1">구글 시트와 실시간 연동되어 다시보기 데이터와 세부 플레이 타임을 분석합니다.</p>
+        </div>
+
+        <!-- [1] 상단 요약 통계 카드 영역 -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <div class="bg-marine-reef border border-marine-border rounded-2xl p-4 shadow-lg">
+                <span class="text-[11px] text-marine-spray block mb-1">총 수집 VOD</span>
+                <span id="stat-total-vod" class="text-xl font-black text-marine-foam">0개</span>
+            </div>
+            <div class="bg-marine-reef border border-marine-border rounded-2xl p-4 shadow-lg">
+                <span class="text-[11px] text-marine-spray block mb-1">총 방송 시간</span>
+                <span id="stat-total-time" class="text-xl font-black text-marine-cyan">-</span>
+            </div>
+            <div class="bg-marine-reef border border-marine-border rounded-2xl p-4 shadow-lg">
+                <span class="text-[11px] text-marine-spray block mb-1">구독+ 방송</span>
+                <span id="stat-sub-vod" class="text-xl font-black text-purple-400">0회</span>
+            </div>
+            <div class="bg-marine-reef border border-marine-border rounded-2xl p-4 shadow-lg">
+                <span class="text-[11px] text-marine-spray block mb-1">성인인증 방송</span>
+                <span id="stat-adult-vod" class="text-xl font-black text-marine-coral">0회</span>
+            </div>
+        </div>
+
+        <!-- [2] VOD 상세 리스트 그리드 및 테이블 컨테이너 -->
+        <div class="bg-marine-reef border border-marine-border rounded-3xl p-5 sm:p-6 shadow-xl">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 pb-4 border-b border-marine-border/40">
+                <h2 class="font-bold text-base text-marine-foam flex items-center gap-2">
+                    <i class="fa-solid fa-list-ul text-marine-mint"></i> 날짜별 VOD 상세 아카이브
+                </h2>
+                <!-- 검색 및 필터 입력창 -->
+                <div class="w-full md:w-72">
+                    <input type="text" id="vod-search" placeholder="제목, 컨텐츠, 게임 검색..." oninput="filterVODs()" class="w-full bg-marine-deep border border-marine-border rounded-xl px-3 py-2 text-xs text-marine-foam focus:outline-none focus:border-marine-cyan transition-colors">
+                </div>
+            </div>
+
+            <!-- VOD 목록 출력 영역 -->
+            <div id="vod-list-container" class="space-y-4">
+                <div class="text-center py-12 text-xs text-marine-spray animate-pulse">구글 시트에서 데이터를 불러오는 중입니다...</div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- 스크립트 영역: 구글 시트 연동 로직 -->
+    <script>
+        const VOD_TSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTfTHMy1hImniay9QEPDcMq5C4Yo5yFpmRtBlWo6UXK-FNxABQYbtfGpEsKom2O-OIJPnEi8LLy1Qqx/pub?gid=0&single=true&output=tsv';
+        
+        let allVodData = [];
+
+        // 구글 시트 데이터 로드
+        async function loadVodData() {
+            try {
+                const cacheBuster = `&t=${new Date().getTime()}`;
+                const response = await fetch(VOD_TSV_URL + cacheBuster, {
+                    cache: 'no-store',
+                    headers: { 'Pragma': 'no-cache', 'Cache-Control': 'no-cache' }
+                });
+
+                if (!response.ok) throw new Error('Network error');
+
+                const text = await response.text();
+                const rows = text.split(/\r?\n/).map(row => row.split('\t'));
+
+                // 시트의 첫 번째 줄이 헤더인 경우 slice(1)로 제외, 빈 행 필터링
+                // 열 순서 매핑: 
+                // [0] 날짜, [1] 제목, [2] 링크, [3] 썸네일, [4] 다시보기(총시간), [5] 구독플러스여부, [6] 성인인증여부, 
+                // [7] 게임(시간), [8] 노래(시간), [9] 소통(시간), [10] 컨텐츠(시간), [11] 컨텐츠 종류
+                allVodData = rows.slice(1)
+                    .filter(r => r[0] && r[1] && r[1].trim() !== "")
+                    .map((r, index) => ({
+                        id: index,
+                        date: r[0]?.trim() || '',
+                        title: r[1]?.trim() || '',
+                        link: r[2]?.trim() || '#',
+                        thumbnail: r[3]?.trim() || '',
+                        vodTime: r[4]?.trim() || '-',
+                        subPlus: r[5]?.trim() || '아니요',
+                        adult: r[6]?.trim() || '아니요',
+                        gameTime: r[7]?.trim() || '',
+                        songTime: r[8]?.trim() || '',
+                        talkTime: r[9]?.trim() || '',
+                        contentTime: r[10]?.trim() || '',
+                        contentType: r[11]?.trim() || ''
+                    }));
+
+                renderVODStats(allVodData);
+
+            } catch (e) {
+                console.error("VOD Data Load Error:", e);
+                document.getElementById('vod-list-container').innerHTML = `
+                    <div class="text-center py-12 text-xs text-marine-coral">
+                        데이터를 불러오지 못했습니다. 구글 시트 웹 게시 상태를 확인해주세요.
+                    </div>`;
+            }
+        }
+
+        // 상세 항목을 태그 형태로 변환하는 함수
+        function formatDetailItems(text) {
+            if (!text || text.trim() === "" || text === "-") return '<span class="text-marine-spray/60">기록 없음</span>';
+            
+            const items = text.split(',');
+            let html = '<div class="flex flex-wrap gap-1.5 mt-1.5">';
+            
+            items.forEach(item => {
+                const trimmed = item.trim();
+                if (trimmed) {
+                    html += `<span class="px-2 py-1 bg-marine-deep/80 border border-marine-border/60 rounded-lg text-[11px] text-marine-foam flex items-center gap-1 shadow-sm">
+                        <span class="w-1.5 h-1.5 rounded-full bg-marine-cyan inline-block"></span>
+                        ${trimmed}
+                    </span>`;
+                }
+            });
+            html += '</div>';
+            return html;
+        }
+
+        // VOD 통계 화면 렌더링
+        function renderVODStats(data) {
+            const container = document.getElementById('vod-list-container');
+            
+            // 상단 요약 지표 업데이트
+            document.getElementById('stat-total-vod').innerText = `${data.length}개`;
+            document.getElementById('stat-sub-vod').innerText = `${data.filter(v => v.subPlus.includes('예') || v.subPlus.includes('O')).length}회`;
+            document.getElementById('stat-adult-vod').innerText = `${data.filter(v => v.adult.includes('예') || v.adult.includes('O')).length}회`;
+            
+            // 총 방송 시간 텍스트 처리 (단순 개수 표시 또는 합산 가이드)
+            document.getElementById('stat-total-time').innerText = `${data.length}개 방송`;
+
+            if (data.length === 0) {
+                container.innerHTML = `<div class="text-center py-12 text-xs text-marine-spray">등록된 VOD 데이터가 없습니다.</div>`;
+                return;
+            }
+
+            let html = '';
+            data.forEach(item => {
+                const isSub = item.subPlus.includes('예') || item.subPlus.includes('O');
+                const isAdult = item.adult.includes('예') || item.adult.includes('O');
+
+                // 컨텐츠 종류 태그 분할
+                const tagsHtml = item.contentType ? item.contentType.split(',').map(tag => 
+                    `<span class="px-2 py-0.5 bg-marine-reef border border-marine-border text-marine-spray rounded-md text-[10px] font-semibold">#${tag.trim()}</span>`
+                ).join('') : '';
+
+                html += `
+                    <div class="bg-marine-deep/60 border border-marine-border/60 rounded-2xl p-4 hover:border-marine-cyan/40 transition-all">
+                        <div class="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
+                            
+                            <!-- 썸네일 및 기본 정보 -->
+                            <div class="flex items-start gap-3.5 min-w-0 flex-grow">
+                                <a href="${item.link}" target="_blank" class="relative aspect-[16/9] w-36 sm:w-44 rounded-xl overflow-hidden shrink-0 bg-marine-void border border-marine-border/40 group block">
+                                    <img src="${item.thumbnail}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" alt="썸네일" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'100\' height=\'100\'><rect width=\'100\' height=\'100\' fill=\'%23112235\'/><text x=\'50%\' y=\'50%\' fill=\'%238fa5b5\' font-size=\'12\' text-anchor=\'middle\' dominant-baseline=\'middle\'>No Image</text></svg>'">
+                                    <div class="absolute inset-0 bg-black/20 group-hover:bg-transparent transition"></div>
+                                </a>
+                                <div class="min-w-0 flex-grow">
+                                    <div class="flex items-center gap-2 mb-1 flex-wrap">
+                                        <span class="text-[10px] text-marine-cyan font-bold bg-marine-cyan/10 px-2 py-0.5 rounded border border-marine-cyan/20">${item.date}</span>
+                                        <span class="text-[10px] text-marine-spray"><i class="fa-regular fa-clock mr-1"></i>${item.vodTime}</span>
+                                        ${isSub ? '<span class="px-1.5 py-0.2 bg-purple-500/10 border border-purple-500/30 text-purple-400 rounded text-[9px] font-bold">구독+</span>' : ''}
+                                        ${isAdult ? '<span class="px-1.5 py-0.2 bg-red-500/10 border border-red-500/30 text-red-400 rounded text-[9px] font-bold">19</span>' : ''}
+                                    </div>
+                                    <a href="${item.link}" target="_blank" class="text-xs sm:text-sm font-bold text-marine-foam hover:text-marine-cyan transition-colors block truncate mb-2">
+                                        ${item.title}
+                                    </a>
+                                    <!-- 컨텐츠 종류 태그 -->
+                                    <div class="flex flex-wrap gap-1 mt-1">
+                                        ${tagsHtml}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 버튼 영역 (토글 버튼 + 다시보기 링크) -->
+                            <div class="flex items-center gap-2 shrink-0 self-end lg:self-center w-full lg:w-auto justify-end">
+                                <button onclick="toggleDetail(${item.id})" id="btn-toggle-${item.id}" class="px-3 py-2 bg-marine-shallow/40 hover:bg-marine-shallow border border-marine-border text-marine-foam rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-1.5">
+                                    <i class="fa-solid fa-chart-bar text-marine-cyan"></i> 상세 통계 <i class="fa-solid fa-chevron-down text-[10px] transition-transform duration-300" id="icon-toggle-${item.id}"></i>
+                                </button>
+                                <a href="${item.link}" target="_blank" class="px-3.5 py-2 bg-marine-cyan/10 hover:bg-marine-cyan hover:text-marine-deep border border-marine-cyan/30 text-marine-cyan hover:text-marine-deep rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-1.5">
+                                    다시보기 <i class="fa-solid fa-external-link-alt text-[10px]"></i>
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- [아코디언 영역] 태그 형태로 정돈된 상세 시간 데이터 -->
+                        <div id="detail-box-${item.id}" class="hidden mt-4 pt-3 border-t border-marine-border/30 grid grid-cols-1 md:grid-cols-2 gap-3 text-[11px] text-marine-spray transition-all">
+                            <div class="bg-marine-reef/50 p-3 rounded-xl border border-marine-border/20">
+                                <span class="font-bold text-marine-cyan block"><i class="fa-solid fa-gamepad mr-1"></i> 게임 시간</span>
+                                ${formatDetailItems(item.gameTime)}
+                            </div>
+                            <div class="bg-marine-reef/50 p-3 rounded-xl border border-marine-border/20">
+                                <span class="font-bold text-marine-mint block"><i class="fa-solid fa-music mr-1"></i> 노래 시간</span>
+                                ${formatDetailItems(item.songTime)}
+                            </div>
+                            <div class="bg-marine-reef/50 p-3 rounded-xl border border-marine-border/20">
+                                <span class="font-bold text-marine-coral block"><i class="fa-solid fa-comments mr-1"></i> 소통 시간</span>
+                                ${formatDetailItems(item.talkTime)}
+                            </div>
+                            <div class="bg-marine-reef/50 p-3 rounded-xl border border-marine-border/20">
+                                <span class="font-bold text-yellow-400 block"><i class="fa-solid fa-puzzle-piece mr-1"></i> 컨텐츠 시간</span>
+                                ${formatDetailItems(item.contentTime)}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        // 상세 통계 아코디언 토글 함수
+        function toggleDetail(id) {
+            const detailBox = document.getElementById(`detail-box-${id}`);
+            const icon = document.getElementById(`icon-toggle-${id}`);
+            
+            if (detailBox.classList.contains('hidden')) {
+                detailBox.classList.remove('hidden');
+                icon.style.transform = 'rotate(180deg)';
+            } else {
+                detailBox.classList.add('hidden');
+                icon.style.transform = 'rotate(0deg)';
+            }
+        }
+
+        // 검색 필터 함수
+        function filterVODs() {
+            const keyword = document.getElementById('vod-search').value.toLowerCase();
+            const filtered = allVodData.filter(v => 
+                v.title.toLowerCase().includes(keyword) || 
+                v.contentType.toLowerCase().includes(keyword) ||
+                v.gameTime.toLowerCase().includes(keyword) ||
+                v.date.includes(keyword)
+            );
+            renderVODStats(filtered);
+        }
+
+        // 페이지 로드 시 구글 시트 데이터 가져오기 실행
+        window.addEventListener('DOMContentLoaded', () => {
+            loadVodData();
+        });
+    </script>
+</body>
+</html>
