@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>바다비 VOD 통계 아카이브</title>
-    <!-- Tailwind CSS & FontAwesome CDN -->
+    <title>노래 통계 - 바다비 비공식 팬 아카이브</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <!-- Google Fonts -->
@@ -12,54 +11,22 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
     <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        marine: {
-                            deep: '#060e16',    /* 심해 배경 */
-                            void: '#0a1622',      
-                            reef: '#112235',    /* 카드 배경 */
-                            shallow: '#1a334d',    /* 호버 강조색 */
-                            foam: '#e3f2fd',      /* 메인 텍스트 */
-                            spray: '#8fa5b5',     /* 서브 텍스트 */
-                            cyan: '#00e5ff',      /* 네온 사이언 */
-                            mint: '#05ffa6',      /* 네온 그린 */
-                            coral: '#ff5c8a',     /* 산호초 핑크 */
-                            border: 'rgba(0, 229, 255, 0.12)'
-                        }
-                    },
-                    fontFamily: {
-                        display: ['Noto Sans KR', 'sans-serif'],
-                        body: ['Noto Sans KR', 'sans-serif']
-                    }
-                }
+        tailwind.config = { 
+    theme: { 
+        extend: { 
+            colors: { 
+                marine: { deep: '#060e16', reef: '#112235', foam: '#e3f2fd', cyan: '#00e5ff', mint: '#05ffa6', coral: '#ff5c8a', border: 'rgba(0, 229, 255, 0.12)' } 
+            },
+            fontFamily: {
+                display: ['Noto Sans KR', 'sans-serif']
             }
-        }
-    </script> 
+        } 
+    } 
+}
+    </script>
     <style>
-        body {
-            font-family: 'Noto Sans KR', sans-serif;
-            background-color: #060e16;
-            background-image: radial-gradient(circle at 50% 0%, #0d233a 0%, #060e16 70%);
-        }
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: rgba(6, 14, 22, 0.5); }
-        ::-webkit-scrollbar-thumb {
-            background: #112235;
-            border: 1px solid rgba(0, 229, 255, 0.15);
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover { background: #00e5ff; }
-        .word-keep { word-break: keep-all; overflow-wrap: break-word; }
-        /* 제목 최대 2줄 제한 및 말줄임표 처리 */
-        .clamp-title {
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
+        body { background-color: #060e16; background-image: radial-gradient(circle at 50% 0%, #0d233a 0%, #060e16 70%); background-attachment: fixed; }
+        #stats-container { min-height: 500px; }
         @keyframes loadingBar {
             0% { transform: translateX(-100%); }
             50% { transform: translateX(0%); }
@@ -74,159 +41,283 @@
         }
     </style>
 </head>
-<body class="text-marine-spray min-h-screen pb-20 overflow-x-hidden" onload="loadVodData()">
+<body class="text-marine-foam min-h-screen pb-8">
 
-    <!-- 로딩 오버레이 -->
-    <div id="loading-overlay" class="fixed inset-0 bg-marine-deep z-50 flex flex-col items-center justify-center transition-all duration-700 opacity-100 visibility-visible">
+    <!-- 전체 화면 로딩 오버레이 (바다비.png 적용) -->
+    <div id="loading-overlay" class="fixed inset-0 bg-marine-deep z-50 flex flex-col items-center justify-center transition-all duration-700 opacity-100">
         <div class="relative flex flex-col items-center">
             <!-- 메인 이미지 + 회전하는 원형 로딩 링 -->
             <div class="relative mb-8 w-28 h-28 flex items-center justify-center">
-                <!-- 빙글빙글 도는 원형 링 테두리 -->
                 <div class="absolute inset-0 rounded-full border-4 border-transparent border-t-marine-cyan border-r-marine-mint animate-spin-slow"></div>
-                
-                <!-- 중심에 고정된 바다비.png 이미지 -->
                 <div class="w-20 h-20 rounded-full overflow-hidden shadow-xl border border-marine-border bg-marine-reef flex items-center justify-center">
-                    <img src="바다비.png" alt="로딩 중" class="w-full h-full object-cover" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'100\' height=\'100\'><rect width=\'100\' height=\'100\' fill=\'%23112235\'/><text x=\'50%\' y=\'50%\' fill=\'%238fa5b5\' font-size=\'12\' text-anchor=\'middle\' dominant-baseline=\'middle\'>바다비</text></svg>'">
+                    <img src="바다비.png" alt="로딩 중" class="w-full h-full object-cover">
                 </div>
             </div>
             
-            <!-- 텍스트 영역 -->
-            <p id="loading-text" class="font-display tracking-[0.2em] text-sm text-marine-foam animate-pulse">
-                바닷속에서 찾고 있어요 . . .
+            <p id="loading-text" class="font-bold tracking-[0.2em] text-sm text-marine-foam animate-pulse">
+                노래기록을 정리하고 있어요 . . .
             </p>
             
-            <!-- 진행 바 (심해 느낌) -->
             <div class="w-32 h-1 bg-marine-reef mt-6 rounded-full overflow-hidden">
                 <div class="h-full bg-marine-cyan animate-[loadingBar_2s_ease-in-out_infinite]"></div>
             </div>
         </div>
     </div>
 
-    <!-- 상단 네비게이션 바 -->
-    <nav class="border-b border-marine-border bg-marine-deep/90 backdrop-blur-md sticky top-0 z-40 mb-8 px-4 sm:px-6 py-3.5">
-        <div class="max-w-7xl mx-auto flex justify-between items-center">
+    <nav class="border-b border-marine-border bg-marine-deep/90 backdrop-blur-md sticky top-0 z-40 px-4 py-4">
+        <div class="max-w-5xl mx-auto flex justify-between items-center">
             <span class="font-display font-black text-sm tracking-widest text-marine-foam">BABABI ARCHIVE</span>
-            <a href="test.html" class="text-xs font-bold text-marine-cyan hover:text-marine-mint transition bg-marine-shallow/40 px-3 py-1 rounded-xl border border-marine-border/40 flex items-center gap-1.5">
-                <i class="fa-solid fa-house text-[10px]"></i> 메인으로
-            </a>
+            <div class="flex items-center gap-4">
+                <a href="https://meloming.com/channel/badabi" class="text-xs font-bold text-marine-cyan hover:underline">바다비 노래책</a>
+                <a href="test.html" class="text-xs font-bold text-marine-cyan hover:underline">메인으로 돌아가기</a>
+            </div>
         </div>
     </nav>
 
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
-        
-        <!-- 페이지 타이틀 섹션 -->
-        <div class="mb-6">
-            <h1 class="font-bold text-2xl text-marine-foam flex items-center gap-2.5">
-                <i class="fa-solid fa-chart-pie text-marine-cyan"></i> VOD 방송 통계 및 아카이브
-            </h1>
-            <p class="text-xs text-marine-spray mt-1">연도를 먼저 선택한 후, 해당 연도의 월을 골라 방송 기록을 확인하세요.</p>
-        </div>
-
-        <!-- [1] 상단 요약 통계 카드 영역 -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-            <div class="bg-marine-reef border border-marine-border rounded-2xl p-4 shadow-lg">
-                <span class="text-[11px] text-marine-spray block mb-1">총 수집 VOD</span>
-                <span id="stat-total-vod" class="text-xl font-black text-marine-foam">0개</span>
+    <div class="max-w-5xl mx-auto px-4 mt-8">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-8">
+            <div class="bg-marine-reef border border-marine-border p-3 rounded-xl text-center">
+                <div class="text-marine-spray text-[12px] uppercase tracking-widest mb-0.5">지금까지 부른 노래 갯수</div>
+                <div id="total-song-count" class="text-marine-cyan text-lg font-display font-black">0</div>
             </div>
-            <div class="bg-marine-reef border border-marine-border rounded-2xl p-4 shadow-lg">
-                <span class="text-[11px] text-marine-spray block mb-1">총 방송 시간</span>
-                <span id="stat-total-time" class="text-xl font-black text-marine-cyan">0시간 0분</span>
+            <div class="bg-marine-reef border border-marine-border p-3 rounded-xl text-center">
+                <div class="text-marine-spray text-[12px] uppercase tracking-widest mb-0.5">최근 30일 애창곡</div>
+                <div id="top-song-30" class="text-marine-cyan text-lg font-display font-black truncate">--</div>
             </div>
-            <div class="bg-marine-reef border border-marine-border rounded-2xl p-4 shadow-lg">
-                <span class="text-[11px] text-marine-spray block mb-1">구독+ 다시보기</span>
-                <span id="stat-sub-vod" class="text-xl font-black text-purple-400">0회</span>
+            <div class="bg-marine-reef border border-marine-border p-3 rounded-xl text-center">
+                <div class="text-marine-spray text-[12px] uppercase tracking-widest mb-0.5">최근 30일 최다 아티스트</div>
+                <div id="top-artist-30" class="text-marine-mint text-lg font-display font-black truncate">--</div>
             </div>
-            <div class="bg-marine-reef border border-marine-border rounded-2xl p-4 shadow-lg">
-                <span class="text-[11px] text-marine-spray block mb-1">성인인증 다시보기</span>
-                <span id="stat-adult-vod" class="text-xl font-black text-marine-coral">0회</span>
+            <div class="bg-marine-reef border border-marine-border p-3 rounded-xl text-center">
+                <div class="text-marine-spray text-[12px] uppercase tracking-widest mb-0.5">30일간 신규 곡</div>
+                <div id="new-song-count-30" class="text-marine-coral text-lg font-display font-black">0</div>
             </div>
         </div>
 
-        <!-- [1-1] 태그(컨텐츠 종류) 분석 아코디언 영역 -->
-        <div class="bg-marine-reef border border-marine-border rounded-2xl mb-8 shadow-lg overflow-hidden">
-            <button onclick="toggleTagAnalysis()" class="w-full px-5 py-3.5 flex justify-between items-center bg-marine-shallow/30 hover:bg-marine-shallow/60 transition-colors text-left">
-                <span class="font-bold text-xs sm:text-sm text-marine-foam flex items-center gap-2">
-                    <i class="fa-solid fa-tags text-marine-mint"></i> 컨텐츠 종류(태그) 비중 분석
-                </span>
-                <div class="flex items-center gap-2">
-                    <span class="text-[11px] text-marine-spray">통계 펼치기/접기</span>
-                    <i class="fa-solid fa-chevron-down text-xs text-marine-cyan transition-transform duration-300" id="tag-analysis-icon"></i>
-                </div>
-            </button>
-            <div id="tag-analysis-box" class="hidden p-5 border-t border-marine-border/30 bg-marine-deep/40">
-                <p class="text-xs text-marine-spray mb-4">전체 VOD에 등록된 컨텐츠 태그(구독+, 19 포함)의 사용 빈도와 비중을 분석한 결과입니다.</p>
-                <div id="tag-stats-container" class="space-y-3">
-                    <!-- 자바스크립트로 동적 생성 -->
-                </div>
-            </div>
+        <div class="mb-8">
+            <input type="text" id="search-input" placeholder="곡 제목 또는 가수 이름으로 검색..." 
+                   class="w-full bg-marine-reef border border-marine-border rounded-xl p-3 text-sm text-marine-foam focus:outline-none focus:border-marine-cyan transition-all placeholder:text-marine-spray/50"
+                   oninput="handleSearch(this.value)">
         </div>
 
-        <!-- [2] VOD 상세 리스트 그리드 및 테이블 컨테이너 -->
-        <div class="bg-marine-reef border border-marine-border rounded-3xl p-5 sm:p-6 shadow-xl">
-            
-            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 pb-4 border-b border-marine-border/40">
-                <h2 class="font-bold text-base text-marine-foam flex items-center gap-2">
-                    <i class="fa-solid fa-list-ul text-marine-mint"></i> VOD 아카이브
-                </h2>
-                <!-- 검색 입력창 -->
-                <div class="w-full md:w-72">
-                    <input type="text" id="vod-search" placeholder="제목, 태그, 구독+, 성인인증 검색..." oninput="debounceFilterVODs()" class="w-full bg-marine-deep border border-marine-border rounded-xl px-3 py-2 text-xs text-marine-foam focus:outline-none focus:border-marine-cyan transition-colors">
-                </div>
-            </div>
-
-            <!-- [연도 및 월 선택 탭 영역] -->
-            <div class="bg-marine-deep/40 border border-marine-border/50 rounded-2xl p-4 mb-6 space-y-3">
-                <!-- 1단계: 연도 선택 탭 (가로 나열) -->
-                <div class="flex items-center gap-2 flex-wrap">
-                    <span class="text-[11px] font-bold text-marine-spray flex items-center gap-1 mr-1">
-                        <i class="fa-solid fa-calendar text-marine-cyan"></i> 연도:
-                    </span>
-                    <div id="year-tabs-container" class="flex flex-wrap gap-2">
-                        <!-- 자바스크립트로 연도 버튼 동적 생성 -->
-                    </div>
-                </div>
-
-                <!-- 구분선 -->
-                <div class="h-[1px] bg-marine-border/30 w-full"></div>
-
-                <!-- 2단계: 선택된 연도의 월 선택 탭 (가로 나열) -->
-                <div class="flex items-center gap-2 flex-wrap">
-                    <span class="text-[11px] font-bold text-marine-spray flex items-center gap-1 mr-1">
-                        <i class="fa-solid fa-calendar-days text-marine-mint"></i> 월:
-                    </span>
-                    <div id="month-tabs-container" class="flex flex-wrap gap-2">
-                        <!-- 자바스크립트로 월 버튼 동적 생성 -->
-                    </div>
-                </div>
-            </div>
-
-            <!-- VOD 목록 출력 영역 -->
-            <div id="vod-list-container" class="space-y-4">
-                <div class="text-center py-12 text-xs text-marine-spray animate-pulse">구글 시트에서 데이터를 불러오는 중입니다...</div>
-            </div>
-
-            <!-- 더보기 버튼 영역 -->
-            <div id="load-more-container" class="mt-8 text-center hidden">
-                <button onclick="loadMoreVODs()" class="px-6 py-2.5 bg-marine-shallow/60 hover:bg-marine-shallow border border-marine-border text-marine-foam rounded-xl text-xs font-bold transition-all shadow-sm">
-                    <i class="fa-solid fa-chevron-down mr-1 text-marine-cyan"></i> 더보기 (<span id="remaining-count">0</span>개 남음)
-                </button>
-            </div>
+        <div class="bg-marine-reef border border-marine-border rounded-3xl p-6 shadow-xl">
+            <h2 class="text-lg font-bold mb-6 flex items-center gap-2">
+                <i class="fa-solid fa-music text-marine-cyan"></i> 전체 노래 목록
+            </h2>
+            <div id="stats-container" class="space-y-2"></div>
         </div>
-
-        <!-- 공식 안내 및 카피라이트 푸터 영역 -->
-        <footer style="text-align: center; padding: 20px 10px; color: #b3cde0; font-size: 11px; border-top: 1px solid rgba(0, 229, 255, 0.12); margin-top: 30px; width: 100%; box-sizing: border-box;">
-            <p style="margin: 0; opacity: 0.8; line-height: 1.6; word-break: keep-all; overflow-wrap: break-word;">
-                <strong style="display: block; margin-bottom: 5px; color: #e3f2fd; font-size: 12px;">바다비 비공식 팬 아카이브</strong>
-                모든 권리는 원저작권자(바다비/SOOP)에게 있으며 요청 시 수정·삭제됩니다.<br>
-                <span style="display: inline-block;">비영리로 운영되며, 정보 갱신 시 데이터 반영에 차이가 있을 수 있습니다.</span>
-            </p>
-        </footer>
-
     </div>
 
-    <!-- 스크립트 영역 -->
     <script>
-        const VOD_TSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTfTHMy1hImniay9QEPDcMq5C4Yo5yFpmRtBlWo6UXK-FNxABQYbtfGpEsKom2O-OIJPnEi8LLy1Qqx/pub?gid=0&single=true&output=tsv';
+        const DETAIL_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTfTHMy1hImniay9QEPDcMq5C4Yo5yFpmRtBlWo6UXK-FNxABQYbtfGpEsKom2O-OIJPnEi8LLy1Qqx/pub?gid=0&single=true&output=tsv';
+        const META_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQmWkxsDxTFSxtnLX0nBapwtNcSW9FQiTDv61z9F89_lqZNq5pKGgmuaAKGo5Fd1r4_hfDtxSqSYdpf/pub?gid=0&single=true&output=tsv';
+
+        let sortedSongs = [];
+        let metaMap = new Map();
+        let currentPage = 1;
+        let searchTerm = "";
+        const ITEMS_PER_PAGE = 50;
+
+        function parseSheetDate(dateStr) {
+            if (!dateStr) return null;
+            let clean = dateStr.toString().replace(/[() ]/g, '').trim();
+            if (clean.includes('-')) return new Date(clean);
+            if (clean.includes('.')) {
+                const parts = clean.split('.');
+                const year = parts[0].length === 2 ? `20${parts[0]}` : parts[0];
+                return new Date(`${year}-${parts[1]}-${parts[2]}`);
+            }
+            return null;
+        }
+
+        function timeToSeconds(timeStr) {
+            if (!timeStr) return 0;
+            const parts = timeStr.split(':').map(Number);
+            if (parts.length === 2) return parts[0] * 60 + parts[1];
+            if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
+            return 0;
+        }
+
+        function handleSearch(val) {
+            searchTerm = val.toLowerCase();
+            currentPage = 1;
+            renderPage();
+        }
+
+        function loadMore() {
+            currentPage++;
+            renderPage();
+        }
+
+        function renderPage() {
+            const container = document.getElementById('stats-container');
+            const filteredSongs = sortedSongs.filter(([title, occurrences]) => {
+                const normalizedTitle = title.replace(/,/g, '').replace(/\([^)]*\)/g, '').trim();
+                const metas = metaMap.get(normalizedTitle);
+                const broadcastDate = parseSheetDate(occurrences[0].date);
+                let bestMeta = metas ? metas[0] : { artist: '정보 없음', genre: '-' };
+                if (metas && metas.length > 1) {
+                    const match = metas.find(m => m.date && Math.abs(m.date - broadcastDate) <= 86400000);
+                    if (match) bestMeta = match;
+                }
+                return title.toLowerCase().includes(searchTerm) || bestMeta.artist.toLowerCase().includes(searchTerm);
+            });
+
+            const end = currentPage * ITEMS_PER_PAGE;
+            const songsToRender = filteredSongs.slice(0, end);
+            const fragment = document.createDocumentFragment();
+            
+            songsToRender.forEach(([title, occurrences]) => {
+                const normalizedTitle = title.replace(/,/g, '').replace(/\([^)]*\)/g, '').trim();
+                const metas = metaMap.get(normalizedTitle);
+                const broadcastDate = parseSheetDate(occurrences[0].date);
+                
+                let bestMeta = metas ? metas[0] : { title: title, artist: '정보 없음', genre: '-' };
+                if (metas && metas.length > 1) {
+                    const match = metas.find(m => m.date && Math.abs(m.date - broadcastDate) <= 86400000);
+                    if (match) bestMeta = match;
+                }
+
+                const displayTitle = bestMeta.title || title;
+
+                const div = document.createElement('div');
+                div.className = "border-b border-marine-border group hover:bg-marine-reef/20 transition-colors";
+                div.innerHTML = `
+    <button onclick="this.nextElementSibling.classList.toggle('hidden')" class="w-full p-4 flex items-center justify-between">
+        <div class="grid grid-cols-[1fr_auto_auto] items-center w-full gap-4">
+            <div class="font-bold text-marine-foam group-hover:text-marine-cyan transition-colors truncate text-sm md:text-base text-left">
+                ${displayTitle}
+            </div>
+            <div class="flex flex-col items-end justify-center gap-0.5 overflow-hidden text-right">
+                <span class="text-marine-mint text-[11px] md:text-xs truncate w-[100px] sm:w-[250px]">${bestMeta.artist}</span>
+                <span class="text-marine-cyan font-bold text-[10px] md:text-[11px]">${occurrences.length}회</span>
+            </div>
+            <div class="text-marine-spray/50 text-xs text-right pl-2">
+                <i class="fa-solid fa-chevron-down"></i>
+            </div>
+        </div>
+    </button>
+                    <div class="hidden p-4">
+                        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                            ${occurrences.map(occ => `
+                                <a href="${occ.vodUrl}" target="_blank" rel="noopener noreferrer" class="block p-2 bg-marine-reef/30 border border-marine-border rounded text-center hover:border-marine-cyan transition-all">
+                                    <div class="text-[10px] sm:text-[11px] font-bold text-marine-foam">${occ.date}</div>
+                                </a>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+                fragment.appendChild(div);
+            });
+
+            if (end < filteredSongs.length) {
+                const btn = document.createElement('button');
+                btn.className = "w-full py-2 text-marine-cyan font-bold hover:bg-marine-reef/50 rounded-xl border border-marine-border transition-all mt-4";
+                btn.innerText = `더보기 (${end} / ${filteredSongs.length})`;
+                btn.onclick = loadMore;
+                fragment.appendChild(btn);
+            }
+            container.innerHTML = '';
+            container.appendChild(fragment);
+        }
+
+        async function initStats() {
+            const overlay = document.getElementById('loading-overlay');
+            try {
+                const [detailRes, metaRes] = await Promise.all([
+                    fetch(DETAIL_URL).then(r => r.text()),
+                    fetch(META_URL).then(r => r.text())
+                ]);
+
+                const normalize = (str) => str.replace(/,/g, '').replace(/\([^)]*\)/g, '').trim();
+
+                metaRes.split(/\r?\n/).slice(1).forEach(row => {
+                    const cols = row.split('\t');
+                    if (!cols[0]) return;
+                    const title = normalize(cols[0]);
+                    if (!metaMap.has(title)) metaMap.set(title, []);
+                    metaMap.get(title).push({ 
+                        title: cols[0], 
+                        artist: cols[1] || '정보 없음', 
+                        genre: cols[2] || '-', 
+                        date: parseSheetDate(cols[3]) 
+                    });
+                });
+
+                const rows = detailRes.split(/\r?\n/).slice(1);
+                let latestDate = new Date(0);
+                rows.forEach(row => {
+                    const d = parseSheetDate(row.split('\t')[0]);
+                    if (d && d > latestDate) latestDate = d;
+                });
+                const thirtyDaysAgo = new Date(latestDate.getTime() - (30 * 24 * 60 * 60 * 1000));
+                
+                const songGroups = new Map();
+                const allOccurrences = [];
+                const oldSongs = new Set();
+                let totalPlayCount = 0;
+
+                rows.forEach(row => {
+                    const cols = row.split('\t');
+                    if (cols.length < 9) return;
+                    const dateVal = parseSheetDate(cols[0]);
+                    const link = cols[2];
+                    const songListRaw = cols[8];
+                    if (!songListRaw || songListRaw.trim() === '-') return;
+
+                    songListRaw.split(',').forEach(rawSong => {
+                        const title = rawSong.split('(')[0].trim();
+                        if (!title) return;
+                        
+                        const timeMatch = rawSong.match(/\(([^)]+)\)/);
+                        const time = timeMatch ? timeMatch[1] : null;
+                        const seconds = timeToSeconds(time);
+                        const vodUrl = seconds > 0 ? `${link}${link.includes('?') ? '&' : '?'}change_second=${seconds}` : link;
+
+                        if (!songGroups.has(title)) songGroups.set(title, []);
+                        songGroups.get(title).push({ date: cols[0], vodUrl, time });
+                        
+                        totalPlayCount++;
+                        if (dateVal && dateVal >= thirtyDaysAgo) allOccurrences.push({ title, date: cols[0] });
+                        else oldSongs.add(title);
+                    });
+                });
+
+                sortedSongs = Array.from(songGroups.entries()).sort((a, b) => b[1].length - a[1].length);
+                document.getElementById('total-song-count').innerText = totalPlayCount;
+
+                const songCount30 = {}, artistCount30 = {};
+                allOccurrences.forEach(s => {
+                    songCount30[s.title] = (songCount30[s.title] || 0) + 1;
+                    const meta = metaMap.get(normalize(s.title));
+                    const artist = meta ? meta[0].artist : '정보 없음';
+                    artistCount30[artist] = (artistCount30[artist] || 0) + 1;
+                });
+
+                const topSong30 = Object.entries(songCount30).sort((a, b) => b[1] - a[1])[0];
+                const topArtist30 = Object.entries(artistCount30).sort((a, b) => b[1] - a[1])[0];
+                const newSongsCount = [...new Set(allOccurrences.map(s => s.title))].filter(s => !oldSongs.has(s)).length;
+
+                document.getElementById('top-song-30').innerText = topSong30 ? topSong30[0] : '-';
+                document.getElementById('top-artist-30').innerText = topArtist30 ? topArtist30[0] : '-';
+                document.getElementById('new-song-count-30').innerText = newSongsCount;
+
+                renderPage();
+                
+                if (overlay) {
+                    overlay.style.opacity = '0';
+                    setTimeout(() => { overlay.style.display = 'none'; }, 700);
+                }
+            } catch (err) { 
+                console.error("데이터 로드 실패:", err); 
+                if (overlay) {
+                    overlay.style.opacity = '0';
+                    setTimeout(() => { overlay.style.display = 'none'; }, 700);
+                }
+            }
+        }
+        document.addEventListener('DOMContentLoaded', initStats);
+
         const CONFIG_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTQ3nX6onmaf-ZHhXGox2s4ChGos7ki7iFjQ_47lArZR6dV935gCIbLbvlDDAS65rTEnswSLIk_7v3R/pub?gid=0&single=true&output=tsv';
 
         async function updateFavicon() {
@@ -247,500 +338,14 @@
             } catch (e) { console.error("Favicon update error:", e); }
         }
         updateFavicon();
-        
-        let allVodData = [];
-        let filteredVodData = []; 
-        let groupedByMonth = {};
-        let yearGroups = {};
-        let selectedYear = '';
-        let selectedMonth = ''; 
-        let displayLimit = 10;  
-        let searchTimer = null; 
-
-        // 로딩 오버레이 숨기기 함수
-        function hideLoadingOverlay() {
-            const overlay = document.getElementById('loading-overlay');
-            if (overlay) {
-                overlay.style.opacity = '0';
-                overlay.style.visibility = 'hidden';
-                setTimeout(() => {
-                    overlay.remove();
-                }, 700);
-            }
-        }
-
-        async function loadVodData() {
-            try {
-                const cacheBuster = `&t=${new Date().getTime()}`;
-                const response = await fetch(VOD_TSV_URL + cacheBuster, {
-                    cache: 'no-store',
-                    headers: { 'Pragma': 'no-cache', 'Cache-Control': 'no-cache' }
-                });
-
-                if (!response.ok) throw new Error('Network error');
-
-                const text = await response.text();
-                const rows = text.split(/\r?\n/).map(row => row.split('\t'));
-
-                allVodData = rows.slice(1)
-                    .filter(r => r[0] && r[1] && r[1].trim() !== "")
-                    .map((r, index) => ({
-                        id: index,
-                        date: r[0]?.trim() || '',
-                        title: r[1]?.trim() || '',
-                        link: r[2]?.trim() || '#',
-                        thumbnail: r[3]?.trim() || '',
-                        vodTime: r[4]?.trim() || '-',
-                        subPlus: r[5]?.trim() || '아니요',
-                        adult: r[6]?.trim() || '아니요',
-                        gameTime: r[7]?.trim() || '',
-                        songTime: r[8]?.trim() || '',
-                        talkTime: r[9]?.trim() || '',
-                        contentTime: r[10]?.trim() || '',
-                        contentType: r[11]?.trim() || ''
-                    }));
-
-                allVodData.sort((a, b) => b.date.localeCompare(a.date));
-                filteredVodData = [...allVodData]; 
-
-                updateGlobalStats(allVodData);
-                renderTagAnalysis(allVodData);
-                processMonthGrouping(filteredVodData);
-
-            } catch (e) {
-                console.error("VOD Data Load Error:", e);
-                document.getElementById('vod-list-container').innerHTML = `
-                    <div class="text-center py-12 text-xs text-marine-coral">
-                        데이터를 불러오지 못했습니다. 구글 시트 웹 게시 상태를 확인해주세요.
-                    </div>`;
-            } finally {
-                // 데이터 로드가 성공하든 실패하든 로딩 오버레이 제거
-                hideLoadingOverlay();
-            }
-        }
-
-        function formatTotalBroadcastTime(data) {
-            let totalSeconds = 0;
-
-            data.forEach(item => {
-                totalSeconds += timeToSeconds(item.vodTime);
-            });
-
-            const hours = Math.floor(totalSeconds / 3600);
-            const minutes = Math.floor((totalSeconds % 3600) / 60);
-
-            if (hours > 0) {
-                return `${hours.toLocaleString()}시간 ${minutes}분`;
-            } else {
-                return `${minutes}분`;
-            }
-        }
-
-        function updateGlobalStats(data) {
-            document.getElementById('stat-total-vod').innerText = `${data.length}개`;
-            document.getElementById('stat-total-time').innerText = formatTotalBroadcastTime(data);
-            document.getElementById('stat-sub-vod').innerText = `${data.filter(v => v.subPlus.includes('예') || v.subPlus.includes('O')).length}회`;
-            document.getElementById('stat-adult-vod').innerText = `${data.filter(v => v.adult.includes('예') || v.adult.includes('O')).length}회`;
-        }
-
-        function renderTagAnalysis(data) {
-            const container = document.getElementById('tag-stats-container');
-            const tagCounts = {};
-            let totalTagOccurrences = 0;
-
-            data.forEach(item => {
-                if (item.contentType && item.contentType.trim() !== "" && item.contentType !== "-") {
-                    const tags = item.contentType.split(',');
-                    tags.forEach(tag => {
-                        const cleanTag = tag.trim();
-                        if (cleanTag) {
-                            tagCounts[cleanTag] = (tagCounts[cleanTag] || 0) + 1;
-                            totalTagOccurrences++;
-                        }
-                    });
-                }
-
-                const isSub = item.subPlus.includes('예') || item.subPlus.includes('O');
-                if (isSub) {
-                    tagCounts['구독+'] = (tagCounts['구독+'] || 0) + 1;
-                    totalTagOccurrences++;
-                }
-
-                const isAdult = item.adult.includes('예') || item.adult.includes('O');
-                if (isAdult) {
-                    tagCounts['19'] = (tagCounts['19'] || 0) + 1;
-                    totalTagOccurrences++;
-                }
-            });
-
-            const sortedTags = Object.entries(tagCounts).sort((a, b) => b[1] - a[1]);
-
-            if (sortedTags.length === 0) {
-                container.innerHTML = `<div class="text-xs text-marine-spray text-center py-4">등록된 컨텐츠 태그가 없습니다.</div>`;
-                return;
-            }
-
-            let html = '';
-            sortedTags.forEach(([tag, count]) => {
-                const percentage = totalTagOccurrences > 0 ? ((count / totalTagOccurrences) * 100).toFixed(1) : 0;
-                
-                html += `
-                    <div>
-                        <div class="flex justify-between items-center text-xs mb-1">
-                            <span class="text-marine-foam font-bold">#${tag}</span>
-                            <span class="text-marine-spray font-mono">${count}회 <span class="text-marine-cyan font-semibold">(${percentage}%)</span></span>
-                        </div>
-                        <div class="w-full bg-marine-deep rounded-full h-2 overflow-hidden border border-marine-border/40">
-                            <div class="bg-gradient-to-r from-marine-cyan to-marine-mint h-full rounded-full transition-all duration-500" style="width: ${percentage}%"></div>
-                        </div>
-                    </div>
-                `;
-            });
-
-            container.innerHTML = html;
-        }
-
-        function toggleTagAnalysis() {
-            const box = document.getElementById('tag-analysis-box');
-            const icon = document.getElementById('tag-analysis-icon');
-
-            if (box.classList.contains('hidden')) {
-                box.classList.remove('hidden');
-                icon.style.transform = 'rotate(180deg)';
-            } else {
-                box.classList.add('hidden');
-                icon.style.transform = 'rotate(0deg)';
-            }
-        }
-
-        function processMonthGrouping(data) {
-            groupedByMonth = {};
-            yearGroups = {};
-
-            data.forEach(item => {
-                const monthKey = item.date.substring(0, 7); // YYYY-MM
-                const yearKey = item.date.substring(0, 4);   // YYYY
-
-                if (!groupedByMonth[monthKey]) {
-                    groupedByMonth[monthKey] = [];
-                }
-                groupedByMonth[monthKey].push(item);
-
-                if (!yearGroups[yearKey]) {
-                    yearGroups[yearKey] = [];
-                }
-                if (!yearGroups[yearKey].includes(monthKey)) {
-                    yearGroups[yearKey].push(monthKey);
-                }
-            });
-
-            const sortedYears = Object.keys(yearGroups).sort((a, b) => b.localeCompare(a));
-
-            if (sortedYears.length > 0) {
-                if (!selectedYear || !yearGroups[selectedYear]) {
-                    selectedYear = sortedYears[0];
-                }
-                
-                const availableMonths = yearGroups[selectedYear].sort((a, b) => b.localeCompare(a));
-                if (!selectedMonth || !availableMonths.includes(selectedMonth)) {
-                    selectedMonth = availableMonths[0];
-                }
-            } else {
-                selectedYear = '';
-                selectedMonth = '';
-            }
-
-            renderTabs();
-            renderVODStats();
-        }
-
-        function renderTabs() {
-            const yearTabsContainer = document.getElementById('year-tabs-container');
-            const monthTabsContainer = document.getElementById('month-tabs-container');
-            
-            const sortedYears = Object.keys(yearGroups).sort((a, b) => b.localeCompare(a));
-
-            if (sortedYears.length === 0) {
-                yearTabsContainer.innerHTML = '';
-                monthTabsContainer.innerHTML = '';
-                return;
-            }
-
-            let yearHtml = '';
-            sortedYears.forEach(year => {
-                const isYearActive = (year === selectedYear);
-                const yearBtnClass = isYearActive
-                    ? 'bg-marine-cyan text-marine-deep font-black border-marine-cyan shadow-md shadow-marine-cyan/25'
-                    : 'bg-marine-deep text-marine-spray hover:text-marine-foam border-marine-border';
-
-                const yearTotalCount = yearGroups[year].reduce((acc, m) => acc + groupedByMonth[m].length, 0);
-
-                yearHtml += `
-                    <button onclick="changeYear('${year}')" class="px-3 py-1.5 rounded-xl border text-xs transition-all flex items-center gap-1.5 ${yearBtnClass}">
-                        <span>${year}년</span>
-                        <span class="text-[10px] px-1.5 py-0.2 rounded-full ${isYearActive ? 'bg-marine-deep text-marine-cyan' : 'bg-marine-reef text-marine-spray'}">${yearTotalCount}</span>
-                    </button>
-                `;
-            });
-            yearTabsContainer.innerHTML = yearHtml;
-
-            let monthHtml = '';
-            const currentMonths = (yearGroups[selectedYear] || []).sort((a, b) => b.localeCompare(a));
-            
-            currentMonths.forEach(monthKey => {
-                const [y, mm] = monthKey.split('-');
-                const isMonthActive = (monthKey === selectedMonth);
-                const monthBtnClass = isMonthActive
-                    ? 'bg-marine-mint text-marine-deep font-black border-marine-mint shadow-md shadow-marine-mint/25'
-                    : 'bg-marine-deep text-marine-spray hover:text-marine-foam border-marine-border';
-
-                const monthCount = groupedByMonth[monthKey].length;
-
-                monthHtml += `
-                    <button onclick="changeMonth('${monthKey}')" class="px-3 py-1.5 rounded-xl border text-xs transition-all flex items-center gap-1.5 ${monthBtnClass}">
-                        <span>${parseInt(mm, 10)}월</span>
-                        <span class="text-[10px] px-1.5 py-0.2 rounded-full ${isMonthActive ? 'bg-marine-deep text-marine-mint' : 'bg-marine-reef text-marine-spray'}">${monthCount}</span>
-                    </button>
-                `;
-            });
-            monthTabsContainer.innerHTML = monthHtml;
-        }
-
-        function changeYear(year) {
-            selectedYear = year;
-            const availableMonths = (yearGroups[year] || []).sort((a, b) => b.localeCompare(a));
-            if (availableMonths.length > 0) {
-                selectedMonth = availableMonths[0];
-            }
-            displayLimit = 10;
-            renderTabs();
-            renderVODStats();
-        }
-
-        function changeMonth(month) {
-            selectedMonth = month;
-            displayLimit = 10; 
-            renderTabs();
-            renderVODStats();
-        }
-
-        function timeToSeconds(timeStr) {
-            if (!timeStr) return 0;
-            const parts = timeStr.split(':').map(Number);
-            if (parts.length === 3) {
-                return (parts[0] * 3600) + (parts[1] * 60) + parts[2];
-            } else if (parts.length === 2) {
-                return (parts[0] * 60) + parts[1];
-            }
-            return 0;
-        }
-
-        function formatDetailItemsAsList(text, baseUrl) {
-            if (!text || text.trim() === "" || text === "-") return '<span class="text-marine-spray/50 italic text-[11px]">기록 없음</span>';
-            
-            const items = text.split(',');
-            let html = '<div class="space-y-1.5 mt-1">';
-            
-            items.forEach(item => {
-                const trimmed = item.trim();
-                if (trimmed) {
-                    const match = trimmed.match(/(.*?)\((\d{2}:\d{2}:\d{2}|\d{2}:\d{2})\)/);
-                    
-                    if (match) {
-                        const titlePart = match[1].trim();
-                        const timeStr = match[2];
-                        const totalSeconds = timeToSeconds(timeStr);
-                        const targetUrl = `${baseUrl}?change_second=${totalSeconds}`;
-
-                        html += `
-                            <div class="flex items-center justify-between bg-marine-deep/70 border border-marine-border/40 rounded-lg px-2.5 py-1.5 text-[11px]">
-                                <span class="text-marine-foam font-medium truncate pr-2">${titlePart || '타임라인 기록'}</span>
-                                <a href="${targetUrl}" target="_blank" class="shrink-0 px-2 py-0.5 bg-marine-cyan/10 hover:bg-marine-cyan hover:text-marine-deep text-marine-cyan border border-marine-cyan/30 rounded font-mono font-bold transition-colors flex items-center gap-1">
-                                    <i class="fa-solid fa-play text-[9px]"></i> ${timeStr}
-                                </a>
-                            </div>
-                        `;
-                    } else {
-                        html += `
-                            <div class="bg-marine-deep/70 border border-marine-border/40 rounded-lg px-2.5 py-1.5 text-[11px] text-marine-foam">
-                                ${trimmed}
-                            </div>
-                        `;
-                    }
-                }
-            });
-            html += '</div>';
-            return html;
-        }
-
-        function renderVODStats() {
-            const container = document.getElementById('vod-list-container');
-            const loadMoreContainer = document.getElementById('load-more-container');
-            const remainingCountSpan = document.getElementById('remaining-count');
-
-            const monthData = groupedByMonth[selectedMonth] || [];
-
-            if (monthData.length === 0) {
-                container.innerHTML = `<div class="text-center py-12 text-xs text-marine-spray">해당 기간에 등록된 VOD 데이터가 없습니다.</div>`;
-                loadMoreContainer.classList.add('hidden');
-                return;
-            }
-
-            const currentData = monthData.slice(0, displayLimit);
-            let html = '<div class="space-y-4">';
-
-            currentData.forEach(item => {
-                const isSub = item.subPlus.includes('예') || item.subPlus.includes('O');
-                const isAdult = item.adult.includes('예') || item.adult.includes('O');
-                
-                // 제목 35글자 제한 적용
-                let truncatedTitleText = item.title;
-                if (truncatedTitleText.length > 35) {
-                    truncatedTitleText = truncatedTitleText.substring(0, 35) + '...';
-                }
-
-                let tagList = [];
-                if (isSub) {
-                    tagList.push(`<span class="px-2 py-0.5 bg-purple-500/10 border border-purple-500/30 text-purple-400 rounded-md text-[10px] font-bold shrink-0">구독+</span>`);
-                }
-                if (isAdult) {
-                    tagList.push(`<span class="px-2 py-0.5 bg-red-500/10 border border-red-500/30 text-red-400 rounded-md text-[10px] font-bold shrink-0">19</span>`);
-                }
-                if (item.contentType && item.contentType.trim() !== "" && item.contentType !== "-") {
-                    item.contentType.split(',').forEach(tag => {
-                        const cleanTag = tag.trim();
-                        if (cleanTag) {
-                            tagList.push(`<span class="px-2 py-0.5 bg-marine-reef border border-marine-border text-marine-spray rounded-md text-[10px] font-semibold shrink-0">#${cleanTag}</span>`);
-                        }
-                    });
-                }
-                const tagsHtml = tagList.join('');
-
-                html += `
-                    <div class="bg-marine-deep/60 border border-marine-border/60 rounded-2xl p-4 hover:border-marine-cyan/40 transition-all">
-                        <div class="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
-                            <!-- 좌측: 썸네일 및 기본 정보 -->
-                            <div class="flex items-start gap-3.5 min-w-0 flex-grow w-full">
-                                <a href="${item.link}" target="_blank" class="relative aspect-[16/9] w-32 sm:w-44 rounded-xl overflow-hidden shrink-0 bg-marine-void border border-marine-border/40 group block">
-                                    <img src="${item.thumbnail}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" alt="썸네일" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'100\' height=\'100\'><rect width=\'100\' height=\'100\' fill=\'%23112235\'/><text x=\'50%\' y=\'50%\' fill=\'%238fa5b5\' font-size=\'12\' text-anchor=\'middle\' dominant-baseline=\'middle\'>No Image</text></svg>'">
-                                    <div class="absolute inset-0 bg-black/20 group-hover:bg-transparent transition"></div>
-                                </a>
-                                <div class="min-w-0 flex-grow overflow-hidden">
-                                    <div class="flex items-center gap-2 mb-1 flex-wrap">
-                                        <span class="text-[10px] text-marine-cyan font-bold bg-marine-cyan/10 px-2 py-0.5 rounded border border-marine-cyan/20 shrink-0">${item.date}</span>
-                                        <span class="text-[10px] text-marine-spray shrink-0"><i class="fa-regular fa-clock mr-1"></i>${item.vodTime}</span>
-                                    </div>
-                                    <a href="${item.link}" target="_blank" title="${item.title}" class="text-xs sm:text-sm font-bold text-marine-foam hover:text-marine-cyan transition-colors block mb-2 clamp-title">
-                                        ${truncatedTitleText}
-                                    </a>
-                                    <!-- PC 전용 태그 영역 -->
-                                    <div class="hidden md:flex flex-wrap gap-1.5 mt-1">
-                                        ${tagsHtml}
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- 우측: PC 버전 버튼 -->
-                            <div class="hidden lg:flex items-center gap-2 shrink-0 self-center">
-                                <button onclick="toggleDetail(${item.id})" id="btn-toggle-pc-${item.id}" class="px-3 py-2 bg-marine-shallow/40 hover:bg-marine-shallow border border-marine-border text-marine-foam rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-1.5">
-                                    <i class="fa-solid fa-chart-bar text-marine-cyan"></i> 상세 통계 <i class="fa-solid fa-chevron-down text-[10px] transition-transform duration-300" id="icon-toggle-pc-${item.id}"></i>
-                                </button>
-                                <a href="${item.link}" target="_blank" class="px-3.5 py-2 bg-marine-cyan/10 hover:bg-marine-cyan hover:text-marine-deep border border-marine-cyan/30 text-marine-cyan rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-1.5">
-                                    다시보기 <i class="fa-solid fa-external-link-alt text-[10px]"></i>
-                                </a>
-                            </div>
-                        </div>
-
-                        <!-- 모바일 전용 태그 영역 -->
-                        <div class="flex md:hidden flex-wrap gap-1.5 mt-3 pt-2.5 border-t border-marine-border/20">
-                            ${tagsHtml}
-                        </div>
-
-                        <!-- 모바일 버튼 -->
-                        <div class="flex lg:hidden items-center gap-2 mt-3 pt-2.5 border-t border-marine-border/20">
-                            <button onclick="toggleDetail(${item.id})" id="btn-toggle-${item.id}" class="flex-1 py-2 bg-marine-shallow/40 hover:bg-marine-shallow border border-marine-border text-marine-foam rounded-xl text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-1.5">
-                                <i class="fa-solid fa-chart-bar text-marine-cyan"></i> 상세 통계 <i class="fa-solid fa-chevron-down text-[10px] transition-transform duration-300" id="icon-toggle-${item.id}"></i>
-                            </button>
-                            <a href="${item.link}" target="_blank" class="flex-1 py-2 bg-marine-cyan/10 hover:bg-marine-cyan hover:text-marine-deep border border-marine-cyan/30 text-marine-cyan rounded-xl text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-1.5">
-                                다시보기 <i class="fa-solid fa-external-link-alt text-[10px]"></i>
-                            </a>
-                        </div>
-
-                        <!-- 상세 아코디언 영역 -->
-                        <div id="detail-box-${item.id}" class="hidden mt-4 pt-4 border-t border-marine-border/35 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3.5 text-xs">
-                            <div class="bg-marine-reef/60 p-3.5 rounded-2xl border border-marine-border/30">
-                                <span class="font-bold text-marine-cyan flex items-center gap-1.5 mb-2"><i class="fa-solid fa-gamepad"></i> 게임 시간</span>
-                                ${formatDetailItemsAsList(item.gameTime, item.link)}
-                            </div>
-                            <div class="bg-marine-reef/60 p-3.5 rounded-2xl border border-marine-border/30">
-                                <span class="font-bold text-marine-mint flex items-center gap-1.5 mb-2"><i class="fa-solid fa-music"></i> 노래 시간</span>
-                                ${formatDetailItemsAsList(item.songTime, item.link)}
-                            </div>
-                            <div class="bg-marine-reef/60 p-3.5 rounded-2xl border border-marine-border/30">
-                                <span class="font-bold text-marine-coral flex items-center gap-1.5 mb-2"><i class="fa-solid fa-comments"></i> 소통 시간</span>
-                                ${formatDetailItemsAsList(item.talkTime, item.link)}
-                            </div>
-                            <div class="bg-marine-reef/60 p-3.5 rounded-2xl border border-marine-border/30">
-                                <span class="font-bold text-yellow-400 flex items-center gap-1.5 mb-2"><i class="fa-solid fa-puzzle-piece"></i> 컨텐츠 시간</span>
-                                ${formatDetailItemsAsList(item.contentTime, item.link)}
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
-            html += '</div>';
-            container.innerHTML = html;
-
-            const remainingCount = monthData.length - displayLimit;
-            if (remainingCount > 0) {
-                remainingCountSpan.innerText = remainingCount;
-                loadMoreContainer.classList.remove('hidden');
-            } else {
-                loadMoreContainer.classList.add('hidden');
-            }
-        }
-
-        function loadMoreVODs() {
-            displayLimit += 10;
-            renderVODStats();
-        }
-
-        function toggleDetail(id) {
-            const detailBox = document.getElementById(`detail-box-${id}`);
-            const iconPC = document.getElementById(`icon-toggle-pc-${id}`);
-            const iconMobile = document.getElementById(`icon-toggle-${id}`);
-
-            if (detailBox.classList.contains('hidden')) {
-                detailBox.classList.remove('hidden');
-                if (iconPC) iconPC.style.transform = 'rotate(180deg)';
-                if (iconMobile) iconMobile.style.transform = 'rotate(180deg)';
-            } else {
-                detailBox.classList.add('hidden');
-                if (iconPC) iconPC.style.transform = 'rotate(0deg)';
-                if (iconMobile) iconMobile.style.transform = 'rotate(0deg)';
-            }
-        }
-
-        function debounceFilterVODs() {
-            clearTimeout(searchTimer);
-            searchTimer = setTimeout(() => {
-                const keyword = document.getElementById('vod-search').value.toLowerCase().trim();
-                
-                if (!keyword) {
-                    filteredVodData = [...allVodData];
-                } else {
-                    filteredVodData = allVodData.filter(item => {
-                        return item.title.toLowerCase().includes(keyword) ||
-                               item.contentType.toLowerCase().includes(keyword) ||
-                               item.date.includes(keyword) ||
-                               (keyword.includes('구독') && (item.subPlus.includes('예') || item.subPlus.includes('O'))) ||
-                               (keyword.includes('19') && (item.adult.includes('예') || item.adult.includes('O')));
-                    });
-                }
-                displayLimit = 10;
-                processMonthGrouping(filteredVodData);
-            }, 300);
-        }
     </script>
+    
+    <footer style="text-align: center; padding: 20px 10px; color: #b3cde0; font-size: 11px; border-top: 1px solid rgba(0, 229, 255, 0.12); margin-top: 20px; width: 100%; box-sizing: border-box;">
+        <p style="margin: 0; opacity: 0.8; line-height: 1.6; word-break: keep-all; overflow-wrap: break-word;">
+            <strong style="display: block; margin-bottom: 5px; color: #e3f2fd; font-size: 12px;">바다비 비공식 팬 아카이브</strong>
+            모든 권리는 원저작권자(바다비/SOOP)에게 있으며 요청 시 수정·삭제됩니다.<br>
+            <span style="display: inline-block;">비영리로 운영되며, 정보 갱신 시 데이터 반영에 차이가 있을 수 있습니다.</span>
+        </p>
+    </footer>
 </body>
 </html>
