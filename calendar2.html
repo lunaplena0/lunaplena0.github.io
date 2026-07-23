@@ -154,7 +154,6 @@
                 
                 initYearSelect();
                 
-                // 현재 년도가 데이터에 없으면 가장 최근 년도로 설정
                 const years = [...new Set(availableYearMonths.map(ym => ym.substring(0, 4)))];
                 let targetYear = years.includes(currentY) ? currentY : years[years.length - 1];
                 document.getElementById('year-select').value = targetYear;
@@ -240,7 +239,9 @@
                 cell.innerHTML = `<div class="date-header"><span class="date-num ${dateColorClass}">${d}</span></div>`;
                 
                 allEvents.filter(e => e.date === dateStr).forEach(ev => {
-                    const colorClass = 'text-marine-cyan'; 
+                    // 휴방 또는 장기휴방인 경우 흰색 글씨(text-white), 그 외는 기본 청록색(text-marine-cyan) 적용
+                    const isOff = ev.time.includes('휴방') || ev.type.includes('휴방');
+                    const colorClass = isOff ? 'text-white font-semibold' : 'text-marine-cyan'; 
                     cell.innerHTML += `<div class="text-[8px] md:text-[10px] ${colorClass} mt-1 truncate">🔹${ev.time}</div>`;
                 });
                 
@@ -256,10 +257,10 @@
 
             if (dayEvents.length > 0) {
                 displayArea.innerHTML = `<div class="space-y-4">` + dayEvents.map(ev => {
-                    const timeColor = ev.time === '휴방' ? 'text-marine-coral' : 'text-marine-cyan';
+                    const timeColor = ev.time.includes('휴방') ? 'text-white font-bold' : 'text-marine-cyan';
                     return `<div class="border-b border-marine-border pb-3 last:border-0">
                         <div class="flex items-center justify-between mb-1">
-                            <span class="text-xs ${timeColor} font-bold">[${ev.type}] ${ev.time}</span>
+                            <span class="text-xs ${timeColor}">[${ev.type}] ${ev.time}</span>
                             ${ev.replayUrl && ev.replayUrl !== "-" ? `<a href="${ev.replayUrl}" target="_blank" class="text-[10px] text-marine-mint underline">게시글 또는 VOD링크</a>` : ''}
                         </div>
                         <div class="text-marine-foam font-bold">${ev.title || ''}</div>
@@ -271,7 +272,6 @@
             } else infoBox.classList.add('hidden');
         }
 
-        // 연도 변경 시 월 목록 업데이트 및 해당 연도의 첫 번째 월로 캘린더 렌더링
         document.getElementById('year-select').addEventListener('change', (e) => {
             const selectedYear = e.target.value;
             updateMonthSelect(selectedYear);
@@ -280,7 +280,6 @@
             renderCalendar(`${selectedYear}-${selectedMonth}`);
         });
 
-        // 월 변경 시 캘린더 렌더링
         document.getElementById('month-select').addEventListener('change', (e) => {
             const selectedYear = document.getElementById('year-select').value;
             const selectedMonth = e.target.value;
