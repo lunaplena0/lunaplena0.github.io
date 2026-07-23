@@ -52,6 +52,15 @@
         }
         ::-webkit-scrollbar-thumb:hover { background: #00e5ff; }
         .word-keep { word-break: keep-all; overflow-wrap: break-word; }
+        /* 제목 2줄 제한 및 말줄임표 처리 클래스 */
+        .vod-title-clamp {
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 2;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: normal;
+        }
     </style>
 </head>
 <body class="text-marine-spray min-h-screen pb-20 overflow-x-hidden">
@@ -438,7 +447,8 @@
                                         ${isSub ? '<span class="px-1.5 py-0.2 bg-purple-500/10 border border-purple-500/30 text-purple-400 rounded text-[9px] font-bold">구독+</span>' : ''}
                                         ${isAdult ? '<span class="px-1.5 py-0.2 bg-red-500/10 border border-red-500/30 text-red-400 rounded text-[9px] font-bold">19</span>' : ''}
                                     </div>
-                                    <a href="${item.link}" target="_blank" class="text-xs sm:text-sm font-bold text-marine-foam hover:text-marine-cyan transition-colors block truncate mb-2">
+                                    <!-- 제목 2줄 제한 및 말줄임표 적용 클래스 (vod-title-clamp) 추가 -->
+                                    <a href="${item.link}" target="_blank" class="text-xs sm:text-sm font-bold text-marine-foam hover:text-marine-cyan transition-colors block mb-2 vod-title-clamp">
                                         ${item.title}
                                     </a>
                                     <div class="flex flex-wrap gap-1 mt-1">
@@ -520,7 +530,6 @@
         function filterVODs() {
             const keyword = document.getElementById('vod-search').value.toLowerCase().trim();
             
-            // 제목(v.title)과 컨텐츠 종류(v.contentType)로만 검색 범위 제한
             filteredVodData = allVodData.filter(v => 
                 v.title.toLowerCase().includes(keyword) || 
                 v.contentType.toLowerCase().includes(keyword)
