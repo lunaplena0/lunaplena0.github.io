@@ -84,7 +84,7 @@
             </div>
             <div class="bg-marine-reef border border-marine-border rounded-2xl p-4 shadow-lg">
                 <span class="text-[11px] text-marine-spray block mb-1">총 방송 시간</span>
-                <span id="stat-total-time" class="text-xl font-black text-marine-cyan">-</span>
+                <span id="stat-total-time" class="text-xl font-black text-marine-cyan">0시간 0분</span>
             </div>
             <div class="bg-marine-reef border border-marine-border rounded-2xl p-4 shadow-lg">
                 <span class="text-[11px] text-marine-spray block mb-1">구독+ 방송</span>
@@ -183,11 +183,29 @@
             }
         }
 
+        // 총 방송 시간을 초 단위로 합산한 뒤 보기 좋은 형식(시간, 분)으로 변환하는 함수
+        function formatTotalBroadcastTime(data) {
+            let totalSeconds = 0;
+
+            data.forEach(item => {
+                totalSeconds += timeToSeconds(item.vodTime);
+            });
+
+            const hours = Math.floor(totalSeconds / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+
+            if (hours > 0) {
+                return `${hours.toLocaleString()}시간 ${minutes}분`;
+            } else {
+                return `${minutes}분`;
+            }
+        }
+
         function updateGlobalStats(data) {
             document.getElementById('stat-total-vod').innerText = `${data.length}개`;
+            document.getElementById('stat-total-time').innerText = formatTotalBroadcastTime(data);
             document.getElementById('stat-sub-vod').innerText = `${data.filter(v => v.subPlus.includes('예') || v.subPlus.includes('O')).length}회`;
             document.getElementById('stat-adult-vod').innerText = `${data.filter(v => v.adult.includes('예') || v.adult.includes('O')).length}회`;
-            document.getElementById('stat-total-time').innerText = `${data.length}개 방송`;
         }
 
         function processMonthGrouping(data) {
@@ -260,7 +278,6 @@
             return 0;
         }
 
-        // 괄호 안의 시간을 기준으로 분리하고, 괄호가 없으면 전체를 제목으로 표시하는 파싱 함수
         function formatDetailItemsAsList(text, baseUrl) {
             if (!text || text.trim() === "" || text === "-") return '<span class="text-marine-spray/50 italic text-[11px]">기록 없음</span>';
             
@@ -270,7 +287,6 @@
             items.forEach(item => {
                 const trimmed = item.trim();
                 if (trimmed) {
-                    // 괄호 안에 있는 시간 패턴(예: (01:23:45) 또는 (12:34))을 찾음
                     const match = trimmed.match(/(.*?)\((\d{2}:\d{2}:\d{2}|\d{2}:\d{2})\)/);
                     
                     if (match) {
@@ -288,7 +304,6 @@
                             </div>
                         `;
                     } else {
-                        // 괄호와 시간이 따로 없고 글만 써있는 경우 그대로 제목 옆에 표시
                         html += `
                             <div class="bg-marine-deep/70 border border-marine-border/40 rounded-lg px-2.5 py-1.5 text-[11px] text-marine-foam">
                                 ${trimmed}
