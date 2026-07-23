@@ -73,7 +73,7 @@
             <h1 class="font-bold text-2xl text-marine-foam flex items-center gap-2.5">
                 <i class="fa-solid fa-chart-pie text-marine-cyan"></i> VOD 방송 통계 및 아카이브
             </h1>
-            <p class="text-xs text-marine-spray mt-1">타임라인 항목 클릭 시 해당 재생 시간으로 바로 이동할 수 있습니다.</p>
+            <p class="text-xs text-marine-spray mt-1">최신 방송 순으로 정렬되며, 월별로 분류되어 제공됩니다.</p>
         </div>
 
         <!-- [1] 상단 요약 통계 카드 영역 -->
@@ -109,8 +109,15 @@
             </div>
 
             <!-- VOD 목록 출력 영역 -->
-            <div id="vod-list-container" class="space-y-4">
+            <div id="vod-list-container" class="space-y-6">
                 <div class="text-center py-12 text-xs text-marine-spray animate-pulse">구글 시트에서 데이터를 불러오는 중입니다...</div>
+            </div>
+
+            <!-- 더보기 버튼 영역 -->
+            <div id="load-more-container" class="mt-8 text-center hidden">
+                <button onclick="loadMoreVODs()" class="px-6 py-2.5 bg-marine-shallow/60 hover:bg-marine-shallow border border-marine-border text-marine-foam rounded-xl text-xs font-bold transition-all shadow-sm">
+                    <i class="fa-solid fa-chevron-down mr-1 text-marine-cyan"></i> 더보기 (<span id="remaining-count">0</span>개 남음)
+                </button>
             </div>
         </div>
 
@@ -121,6 +128,8 @@
         const VOD_TSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTfTHMy1hImniay9QEPDcMq5C4Yo5yFpmRtBlWo6UXK-FNxABQYbtfGpEsKom2O-OIJPnEi8LLy1Qqx/pub?gid=0&single=true&output=tsv';
         
         let allVodData = [];
+        let filteredVodData = [];
+        let displayLimit = 10; // 기본 표시 개수 10개
 
         async function loadVodData() {
             try {
@@ -153,7 +162,12 @@
                         contentType: r[11]?.trim() || ''
                     }));
 
-                renderVODStats(allVodData);
+                // 최신 날짜 순으로 내림차순 정렬 (YYYY-MM-DD 문자열 비교)
+                allVodData.sort((a, b) => b.date.localeCompare(a.date));
+
+                filteredVodData = [...allVodData];
+                updateGlobalStats(allVodData);
+                renderVODStats();
 
             } catch (e) {
                 console.error("VOD Data Load Error:", e);
@@ -164,7 +178,13 @@
             }
         }
 
-        // 'HH:MM:SS' 또는 'MM:SS' 형태의 문자열을 총 초(Second)로 변환하는 함수
+        function updateGlobalStats(data) {
+            document.getElementById('stat-total-vod').innerText = `${data.length}개`;
+            document.getElementById('stat-sub-vod').innerText = `${data.filter(v => v.subPlus.includes('예') || v.subPlus.includes('O')).length}회`;
+            document.getElementById('stat-adult-vod').innerText = `${data.filter(v => v.adult.includes('예') || v.adult.includes('O')).length}회`;
+            document.getElementById('stat-total-time').innerText = `${data.length}개 방송`;
+        }
+
         function timeToSeconds(timeStr) {
             if (!timeStr) return 0;
             const parts = timeStr.split(':').map(Number);
@@ -176,7 +196,6 @@
             return 0;
         }
 
-        // 텍스트 내에 포함된 시간 패턴을 찾아 초로 변환 후 클릭 가능한 링크 태그로 변환
         function formatDetailItemsWithLinks(text, baseUrl) {
             if (!text || text.trim() === "" || text === "-") return '<span class="text-marine-spray/60">기록 없음</span>';
             
@@ -211,89 +230,135 @@
             return html;
         }
 
-        function renderVODStats(data) {
+        function renderVODStats() {
             const container = document.getElementById('vod-list-container');
-            
-            document.getElementById('stat-total-vod').innerText = `${data.length}개`;
-            document.getElementById('stat-sub-vod').innerText = `${data.filter(v => v.subPlus.includes('예') || v.subPlus.includes('O')).length}회`;
-            document.getElementById('stat-adult-vod').innerText = `${data.filter(v => v.adult.includes('예') || v.adult.includes('O')).length}회`;
-            document.getElementById('stat-total-time').innerText = `${data.length}개 방송`;
+            const loadMoreContainer = document.getElementById('load-more-container');
+            const remainingCountSpan = document.getElementById('remaining-count');
 
-            if (data.length === 0) {
+            if (filteredVodData.length === 0) {
                 container.innerHTML = `<div class="text-center py-12 text-xs text-marine-spray">등록된 VOD 데이터가 없습니다.</div>`;
+                loadMoreContainer.classList.add('hidden');
                 return;
             }
 
-            let html = '';
-            data.forEach(item => {
-                const isSub = item.subPlus.includes('예') || item.subPlus.includes('O');
-                const isAdult = item.adult.includes('예') || item.adult.includes('O');
+            // 현재 displayLimit 만큼 데이터 자르기
+            const currentData = filteredVodData.slice(0, displayLimit);
+            
+            // 월별(YYYY-MM) 그룹화 작업
+            const groupedByMonth = {};
+            currentData.forEach(item => {
+                const monthKey = item.date.substring(0, 7); // "2026-04"
+                if (!groupedByMonth[monthKey]) {
+                    groupedByMonth[monthKey] = [];
+                }
+                groupedByMonth[monthKey].push(item);
+            });
 
-                const tagsHtml = item.contentType ? item.contentType.split(',').map(tag => 
-                    `<span class="px-2 py-0.5 bg-marine-reef border border-marine-border text-marine-spray rounded-md text-[10px] font-semibold">#${tag.trim()}</span>`
-                ).join('') : '';
+            let html = '';
+            
+            // 월별로 순회하며 섹션 생성
+            for (const [month, items] of Object.entries(groupedByMonth)) {
+                const [year, mm] = month.split('-');
+                const monthTitle = `${year}년 ${parseInt(mm, 10)}월`;
 
                 html += `
-                    <div class="bg-marine-deep/60 border border-marine-border/60 rounded-2xl p-4 hover:border-marine-cyan/40 transition-all">
-                        <div class="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
-                            
-                            <!-- 썸네일 및 기본 정보 -->
-                            <div class="flex items-start gap-3.5 min-w-0 flex-grow">
-                                <a href="${item.link}" target="_blank" class="relative aspect-[16/9] w-36 sm:w-44 rounded-xl overflow-hidden shrink-0 bg-marine-void border border-marine-border/40 group block">
-                                    <img src="${item.thumbnail}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" alt="썸네일" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'100\' height=\'100\'><rect width=\'100\' height=\'100\' fill=\'%23112235\'/><text x=\'50%\' y=\'50%\' fill=\'%238fa5b5\' font-size=\'12\' text-anchor=\'middle\' dominant-baseline=\'middle\'>No Image</text></svg>'">
-                                    <div class="absolute inset-0 bg-black/20 group-hover:bg-transparent transition"></div>
-                                </a>
-                                <div class="min-w-0 flex-grow">
-                                    <div class="flex items-center gap-2 mb-1 flex-wrap">
-                                        <span class="text-[10px] text-marine-cyan font-bold bg-marine-cyan/10 px-2 py-0.5 rounded border border-marine-cyan/20">${item.date}</span>
-                                        <span class="text-[10px] text-marine-spray"><i class="fa-regular fa-clock mr-1"></i>${item.vodTime}</span>
-                                        ${isSub ? '<span class="px-1.5 py-0.2 bg-purple-500/10 border border-purple-500/30 text-purple-400 rounded text-[9px] font-bold">구독+</span>' : ''}
-                                        ${isAdult ? '<span class="px-1.5 py-0.2 bg-red-500/10 border border-red-500/30 text-red-400 rounded text-[9px] font-bold">19</span>' : ''}
-                                    </div>
-                                    <a href="${item.link}" target="_blank" class="text-xs sm:text-sm font-bold text-marine-foam hover:text-marine-cyan transition-colors block truncate mb-2">
-                                        ${item.title}
+                    <div class="mb-8 last:mb-0">
+                        <!-- 월별 타이틀 구분선 -->
+                        <div class="flex items-center gap-3 mb-4">
+                            <span class="px-3 py-1 bg-marine-cyan/10 border border-marine-cyan/30 text-marine-cyan font-bold rounded-xl text-xs">
+                                <i class="fa-regular fa-calendar-days mr-1.5"></i> ${monthTitle}
+                            </span>
+                            <div class="flex-grow h-px bg-marine-border/40"></div>
+                            <span class="text-[11px] text-marine-spray">${items.length}개 방송</span>
+                        </div>
+                        <div class="space-y-4">
+                `;
+
+                items.forEach(item => {
+                    const isSub = item.subPlus.includes('예') || item.subPlus.includes('O');
+                    const isAdult = item.adult.includes('예') || item.adult.includes('O');
+
+                    const tagsHtml = item.contentType ? item.contentType.split(',').map(tag => 
+                        `<span class="px-2 py-0.5 bg-marine-reef border border-marine-border text-marine-spray rounded-md text-[10px] font-semibold">#${tag.trim()}</span>`
+                    ).join('') : '';
+
+                    html += `
+                        <div class="bg-marine-deep/60 border border-marine-border/60 rounded-2xl p-4 hover:border-marine-cyan/40 transition-all">
+                            <div class="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
+                                <!-- 썸네일 및 기본 정보 -->
+                                <div class="flex items-start gap-3.5 min-w-0 flex-grow">
+                                    <a href="${item.link}" target="_blank" class="relative aspect-[16/9] w-36 sm:w-44 rounded-xl overflow-hidden shrink-0 bg-marine-void border border-marine-border/40 group block">
+                                        <img src="${item.thumbnail}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" alt="썸네일" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'100\' height=\'100\'><rect width=\'100\' height=\'100\' fill=\'%23112235\'/><text x=\'50%\' y=\'50%\' fill=\'%238fa5b5\' font-size=\'12\' text-anchor=\'middle\' dominant-baseline=\'middle\'>No Image</text></svg>'">
+                                        <div class="absolute inset-0 bg-black/20 group-hover:bg-transparent transition"></div>
                                     </a>
-                                    <!-- 컨텐츠 종류 태그 -->
-                                    <div class="flex flex-wrap gap-1 mt-1">
-                                        ${tagsHtml}
+                                    <div class="min-w-0 flex-grow">
+                                        <div class="flex items-center gap-2 mb-1 flex-wrap">
+                                            <span class="text-[10px] text-marine-cyan font-bold bg-marine-cyan/10 px-2 py-0.5 rounded border border-marine-cyan/20">${item.date}</span>
+                                            <span class="text-[10px] text-marine-spray"><i class="fa-regular fa-clock mr-1"></i>${item.vodTime}</span>
+                                            ${isSub ? '<span class="px-1.5 py-0.2 bg-purple-500/10 border border-purple-500/30 text-purple-400 rounded text-[9px] font-bold">구독+</span>' : ''}
+                                            ${isAdult ? '<span class="px-1.5 py-0.2 bg-red-500/10 border border-red-500/30 text-red-400 rounded text-[9px] font-bold">19</span>' : ''}
+                                        </div>
+                                        <a href="${item.link}" target="_blank" class="text-xs sm:text-sm font-bold text-marine-foam hover:text-marine-cyan transition-colors block truncate mb-2">
+                                            ${item.title}
+                                        </a>
+                                        <div class="flex flex-wrap gap-1 mt-1">
+                                            ${tagsHtml}
+                                        </div>
                                     </div>
+                                </div>
+
+                                <!-- 버튼 영역 -->
+                                <div class="flex items-center gap-2 shrink-0 self-end lg:self-center w-full lg:w-auto justify-end">
+                                    <button onclick="toggleDetail(${item.id})" id="btn-toggle-${item.id}" class="px-3 py-2 bg-marine-shallow/40 hover:bg-marine-shallow border border-marine-border text-marine-foam rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-1.5">
+                                        <i class="fa-solid fa-chart-bar text-marine-cyan"></i> 상세 통계 <i class="fa-solid fa-chevron-down text-[10px] transition-transform duration-300" id="icon-toggle-${item.id}"></i>
+                                    </button>
+                                    <a href="${item.link}" target="_blank" class="px-3.5 py-2 bg-marine-cyan/10 hover:bg-marine-cyan hover:text-marine-deep border border-marine-cyan/30 text-marine-cyan hover:text-marine-deep rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-1.5">
+                                        다시보기 <i class="fa-solid fa-external-link-alt text-[10px]"></i>
+                                    </a>
                                 </div>
                             </div>
 
-                            <!-- 버튼 영역 -->
-                            <div class="flex items-center gap-2 shrink-0 self-end lg:self-center w-full lg:w-auto justify-end">
-                                <button onclick="toggleDetail(${item.id})" id="btn-toggle-${item.id}" class="px-3 py-2 bg-marine-shallow/40 hover:bg-marine-shallow border border-marine-border text-marine-foam rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-1.5">
-                                    <i class="fa-solid fa-chart-bar text-marine-cyan"></i> 상세 통계 <i class="fa-solid fa-chevron-down text-[10px] transition-transform duration-300" id="icon-toggle-${item.id}"></i>
-                                </button>
-                                <a href="${item.link}" target="_blank" class="px-3.5 py-2 bg-marine-cyan/10 hover:bg-marine-cyan hover:text-marine-deep border border-marine-cyan/30 text-marine-cyan hover:text-marine-deep rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-1.5">
-                                    다시보기 <i class="fa-solid fa-external-link-alt text-[10px]"></i>
-                                </a>
+                            <!-- 상세 아코디언 영역 -->
+                            <div id="detail-box-${item.id}" class="hidden mt-4 pt-3 border-t border-marine-border/30 grid grid-cols-1 md:grid-cols-2 gap-3 text-[11px] text-marine-spray transition-all">
+                                <div class="bg-marine-reef/50 p-3 rounded-xl border border-marine-border/20">
+                                    <span class="font-bold text-marine-cyan block"><i class="fa-solid fa-gamepad mr-1"></i> 게임 시간</span>
+                                    ${formatDetailItemsWithLinks(item.gameTime, item.link)}
+                                </div>
+                                <div class="bg-marine-reef/50 p-3 rounded-xl border border-marine-border/20">
+                                    <span class="font-bold text-marine-mint block"><i class="fa-solid fa-music mr-1"></i> 노래 시간</span>
+                                    ${formatDetailItemsWithLinks(item.songTime, item.link)}
+                                </div>
+                                <div class="bg-marine-reef/50 p-3 rounded-xl border border-marine-border/20">
+                                    <span class="font-bold text-marine-coral block"><i class="fa-solid fa-comments mr-1"></i> 소통 시간</span>
+                                    ${formatDetailItemsWithLinks(item.talkTime, item.link)}
+                                </div>
+                                <div class="bg-marine-reef/50 p-3 rounded-xl border border-marine-border/20">
+                                    <span class="font-bold text-yellow-400 block"><i class="fa-solid fa-puzzle-piece mr-1"></i> 컨텐츠 시간</span>
+                                    ${formatDetailItemsWithLinks(item.contentTime, item.link)}
+                                </div>
                             </div>
                         </div>
+                    `;
+                });
+                html += `</div></div>`;
+            }
 
-                        <!-- 상세 아코디언 영역 -->
-                        <div id="detail-box-${item.id}" class="hidden mt-4 pt-3 border-t border-marine-border/30 grid grid-cols-1 md:grid-cols-2 gap-3 text-[11px] text-marine-spray transition-all">
-                            <div class="bg-marine-reef/50 p-3 rounded-xl border border-marine-border/20">
-                                <span class="font-bold text-marine-cyan block"><i class="fa-solid fa-gamepad mr-1"></i> 게임 시간</span>
-                                ${formatDetailItemsWithLinks(item.gameTime, item.link)}
-                            </div>
-                            <div class="bg-marine-reef/50 p-3 rounded-xl border border-marine-border/20">
-                                <span class="font-bold text-marine-mint block"><i class="fa-solid fa-music mr-1"></i> 노래 시간</span>
-                                ${formatDetailItemsWithLinks(item.songTime, item.link)}
-                            </div>
-                            <div class="bg-marine-reef/50 p-3 rounded-xl border border-marine-border/20">
-                                <span class="font-bold text-marine-coral block"><i class="fa-solid fa-comments mr-1"></i> 소통 시간</span>
-                                ${formatDetailItemsWithLinks(item.talkTime, item.link)}
-                            </div>
-                            <div class="bg-marine-reef/50 p-3 rounded-xl border border-marine-border/20">
-                                <span class="font-bold text-yellow-400 block"><i class="fa-solid fa-puzzle-piece mr-1"></i> 컨텐츠 시간</span>
-                                ${formatDetailItemsWithLinks(item.contentTime, item.link)}
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
             container.innerHTML = html;
+
+            // 더보기 버튼 처리
+            const remainingCount = filteredVodData.length - displayLimit;
+            if (remainingCount > 0) {
+                remainingCountSpan.innerText = remainingCount;
+                loadMoreContainer.classList.remove('hidden');
+            } else {
+                loadMoreContainer.classList.add('hidden');
+            }
+        }
+
+        // 더보기 버튼 클릭 시 10개씩 추가 로드
+        function loadMoreVODs() {
+            displayLimit += 10;
+            renderVODStats();
         }
 
         function toggleDetail(id) {
@@ -311,13 +376,14 @@
 
         function filterVODs() {
             const keyword = document.getElementById('vod-search').value.toLowerCase();
-            const filtered = allVodData.filter(v => 
+            filteredVodData = allVodData.filter(v => 
                 v.title.toLowerCase().includes(keyword) || 
                 v.contentType.toLowerCase().includes(keyword) ||
                 v.gameTime.toLowerCase().includes(keyword) ||
                 v.date.includes(keyword)
             );
-            renderVODStats(filtered);
+            displayLimit = 10; // 검색 시 페이징 초기화
+            renderVODStats();
         }
 
         window.addEventListener('DOMContentLoaded', () => {
