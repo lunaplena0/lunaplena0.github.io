@@ -260,7 +260,7 @@
             return 0;
         }
 
-        // 상세 시간 항목들을 보기 편하게 세로 목록(블록) 형태로 가공하는 함수
+        // 시간(HH:MM:SS 또는 MM:SS)을 기준으로 제목과 시간을 완벽히 분리하여 파싱
         function formatDetailItemsAsList(text, baseUrl) {
             if (!text || text.trim() === "" || text === "-") return '<span class="text-marine-spray/50 italic text-[11px]">기록 없음</span>';
             
@@ -270,6 +270,7 @@
             items.forEach(item => {
                 const trimmed = item.trim();
                 if (trimmed) {
+                    // 시간 패턴(HH:MM:SS 또는 MM:SS)을 찾음
                     const timeMatch = trimmed.match(/(\d{2}:\d{2}:\d{2}|\d{2}:\d{2})/);
                     
                     if (timeMatch) {
@@ -277,12 +278,13 @@
                         const totalSeconds = timeToSeconds(timeStr);
                         const targetUrl = `${baseUrl}?change_second=${totalSeconds}`;
                         
-                        // 타임스탬프를 클릭 가능한 버튼형 태그로 강조
-                        const contentDesc = trimmed.replace(timeStr, '').trim();
-                        
+                        // 타임스탬프를 기준으로 앞부분은 타이틀(내용), 뒷부분은 시간으로 정확히 분리
+                        const timeIndex = trimmed.indexOf(timeStr);
+                        const titlePart = trimmed.substring(0, timeIndex).trim() || trimmed.replace(timeStr, '').trim();
+
                         html += `
                             <div class="flex items-center justify-between bg-marine-deep/70 border border-marine-border/40 rounded-lg px-2.5 py-1.5 text-[11px]">
-                                <span class="text-marine-foam font-medium truncate pr-2">${contentDesc || '타임라인 기록'}</span>
+                                <span class="text-marine-foam font-medium truncate pr-2">${titlePart || '타임라인 기록'}</span>
                                 <a href="${targetUrl}" target="_blank" class="shrink-0 px-2 py-0.5 bg-marine-cyan/10 hover:bg-marine-cyan hover:text-marine-deep text-marine-cyan border border-marine-cyan/30 rounded font-mono font-bold transition-colors flex items-center gap-1">
                                     <i class="fa-solid fa-play text-[9px]"></i> ${timeStr}
                                 </a>
@@ -361,7 +363,7 @@
                             </div>
                         </div>
 
-                        <!-- 상세 아코디언 영역 (세로 나열형 구조) -->
+                        <!-- 상세 아코디언 영역 -->
                         <div id="detail-box-${item.id}" class="hidden mt-4 pt-4 border-t border-marine-border/30 grid grid-cols-1 md:grid-cols-2 gap-3.5 text-xs">
                             <div class="bg-marine-reef/60 p-3.5 rounded-2xl border border-marine-border/30">
                                 <span class="font-bold text-marine-cyan flex items-center gap-1.5 mb-2"><i class="fa-solid fa-gamepad"></i> 게임 시간</span>
