@@ -122,9 +122,9 @@
                 <h2 class="font-bold text-base text-marine-foam flex items-center gap-2">
                     <i class="fa-solid fa-list-ul text-marine-mint"></i> 월별 VOD 아카이브
                 </h2>
-                <!-- 검색 입력창 -->
+                <!-- 검색 입력창 (디바운스 적용으로 입력 시 깜빡임 및 과도한 연산 방지) -->
                 <div class="w-full md:w-72">
-                    <input type="text" id="vod-search" placeholder="제목, 컨텐츠, 게임 검색..." oninput="filterVODs()" class="w-full bg-marine-deep border border-marine-border rounded-xl px-3 py-2 text-xs text-marine-foam focus:outline-none focus:border-marine-cyan transition-colors">
+                    <input type="text" id="vod-search" placeholder="제목, 컨텐츠, 게임 검색..." oninput="debounceFilterVODs()" class="w-full bg-marine-deep border border-marine-border rounded-xl px-3 py-2 text-xs text-marine-foam focus:outline-none focus:border-marine-cyan transition-colors">
                 </div>
             </div>
 
@@ -153,9 +153,11 @@
         const VOD_TSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTfTHMy1hImniay9QEPDcMq5C4Yo5yFpmRtBlWo6UXK-FNxABQYbtfGpEsKom2O-OIJPnEi8LLy1Qqx/pub?gid=0&single=true&output=tsv';
         
         let allVodData = [];
+        let filteredVodData = []; // 검색이 적용된 데이터 저장
         let groupedByMonth = {};
         let selectedMonth = ''; 
         let displayLimit = 10;  
+        let searchTimer = null; // 디바운스 타이머
 
         async function loadVodData() {
             try {
@@ -189,10 +191,11 @@
                     }));
 
                 allVodData.sort((a, b) => b.date.localeCompare(a.date));
+                filteredVodData = [...allVodData]; // 초기화
 
                 updateGlobalStats(allVodData);
                 renderTagAnalysis(allVodData);
-                processMonthGrouping(allVodData);
+                processMonthGrouping(filteredVodData);
 
             } catch (e) {
                 console.error("VOD Data Load Error:", e);
@@ -300,6 +303,8 @@
                 if (!selectedMonth || !groupedByMonth[selectedMonth]) {
                     selectedMonth = months[0];
                 }
+            } else {
+                selectedMonth = '';
             }
 
             renderMonthTabs();
@@ -505,17 +510,26 @@
             }
         }
 
+        // 입력할 때마다 매번 실행되지 않고 타이핑이 멈춘 직후에 실행되도록 디바운스 적용
+        function debounceFilterVODs() {
+            clearTimeout(searchTimer);
+            searchTimer = setTimeout(() => {
+                filterVODs();
+            }, 150); // 0.15초 지연
+        }
+
         function filterVODs() {
-            const keyword = document.getElementById('vod-search').value.toLowerCase();
-            const filtered = allVodData.filter(v => 
+            const keyword = document.getElementById('vod-search').value.toLowerCase().trim();
+            
+            filteredVodData = allVodData.filter(v => 
                 v.title.toLowerCase().includes(keyword) || 
                 v.contentType.toLowerCase().includes(keyword) ||
                 v.gameTime.toLowerCase().includes(keyword) ||
                 v.date.includes(keyword)
             );
             
-            processMonthGrouping(filtered);
-            renderTagAnalysis(filtered);
+            processMonthGrouping(filteredVodData);
+            renderTagAnalysis(filteredVodData);
         }
 
         window.addEventListener('DOMContentLoaded', () => {
