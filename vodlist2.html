@@ -20,7 +20,7 @@
                             deep: '#060e16',    /* 심해 배경 */
                             void: '#0a1622',      
                             reef: '#112235',    /* 카드 배경 */
-                            shallow: '#1a334d',   /* 호버 강조색 */
+                            shallow: '#1a334d',    /* 호버 강조색 */
                             foam: '#e3f2fd',      /* 메인 텍스트 */
                             spray: '#8fa5b5',     /* 서브 텍스트 */
                             cyan: '#00e5ff',      /* 네온 사이언 */
@@ -115,7 +115,7 @@
                 </div>
             </button>
             <div id="tag-analysis-box" class="hidden p-5 border-t border-marine-border/30 bg-marine-deep/40">
-                <p class="text-xs text-marine-spray mb-4">전체 VOD에 등록된 컨텐츠 태그의 사용 빈도와 비중을 분석한 결과입니다.</p>
+                <p class="text-xs text-marine-spray mb-4">전체 VOD에 등록된 컨텐츠 태그(구독+, 19 포함)의 사용 빈도와 비중을 분석한 결과입니다.</p>
                 <div id="tag-stats-container" class="space-y-3">
                     <!-- 자바스크립트로 동적 생성 -->
                 </div>
@@ -243,6 +243,7 @@
             let totalTagOccurrences = 0;
 
             data.forEach(item => {
+                // 1. 기존 컨텐츠 태그 파싱
                 if (item.contentType && item.contentType.trim() !== "" && item.contentType !== "-") {
                     const tags = item.contentType.split(',');
                     tags.forEach(tag => {
@@ -252,6 +253,20 @@
                             totalTagOccurrences++;
                         }
                     });
+                }
+
+                // 2. 구독+ 여부 태그 추가
+                const isSub = item.subPlus.includes('예') || item.subPlus.includes('O');
+                if (isSub) {
+                    tagCounts['구독+'] = (tagCounts['구독+'] || 0) + 1;
+                    totalTagOccurrences++;
+                }
+
+                // 3. 성인인증(19) 여부 태그 추가
+                const isAdult = item.adult.includes('예') || item.adult.includes('O');
+                if (isAdult) {
+                    tagCounts['19'] = (tagCounts['19'] || 0) + 1;
+                    totalTagOccurrences++;
                 }
             });
 
