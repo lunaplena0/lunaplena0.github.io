@@ -96,8 +96,11 @@
         </div>
         
         <div id="calendar-body" class="calendar-grid border-t border-l border-r border-b border-marine-border rounded-lg overflow-hidden"></div>
-        <div id="date-detail-info" class="mt-8 p-6 rounded-2xl hidden shadow-2xl">
-            <div id="status-display-area"></div>
+        <!-- 항상 1개 일정 크기 정도의 최소 높이를 유지하도록 수정 (hidden 제거 및 최소 높이 스타일 부여) -->
+        <div id="date-detail-info" class="mt-8 p-6 rounded-2xl shadow-2xl min-h-[110px] flex items-center justify-center">
+            <div id="status-display-area" class="w-full">
+                <p class="text-xs text-marine-foam/50 text-center">날짜를 클릭하여 상세 일정을 확인하세요.</p>
+            </div>
         </div>
     </div>
 
@@ -162,7 +165,7 @@
                 
                 let targetYM = `${targetYear}-${currentM}`;
                 if (!availableYearMonths.includes(targetYM)) {
-                    targetYM = availableYearMonths[availableMonths.length - 1];
+                    targetYM = availableYearMonths[availableYearMonths.length - 1];
                 }
                 document.getElementById('month-select').value = targetYM.substring(5, 7);
                 
@@ -239,7 +242,6 @@
                 cell.innerHTML = `<div class="date-header"><span class="date-num ${dateColorClass}">${d}</span></div>`;
                 
                 allEvents.filter(e => e.date === dateStr).forEach(ev => {
-                    // 휴방 또는 장기휴방인 경우 흰색 글씨(text-white), 그 외는 기본 청록색(text-marine-cyan) 적용
                     const isOff = ev.time.includes('휴방') || ev.type.includes('휴방');
                     const colorClass = isOff ? 'text-white font-semibold' : 'text-marine-cyan'; 
                     cell.innerHTML += `<div class="text-[8px] md:text-[10px] ${colorClass} mt-1 truncate">🔹${ev.time}</div>`;
@@ -251,7 +253,6 @@
 
         function showDateInfo(dateStr) {
             const dayEvents = allEvents.filter(e => e.date === dateStr);
-            const infoBox = document.getElementById('date-detail-info');
             const displayArea = document.getElementById('status-display-area');
             const liveText = document.getElementById('live-status-text');
 
@@ -267,9 +268,10 @@
                     </div>`;
                 }).join('') + `</div>`;
                 liveText.textContent = `선택한 날짜: ${dateStr.replace(/-/g, '.')} (${dayEvents.length}개 일정)`;
-                infoBox.classList.remove('hidden');
-                infoBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            } else infoBox.classList.add('hidden');
+            } else {
+                displayArea.innerHTML = `<p class="text-xs text-marine-foam/50 text-center">등록된 일정이 없습니다.</p>`;
+                liveText.textContent = `선택한 날짜: ${dateStr.replace(/-/g, '.')} (일정 없음)`;
+            }
         }
 
         document.getElementById('year-select').addEventListener('change', (e) => {
