@@ -502,9 +502,23 @@
                 const isAdult = item.adult.includes('예') || item.adult.includes('O');
                 const truncatedTitleText = item.title;
 
-                const tagsHtml = item.contentType ? item.contentType.split(',').map(tag => 
-                    `<span class="px-2 py-0.5 bg-marine-reef border border-marine-border text-marine-spray rounded-md text-[10px] font-semibold">#${tag.trim()}</span>`
-                ).join('') : '';
+                // 태그 배열 조합 (구독+ -> 19 -> 일반 컨텐츠 태그 순서로 정렬)
+                let tagList = [];
+                if (isSub) {
+                    tagList.push(`<span class="px-2 py-0.5 bg-purple-500/10 border border-purple-500/30 text-purple-400 rounded-md text-[10px] font-bold">구독+</span>`);
+                }
+                if (isAdult) {
+                    tagList.push(`<span class="px-2 py-0.5 bg-red-500/10 border border-red-500/30 text-red-400 rounded-md text-[10px] font-bold">19</span>`);
+                }
+                if (item.contentType && item.contentType.trim() !== "" && item.contentType !== "-") {
+                    item.contentType.split(',').forEach(tag => {
+                        const cleanTag = tag.trim();
+                        if (cleanTag) {
+                            tagList.push(`<span class="px-2 py-0.5 bg-marine-reef border border-marine-border text-marine-spray rounded-md text-[10px] font-semibold">#${cleanTag}</span>`);
+                        }
+                    });
+                }
+                const tagsHtml = tagList.join('');
 
                 html += `
                     <div class="bg-marine-deep/60 border border-marine-border/60 rounded-2xl p-4 hover:border-marine-cyan/40 transition-all">
@@ -519,13 +533,11 @@
                                     <div class="flex items-center gap-2 mb-1 flex-wrap">
                                         <span class="text-[10px] text-marine-cyan font-bold bg-marine-cyan/10 px-2 py-0.5 rounded border border-marine-cyan/20">${item.date}</span>
                                         <span class="text-[10px] text-marine-spray"><i class="fa-regular fa-clock mr-1"></i>${item.vodTime}</span>
-                                        ${isSub ? '<span class="px-1.5 py-0.2 bg-purple-500/10 border border-purple-500/30 text-purple-400 rounded text-[9px] font-bold">구독+</span>' : ''}
-                                        ${isAdult ? '<span class="px-1.5 py-0.2 bg-red-500/10 border border-red-500/30 text-red-400 rounded text-[9px] font-bold">19</span>' : ''}
                                     </div>
                                     <a href="${item.link}" target="_blank" title="${item.title}" class="text-xs sm:text-sm font-bold text-marine-foam hover:text-marine-cyan transition-colors block mb-2">
                                         ${truncatedTitleText}
                                     </a>
-                                    <div class="hidden md:flex flex-wrap gap-1 mt-1">
+                                    <div class="hidden md:flex flex-wrap gap-1.5 mt-1">
                                         ${tagsHtml}
                                     </div>
                                 </div>
@@ -543,7 +555,7 @@
                         </div>
 
                         <!-- 모바일 태그 -->
-                        <div class="flex md:hidden flex-wrap gap-1 mt-3">
+                        <div class="flex md:hidden flex-wrap gap-1.5 mt-3">
                             ${tagsHtml}
                         </div>
 
