@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>노래 통계 - 바다비 비공식 팬 아카이브</title>
     <script src="https://cdn.tailwindcss.com"></script>
-     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -32,20 +32,32 @@
             50% { transform: translateX(0%); }
             100% { transform: translateX(100%); }
         }
+        @keyframes spinSlow {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .animate-spin-slow {
+            animation: spinSlow 4s linear infinite;
+        }
     </style>
 </head>
 <body class="text-marine-foam min-h-screen pb-8">
 
-    <!-- 로딩 오버레이 -->
+    <!-- 전체 화면 로딩 오버레이 (바다비.png 적용) -->
     <div id="loading-overlay" class="fixed inset-0 bg-marine-deep z-50 flex flex-col items-center justify-center transition-all duration-700 opacity-100">
         <div class="relative flex flex-col items-center">
-            <div class="relative mb-8">
-                <i class="fa-solid fa-submarine text-marine-cyan text-5xl animate-bounce"></i>
-                <div class="absolute -top-2 -right-2 w-3 h-3 bg-marine-mint rounded-full animate-ping"></div>
+            <!-- 메인 이미지 + 회전하는 원형 로딩 링 -->
+            <div class="relative mb-8 w-28 h-28 flex items-center justify-center">
+                <div class="absolute inset-0 rounded-full border-4 border-transparent border-t-marine-cyan border-r-marine-mint animate-spin-slow"></div>
+                <div class="w-20 h-20 rounded-full overflow-hidden shadow-xl border border-marine-border bg-marine-reef flex items-center justify-center">
+                    <img src="바다비.png" alt="로딩 중" class="w-full h-full object-cover">
+                </div>
             </div>
+            
             <p id="loading-text" class="font-bold tracking-[0.2em] text-sm text-marine-foam animate-pulse">
                 노래기록을 정리하고 있어요 . . .
             </p>
+            
             <div class="w-32 h-1 bg-marine-reef mt-6 rounded-full overflow-hidden">
                 <div class="h-full bg-marine-cyan animate-[loadingBar_2s_ease-in-out_infinite]"></div>
             </div>
@@ -173,12 +185,10 @@
                 div.innerHTML = `
     <button onclick="this.nextElementSibling.classList.toggle('hidden')" class="w-full p-4 flex items-center justify-between">
         <div class="grid grid-cols-[1fr_auto_auto] items-center w-full gap-4">
-            <!-- 아래 클래스를 text-sm md:text-base 로 수정 -->
             <div class="font-bold text-marine-foam group-hover:text-marine-cyan transition-colors truncate text-sm md:text-base text-left">
                 ${displayTitle}
             </div>
             <div class="flex flex-col items-end justify-center gap-0.5 overflow-hidden text-right">
-                <!-- 아티스트 이름도 PC에서 조금 더 키우고 싶다면 아래 수정 -->
                 <span class="text-marine-mint text-[11px] md:text-xs truncate w-[100px] sm:w-[250px]">${bestMeta.artist}</span>
                 <span class="text-marine-cyan font-bold text-[10px] md:text-[11px]">${occurrences.length}회</span>
             </div>
@@ -293,11 +303,17 @@
                 document.getElementById('new-song-count-30').innerText = newSongsCount;
 
                 renderPage();
-                overlay.style.opacity = '0';
-                setTimeout(() => { overlay.classList.add('hidden'); }, 500);
+                
+                if (overlay) {
+                    overlay.style.opacity = '0';
+                    setTimeout(() => { overlay.style.display = 'none'; }, 700);
+                }
             } catch (err) { 
                 console.error("데이터 로드 실패:", err); 
-                overlay.style.display = 'none';
+                if (overlay) {
+                    overlay.style.opacity = '0';
+                    setTimeout(() => { overlay.style.display = 'none'; }, 700);
+                }
             }
         }
         document.addEventListener('DOMContentLoaded', initStats);
@@ -309,7 +325,7 @@
                 const response = await fetch(CONFIG_URL + `&t=${Date.now()}`);
                 const text = await response.text();
                 const rows = text.split(/\r?\n/).map(row => row.split('\t'));
-                const newFaviconUrl = rows[2][2]?.trim(); 
+                const newFaviconUrl = rows[2] ? rows[2][2]?.trim() : null; 
                 if (newFaviconUrl && newFaviconUrl.startsWith('http')) {
                     let favicon = document.querySelector("link[rel~='icon']");
                     if (!favicon) {
@@ -323,14 +339,13 @@
         }
         updateFavicon();
     </script>
-    <!-- [4] 공식 안내 및 카피라이트 푸터 영역 -->
-        <footer style="text-align: center; padding: 20px 10px; color: #b3cde0; font-size: 11px; border-top: 1px solid rgba(0, 229, 255, 0.12); margin-top: 20px; width: 100%; box-sizing: border-box;">
-    <p style="margin: 0; opacity: 0.8; line-height: 1.6; word-break: keep-all; overflow-wrap: break-word;">
-        <strong style="display: block; margin-bottom: 5px; color: #e3f2fd; font-size: 12px;">바다비 비공식 팬 아카이브</strong>
-        모든 권리는 원저작권자(바다비/SOOP)에게 있으며 요청 시 수정·삭제됩니다.<br>
-        <span style="display: inline-block;">비영리로 운영되며, 정보 갱신 시 데이터 반영에 차이가 있을 수 있습니다.</span>
-    </p>
-</footer>
-
+    
+    <footer style="text-align: center; padding: 20px 10px; color: #b3cde0; font-size: 11px; border-top: 1px solid rgba(0, 229, 255, 0.12); margin-top: 20px; width: 100%; box-sizing: border-box;">
+        <p style="margin: 0; opacity: 0.8; line-height: 1.6; word-break: keep-all; overflow-wrap: break-word;">
+            <strong style="display: block; margin-bottom: 5px; color: #e3f2fd; font-size: 12px;">바다비 비공식 팬 아카이브</strong>
+            모든 권리는 원저작권자(바다비/SOOP)에게 있으며 요청 시 수정·삭제됩니다.<br>
+            <span style="display: inline-block;">비영리로 운영되며, 정보 갱신 시 데이터 반영에 차이가 있을 수 있습니다.</span>
+        </p>
+    </footer>
 </body>
 </html>
