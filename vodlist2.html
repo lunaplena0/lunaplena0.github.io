@@ -106,7 +106,8 @@
     <nav class="border-b border-marine-border bg-marine-deep/90 backdrop-blur-md sticky top-0 z-40 mb-8 px-4 sm:px-6 py-3.5">
         <div class="max-w-7xl mx-auto flex justify-between items-center">
             <span class="font-display font-black text-sm tracking-widest text-marine-foam">BABABI ARCHIVE</span>
-            <a href="test.html" class="text-xs font-bold text-marine-cyan hover:text-marine-mint transition">메인으로</a>
+            <a href="test.html" class="text-xs font-bold text-marine-cyan hover:text-marine-mint transition bg-marine-shallow/40 px-3 py-1 rounded-xl border border-marine-border/40 flex items-center gap-1.5">
+                <i class="fa-solid fa-house text-[10px]"></i> 메인으로
             </a>
         </div>
     </nav>
@@ -226,6 +227,26 @@
     <!-- 스크립트 영역 -->
     <script>
         const VOD_TSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTfTHMy1hImniay9QEPDcMq5C4Yo5yFpmRtBlWo6UXK-FNxABQYbtfGpEsKom2O-OIJPnEi8LLy1Qqx/pub?gid=0&single=true&output=tsv';
+        const CONFIG_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTQ3nX6onmaf-ZHhXGox2s4ChGos7ki7iFjQ_47lArZR6dV935gCIbLbvlDDAS65rTEnswSLIk_7v3R/pub?gid=0&single=true&output=tsv';
+
+        async function updateFavicon() {
+            try {
+                const response = await fetch(CONFIG_URL + `&t=${Date.now()}`);
+                const text = await response.text();
+                const rows = text.split(/\r?\n/).map(row => row.split('\t'));
+                const newFaviconUrl = rows[2] ? rows[2][2]?.trim() : null; 
+                if (newFaviconUrl && newFaviconUrl.startsWith('http')) {
+                    let favicon = document.querySelector("link[rel~='icon']");
+                    if (!favicon) {
+                        favicon = document.createElement('link');
+                        favicon.rel = 'icon';
+                        document.head.appendChild(favicon);
+                    }
+                    favicon.href = newFaviconUrl + `?t=${Date.now()}`;
+                }
+            } catch (e) { console.error("Favicon update error:", e); }
+        }
+        updateFavicon();
         
         let allVodData = [];
         let filteredVodData = []; 
@@ -572,10 +593,10 @@
                 const isSub = item.subPlus.includes('예') || item.subPlus.includes('O');
                 const isAdult = item.adult.includes('예') || item.adult.includes('O');
                 
-                // 제목 25글자 제한 적용
+                // 제목 35글자 제한 적용
                 let truncatedTitleText = item.title;
-                if (truncatedTitleText.length > 25) {
-                    truncatedTitleText = truncatedTitleText.substring(0, 25) + '...';
+                if (truncatedTitleText.length > 35) {
+                    truncatedTitleText = truncatedTitleText.substring(0, 35) + '...';
                 }
 
                 let tagList = [];
