@@ -60,15 +60,55 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
+        @keyframes loadingBar {
+            0% { transform: translateX(-100%); }
+            50% { transform: translateX(0%); }
+            100% { transform: translateX(100%); }
+        }
+        @keyframes spinSlow {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .animate-spin-slow {
+            animation: spinSlow 4s linear infinite;
+        }
     </style>
 </head>
 <body class="text-marine-spray min-h-screen pb-20 overflow-x-hidden" onload="loadVodData()">
 
+    <!-- 로딩 오버레이 -->
+    <div id="loading-overlay" class="fixed inset-0 bg-marine-deep z-50 flex flex-col items-center justify-center transition-all duration-700 opacity-100 visibility-visible">
+        <div class="relative flex flex-col items-center">
+            <!-- 메인 이미지 + 회전하는 원형 로딩 링 -->
+            <div class="relative mb-8 w-28 h-28 flex items-center justify-center">
+                <!-- 빙글빙글 도는 원형 링 테두리 -->
+                <div class="absolute inset-0 rounded-full border-4 border-transparent border-t-marine-cyan border-r-marine-mint animate-spin-slow"></div>
+                
+                <!-- 중심에 고정된 바다비.png 이미지 -->
+                <div class="w-20 h-20 rounded-full overflow-hidden shadow-xl border border-marine-border bg-marine-reef flex items-center justify-center">
+                    <img src="바다비.png" alt="로딩 중" class="w-full h-full object-cover" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'100\' height=\'100\'><rect width=\'100\' height=\'100\' fill=\'%23112235\'/><text x=\'50%\' y=\'50%\' fill=\'%238fa5b5\' font-size=\'12\' text-anchor=\'middle\' dominant-baseline=\'middle\'>바다비</text></svg>'">
+                </div>
+            </div>
+            
+            <!-- 텍스트 영역 -->
+            <p id="loading-text" class="font-display tracking-[0.2em] text-sm text-marine-foam animate-pulse">
+                바닷속에서 찾고 있어요 . . .
+            </p>
+            
+            <!-- 진행 바 (심해 느낌) -->
+            <div class="w-32 h-1 bg-marine-reef mt-6 rounded-full overflow-hidden">
+                <div class="h-full bg-marine-cyan animate-[loadingBar_2s_ease-in-out_infinite]"></div>
+            </div>
+        </div>
+    </div>
+
     <!-- 상단 네비게이션 바 -->
-    <nav class="border-b border-marine-border bg-marine-deep/90 backdrop-blur-md sticky top-0 z-40 mb-8">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex justify-between items-center">
+    <nav class="border-b border-marine-border bg-marine-deep/90 backdrop-blur-md sticky top-0 z-40 mb-8 px-4 sm:px-6 py-3.5">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
             <span class="font-display font-black text-sm tracking-widest text-marine-foam">BABABI ARCHIVE</span>
-            <a href="test.html" class="text-xs font-bold text-marine-cyan hover:text-marine-mint transition">메인으로</a>
+            <a href="test.html" class="text-xs font-bold text-marine-cyan hover:text-marine-mint transition bg-marine-shallow/40 px-3 py-1 rounded-xl border border-marine-border/40 flex items-center gap-1.5">
+                <i class="fa-solid fa-house text-[10px]"></i> 메인으로
+            </a>
         </div>
     </nav>
 
@@ -173,6 +213,15 @@
             </div>
         </div>
 
+        <!-- 공식 안내 및 카피라이트 푸터 영역 -->
+        <footer style="text-align: center; padding: 20px 10px; color: #b3cde0; font-size: 11px; border-top: 1px solid rgba(0, 229, 255, 0.12); margin-top: 30px; width: 100%; box-sizing: border-box;">
+            <p style="margin: 0; opacity: 0.8; line-height: 1.6; word-break: keep-all; overflow-wrap: break-word;">
+                <strong style="display: block; margin-bottom: 5px; color: #e3f2fd; font-size: 12px;">바다비 비공식 팬 아카이브</strong>
+                모든 권리는 원저작권자(바다비/SOOP)에게 있으며 요청 시 수정·삭제됩니다.<br>
+                <span style="display: inline-block;">비영리로 운영되며, 정보 갱신 시 데이터 반영에 차이가 있을 수 있습니다.</span>
+            </p>
+        </footer>
+
     </div>
 
     <!-- 스크립트 영역 -->
@@ -187,6 +236,18 @@
         let selectedMonth = ''; 
         let displayLimit = 10;  
         let searchTimer = null; 
+
+        // 로딩 오버레이 숨기기 함수
+        function hideLoadingOverlay() {
+            const overlay = document.getElementById('loading-overlay');
+            if (overlay) {
+                overlay.style.opacity = '0';
+                overlay.style.visibility = 'hidden';
+                setTimeout(() => {
+                    overlay.remove();
+                }, 700);
+            }
+        }
 
         async function loadVodData() {
             try {
@@ -232,6 +293,9 @@
                     <div class="text-center py-12 text-xs text-marine-coral">
                         데이터를 불러오지 못했습니다. 구글 시트 웹 게시 상태를 확인해주세요.
                     </div>`;
+            } finally {
+                // 데이터 로드가 성공하든 실패하든 로딩 오버레이 제거
+                hideLoadingOverlay();
             }
         }
 
@@ -572,7 +636,7 @@
                             ${tagsHtml}
                         </div>
 
-                        <!-- 모바일 버튼 (줄을 꽉 채우도록 균등 분할) -->
+                        <!-- 모바일 버튼 -->
                         <div class="flex lg:hidden items-center gap-2 mt-3 pt-2.5 border-t border-marine-border/20">
                             <button onclick="toggleDetail(${item.id})" id="btn-toggle-${item.id}" class="flex-1 py-2 bg-marine-shallow/40 hover:bg-marine-shallow border border-marine-border text-marine-foam rounded-xl text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-1.5">
                                 <i class="fa-solid fa-chart-bar text-marine-cyan"></i> 상세 통계 <i class="fa-solid fa-chevron-down text-[10px] transition-transform duration-300" id="icon-toggle-${item.id}"></i>
