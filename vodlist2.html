@@ -524,43 +524,43 @@
                     `<span class="px-2 py-0.5 bg-marine-reef border border-marine-border text-marine-spray rounded-md text-[10px] font-semibold">#${tag.trim()}</span>`
                 ).join('') : '';
 
-                // 15자로 글자 수 제한 적용된 제목 (전체 제목은 툴팁(title)으로 제공하여 마우스 올리면 전체 확인 가능)
+                // 15자로 글자 수 제한 적용된 제목
                 const truncatedTitleText = truncateTitle(item.title, 15);
 
                 html += `
                     <div class="bg-marine-deep/60 border border-marine-border/60 rounded-2xl p-4 hover:border-marine-cyan/40 transition-all">
-                        <div class="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
-                            <!-- 썸네일 및 기본 정보 -->
-                            <div class="flex items-start gap-3.5 min-w-0 flex-grow">
-                                <a href="${item.link}" target="_blank" class="relative aspect-[16/9] w-36 sm:w-44 rounded-xl overflow-hidden shrink-0 bg-marine-void border border-marine-border/40 group block">
-                                    <img src="${item.thumbnail}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" alt="썸네일" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'100\' height=\'100\'><rect width=\'100\' height=\'100\' fill=\'%23112235\'/><text x=\'50%\' y=\'50%\' fill=\'%238fa5b5\' font-size=\'12\' text-anchor=\'middle\' dominant-baseline=\'middle\'>No Image</text></svg>'">
-                                    <div class="absolute inset-0 bg-black/20 group-hover:bg-transparent transition"></div>
-                                </a>
-                                <div class="min-w-0 flex-grow">
-                                    <div class="flex items-center gap-2 mb-1 flex-wrap">
-                                        <span class="text-[10px] text-marine-cyan font-bold bg-marine-cyan/10 px-2 py-0.5 rounded border border-marine-cyan/20">${item.date}</span>
-                                        <span class="text-[10px] text-marine-spray"><i class="fa-regular fa-clock mr-1"></i>${item.vodTime}</span>
-                                        ${isSub ? '<span class="px-1.5 py-0.2 bg-purple-500/10 border border-purple-500/30 text-purple-400 rounded text-[9px] font-bold">구독+</span>' : ''}
-                                        ${isAdult ? '<span class="px-1.5 py-0.2 bg-red-500/10 border border-red-500/30 text-red-400 rounded text-[9px] font-bold">19</span>' : ''}
-                                    </div>
-                                    <a href="${item.link}" target="_blank" title="${item.title}" class="text-xs sm:text-sm font-bold text-marine-foam hover:text-marine-cyan transition-colors block mb-2 vod-title-clamp">
-                                        ${truncatedTitleText}
-                                    </a>
-                                    <div class="flex flex-wrap gap-1 mt-1">
-                                        ${tagsHtml}
-                                    </div>
+                        <!-- 상단 영역: [썸네일] + [날짜/시간/제목] -->
+                        <div class="flex items-start gap-3.5 min-w-0">
+                            <a href="${item.link}" target="_blank" class="relative aspect-[16/9] w-36 sm:w-44 rounded-xl overflow-hidden shrink-0 bg-marine-void border border-marine-border/40 group block">
+                                <img src="${item.thumbnail}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" alt="썸네일" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'100\' height=\'100\'><rect width=\'100\' height=\'100\' fill=\'%23112235\'/><text x=\'50%\' y=\'50%\' fill=\'%238fa5b5\' font-size=\'12\' text-anchor=\'middle\' dominant-baseline=\'middle\'>No Image</text></svg>'">
+                                <div class="absolute inset-0 bg-black/20 group-hover:bg-transparent transition"></div>
+                            </a>
+                            <div class="min-w-0 flex-grow">
+                                <div class="flex items-center gap-2 mb-1 flex-wrap">
+                                    <span class="text-[10px] text-marine-cyan font-bold bg-marine-cyan/10 px-2 py-0.5 rounded border border-marine-cyan/20">${item.date}</span>
+                                    <span class="text-[10px] text-marine-spray"><i class="fa-regular fa-clock mr-1"></i>${item.vodTime}</span>
+                                    ${isSub ? '<span class="px-1.5 py-0.2 bg-purple-500/10 border border-purple-500/30 text-purple-400 rounded text-[9px] font-bold">구독+</span>' : ''}
+                                    ${isAdult ? '<span class="px-1.5 py-0.2 bg-red-500/10 border border-red-500/30 text-red-400 rounded text-[9px] font-bold">19</span>' : ''}
                                 </div>
-                            </div>
-
-                            <!-- 버튼 영역 -->
-                            <div class="flex items-center gap-2 shrink-0 self-end lg:self-center w-full lg:w-auto justify-end">
-                                <button onclick="toggleDetail(${item.id})" id="btn-toggle-${item.id}" class="px-3 py-2 bg-marine-shallow/40 hover:bg-marine-shallow border border-marine-border text-marine-foam rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-1.5">
-                                    <i class="fa-solid fa-chart-bar text-marine-cyan"></i> 상세 통계 <i class="fa-solid fa-chevron-down text-[10px] transition-transform duration-300" id="icon-toggle-${item.id}"></i>
-                                </button>
-                                <a href="${item.link}" target="_blank" class="px-3.5 py-2 bg-marine-cyan/10 hover:bg-marine-cyan hover:text-marine-deep border border-marine-cyan/30 text-marine-cyan hover:text-marine-deep rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-1.5">
-                                    다시보기 <i class="fa-solid fa-external-link-alt text-[10px]"></i>
+                                <a href="${item.link}" target="_blank" title="${item.title}" class="text-xs sm:text-sm font-bold text-marine-foam hover:text-marine-cyan transition-colors block vod-title-clamp">
+                                    ${truncatedTitleText}
                                 </a>
                             </div>
+                        </div>
+
+                        <!-- 중간 영역: 태그 목록 (썸네일 아래, 버튼 위) -->
+                        <div class="flex flex-wrap gap-1 mt-3">
+                            ${tagsHtml}
+                        </div>
+
+                        <!-- 하단 영역: 상세 통계 및 다시보기 버튼 -->
+                        <div class="flex items-center gap-2 justify-end mt-3 pt-3 border-t border-marine-border/20">
+                            <button onclick="toggleDetail(${item.id})" id="btn-toggle-${item.id}" class="px-3 py-2 bg-marine-shallow/40 hover:bg-marine-shallow border border-marine-border text-marine-foam rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-1.5">
+                                <i class="fa-solid fa-chart-bar text-marine-cyan"></i> 상세 통계 <i class="fa-solid fa-chevron-down text-[10px] transition-transform duration-300" id="icon-toggle-${item.id}"></i>
+                            </button>
+                            <a href="${item.link}" target="_blank" class="px-3.5 py-2 bg-marine-cyan/10 hover:bg-marine-cyan hover:text-marine-deep border border-marine-cyan/30 text-marine-cyan hover:text-marine-deep rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-1.5">
+                                다시보기 <i class="fa-solid fa-external-link-alt text-[10px]"></i>
+                            </a>
                         </div>
 
                         <!-- 상세 아코디언 영역 -->
