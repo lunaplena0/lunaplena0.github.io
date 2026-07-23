@@ -213,7 +213,7 @@ function renderSchedule(data) {
         const isToday = date === todayStr;
         const isDayOff = category.includes('휴방'); 
         
-        let badgeColor = "bg-marine-shallow/50 border-marine-border/40 text-marine-spray";
+        let badgeColor = "bg-marine-shallow/50 border-marine-border/80 text-marine-spray";
         if (isDayOff) badgeColor = "bg-red-500/10 border-red-500/20 text-red-400 font-bold";
         else if (category.includes('노래') || category.includes('뱅온')) badgeColor = "bg-marine-cyan/10 border-marine-cyan/20 text-marine-cyan";
         else if (category.includes('소통')) badgeColor = "bg-marine-mint/10 border-marine-mint/20 text-marine-mint";
@@ -232,7 +232,7 @@ function renderSchedule(data) {
                     ${time && !isDayOff ? `<span class="text-marine-mint font-bold mr-1">${time}</span>` : ''}${content || '일정 없음'}
                 </div>
             </div>
-            <span class="px-1.5 py-0.5 border rounded text-[8px] font-bold shrink-0 ${badgeColor}">${category || '미정'}</span>
+            <span class="px-1.5 py-0.5 border rounded text-[8px] font-bold shrink-0 ${badgeColor}">${category || '미등록'}</span>
         `;
         container.appendChild(rowDiv);
     });
