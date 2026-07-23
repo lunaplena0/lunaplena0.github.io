@@ -66,17 +66,31 @@
             50% { transform: translateX(0%); }
             100% { transform: translateX(100%); }
         }
+
+        @keyframes spinSlow {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .animate-spin-slow {
+            animation: spinSlow 4s linear infinite;
+        }
     </style>
 </head>
 <body class="text-marine-spray min-h-screen pb-8 overflow-x-hidden">
 
-    <!-- 전체 화면 로딩 오버레이 -->
+    <!-- 전체 화면 로딩 오버레이 (690x690 이미지 적용) -->
     <div id="loading-overlay" class="fixed inset-0 bg-marine-deep z-50 flex flex-col items-center justify-center transition-all duration-700 opacity-100">
         <div class="relative flex flex-col items-center">
-            <!-- 메인 애니메이션 아이콘 -->
-            <div class="relative mb-8">
-                <i class="fa-solid fa-submarine text-marine-cyan text-5xl animate-bounce"></i>
-                <div class="absolute -top-2 -right-2 w-3 h-3 bg-marine-mint rounded-full animate-ping"></div>
+            <!-- 메인 이미지 + 회전하는 원형 로딩 링 -->
+            <div class="relative mb-8 w-28 h-28 flex items-center justify-center">
+                <!-- 빙글빙글 도는 원형 링 테두리 -->
+                <div class="absolute inset-0 rounded-full border-4 border-transparent border-t-marine-cyan border-r-marine-mint animate-spin-slow"></div>
+                
+                <!-- 중심에 고정된 690x690 바다비.png 이미지 -->
+                <div class="w-20 h-20 rounded-full overflow-hidden shadow-xl border border-marine-border bg-marine-reef flex items-center justify-center">
+                    <img src="바다비.png" alt="로딩 중" class="w-full h-full object-cover">
+                </div>
             </div>
             
             <!-- 텍스트 영역 -->
@@ -356,7 +370,7 @@
 
             } catch (e) {
                 console.error("Cry Note Load Error:", e);
-                container.innerHTML = `<div class="text-xs text-marine-spray/40 text-center py-16">울보 노트를 불러올 수 없습니다.</div>`;
+                container.innerHTML = `<div class="text-xs text-marine-spray/40 text-center py-16">눈물 노트를 불러올 수 없습니다.</div>`;
             } finally {
                 // 데이터 로딩 완료 후 전체 화면 로딩 오버레이 부드럽게 페이드아웃
                 if (loadingOverlay) {
