@@ -159,12 +159,12 @@ function renderPosts(data) {
                     <div class="flex items-center gap-1.5">
                         <h4 class="text-xs font-bold text-marine-foam group-hover:text-marine-cyan truncate transition-colors leading-tight">${p[1]}</h4>
                     </div>
-                    <span class="text-[9px] text-marine-spray/40 block mt-0.5">${p[0]}</span>
+                    <span class="text-[9px] text-marine-spray/80 block mt-0.5">${p[0]}</span>
                 </div>
                 ${isNotice ? '<i class="fa-solid fa-thumbtack text-[9px] text-marine-coral shrink-0 ml-1"></i>' : '<i class="fa-regular fa-file-lines text-[9px] text-marine-spray/30 shrink-0 ml-1"></i>'}
             </div>`;
     });
-    postBox.innerHTML = html || `<div class="text-xs text-marine-spray/40 text-center py-8">등록된 공지사항이 없습니다.</div>`;
+    postBox.innerHTML = html || `<div class="text-xs text-marine-spray/80 text-center py-8">등록된 공지사항이 없습니다.</div>`;
 }
 
 // 최근 다시보기 렌더링
@@ -183,12 +183,12 @@ function renderVODs(data) {
                 </div>
                 <div class="min-w-0 flex-grow flex flex-col justify-center">
                     <h4 class="text-xs font-bold text-marine-foam group-hover:text-marine-cyan truncate leading-tight transition-colors">${v[1]}</h4>
-                    <span class="text-[9px] text-marine-spray/40 block mt-0.5">${v[0]}</span>
+                    <span class="text-[9px] text-marine-spray/80 block mt-0.5">${v[0]}</span>
                 </div>
                 ${isPin ? '<i class="fa-solid fa-star text-[9px] text-marine-cyan shrink-0 mr-1"></i>' : ''}
             </div>`;
     });
-    vodBox.innerHTML = html || `<div class="text-xs text-marine-spray/40 text-center py-8">가져온 다시보기가 없습니다.</div>`;
+    vodBox.innerHTML = html || `<div class="text-xs text-marine-spray/80 text-center py-8">가져온 다시보기가 없습니다.</div>`;
 }
 
 // 주간 일정 렌더링
