@@ -52,14 +52,7 @@
         }
         ::-webkit-scrollbar-thumb:hover { background: #00e5ff; }
         .word-keep { word-break: keep-all; overflow-wrap: break-word; }
-        
-        /* VOD 제목 15자 제한 및 말줄임표 처리 */
-        .vod-title-clamp {
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 100%;
-        }
+
     </style>
 </head>
 <body class="text-marine-spray min-h-screen pb-20 overflow-x-hidden">
@@ -187,15 +180,6 @@
         let selectedMonth = ''; 
         let displayLimit = 10;  
         let searchTimer = null; 
-
-        // 제목을 최대 15자로 제한하고 말줄임표 처리하는 함수
-        function truncateTitle(title, limit = 30) {
-            if (!title) return '';
-            if (title.length > limit) {
-                return title.substring(0, limit) + '...';
-            }
-            return title;
-        }
 
         async function loadVodData() {
             try {
@@ -523,9 +507,6 @@
                 const tagsHtml = item.contentType ? item.contentType.split(',').map(tag => 
                     `<span class="px-2 py-0.5 bg-marine-reef border border-marine-border text-marine-spray rounded-md text-[10px] font-semibold">#${tag.trim()}</span>`
                 ).join('') : '';
-
-                // 15자로 글자 수 제한 적용된 제목
-                const truncatedTitleText = truncateTitle(item.title, 30);
 
                 html += `
                     <div class="bg-marine-deep/60 border border-marine-border/60 rounded-2xl p-4 hover:border-marine-cyan/40 transition-all">
