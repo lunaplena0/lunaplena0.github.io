@@ -260,7 +260,7 @@
             return 0;
         }
 
-        // 시간(HH:MM:SS 또는 MM:SS)을 기준으로 제목과 시간을 완벽히 분리하여 파싱
+        // 괄호 안의 시간을 기준으로 분리하고, 괄호가 없으면 전체를 제목으로 표시하는 파싱 함수
         function formatDetailItemsAsList(text, baseUrl) {
             if (!text || text.trim() === "" || text === "-") return '<span class="text-marine-spray/50 italic text-[11px]">기록 없음</span>';
             
@@ -270,17 +270,14 @@
             items.forEach(item => {
                 const trimmed = item.trim();
                 if (trimmed) {
-                    // 시간 패턴(HH:MM:SS 또는 MM:SS)을 찾음
-                    const timeMatch = trimmed.match(/(\d{2}:\d{2}:\d{2}|\d{2}:\d{2})/);
+                    // 괄호 안에 있는 시간 패턴(예: (01:23:45) 또는 (12:34))을 찾음
+                    const match = trimmed.match(/(.*?)\((\d{2}:\d{2}:\d{2}|\d{2}:\d{2})\)/);
                     
-                    if (timeMatch) {
-                        const timeStr = timeMatch[0];
+                    if (match) {
+                        const titlePart = match[1].trim();
+                        const timeStr = match[2];
                         const totalSeconds = timeToSeconds(timeStr);
                         const targetUrl = `${baseUrl}?change_second=${totalSeconds}`;
-                        
-                        // 타임스탬프를 기준으로 앞부분은 타이틀(내용), 뒷부분은 시간으로 정확히 분리
-                        const timeIndex = trimmed.indexOf(timeStr);
-                        const titlePart = trimmed.substring(0, timeIndex).trim() || trimmed.replace(timeStr, '').trim();
 
                         html += `
                             <div class="flex items-center justify-between bg-marine-deep/70 border border-marine-border/40 rounded-lg px-2.5 py-1.5 text-[11px]">
@@ -291,6 +288,7 @@
                             </div>
                         `;
                     } else {
+                        // 괄호와 시간이 따로 없고 글만 써있는 경우 그대로 제목 옆에 표시
                         html += `
                             <div class="bg-marine-deep/70 border border-marine-border/40 rounded-lg px-2.5 py-1.5 text-[11px] text-marine-foam">
                                 ${trimmed}
