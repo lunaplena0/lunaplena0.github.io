@@ -53,15 +53,12 @@
         ::-webkit-scrollbar-thumb:hover { background: #00e5ff; }
         .word-keep { word-break: keep-all; overflow-wrap: break-word; }
         
-        /* 모바일 및 모든 브라우저 대응 완벽한 2줄 제한 클래스 */
+        /* VOD 제목 15자 제한 및 말줄임표 처리 */
         .vod-title-clamp {
-            display: -webkit-box;
-            -webkit-box-orient: vertical;
-            -webkit-line-clamp: 2;
-            line-clamp: 2;
+            white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            word-break: break-all;
+            max-width: 100%;
         }
     </style>
 </head>
@@ -190,6 +187,15 @@
         let selectedMonth = ''; 
         let displayLimit = 10;  
         let searchTimer = null; 
+
+        // 제목을 최대 15자로 제한하고 말줄임표 처리하는 함수
+        function truncateTitle(title, limit = 15) {
+            if (!title) return '';
+            if (title.length > limit) {
+                return title.substring(0, limit) + '...';
+            }
+            return title;
+        }
 
         async function loadVodData() {
             try {
@@ -393,7 +399,6 @@
                     ? 'bg-marine-cyan text-marine-deep font-black border-marine-cyan shadow-md shadow-marine-cyan/25'
                     : 'bg-marine-deep text-marine-spray hover:text-marine-foam border-marine-border';
 
-                // 해당 연도의 총 VOD 개수 계산
                 const yearTotalCount = yearGroups[year].reduce((acc, m) => acc + groupedByMonth[m].length, 0);
 
                 yearHtml += `
@@ -430,7 +435,6 @@
 
         function changeYear(year) {
             selectedYear = year;
-            // 해당 연도의 가장 최신 월을 기본 선택
             const availableMonths = (yearGroups[year] || []).sort((a, b) => b.localeCompare(a));
             if (availableMonths.length > 0) {
                 selectedMonth = availableMonths[0];
@@ -520,6 +524,9 @@
                     `<span class="px-2 py-0.5 bg-marine-reef border border-marine-border text-marine-spray rounded-md text-[10px] font-semibold">#${tag.trim()}</span>`
                 ).join('') : '';
 
+                // 15자로 글자 수 제한 적용된 제목 (전체 제목은 툴팁(title)으로 제공하여 마우스 올리면 전체 확인 가능)
+                const truncatedTitleText = truncateTitle(item.title, 15);
+
                 html += `
                     <div class="bg-marine-deep/60 border border-marine-border/60 rounded-2xl p-4 hover:border-marine-cyan/40 transition-all">
                         <div class="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
@@ -536,8 +543,8 @@
                                         ${isSub ? '<span class="px-1.5 py-0.2 bg-purple-500/10 border border-purple-500/30 text-purple-400 rounded text-[9px] font-bold">구독+</span>' : ''}
                                         ${isAdult ? '<span class="px-1.5 py-0.2 bg-red-500/10 border border-red-500/30 text-red-400 rounded text-[9px] font-bold">19</span>' : ''}
                                     </div>
-                                    <a href="${item.link}" target="_blank" class="text-xs sm:text-sm font-bold text-marine-foam hover:text-marine-cyan transition-colors block mb-2 vod-title-clamp">
-                                        ${item.title}
+                                    <a href="${item.link}" target="_blank" title="${item.title}" class="text-xs sm:text-sm font-bold text-marine-foam hover:text-marine-cyan transition-colors block mb-2 vod-title-clamp">
+                                        ${truncatedTitleText}
                                     </a>
                                     <div class="flex flex-wrap gap-1 mt-1">
                                         ${tagsHtml}
