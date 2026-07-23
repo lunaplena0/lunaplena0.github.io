@@ -77,6 +77,32 @@
         }
         .word-keep { word-break: keep-all; overflow-wrap: break-word; }
     </style>
+    
+    <!-- 구글 시트 연동 파비콘 동적 업데이트 스크립트 -->
+    <script>
+        const CONFIG_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTQ3nX6onmaf-ZHhXGox2s4ChGos7ki7iFjQ_47lArZR6dV935gCIbLbvlDDAS65rTEnswSLIk_7v3R/pub?gid=0&single=true&output=tsv';
+
+        async function updateFavicon() {
+            try {
+                const response = await fetch(CONFIG_URL + `&t=${Date.now()}`);
+                const text = await response.text();
+                const rows = text.split(/\r?\n/).map(row => row.split('\t'));
+                const newFaviconUrl = rows[2] ? rows[2][2]?.trim() : null; 
+                if (newFaviconUrl && newFaviconUrl.startsWith('http')) {
+                    let favicon = document.querySelector("link[rel~='icon']");
+                    if (!favicon) {
+                        favicon = document.createElement('link');
+                        favicon.rel = 'icon';
+                        document.head.appendChild(favicon);
+                    }
+                    favicon.href = newFaviconUrl + `?t=${Date.now()}`;
+                }
+            } catch (e) { console.error("Favicon update error:", e); }
+        }
+
+        // 페이지가 로드될 때 파비콘 업데이트 실행
+        document.addEventListener('DOMContentLoaded', updateFavicon);
+    </script>
 </head>
     
 <body class="text-marine-spray min-h-screen flex flex-col justify-between overflow-x-hidden">
