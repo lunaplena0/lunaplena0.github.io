@@ -77,7 +77,7 @@
         </div>
 
         <!-- [1] 상단 요약 통계 카드 영역 -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
             <div class="bg-marine-reef border border-marine-border rounded-2xl p-4 shadow-lg">
                 <span class="text-[11px] text-marine-spray block mb-1">총 수집 VOD</span>
                 <span id="stat-total-vod" class="text-xl font-black text-marine-foam">0개</span>
@@ -93,6 +93,25 @@
             <div class="bg-marine-reef border border-marine-border rounded-2xl p-4 shadow-lg">
                 <span class="text-[11px] text-marine-spray block mb-1">성인인증 방송</span>
                 <span id="stat-adult-vod" class="text-xl font-black text-marine-coral">0회</span>
+            </div>
+        </div>
+
+        <!-- [1-1] 태그(컨텐츠 종류) 분석 아코디언 영역 -->
+        <div class="bg-marine-reef border border-marine-border rounded-2xl mb-8 shadow-lg overflow-hidden">
+            <button onclick="toggleTagAnalysis()" class="w-full px-5 py-3.5 flex justify-between items-center bg-marine-shallow/30 hover:bg-marine-shallow/60 transition-colors text-left">
+                <span class="font-bold text-xs sm:text-sm text-marine-foam flex items-center gap-2">
+                    <i class="fa-solid fa-tags text-marine-mint"></i> 컨텐츠 종류(태그) 비중 분석
+                </span>
+                <div class="flex items-center gap-2">
+                    <span class="text-[11px] text-marine-spray">통계 펼치기/접기</span>
+                    <i class="fa-solid fa-chevron-down text-xs text-marine-cyan transition-transform duration-300" id="tag-analysis-icon"></i>
+                </div>
+            </button>
+            <div id="tag-analysis-box" class="hidden p-5 border-t border-marine-border/30 bg-marine-deep/40">
+                <p class="text-xs text-marine-spray mb-4">전체 VOD에 등록된 컨텐츠 태그의 사용 빈도와 비중을 분석한 결과입니다.</p>
+                <div id="tag-stats-container" class="space-y-3">
+                    <!-- 자바스크립트로 동적 생성 -->
+                </div>
             </div>
         </div>
 
@@ -172,6 +191,7 @@
                 allVodData.sort((a, b) => b.date.localeCompare(a.date));
 
                 updateGlobalStats(allVodData);
+                renderTagAnalysis(allVodData);
                 processMonthGrouping(allVodData);
 
             } catch (e) {
@@ -183,7 +203,6 @@
             }
         }
 
-        // 총 방송 시간을 초 단위로 합산한 뒤 보기 좋은 형식(시간, 분)으로 변환하는 함수
         function formatTotalBroadcastTime(data) {
             let totalSeconds = 0;
 
@@ -206,6 +225,65 @@
             document.getElementById('stat-total-time').innerText = formatTotalBroadcastTime(data);
             document.getElementById('stat-sub-vod').innerText = `${data.filter(v => v.subPlus.includes('예') || v.subPlus.includes('O')).length}회`;
             document.getElementById('stat-adult-vod').innerText = `${data.filter(v => v.adult.includes('예') || v.adult.includes('O')).length}회`;
+        }
+
+        // 태그(컨텐츠 종류) 비중 분석 통계 렌더링 함수
+        function renderTagAnalysis(data) {
+            const container = document.getElementById('tag-stats-container');
+            const tagCounts = {};
+            let totalTagOccurrences = 0;
+
+            data.forEach(item => {
+                if (item.contentType && item.contentType.trim() !== "" && item.contentType !== "-") {
+                    const tags = item.contentType.split(',');
+                    tags.forEach(tag => {
+                        const cleanTag = tag.trim();
+                        if (cleanTag) {
+                            tagCounts[cleanTag] = (tagCounts[cleanTag] || 0) + 1;
+                            totalTagOccurrences++;
+                        }
+                    });
+                }
+            });
+
+            const sortedTags = Object.entries(tagCounts).sort((a, b) => b[1] - a[1]);
+
+            if (sortedTags.length === 0) {
+                container.innerHTML = `<div class="text-xs text-marine-spray text-center py-4">등록된 컨텐츠 태그가 없습니다.</div>`;
+                return;
+            }
+
+            let html = '';
+            sortedTags.forEach(([tag, count]) => {
+                const percentage = totalTagOccurrences > 0 ? ((count / totalTagOccurrences) * 100).toFixed(1) : 0;
+                
+                html += `
+                    <div>
+                        <div class="flex justify-between items-center text-xs mb-1">
+                            <span class="text-marine-foam font-bold">#${tag}</span>
+                            <span class="text-marine-spray font-mono">${count}회 <span class="text-marine-cyan font-semibold">(${percentage}%)</span></span>
+                        </div>
+                        <div class="w-full bg-marine-deep rounded-full h-2 overflow-hidden border border-marine-border/40">
+                            <div class="bg-gradient-to-r from-marine-cyan to-marine-mint h-full rounded-full transition-all duration-500" style="width: ${percentage}%"></div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        function toggleTagAnalysis() {
+            const box = document.getElementById('tag-analysis-box');
+            const icon = document.getElementById('tag-analysis-icon');
+
+            if (box.classList.contains('hidden')) {
+                box.classList.remove('hidden');
+                icon.style.transform = 'rotate(180deg)';
+            } else {
+                box.classList.add('hidden');
+                icon.style.transform = 'rotate(0deg)';
+            }
         }
 
         function processMonthGrouping(data) {
@@ -438,9 +516,11 @@
             );
             
             processMonthGrouping(filtered);
+            renderTagAnalysis(filtered);
         }
 
         window.addEventListener('DOMContentLoaded', () => {
+            loadWordData(); // 내부적으로 loadVodData() 호출
             loadVodData();
         });
     </script>
