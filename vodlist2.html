@@ -82,7 +82,7 @@
             <h1 class="font-bold text-2xl text-marine-foam flex items-center gap-2.5">
                 <i class="fa-solid fa-chart-pie text-marine-cyan"></i> VOD 방송 통계 및 아카이브
             </h1>
-            <p class="text-xs text-marine-spray mt-1">연도별, 월별 탭을 선택해 해당 기간의 방송 기록을 확인하세요.</p>
+            <p class="text-xs text-marine-spray mt-1">연도를 먼저 선택한 후, 해당 연도의 월을 골라 방송 기록을 확인하세요.</p>
         </div>
 
         <!-- [1] 상단 요약 통계 카드 영역 -->
@@ -129,7 +129,7 @@
             
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 pb-4 border-b border-marine-border/40">
                 <h2 class="font-bold text-base text-marine-foam flex items-center gap-2">
-                    <i class="fa-solid fa-list-ul text-marine-mint"></i> 연도별 / 월별 VOD 아카이브
+                    <i class="fa-solid fa-list-ul text-marine-mint"></i> VOD 아카이브
                 </h2>
                 <!-- 검색 입력창 -->
                 <div class="w-full md:w-72">
@@ -137,9 +137,30 @@
                 </div>
             </div>
 
-            <!-- 연도별 / 월별 선택 탭 구역 생성 영역 -->
-            <div id="month-tabs-container" class="space-y-4 mb-6 pb-6 border-b border-marine-border/30">
-                <!-- 자바스크립트로 연도 구역별 동적 생성 -->
+            <!-- [연도 및 월 선택 탭 영역] -->
+            <div class="bg-marine-deep/40 border border-marine-border/50 rounded-2xl p-4 mb-6 space-y-3">
+                <!-- 1단계: 연도 선택 탭 (가로 나열) -->
+                <div class="flex items-center gap-2 flex-wrap">
+                    <span class="text-[11px] font-bold text-marine-spray flex items-center gap-1 mr-1">
+                        <i class="fa-solid fa-calendar text-marine-cyan"></i> 연도:
+                    </span>
+                    <div id="year-tabs-container" class="flex flex-wrap gap-2">
+                        <!-- 자바스크립트로 연도 버튼 동적 생성 -->
+                    </div>
+                </div>
+
+                <!-- 구분선 -->
+                <div class="h-[1px] bg-marine-border/30 w-full"></div>
+
+                <!-- 2단계: 선택된 연도의 월 선택 탭 (가로 나열) -->
+                <div class="flex items-center gap-2 flex-wrap">
+                    <span class="text-[11px] font-bold text-marine-spray flex items-center gap-1 mr-1">
+                        <i class="fa-solid fa-calendar-days text-marine-mint"></i> 월:
+                    </span>
+                    <div id="month-tabs-container" class="flex flex-wrap gap-2">
+                        <!-- 자바스크립트로 월 버튼 동적 생성 -->
+                    </div>
+                </div>
             </div>
 
             <!-- VOD 목록 출력 영역 -->
@@ -164,6 +185,8 @@
         let allVodData = [];
         let filteredVodData = []; 
         let groupedByMonth = {};
+        let yearGroups = {};
+        let selectedYear = '';
         let selectedMonth = ''; 
         let displayLimit = 10;  
         let searchTimer = null; 
@@ -311,92 +334,116 @@
 
         function processMonthGrouping(data) {
             groupedByMonth = {};
+            yearGroups = {};
+
             data.forEach(item => {
-                const monthKey = item.date.substring(0, 7); 
+                const monthKey = item.date.substring(0, 7); // YYYY-MM
+                const yearKey = item.date.substring(0, 4);   // YYYY
+
                 if (!groupedByMonth[monthKey]) {
                     groupedByMonth[monthKey] = [];
                 }
                 groupedByMonth[monthKey].push(item);
+
+                if (!yearGroups[yearKey]) {
+                    yearGroups[yearKey] = [];
+                }
+                if (!yearGroups[yearKey].includes(monthKey)) {
+                    yearGroups[yearKey].push(monthKey);
+                }
             });
 
-            const months = Object.keys(groupedByMonth);
-            if (months.length > 0) {
-                if (!selectedMonth || !groupedByMonth[selectedMonth]) {
-                    selectedMonth = months[0];
+            const sortedYears = Object.keys(yearGroups).sort((a, b) => b.localeCompare(a));
+
+            if (sortedYears.length > 0) {
+                if (!selectedYear || !yearGroups[selectedYear]) {
+                    selectedYear = sortedYears[0];
+                }
+                
+                const availableMonths = yearGroups[selectedYear].sort((a, b) => b.localeCompare(a));
+                if (!selectedMonth || !availableMonths.includes(selectedMonth)) {
+                    selectedMonth = availableMonths[0];
                 }
             } else {
+                selectedYear = '';
                 selectedMonth = '';
             }
 
-            renderMonthTabs();
+            renderTabs();
             renderVODStats();
         }
 
-        function renderMonthTabs() {
-            const tabsContainer = document.getElementById('month-tabs-container');
-            const months = Object.keys(groupedByMonth);
+        function renderTabs() {
+            const yearTabsContainer = document.getElementById('year-tabs-container');
+            const monthTabsContainer = document.getElementById('month-tabs-container');
+            
+            const sortedYears = Object.keys(yearGroups).sort((a, b) => b.localeCompare(a));
 
-            if (months.length === 0) {
-                tabsContainer.innerHTML = '';
+            if (sortedYears.length === 0) {
+                yearTabsContainer.innerHTML = '';
+                monthTabsContainer.innerHTML = '';
                 return;
             }
 
-            // 연도별로 월 그룹화하기
-            const yearGroups = {};
-            months.forEach(month => {
-                const [year, mm] = month.split('-');
-                if (!yearGroups[year]) {
-                    yearGroups[year] = [];
-                }
-                yearGroups[year].push({ month, mm });
-            });
-
-            // 내림차순 정렬 (최신 연도가 위로)
-            const sortedYears = Object.keys(yearGroups).sort((a, b) => b.localeCompare(a));
-
-            let html = '';
+            // 1. 연도 탭 렌더링
+            let yearHtml = '';
             sortedYears.forEach(year => {
-                html += `
-                    <div class="bg-marine-deep/30 border border-marine-border/40 rounded-2xl p-3.5">
-                        <div class="flex items-center gap-2 mb-2.5">
-                            <span class="text-xs font-bold text-marine-cyan font-mono px-2 py-0.5 bg-marine-cyan/10 rounded border border-marine-cyan/20">
-                                <i class="fa-solid fa-calendar-days mr-1"></i> ${year}년
-                            </span>
-                            <div class="h-[1px] flex-grow bg-marine-border/30"></div>
-                        </div>
-                        <div class="flex flex-wrap gap-2">
-                `;
+                const isYearActive = (year === selectedYear);
+                const yearBtnClass = isYearActive
+                    ? 'bg-marine-cyan text-marine-deep font-black border-marine-cyan shadow-md shadow-marine-cyan/25'
+                    : 'bg-marine-deep text-marine-spray hover:text-marine-foam border-marine-border';
 
-                // 해당 연도의 월들을 내림차순 정렬
-                yearGroups[year].sort((a, b) => b.month.localeCompare(a.month)).forEach(item => {
-                    const count = groupedByMonth[item.month].length;
-                    const isActive = (item.month === selectedMonth);
+                // 해당 연도의 총 VOD 개수 계산
+                const yearTotalCount = yearGroups[year].reduce((acc, m) => acc + groupedByMonth[m].length, 0);
 
-                    const activeClass = isActive 
-                        ? 'bg-marine-cyan text-marine-deep font-black border-marine-cyan shadow-md shadow-marine-cyan/25' 
-                        : 'bg-marine-deep/80 text-marine-spray hover:text-marine-foam border-marine-border';
-
-                    html += `
-                        <button onclick="changeMonth('${item.month}')" class="px-3.5 py-1.5 rounded-xl border text-xs transition-all flex items-center gap-1.5 ${activeClass}">
-                            <span>${parseInt(item.mm, 10)}월</span>
-                            <span class="text-[10px] px-1.5 py-0.2 rounded-full ${isActive ? 'bg-marine-deep text-marine-cyan' : 'bg-marine-reef text-marine-spray'}">${count}</span>
-                        </button>
-                    `;
-                });
-
-                html += `
-                        </div>
-                    </div>
+                yearHtml += `
+                    <button onclick="changeYear('${year}')" class="px-3 py-1.5 rounded-xl border text-xs transition-all flex items-center gap-1.5 ${yearBtnClass}">
+                        <span>${year}년</span>
+                        <span class="text-[10px] px-1.5 py-0.2 rounded-full ${isYearActive ? 'bg-marine-deep text-marine-cyan' : 'bg-marine-reef text-marine-spray'}">${yearTotalCount}</span>
+                    </button>
                 `;
             });
+            yearTabsContainer.innerHTML = yearHtml;
 
-            tabsContainer.innerHTML = html;
+            // 2. 선택된 연도의 월 탭 렌더링
+            let monthHtml = '';
+            const currentMonths = (yearGroups[selectedYear] || []).sort((a, b) => b.localeCompare(a));
+            
+            currentMonths.forEach(monthKey => {
+                const [y, mm] = monthKey.split('-');
+                const isMonthActive = (monthKey === selectedMonth);
+                const monthBtnClass = isMonthActive
+                    ? 'bg-marine-mint text-marine-deep font-black border-marine-mint shadow-md shadow-marine-mint/25'
+                    : 'bg-marine-deep text-marine-spray hover:text-marine-foam border-marine-border';
+
+                const monthCount = groupedByMonth[monthKey].length;
+
+                monthHtml += `
+                    <button onclick="changeMonth('${monthKey}')" class="px-3 py-1.5 rounded-xl border text-xs transition-all flex items-center gap-1.5 ${monthBtnClass}">
+                        <span>${parseInt(mm, 10)}월</span>
+                        <span class="text-[10px] px-1.5 py-0.2 rounded-full ${isMonthActive ? 'bg-marine-deep text-marine-mint' : 'bg-marine-reef text-marine-spray'}">${monthCount}</span>
+                    </button>
+                `;
+            });
+            monthTabsContainer.innerHTML = monthHtml;
+        }
+
+        function changeYear(year) {
+            selectedYear = year;
+            // 해당 연도의 가장 최신 월을 기본 선택
+            const availableMonths = (yearGroups[year] || []).sort((a, b) => b.localeCompare(a));
+            if (availableMonths.length > 0) {
+                selectedMonth = availableMonths[0];
+            }
+            displayLimit = 10;
+            renderTabs();
+            renderVODStats();
         }
 
         function changeMonth(month) {
             selectedMonth = month;
             displayLimit = 10; 
-            renderMonthTabs();
+            renderTabs();
             renderVODStats();
         }
 
