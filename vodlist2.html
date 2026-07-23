@@ -52,10 +52,9 @@
         }
         ::-webkit-scrollbar-thumb:hover { background: #00e5ff; }
         .word-keep { word-break: keep-all; overflow-wrap: break-word; }
-
     </style>
 </head>
-<body class="text-marine-spray min-h-screen pb-20 overflow-x-hidden">
+<body class="text-marine-spray min-h-screen pb-20 overflow-x-hidden" onload="loadVodData()">
 
     <!-- 상단 네비게이션 바 -->
     <nav class="border-b border-marine-border bg-marine-deep/90 backdrop-blur-md sticky top-0 z-40 px-4 py-3.5 mb-8">
@@ -375,7 +374,6 @@
                 return;
             }
 
-            // 1. 연도 탭 렌더링
             let yearHtml = '';
             sortedYears.forEach(year => {
                 const isYearActive = (year === selectedYear);
@@ -394,7 +392,6 @@
             });
             yearTabsContainer.innerHTML = yearHtml;
 
-            // 2. 선택된 연도의 월 탭 렌더링
             let monthHtml = '';
             const currentMonths = (yearGroups[selectedYear] || []).sort((a, b) => b.localeCompare(a));
             
@@ -503,6 +500,7 @@
             currentData.forEach(item => {
                 const isSub = item.subPlus.includes('예') || item.subPlus.includes('O');
                 const isAdult = item.adult.includes('예') || item.adult.includes('O');
+                const truncatedTitleText = item.title;
 
                 const tagsHtml = item.contentType ? item.contentType.split(',').map(tag => 
                     `<span class="px-2 py-0.5 bg-marine-reef border border-marine-border text-marine-spray rounded-md text-[10px] font-semibold">#${tag.trim()}</span>`
@@ -527,14 +525,13 @@
                                     <a href="${item.link}" target="_blank" title="${item.title}" class="text-xs sm:text-sm font-bold text-marine-foam hover:text-marine-cyan transition-colors block mb-2">
                                         ${truncatedTitleText}
                                     </a>
-                                    <!-- PC(md 이상) 화면에서는 썸네일 옆(제목 아래)에 태그가 바로 나옴 -->
                                     <div class="hidden md:flex flex-wrap gap-1 mt-1">
                                         ${tagsHtml}
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- 우측(PC 버전 전용): 버튼 영역 -->
+                            <!-- 우측: PC 버전 버튼 -->
                             <div class="hidden lg:flex items-center gap-2 shrink-0 self-center">
                                 <button onclick="toggleDetail(${item.id})" id="btn-toggle-pc-${item.id}" class="px-3 py-2 bg-marine-shallow/40 hover:bg-marine-shallow border border-marine-border text-marine-foam rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-1.5">
                                     <i class="fa-solid fa-chart-bar text-marine-cyan"></i> 상세 통계 <i class="fa-solid fa-chevron-down text-[10px] transition-transform duration-300" id="icon-toggle-pc-${item.id}"></i>
@@ -545,12 +542,12 @@
                             </div>
                         </div>
 
-                        <!-- 모바일(md 미만) 화면 전용: 태그가 썸네일 아래 줄에 배치됨 -->
+                        <!-- 모바일 태그 -->
                         <div class="flex md:hidden flex-wrap gap-1 mt-3">
                             ${tagsHtml}
                         </div>
 
-                        <!-- 모바일(lg 미만) 화면 전용: 하단 버튼 영역 -->
+                        <!-- 모바일 버튼 -->
                         <div class="flex lg:hidden items-center gap-2 justify-end mt-3 pt-3 border-t border-marine-border/20">
                             <button onclick="toggleDetail(${item.id})" id="btn-toggle-${item.id}" class="px-3 py-2 bg-marine-shallow/40 hover:bg-marine-shallow border border-marine-border text-marine-foam rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-1.5">
                                 <i class="fa-solid fa-chart-bar text-marine-cyan"></i> 상세 통계 <i class="fa-solid fa-chevron-down text-[10px] transition-transform duration-300" id="icon-toggle-${item.id}"></i>
@@ -601,60 +598,40 @@
 
         function toggleDetail(id) {
             const detailBox = document.getElementById(`detail-box-${id}`);
-            const icon = document.getElementById(`icon-toggle-${id}`);
-            const iconPc = document.getElementById(`icon-toggle-pc-${id}`);
-            
+            const iconPC = document.getElementById(`icon-toggle-pc-${id}`);
+            const iconMobile = document.getElementById(`icon-toggle-${id}`);
+
             if (detailBox.classList.contains('hidden')) {
                 detailBox.classList.remove('hidden');
-                if (icon) icon.style.transform = 'rotate(180deg)';
-                if (iconPc) iconPc.style.transform = 'rotate(180deg)';
+                if (iconPC) iconPC.style.transform = 'rotate(180deg)';
+                if (iconMobile) iconMobile.style.transform = 'rotate(180deg)';
             } else {
                 detailBox.classList.add('hidden');
-                if (icon) icon.style.transform = 'rotate(0deg)';
-                if (iconPc) iconPc.style.transform = 'rotate(0deg)';
+                if (iconPC) iconPC.style.transform = 'rotate(0deg)';
+                if (iconMobile) iconMobile.style.transform = 'rotate(0deg)';
             }
         }
 
         function debounceFilterVODs() {
             clearTimeout(searchTimer);
             searchTimer = setTimeout(() => {
-                filterVODs();
-            }, 150); 
-        }
-
-        function filterVODs() {
-            const keyword = document.getElementById('vod-search').value.toLowerCase().trim();
-            
-            filteredVodData = allVodData.filter(v => {
-                const titleMatch = v.title.toLowerCase().includes(keyword);
-                const tagMatch = v.contentType.toLowerCase().includes(keyword);
+                const keyword = document.getElementById('vod-search').value.toLowerCase().trim();
                 
-                const isSub = v.subPlus.includes('예') || v.subPlus.includes('O');
-                const subKeywords = ['구독', '구독+'];
-                const subMatch = subKeywords.some(k => keyword.includes(k)) && isSub;
-
-                const isAdult = v.adult.includes('예') || v.adult.includes('O');
-                const adultKeywords = ['성인', '성인인증', '19'];
-                const adultMatch = adultKeywords.some(k => keyword.includes(k)) && isAdult;
-
-                return titleMatch || tagMatch || subMatch || adultMatch;
-            });
-            
-            processMonthGrouping(filteredVodData);
-            renderTagAnalysis(filteredVodData);
+                if (!keyword) {
+                    filteredVodData = [...allVodData];
+                } else {
+                    filteredVodData = allVodData.filter(item => {
+                        return item.title.toLowerCase().includes(keyword) ||
+                               item.contentType.toLowerCase().includes(keyword) ||
+                               item.date.includes(keyword) ||
+                               (keyword.includes('구독') && (item.subPlus.includes('예') || item.subPlus.includes('O'))) ||
+                               (keyword.includes('19') && (item.adult.includes('예') || item.adult.includes('O')));
+                    });
+                }
+                displayLimit = 10;
+                processMonthGrouping(filteredVodData);
+            }, 300);
         }
-
-        window.addEventListener('DOMContentLoaded', () => {
-            loadVodData();
-        });
     </script>
-    <footer style="text-align: center; padding: 20px 10px; color: #b3cde0; font-size: 11px; border-top: 1px solid rgba(0, 229, 255, 0.12); margin-top: 20px; width: 100%; box-sizing: border-box;">
-    <p style="margin: 0; opacity: 0.8; line-height: 1.6; word-break: keep-all; overflow-wrap: break-word;">
-        <strong style="display: block; margin-bottom: 5px; color: #e3f2fd; font-size: 12px;">바다비 비공식 팬 아카이브</strong>
-        모든 권리는 원저작권자(바다비/SOOP)에게 있으며 요청 시 수정·삭제됩니다.<br>
-        <span style="display: inline-block;">비영리로 운영되며, 정보 갱신 시 데이터 반영에 차이가 있을 수 있습니다.</span>
-    </p>
-</footer>
-
 </body>
 </html>
