@@ -621,8 +621,8 @@
     }
     const tagsHtml = tagList.join('');
 
-    // ✅ [수정] 썸네일 주소가 없으면 기본 No Image SVG를 쓰도록 바깥쪽에서 미리 정의
-    const thumbSrc = item.thumbnail ? item.thumbnail : 'data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'100\' height=\'100\'><rect width=\'100\' height=\'100\' fill=\'%23112235\'/><text x=\'50%\' y=\'50%\' fill=\'%238fa5b5\' font-size=\'12\' text-anchor=\'middle\' dominant-baseline=\'middle\'>No Image</text></svg>';
+    // ✅ [수정] 썸네일 주소가 없거나 깨졌을 때 일관된 디자인의 SVG 썸네일 출력
+    const thumbSrc = item.thumbnail ? item.thumbnail : 'data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'160\' height=\'90\'><rect width=\'160\' height=\'90\' fill=\'%23112235\'/><g fill=\'%238fa5b5\' transform=\'translate(64, 31)\'><path d=\'M16 3.85L12 6.85V3C12 2.45 11.55 2 11 2H2C1.45 2 1 2.45 1 3V13C1 13.55 1.45 14 2 14H11C11.55 14 12 13.55 12 13V9.15L16 12.15V3.85Z\'/></g></svg>';
 
     html += `
         <div class="bg-marine-deep/60 border border-marine-border/60 rounded-2xl p-4 hover:border-marine-cyan/40 transition-all">
@@ -630,8 +630,7 @@
                 <!-- 좌측: 썸네일 및 기본 정보 -->
                 <div class="flex items-start gap-3.5 min-w-0 flex-grow w-full">
                     <a href="${item.link}" target="_blank" class="relative aspect-[16/9] w-32 sm:w-44 rounded-xl overflow-hidden shrink-0 bg-marine-void border border-marine-border/40 group block">
-                        <!-- ✅ [수정] 미리 정의한 thumbSrc 변수 사용 -->
-                        <img src="${thumbSrc}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" alt="썸네일" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'100\' height=\'100\'><rect width=\'100\' height=\'100\' fill=\'%23112235\'/><text x=\'50%\' y=\'50%\' fill=\'%238fa5b5\' font-size=\'12\' text-anchor=\'middle\' dominant-baseline=\'middle\'>No Image</text></svg>'">
+                        <img src="${thumbSrc}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" alt="썸네일" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'160\' height=\'90\'><rect width=\'160\' height=\'90\' fill=\'%23112235\'/><g fill=\'%238fa5b5\' transform=\'translate(64, 31)\'><path d=\'M16 3.85L12 6.85V3C12 2.45 11.55 2 11 2H2C1.45 2 1 2.45 1 3V13C1 13.55 1.45 14 2 14H11C11.55 14 12 13.55 12 13V9.15L16 12.15V3.85Z\'/></g></svg>'">
                         <div class="absolute inset-0 bg-black/20 group-hover:bg-transparent transition"></div>
                     </a>
                     <div class="min-w-0 flex-grow overflow-hidden">
