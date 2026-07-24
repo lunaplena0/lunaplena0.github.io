@@ -176,19 +176,13 @@ function renderVODs(data) {
     let html = '';
     vodData.forEach(v => {
         const isPin = v[4]?.trim() === 'O';
+        // 썸네일 주소가 없거나 비어있을 때의 기본 처리
+        const thumbSrc = (v[3] && v[3].trim() !== "") ? v[3] : 'https://via.placeholder.com/160x90?text=No+Image';
         
-        // ✅ 썸네일 검증 로직 추가 (null, undefined, http 누락 시 기본 No Image 처리)
-        let rawThumb = v[3]?.trim() || '';
-        if (!rawThumb || rawThumb.includes('null') || rawThumb.includes('undefined') || !rawThumb.startsWith('http')) {
-            rawThumb = '';
-        }
-        const thumbSrc = rawThumb ? rawThumb : 'data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'100\' height=\'100\'><rect width=\'100\' height=\'100\' fill=\'%23112235\'/><text x=\'50%\' y=\'50%\' fill=\'%238fa5b5\' font-size=\'12\' text-anchor=\'middle\' dominant-baseline=\'middle\'>No Image</text></svg>';
-
         html += `
             <div onclick="window.open('${v[2]}', '_blank')" class="flex items-center gap-2.5 px-3 py-1 h-[48px] hover:bg-marine-shallow/20 transition-all duration-300 cursor-pointer group relative">
-                <div class="relative aspect-[16/9] h-full rounded overflow-hidden shrink-0 bg-marine-void border border-marine-border/40">
-                    <!-- ✅ 검증된 thumbSrc 변수와 onerror 예외 처리 적용 -->
-                    <img src="${thumbSrc}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" alt="VOD" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'100\' height=\'100\'><rect width=\'100\' height=\'100\' fill=\'%23112235\'/><text x=\'50%\' y=\'50%\' fill=\'%238fa5b5\' font-size=\'12\' text-anchor=\'middle\' dominant-baseline=\'middle\'>No Image</text></svg>'">
+                <div class="relative aspect-[16/9] h-full rounded overflow-hidden shrink-0 bg-marine-void border border-marine-border/40 flex items-center justify-center">
+                    <img src="${thumbSrc}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" alt="VOD" onerror="this.src='https://via.placeholder.com/160x90?text=Error';">
                 </div>
                 <div class="min-w-0 flex-grow flex flex-col justify-center">
                     <h4 class="text-xs font-bold text-marine-foam group-hover:text-marine-cyan truncate leading-tight transition-colors">${v[1]}</h4>
