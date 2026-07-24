@@ -176,15 +176,29 @@ function renderVODs(data) {
     let html = '';
     vodData.forEach(v => {
         const isPin = v[4]?.trim() === 'O';
-        // 썸네일 주소가 없거나 비어있을 때의 기본 처리
-        const thumbSrc = (v[3] && v[3].trim() !== "") ? v[3] : 'https://via.placeholder.com/160x90?text=No+Image';
+        const hasThumb = v[3] && v[3].trim() !== "";
         
+        // 썸네일 유무에 따른 HTML 분기 처리
+        let thumbHtml = '';
+        if (hasThumb) {
+            thumbHtml = `
+                <div class="relative aspect-[16/9] h-full rounded overflow-hidden shrink-0 bg-marine-void border border-marine-border/40">
+                    <img src="${v[3]}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" alt="VOD" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <div class="absolute inset-0 bg-marine-deep flex items-center justify-center text-marine-spray text-[10px]" style="display:none;">
+                        <i class="fa-solid fa-video-slash"></i>
+                    </div>
+                </div>`;
+        } else {
+            thumbHtml = `
+                <div class="relative aspect-[16/9] h-full rounded overflow-hidden shrink-0 bg-marine-deep border border-marine-border/40 flex items-center justify-center text-marine-spray">
+                    <i class="fa-solid fa-video text-xs"></i>
+                </div>`;
+        }
+
         html += `
             <div onclick="window.open('${v[2]}', '_blank')" class="flex items-center gap-2.5 px-3 py-1 h-[48px] hover:bg-marine-shallow/20 transition-all duration-300 cursor-pointer group relative">
-                <div class="relative aspect-[16/9] h-full rounded overflow-hidden shrink-0 bg-marine-void border border-marine-border/40 flex items-center justify-center">
-                    <img src="${thumbSrc}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" alt="VOD" onerror="this.src='https://via.placeholder.com/160x90?text=Error';">
-                </div>
-                <div class="min-w-0 flex-grow flex flex-col justify-center">
+                ${thumbHtml}
+                <div class="min-w-0 flex-grow flex flex-col justify-center overflow-hidden">
                     <h4 class="text-xs font-bold text-marine-foam group-hover:text-marine-cyan truncate leading-tight transition-colors">${v[1]}</h4>
                     <span class="text-[9px] text-marine-spray/80 block mt-0.5">${v[0]}</span>
                 </div>
