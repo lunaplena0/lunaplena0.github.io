@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>바다비 프로필</title>
+    <style>
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f4f7f9;
+        }
+
+        .ocean-profile-container {
+            position: relative;
+            width: 100%;
+            max-width: 1100px;
+            display: flex;
+            align-items: center;
+            justify-content: center; 
+            gap: 40px; 
+            padding: 40px;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: transparent; 
+        }
+
+        /* 왼쪽 바다비 GIF 영역 (정사각형 박스에 맞춘 4방향 균일 선형 페이드) */
+        .profile-gif-area {
+            position: relative;
+            width: 350px; 
+            height: 350px;
+            background-image: url('바다비.gif'); 
+            background-size: contain;
+            background-position: center;
+            background-repeat: no-repeat;
+            
+            -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 20%, rgba(0,0,0,1) 80%, rgba(0,0,0,0) 100%),
+                                linear-gradient(to right, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 20%, rgba(0,0,0,1) 80%, rgba(0,0,0,0) 100%);
+            -webkit-mask-composite: intersect;
+            mask-image: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 20%, rgba(0,0,0,1) 80%, rgba(0,0,0,0) 100%),
+                        linear-gradient(to right, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 20%, rgba(0,0,0,1) 80%, rgba(0,0,0,0) 100%);
+            mask-composite: intersect;
+
+            filter: drop-shadow(0 0 25px rgba(0, 119, 190, 0.6));
+            
+            z-index: 1;
+            opacity: 0.95;
+            flex-shrink: 0;
+        }
+
+        /* 오른쪽 프로필 카드 박스 */
+        .profile-info-card {
+            position: relative;
+            z-index: 2;
+            background: rgba(255, 255, 255, 0.75); 
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(0, 119, 190, 0.15);
+            border-radius: 8px; 
+            padding: 35px;
+            box-shadow: 0 15px 35px rgba(0, 119, 190, 0.12);
+            max-width: 480px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            color: #2b2d42; 
+        }
+
+        /* 상단 프로필 헤더 (움짤 + 이름/캐치프레이즈 가로 배치) */
+        .profile-header-top {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            width: 100%;
+        }
+
+        /* 카드 내부로 옮겨온 GIF 영역 (크기를 줄이고 좌측 상단 기준 정렬) */
+        .profile-header-top .profile-gif-area {
+            width: 110px;
+            height: 110px;
+            filter: drop-shadow(0 0 15px rgba(0, 119, 190, 0.5));
+        }
+
+        .profile-titles {
+            flex: 1;
+            text-align: left;
+        }
+
+        .profile-name {
+            font-size: 34px;
+            font-weight: 900;
+            margin-bottom: 4px;
+            letter-spacing: -1px;
+            color: #03045e;
+        }
+
+        /* 캐치프레이즈 영역 */
+        .profile-catchphrase {
+            display: inline-block;
+            font-size: 13.5px;
+            line-height: 1.4;
+            color: #0077b6;
+            background: rgba(0, 119, 190, 0.08);
+            padding: 6px 12px;
+            border-radius: 4px; 
+            border-left: 4px solid #0077b6; 
+            font-weight: 600;
+        }
+
+        /* 정보 영역 스타일 */
+        .profile-info-grid {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            background: rgba(255, 255, 255, 0.6);
+            padding: 20px;
+            border-radius: 4px; 
+            border: 1px solid rgba(0, 119, 190, 0.1);
+            box-sizing: border-box;
+        }
+
+        .info-item {
+            font-size: 14.5px;
+            line-height: 1.6;
+            display: flex;
+            align-items: baseline;
+            gap: 12px;
+            color: #334155;
+        }
+
+        .info-label {
+            font-weight: 800;
+            color: #0077b6;
+            min-width: 85px;
+            flex-shrink: 0;
+        }
+
+        /* 하단 소개말 영역 */
+        .profile-bio-box {
+            width: 100%;
+            text-align: center;
+            font-size: 15px;
+            line-height: 1.8;
+            color: #1e293b;
+            background: rgba(255, 255, 255, 0.6);
+            padding: 18px;
+            border-radius: 4px; 
+            border: 1px solid rgba(0, 119, 190, 0.1);
+            box-sizing: border-box;
+            word-break: keep-all;
+            font-weight: 500;
+        }
+
+        .profile-bio-box p { margin: 0; }
+        .profile-bio-box p:first-child {
+            font-weight: 800;
+            margin-bottom: 6px;
+            color: #03045e;
+        }
+
+        /* 모바일 화면 대응 */
+        @media (max-width: 768px) {
+            .ocean-profile-container {
+                flex-direction: column;
+                padding: 20px;
+                gap: 20px;
+            }
+            .profile-info-card {
+                max-width: 100%;
+            }
+            /* 모바일에서 세로로 떨어지던 레이아웃을 PC와 동일한 가로 정렬로 고정 */
+            .profile-header-top {
+                flex-direction: row;
+                align-items: center;
+                text-align: left;
+            }
+            .profile-titles {
+                text-align: left;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="ocean-profile-container">
+        <!-- 오른쪽 프로필 카드 영역 (GIF를 상단 왼쪽으로 이동 통합) -->
+        <div class="profile-info-card">
+            <div class="profile-header-top">
+                <!-- 기존 GIF 영역을 카드 상단 왼쪽에 배치 (효과 및 페이드 유지) -->
+                <div class="profile-gif-area"></div>
+                <div class="profile-titles">
+                    <div class="profile-name">바다비。</div>
+                    <div class="profile-catchphrase">
+                        오시마크: 🌊🌧️ &nbsp;|&nbsp; 팬덤명: 꼬용이
+                    </div>
+                </div>
+            </div>
+
+            <div class="profile-info-grid">
+                <div class="info-item"><span class="info-label">나이</span> 20살</div>
+                <div class="info-item"><span class="info-label">생일</span> 1월 9일</div>
+                <div class="info-item"><span class="info-label">성별</span> 여자</div>
+                <div class="info-item"><span class="info-label">인간키</span> 152cm</div>
+                <div class="info-item"><span class="info-label">종족</span> 미니블루드래곤(갯민숭달팽이) 💙</div>
+                <div class="info-item"><span class="info-label">데뷔일</span> 2026년 4월 20일</div>
+                <div class="info-item"><span class="info-label">방송시간</span> 평일 오후 4시 / 주말 오후 2시</div>
+                <div class="info-item"><span class="info-label">주 컨텐츠</span> 소통 & 노래 & 춤 & 기타연주 노래 & ASMR</div>
+            </div>
+
+            <div class="profile-bio-box">
+                <p>바다의 작은 용 , 잘못 만지면 아파요! ↜(⃔っ•̤ ༝ •̤c)⃕</p>
+                <p>"바다의 작은 용? 아니, 바다의 독가시!<br>만져서 찔리면 약도 없는 치명적인 매력, 바다비입니다!"</p>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
