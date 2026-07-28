@@ -128,22 +128,24 @@
             border-collapse: collapse;
             text-align: left;
             font-size: 15px;
+            table-layout: fixed; /* 칸 너비가 데이터 양에 따라 흔들리지 않게 고정 */
         }
 
         .song-table th {
-            background: #e6f0f8; /* 배경색을 채워서 투과되지 않게 수정 */
+            background: #e6f0f8;
             color: #03045e;
             font-weight: 800;
             padding: 14px 16px;
             position: sticky;
             top: 0;
-            z-index: 10; /* 스크롤 시 내용물 위로 확실히 오도록 z-index 부여 */
+            z-index: 10;
         }
 
         .song-table td {
             padding: 14px 16px;
             border-bottom: 1px solid rgba(0, 119, 190, 0.08);
             color: #334155;
+            word-break: break-all; /* 긴 텍스트가 칸을 뚫고 나가지 않게 줄바꿈 처리 */
         }
 
         .song-table tr:hover {
@@ -200,17 +202,16 @@
             </div>
 
             <!-- 검색 입력창 -->
-            <input type="text" id="search-input" class="search-box" placeholder="노래 제목이나 가수를 검색해보세요...">
+            <input type="text" id="search-input" class="search-box" placeholder="노래 제목이나 가수를 검색한 뒤 엔터를 눌러주세요...">
 
             <!-- 노래 목록 테이블 -->
             <div class="song-table-container">
                 <table class="song-table">
                     <thead>
                         <tr>
-                            <th style="width: 50%;">노래제목</th> <!-- 기존 30% + 기타에서 줄어든 20%를 추가하여 50%로 변경 -->
+                            <th style="width: 50%;">노래제목</th>
                             <th style="width: 25%;">가수</th>
-                            <th style="width: 25%;">장르</th> <!-- 기존 20%에서 25%로 조정 -->
-                            <th style="width: 25%; display: none;">기타</th> <!-- 기존 25%에서 장르칸만큼 폭을 맞추되, 화면에는 보이지 않도록 숨김 처리 -->
+                            <th style="width: 25%;">장르</th>
                         </tr>
                     </thead>
                     <tbody id="song-tbody">
@@ -240,14 +241,12 @@
                     let noticeText = "";
                     for (let i = 1; i <= 8 && i < rows.length; i++) {
                         if (rows[i] && rows[i][0]) {
-                            // 앞뒤 따옴표가 있다면 제거
                             let cleanText = rows[i][0].replace(/^"|"$/g, '');
                             noticeText += cleanText + "\n";
                         }
                     }
 
                     if (noticeText.trim() !== "") {
-                        // </br> 단어가 있으면 실제 줄바꿈(\n)으로 변환
                         let formattedNotice = noticeText.trim().replace(/<\/br>/gi, '\n');
                         document.querySelector('.notice-content').innerText = formattedNotice;
                     } else {
@@ -270,17 +269,19 @@
 
                     renderTable(allSongs);
 
-                    // 실시간 검색 기능 추가
-                    document.getElementById('search-input').oninput = (e) => {
-                        const keyword = e.target.value.toLowerCase().trim();
-                        const filtered = allSongs.filter(song => 
-                            song.title.toLowerCase().includes(keyword) || 
-                            song.artist.toLowerCase().includes(keyword) ||
-                            song.genre.toLowerCase().includes(keyword) ||
-                            song.etc.toLowerCase().includes(keyword)
-                        );
-                        renderTable(filtered);
-                    };
+                    // 엔터 키를 입력했을 때만 검색이 실행되도록 이벤트 변경
+                    document.getElementById('search-input').addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter') {
+                            const keyword = e.target.value.toLowerCase().trim();
+                            const filtered = allSongs.filter(song => 
+                                song.title.toLowerCase().includes(keyword) || 
+                                song.artist.toLowerCase().includes(keyword) ||
+                                song.genre.toLowerCase().includes(keyword) ||
+                                song.etc.toLowerCase().includes(keyword)
+                            );
+                            renderTable(filtered);
+                        }
+                    });
                 }
             } catch (error) {
                 console.error('데이터 로드 실패:', error);
@@ -301,7 +302,6 @@
 
             songs.forEach(song => {
                 const tr = document.createElement('tr');
-                // 기타 칸(cols[3])은 화면에서 숨기고, 내용은 제목 칸에 함께 합쳐서 보여줍니다.
                 const combinedTitle = song.etc ? `${song.title} <span style="color: #64748b; font-size: 13px; font-weight: 500;">(${song.etc})</span>` : song.title;
                 
                 tr.innerHTML = `
