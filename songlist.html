@@ -65,6 +65,16 @@
             margin: 0;
         }
 
+        /* 노래 총 개수 표시 스타일 */
+        .song-count {
+            font-size: 15px;
+            font-weight: 600;
+            color: #0077b6;
+            background: rgba(0, 119, 190, 0.1);
+            padding: 4px 10px;
+            border-radius: 20px;
+        }
+
         /* 공지사항 박스 영역 (구글시트 A1~D9 구조 반영) */
         .notice-box {
             background: rgba(0, 119, 190, 0.08);
@@ -193,6 +203,7 @@
         <div class="profile-info-card">
             <div class="songbook-header">
                 <h1 class="songbook-title">🎤 바다비 노래책</h1>
+                <span id="song-count" class="song-count">0곡</span>
             </div>
 
             <!-- 공지칸 영역 -->
@@ -266,6 +277,9 @@
                         }
                     }
 
+                    // 상단에 전체 노래 개수 표시
+                    document.getElementById('song-count').innerText = `${allSongs.length}곡`;
+
                     renderTable(allSongs);
 
                     // 엔터 키 입력 시 검색 실행
@@ -304,7 +318,6 @@
                 
                 let badgeHtml = "";
                 if (song.etc !== "") {
-                    // 예시: 200개는 초록색, 300개는 주황색 계열로 설정 (원하시는 색상으로 변경 가능합니다)
                     let badgeColor = "#0ea5e9"; // 기본 파란색
                     if (song.etc.includes("200")) {
                         badgeColor = "#10b981"; // 초록색 계열
