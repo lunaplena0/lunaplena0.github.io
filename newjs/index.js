@@ -292,7 +292,7 @@ function updateTimelineDisplay(expanded) {
     const container = document.getElementById('timeline-body');
     const displayData = expanded ? allTimelineData : allTimelineData.slice(0, 5);
     
-    container.className = "relative grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-x-4 gap-y-8 mt-6"; 
+    container.className = "relative grid grid-cols-1 lg:grid-cols-5 gap-x-4 gap-y-8 mt-6";
     
     let html = `<div class="absolute top-2 left-[7px] h-full w-[2px] bg-marine-cyan/20 lg:hidden"></div>`;
     
