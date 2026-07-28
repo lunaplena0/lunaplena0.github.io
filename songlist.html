@@ -131,7 +131,7 @@
         }
 
         .song-table th {
-            background: #e6f0f8; /* 배경색을 확실하게 채워서 투과되지 않게 수정 */
+            background: #e6f0f8; /* 배경색을 채워서 투과되지 않게 수정 */
             color: #03045e;
             font-weight: 800;
             padding: 14px 16px;
@@ -207,15 +207,15 @@
                 <table class="song-table">
                     <thead>
                         <tr>
-                            <th style="width: 30%;">노래제목</th>
+                            <th style="width: 50%;">노래제목</th> <!-- 기존 30% + 기타에서 줄어든 20%를 추가하여 50%로 변경 -->
                             <th style="width: 25%;">가수</th>
-                            <th style="width: 20%;">장르</th>
-                            <th style="width: 25%;">기타</th>
+                            <th style="width: 25%;">장르</th> <!-- 기존 20%에서 25%로 조정 -->
+                            <th style="width: 25%; display: none;">기타</th> <!-- 기존 25%에서 장르칸만큼 폭을 맞추되, 화면에는 보이지 않도록 숨김 처리 -->
                         </tr>
                     </thead>
                     <tbody id="song-tbody">
                         <tr>
-                            <td colspan="4" class="loading-text" style="padding: 30px;">로딩중입니다...</td>
+                            <td colspan="3" class="loading-text" style="padding: 30px;">로딩중입니다...</td>
                         </tr>
                     </tbody>
                 </table>
@@ -285,7 +285,7 @@
             } catch (error) {
                 console.error('데이터 로드 실패:', error);
                 document.querySelector('.notice-content').innerText = "공지사항을 불러오지 못했습니다.";
-                document.getElementById('song-tbody').innerHTML = `<tr><td colspan="4" class="loading-text" style="padding: 30px; color: #ef4444;">데이터 로드 실패</td></tr>`;
+                document.getElementById('song-tbody').innerHTML = `<tr><td colspan="3" class="loading-text" style="padding: 30px; color: #ef4444;">데이터 로드 실패</td></tr>`;
             }
         }
 
@@ -295,17 +295,19 @@
             tbody.innerHTML = "";
 
             if (songs.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" class="loading-text" style="padding: 30px;">검색된 노래가 없습니다.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="3" class="loading-text" style="padding: 30px;">검색된 노래가 없습니다.</td></tr>`;
                 return;
             }
 
             songs.forEach(song => {
                 const tr = document.createElement('tr');
+                // 기타 칸(cols[3])은 화면에서 숨기고, 내용은 제목 칸에 함께 합쳐서 보여줍니다.
+                const combinedTitle = song.etc ? `${song.title} <span style="color: #64748b; font-size: 13px; font-weight: 500;">(${song.etc})</span>` : song.title;
+                
                 tr.innerHTML = `
-                    <td>${song.title}</td>
+                    <td>${combinedTitle}</td>
                     <td>${song.artist}</td>
                     <td>${song.genre}</td>
-                    <td>${song.etc}</td>
                 `;
                 tbody.appendChild(tr);
             });
