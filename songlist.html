@@ -200,7 +200,7 @@
             </div>
 
             <!-- 검색 입력창 -->
-            <input type="text" class="search-box" placeholder="노래 제목이나 가수를 검색해보세요...">
+            <input type="text" id="search-input" class="search-box" placeholder="노래 제목이나 가수를 검색해보세요...">
 
             <!-- 노래 목록 테이블 -->
             <div class="song-table-container">
@@ -213,7 +213,7 @@
                             <th style="width: 25%;">기타</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="song-tbody">
                         <tr>
                             <td colspan="4" class="loading-text" style="padding: 30px;">로딩중입니다...</td>
                         </tr>
@@ -223,15 +223,57 @@
         </div>
     </div>
 
-    <!-- 구글 시트 연동 스크립트 -->
+    <!-- 구글 시트 연동 및 파싱 스크립트 -->
     <script>
         const tsvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ2WQUFSDIK2TzQICEyBQ0xwsBBuOdOKDdCGu3p08niQf25AgYeO8P6MT7vg-Hd4e6Xoqb6QNIgmSBu/pub?output=tsv';
+
+        // 따옴표(줄바꿈 포함)를 올바르게 처리하는 TSV 파서 함수
+        function parseTSV(text) {
+            let rows = [];
+            let currentRow = [];
+            let currentField = "";
+            let inQuotes = false;
+
+            for (let i = 0; i < text.length; i++) {
+                let char = text[i];
+                let nextChar = text[i + 1];
+
+                if (char === '"') {
+                    if (inQuotes && nextChar === '"') {
+                        currentField += '"';
+                        i++; // 따옴표 이스케이프 처리 스킵
+                    } else {
+                        inQuotes = !inQuotes;
+                    }
+                } else if (char === '\t' && !inQuotes) {
+                    currentRow.push(currentField);
+                    currentField = "";
+                } else if ((char === '\r' || char === '\n') && !inQuotes) {
+                    if (char === '\r' && nextChar === '\n') {
+                        i++;
+                    }
+                    currentRow.push(currentField);
+                    rows.push(currentRow);
+                    currentRow = [];
+                    currentField = "";
+                } else {
+                    currentField += char;
+                }
+            }
+            if (currentField !== "" || currentRow.length > 0) {
+                currentRow.push(currentField);
+                rows.push(currentRow);
+            }
+            return rows;
+        }
+
+        let allSongs = [];
 
         async function loadSheetData() {
             try {
                 const response = await fetch(tsvUrl);
                 const text = await response.text();
-                const rows = text.split('\n').map(row => row.split('\t'));
+                const rows = parseTSV(text);
 
                 if (rows.length > 0) {
                     // 1. 공지사항 반영 (A2~D9 영역 추출)
@@ -248,35 +290,61 @@
                     }
 
                     // 2. 노래 목록 반영 (11행(index 10)부터 데이터 시작)
-                    const tbody = document.querySelector('.song-table tbody');
-                    tbody.innerHTML = "";
-
-                    let songRowsFound = false;
+                    allSongs = [];
                     for (let i = 10; i < rows.length; i++) {
                         const cols = rows[i];
                         if (cols && cols.length >= 4 && cols[0].trim() !== "") {
-                            songRowsFound = true;
-                            const tr = document.createElement('tr');
-                            tr.innerHTML = `
-                                <td>${cols[0] || ''}</td>
-                                <td>${cols[1] || ''}</td>
-                                <td>${cols[2] || ''}</td>
-                                <td>${cols[3] || ''}</td>
-                            `;
-                            tbody.appendChild(tr);
+                            allSongs.push({
+                                title: cols[0] || '',
+                                artist: cols[1] || '',
+                                genre: cols[2] || '',
+                                etc: cols[3] || ''
+                            });
                         }
                     }
 
-                    if (!songRowsFound) {
-                        tbody.innerHTML = `<tr><td colspan="4" class="loading-text" style="padding: 30px;">등록된 노래가 없습니다.</td></tr>`;
-                    }
+                    renderTable(allSongs);
                 }
             } catch (error) {
                 console.error('데이터 로드 실패:', error);
                 document.querySelector('.notice-content').innerText = "공지사항을 불러오지 못했습니다.";
-                document.querySelector('.song-table tbody').innerHTML = `<tr><td colspan="4" class="loading-text" style="padding: 30px; color: #ef4444;">데이터 로드 실패</td></tr>`;
+                document.getElementById('song-tbody').innerHTML = `<tr><td colspan="4" class="loading-text" style="padding: 30px; color: #ef4444;">데이터 로드 실패</td></tr>`;
             }
         }
+
+        // 테이블 렌더링 함수 (검색 기능 연동)
+        function renderTable(songs) {
+            const tbody = document.getElementById('song-tbody');
+            tbody.innerHTML = "";
+
+            if (songs.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="loading-text" style="padding: 30px;">검색된 노래가 없습니다.</td></tr>`;
+                return;
+            }
+
+            songs.forEach(song => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${song.title}</td>
+                    <td>${song.artist}</td>
+                    <td>${song.genre}</td>
+                    <td>${song.etc}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // 실시간 검색 기능 추가
+        document.getElementById('search-input').addEventListener('input', (e) => {
+            const keyword = e.target.value.toLowerCase().trim();
+            const filtered = allSongs.filter(song => 
+                song.title.toLowerCase().includes(keyword) || 
+                song.artist.toLowerCase().includes(keyword) ||
+                song.genre.toLowerCase().includes(keyword) ||
+                song.etc.toLowerCase().includes(keyword)
+            );
+            renderTable(filtered);
+        });
 
         loadSheetData();
     </script>
