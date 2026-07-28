@@ -178,17 +178,17 @@
             body {
                 overflow: auto;
                 height: auto;
-                justify-content: flex-start; /* 좌우가 좁아져 길어져도 풋터가 멀어지지 않게 상단 정렬 */
+                justify-content: flex-start;
             }
             .ocean-profile-container {
                 height: auto;
-                min-height: auto; /* 최소 높이 제한을 풀어 풋터가 콘텐츠 바로 아래에 오도록 수정 */
+                min-height: auto;
                 padding: 16px;
             }
             .profile-info-card {
                 height: auto;
                 max-height: none;
-                padding: 16px; /* 여백을 다시 통일감 있게 복원 */
+                padding: 16px;
                 gap: 16px;
             }
             .song-table th, .song-table td {
@@ -237,11 +237,32 @@
         </div>
     </div>
 
-    <!-- 구글 시트 연동 및 파싱 스크립트 -->
+    <!-- 구글 시트 연동 및 캐싱 파싱 스크립트 -->
     <script>
         const tsvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ2WQUFSDIK2TzQICEyBQ0xwsBBuOdOKDdCGu3p08niQf25AgYeO8P6MT7vg-Hd4e6Xoqb6QNIgmSBu/pub?output=tsv';
+        
+        // 캐시 설정 (단위: 밀리초) - 예: 30분 = 30 * 60 * 1000
+        const CACHE_KEY = 'badabi_songbook_data';
+        const CACHE_EXPIRY_KEY = 'badabi_songbook_expiry';
+        const CACHE_DURATION = 30 * 60 * 1000; 
 
         async function loadSheetData() {
+            const cachedData = localStorage.getItem(CACHE_KEY);
+            const cacheExpiry = localStorage.getItem(CACHE_EXPIRY_KEY);
+            const now = new Date().getTime();
+
+            // 캐시가 존재하고 만료되지 않은 경우 로컬 데이터 사용
+            if (cachedData && cacheExpiry && now < parseInt(cacheExpiry, 10)) {
+                try {
+                    const parsedData = JSON.parse(cachedData);
+                    applyDataToUI(parsedData.noticeText, parsedData.allSongs);
+                    return;
+                } catch (e) {
+                    console.warn("캐시 데이터 파싱 실패, 새로 요청합니다.", e);
+                }
+            }
+
+            // 캐시가 없거나 만료된 경우 Google Sheet TSV 재요청
             try {
                 const response = await fetch(tsvUrl);
                 const text = await response.text();
@@ -249,7 +270,7 @@
                 const rows = text.split('\n').map(row => row.split('\t'));
 
                 if (rows.length > 0) {
-                    // 1. 공지사항 반영
+                    // 1. 공지사항 추출
                     let noticeText = "";
                     for (let i = 1; i <= 8 && i < rows.length; i++) {
                         if (rows[i] && rows[i][0]) {
@@ -258,14 +279,7 @@
                         }
                     }
 
-                    if (noticeText.trim() !== "") {
-                        let formattedNotice = noticeText.trim().replace(/<\/br>/gi, '\n');
-                        document.querySelector('.notice-content').innerText = formattedNotice;
-                    } else {
-                        document.querySelector('.notice-content').innerText = "공지사항이 없습니다.";
-                    }
-
-                    // 2. 노래 목록 반영
+                    // 2. 노래 목록 추출
                     let allSongs = [];
                     for (let i = 10; i < rows.length; i++) {
                         const cols = rows[i];
@@ -279,30 +293,53 @@
                         }
                     }
 
-                    // 상단에 전체 노래 개수 표시
-                    document.getElementById('song-count').innerText = `${allSongs.length}곡`;
+                    // 캐시 저장
+                    const dataToCache = { noticeText, allSongs };
+                    localStorage.setItem(CACHE_KEY, JSON.stringify(dataToCache));
+                    localStorage.setItem(CACHE_EXPIRY_KEY, (now + CACHE_DURATION).toString());
 
-                    renderTable(allSongs);
-
-                    // 엔터 키 입력 시 검색 실행
-                    document.getElementById('search-input').addEventListener('keydown', (e) => {
-                        if (e.key === 'Enter') {
-                            const keyword = e.target.value.toLowerCase().trim();
-                            const filtered = allSongs.filter(song => 
-                                song.title.toLowerCase().includes(keyword) || 
-                                song.artist.toLowerCase().includes(keyword) ||
-                                song.genre.toLowerCase().includes(keyword) ||
-                                song.etc.toLowerCase().includes(keyword)
-                            );
-                            renderTable(filtered);
-                        }
-                    });
+                    // UI 반영
+                    applyDataToUI(noticeText, allSongs);
                 }
             } catch (error) {
                 console.error('데이터 로드 실패:', error);
                 document.querySelector('.notice-content').innerText = "공지사항을 불러오지 못했습니다.";
                 document.getElementById('song-tbody').innerHTML = `<tr><td colspan="3" class="loading-text" style="padding: 30px; color: #ef4444;">데이터 로드 실패</td></tr>`;
             }
+        }
+
+        // 데이터를 받아서 UI 요소들에 렌더링하고 검색 이벤트를 연결하는 함수
+        function applyDataToUI(noticeText, allSongs) {
+            // 공지사항 반영
+            if (noticeText && noticeText.trim() !== "") {
+                let formattedNotice = noticeText.trim().replace(/<\/br>/gi, '\n');
+                document.querySelector('.notice-content').innerText = formattedNotice;
+            } else {
+                document.querySelector('.notice-content').innerText = "공지사항이 없습니다.";
+            }
+
+            // 노래 개수 표시
+            document.getElementById('song-count').innerText = `${allSongs.length}곡`;
+
+            // 테이블 렌더링
+            renderTable(allSongs);
+
+            // 검색 이벤트 등록
+            const searchInput = document.getElementById('search-input');
+            
+            // 기존 이벤트 리스너 중복 등록 방지를 위해 덮어쓰기 처리
+            searchInput.onkeydown = (e) => {
+                if (e.key === 'Enter') {
+                    const keyword = e.target.value.toLowerCase().trim();
+                    const filtered = allSongs.filter(song => 
+                        song.title.toLowerCase().includes(keyword) || 
+                        song.artist.toLowerCase().includes(keyword) ||
+                        song.genre.toLowerCase().includes(keyword) ||
+                        song.etc.toLowerCase().includes(keyword)
+                    );
+                    renderTable(filtered);
+                }
+            };
         }
 
         // 테이블 렌더링 함수
@@ -317,30 +354,28 @@
 
             songs.forEach(song => {
                 const tr = document.createElement('tr');
-                
                 let badgesHtml = "";
 
-                // 1. 기존 기타칸(etc)에 있는 내용([200개], [300개] 등) 배지 처리
+                // 1. 기타(etc) 칸 배지
                 if (song.etc !== "") {
-                    let badgeColor = "#0ea5e9"; // 기본 파란색
+                    let badgeColor = "#0ea5e9";
                     if (song.etc.includes("200")) {
-                        badgeColor = "#10b981"; // 초록색 계열
+                        badgeColor = "#10b981";
                     } else if (song.etc.includes("300")) {
-                        badgeColor = "#f97316"; // 주황색 계열
+                        badgeColor = "#f97316";
                     }
-
                     badgesHtml += `<span style="background-color: ${badgeColor}; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 600; margin-right: 4px; display: inline-block;">${song.etc}</span>`;
                 }
                 
-                // 2. 노래 제목 앞에 [기타] 태그가 포함되어 있는 경우 분리해서 색상 배지로 변환
+                // 2. 노래 제목 [기타] 태그 배지
                 let cleanTitle = song.title;
                 const guitarMatch = cleanTitle.match(/^\[기타\]\s*/);
                 if (guitarMatch) {
                     badgesHtml += `<span style="background-color: #8b5cf6; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 600; margin-right: 4px; display: inline-block;">[기타]</span>`;
-                    cleanTitle = cleanTitle.replace(/^\[기타\]\s*/, ''); // 제목에서 [기타] 텍스트 제거
+                    cleanTitle = cleanTitle.replace(/^\[기타\]\s*/, '');
                 }
 
-                // 3. 노래 제목이 띄어쓰기 포함 22글자를 넘어가면 자르고 말줄임표(...) 처리
+                // 3. 노래 제목 글자수 제한
                 if (cleanTitle.length > 22) {
                     cleanTitle = cleanTitle.substring(0, 22) + '...';
                 }
