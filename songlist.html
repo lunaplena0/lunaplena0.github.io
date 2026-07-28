@@ -316,7 +316,9 @@
             songs.forEach(song => {
                 const tr = document.createElement('tr');
                 
-                let badgeHtml = "";
+                let badgesHtml = "";
+
+                // 1. 기존 기타칸(etc)에 있는 내용([200개], [300개] 등) 배지 처리
                 if (song.etc !== "") {
                     let badgeColor = "#0ea5e9"; // 기본 파란색
                     if (song.etc.includes("200")) {
@@ -325,10 +327,18 @@
                         badgeColor = "#f97316"; // 주황색 계열
                     }
 
-                    badgeHtml = `<span style="background-color: ${badgeColor}; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 600; margin-right: 6px; display: inline-block;">${song.etc}</span>`;
+                    badgesHtml += `<span style="background-color: ${badgeColor}; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 600; margin-right: 4px; display: inline-block;">${song.etc}</span>`;
                 }
                 
-                const combinedTitle = `${badgeHtml}${song.title}`;
+                // 2. 노래 제목 앞에 [기타] 태그가 포함되어 있는 경우 분리해서 색상 배지로 변환
+                let cleanTitle = song.title;
+                const guitarMatch = cleanTitle.match(/^\[기타\]\s*/);
+                if (guitarMatch) {
+                    badgesHtml += `<span style="background-color: #8b5cf6; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 600; margin-right: 4px; display: inline-block;">[기타]</span>`;
+                    cleanTitle = cleanTitle.replace(/^\[기타\]\s*/, ''); // 제목에서 [기타] 텍스트 제거
+                }
+
+                const combinedTitle = `${badgesHtml}${cleanTitle}`;
                 
                 tr.innerHTML = `
                     <td>${combinedTitle}</td>
