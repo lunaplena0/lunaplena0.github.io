@@ -227,83 +227,60 @@
     <script>
         const tsvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ2WQUFSDIK2TzQICEyBQ0xwsBBuOdOKDdCGu3p08niQf25AgYeO8P6MT7vg-Hd4e6Xoqb6QNIgmSBu/pub?output=tsv';
 
-        // 따옴표(줄바꿈 포함)를 올바르게 처리하는 TSV 파서 함수
-        function parseTSV(text) {
-            let rows = [];
-            let currentRow = [];
-            let currentField = "";
-            let inQuotes = false;
-
-            for (let i = 0; i < text.length; i++) {
-                let char = text[i];
-                let nextChar = text[i + 1];
-
-                if (char === '"') {
-                    if (inQuotes && nextChar === '"') {
-                        currentField += '"';
-                        i++; // 따옴표 이스케이프 처리 스킵
-                    } else {
-                        inQuotes = !inQuotes;
-                    }
-                } else if (char === '\t' && !inQuotes) {
-                    currentRow.push(currentField);
-                    currentField = "";
-                } else if ((char === '\r' || char === '\n') && !inQuotes) {
-                    if (char === '\r' && nextChar === '\n') {
-                        i++;
-                    }
-                    currentRow.push(currentField);
-                    rows.push(currentRow);
-                    currentRow = [];
-                    currentField = "";
-                } else {
-                    currentField += char;
-                }
-            }
-            if (currentField !== "" || currentRow.length > 0) {
-                currentRow.push(currentField);
-                rows.push(currentRow);
-            }
-            return rows;
-        }
-
-        let allSongs = [];
-
         async function loadSheetData() {
             try {
                 const response = await fetch(tsvUrl);
                 const text = await response.text();
-                const rows = parseTSV(text);
+                
+                // 단순 줄바꿈 단위로 행 분리
+                const rows = text.split('\n').map(row => row.split('\t'));
 
                 if (rows.length > 0) {
                     // 1. 공지사항 반영 (A2~D9 영역 추출)
                     let noticeText = "";
                     for (let i = 1; i <= 8 && i < rows.length; i++) {
                         if (rows[i] && rows[i][0]) {
-                            noticeText += rows[i][0] + "\n";
+                            // 앞뒤 따옴표가 있다면 제거
+                            let cleanText = rows[i][0].replace(/^"|"$/g, '');
+                            noticeText += cleanText + "\n";
                         }
                     }
+
                     if (noticeText.trim() !== "") {
-                        document.querySelector('.notice-content').innerText = noticeText.trim();
+                        // </br> 단어가 있으면 실제 줄바꿈(\n)으로 변환
+                        let formattedNotice = noticeText.trim().replace(/<\/br>/gi, '\n');
+                        document.querySelector('.notice-content').innerText = formattedNotice;
                     } else {
                         document.querySelector('.notice-content').innerText = "공지사항이 없습니다.";
                     }
 
                     // 2. 노래 목록 반영 (11행(index 10)부터 데이터 시작)
-                    allSongs = [];
+                    let allSongs = [];
                     for (let i = 10; i < rows.length; i++) {
                         const cols = rows[i];
                         if (cols && cols.length >= 4 && cols[0].trim() !== "") {
                             allSongs.push({
-                                title: cols[0] || '',
-                                artist: cols[1] || '',
-                                genre: cols[2] || '',
-                                etc: cols[3] || ''
+                                title: (cols[0] || '').replace(/^"|"$/g, ''),
+                                artist: (cols[1] || '').replace(/^"|"$/g, ''),
+                                genre: (cols[2] || '').replace(/^"|"$/g, ''),
+                                etc: (cols[3] || '').replace(/^"|"$/g, '')
                             });
                         }
                     }
 
                     renderTable(allSongs);
+
+                    // 실시간 검색 기능 추가
+                    document.getElementById('search-input').oninput = (e) => {
+                        const keyword = e.target.value.toLowerCase().trim();
+                        const filtered = allSongs.filter(song => 
+                            song.title.toLowerCase().includes(keyword) || 
+                            song.artist.toLowerCase().includes(keyword) ||
+                            song.genre.toLowerCase().includes(keyword) ||
+                            song.etc.toLowerCase().includes(keyword)
+                        );
+                        renderTable(filtered);
+                    };
                 }
             } catch (error) {
                 console.error('데이터 로드 실패:', error);
@@ -312,7 +289,7 @@
             }
         }
 
-        // 테이블 렌더링 함수 (검색 기능 연동)
+        // 테이블 렌더링 함수
         function renderTable(songs) {
             const tbody = document.getElementById('song-tbody');
             tbody.innerHTML = "";
@@ -333,18 +310,6 @@
                 tbody.appendChild(tr);
             });
         }
-
-        // 실시간 검색 기능 추가
-        document.getElementById('search-input').addEventListener('input', (e) => {
-            const keyword = e.target.value.toLowerCase().trim();
-            const filtered = allSongs.filter(song => 
-                song.title.toLowerCase().includes(keyword) || 
-                song.artist.toLowerCase().includes(keyword) ||
-                song.genre.toLowerCase().includes(keyword) ||
-                song.etc.toLowerCase().includes(keyword)
-            );
-            renderTable(filtered);
-        });
 
         loadSheetData();
     </script>
