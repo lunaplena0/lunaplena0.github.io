@@ -7,22 +7,23 @@
     <style>
         body {
             margin: 0;
-            min-height: 100vh;
+            width: 100vw;
+            height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
             background-color: #f4f7f9;
+            overflow: hidden;
         }
 
         .ocean-profile-container {
             position: relative;
             width: 100vw;
             height: 100vh;
-            max-width: none;
             display: flex;
             align-items: center;
             justify-content: center; 
-            padding: 0;
+            padding: 20px;
             box-sizing: border-box;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: transparent; 
@@ -52,22 +53,25 @@
             flex-shrink: 0;
         }
 
-        /* 오른쪽 프로필 카드 박스 (페이지 크기에 맞춰 더 넉넉하게 확장) */
+        /* 오른쪽 프로필 카드 박스 (화면 비율에 맞춰 가득 차도록 확장) */
         .profile-info-card {
             position: relative;
             z-index: 2;
-            background: rgba(255, 255, 255, 0.85); 
+            background: rgba(255, 255, 255, 0.88); 
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
             border: 1px solid rgba(0, 119, 190, 0.15);
-            border-radius: 12px; 
-            padding: 45px;
+            border-radius: 16px; 
+            padding: min(4vh, 40px) min(4vw, 50px);
             box-shadow: 0 20px 45px rgba(0, 119, 190, 0.15);
-            max-width: 600px;
             width: 100%;
+            max-width: 720px;
+            height: calc(100vh - 40px);
+            max-height: 850px;
             display: flex;
             flex-direction: column;
-            gap: 24px;
+            justify-content: space-between;
+            gap: 1.5vh;
             color: #2b2d42; 
             box-sizing: border-box;
         }
@@ -80,7 +84,7 @@
             width: 100%;
         }
 
-        /* 카드 내부로 옮겨온 GIF 영역 (크기를 키워서 넉넉하게 배치) */
+        /* 카드 내부로 옮겨온 GIF 영역 */
         .profile-header-top .profile-gif-area {
             width: 130px;
             height: 130px;
@@ -93,7 +97,7 @@
         }
 
         .profile-name {
-            font-size: 40px;
+            font-size: clamp(32px, 4vw, 42px);
             font-weight: 900;
             margin-bottom: 6px;
             letter-spacing: -1px;
@@ -103,7 +107,7 @@
         /* 캐치프레이즈 영역 */
         .profile-catchphrase {
             display: inline-block;
-            font-size: 14.5px;
+            font-size: clamp(13px, 1.3vw, 15px);
             line-height: 1.4;
             color: #0077b6;
             background: rgba(0, 119, 190, 0.08);
@@ -118,27 +122,28 @@
             width: 100%;
             display: flex;
             flex-direction: column;
-            gap: 14px;
+            justify-content: space-evenly;
+            flex-grow: 1;
             background: rgba(255, 255, 255, 0.6);
-            padding: 24px;
-            border-radius: 6px; 
+            padding: 16px 24px;
+            border-radius: 8px; 
             border: 1px solid rgba(0, 119, 190, 0.1);
             box-sizing: border-box;
         }
 
         .info-item {
-            font-size: 15.5px;
-            line-height: 1.6;
+            font-size: clamp(14px, 1.4vw, 16px);
+            line-height: 1.5;
             display: flex;
             align-items: baseline;
-            gap: 14px;
+            gap: 16px;
             color: #334155;
         }
 
         .info-label {
             font-weight: 800;
             color: #0077b6;
-            min-width: 95px;
+            min-width: 100px;
             flex-shrink: 0;
         }
 
@@ -146,12 +151,12 @@
         .profile-bio-box {
             width: 100%;
             text-align: center;
-            font-size: 16px;
-            line-height: 1.8;
+            font-size: clamp(14px, 1.4vw, 16.5px);
+            line-height: 1.6;
             color: #1e293b;
             background: rgba(255, 255, 255, 0.6);
-            padding: 20px;
-            border-radius: 6px; 
+            padding: 16px 20px;
+            border-radius: 8px; 
             border: 1px solid rgba(0, 119, 190, 0.1);
             box-sizing: border-box;
             word-break: keep-all;
@@ -161,20 +166,26 @@
         .profile-bio-box p { margin: 0; }
         .profile-bio-box p:first-child {
             font-weight: 800;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             color: #03045e;
         }
 
         /* 모바일 화면 대응 */
         @media (max-width: 768px) {
+            body {
+                overflow: auto;
+                height: auto;
+            }
             .ocean-profile-container {
-                padding: 16px;
                 height: auto;
                 min-height: 100vh;
+                padding: 16px;
             }
             .profile-info-card {
-                max-width: 100%;
+                height: auto;
+                max-height: none;
                 padding: 24px;
+                gap: 16px;
             }
             .profile-header-top {
                 flex-direction: row;
@@ -183,6 +194,10 @@
             }
             .profile-titles {
                 text-align: left;
+            }
+            .profile-info-grid {
+                gap: 12px;
+                flex-grow: 0;
             }
         }
     </style>
