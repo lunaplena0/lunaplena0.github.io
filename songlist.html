@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>바다비 노래책</title>
+    <style>
+        body {
+            margin: 0;
+            width: 100vw;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f4f7f9;
+            overflow-x: hidden;
+        }
+
+        .ocean-profile-container {
+            position: relative;
+            width: 100%;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center; 
+            padding: 20px;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: transparent; 
+        }
+
+        /* 노래책 메인 카드 박스 */
+        .profile-info-card {
+            position: relative;
+            z-index: 2;
+            background: rgba(255, 255, 255, 0.85); 
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(0, 119, 190, 0.15);
+            border-radius: 12px; 
+            padding: 40px;
+            box-shadow: 0 20px 45px rgba(0, 119, 190, 0.15);
+            max-width: 900px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            color: #2b2d42; 
+            box-sizing: border-box;
+        }
+
+        /* 상단 헤더 영역 */
+        .songbook-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid rgba(0, 119, 190, 0.15);
+            padding-bottom: 16px;
+        }
+
+        .songbook-title {
+            font-size: 24px;
+            font-weight: 800;
+            color: #03045e;
+            margin: 0;
+        }
+
+        /* 공지사항 박스 영역 (구글시트 A1~D9 구조 반영) */
+        .notice-box {
+            background: rgba(0, 119, 190, 0.08);
+            border: 1px solid rgba(0, 119, 190, 0.2);
+            border-radius: 8px;
+            padding: 16px 18px;
+            font-size: 14px;
+            color: #03045e;
+            line-height: 1.6;
+            box-sizing: border-box;
+        }
+
+        .notice-title {
+            font-weight: 700;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 15px;
+            border-bottom: 1px dashed rgba(0, 119, 190, 0.2);
+            padding-bottom: 6px;
+        }
+
+        .notice-content {
+            color: #334155;
+            margin: 0;
+            white-space: pre-line;
+        }
+
+        /* 검색 바 영역 */
+        .search-box {
+            width: 100%;
+            padding: 14px 18px;
+            font-size: 15px;
+            border: 1px solid rgba(0, 119, 190, 0.25);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.9);
+            box-sizing: border-box;
+            outline: none;
+            color: #2b2d42;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .search-box:focus {
+            border-color: #0077b6;
+            box-shadow: 0 0 10px rgba(0, 119, 190, 0.15);
+        }
+
+        /* 노래 목록 테이블 컨테이너 */
+        .song-table-container {
+            width: 100%;
+            max-height: 450px;
+            overflow-y: auto;
+            border-radius: 8px;
+            border: 1px solid rgba(0, 119, 190, 0.15);
+            background: rgba(255, 255, 255, 0.6);
+        }
+
+        .song-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 15px;
+        }
+
+        .song-table th {
+            background: rgba(0, 119, 190, 0.1);
+            color: #03045e;
+            font-weight: 800;
+            padding: 14px 16px;
+            position: sticky;
+            top: 0;
+            backdrop-filter: blur(4px);
+        }
+
+        .song-table td {
+            padding: 14px 16px;
+            border-bottom: 1px solid rgba(0, 119, 190, 0.08);
+            color: #334155;
+        }
+
+        .song-table tr:hover {
+            background: rgba(0, 119, 190, 0.05);
+        }
+
+        .song-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .loading-text {
+            text-align: center;
+            color: #64748b;
+            font-style: italic;
+        }
+
+        /* 모바일 화면 대응 */
+        @media (max-width: 768px) {
+            body {
+                overflow: auto;
+                height: auto;
+            }
+            .ocean-profile-container {
+                height: auto;
+                min-height: 100vh;
+                padding: 16px;
+            }
+            .profile-info-card {
+                height: auto;
+                max-height: none;
+                padding: 16px;
+                gap: 16px;
+            }
+            .song-table th, .song-table td {
+                padding: 10px 12px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="ocean-profile-container">
+        <!-- 노래책 페이지 카드 영역 -->
+        <div class="profile-info-card">
+            <div class="songbook-header">
+                <h1 class="songbook-title">🎤 바다비 노래책</h1>
+            </div>
+
+            <!-- 공지칸 영역 -->
+            <div class="notice-box">
+                <div class="notice-title">📢 공지</div>
+                <p class="notice-content">로딩중입니다...</p>
+            </div>
+
+            <!-- 검색 입력창 -->
+            <input type="text" class="search-box" placeholder="노래 제목이나 가수를 검색해보세요...">
+
+            <!-- 노래 목록 테이블 -->
+            <div class="song-table-container">
+                <table class="song-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 30%;">노래제목</th>
+                            <th style="width: 25%;">가수</th>
+                            <th style="width: 20%;">장르</th>
+                            <th style="width: 25%;">기타</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="4" class="loading-text" style="padding: 30px;">로딩중입니다...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 구글 시트 연동 스크립트 -->
+    <script>
+        const tsvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ2WQUFSDIK2TzQICEyBQ0xwsBBuOdOKDdCGu3p08niQf25AgYeO8P6MT7vg-Hd4e6Xoqb6QNIgmSBu/pub?output=tsv';
+
+        async function loadSheetData() {
+            try {
+                const response = await fetch(tsvUrl);
+                const text = await response.text();
+                const rows = text.split('\n').map(row => row.split('\t'));
+
+                if (rows.length > 0) {
+                    // 1. 공지사항 반영 (A2~D9 영역 추출)
+                    let noticeText = "";
+                    for (let i = 1; i <= 8 && i < rows.length; i++) {
+                        if (rows[i] && rows[i][0]) {
+                            noticeText += rows[i][0] + "\n";
+                        }
+                    }
+                    if (noticeText.trim() !== "") {
+                        document.querySelector('.notice-content').innerText = noticeText.trim();
+                    } else {
+                        document.querySelector('.notice-content').innerText = "공지사항이 없습니다.";
+                    }
+
+                    // 2. 노래 목록 반영 (11행(index 10)부터 데이터 시작)
+                    const tbody = document.querySelector('.song-table tbody');
+                    tbody.innerHTML = "";
+
+                    let songRowsFound = false;
+                    for (let i = 10; i < rows.length; i++) {
+                        const cols = rows[i];
+                        if (cols && cols.length >= 4 && cols[0].trim() !== "") {
+                            songRowsFound = true;
+                            const tr = document.createElement('tr');
+                            tr.innerHTML = `
+                                <td>${cols[0] || ''}</td>
+                                <td>${cols[1] || ''}</td>
+                                <td>${cols[2] || ''}</td>
+                                <td>${cols[3] || ''}</td>
+                            `;
+                            tbody.appendChild(tr);
+                        }
+                    }
+
+                    if (!songRowsFound) {
+                        tbody.innerHTML = `<tr><td colspan="4" class="loading-text" style="padding: 30px;">등록된 노래가 없습니다.</td></tr>`;
+                    }
+                }
+            } catch (error) {
+                console.error('데이터 로드 실패:', error);
+                document.querySelector('.notice-content').innerText = "공지사항을 불러오지 못했습니다.";
+                document.querySelector('.song-table tbody').innerHTML = `<tr><td colspan="4" class="loading-text" style="padding: 30px; color: #ef4444;">데이터 로드 실패</td></tr>`;
+            }
+        }
+
+        loadSheetData();
+    </script>
+</body>
+</html>
