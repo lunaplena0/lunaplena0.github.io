@@ -105,7 +105,7 @@
             white-space: pre-line;
         }
 
-        /* 검색 바 영역 (높이 및 글씨 크기 최적화) */
+        /* 검색 바 영역 */
         .search-box {
             width: 100%;
             padding: 10px 14px;
@@ -282,54 +282,53 @@
     </div>
 
     <script>
-    // 💡 GitHub에 저장된 songlist.json 경로
-    const jsonUrl = 'https://lunaplena0.github.io/songlist.json';
-    
-    const CACHE_KEY = 'badabi_songbook_json_data';
-    const CACHE_EXPIRY_KEY = 'badabi_songbook_json_expiry';
-    const CACHE_DURATION = 5 * 60 * 1000; 
+        const jsonUrl = 'https://lunaplena0.github.io/songlist.json';
+        
+        const CACHE_KEY = 'badabi_songbook_json_data';
+        const CACHE_EXPIRY_KEY = 'badabi_songbook_json_expiry';
+        const CACHE_DURATION = 5 * 60 * 1000; 
 
-    let globalSongs = [];
-    let currentFilter = '전체';
-    let currentKeyword = '';
+        let globalSongs = [];
+        let currentFilter = '전체';
+        let currentKeyword = '';
 
-    async function loadSongbookData() {
-        const cachedData = localStorage.getItem(CACHE_KEY);
-        const cacheExpiry = localStorage.getItem(CACHE_EXPIRY_KEY);
-        const now = new Date().getTime();
+        async function loadSongbookData() {
+            const cachedData = localStorage.getItem(CACHE_KEY);
+            const cacheExpiry = localStorage.getItem(CACHE_EXPIRY_KEY);
+            const now = new Date().getTime();
 
-        if (cachedData && cacheExpiry && now < parseInt(cacheExpiry, 10)) {
+            if (cachedData && cacheExpiry && now < parseInt(cacheExpiry, 10)) {
+                try {
+                    const parsedData = JSON.parse(cachedData);
+                    globalSongs = parsedData.allSongs || [];
+                    applyDataToUI(parsedData.noticeText, globalSongs);
+                    return;
+                } catch (e) {
+                    console.warn("캐시 데이터 파싱 실패, 새로 요청합니다.", e);
+                }
+            }
+
             try {
-                const parsedData = JSON.parse(cachedData);
-                globalSongs = parsedData.allSongs;
-                applyDataToUI(parsedData.noticeText, globalSongs);
-                return;
-            } catch (e) {
-                console.warn("캐시 데이터 파싱 실패, 새로 요청합니다.", e);
+                // 캐시 무력화를 위해 타임스탬프 추가
+                const response = await fetch(jsonUrl + "?t=" + new Date().getTime());
+                if (!response.ok) throw new Error("songlist.json을 불러오지 못했습니다.");
+                
+                const jsonData = await response.json();
+                
+                const noticeText = jsonData.notice || "";
+                globalSongs = jsonData.songs || [];
+
+                const dataToCache = { noticeText, allSongs: globalSongs };
+                localStorage.setItem(CACHE_KEY, JSON.stringify(dataToCache));
+                localStorage.setItem(CACHE_EXPIRY_KEY, (now + CACHE_DURATION).toString());
+
+                applyDataToUI(noticeText, globalSongs);
+            } catch (error) {
+                console.error('데이터 로드 실패:', error);
+                document.querySelector('.notice-content').innerText = "공지사항을 불러오지 못했습니다.";
+                document.getElementById('song-tbody').innerHTML = `<tr><td colspan="2" class="loading-text" style="padding: 30px; color: #ef4444;">데이터 로드 실패 (GitHub Pages 반영 대기중이거나 주소를 확인해주세요)</td></tr>`;
             }
         }
-
-        try {
-            const response = await fetch(jsonUrl);
-            if (!response.ok) throw new Error("songlist.json을 불러오지 못했습니다.");
-            
-            const jsonData = await response.json();
-            
-            // JSON 구조 예시: { notice: "공지내용", songs: [...] }
-            const noticeText = jsonData.notice || "";
-            globalSongs = jsonData.songs || [];
-
-            const dataToCache = { noticeText, allSongs: globalSongs };
-            localStorage.setItem(CACHE_KEY, JSON.stringify(dataToCache));
-            localStorage.setItem(CACHE_EXPIRY_KEY, (now + CACHE_DURATION).toString());
-
-            applyDataToUI(noticeText, globalSongs);
-        } catch (error) {
-            console.error('데이터 로드 실패:', error);
-            document.querySelector('.notice-content').innerText = "공지사항을 불러오지 못했습니다.";
-            document.getElementById('song-tbody').innerHTML = `<tr><td colspan="2" class="loading-text" style="padding: 30px; color: #ef4444;">데이터 로드 실패</td></tr>`;
-        }
-    }
 
         function applyDataToUI(noticeText, allSongs) {
             if (noticeText && noticeText.trim() !== "") {
@@ -350,7 +349,6 @@
                 filterAndRender();
             };
 
-            // 필터 버튼 이벤트 설정
             const filterButtons = document.querySelectorAll('.filter-btn');
             filterButtons.forEach(btn => {
                 if (btn.getAttribute('data-filter') === '전체') {
@@ -368,19 +366,23 @@
 
         function filterAndRender() {
             let filtered = globalSongs.filter(song => {
-                // 1. 검색어 필터링
+                const title = song.title || '';
+                const artist = song.artist || '';
+                const genre = song.genre || '';
+                const limit = song.limit || '';
+                const etc = song.etc || '';
+
                 const matchesKeyword = 
-                    song.title.toLowerCase().includes(currentKeyword) || 
-                    song.artist.toLowerCase().includes(currentKeyword) ||
-                    song.genre.toLowerCase().includes(currentKeyword) ||
-                    song.limit.toLowerCase().includes(currentKeyword) ||
-                    song.etc.toLowerCase().includes(currentKeyword);
+                    title.toLowerCase().includes(currentKeyword) || 
+                    artist.toLowerCase().includes(currentKeyword) ||
+                    genre.toLowerCase().includes(currentKeyword) ||
+                    limit.toLowerCase().includes(currentKeyword) ||
+                    etc.toLowerCase().includes(currentKeyword);
 
                 if (!matchesKeyword) return false;
 
-                // 2. 카테고리 토글 버튼 필터링 (K팝, J팝, 팝 개별 정확 분리)
-                const g = song.genre.toLowerCase();
-                const l = song.limit.toLowerCase();
+                const g = genre.toLowerCase();
+                const l = limit.toLowerCase();
 
                 if (currentFilter === '전체') {
                     return true;
@@ -391,7 +393,6 @@
                 } else if (currentFilter === 'j팝') {
                     return g.includes('j') || g.includes('일단') || g.includes('일본');
                 } else if (currentFilter === '팝') {
-                    // '팝' 또는 'pop'이 포함되어 있으면서, k나 j가 붙은 k팝/j팝은 제외
                     const hasPop = g.includes('팝') || g.includes('pop');
                     const isKOrJ = g.includes('k') || g.includes('j') || g.includes('가요') || g.includes('일본');
                     return hasPop && !isKOrJ;
@@ -414,27 +415,30 @@
             songs.forEach(song => {
                 const tr = document.createElement('tr');
                 
-                let cleanTitle = song.title;
+                let rawTitle = song.title || '제목없음';
+                let cleanTitle = rawTitle;
                 if (cleanTitle.length > 30) {
                     cleanTitle = cleanTitle.substring(0, 30) + '...';
                 }
 
+                let limitVal = song.limit || '';
                 let limitBadgeHtml = "";
-                if (song.limit !== "") {
+                if (limitVal !== "") {
                     let badgeColor = "#0ea5e9";
-                    if (song.limit.includes("200")) {
+                    if (limitVal.includes("200")) {
                         badgeColor = "#10b981";
-                    } else if (song.limit.includes("300")) {
+                    } else if (limitVal.includes("300")) {
                         badgeColor = "#f97316";
-                    } else if (song.limit.includes("기타")) {
+                    } else if (limitVal.includes("기타")) {
                         badgeColor = "#8b5cf6";
                     }
-                    limitBadgeHtml += `<span style="background-color: ${badgeColor}; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 600; display: inline-block; margin-right: 4px;">${song.limit}</span>`;
+                    limitBadgeHtml += `<span style="background-color: ${badgeColor}; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 600; display: inline-block; margin-right: 4px;">${limitVal}</span>`;
                 }
 
+                let etcVal = song.etc || '';
                 let etcTextHtml = "";
-                if (song.etc !== "") {
-                    etcTextHtml += `<span style="color: #64748b; font-size: 12px; font-weight: 500;">${song.etc}</span>`;
+                if (etcVal !== "") {
+                    etcTextHtml += `<span style="color: #64748b; font-size: 12px; font-weight: 500;">${etcVal}</span>`;
                 }
                 
                 tr.innerHTML = `
@@ -443,11 +447,11 @@
                             ${limitBadgeHtml}
                             <span style="font-weight: 700; color: #1e293b; font-size: 15px;">${cleanTitle}</span>
                         </div>
-                        <div style="color: #64748b; font-size: 13px;">${song.artist}</div>
+                        <div style="color: #64748b; font-size: 13px;">${song.artist || '아티스트 미상'}</div>
                     </td>
                     <td>
                         <div style="display: flex; flex-direction: column; gap: 4px;">
-                            <span style="font-weight: 600; color: #0077b6; font-size: 14px;">${song.genre}</span>
+                            <span style="font-weight: 600; color: #0077b6; font-size: 14px;">${song.genre || '-'}</span>
                             <div>${etcTextHtml}</div>
                         </div>
                     </td>
