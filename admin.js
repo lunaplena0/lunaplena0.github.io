@@ -97,10 +97,13 @@
 
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                 <h4 style="color: #0077b6; margin: 0;">링크 목록</h4>
-                <button onclick="addLinkRow()" style="background-color: #10b981; padding: 6px 12px; font-size: 12px;">+ 새 링크 추가</button>
             </div>
 
-            <div id="links-rows-container" style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;"></div>
+            <!-- 링크 목록이 표시되는 영역 -->
+            <div id="links-rows-container" style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 15px;"></div>
+
+            <!-- 새 링크 추가 버튼을 목록 하단으로 이동 -->
+            <button onclick="addLinkRow()" style="background-color: #10b981; width: 100%; padding: 10px; font-size: 14px; margin-bottom: 20px;">+ 새 링크 추가</button>
 
             <button onclick="saveLinks()" style="width: 100%; background-color: #0077b6; padding: 14px; font-size: 16px;">페이지에 링크 변경사항 반영하기</button>
             <div id="links-status" class="status-msg"></div>
