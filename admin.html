@@ -550,9 +550,18 @@
                 };
             }
             if (linksRes.ok) {
-                const data = await linksRes.json();
-                linksData = { broadcast: data.broadcast || "", youtube: data.youtube || "" };
-            }
+    const data = await linksRes.json();
+    if (Array.isArray(data)) {
+        linksData = data;
+    } else if (data && typeof data === 'object') {
+        let list = [];
+        if (data.broadcast) list.push({ title: "방송국", url: data.broadcast, target: "_blank" });
+        if (data.youtube) list.push({ title: "유튜브", url: data.youtube, target: "_blank" });
+        linksData = list;
+    } else {
+        linksData = [];
+    }
+}
 
             // 로그인 성공 시에만 관리자 화면 전체 템플릿을 DOM에 주입
             document.getElementById("login-section").style.display = "none";
