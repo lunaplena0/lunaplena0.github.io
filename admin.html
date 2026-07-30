@@ -53,6 +53,30 @@
         }
         button:hover { background-color: #03045e; }
         
+        /* 메뉴 선택 카드 스타일 */
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .menu-card {
+            background: #f8fafc;
+            border: 1px solid #cbd5e1;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .menu-card:hover {
+            background: #e2e8f0;
+            border-color: #0077b6;
+            transform: translateY(-2px);
+        }
+        .menu-card h4 { margin: 0 0 8px 0; color: #03045e; font-size: 18px; }
+        .menu-card p { margin: 0; color: #64748b; font-size: 13px; }
+
         /* 노래 목록 테이블 스타일 */
         .song-table-container {
             max-height: 500px;
@@ -113,8 +137,6 @@
         }
 
         #status { margin-top: 15px; font-weight: 700; font-size: 14px; }
-        .row { display: flex; gap: 10px; }
-        .row > div { flex: 1; }
         
         /* 구글 시트 접기/펼치기 섹션 스타일 */
         .batch-container {
@@ -143,7 +165,7 @@
 </head>
 <body>
 
-    <h2>🎵 바다비 노래책 관리자 패널</h2>
+    <h2>🎵 바다비 통합 관리자</h2>
 
     <!-- [1단계] 로그인 섹션 -->
     <div id="login-section" class="card">
@@ -154,11 +176,58 @@
         <div id="login-status" style="margin-top: 10px; font-weight: bold;"></div>
     </div>
 
-    <!-- [2단계] 실제 수정 패널 -->
-    <div id="admin-panel" class="card" style="display: none;">
+    <!-- [2단계] 메인 대시보드 (목록 선택 화면) -->
+    <div id="dashboard-section" class="card" style="display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h3 style="margin: 0; color: #03045e;">🛠️ 관리 메뉴 선택</h3>
+            <button onclick="location.reload()" style="background-color: #64748b; padding: 6px 12px; font-size: 13px;">로그아웃</button>
+        </div>
+        <p style="color: #64748b; font-size: 14px;">수정할 항목을 선택해주세요.</p>
+        
+        <div class="menu-grid">
+            <div class="menu-card" onclick="showPanel('intro')">
+                <h4>👤 자기소개 수정</h4>
+                <p>소개글 및 프로필 관련 내용 변경</p>
+            </div>
+            <div class="menu-card" onclick="showPanel('links')">
+                <h4>🔗 링크 수정</h4>
+                <p>외부 링크 및 주요 주소 관리</p>
+            </div>
+            <div class="menu-card" onclick="showPanel('songs')">
+                <h4>🎶 노래책 수정</h4>
+                <p>공지사항, 곡 목록 추가/삭제/편집</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- [3단계-1] 자기소개 수정 패널 (필요에 맞춰 내부 내용을 채워 사용하세요) -->
+    <div id="panel-intro" class="card" style="display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 style="margin: 0; color: #03045e;">👤 자기소개 수정</h3>
+            <button onclick="showDashboard()" style="background-color: #64748b; padding: 6px 12px; font-size: 13px;">← 메뉴 목록으로</button>
+        </div>
+        <p style="color: #64748b;">(이곳에 자기소개 관련 입력 폼을 구성할 수 있습니다.)</p>
+        <textarea placeholder="자기소개 내용을 입력하세요..." style="height: 150px;"></textarea>
+        <button onclick="alert('준비중인 기능입니다.')">저장하기</button>
+    </div>
+
+    <!-- [3단계-2] 링크 수정 패널 (필요에 맞춰 내부 내용을 채워 사용하세요) -->
+    <div id="panel-links" class="card" style="display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 style="margin: 0; color: #03045e;">🔗 링크 수정</h3>
+            <button onclick="showDashboard()" style="background-color: #64748b; padding: 6px 12px; font-size: 13px;">← 메뉴 목록으로</button>
+        </div>
+        <p style="color: #64748b;">(이곳에 링크 관련 입력 폼을 구성할 수 있습니다.)</p>
+        <label>방송국 링크</label>
+        <input type="text" placeholder="https://...">
+        <button onclick="alert('준비중인 기능입니다.')">저장하기</button>
+    </div>
+
+    <!-- [3단계-3] 노래책 수정 패널 (기존 기능) -->
+    <div id="panel-songs" class="card" style="display: none;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
             <h3 style="margin: 0; color: #03045e;">📝 노래책 내용 편집</h3>
-            <button onclick="location.reload()" style="background-color: #64748b; padding: 6px 12px; font-size: 13px;">로그아웃</button>
+            <button onclick="showDashboard()" style="background-color: #64748b; padding: 6px 12px; font-size: 13px;">← 메뉴 목록으로</button>
         </div>
 
         <!-- 공지사항 수정 영역 (높이 확대) -->
@@ -217,7 +286,7 @@
         <div id="status"></div>
     </div>
 
-    <!-- [3단계] 개별 수정/추가 팝업 모달 -->
+    <!-- [4단계] 개별 수정/추가 팝업 모달 -->
     <div id="edit-modal">
         <div class="modal-content">
             <h3 id="modal-title" style="margin-top: 0; color: #03045e;">곡 정보 수정</h3>
@@ -250,6 +319,30 @@
     const GITHUB_JSON_URL = "https://lunaplena0.github.io/songlist.json";
 
     let loadedData = { notice: "", songs: [] };
+
+    // 화면 전환 함수 (대시보드 <-> 각 패널)
+    function showDashboard() {
+        document.getElementById("dashboard-section").style.display = "block";
+        document.getElementById("panel-intro").style.display = "none";
+        document.getElementById("panel-links").style.display = "none";
+        document.getElementById("panel-songs").style.display = "none";
+    }
+
+    function showPanel(type) {
+        document.getElementById("dashboard-section").style.display = "none";
+        document.getElementById("panel-intro").style.display = "none";
+        document.getElementById("panel-links").style.display = "none";
+        document.getElementById("panel-songs").style.display = "none";
+
+        if (type === 'intro') {
+            document.getElementById("panel-intro").style.display = "block";
+        } else if (type === 'links') {
+            document.getElementById("panel-links").style.display = "block";
+        } else if (type === 'songs') {
+            document.getElementById("panel-songs").style.display = "block";
+            renderTable(); // 노래책 패널이 열릴 때 테이블 렌더링
+        }
+    }
 
     // 구글 시트 영역 접기/펼치기 토글 함수
     function toggleBatchBox() {
@@ -287,11 +380,11 @@
                 songs: Array.isArray(data.songs) ? data.songs : []
             };
 
+            // 로그인 성공 시 대시보드(메뉴 선택 화면)로 이동
             document.getElementById("login-section").style.display = "none";
-            document.getElementById("admin-panel").style.display = "block";
+            document.getElementById("dashboard-section").style.display = "block";
 
             document.getElementById("notice-input").value = loadedData.notice || "";
-            renderTable();
 
         } catch (error) {
             statusEl.style.color = "#ef4444";
