@@ -328,83 +328,82 @@
     }
 
     async function verifyAndLoad() {
-        const password = document.getElementById("admin-password").value;
-        const statusEl = document.getElementById("login-status");
-        if (!password) { statusEl.style.color = "#ef4444"; statusEl.textContent = "비밀번호를 입력해주세요."; return; }
+    const password = document.getElementById("admin-password").value;
+    const statusEl = document.getElementById("login-status");
+    if (!password) { statusEl.style.color = "#ef4444"; statusEl.textContent = "비밀번호를 입력해주세요."; return; }
 
-        statusEl.style.color = "#0077b6";
-        statusEl.textContent = "비밀번호 확인 및 데이터 로드 중...";
+    statusEl.style.color = "#0077b6";
+    statusEl.textContent = "비밀번호 확인 및 데이터 로드 중...";
 
-        try {
-            // 1. 🚨 [추가된 핵심] Cloudflare Worker로 비밀번호가 맞는지 먼저 검증 요청
-            const authResponse = await fetch(WORKER_URL, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ 
-                    password: password, 
-                    action: "verify" // 👈 파일 수정 없이 로그인 검증만 수행
-                })
-            });
+    try {
+        // 🔒 로그인 요청 시 서버(Worker)가 fileType이나 action을 요구하는 방식에 맞춤
+        const authResponse = await fetch(WORKER_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ 
+                password: password, 
+                action: "verify",
+                fileType: "verify" // 만약 Worker가 fileType을 필수로 체크한다면 이 줄을 추가해줍니다.
+            })
+        });
 
-            if (!authResponse.ok) {
-                const errResult = await authResponse.json();
-                throw new Error(errResult.error || "비밀번호가 틀렸습니다.");
-            }
-
-            // 2. 비밀번호가 맞았을 때만 기존처럼 데이터 불러오기 진행
-            const timestamp = new Date().getTime();
-            
-            const [songRes, profileRes, linksRes] = await Promise.all([
-                fetch(GITHUB_BASE_URL + "songlist.json?t=" + timestamp),
-                fetch(GITHUB_BASE_URL + "profile.json?t=" + timestamp),
-                fetch(GITHUB_BASE_URL + "links.json?t=" + timestamp)
-            ]);
-
-            if (songRes.ok) {
-                const data = await songRes.json();
-                songData = { notice: data.notice || "", songs: Array.isArray(data.songs) ? data.songs : [] };
-            }
-            if (profileRes.ok) {
-                const data = await profileRes.json() || {}; // 👈 데이터가 없으면 빈 객체 처리
-                let details = data.details || [];
-                if (!Array.isArray(details) && typeof details === 'object') {
-                    details = Object.entries(details).map(([k, v]) => ({ key: k, value: v }));
-                }
-                profileData = {
-                    name: data.name || "",
-                    image: data.image || "",
-                    catchphrase: data.catchphrase || "",
-                    details: details,
-                    time: data.time || "",
-                    content: data.content || "",
-                    bio1: data.bio1 || "",
-                    bio2: data.bio2 || ""
-                };
-            }
-            if (linksRes.ok) {
-                const data = await linksRes.json();
-                if (Array.isArray(data)) {
-                    linksData = data;
-                } else if (data && typeof data === 'object') {
-                    let list = [];
-                    if (data.broadcast) list.push({ title: "방송국", url: data.broadcast, target: "_blank" });
-                    if (data.youtube) list.push({ title: "유튜브", url: data.youtube, target: "_blank" });
-                    linksData = list;
-                } else {
-                    linksData = [];
-                }
-            }
-
-            // 로그인 성공 시에만 관리자 화면 전체 템플릿을 DOM에 주입
-            document.getElementById("login-section").style.display = "none";
-            document.getElementById("admin-app-container").innerHTML = adminHtmlTemplate;
-            showDashboard();
-
-        } catch (error) {
-            statusEl.style.color = "#ef4444";
-            statusEl.textContent = "로그인 실패: " + error.message;
+        if (!authResponse.ok) {
+            const errResult = await authResponse.json();
+            throw new Error(errResult.error || "비밀번호가 틀렸습니다.");
         }
+
+        // 이후 데이터 로드 코드 동일...
+        const timestamp = new Date().getTime();
+        const [songRes, profileRes, linksRes] = await Promise.all([
+            fetch(GITHUB_BASE_URL + "songlist.json?t=" + timestamp),
+            fetch(GITHUB_BASE_URL + "profile.json?t=" + timestamp),
+            fetch(GITHUB_BASE_URL + "links.json?t=" + timestamp)
+        ]);
+
+        if (songRes.ok) {
+            const data = await songRes.json();
+            songData = { notice: data.notice || "", songs: Array.isArray(data.songs) ? data.songs : [] };
+        }
+        if (profileRes.ok) {
+            const data = await profileRes.json() || {};
+            let details = data.details || [];
+            if (!Array.isArray(details) && typeof details === 'object') {
+                details = Object.entries(details).map(([k, v]) => ({ key: k, value: v }));
+            }
+            profileData = {
+                name: data.name || "",
+                image: data.image || "",
+                catchphrase: data.catchphrase || "",
+                details: details,
+                time: data.time || "",
+                content: data.content || "",
+                bio1: data.bio1 || "",
+                bio2: data.bio2 || ""
+            };
+        }
+        if (linksRes.ok) {
+            const data = await linksRes.json();
+            if (Array.isArray(data)) {
+                linksData = data;
+            } else if (data && typeof data === 'object') {
+                let list = [];
+                if (data.broadcast) list.push({ title: "방송국", url: data.broadcast, target: "_blank" });
+                if (data.youtube) list.push({ title: "유튜브", url: data.youtube, target: "_blank" });
+                linksData = list;
+            } else {
+                linksData = [];
+            }
+        }
+
+        document.getElementById("login-section").style.display = "none";
+        document.getElementById("admin-app-container").innerHTML = adminHtmlTemplate;
+        showDashboard();
+
+    } catch (error) {
+        statusEl.style.color = "#ef4444";
+        statusEl.textContent = "로그인 실패: " + error.message;
     }
+}
 
     async function saveDataToWorker(fileType, contentObj, statusElementId) {
         const password = document.getElementById("admin-password").value;
