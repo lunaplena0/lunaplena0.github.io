@@ -253,13 +253,13 @@
             <!-- 검색 입력창 -->
             <input type="text" id="search-input" class="search-box" placeholder="노래 제목이나 가수를 검색한 뒤 엔터를 눌러주세요...">
 
-            <!-- 빠른 필터 토글 버튼 영역 -->
+            <!-- 빠른 필터 토글 버튼 영역 (요청 순서 반영: 전체, 기타연주, K팝, J팝, 팝) -->
             <div class="filter-tags-container">
                 <button class="filter-btn" data-filter="전체">전체</button>
                 <button class="filter-btn" data-filter="기타연주">기타연주</button>
+                <button class="filter-btn" data-filter="k팝">K팝</button>
                 <button class="filter-btn" data-filter="j팝">J팝</button>
                 <button class="filter-btn" data-filter="팝">팝</button>
-                <button class="filter-btn" data-filter="k팝">K팝</button>
             </div>
 
             <!-- 노래 목록 테이블 -->
@@ -399,17 +399,21 @@
 
                 if (!matchesKeyword) return false;
 
-                // 2. 카테고리 토글 버튼 필터링
+                // 2. 카테고리 토글 버튼 필터링 (KPOP, JPOP, POP 등 대소문자 무시 대응)
+                const g = song.genre.toLowerCase();
+                const l = song.limit.toLowerCase();
+
                 if (currentFilter === '전체') {
                     return true;
                 } else if (currentFilter === '기타연주') {
-                    return song.limit.toLowerCase().includes('기타');
-                } else if (currentFilter === 'j팝') {
-                    return song.genre.toLowerCase().includes('j') || song.genre.toLowerCase().includes('일단') || song.genre.toLowerCase().includes('일본');
-                } else if (currentFilter === '팝') {
-                    return song.genre.toLowerCase().includes('팝') && !song.genre.toLowerCase().includes('j') && !song.genre.toLowerCase().includes('k');
+                    return l.includes('기타');
                 } else if (currentFilter === 'k팝') {
-                    return song.genre.toLowerCase().includes('k') || song.genre.toLowerCase().includes('가요');
+                    return g.includes('k') || g.includes('가요');
+                } else if (currentFilter === 'j팝') {
+                    return g.includes('j') || g.includes('일단') || g.includes('일본');
+                } else if (currentFilter === '팝') {
+                    // '팝'을 누르면 POP, KPOP, JPOP 등 '팝' 글자가 포함된 모든 장르가 검색되도록 허용
+                    return g.includes('팝') || g.includes('pop');
                 }
                 return true;
             });
