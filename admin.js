@@ -342,7 +342,7 @@
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ 
                     password: password, 
-                    fileType: "profile" // 임의의 유효한 타입으로 검증 겸용
+                    action: "verify" // 👈 파일 수정 없이 로그인 검증만 수행
                 })
             });
 
