@@ -57,11 +57,11 @@
                 <div id="profile-upload-status" style="font-size: 11px; margin-top: 4px; color: #64748b;"></div>
             </div>
 
-            <label>캐치프레이즈 (오시마크 / 팬덤명 등)</label>
-            <textarea id="p-catchphrase" class="profile-textarea" placeholder="오시마크: 🌊🌧️ &#10;팬덤 명: 꼬용이"></textarea>
+            <label>캐치프레이즈 (닉네임 하단에 파란색 글씨)</label>
+            <textarea id="p-catchphrase" class="profile-textarea" placeholder="𝐏 𝐫 𝐨 𝐟 𝐢 𝐥 𝐞"></textarea>
 
             <div style="display: flex; justify-content: space-between; align-items: center; margin: 20px 0 10px 0; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;">
-                <h4 style="color: #0077b6; margin: 0;">상세 프로필 정보 (라벨 및 값 자유 추가/제거)</h4>
+                <h4 style="color: #0077b6; margin: 0;">상세 프로필 정보</h4>
                 <button onclick="addDetailRow()" style="background-color: #10b981; padding: 4px 10px; font-size: 12px;">+ 항목 추가</button>
             </div>
             
