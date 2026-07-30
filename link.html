@@ -14,6 +14,7 @@
             justify-content: center;
             background-color: #f4f7f9;
             overflow-x: hidden;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
         .ocean-profile-container {
@@ -25,31 +26,21 @@
             justify-content: center; 
             padding: 20px;
             box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: transparent; 
         }
 
-        /* 상자(카드) 스타일 제거 및 레이아웃 역할만 하도록 수정 */
         .profile-info-card {
             position: relative;
             z-index: 2;
             background: transparent; 
-            backdrop-filter: none;
-            -webkit-backdrop-filter: none;
-            border: none;
-            border-radius: 0; 
-            padding: 0;
-            box-shadow: none;
             max-width: 600px;
             width: 100%;
             display: flex;
             flex-direction: column;
             gap: 24px;
-            color: #2b2d42; 
             box-sizing: border-box;
         }
 
-        /* 세로로 정렬되는 버튼 컨테이너 영역 */
         .profile-button-grid {
             width: 100%;
             display: flex;
@@ -58,7 +49,6 @@
             box-sizing: border-box;
         }
 
-        /* 버튼 개별 스타일 */
         .profile-btn {
             background: rgba(255, 255, 255, 0.9);
             border: 1px solid rgba(0, 119, 190, 0.25);
@@ -85,42 +75,68 @@
             box-shadow: 0 6px 15px rgba(0, 119, 190, 0.25);
         }
 
-        /* 모바일 화면 대응 */
         @media (max-width: 768px) {
-            body {
-                overflow: auto;
-                height: auto;
-            }
-            .ocean-profile-container {
-                height: auto;
-                min-height: 100vh;
-                padding: 16px;
-            }
-            .profile-info-card {
-                height: auto;
-                max-height: none;
-                padding: 0;
-                gap: 16px;
-            }
+            body { overflow: auto; height: auto; }
+            .ocean-profile-container { height: auto; min-height: 100vh; padding: 16px; }
         }
     </style>
 </head>
 <body>
 
     <div class="ocean-profile-container">
-        <!-- 프로필 카드 영역 (상자 배경 및 테두리 제거됨) -->
         <div class="profile-info-card">
-            <div class="profile-button-grid">
-                <a href="https://badabi.pages.dev/songlist" class="profile-btn" target="_blank" rel="noopener noreferrer">🎤 노래책</a>
-                <a href="https://badabi.pages.dev/" class="profile-btn" target="_blank" rel="noopener noreferrer">📁 팬아카이브</a>
-                <a href="https://cafe.naver.com/soopbadabi" class="profile-btn" target="_blank" rel="noopener noreferrer">☕ 팬카페</a>
-                <a href="https://youtube.com/channel/UCUcnsZ-VzanQT6NSMJ_JlCQ?si=kMa8AhcVNcQ6FyYE" class="profile-btn" target="_blank" rel="noopener noreferrer">📺 유튜브</a>
-                <a href="https://x.com/badabi0" class="profile-btn" target="_blank" rel="noopener noreferrer">💬 트위터 (X)</a>
-                <a href="https://fancim.me/celeb/profile.aspx?url=695744" class="profile-btn" target="_blank" rel="noopener noreferrer">🎁 팬심선물하기</a>
-                <a href="https://www.youtube.com/playlist?list=PLXAKTD3IwZega6TV9p5T_w7R3tRH0Flbl" class="profile-btn" target="_blank" rel="noopener noreferrer">📼 유튜브다시보기</a>
+            <!-- links.json 데이터를 받아와 동적으로 생성될 버튼 그리드 영역 -->
+            <div class="profile-button-grid" id="button-grid">
+                <p style="text-align: center; color: #64748b; font-size: 14px;">링크를 불러오는 중...</p>
             </div>
         </div>
     </div>
 
+    <script>
+        const GITHUB_LINKS_URL = "https://lunaplena0.github.io/links.json";
+
+        async function loadProfileLinks() {
+            try {
+                const response = await fetch(GITHUB_LINKS_URL + "?t=" + new Date().getTime());
+                if (!response.ok) throw new Error("링크 정보를 불러오지 못했습니다.");
+                
+                const data = await response.json();
+                const gridContainer = document.getElementById("button-grid");
+                gridContainer.innerHTML = "";
+
+                // 데이터가 배열 형태인지 확인 (객체 형태일 경우 호환 처리 포함)
+                let links = Array.isArray(data) ? data : [];
+                if (links.length === 0 && !Array.isArray(data)) {
+                    if (data.broadcast) links.push({ title: "방송국", url: data.broadcast, target: "_blank" });
+                    if (data.youtube) links.push({ title: "유튜브", url: data.youtube, target: "_blank" });
+                }
+
+                if (links.length === 0) {
+                    gridContainer.innerHTML = '<p style="text-align: center; color: #64748b;">등록된 링크가 없습니다.</p>';
+                    return;
+                }
+
+                links.forEach(item => {
+                    if (!item.url) return;
+                    const a = document.createElement("a");
+                    a.href = item.url;
+                    a.className = "profile-btn";
+                    a.textContent = item.title || item.url;
+                    a.target = item.target || "_blank";
+                    
+                    if (a.target === "_blank") {
+                        a.rel = "noopener noreferrer";
+                    }
+                    
+                    gridContainer.appendChild(a);
+                });
+
+            } catch (err) {
+                document.getElementById("button-grid").innerHTML = `<p style="text-align: center; color: #ef4444;">링크 로드 실패</p>`;
+            }
+        }
+
+        loadProfileLinks();
+    </script>
 </body>
 </html>
