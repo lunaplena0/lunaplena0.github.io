@@ -273,16 +273,16 @@
         row.innerHTML = `
             <div style="display: flex; gap: 6px; align-items: center;">
                 <input type="text" class="link-title" placeholder="버튼 이름 (예: 🎤 노래책)" value="${escapeHtml(title)}" style="flex: 1; margin-bottom: 0;">
-                <select class="link-target" style="padding: 8px; border: 1px solid rgba(0, 119, 190, 0.25); border-radius: 8px; background: #fff; font-weight: 600; color: #0077b6; margin-bottom: 0;">
+                <select class="link-target" style="padding: 8px 12px; height: 38px; border: 1px solid rgba(0, 119, 190, 0.25); border-radius: 8px; background: #fff; font-weight: 600; color: #0077b6; margin-bottom: 0; box-sizing: border-box;">
                     <option value="_blank" ${target === '_blank' ? 'selected' : ''}>새 창</option>
                     <option value="_self" ${target === '_self' ? 'selected' : ''}>현재 창</option>
                 </select>
             </div>
             <div style="display: flex; gap: 6px; align-items: center;">
                 <input type="text" class="link-url" placeholder="주소 (https://...)" value="${escapeHtml(url)}" style="flex: 1; margin-bottom: 0;">
-                <button onclick="moveRow(this, 'up')" style="background-color: #64748b; padding: 10px 10px; font-size: 12px; margin-bottom: 0;" title="위로">▲</button>
-                <button onclick="moveRow(this, 'down')" style="background-color: #64748b; padding: 10px 10px; font-size: 12px; margin-bottom: 0;" title="아래로">▼</button>
-                <button onclick="this.closest('.link-item-row').remove()" style="background-color: #ef4444; padding: 10px 10px; font-size: 12px; margin-bottom: 0;" title="삭제">삭제</button>
+                <button onclick="moveRow(this, 'up')" style="background-color: #64748b; height: 38px; padding: 0 12px; font-size: 13px; margin-bottom: 0; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center;" title="위로">▲</button>
+                <button onclick="moveRow(this, 'down')" style="background-color: #64748b; height: 38px; padding: 0 12px; font-size: 13px; margin-bottom: 0; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center;" title="아래로">▼</button>
+                <button onclick="this.closest('.link-item-row').remove()" style="background-color: #ef4444; height: 38px; padding: 0 12px; font-size: 13px; margin-bottom: 0; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center;" title="삭제">삭제</button>
             </div>
         `;
         container.appendChild(row);
@@ -329,9 +329,9 @@
         row.innerHTML = `
             <input type="text" class="detail-key" placeholder="항목 이름 (예: 나이)" value="${escapeHtml(key)}" style="flex: 1; margin-bottom: 0;">
             <input type="text" class="detail-val" placeholder="내용 (예: 20살)" value="${escapeHtml(val)}" style="flex: 2; margin-bottom: 0;">
-            <button onclick="moveRow(this, 'up')" style="background-color: #64748b; padding: 10px 10px; font-size: 12px; margin-bottom: 0;" title="위로">▲</button>
-            <button onclick="moveRow(this, 'down')" style="background-color: #64748b; padding: 10px 10px; font-size: 12px; margin-bottom: 0;" title="아래로">▼</button>
-            <button onclick="this.closest('.detail-item-row').remove()" style="background-color: #ef4444; padding: 10px 10px; font-size: 12px; margin-bottom: 0;" title="삭제">삭제</button>
+            <button onclick="moveRow(this, 'up')" style="background-color: #64748b; height: 38px; padding: 0 12px; font-size: 13px; margin-bottom: 0; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center;" title="위로">▲</button>
+            <button onclick="moveRow(this, 'down')" style="background-color: #64748b; height: 38px; padding: 0 12px; font-size: 13px; margin-bottom: 0; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center;" title="아래로">▼</button>
+            <button onclick="this.closest('.detail-item-row').remove()" style="background-color: #ef4444; height: 38px; padding: 0 12px; font-size: 13px; margin-bottom: 0; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center;" title="삭제">삭제</button>
         `;
         container.appendChild(row);
     }
