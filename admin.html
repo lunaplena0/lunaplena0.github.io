@@ -23,31 +23,17 @@
             border: 1px solid rgba(0, 119, 190, 0.15);
         }
         label { display: block; margin-bottom: 8px; font-weight: 700; color: #0077b6; }
-        textarea {
+        input[type="text"], input[type="password"], textarea {
             width: 100%;
-            height: 400px;
-            font-family: monospace;
-            font-size: 13px;
             padding: 12px;
             border: 1px solid rgba(0, 119, 190, 0.25);
             border-radius: 8px;
             box-sizing: border-box;
-            resize: vertical;
+            margin-bottom: 15px;
+            font-size: 14px;
             background: #fafbfc;
         }
-        input[type="password"] {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid rgba(0, 119, 190, 0.25);
-            border-radius: 8px;
-            box-sizing: border-box;
-            margin-bottom: 15px;
-        }
-        .btn-group {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
+        textarea { height: 120px; resize: vertical; }
         button {
             background-color: #0077b6;
             color: white;
@@ -60,71 +46,195 @@
             transition: background 0.2s;
         }
         button:hover { background-color: #03045e; }
-        #load-btn { background-color: #475569; }
-        #load-btn:hover { background-color: #334155; }
+        .song-item-box {
+            background: #f8fafc;
+            border: 1px solid #cbd5e1;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            position: relative;
+        }
+        .delete-btn {
+            background-color: #ef4444;
+            padding: 6px 12px;
+            font-size: 13px;
+            float: right;
+        }
+        .delete-btn:hover { background-color: #dc2626; }
         #status { margin-top: 15px; font-weight: 700; font-size: 14px; }
+        .row { display: flex; gap: 10px; }
+        .row > div { flex: 1; }
     </style>
 </head>
 <body>
 
-    <h2>🎵 노래책(songlist.json) 관리자 패널</h2>
+    <h2>🎵 바다비 노래책 관리자 패널</h2>
 
-    <div class="card">
-        <div class="btn-group">
-            <button id="load-btn" onclick="loadSonglist()">현재 GitHub 데이터 불러오기</button>
+    <!-- [1단계] 로그인 섹션 -->
+    <div id="login-section" class="card">
+        <h3>🔐 관리자 인증</h3>
+        <p style="color: #64748b; font-size: 14px; margin-bottom: 15px;">관리자 페이지를 이용하려면 비밀번호를 입력해주세요.</p>
+        <input type="password" id="admin-password" placeholder="Cloudflare Worker에 설정한 비밀번호 입력">
+        <button onclick="verifyAndLoad()" style="width: 100%;">로그인 및 데이터 불러오기</button>
+        <div id="login-status" style="margin-top: 10px; font-weight: bold;"></div>
+    </div>
+
+    <!-- [2단계] 실제 수정 패널 (처음에는 숨김) -->
+    <div id="admin-panel" class="card" style="display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 style="margin: 0; color: #03045e;">📝 노래책 내용 편집</h3>
+            <button onclick="location.reload()" style="background-color: #64748b; padding: 6px 12px; font-size: 13px;">로그아웃</button>
         </div>
 
-        <div style="margin-bottom: 15px;">
-            <label for="songlist-json">songlist.json 편집 (JSON 형식)</label>
-            <textarea id="songlist-json" placeholder="데이터를 불러오거나 직접 입력하세요..."></textarea>
+        <!-- 공지사항 수정 영역 -->
+        <div style="margin-bottom: 25px;">
+            <label for="notice-input">📢 공지사항 내용</label>
+            <textarea id="notice-input" placeholder="공지사항을 입력하세요..."></textarea>
         </div>
 
-        <div>
-            <label for="admin-password">관리자 비밀번호</label>
-            <input type="password" id="admin-password" placeholder="Cloudflare Worker에 설정한 비밀번호 입력">
+        <hr style="border: 0; border-top: 1px solid #e2e8f0; margin-bottom: 25px;">
+
+        <!-- 노래 목록 수정 영역 -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <label style="margin: 0;">🎶 노래 목록 (<span id="song-count-badge">0</span>곡)</label>
+            <button onclick="addSong()" style="background-color: #10b981; padding: 8px 14px; font-size: 13px;">+ 새 노래 추가하기</button>
         </div>
 
-        <button onclick="saveSonglist()" style="width: 100%;">GitHub에 변경사항 반영하기</button>
+        <div id="songs-container">
+            <!-- 자바스크립트로 동적 생성됨 -->
+        </div>
+
+        <button onclick="saveSonglist()" style="width: 100%; margin-top: 20px; background-color: #0077b6; padding: 14px; font-size: 16px;">GitHub에 최종 변경사항 반영하기</button>
         <div id="status"></div>
     </div>
 
 <script>
-    // 본인의 Cloudflare Worker 주소로 변경하세요!
     const WORKER_URL = "https://your-worker-subdomain.workers.dev";
     const GITHUB_JSON_URL = "https://lunaplena0.github.io/songlist.json";
 
-    async function loadSonglist() {
-        const statusEl = document.getElementById("status");
+    let loadedData = { notice: "", songs: [] };
+
+    // 1. 비밀번호 확인 겸 데이터 불러오기
+    async function verifyAndLoad() {
+        const password = document.getElementById("admin-password").value;
+        const statusEl = document.getElementById("login-status");
+
+        if (!password) {
+            statusEl.style.color = "#ef4444";
+            statusEl.textContent = "비밀번호를 입력해주세요.";
+            return;
+        }
+
         statusEl.style.color = "#0077b6";
-        statusEl.textContent = "GitHub에서 데이터를 불러오는 중...";
+        statusEl.textContent = "데이터를 불러오는 중...";
 
         try {
-            const response = await fetch(GITHUB_JSON_URL + "?t=" + new Date().getTime()); // 캐시 방지
-            if (!response.ok) throw new Error("파일을 불러오지 못했습니다.");
+            // GitHub에서 현재 JSON 가져오기
+            const response = await fetch(GITHUB_JSON_URL + "?t=" + new Date().getTime());
+            if (!response.ok) throw new Error("GitHub 데이터를 불러오지 못했습니다.");
             
-            const data = await response.json();
-            document.getElementById("songlist-json").value = JSON.stringify(data, null, 2);
-            statusEl.style.color = "#10b981";
-            statusEl.textContent = "데이터를 성공적으로 불러왔습니다!";
+            loadedData = await response.json();
+
+            // 화면 전환 (로그인 창 숨기고 에디터 창 보이기)
+            document.getElementById("login-section").style.display = "none";
+            document.getElementById("admin-panel").style.display = "block";
+
+            // 에디터에 데이터 채워넣기
+            renderEditor();
+
         } catch (error) {
             statusEl.style.color = "#ef4444";
-            statusEl.textContent = "불러오기 실패: " + error.message;
+            statusEl.textContent = "로드 실패: " + error.message;
         }
     }
 
-    async function saveSonglist() {
-        const statusEl = document.getElementById("status");
-        const jsonText = document.getElementById("songlist-json").value;
-        const password = document.getElementById("admin-password").value;
+    // 2. 에디터 폼에 데이터 렌더링
+    function renderEditor() {
+        document.getElementById("notice-input").value = loadedData.notice || "";
+        const container = document.getElementById("songs-container");
+        container.innerHTML = "";
 
-        let parsedContent;
-        try {
-            parsedContent = JSON.parse(jsonText);
-        } catch (e) {
-            statusEl.style.color = "#ef4444";
-            statusEl.textContent = "오류: 올바른 JSON 형식이 아닙니다. 따옴표나 쉼표를 확인해주세요.";
-            return;
+        const songs = loadedData.songs || [];
+        document.getElementById("song-count-badge").textContent = songs.length;
+
+        songs.forEach((song, index) => {
+            const box = document.createElement("div");
+            box.className = "song-item-box";
+            box.innerHTML = `
+                <button class="delete-btn" onclick="deleteSong(${index})">삭제</button>
+                <div style="font-weight: bold; margin-bottom: 10px; color: #0077b6;">#${index + 1}</div>
+                <div class="row">
+                    <div>
+                        <label style="font-size: 12px;">노래 제목</label>
+                        <input type="text" class="input-title" value="${escapeHtml(song.title || '')}" placeholder="제목">
+                    </div>
+                    <div>
+                        <label style="font-size: 12px;">가수</label>
+                        <input type="text" class="input-artist" value="${escapeHtml(song.artist || '')}" placeholder="가수">
+                    </div>
+                </div>
+                <div class="row">
+                    <div>
+                        <label style="font-size: 12px;">장르</label>
+                        <input type="text" class="input-genre" value="${escapeHtml(song.genre || '')}" placeholder="K팝, J팝 등">
+                    </div>
+                    <div>
+                        <label style="font-size: 12px;">제한/조건 (limit)</label>
+                        <input type="text" class="input-limit" value="${escapeHtml(song.limit || '')}" placeholder="기타연주 등">
+                    </div>
+                </div>
+                <div>
+                    <label style="font-size: 12px;">기타 정보 (etc)</label>
+                    <input type="text" class="input-etc" value="${escapeHtml(song.etc || '')}" placeholder="특이사항">
+                </div>
+            `;
+            container.appendChild(box);
+        });
+    }
+
+    // HTML 특수문자 깨짐 방지용 헬퍼 함수
+    function escapeHtml(str) {
+        return str.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    // 3. 노래 추가하기
+    function addSong() {
+        syncFormToData(); // 현재 입력 중이던 내용 보존
+        if (!loadedData.songs) loadedData.songs = [];
+        loadedData.songs.unshift({ title: "", artist: "", genre: "", limit: "", etc: "" }); // 맨 위에 추가
+        renderEditor();
+    }
+
+    // 4. 노래 삭제하기
+    function deleteSong(index) {
+        syncFormToData();
+        if (confirm(`"${loadedData.songs[index].title || '제목없음'}" 곡을 삭제하시겠습니까?`)) {
+            loadedData.songs.splice(index, 1);
+            renderEditor();
         }
+    }
+
+    // 5. 화면의 입력값들을 데이터 객체로 동기화
+    function syncFormToData() {
+        loadedData.notice = document.getElementById("notice-input").value;
+        const boxes = document.querySelectorAll(".song-item-box");
+        
+        boxes.forEach((box, index) => {
+            loadedData.songs[index] = {
+                title: box.querySelector(".input-title").value,
+                artist: box.querySelector(".input-artist").value,
+                genre: box.querySelector(".input-genre").value,
+                limit: box.querySelector(".input-limit").value,
+                etc: box.querySelector(".input-etc").value
+            };
+        });
+    }
+
+    // 6. GitHub에 저장하기
+    async function saveSonglist() {
+        syncFormToData(); // 저장 전 최신 입력값 반영
+        const password = document.getElementById("admin-password").value;
+        const statusEl = document.getElementById("status");
 
         statusEl.style.color = "#0077b6";
         statusEl.textContent = "GitHub에 반영 중...";
@@ -135,7 +245,7 @@
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     password: password,
-                    content: parsedContent
+                    content: loadedData
                 })
             });
 
@@ -146,16 +256,13 @@
                 statusEl.textContent = "성공적으로 업데이트되었습니다! (GitHub Pages 반영까지 1~2분 소요)";
             } else {
                 statusEl.style.color = "#ef4444";
-                statusEl.textContent = "업데이트 실패: " + (result.error || "알 수 없는 오류");
+                statusEl.textContent = "업데이트 실패: " + (result.error || "비밀번호가 틀렸거나 오류가 발생했습니다.");
             }
         } catch (error) {
             statusEl.style.color = "#ef4444";
             statusEl.textContent = "네트워크 오류: " + error.message;
         }
     }
-
-    // 페이지 접속 시 자동 로드
-    loadSonglist();
 </script>
 
 </body>
