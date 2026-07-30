@@ -60,10 +60,17 @@
             font-size: 13px;
             float: right;
         }
-        .delete-btn:hover { background-color: #dc2626; }
+        .delete-btn:hover { background-color: dc2626; }
         #status { margin-top: 15px; font-weight: 700; font-size: 14px; }
         .row { display: flex; gap: 10px; }
         .row > div { flex: 1; }
+        .batch-box {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
     </style>
 </head>
 <body>
@@ -79,7 +86,7 @@
         <div id="login-status" style="margin-top: 10px; font-weight: bold;"></div>
     </div>
 
-    <!-- [2단계] 실제 수정 패널 (처음에는 숨김) -->
+    <!-- [2단계] 실제 수정 패널 -->
     <div id="admin-panel" class="card" style="display: none;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
             <h3 style="margin: 0; color: #03045e;">📝 노래책 내용 편집</h3>
@@ -94,10 +101,21 @@
 
         <hr style="border: 0; border-top: 1px solid #e2e8f0; margin-bottom: 25px;">
 
+        <!-- [신규] 구글 시트/엑셀 데이터 일괄 붙여넣기 섹션 -->
+        <div class="batch-box">
+            <label style="color: #15803d; margin-bottom: 5px;">📊 구글 시트(엑셀) 데이터 한 번에 가져오기</label>
+            <p style="font-size: 13px; color: #166534; margin-top: 0; margin-bottom: 10px;">
+                구글 시트에서 행들을 복사(Ctrl+C)한 뒤 아래 칸에 붙여넣기(Ctrl+V)하고 버튼을 누르면 목록에 싹 추가됩니다!<br>
+                (순서: <b>제목 / 가수 / 장르 / 제한 / 기타</b> 순서의 탭(Tab) 구분 형태 권장)
+            </p>
+            <textarea id="batch-input" placeholder="여기에 구글 시트 복사 내용을 붙여넣으세요..." style="height: 80px; background: #fff;"></textarea>
+            <button onclick="importBatchSongs()" style="background-color: #16a34a; padding: 8px 16px; font-size: 13px;">붙여넣은 내용으로 목록에 추가하기</button>
+        </div>
+
         <!-- 노래 목록 수정 영역 -->
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
             <label style="margin: 0;">🎶 노래 목록 (<span id="song-count-badge">0</span>곡)</label>
-            <button onclick="addSong()" style="background-color: #10b981; padding: 8px 14px; font-size: 13px;">+ 새 노래 추가하기</button>
+            <button onclick="addSong()" style="background-color: #10b981; padding: 8px 14px; font-size: 13px;">+ 새 노래 직접 추가하기</button>
         </div>
 
         <div id="songs-container">
@@ -109,12 +127,11 @@
     </div>
 
 <script>
-    const WORKER_URL = "https://your-worker-subdomain.workers.dev";
+    const WORKER_URL = "https://badabi-api.dalkkumli054.workers.dev/";
     const GITHUB_JSON_URL = "https://lunaplena0.github.io/songlist.json";
 
     let loadedData = { notice: "", songs: [] };
 
-    // 1. 비밀번호 확인 겸 데이터 불러오기
     async function verifyAndLoad() {
         const password = document.getElementById("admin-password").value;
         const statusEl = document.getElementById("login-status");
@@ -129,17 +146,14 @@
         statusEl.textContent = "데이터를 불러오는 중...";
 
         try {
-            // GitHub에서 현재 JSON 가져오기
             const response = await fetch(GITHUB_JSON_URL + "?t=" + new Date().getTime());
             if (!response.ok) throw new Error("GitHub 데이터를 불러오지 못했습니다.");
             
             loadedData = await response.json();
 
-            // 화면 전환 (로그인 창 숨기고 에디터 창 보이기)
             document.getElementById("login-section").style.display = "none";
             document.getElementById("admin-panel").style.display = "block";
 
-            // 에디터에 데이터 채워넣기
             renderEditor();
 
         } catch (error) {
@@ -148,7 +162,6 @@
         }
     }
 
-    // 2. 에디터 폼에 데이터 렌더링
     function renderEditor() {
         document.getElementById("notice-input").value = loadedData.notice || "";
         const container = document.getElementById("songs-container");
@@ -192,20 +205,54 @@
         });
     }
 
-    // HTML 특수문자 깨짐 방지용 헬퍼 함수
     function escapeHtml(str) {
         return str.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     }
 
-    // 3. 노래 추가하기
     function addSong() {
-        syncFormToData(); // 현재 입력 중이던 내용 보존
+        syncFormToData();
         if (!loadedData.songs) loadedData.songs = [];
-        loadedData.songs.unshift({ title: "", artist: "", genre: "", limit: "", etc: "" }); // 맨 위에 추가
+        loadedData.songs.unshift({ title: "", artist: "", genre: "", limit: "", etc: "" });
         renderEditor();
     }
 
-    // 4. 노래 삭제하기
+    // 구글 시트 복사본 일괄 파싱 기능
+    function importBatchSongs() {
+        syncFormToData();
+        const rawText = document.getElementById("batch-input").value.trim();
+        if (!rawText) {
+            alert("붙여넣을 텍스트가 없습니다.");
+            return;
+        }
+
+        const lines = rawText.split("\n");
+        let addedCount = 0;
+
+        lines.forEach(line => {
+            const cols = line.split("\t"); // 엑셀/구글시트는 복사하면 탭(\t)으로 구분됨
+            if (cols.length >= 1 && cols[0].trim() !== "") {
+                // 구글 시트 구조 매칭 (제목, 가수, 장르, 제한, 기타 순서 가정)
+                const newSong = {
+                    title: cols[0] ? cols[0].trim() : "",
+                    artist: cols[1] ? cols[1].trim() : "",
+                    genre: cols[2] ? cols[2].trim() : "",
+                    limit: cols[3] ? cols[3].trim() : "",
+                    etc: cols[4] ? cols[4].trim() : ""
+                };
+                loadedData.songs.unshift(newSong); // 맨 위에 추가
+                addedCount++;
+            }
+        });
+
+        if (addedCount > 0) {
+            document.getElementById("batch-input").value = ""; // 입력창 초기화
+            renderEditor();
+            alert(`${addedCount}곡이 성공적으로 목록에 추가되었습니다! (맨 위 확인)`);
+        } else {
+            alert("파싱된 데이터가 없습니다. 구글 시트 셀을 올바르게 복사했는지 확인해주세요.");
+        }
+    }
+
     function deleteSong(index) {
         syncFormToData();
         if (confirm(`"${loadedData.songs[index].title || '제목없음'}" 곡을 삭제하시겠습니까?`)) {
@@ -214,7 +261,6 @@
         }
     }
 
-    // 5. 화면의 입력값들을 데이터 객체로 동기화
     function syncFormToData() {
         loadedData.notice = document.getElementById("notice-input").value;
         const boxes = document.querySelectorAll(".song-item-box");
@@ -230,9 +276,8 @@
         });
     }
 
-    // 6. GitHub에 저장하기
     async function saveSonglist() {
-        syncFormToData(); // 저장 전 최신 입력값 반영
+        syncFormToData();
         const password = document.getElementById("admin-password").value;
         const statusEl = document.getElementById("status");
 
