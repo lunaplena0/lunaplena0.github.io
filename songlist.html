@@ -437,12 +437,14 @@
             // 테이블 렌더링 실행
             renderTable(allSongs);
 
-            // 검색 입력창 이벤트 설정 (입력 시 실시간 필터링)
+            // 검색 입력창 이벤트 설정 (엔터를 칠 때만 작동)
             const searchInput = document.getElementById('search-input');
-            
-            searchInput.oninput = (e) => {
-                currentKeyword = e.target.value.toLowerCase().trim();
-                filterAndRender();
+
+            searchInput.onkeydown = (e) => {
+                if (e.key === 'Enter') {
+                    currentKeyword = e.target.value.toLowerCase().trim();
+                    filterAndRender();
+                }
             };
 
             // 필터 버튼 클릭 이벤트 설정
@@ -570,12 +572,5 @@
         // 페이지 로드 시 데이터 불러오기 함수 실행
         loadSongbookData();
     </script>
-    
-    <!-- 하단 푸터 영역 -->
-    <footer style="text-align: center; padding: 20px 10px; color: #718096; font-size: 11px; border-top: 1px solid rgba(0, 119, 190, 0.1); margin-top: auto; width: 100%; box-sizing: border-box;">
-        <p style="margin: 0; opacity: 0.8; line-height: 1.6; word-break: keep-all; overflow-wrap: break-word;">
-            <span style="display: inline-block;">정보 갱신 시 데이터 반영에 차이가 있을 수 있습니다.</span>
-        </p>
-    </footer>
 </body>
 </html>
