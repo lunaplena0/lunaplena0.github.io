@@ -10,18 +10,72 @@
             width: 100vw;
             min-height: 100vh;
             display: flex;
-            align-items: center;
-            justify-content: center;
+            flex-direction: column; /* 네비게이션바를 상단에 배치하기 위해 세로 정렬로 변경 */
             background-color: #f4f7f9;
             overflow-x: hidden;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
+        /* 상단 네비게이션 바 스타일 */
+        .marine-nav {
+            position: sticky;
+            top: 0;
+            z-index: 40;
+            width: 100%;
+            background: rgba(3, 4, 94, 0.9); /* 바다 테마에 어울리는 딥 블루 */
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            box-sizing: border-box;
+            padding: 12px 24px;
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-logo {
+            font-weight: 900;
+            font-size: 15px;
+            letter-spacing: 2px;
+            color: #caf0f8;
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 16px;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .nav-links a {
+            color: #90e0ef;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            transition: color 0.2s ease;
+            padding: 6px 12px;
+            border-radius: 6px;
+        }
+
+        .nav-links a:hover {
+            color: #ffffff;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* 기존 프로필 컨테이너 영역 */
         .ocean-profile-container {
             position: relative;
             width: 100%;
             max-width: 1400px;
-            min-height: 100vh;
+            flex: 1; /* 남은 화면 영역을 채우도록 설정 */
+            margin: 0 auto;
             display: flex;
             align-items: center;
             justify-content: center; 
@@ -162,7 +216,7 @@
             .ocean-profile-container {
                 flex-direction: column;
                 height: auto;
-                min-height: 100vh;
+                min-height: auto;
                 padding: 16px;
                 gap: 20px;
             }
@@ -186,6 +240,17 @@
     </style>
 </head>
 <body>
+
+    <!-- 상단 네비게이션 바 -->
+    <nav class="marine-nav">
+        <div class="nav-container">
+            <a href="#" class="nav-logo">BABABI ARCHIVE</a>
+            <ul class="nav-links">
+                <li><a href="#">profile</a></li>
+                <li><a href="#">link</a></li>
+            </ul>
+        </div>
+    </nav>
 
     <div class="ocean-profile-container">
         <!-- 왼쪽 큰 이미지(GIF) 영역 -->
@@ -251,7 +316,7 @@
                     <p>${(data.bio2 || '').replace(/\n/g, '<br>')}</p>
                 `;
 
-            } catch (error) {
+            } `catch` (error) {
                 console.error(error);
                 document.getElementById("view-name").textContent = "데이터 로드 실패";
             }
