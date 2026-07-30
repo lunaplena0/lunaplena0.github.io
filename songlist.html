@@ -41,7 +41,7 @@
             border-radius: 12px; 
             padding: 40px;
             box-shadow: 0 20px 45px rgba(0, 119, 190, 0.15);
-            max-width: 900px;
+            max-width: 950px;
             width: 100%;
             display: flex;
             flex-direction: column;
@@ -76,7 +76,7 @@
             border-radius: 20px;
         }
 
-        /* 공지사항 박스 영역 (구글시트 A1~D9 구조 반영) */
+        /* 공지사항 박스 영역 */
         .notice-box {
             background: rgba(0, 119, 190, 0.08);
             border: 1px solid rgba(0, 119, 190, 0.2);
@@ -222,14 +222,16 @@
                 <table class="song-table">
                     <thead>
                         <tr>
-                            <th style="width: 50%;">노래제목</th>
-                            <th style="width: 25%;">가수</th>
-                            <th style="width: 25%;">장르</th>
+                            <th style="width: 40%;">노래제목</th>
+                            <th style="width: 20%;">가수</th>
+                            <th style="width: 15%;">장르</th>
+                            <th style="width: 12%;">제한</th>
+                            <th style="width: 13%;">기타</th>
                         </tr>
                     </thead>
                     <tbody id="song-tbody">
                         <tr>
-                            <td colspan="3" class="loading-text" style="padding: 30px;">로딩중입니다...</td>
+                            <td colspan="5" class="loading-text" style="padding: 30px;">로딩중입니다...</td>
                         </tr>
                     </tbody>
                 </table>
@@ -241,7 +243,6 @@
     <script>
         const tsvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ2WQUFSDIK2TzQICEyBQ0xwsBBuOdOKDdCGu3p08niQf25AgYeO8P6MT7vg-Hd4e6Xoqb6QNIgmSBu/pub?output=tsv';
         
-        // 캐시 설정 (단위: 밀리초) - 예: 30분 = 30 * 60 * 1000
         const CACHE_KEY = 'badabi_songbook_data';
         const CACHE_EXPIRY_KEY = 'badabi_songbook_expiry';
         const CACHE_DURATION = 5 * 60 * 1000; 
@@ -251,7 +252,6 @@
             const cacheExpiry = localStorage.getItem(CACHE_EXPIRY_KEY);
             const now = new Date().getTime();
 
-            // 캐시가 존재하고 만료되지 않은 경우 로컬 데이터 사용
             if (cachedData && cacheExpiry && now < parseInt(cacheExpiry, 10)) {
                 try {
                     const parsedData = JSON.parse(cachedData);
@@ -262,7 +262,6 @@
                 }
             }
 
-            // 캐시가 없거나 만료된 경우 Google Sheet TSV 재요청
             try {
                 const response = await fetch(tsvUrl);
                 const text = await response.text();
@@ -270,7 +269,6 @@
                 const rows = text.split('\n').map(row => row.split('\t'));
 
                 if (rows.length > 0) {
-                    // 1. 공지사항 추출
                     let noticeText = "";
                     for (let i = 1; i <= 8 && i < rows.length; i++) {
                         if (rows[i] && rows[i][0]) {
@@ -279,7 +277,6 @@
                         }
                     }
 
-                    // 2. 노래 목록 추출
                     let allSongs = [];
                     for (let i = 10; i < rows.length; i++) {
                         const cols = rows[i];
@@ -293,24 +290,20 @@
                         }
                     }
 
-                    // 캐시 저장
                     const dataToCache = { noticeText, allSongs };
                     localStorage.setItem(CACHE_KEY, JSON.stringify(dataToCache));
                     localStorage.setItem(CACHE_EXPIRY_KEY, (now + CACHE_DURATION).toString());
 
-                    // UI 반영
                     applyDataToUI(noticeText, allSongs);
                 }
             } catch (error) {
                 console.error('데이터 로드 실패:', error);
                 document.querySelector('.notice-content').innerText = "공지사항을 불러오지 못했습니다.";
-                document.getElementById('song-tbody').innerHTML = `<tr><td colspan="3" class="loading-text" style="padding: 30px; color: #ef4444;">데이터 로드 실패</td></tr>`;
+                document.getElementById('song-tbody').innerHTML = `<tr><td colspan="5" class="loading-text" style="padding: 30px; color: #ef4444;">데이터 로드 실패</td></tr>`;
             }
         }
 
-        // 데이터를 받아서 UI 요소들에 렌더링하고 검색 이벤트를 연결하는 함수
         function applyDataToUI(noticeText, allSongs) {
-            // 공지사항 반영
             if (noticeText && noticeText.trim() !== "") {
                 let formattedNotice = noticeText.trim().replace(/<\/br>/gi, '\n');
                 document.querySelector('.notice-content').innerText = formattedNotice;
@@ -318,16 +311,12 @@
                 document.querySelector('.notice-content').innerText = "공지사항이 없습니다.";
             }
 
-            // 노래 개수 표시
             document.getElementById('song-count').innerText = `${allSongs.length}곡`;
 
-            // 테이블 렌더링
             renderTable(allSongs);
 
-            // 검색 이벤트 등록
             const searchInput = document.getElementById('search-input');
             
-            // 기존 이벤트 리스너 중복 등록 방지를 위해 덮어쓰기 처리
             searchInput.onkeydown = (e) => {
                 if (e.key === 'Enter') {
                     const keyword = e.target.value.toLowerCase().trim();
@@ -342,21 +331,33 @@
             };
         }
 
-        // 테이블 렌더링 함수
         function renderTable(songs) {
             const tbody = document.getElementById('song-tbody');
             tbody.innerHTML = "";
 
             if (songs.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="3" class="loading-text" style="padding: 30px;">검색된 노래가 없습니다.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" class="loading-text" style="padding: 30px;">검색된 노래가 없습니다.</td></tr>`;
                 return;
             }
 
             songs.forEach(song => {
                 const tr = document.createElement('tr');
-                let badgesHtml = "";
+                
+                let cleanTitle = song.title;
+                let isGuitarSong = false;
 
-                // 1. 기타(etc) 칸 배지
+                // 타이틀에 [기타]가 포함되어 있는지 확인 후 분리
+                if (/^\[기타\]\s*/.test(cleanTitle)) {
+                    isGuitarSong = true;
+                    cleanTitle = cleanTitle.replace(/^\[기타\]\s*/, '');
+                }
+
+                if (cleanTitle.length > 25) {
+                    cleanTitle = cleanTitle.substring(0, 25) + '...';
+                }
+
+                // 기타(etc) 칸 배지 생성
+                let etcBadgeHtml = "";
                 if (song.etc !== "") {
                     let badgeColor = "#0ea5e9";
                     if (song.etc.includes("200")) {
@@ -364,28 +365,21 @@
                     } else if (song.etc.includes("300")) {
                         badgeColor = "#f97316";
                     }
-                    badgesHtml += `<span style="background-color: ${badgeColor}; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 600; margin-right: 4px; display: inline-block;">${song.etc}</span>`;
-                }
-                
-                // 2. 노래 제목 [기타] 태그 배지
-                let cleanTitle = song.title;
-                const guitarMatch = cleanTitle.match(/^\[기타\]\s*/);
-                if (guitarMatch) {
-                    badgesHtml += `<span style="background-color: #8b5cf6; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 600; margin-right: 4px; display: inline-block;">[기타]</span>`;
-                    cleanTitle = cleanTitle.replace(/^\[기타\]\s*/, '');
+                    etcBadgeHtml += `<span style="background-color: ${badgeColor}; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 600; display: inline-block;">${song.etc}</span>`;
                 }
 
-                // 3. 노래 제목 글자수 제한
-                if (cleanTitle.length > 22) {
-                    cleanTitle = cleanTitle.substring(0, 22) + '...';
+                // [기타연주] 배지 생성
+                let guitarBadgeHtml = "";
+                if (isGuitarSong) {
+                    guitarBadgeHtml += `<span style="background-color: #8b5cf6; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 600; display: inline-block;">[기타연주]</span>`;
                 }
-
-                const combinedTitle = `${badgesHtml}${cleanTitle}`;
                 
                 tr.innerHTML = `
-                    <td>${combinedTitle}</td>
+                    <td>${cleanTitle}</td>
                     <td>${song.artist}</td>
                     <td>${song.genre}</td>
+                    <td></td>
+                    <td>${etcBadgeHtml} ${guitarBadgeHtml}</td>
                 `;
                 tbody.appendChild(tr);
             });
