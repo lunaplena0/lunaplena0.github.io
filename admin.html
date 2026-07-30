@@ -213,7 +213,7 @@
         <input type="text" id="p-name" placeholder="예: 바다비。">
 
         <div style="background: #f8fafc; border: 1px dashed #cbd5e1; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
-            <label style="font-size: 13px; color: #0284c7; margin-bottom: 5px;">🖼️ 프로필 이미지 (아바타/로고) 업로드</label>
+            <label style="font-size: 13px; color: #0284c7; margin-bottom: 5px;">🖼️ 프로필 이미지 (아바타/로고) 업로드 (자동 최적화)</label>
             <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
                 <input type="file" id="profile-img-file" accept="image/gif, image/png, image/jpeg, image/webp" style="flex: 1; font-size: 13px; margin-bottom: 0; background: #fff;">
                 <button onclick="uploadProfileImage()" style="background-color: #0284c7; padding: 8px 14px; font-size: 13px;">이미지 업로드</button>
@@ -275,7 +275,7 @@
             <textarea id="notice-input" placeholder="공지사항을 입력하세요..."></textarea>
             
             <div style="background: #f8fafc; border: 1px dashed #cbd5e1; padding: 15px; border-radius: 8px; margin-top: 10px;">
-                <label style="font-size: 13px; color: #0284c7; margin-bottom: 5px;">🖼️ 컴퓨터에서 움짤(GIF) 추가하기</label>
+                <label style="font-size: 13px; color: #0284c7; margin-bottom: 5px;">🖼️ 컴퓨터에서 움짤(GIF) 추가하기 (자동 최적화)</label>
                 <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
                     <input type="file" id="gif-file-input" accept="image/gif, image/png, image/jpeg" style="flex: 1; font-size: 13px; margin-bottom: 0; background: #fff;">
                     <button onclick="uploadGifImage()" style="background-color: #0284c7; padding: 8px 14px; font-size: 13px;">업로드 후 공지에 삽입</button>
@@ -393,12 +393,10 @@
             const container = document.getElementById("detail-rows-container");
             container.innerHTML = "";
             let detailsList = profileData.details;
-            // 만약 기존 객체 형태이거나 배열이 아닐 경우 기본 변환 (하위 호환성)
             if (detailsList && !Array.isArray(detailsList)) {
                 detailsList = Object.entries(detailsList).map(([k, v]) => ({ key: k, value: v }));
             }
             if (!detailsList || detailsList.length === 0) {
-                // 기본 추천 항목 제공
                 detailsList = [
                     { key: "나이", value: "20살" },
                     { key: "생일", value: "1월 9일" },
@@ -528,6 +526,46 @@
         }
     }
 
+    // 🌟 클라이언트 측 이미지 압축 및 리사이징 핵심 함수
+    async function compressAndConvertImage(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            
+            reader.onload = (event) => {
+                const img = new Image();
+                img.src = event.target.result;
+                
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+
+                    // 최대 너비/높이 제한 (900px 기준)
+                    const MAX_SIZE = 900;
+                    if (width > height && width > MAX_SIZE) {
+                        height *= MAX_SIZE / width;
+                        width = MAX_SIZE;
+                    } else if (height > MAX_SIZE) {
+                        width *= MAX_SIZE / height;
+                        height = MAX_SIZE;
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    // JPEG 80% 품질로 압축하여 Base64 데이터 추출
+                    const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+                    resolve(compressedDataUrl.split(',')[1]);
+                };
+                img.onerror = (error) => reject(error);
+            };
+            reader.onerror = (error) => reject(error);
+        });
+    }
+
     async function uploadProfileImage() {
         const password = document.getElementById("admin-password").value;
         const fileInput = document.getElementById("profile-img-file");
@@ -537,32 +575,63 @@
 
         const file = fileInput.files[0];
         previewDiv.style.color = "#0077b6";
-        previewDiv.textContent = "프로필 이미지 업로드 중...";
+        previewDiv.textContent = "이미지 최적화 및 업로드 중...";
 
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = async function () {
-            const base64Data = reader.result.split(',')[1];
-            try {
-                const response = await fetch(WORKER_URL, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ password: password, action: "upload_image", filename: file.name, filedata: base64Data })
-                });
-                const result = await response.json();
-                if (response.ok && result.url) {
-                    previewDiv.style.color = "#10b981";
-                    previewDiv.textContent = `업로드 성공! 주소: ${result.url}`;
-                    document.getElementById("p-image-url").value = result.url;
-                    fileInput.value = "";
-                } else {
-                    throw new Error(result.error || "업로드 실패");
-                }
-            } catch (err) {
-                previewDiv.style.color = "#ef4444";
-                previewDiv.textContent = "오류: " + err.message;
+        try {
+            // 브라우저에서 가볍게 압축 후 Base64 추출
+            const base64Data = await compressAndConvertImage(file);
+
+            const response = await fetch(WORKER_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ password: password, action: "upload_image", filename: file.name.replace(/\.[^/.]+$/, "") + ".jpg", filedata: base64Data })
+            });
+            const result = await response.json();
+            if (response.ok && result.url) {
+                previewDiv.style.color = "#10b981";
+                previewDiv.textContent = `업로드 성공! 주소: ${result.url}`;
+                document.getElementById("p-image-url").value = result.url;
+                fileInput.value = "";
+            } else {
+                throw new Error(result.error || "업로드 실패");
             }
-        };
+        } catch (err) {
+            previewDiv.style.color = "#ef4444";
+            previewDiv.textContent = "오류: " + err.message;
+        }
+    }
+
+    async function uploadGifImage() {
+        const password = document.getElementById("admin-password").value;
+        const fileInput = document.getElementById("gif-file-input");
+        const statusDiv = document.getElementById("upload-status");
+
+        if (!fileInput.files || fileInput.files.length === 0) { alert("이미지를 선택해주세요."); return; }
+
+        const file = fileInput.files[0];
+        statusDiv.style.color = "#0077b6";
+        statusDiv.textContent = "이미지 최적화 및 업로드 중...";
+
+        try {
+            const base64Data = await compressAndConvertImage(file);
+
+            const response = await fetch(WORKER_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ password: password, action: "upload_image", filename: file.name.replace(/\.[^/.]+$/, "") + ".jpg", filedata: base64Data })
+            });
+            const result = await response.json();
+            if (response.ok && result.url) {
+                statusDiv.style.color = "#10b981";
+                statusDiv.textContent = `업로드 성공! 주소: ${result.url}`;
+                fileInput.value = "";
+            } else {
+                throw new Error(result.error || "업로드 실패");
+            }
+        } catch (err) {
+            statusDiv.style.color = "#ef4444";
+            statusDiv.textContent = "오류: " + err.message;
+        }
     }
 
     function saveProfile() {
@@ -570,7 +639,6 @@
         profileData.image = document.getElementById("p-image-url").value.trim();
         profileData.catchphrase = document.getElementById("p-catchphrase").value.trim();
         
-        // 상세 프로필 동적 항목 수집
         const rows = document.querySelectorAll("#detail-rows-container .detail-item-row");
         let detailsArr = [];
         rows.forEach(row => {
@@ -599,42 +667,6 @@
     function saveSonglist() {
         songData.notice = document.getElementById("notice-input").value;
         saveDataToWorker("songlist", songData, "status");
-    }
-
-    async function uploadGifImage() {
-        const password = document.getElementById("admin-password").value;
-        const fileInput = document.getElementById("gif-file-input");
-        const statusDiv = document.getElementById("upload-status");
-
-        if (!fileInput.files || fileInput.files.length === 0) { alert("이미지를 선택해주세요."); return; }
-
-        const file = fileInput.files[0];
-        statusDiv.style.color = "#0077b6";
-        statusDiv.textContent = "업로드 중...";
-
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = async function () {
-            const base64Data = reader.result.split(',')[1];
-            try {
-                const response = await fetch(WORKER_URL, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ password: password, action: "upload_image", filename: file.name, filedata: base64Data })
-                });
-                const result = await response.json();
-                if (response.ok && result.url) {
-                    statusDiv.style.color = "#10b981";
-                    statusDiv.textContent = `업로드 성공! 주소: ${result.url}`;
-                    fileInput.value = "";
-                } else {
-                    throw new Error(result.error || "업로드 실패");
-                }
-            } catch (err) {
-                statusDiv.style.color = "#ef4444";
-                statusDiv.textContent = "오류: " + err.message;
-            }
-        };
     }
 
     function renderTable() {
@@ -697,7 +729,9 @@
         document.getElementById("edit-modal").style.display = "flex";
     }
 
-    function closeEditModal() { document.getElementById("edit-modal").style.display = "none"; }
+    function closeEditModal() {
+        document.getElementById("edit-modal").style.display = "none";
+    }
 
     function saveModalSong() {
         const index = parseInt(document.getElementById("edit-index").value);
@@ -708,29 +742,37 @@
             limit: document.getElementById("modal-limit-input").value.trim(),
             etc: document.getElementById("modal-etc-input").value.trim()
         };
-        if (!newSong.title) { alert("제목을 입력해주세요."); return; }
-        if (index === -1) songData.songs.unshift(newSong);
-        else songData.songs[index] = newSong;
+
+        if (!newSong.title) { alert("노래 제목을 입력해주세요."); return; }
+
+        if (index === -1) {
+            songData.songs.push(newSong);
+        } else {
+            songData.songs[index] = newSong;
+        }
+
         closeEditModal();
         renderTable();
     }
 
     function deleteSong(index) {
-        if (confirm(`"${songData.songs[index].title || '제목없음'}" 곡을 삭제하시겠습니까?`)) {
+        if (confirm(`정말 #${index + 1} 곡을 삭제하시겠습니까?`)) {
             songData.songs.splice(index, 1);
             renderTable();
         }
     }
 
     function importBatchSongs() {
-        const rawText = document.getElementById("batch-input").value.trim();
-        if (!rawText) { alert("텍스트가 없습니다."); return; }
-        const lines = rawText.split("\n");
+        const text = document.getElementById("batch-input").value.trim();
+        if (!text) { alert("붙여넣은 내용이 없습니다."); return; }
+
+        const lines = text.split("\n");
         let addedCount = 0;
+
         lines.forEach(line => {
             const cols = line.split("\t");
-            if (cols.length >= 1 && cols[0].trim() !== "") {
-                songData.songs.unshift({
+            if (cols.length >= 1 && cols[0].trim()) {
+                songData.songs.push({
                     title: cols[0] ? cols[0].trim() : "",
                     artist: cols[1] ? cols[1].trim() : "",
                     genre: cols[2] ? cols[2].trim() : "",
@@ -740,17 +782,19 @@
                 addedCount++;
             }
         });
+
         if (addedCount > 0) {
+            alert(`${addedCount}곡이 성공적으로 추가되었습니다! (하단의 최종 반영 버튼을 눌러주세요)`);
             document.getElementById("batch-input").value = "";
             renderTable();
-            alert(`${addedCount}곡이 추가되었습니다!`);
         } else {
-            alert("파싱된 데이터가 없습니다.");
+            alert("가져올 수 있는 유효한 데이터가 없습니다. 구글 시트에서 올바르게 복사했는지 확인해주세요.");
         }
     }
 
-    function escapeHtml(str) { return !str ? '' : String(str).replace(/"/g, '&quot;').replace(/'/g, '&#39;'); }
+    function escapeHtml(str) {
+        return (str || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    }
 </script>
-
 </body>
 </html>
