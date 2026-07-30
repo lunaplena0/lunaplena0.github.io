@@ -36,10 +36,8 @@
             background: #fafbfc;
             font-family: 'Noto Sans KR', sans-serif;
         }
-        /* 공지사항 입력창 높이 확대 */
-        #notice-input { height: 180px; resize: vertical; }
+        #notice-input, .profile-textarea { height: 120px; resize: vertical; }
         
-        /* 공통 버튼 스타일 및 호버 효과 */
         button {
             background-color: #0077b6;
             color: white;
@@ -58,11 +56,7 @@
             transform: translateY(-1px);
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
-        button:active {
-            transform: translateY(0);
-        }
         
-        /* 메뉴 선택 카드 스타일 */
         .menu-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -87,7 +81,6 @@
         .menu-card h4 { margin: 0 0 8px 0; color: #03045e; font-size: 18px; }
         .menu-card p { margin: 0; color: #64748b; font-size: 13px; }
 
-        /* 노래 목록 테이블 스타일 */
         .song-table-container {
             max-height: 500px;
             overflow-y: auto;
@@ -115,26 +108,11 @@
         }
         tr:hover { background-color: #f1f5f9; }
         
-        .delete-btn {
-            background-color: #ef4444;
-            padding: 5px 10px;
-            font-size: 12px;
-        }
-        .delete-btn:hover {
-            background-color: #dc2626;
-        }
+        .delete-btn { background-color: #ef4444; padding: 5px 10px; font-size: 12px; }
+        .delete-btn:hover { background-color: #dc2626; }
+        .edit-btn { background-color: #0284c7; padding: 5px 10px; font-size: 12px; margin-right: 5px; }
+        .edit-btn:hover { background-color: #02689c; }
         
-        .edit-btn {
-            background-color: #0284c7;
-            padding: 5px 10px;
-            font-size: 12px;
-            margin-right: 5px;
-        }
-        .edit-btn:hover {
-            background-color: #02689c;
-        }
-        
-        /* 모달 스타일 */
         #edit-modal {
             display: none;
             position: fixed;
@@ -153,9 +131,8 @@
             box-shadow: 0 15px 35px rgba(0,0,0,0.2);
         }
 
-        #status { margin-top: 15px; font-weight: 700; font-size: 14px; }
+        .status-msg { margin-top: 15px; font-weight: 700; font-size: 14px; }
         
-        /* 구글 시트 접기/펼치기 섹션 스타일 */
         .batch-container {
             background: #f0fdf4;
             border: 1px solid #bbf7d0;
@@ -173,22 +150,16 @@
             justify-content: space-between;
             align-items: center;
             user-select: none;
-            transition: background 0.2s;
         }
-        .batch-header:hover {
-            background: #bbf7d0;
-        }
-        .batch-body {
-            display: none; /* 기본 접힌 상태 */
-            padding: 15px;
-        }
+        .batch-header:hover { background: #bbf7d0; }
+        .batch-body { display: none; padding: 15px; }
     </style>
 </head>
 <body>
 
     <h2>🎵 바다비 통합 관리자</h2>
 
-    <!-- [1단계] 로그인 섹션 -->
+    <!-- [1단계] 로그인 -->
     <div id="login-section" class="card">
         <h3>🔐 관리자 인증</h3>
         <p style="color: #64748b; font-size: 14px; margin-bottom: 15px;">관리자 페이지를 이용하려면 비밀번호를 입력해주세요.</p>
@@ -197,7 +168,7 @@
         <div id="login-status" style="margin-top: 10px; font-weight: bold;"></div>
     </div>
 
-    <!-- [2단계] 메인 대시보드 (목록 선택 화면) -->
+    <!-- [2단계] 메인 대시보드 -->
     <div id="dashboard-section" class="card" style="display: none;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
             <h3 style="margin: 0; color: #03045e;">🛠️ 관리 메뉴 선택</h3>
@@ -208,7 +179,7 @@
         <div class="menu-grid">
             <div class="menu-card" onclick="showPanel('intro')">
                 <h4>👤 자기소개 수정</h4>
-                <p>소개글 및 프로필 관련 내용 변경</p>
+                <p>이름, 캐치프레이즈, 스펙 및 소개글 변경</p>
             </div>
             <div class="menu-card" onclick="showPanel('links')">
                 <h4>🔗 링크 수정</h4>
@@ -227,9 +198,39 @@
             <h3 style="margin: 0; color: #03045e;">👤 자기소개 수정</h3>
             <button onclick="showDashboard()" style="background-color: #64748b; padding: 6px 12px; font-size: 13px;">← 메뉴 목록으로</button>
         </div>
-        <p style="color: #64748b;">(이곳에 자기소개 관련 입력 폼을 구성할 수 있습니다.)</p>
-        <textarea placeholder="자기소개 내용을 입력하세요..." style="height: 150px;"></textarea>
-        <button onclick="alert('준비중인 기능입니다.')">저장하기</button>
+
+        <label>활동 이름</label>
+        <input type="text" id="p-name" placeholder="예: 바다비。">
+
+        <label>캐치프레이즈 (오시마크 / 팬덤명 등)</label>
+        <textarea id="p-catchphrase" class="profile-textarea" placeholder="오시마크: 🌊🌧️ &#10;팬덤 명: 꼬용이"></textarea>
+
+        <h4 style="color: #0077b6; margin: 20px 0 10px 0; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;">상세 프로필 정보</h4>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div><label style="font-size: 13px;">나이</label><input type="text" id="p-age" placeholder="20살"></div>
+            <div><label style="font-size: 13px;">생일</label><input type="text" id="p-birthday" placeholder="1월 9일"></div>
+            <div><label style="font-size: 13px;">성별</label><input type="text" id="p-gender" placeholder="여자"></div>
+            <div><label style="font-size: 13px;">인간키</label><input type="text" id="p-height" placeholder="152cm"></div>
+            <div><label style="font-size: 13px;">종족</label><input type="text" id="p-species" placeholder="미니블루드래곤(갯민숭달팽이) 💙"></div>
+            <div><label style="font-size: 13px;">데뷔일</label><input type="text" id="p-debut" placeholder="2026년 4월 20일"></div>
+        </div>
+
+        <label style="margin-top: 10px;">방송시간</label>
+        <input type="text" id="p-time" placeholder="평일 오후 4시 / 주말 오후 2시">
+
+        <label>주 컨텐츠</label>
+        <input type="text" id="p-content" placeholder="소통 & 노래 & 춤 & 기타연주 노래 & ASMR">
+
+        <h4 style="color: #0077b6; margin: 20px 0 10px 0; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;">하단 소개말 (메시지)</h4>
+        <label style="font-size: 13px;">첫 번째 줄 (강조 문구)</label>
+        <input type="text" id="p-bio1" placeholder="바다의 작은 용 , 잘못 만지면 아파요! ↜(⃔っ•̤ ༝ •̤c)⃕">
+        
+        <label style="font-size: 13px;">두 번째 줄 (대사/소개)</label>
+        <textarea id="p-bio2" class="profile-textarea" placeholder="바다의 작은 용? 아니, 바다의 독가시!..."></textarea>
+
+        <button onclick="saveProfile()" style="width: 100%; margin-top: 15px;">GitHub에 자기소개 반영하기</button>
+        <div id="intro-status" class="status-msg"></div>
     </div>
 
     <!-- [3단계-2] 링크 수정 패널 -->
@@ -238,10 +239,12 @@
             <h3 style="margin: 0; color: #03045e;">🔗 링크 수정</h3>
             <button onclick="showDashboard()" style="background-color: #64748b; padding: 6px 12px; font-size: 13px;">← 메뉴 목록으로</button>
         </div>
-        <p style="color: #64748b;">(이곳에 링크 관련 입력 폼을 구성할 수 있습니다.)</p>
         <label>방송국 링크</label>
-        <input type="text" placeholder="https://...">
-        <button onclick="alert('준비중인 기능입니다.')">저장하기</button>
+        <input type="text" id="link-broadcast" placeholder="https://...">
+        <label>유튜브 링크</label>
+        <input type="text" id="link-youtube" placeholder="https://...">
+        <button onclick="saveLinks()" style="width: 100%;">GitHub에 링크 반영하기</button>
+        <div id="links-status" class="status-msg"></div>
     </div>
 
     <!-- [3단계-3] 노래책 수정 패널 -->
@@ -251,15 +254,22 @@
             <button onclick="showDashboard()" style="background-color: #64748b; padding: 6px 12px; font-size: 13px;">← 메뉴 목록으로</button>
         </div>
 
-        <!-- 공지사항 수정 영역 -->
         <div style="margin-bottom: 25px;">
             <label for="notice-input">📢 공지사항 내용</label>
             <textarea id="notice-input" placeholder="공지사항을 입력하세요..."></textarea>
+            
+            <div style="background: #f8fafc; border: 1px dashed #cbd5e1; padding: 15px; border-radius: 8px; margin-top: 10px;">
+                <label style="font-size: 13px; color: #0284c7; margin-bottom: 5px;">🖼️ 컴퓨터에서 움짤(GIF) 추가하기</label>
+                <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                    <input type="file" id="gif-file-input" accept="image/gif, image/png, image/jpeg" style="flex: 1; font-size: 13px; margin-bottom: 0; background: #fff;">
+                    <button onclick="uploadGifImage()" style="background-color: #0284c7; padding: 8px 14px; font-size: 13px;">업로드 후 공지에 삽입</button>
+                </div>
+                <div id="upload-status" style="font-size: 12px; margin-top: 6px; color: #64748b;"></div>
+            </div>
         </div>
 
         <hr style="border: 0; border-top: 1px solid #e2e8f0; margin-bottom: 25px;">
 
-        <!-- 구글 시트 데이터 일괄 붙여넣기 섹션 -->
         <div class="batch-container">
             <div class="batch-header" onclick="toggleBatchBox()">
                 <span>📊 구글 시트(엑셀) 데이터 한 번에 가져오기 (클릭하여 열기/닫기)</span>
@@ -275,7 +285,6 @@
             </div>
         </div>
 
-        <!-- 노래 목록 제어 영역 -->
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
             <label style="margin: 0;">🎶 노래 목록 (<span id="song-count-badge">0</span>곡)</label>
             <div style="display: flex; gap: 10px; flex: 1; max-width: 350px;">
@@ -287,7 +296,6 @@
             </div>
         </div>
 
-        <!-- 테이블 형태의 목록 -->
         <div class="song-table-container">
             <table>
                 <thead>
@@ -300,37 +308,29 @@
                         <th style="width: 15%; text-align: center;">관리</th>
                     </tr>
                 </thead>
-                <tbody id="song-table-body">
-                    <!-- 자바스크립트로 동적 생성 -->
-                </tbody>
+                <tbody id="song-table-body"></tbody>
             </table>
         </div>
 
         <button onclick="saveSonglist()" style="width: 100%; margin-top: 20px; background-color: #0077b6; padding: 14px; font-size: 16px;">GitHub에 최종 변경사항 반영하기</button>
-        <div id="status"></div>
+        <div id="status" class="status-msg"></div>
     </div>
 
-    <!-- [4단계] 개별 수정/추가 팝업 모달 -->
+    <!-- [4단계] 모달 -->
     <div id="edit-modal">
         <div class="modal-content">
             <h3 id="modal-title" style="margin-top: 0; color: #03045e;">곡 정보 수정</h3>
             <input type="hidden" id="edit-index">
-            
             <label style="font-size: 13px;">노래 제목</label>
             <input type="text" id="modal-title-input" placeholder="제목">
-            
             <label style="font-size: 13px;">가수</label>
             <input type="text" id="modal-artist-input" placeholder="가수">
-            
             <label style="font-size: 13px;">장르</label>
             <input type="text" id="modal-genre-input" placeholder="장르">
-            
             <label style="font-size: 13px;">제한 / 조건 (limit)</label>
             <input type="text" id="modal-limit-input" placeholder="조건">
-            
             <label style="font-size: 13px;">기타 정보 (etc)</label>
             <input type="text" id="modal-etc-input" placeholder="특이사항">
-            
             <div style="display: flex; gap: 10px; margin-top: 15px;">
                 <button onclick="closeEditModal()" style="background-color: #64748b; flex: 1;">취소</button>
                 <button onclick="saveModalSong()" style="background-color: #0077b6; flex: 1;">저장</button>
@@ -340,9 +340,15 @@
 
 <script>
     const WORKER_URL = "https://badabi-api.dalkkumli054.workers.dev/";
-    const GITHUB_JSON_URL = "https://lunaplena0.github.io/songlist.json";
+    const GITHUB_BASE_URL = "https://lunaplena0.github.io/";
 
-    let loadedData = { notice: "", songs: [] };
+    let songData = { notice: "", songs: [] };
+    let profileData = { 
+        name: "", catchphrase: "", age: "", birthday: "", 
+        gender: "", height: "", species: "", debut: "", 
+        time: "", content: "", bio1: "", bio2: "" 
+    };
+    let linksData = { broadcast: "", youtube: "" };
 
     function showDashboard() {
         document.getElementById("dashboard-section").style.display = "block";
@@ -359,10 +365,25 @@
 
         if (type === 'intro') {
             document.getElementById("panel-intro").style.display = "block";
+            document.getElementById("p-name").value = profileData.name || "";
+            document.getElementById("p-catchphrase").value = profileData.catchphrase || "";
+            document.getElementById("p-age").value = profileData.age || "";
+            document.getElementById("p-birthday").value = profileData.birthday || "";
+            document.getElementById("p-gender").value = profileData.gender || "";
+            document.getElementById("p-height").value = profileData.height || "";
+            document.getElementById("p-species").value = profileData.species || "";
+            document.getElementById("p-debut").value = profileData.debut || "";
+            document.getElementById("p-time").value = profileData.time || "";
+            document.getElementById("p-content").value = profileData.content || "";
+            document.getElementById("p-bio1").value = profileData.bio1 || "";
+            document.getElementById("p-bio2").value = profileData.bio2 || "";
         } else if (type === 'links') {
             document.getElementById("panel-links").style.display = "block";
+            document.getElementById("link-broadcast").value = linksData.broadcast || "";
+            document.getElementById("link-youtube").value = linksData.youtube || "";
         } else if (type === 'songs') {
             document.getElementById("panel-songs").style.display = "block";
+            document.getElementById("notice-input").value = songData.notice || "";
             renderTable();
         }
     }
@@ -382,30 +403,48 @@
     async function verifyAndLoad() {
         const password = document.getElementById("admin-password").value;
         const statusEl = document.getElementById("login-status");
-
-        if (!password) {
-            statusEl.style.color = "#ef4444";
-            statusEl.textContent = "비밀번호를 입력해주세요.";
-            return;
-        }
+        if (!password) { statusEl.style.color = "#ef4444"; statusEl.textContent = "비밀번호를 입력해주세요."; return; }
 
         statusEl.style.color = "#0077b6";
         statusEl.textContent = "데이터를 불러오는 중...";
 
         try {
-            const response = await fetch(GITHUB_JSON_URL + "?t=" + new Date().getTime());
-            if (!response.ok) throw new Error("GitHub 데이터를 불러오지 못했습니다.");
+            const timestamp = new Date().getTime();
             
-            const data = await response.json();
-            loadedData = {
-                notice: data.notice || "",
-                songs: Array.isArray(data.songs) ? data.songs : []
-            };
+            const [songRes, profileRes, linksRes] = await Promise.all([
+                fetch(GITHUB_BASE_URL + "songlist.json?t=" + timestamp),
+                fetch(GITHUB_BASE_URL + "profile.json?t=" + timestamp),
+                fetch(GITHUB_BASE_URL + "links.json?t=" + timestamp)
+            ]);
+
+            if (songRes.ok) {
+                const data = await songRes.json();
+                songData = { notice: data.notice || "", songs: Array.isArray(data.songs) ? data.songs : [] };
+            }
+            if (profileRes.ok) {
+                const data = await profileRes.json();
+                profileData = {
+                    name: data.name || "",
+                    catchphrase: data.catchphrase || "",
+                    age: data.age || "",
+                    birthday: data.birthday || "",
+                    gender: data.gender || "",
+                    height: data.height || "",
+                    species: data.species || "",
+                    debut: data.debut || "",
+                    time: data.time || "",
+                    content: data.content || "",
+                    bio1: data.bio1 || "",
+                    bio2: data.bio2 || ""
+                };
+            }
+            if (linksRes.ok) {
+                const data = await linksRes.json();
+                linksData = { broadcast: data.broadcast || "", youtube: data.youtube || "" };
+            }
 
             document.getElementById("login-section").style.display = "none";
             document.getElementById("dashboard-section").style.display = "block";
-
-            document.getElementById("notice-input").value = loadedData.notice || "";
 
         } catch (error) {
             statusEl.style.color = "#ef4444";
@@ -413,22 +452,112 @@
         }
     }
 
-    function renderTable() {
-        if (!Array.isArray(loadedData.songs)) loadedData.songs = [];
-        document.getElementById("song-count-badge").textContent = loadedData.songs.length;
+    async function saveDataToWorker(fileType, contentObj, statusElementId) {
+        const password = document.getElementById("admin-password").value;
+        const statusEl = document.getElementById(statusElementId);
+        statusEl.style.color = "#0077b6";
+        statusEl.textContent = "GitHub에 반영 중...";
 
+        try {
+            const response = await fetch(WORKER_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    password: password,
+                    fileType: fileType,
+                    content: contentObj
+                })
+            });
+            const result = await response.json();
+            if (response.ok) {
+                statusEl.style.color = "#10b981";
+                statusEl.textContent = "성공적으로 업데이트되었습니다! (1~2분 뒤 반영)";
+            } else {
+                throw new Error(result.error || "비밀번호 오류");
+            }
+        } catch (error) {
+            statusEl.style.color = "#ef4444";
+            statusEl.textContent = "실패: " + error.message;
+        }
+    }
+
+    function saveProfile() {
+        profileData.name = document.getElementById("p-name").value.trim();
+        profileData.catchphrase = document.getElementById("p-catchphrase").value.trim();
+        profileData.age = document.getElementById("p-age").value.trim();
+        profileData.birthday = document.getElementById("p-birthday").value.trim();
+        profileData.gender = document.getElementById("p-gender").value.trim();
+        profileData.height = document.getElementById("p-height").value.trim();
+        profileData.species = document.getElementById("p-species").value.trim();
+        profileData.debut = document.getElementById("p-debut").value.trim();
+        profileData.time = document.getElementById("p-time").value.trim();
+        profileData.content = document.getElementById("p-content").value.trim();
+        profileData.bio1 = document.getElementById("p-bio1").value.trim();
+        profileData.bio2 = document.getElementById("p-bio2").value.trim();
+
+        saveDataToWorker("profile", profileData, "intro-status");
+    }
+
+    function saveLinks() {
+        linksData.broadcast = document.getElementById("link-broadcast").value.trim();
+        linksData.youtube = document.getElementById("link-youtube").value.trim();
+        saveDataToWorker("links", linksData, "links-status");
+    }
+
+    function saveSonglist() {
+        songData.notice = document.getElementById("notice-input").value;
+        saveDataToWorker("songlist", songData, "status");
+    }
+
+    async function uploadGifImage() {
+        const password = document.getElementById("admin-password").value;
+        const fileInput = document.getElementById("gif-file-input");
+        const statusDiv = document.getElementById("upload-status");
+
+        if (!fileInput.files || fileInput.files.length === 0) { alert("이미지를 선택해주세요."); return; }
+
+        const file = fileInput.files[0];
+        statusDiv.style.color = "#0077b6";
+        statusDiv.textContent = "업로드 중...";
+
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = async function () {
+            const base64Data = reader.result.split(',')[1];
+            try {
+                const response = await fetch(WORKER_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ password: password, action: "upload_image", filename: file.name, filedata: base64Data })
+                });
+                const result = await response.json();
+                if (response.ok && result.url) {
+                    statusDiv.style.color = "#10b981";
+                    statusDiv.textContent = `업로드 성공! 주소: ${result.url}`;
+                    fileInput.value = "";
+                } else {
+                    throw new Error(result.error || "업로드 실패");
+                }
+            } catch (err) {
+                statusDiv.style.color = "#ef4444";
+                statusDiv.textContent = "오류: " + err.message;
+            }
+        };
+    }
+
+    function renderTable() {
+        if (!Array.isArray(songData.songs)) songData.songs = [];
+        document.getElementById("song-count-badge").textContent = songData.songs.length;
         const keyword = document.getElementById("search-input").value.toLowerCase().trim();
         const tbody = document.getElementById("song-table-body");
         tbody.innerHTML = "";
 
-        loadedData.songs.forEach((song, originalIndex) => {
+        songData.songs.forEach((song, originalIndex) => {
             const title = (song.title || "").toLowerCase();
             const artist = (song.artist || "").toLowerCase();
             const genre = (song.genre || "").toLowerCase();
 
-            if (keyword && !title.includes(keyword) && !artist.includes(keyword) && !genre.includes(keyword)) {
-                return;
-            }
+            if (keyword && !title.includes(keyword) && !artist.includes(keyword) && !genre.includes(keyword)) return;
 
             const tr = document.createElement("tr");
             tr.innerHTML = `
@@ -446,83 +575,37 @@
         });
     }
 
-    // CSV 파일로 다운로드하는 함수
     function downloadCsvFile() {
-        if (!Array.isArray(loadedData.songs) || loadedData.songs.length === 0) {
-            alert("내보낼 노래 데이터가 없습니다.");
-            return;
-        }
-
-        const keyword = document.getElementById("search-input").value.toLowerCase().trim();
-        let csvRows = [];
-
-        // 엑셀/구글시트용 헤더 추가
-        csvRows.push('"\uFEFF제목","가수","장르","제한","기타"');
-
-        loadedData.songs.forEach(song => {
-            const title = (song.title || "").toLowerCase();
-            const artist = (song.artist || "").toLowerCase();
-            const genre = (song.genre || "").toLowerCase();
-
-            if (keyword && !title.includes(keyword) && !artist.includes(keyword) && !genre.includes(keyword)) {
-                return;
-            }
-
-            // 쌍따옴표 이스케이프 처리 (CSV 포맷 안전성 확보)
-            const cleanTitle = (song.title || "").replace(/"/g, '""');
-            const cleanArtist = (song.artist || "").replace(/"/g, '""');
-            const cleanGenre = (song.genre || "").replace(/"/g, '""');
-            const cleanLimit = (song.limit || "").replace(/"/g, '""');
-            const cleanEtc = (song.etc || "").replace(/"/g, '""');
-
-            csvRows.push(`"${cleanTitle}","${cleanArtist}","${cleanGenre}","${cleanLimit}","${cleanEtc}"`);
+        if (!Array.isArray(songData.songs) || songData.songs.length === 0) { alert("내보낼 데이터가 없습니다."); return; }
+        let csvRows = ['"\uFEFF제목","가수","장르","제한","기타"'];
+        songData.songs.forEach(song => {
+            csvRows.push(`"${(song.title||"").replace(/"/g,'""')}","${(song.artist||"").replace(/"/g,'""')}","${(song.genre||"").replace(/"/g,'""')}","${(song.limit||"").replace(/"/g,'""')}","${(song.etc||"").replace(/"/g,'""')}"`);
         });
-
-        if (csvRows.length <= 1) {
-            alert("검색 결과에 해당하는 곡이 없습니다.");
-            return;
-        }
-
-        const csvString = csvRows.join("\n");
-        const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+        const blob = new Blob([csvRows.join("\n")], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
-        
-        a.href = url;
-        a.download = `badabi_songlist_${new Date().toISOString().slice(0,10)}.csv`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+        a.href = url; a.download = `badabi_songlist_${new Date().toISOString().slice(0,10)}.csv`;
+        document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
     }
 
     function openEditModal(index) {
-        syncNoticeToData();
         document.getElementById("edit-index").value = index;
-        
         if (index === -1) {
             document.getElementById("modal-title").textContent = "새 노래 추가";
-            document.getElementById("modal-title-input").value = "";
-            document.getElementById("modal-artist-input").value = "";
-            document.getElementById("modal-genre-input").value = "";
-            document.getElementById("modal-limit-input").value = "";
-            document.getElementById("modal-etc-input").value = "";
+            ["modal-title-input","modal-artist-input","modal-genre-input","modal-limit-input","modal-etc-input"].forEach(id => document.getElementById(id).value = "");
         } else {
             document.getElementById("modal-title").textContent = `#${index + 1} 곡 정보 수정`;
-            const song = loadedData.songs[index];
+            const song = songData.songs[index];
             document.getElementById("modal-title-input").value = song.title || "";
             document.getElementById("modal-artist-input").value = song.artist || "";
             document.getElementById("modal-genre-input").value = song.genre || "";
             document.getElementById("modal-limit-input").value = song.limit || "";
             document.getElementById("modal-etc-input").value = song.etc || "";
         }
-
         document.getElementById("edit-modal").style.display = "flex";
     }
 
-    function closeEditModal() {
-        document.getElementById("edit-modal").style.display = "none";
-    }
+    function closeEditModal() { document.getElementById("edit-modal").style.display = "none"; }
 
     function saveModalSong() {
         const index = parseInt(document.getElementById("edit-index").value);
@@ -533,108 +616,48 @@
             limit: document.getElementById("modal-limit-input").value.trim(),
             etc: document.getElementById("modal-etc-input").value.trim()
         };
-
-        if (!newSong.title) {
-            alert("노래 제목은 반드시 입력해야 합니다.");
-            return;
-        }
-
-        if (index === -1) {
-            if (!loadedData.songs) loadedData.songs = [];
-            loadedData.songs.unshift(newSong);
-        } else {
-            loadedData.songs[index] = newSong;
-        }
-
+        if (!newSong.title) { alert("제목을 입력해주세요."); return; }
+        if (index === -1) songData.songs.unshift(newSong);
+        else songData.songs[index] = newSong;
         closeEditModal();
         renderTable();
     }
 
     function deleteSong(index) {
-        syncNoticeToData();
-        if (confirm(`"${loadedData.songs[index].title || '제목없음'}" 곡을 삭제하시겠습니까?`)) {
-            loadedData.songs.splice(index, 1);
+        if (confirm(`"${songData.songs[index].title || '제목없음'}" 곡을 삭제하시겠습니까?`)) {
+            songData.songs.splice(index, 1);
             renderTable();
         }
     }
 
     function importBatchSongs() {
-        syncNoticeToData();
         const rawText = document.getElementById("batch-input").value.trim();
-        if (!rawText) {
-            alert("붙여넣을 텍스트가 없습니다.");
-            return;
-        }
-
+        if (!rawText) { alert("텍스트가 없습니다."); return; }
         const lines = rawText.split("\n");
         let addedCount = 0;
-
         lines.forEach(line => {
             const cols = line.split("\t");
             if (cols.length >= 1 && cols[0].trim() !== "") {
-                const newSong = {
-                    title: cols[0] ? String(cols[0]).trim() : "",
-                    artist: cols[1] ? String(cols[1]).trim() : "",
-                    genre: cols[2] ? String(cols[2]).trim() : "",
-                    limit: cols[3] ? String(cols[3]).trim() : "",
-                    etc: cols[4] ? String(cols[4]).trim() : ""
-                };
-                if (!loadedData.songs) loadedData.songs = [];
-                loadedData.songs.unshift(newSong);
+                songData.songs.unshift({
+                    title: cols[0] ? cols[0].trim() : "",
+                    artist: cols[1] ? cols[1].trim() : "",
+                    genre: cols[2] ? cols[2].trim() : "",
+                    limit: cols[3] ? cols[3].trim() : "",
+                    etc: cols[4] ? cols[4].trim() : ""
+                });
                 addedCount++;
             }
         });
-
         if (addedCount > 0) {
             document.getElementById("batch-input").value = "";
             renderTable();
-            alert(`${addedCount}곡이 성공적으로 목록에 추가되었습니다!`);
+            alert(`${addedCount}곡이 추가되었습니다!`);
         } else {
-            alert("파싱된 데이터가 없습니다. 구글 시트 셀 전체를 정확히 복사했는지 확인해주세요.");
+            alert("파싱된 데이터가 없습니다.");
         }
     }
 
-    function syncNoticeToData() {
-        loadedData.notice = document.getElementById("notice-input").value || "";
-    }
-
-    function escapeHtml(str) {
-        if (!str) return '';
-        return String(str).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-    }
-
-    async function saveSonglist() {
-        syncNoticeToData();
-        const password = document.getElementById("admin-password").value;
-        const statusEl = document.getElementById("status");
-
-        statusEl.style.color = "#0077b6";
-        statusEl.textContent = "GitHub에 반영 중...";
-
-        try {
-            const response = await fetch(WORKER_URL, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    password: password,
-                    content: loadedData
-                })
-            });
-
-            const result = await response.json();
-
-            if (response.ok) {
-                statusEl.style.color = "#10b981";
-                statusEl.textContent = "성공적으로 업데이트되었습니다! (GitHub Pages 반영까지 1~2분 소요)";
-            } else {
-                statusEl.style.color = "#ef4444";
-                statusEl.textContent = "업데이트 실패: " + (result.error || "비밀번호 오류");
-            }
-        } catch (error) {
-            statusEl.style.color = "#ef4444";
-            statusEl.textContent = "네트워크 오류: " + error.message;
-        }
-    }
+    function escapeHtml(str) { return !str ? '' : String(str).replace(/"/g, '&quot;').replace(/'/g, '&#39;'); }
 </script>
 
 </body>
