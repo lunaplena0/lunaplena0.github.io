@@ -60,7 +60,6 @@
             font-size: 13px;
             float: right;
         }
-        .delete-btn:hover { background-color: dc2626; }
         #status { margin-top: 15px; font-weight: 700; font-size: 14px; }
         .row { display: flex; gap: 10px; }
         .row > div { flex: 1; }
@@ -101,12 +100,12 @@
 
         <hr style="border: 0; border-top: 1px solid #e2e8f0; margin-bottom: 25px;">
 
-        <!-- [신규] 구글 시트/엑셀 데이터 일괄 붙여넣기 섹션 -->
+        <!-- 구글 시트 데이터 일괄 붙여넣기 섹션 -->
         <div class="batch-box">
             <label style="color: #15803d; margin-bottom: 5px;">📊 구글 시트(엑셀) 데이터 한 번에 가져오기</label>
             <p style="font-size: 13px; color: #166534; margin-top: 0; margin-bottom: 10px;">
-                구글 시트에서 행들을 복사(Ctrl+C)한 뒤 아래 칸에 붙여넣기(Ctrl+V)하고 버튼을 누르면 목록에 싹 추가됩니다!<br>
-                (순서: <b>제목 / 가수 / 장르 / 제한 / 기타</b> 순서의 탭(Tab) 구분 형태 권장)
+                구글 시트에서 행들을 복사(Ctrl+C)한 뒤 아래 칸에 붙여넣고 버튼을 누르세요.<br>
+                (순서: <b>제목 / 가수 / 장르 / 제한 / 기타</b>)
             </p>
             <textarea id="batch-input" placeholder="여기에 구글 시트 복사 내용을 붙여넣으세요..." style="height: 80px; background: #fff;"></textarea>
             <button onclick="importBatchSongs()" style="background-color: #16a34a; padding: 8px 16px; font-size: 13px;">붙여넣은 내용으로 목록에 추가하기</button>
@@ -118,9 +117,7 @@
             <button onclick="addSong()" style="background-color: #10b981; padding: 8px 14px; font-size: 13px;">+ 새 노래 직접 추가하기</button>
         </div>
 
-        <div id="songs-container">
-            <!-- 자바스크립트로 동적 생성됨 -->
-        </div>
+        <div id="songs-container"></div>
 
         <button onclick="saveSonglist()" style="width: 100%; margin-top: 20px; background-color: #0077b6; padding: 14px; font-size: 16px;">GitHub에 최종 변경사항 반영하기</button>
         <div id="status"></div>
@@ -149,7 +146,12 @@
             const response = await fetch(GITHUB_JSON_URL + "?t=" + new Date().getTime());
             if (!response.ok) throw new Error("GitHub 데이터를 불러오지 못했습니다.");
             
-            loadedData = await response.json();
+            const data = await response.json();
+            // 안전장치: 구조가 깨졌거나 비어있어도 기본값 보장
+            loadedData = {
+                notice: data.notice || "",
+                songs: Array.isArray(data.songs) ? data.songs : []
+            };
 
             document.getElementById("login-section").style.display = "none";
             document.getElementById("admin-panel").style.display = "block";
@@ -167,10 +169,10 @@
         const container = document.getElementById("songs-container");
         container.innerHTML = "";
 
-        const songs = loadedData.songs || [];
-        document.getElementById("song-count-badge").textContent = songs.length;
+        if (!Array.isArray(loadedData.songs)) loadedData.songs = [];
+        document.getElementById("song-count-badge").textContent = loadedData.songs.length;
 
-        songs.forEach((song, index) => {
+        loadedData.songs.forEach((song, index) => {
             const box = document.createElement("div");
             box.className = "song-item-box";
             box.innerHTML = `
@@ -189,11 +191,11 @@
                 <div class="row">
                     <div>
                         <label style="font-size: 12px;">장르</label>
-                        <input type="text" class="input-genre" value="${escapeHtml(song.genre || '')}" placeholder="K팝, J팝 등">
+                        <input type="text" class="input-genre" value="${escapeHtml(song.genre || '')}" placeholder="장르">
                     </div>
                     <div>
                         <label style="font-size: 12px;">제한/조건 (limit)</label>
-                        <input type="text" class="input-limit" value="${escapeHtml(song.limit || '')}" placeholder="기타연주 등">
+                        <input type="text" class="input-limit" value="${escapeHtml(song.limit || '')}" placeholder="조건">
                     </div>
                 </div>
                 <div>
@@ -206,7 +208,8 @@
     }
 
     function escapeHtml(str) {
-        return str.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        if (!str) return '';
+        return String(str).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     }
 
     function addSong() {
@@ -216,7 +219,6 @@
         renderEditor();
     }
 
-    // 구글 시트 복사본 일괄 파싱 기능
     function importBatchSongs() {
         syncFormToData();
         const rawText = document.getElementById("batch-input").value.trim();
@@ -229,27 +231,28 @@
         let addedCount = 0;
 
         lines.forEach(line => {
-            const cols = line.split("\t"); // 엑셀/구글시트는 복사하면 탭(\t)으로 구분됨
+            const cols = line.split("\t");
+            // 탭 구분이 제대로 된 데이터 행만 안전하게 추가 (undefined 방지)
             if (cols.length >= 1 && cols[0].trim() !== "") {
-                // 구글 시트 구조 매칭 (제목, 가수, 장르, 제한, 기타 순서 가정)
                 const newSong = {
-                    title: cols[0] ? cols[0].trim() : "",
-                    artist: cols[1] ? cols[1].trim() : "",
-                    genre: cols[2] ? cols[2].trim() : "",
-                    limit: cols[3] ? cols[3].trim() : "",
-                    etc: cols[4] ? cols[4].trim() : ""
+                    title: cols[0] ? String(cols[0]).trim() : "",
+                    artist: cols[1] ? String(cols[1]).trim() : "",
+                    genre: cols[2] ? String(cols[2]).trim() : "",
+                    limit: cols[3] ? String(cols[3]).trim() : "",
+                    etc: cols[4] ? String(cols[4]).trim() : ""
                 };
-                loadedData.songs.unshift(newSong); // 맨 위에 추가
+                if (!loadedData.songs) loadedData.songs = [];
+                loadedData.songs.unshift(newSong);
                 addedCount++;
             }
         });
 
         if (addedCount > 0) {
-            document.getElementById("batch-input").value = ""; // 입력창 초기화
+            document.getElementById("batch-input").value = "";
             renderEditor();
-            alert(`${addedCount}곡이 성공적으로 목록에 추가되었습니다! (맨 위 확인)`);
+            alert(`${addedCount}곡이 성공적으로 목록에 추가되었습니다!`);
         } else {
-            alert("파싱된 데이터가 없습니다. 구글 시트 셀을 올바르게 복사했는지 확인해주세요.");
+            alert("파싱된 데이터가 없습니다. 구글 시트 셀 전체를 정확히 복사했는지 확인해주세요.");
         }
     }
 
@@ -262,18 +265,20 @@
     }
 
     function syncFormToData() {
-        loadedData.notice = document.getElementById("notice-input").value;
+        loadedData.notice = document.getElementById("notice-input").value || "";
         const boxes = document.querySelectorAll(".song-item-box");
         
-        boxes.forEach((box, index) => {
-            loadedData.songs[index] = {
-                title: box.querySelector(".input-title").value,
-                artist: box.querySelector(".input-artist").value,
-                genre: box.querySelector(".input-genre").value,
-                limit: box.querySelector(".input-limit").value,
-                etc: box.querySelector(".input-etc").value
-            };
+        const updatedSongs = [];
+        boxes.forEach((box) => {
+            updatedSongs.push({
+                title: box.querySelector(".input-title").value || "",
+                artist: box.querySelector(".input-artist").value || "",
+                genre: box.querySelector(".input-genre").value || "",
+                limit: box.querySelector(".input-limit").value || "",
+                etc: box.querySelector(".input-etc").value || ""
+            });
         });
+        loadedData.songs = updatedSongs;
     }
 
     async function saveSonglist() {
@@ -301,7 +306,7 @@
                 statusEl.textContent = "성공적으로 업데이트되었습니다! (GitHub Pages 반영까지 1~2분 소요)";
             } else {
                 statusEl.style.color = "#ef4444";
-                statusEl.textContent = "업데이트 실패: " + (result.error || "비밀번호가 틀렸거나 오류가 발생했습니다.");
+                statusEl.textContent = "업데이트 실패: " + (result.error || "비밀번호 오류");
             }
         } catch (error) {
             statusEl.style.color = "#ef4444";
