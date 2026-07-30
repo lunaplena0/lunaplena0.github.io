@@ -153,6 +153,16 @@
         }
         .batch-header:hover { background: #bbf7d0; }
         .batch-body { display: none; padding: 15px; }
+
+        .detail-item-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+        .detail-item-row input {
+            margin-bottom: 0 !important;
+        }
     </style>
 </head>
 <body>
@@ -179,7 +189,7 @@
         <div class="menu-grid">
             <div class="menu-card" onclick="showPanel('intro')">
                 <h4>👤 자기소개 수정</h4>
-                <p>이름, 캐치프레이즈, 스펙 및 소개글 변경</p>
+                <p>이름, 프로필 이미지, 캐치프레이즈 및 상세 프로필 정보 변경</p>
             </div>
             <div class="menu-card" onclick="showPanel('links')">
                 <h4>🔗 링크 수정</h4>
@@ -202,21 +212,27 @@
         <label>활동 이름</label>
         <input type="text" id="p-name" placeholder="예: 바다비。">
 
+        <div style="background: #f8fafc; border: 1px dashed #cbd5e1; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+            <label style="font-size: 13px; color: #0284c7; margin-bottom: 5px;">🖼️ 프로필 이미지 (아바타/로고) 업로드</label>
+            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                <input type="file" id="profile-img-file" accept="image/gif, image/png, image/jpeg, image/webp" style="flex: 1; font-size: 13px; margin-bottom: 0; background: #fff;">
+                <button onclick="uploadProfileImage()" style="background-color: #0284c7; padding: 8px 14px; font-size: 13px;">이미지 업로드</button>
+            </div>
+            <input type="hidden" id="p-image-url">
+            <div id="profile-img-preview" style="margin-top: 10px; font-size: 12px; color: #64748b;"></div>
+        </div>
+
         <label>캐치프레이즈 (오시마크 / 팬덤명 등)</label>
         <textarea id="p-catchphrase" class="profile-textarea" placeholder="오시마크: 🌊🌧️ &#10;팬덤 명: 꼬용이"></textarea>
 
-        <h4 style="color: #0077b6; margin: 20px 0 10px 0; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;">상세 프로필 정보</h4>
-        
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-            <div><label style="font-size: 13px;">나이</label><input type="text" id="p-age" placeholder="20살"></div>
-            <div><label style="font-size: 13px;">생일</label><input type="text" id="p-birthday" placeholder="1월 9일"></div>
-            <div><label style="font-size: 13px;">성별</label><input type="text" id="p-gender" placeholder="여자"></div>
-            <div><label style="font-size: 13px;">인간키</label><input type="text" id="p-height" placeholder="152cm"></div>
-            <div><label style="font-size: 13px;">종족</label><input type="text" id="p-species" placeholder="미니블루드래곤(갯민숭달팽이) 💙"></div>
-            <div><label style="font-size: 13px;">데뷔일</label><input type="text" id="p-debut" placeholder="2026년 4월 20일"></div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin: 20px 0 10px 0; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;">
+            <h4 style="color: #0077b6; margin: 0;">상세 프로필 정보 (라벨 및 값 자유 추가/제거)</h4>
+            <button onclick="addDetailRow()" style="background-color: #10b981; padding: 4px 10px; font-size: 12px;">+ 항목 추가</button>
         </div>
+        
+        <div id="detail-rows-container"></div>
 
-        <label style="margin-top: 10px;">방송시간</label>
+        <label style="margin-top: 20px;">방송시간</label>
         <input type="text" id="p-time" placeholder="평일 오후 4시 / 주말 오후 2시">
 
         <label>주 컨텐츠</label>
@@ -344,8 +360,7 @@
 
     let songData = { notice: "", songs: [] };
     let profileData = { 
-        name: "", catchphrase: "", age: "", birthday: "", 
-        gender: "", height: "", species: "", debut: "", 
+        name: "", image: "", catchphrase: "", details: [], 
         time: "", content: "", bio1: "", bio2: "" 
     };
     let linksData = { broadcast: "", youtube: "" };
@@ -366,17 +381,37 @@
         if (type === 'intro') {
             document.getElementById("panel-intro").style.display = "block";
             document.getElementById("p-name").value = profileData.name || "";
+            document.getElementById("p-image-url").value = profileData.image || "";
+            document.getElementById("profile-img-preview").textContent = profileData.image ? `현재 이미지: ${profileData.image}` : "등록된 이미지 없음";
             document.getElementById("p-catchphrase").value = profileData.catchphrase || "";
-            document.getElementById("p-age").value = profileData.age || "";
-            document.getElementById("p-birthday").value = profileData.birthday || "";
-            document.getElementById("p-gender").value = profileData.gender || "";
-            document.getElementById("p-height").value = profileData.height || "";
-            document.getElementById("p-species").value = profileData.species || "";
-            document.getElementById("p-debut").value = profileData.debut || "";
             document.getElementById("p-time").value = profileData.time || "";
             document.getElementById("p-content").value = profileData.content || "";
             document.getElementById("p-bio1").value = profileData.bio1 || "";
             document.getElementById("p-bio2").value = profileData.bio2 || "";
+
+            // 상세 프로필 동적 렌더링
+            const container = document.getElementById("detail-rows-container");
+            container.innerHTML = "";
+            let detailsList = profileData.details;
+            // 만약 기존 객체 형태이거나 배열이 아닐 경우 기본 변환 (하위 호환성)
+            if (detailsList && !Array.isArray(detailsList)) {
+                detailsList = Object.entries(detailsList).map(([k, v]) => ({ key: k, value: v }));
+            }
+            if (!detailsList || detailsList.length === 0) {
+                // 기본 추천 항목 제공
+                detailsList = [
+                    { key: "나이", value: "20살" },
+                    { key: "생일", value: "1월 9일" },
+                    { key: "성별", value: "여자" },
+                    { key: "인간키", value: "152cm" },
+                    { key: "종족", value: "미니블루드래곤(갯민숭달팽이) 💙" },
+                    { key: "데뷔일", value: "2026년 4월 20일" }
+                ];
+            }
+            detailsList.forEach(item => {
+                addDetailRow(item.key, item.value);
+            });
+
         } else if (type === 'links') {
             document.getElementById("panel-links").style.display = "block";
             document.getElementById("link-broadcast").value = linksData.broadcast || "";
@@ -386,6 +421,18 @@
             document.getElementById("notice-input").value = songData.notice || "";
             renderTable();
         }
+    }
+
+    function addDetailRow(key = "", val = "") {
+        const container = document.getElementById("detail-rows-container");
+        const row = document.createElement("div");
+        row.className = "detail-item-row";
+        row.innerHTML = `
+            <input type="text" class="detail-key" placeholder="항목 이름 (예: 나이)" value="${escapeHtml(key)}" style="flex: 1;">
+            <input type="text" class="detail-val" placeholder="내용 (예: 20살)" value="${escapeHtml(val)}" style="flex: 2;">
+            <button onclick="this.parentElement.remove()" style="background-color: #ef4444; padding: 10px 14px; font-size: 13px; margin-bottom: 15px;">삭제</button>
+        `;
+        container.appendChild(row);
     }
 
     function toggleBatchBox() {
@@ -423,15 +470,15 @@
             }
             if (profileRes.ok) {
                 const data = await profileRes.json();
+                let details = data.details || [];
+                if (!Array.isArray(details) && typeof details === 'object') {
+                    details = Object.entries(details).map(([k, v]) => ({ key: k, value: v }));
+                }
                 profileData = {
                     name: data.name || "",
+                    image: data.image || "",
                     catchphrase: data.catchphrase || "",
-                    age: data.age || "",
-                    birthday: data.birthday || "",
-                    gender: data.gender || "",
-                    height: data.height || "",
-                    species: data.species || "",
-                    debut: data.debut || "",
+                    details: details,
                     time: data.time || "",
                     content: data.content || "",
                     bio1: data.bio1 || "",
@@ -481,15 +528,60 @@
         }
     }
 
+    async function uploadProfileImage() {
+        const password = document.getElementById("admin-password").value;
+        const fileInput = document.getElementById("profile-img-file");
+        const previewDiv = document.getElementById("profile-img-preview");
+
+        if (!fileInput.files || fileInput.files.length === 0) { alert("이미지를 선택해주세요."); return; }
+
+        const file = fileInput.files[0];
+        previewDiv.style.color = "#0077b6";
+        previewDiv.textContent = "프로필 이미지 업로드 중...";
+
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = async function () {
+            const base64Data = reader.result.split(',')[1];
+            try {
+                const response = await fetch(WORKER_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ password: password, action: "upload_image", filename: file.name, filedata: base64Data })
+                });
+                const result = await response.json();
+                if (response.ok && result.url) {
+                    previewDiv.style.color = "#10b981";
+                    previewDiv.textContent = `업로드 성공! 주소: ${result.url}`;
+                    document.getElementById("p-image-url").value = result.url;
+                    fileInput.value = "";
+                } else {
+                    throw new Error(result.error || "업로드 실패");
+                }
+            } catch (err) {
+                previewDiv.style.color = "#ef4444";
+                previewDiv.textContent = "오류: " + err.message;
+            }
+        };
+    }
+
     function saveProfile() {
         profileData.name = document.getElementById("p-name").value.trim();
+        profileData.image = document.getElementById("p-image-url").value.trim();
         profileData.catchphrase = document.getElementById("p-catchphrase").value.trim();
-        profileData.age = document.getElementById("p-age").value.trim();
-        profileData.birthday = document.getElementById("p-birthday").value.trim();
-        profileData.gender = document.getElementById("p-gender").value.trim();
-        profileData.height = document.getElementById("p-height").value.trim();
-        profileData.species = document.getElementById("p-species").value.trim();
-        profileData.debut = document.getElementById("p-debut").value.trim();
+        
+        // 상세 프로필 동적 항목 수집
+        const rows = document.querySelectorAll("#detail-rows-container .detail-item-row");
+        let detailsArr = [];
+        rows.forEach(row => {
+            const k = row.querySelector(".detail-key").value.trim();
+            const v = row.querySelector(".detail-val").value.trim();
+            if (k) {
+                detailsArr.push({ key: k, value: v });
+            }
+        });
+        profileData.details = detailsArr;
+
         profileData.time = document.getElementById("p-time").value.trim();
         profileData.content = document.getElementById("p-content").value.trim();
         profileData.bio1 = document.getElementById("p-bio1").value.trim();
