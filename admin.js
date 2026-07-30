@@ -365,7 +365,7 @@
                 songData = { notice: data.notice || "", songs: Array.isArray(data.songs) ? data.songs : [] };
             }
             if (profileRes.ok) {
-                const data = await profileRes.json();
+                const data = await profileRes.json() || {}; // 👈 데이터가 없으면 빈 객체 처리
                 let details = data.details || [];
                 if (!Array.isArray(details) && typeof details === 'object') {
                     details = Object.entries(details).map(([k, v]) => ({ key: k, value: v }));
