@@ -333,9 +333,25 @@
         if (!password) { statusEl.style.color = "#ef4444"; statusEl.textContent = "비밀번호를 입력해주세요."; return; }
 
         statusEl.style.color = "#0077b6";
-        statusEl.textContent = "데이터를 불러오는 중...";
+        statusEl.textContent = "비밀번호 확인 및 데이터 로드 중...";
 
         try {
+            // 1. 🚨 [추가된 핵심] Cloudflare Worker로 비밀번호가 맞는지 먼저 검증 요청
+            const authResponse = await fetch(WORKER_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ 
+                    password: password, 
+                    fileType: "profile" // 임의의 유효한 타입으로 검증 겸용
+                })
+            });
+
+            if (!authResponse.ok) {
+                const errResult = await authResponse.json();
+                throw new Error(errResult.error || "비밀번호가 틀렸습니다.");
+            }
+
+            // 2. 비밀번호가 맞았을 때만 기존처럼 데이터 불러오기 진행
             const timestamp = new Date().getTime();
             
             const [songRes, profileRes, linksRes] = await Promise.all([
@@ -366,18 +382,18 @@
                 };
             }
             if (linksRes.ok) {
-    const data = await linksRes.json();
-    if (Array.isArray(data)) {
-        linksData = data;
-    } else if (data && typeof data === 'object') {
-        let list = [];
-        if (data.broadcast) list.push({ title: "방송국", url: data.broadcast, target: "_blank" });
-        if (data.youtube) list.push({ title: "유튜브", url: data.youtube, target: "_blank" });
-        linksData = list;
-    } else {
-        linksData = [];
-    }
-}
+                const data = await linksRes.json();
+                if (Array.isArray(data)) {
+                    linksData = data;
+                } else if (data && typeof data === 'object') {
+                    let list = [];
+                    if (data.broadcast) list.push({ title: "방송국", url: data.broadcast, target: "_blank" });
+                    if (data.youtube) list.push({ title: "유튜브", url: data.youtube, target: "_blank" });
+                    linksData = list;
+                } else {
+                    linksData = [];
+                }
+            }
 
             // 로그인 성공 시에만 관리자 화면 전체 템플릿을 DOM에 주입
             document.getElementById("login-section").style.display = "none";
@@ -386,7 +402,7 @@
 
         } catch (error) {
             statusEl.style.color = "#ef4444";
-            statusEl.textContent = "로드 실패: " + error.message;
+            statusEl.textContent = "로그인 실패: " + error.message;
         }
     }
 
