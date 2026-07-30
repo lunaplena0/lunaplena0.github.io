@@ -105,11 +105,11 @@
             white-space: pre-line;
         }
 
-        /* 검색 바 영역 */
+        /* 검색 바 영역 (높이 및 글씨 크기 최적화) */
         .search-box {
             width: 100%;
-            padding: 14px 18px;
-            font-size: 15px;
+            padding: 10px 14px;
+            font-size: 13px;
             border: 1px solid rgba(0, 119, 190, 0.25);
             border-radius: 8px;
             background: rgba(255, 255, 255, 0.9);
@@ -119,9 +119,44 @@
             transition: all 0.2s ease-in-out;
         }
 
+        .search-box::placeholder {
+            font-size: 12px;
+            color: #94a3b8;
+        }
+
         .search-box:focus {
             border-color: #0077b6;
             box-shadow: 0 0 10px rgba(0, 119, 190, 0.15);
+        }
+
+        /* 토글(필터) 버튼 컨테이너 스타일 */
+        .filter-tags-container {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: -10px;
+        }
+
+        .filter-btn {
+            background-color: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(0, 119, 190, 0.25);
+            color: #0077b6;
+            padding: 6px 12px;
+            font-size: 12px;
+            font-weight: 600;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .filter-btn:hover {
+            background-color: rgba(0, 119, 190, 0.1);
+        }
+
+        .filter-btn.active {
+            background-color: #0077b6;
+            color: white;
+            border-color: #0077b6;
         }
 
         /* 노래 목록 테이블 컨테이너 */
@@ -218,6 +253,15 @@
             <!-- 검색 입력창 -->
             <input type="text" id="search-input" class="search-box" placeholder="노래 제목이나 가수를 검색한 뒤 엔터를 눌러주세요...">
 
+            <!-- 빠른 필터 토글 버튼 영역 -->
+            <div class="filter-tags-container">
+                <button class="filter-btn" data-filter="전체">전체</button>
+                <button class="filter-btn" data-filter="기타연주">기타연주</button>
+                <button class="filter-btn" data-filter="j팝">J팝</button>
+                <button class="filter-btn" data-filter="팝">팝</button>
+                <button class="filter-btn" data-filter="k팝">K팝</button>
+            </div>
+
             <!-- 노래 목록 테이블 -->
             <div class="song-table-container">
                 <table class="song-table">
@@ -245,6 +289,10 @@
         const CACHE_EXPIRY_KEY = 'badabi_songbook_expiry';
         const CACHE_DURATION = 5 * 60 * 1000; 
 
+        let globalSongs = [];
+        let currentFilter = '전체';
+        let currentKeyword = '';
+
         async function loadSheetData() {
             const cachedData = localStorage.getItem(CACHE_KEY);
             const cacheExpiry = localStorage.getItem(CACHE_EXPIRY_KEY);
@@ -253,7 +301,8 @@
             if (cachedData && cacheExpiry && now < parseInt(cacheExpiry, 10)) {
                 try {
                     const parsedData = JSON.parse(cachedData);
-                    applyDataToUI(parsedData.noticeText, parsedData.allSongs);
+                    globalSongs = parsedData.allSongs;
+                    applyDataToUI(parsedData.noticeText, globalSongs);
                     return;
                 } catch (e) {
                     console.warn("캐시 데이터 파싱 실패, 새로 요청합니다.", e);
@@ -275,27 +324,25 @@
                         }
                     }
 
-                    // 시트 구조 순서 반영:
-                    // cols[0] = 노래제목, cols[1] = 가수, cols[2] = 장르, cols[3] = 제한, cols[4] = 기타
-                    let allSongs = [];
+                    globalSongs = [];
                     for (let i = 10; i < rows.length; i++) {
                         const cols = rows[i];
                         if (cols && cols.length >= 4 && cols[0].trim() !== "") {
-                            allSongs.push({
+                            globalSongs.push({
                                 title: (cols[0] || '').replace(/^"|"$/g, ''),
                                 artist: (cols[1] || '').replace(/^"|"$/g, ''),
                                 genre: (cols[2] || '').replace(/^"|"$/g, ''),
-                                limit: (cols[3] || '').replace(/^"|"$/g, '').trim(), // 제한 칸 ([기타연주], [200개] 등)
-                                etc: (cols[4] || '').replace(/^"|"$/g, '').trim()   // 기타 칸 (우측 표시용)
+                                limit: (cols[3] || '').replace(/^"|"$/g, '').trim(), 
+                                etc: (cols[4] || '').replace(/^"|"$/g, '').trim()   
                             });
                         }
                     }
 
-                    const dataToCache = { noticeText, allSongs };
+                    const dataToCache = { noticeText, allSongs: globalSongs };
                     localStorage.setItem(CACHE_KEY, JSON.stringify(dataToCache));
                     localStorage.setItem(CACHE_EXPIRY_KEY, (now + CACHE_DURATION).toString());
 
-                    applyDataToUI(noticeText, allSongs);
+                    applyDataToUI(noticeText, globalSongs);
                 }
             } catch (error) {
                 console.error('데이터 로드 실패:', error);
@@ -318,19 +365,56 @@
 
             const searchInput = document.getElementById('search-input');
             
-            searchInput.onkeydown = (e) => {
-                if (e.key === 'Enter') {
-                    const keyword = e.target.value.toLowerCase().trim();
-                    const filtered = allSongs.filter(song => 
-                        song.title.toLowerCase().includes(keyword) || 
-                        song.artist.toLowerCase().includes(keyword) ||
-                        song.genre.toLowerCase().includes(keyword) ||
-                        song.limit.toLowerCase().includes(keyword) ||
-                        song.etc.toLowerCase().includes(keyword)
-                    );
-                    renderTable(filtered);
-                }
+            searchInput.oninput = (e) => {
+                currentKeyword = e.target.value.toLowerCase().trim();
+                filterAndRender();
             };
+
+            // 필터 버튼 이벤트 설정
+            const filterButtons = document.querySelectorAll('.filter-btn');
+            filterButtons.forEach(btn => {
+                // 초기 '전체' 버튼 활성화 상태 부여
+                if (btn.getAttribute('data-filter') === '전체') {
+                    btn.classList.add('active');
+                }
+
+                btn.onclick = () => {
+                    filterButtons.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    currentFilter = btn.getAttribute('data-filter');
+                    filterAndRender();
+                };
+            });
+        }
+
+        function filterAndRender() {
+            let filtered = globalSongs.filter(song => {
+                // 1. 검색어 필터링
+                const matchesKeyword = 
+                    song.title.toLowerCase().includes(currentKeyword) || 
+                    song.artist.toLowerCase().includes(currentKeyword) ||
+                    song.genre.toLowerCase().includes(currentKeyword) ||
+                    song.limit.toLowerCase().includes(currentKeyword) ||
+                    song.etc.toLowerCase().includes(currentKeyword);
+
+                if (!matchesKeyword) return false;
+
+                // 2. 카테고리 토글 버튼 필터링
+                if (currentFilter === '전체') {
+                    return true;
+                } else if (currentFilter === '기타연주') {
+                    return song.limit.toLowerCase().includes('기타');
+                } else if (currentFilter === 'j팝') {
+                    return song.genre.toLowerCase().includes('j') || song.genre.toLowerCase().includes('일단') || song.genre.toLowerCase().includes('일본');
+                } else if (currentFilter === '팝') {
+                    return song.genre.toLowerCase().includes('팝') && !song.genre.toLowerCase().includes('j') && !song.genre.toLowerCase().includes('k');
+                } else if (currentFilter === 'k팝') {
+                    return song.genre.toLowerCase().includes('k') || song.genre.toLowerCase().includes('가요');
+                }
+                return true;
+            });
+
+            renderTable(filtered);
         }
 
         function renderTable(songs) {
@@ -350,7 +434,6 @@
                     cleanTitle = cleanTitle.substring(0, 30) + '...';
                 }
 
-                // 1. '제한' 칸 데이터 배지 생성 (노래제목 앞)
                 let limitBadgeHtml = "";
                 if (song.limit !== "") {
                     let badgeColor = "#0ea5e9";
@@ -364,7 +447,6 @@
                     limitBadgeHtml += `<span style="background-color: ${badgeColor}; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 600; display: inline-block; margin-right: 4px;">${song.limit}</span>`;
                 }
 
-                // 2. '기타' 칸 데이터 (우측 표시용)
                 let etcTextHtml = "";
                 if (song.etc !== "") {
                     etcTextHtml += `<span style="color: #64748b; font-size: 12px; font-weight: 500;">${song.etc}</span>`;
