@@ -7,7 +7,7 @@
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            max-width: 900px;
+            max-width: 950px;
             margin: 30px auto;
             padding: 20px;
             background-color: #f4f7f9;
@@ -46,20 +46,66 @@
             transition: background 0.2s;
         }
         button:hover { background-color: #03045e; }
-        .song-item-box {
-            background: #f8fafc;
+        
+        /* 노래 목록 테이블 스타일 */
+        .song-table-container {
+            max-height: 500px;
+            overflow-y: auto;
             border: 1px solid #cbd5e1;
-            padding: 15px;
             border-radius: 8px;
+            background: #fff;
             margin-bottom: 15px;
-            position: relative;
         }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 14px;
+        }
+        th, td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        th {
+            background-color: #f8fafc;
+            color: #0f172a;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        tr:hover { background-color: #f1f5f9; }
+        
         .delete-btn {
             background-color: #ef4444;
-            padding: 6px 12px;
-            font-size: 13px;
-            float: right;
+            padding: 5px 10px;
+            font-size: 12px;
         }
+        .edit-btn {
+            background-color: #0284c7;
+            padding: 5px 10px;
+            font-size: 12px;
+            margin-right: 5px;
+        }
+        
+        /* 모달 (팝업 수정창) 스타일 */
+        #edit-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+        }
+
         #status { margin-top: 15px; font-weight: 700; font-size: 14px; }
         .row { display: flex; gap: 10px; }
         .row > div { flex: 1; }
@@ -111,16 +157,64 @@
             <button onclick="importBatchSongs()" style="background-color: #16a34a; padding: 8px 16px; font-size: 13px;">붙여넣은 내용으로 목록에 추가하기</button>
         </div>
 
-        <!-- 노래 목록 수정 영역 -->
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <!-- 노래 목록 제어 영역 -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
             <label style="margin: 0;">🎶 노래 목록 (<span id="song-count-badge">0</span>곡)</label>
-            <button onclick="addSong()" style="background-color: #10b981; padding: 8px 14px; font-size: 13px;">+ 새 노래 직접 추가하기</button>
+            <div style="display: flex; gap: 10px; flex: 1; max-width: 400px;">
+                <input type="text" id="search-input" placeholder="🔍 제목, 가수, 장르 검색..." oninput="renderTable()" style="margin-bottom: 0; padding: 8px 12px;">
+            </div>
+            <button onclick="openEditModal(-1)" style="background-color: #10b981; padding: 8px 14px; font-size: 13px;">+ 새 노래 추가하기</button>
         </div>
 
-        <div id="songs-container"></div>
+        <!-- 요약된 테이블 형태의 목록 -->
+        <div class="song-table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 8%;">번호</th>
+                        <th style="width: 27%;">제목</th>
+                        <th style="width: 20%;">가수</th>
+                        <th style="width: 15%;">장르</th>
+                        <th style="width: 15%;">제한/기타</th>
+                        <th style="width: 15%; text-align: center;">관리</th>
+                    </tr>
+                </thead>
+                <tbody id="song-table-body">
+                    <!-- 자바스크립트로 동적 생성 -->
+                </tbody>
+            </table>
+        </div>
 
         <button onclick="saveSonglist()" style="width: 100%; margin-top: 20px; background-color: #0077b6; padding: 14px; font-size: 16px;">GitHub에 최종 변경사항 반영하기</button>
         <div id="status"></div>
+    </div>
+
+    <!-- [3단계] 개별 수정/추가 팝업 모달 -->
+    <div id="edit-modal">
+        <div class="modal-content">
+            <h3 id="modal-title" style="margin-top: 0; color: #03045e;">곡 정보 수정</h3>
+            <input type="hidden" id="edit-index">
+            
+            <label style="font-size: 13px;">노래 제목</label>
+            <input type="text" id="modal-title-input" placeholder="제목">
+            
+            <label style="font-size: 13px;">가수</label>
+            <input type="text" id="modal-artist-input" placeholder="가수">
+            
+            <label style="font-size: 13px;">장르</label>
+            <input type="text" id="modal-genre-input" placeholder="장르">
+            
+            <label style="font-size: 13px;">제한 / 조건 (limit)</label>
+            <input type="text" id="modal-limit-input" placeholder="조건">
+            
+            <label style="font-size: 13px;">기타 정보 (etc)</label>
+            <input type="text" id="modal-etc-input" placeholder="특이사항">
+            
+            <div style="display: flex; gap: 10px; margin-top: 15px;">
+                <button onclick="closeEditModal()" style="background-color: #64748b; flex: 1;">취소</button>
+                <button onclick="saveModalSong()" style="background-color: #0077b6; flex: 1;">저장</button>
+            </div>
+        </div>
     </div>
 
 <script>
@@ -147,7 +241,6 @@
             if (!response.ok) throw new Error("GitHub 데이터를 불러오지 못했습니다.");
             
             const data = await response.json();
-            // 안전장치: 구조가 깨졌거나 비어있어도 기본값 보장
             loadedData = {
                 notice: data.notice || "",
                 songs: Array.isArray(data.songs) ? data.songs : []
@@ -156,7 +249,8 @@
             document.getElementById("login-section").style.display = "none";
             document.getElementById("admin-panel").style.display = "block";
 
-            renderEditor();
+            document.getElementById("notice-input").value = loadedData.notice || "";
+            renderTable();
 
         } catch (error) {
             statusEl.style.color = "#ef4444";
@@ -164,63 +258,108 @@
         }
     }
 
-    function renderEditor() {
-        document.getElementById("notice-input").value = loadedData.notice || "";
-        const container = document.getElementById("songs-container");
-        container.innerHTML = "";
-
+    // 검색 기능이 포함된 테이블 렌더링 함수
+    function renderTable() {
         if (!Array.isArray(loadedData.songs)) loadedData.songs = [];
         document.getElementById("song-count-badge").textContent = loadedData.songs.length;
 
-        loadedData.songs.forEach((song, index) => {
-            const box = document.createElement("div");
-            box.className = "song-item-box";
-            box.innerHTML = `
-                <button class="delete-btn" onclick="deleteSong(${index})">삭제</button>
-                <div style="font-weight: bold; margin-bottom: 10px; color: #0077b6;">#${index + 1}</div>
-                <div class="row">
-                    <div>
-                        <label style="font-size: 12px;">노래 제목</label>
-                        <input type="text" class="input-title" value="${escapeHtml(song.title || '')}" placeholder="제목">
-                    </div>
-                    <div>
-                        <label style="font-size: 12px;">가수</label>
-                        <input type="text" class="input-artist" value="${escapeHtml(song.artist || '')}" placeholder="가수">
-                    </div>
-                </div>
-                <div class="row">
-                    <div>
-                        <label style="font-size: 12px;">장르</label>
-                        <input type="text" class="input-genre" value="${escapeHtml(song.genre || '')}" placeholder="장르">
-                    </div>
-                    <div>
-                        <label style="font-size: 12px;">제한/조건 (limit)</label>
-                        <input type="text" class="input-limit" value="${escapeHtml(song.limit || '')}" placeholder="조건">
-                    </div>
-                </div>
-                <div>
-                    <label style="font-size: 12px;">기타 정보 (etc)</label>
-                    <input type="text" class="input-etc" value="${escapeHtml(song.etc || '')}" placeholder="특이사항">
-                </div>
+        const keyword = document.getElementById("search-input").value.toLowerCase().trim();
+        const tbody = document.getElementById("song-table-body");
+        tbody.innerHTML = "";
+
+        loadedData.songs.forEach((song, originalIndex) => {
+            const title = (song.title || "").toLowerCase();
+            const artist = (song.artist || "").toLowerCase();
+            const genre = (song.genre || "").toLowerCase();
+
+            // 검색어가 포함되어 있는지 확인
+            if (keyword && !title.includes(keyword) && !artist.includes(keyword) && !genre.includes(keyword)) {
+                return; // 검색어에 안 맞으면 표시 안 함
+            }
+
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+                <td style="color: #64748b; font-weight: bold;">#${originalIndex + 1}</td>
+                <td style="font-weight: 600; color: #0f172a;">${escapeHtml(song.title || '제목 없음')}</td>
+                <td>${escapeHtml(song.artist || '-')}</td>
+                <td>${escapeHtml(song.genre || '-')}</td>
+                <td style="font-size: 12px; color: #475569;">${escapeHtml(song.limit || song.etc ? (song.limit + ' ' + song.etc).trim() : '-')}</td>
+                <td style="text-align: center;">
+                    <button class="edit-btn" onclick="openEditModal(${originalIndex})">수정</button>
+                    <button class="delete-btn" onclick="deleteSong(${originalIndex})">삭제</button>
+                </td>
             `;
-            container.appendChild(box);
+            tbody.appendChild(tr);
         });
     }
 
-    function escapeHtml(str) {
-        if (!str) return '';
-        return String(str).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    // 모달 열기 (index가 -1이면 새 곡 추가)
+    function openEditModal(index) {
+        syncNoticeToData();
+        document.getElementById("edit-index").value = index;
+        
+        if (index === -1) {
+            document.getElementById("modal-title").textContent = "새 노래 추가";
+            document.getElementById("modal-title-input").value = "";
+            document.getElementById("modal-artist-input").value = "";
+            document.getElementById("modal-genre-input").value = "";
+            document.getElementById("modal-limit-input").value = "";
+            document.getElementById("modal-etc-input").value = "";
+        } else {
+            document.getElementById("modal-title").textContent = `#${index + 1} 곡 정보 수정`;
+            const song = loadedData.songs[index];
+            document.getElementById("modal-title-input").value = song.title || "";
+            document.getElementById("modal-artist-input").value = song.artist || "";
+            document.getElementById("modal-genre-input").value = song.genre || "";
+            document.getElementById("modal-limit-input").value = song.limit || "";
+            document.getElementById("modal-etc-input").value = song.etc || "";
+        }
+
+        document.getElementById("edit-modal").style.display = "flex";
     }
 
-    function addSong() {
-        syncFormToData();
-        if (!loadedData.songs) loadedData.songs = [];
-        loadedData.songs.unshift({ title: "", artist: "", genre: "", limit: "", etc: "" });
-        renderEditor();
+    // 모달 닫기
+    function closeEditModal() {
+        document.getElementById("edit-modal").style.display = "none";
+    }
+
+    // 모달에서 저장 버튼 눌렀을 때
+    function saveModalSong() {
+        const index = parseInt(document.getElementById("edit-index").value);
+        const newSong = {
+            title: document.getElementById("modal-title-input").value.trim(),
+            artist: document.getElementById("modal-artist-input").value.trim(),
+            genre: document.getElementById("modal-genre-input").value.trim(),
+            limit: document.getElementById("modal-limit-input").value.trim(),
+            etc: document.getElementById("modal-etc-input").value.trim()
+        };
+
+        if (!newSong.title) {
+            alert("노래 제목은 반드시 입력해야 합니다.");
+            return;
+        }
+
+        if (index === -1) {
+            if (!loadedData.songs) loadedData.songs = [];
+            loadedData.songs.unshift(newSong); // 맨 위에 추가
+        } else {
+            loadedData.songs[index] = newSong; // 기존 위치 수정
+        }
+
+        closeEditModal();
+        renderTable();
+    }
+
+    function deleteSong(index) {
+        syncNoticeToData();
+        if (confirm(`"${loadedData.songs[index].title || '제목없음'}" 곡을 삭제하시겠습니까?`)) {
+            loadedData.songs.splice(index, 1);
+            renderTable();
+        }
     }
 
     function importBatchSongs() {
-        syncFormToData();
+        syncNoticeToData();
         const rawText = document.getElementById("batch-input").value.trim();
         if (!rawText) {
             alert("붙여넣을 텍스트가 없습니다.");
@@ -232,7 +371,6 @@
 
         lines.forEach(line => {
             const cols = line.split("\t");
-            // 탭 구분이 제대로 된 데이터 행만 안전하게 추가 (undefined 방지)
             if (cols.length >= 1 && cols[0].trim() !== "") {
                 const newSong = {
                     title: cols[0] ? String(cols[0]).trim() : "",
@@ -249,40 +387,24 @@
 
         if (addedCount > 0) {
             document.getElementById("batch-input").value = "";
-            renderEditor();
+            renderTable();
             alert(`${addedCount}곡이 성공적으로 목록에 추가되었습니다!`);
         } else {
             alert("파싱된 데이터가 없습니다. 구글 시트 셀 전체를 정확히 복사했는지 확인해주세요.");
         }
     }
 
-    function deleteSong(index) {
-        syncFormToData();
-        if (confirm(`"${loadedData.songs[index].title || '제목없음'}" 곡을 삭제하시겠습니까?`)) {
-            loadedData.songs.splice(index, 1);
-            renderEditor();
-        }
+    function syncNoticeToData() {
+        loadedData.notice = document.getElementById("notice-input").value || "";
     }
 
-    function syncFormToData() {
-        loadedData.notice = document.getElementById("notice-input").value || "";
-        const boxes = document.querySelectorAll(".song-item-box");
-        
-        const updatedSongs = [];
-        boxes.forEach((box) => {
-            updatedSongs.push({
-                title: box.querySelector(".input-title").value || "",
-                artist: box.querySelector(".input-artist").value || "",
-                genre: box.querySelector(".input-genre").value || "",
-                limit: box.querySelector(".input-limit").value || "",
-                etc: box.querySelector(".input-etc").value || ""
-            });
-        });
-        loadedData.songs = updatedSongs;
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     }
 
     async function saveSonglist() {
-        syncFormToData();
+        syncNoticeToData();
         const password = document.getElementById("admin-password").value;
         const statusEl = document.getElementById("status");
 
