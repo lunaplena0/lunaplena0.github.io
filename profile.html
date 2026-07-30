@@ -36,7 +36,7 @@
             position: relative;
             width: 650px; 
             height: 650px;
-            background-image: url('바다비.gif'); 
+            background-image: url('바다비.gif'); /* 기본값, JS로 변경 가능 */
             background-size: contain;
             background-position: center;
             background-repeat: no-repeat;
@@ -54,7 +54,7 @@
             margin-right: -120px;
         }
 
-        /* 오른쪽 프로필 카드 영역 (박스 및 카드 전체 블러 효과 제거) */
+        /* 오른쪽 프로필 카드 영역 */
         .profile-info-card {
             position: relative;
             z-index: 1;
@@ -73,7 +73,6 @@
             padding: 20px;
         }
 
-        /* 상단 헤더 (중앙 정렬) */
         .profile-header-top {
             display: flex;
             flex-direction: column;
@@ -91,7 +90,6 @@
             text-shadow: 0 0 10px rgba(255, 255, 255, 1), 0 0 20px rgba(255, 255, 255, 0.9), 0 2px 4px rgba(0, 0, 0, 0.15);
         }
 
-        /* 캐치프레이즈 영역 */
         .profile-catchphrase {
             display: inline-block;
             font-size: clamp(14px, 1.4vw, 16px);
@@ -105,7 +103,6 @@
             text-shadow: 0 0 10px rgba(255, 255, 255, 1), 0 0 15px rgba(255, 255, 255, 0.9);
         }
 
-        /* 정보 영역 스타일 (중앙 정렬) */
         .profile-info-grid {
             width: 100%;
             display: flex;
@@ -135,7 +132,6 @@
             color: #0077b6;
         }
 
-        /* 하단 소개말 영역 (중앙 정렬) */
         .profile-bio-box {
             width: 100%;
             text-align: center;
@@ -158,7 +154,6 @@
             color: #03045e;
         }
 
-        /* 모바일 화면 대응 (기존 세로 배치 유지) */
         @media (max-width: 768px) {
             body {
                 overflow: auto;
@@ -194,34 +189,74 @@
 
     <div class="ocean-profile-container">
         <!-- 왼쪽 큰 이미지(GIF) 영역 -->
-        <div class="profile-main-gif"></div>
+        <div class="profile-main-gif" id="profile-gif"></div>
 
-        <!-- 오른쪽 프로필 카드 (텍스트 중앙 정렬 적용) -->
+        <!-- 오른쪽 프로필 카드 (동적 바인딩 영역) -->
         <div class="profile-info-card">
             <div class="profile-header-top">
-                <div class="profile-name">바다비。</div>
-                <div class="profile-catchphrase">
-                    오시마크: 🌊🌧️ <br>팬덤 명: 꼬용이
-                </div>
+                <div class="profile-name" id="view-name">로딩 중...</div>
+                <div class="profile-catchphrase" id="view-catchphrase"></div>
             </div>
 
-            <div class="profile-info-grid">
-                <div class="info-item"><span class="info-label">나이</span> 20살</div>
-                <div class="info-item"><span class="info-label">생일</span> 1월 9일</div>
-                <div class="info-item"><span class="info-label">성별</span> 여자</div>
-                <div class="info-item"><span class="info-label">인간키</span> 152cm</div>
-                <div class="info-item"><span class="info-label">종족</span> 미니블루드래곤(갯민숭달팽이) 💙</div>
-                <div class="info-item"><span class="info-label">데뷔일</span> 2026년 4월 20일</div>
-                <div class="info-item"><span class="info-label">방송시간</span> 평일 오후 4시 / 주말 오후 2시</div>
-                <div class="info-item"><span class="info-label">주 컨텐츠</span> 소통 & 노래 & 춤 & 기타연주 노래 & ASMR</div>
+            <div class="profile-info-grid" id="view-info-grid">
+                <!-- JS로 자동 생성됨 -->
             </div>
 
-            <div class="profile-bio-box">
-                <p>바다의 작은 용 , 잘못 만지면 아파요! ↜(⃔っ•̤ ༝ •̤c)⃕</p>
-                <p>"바다의 작은 용? 아니, 바다의 독가시!<br>만져서 찔리면 약도 없는 치명적인 매력, 바다비입니다!"</p>
+            <div class="profile-bio-box" id="view-bio-box">
+                <!-- JS로 자동 생성됨 -->
             </div>
         </div>
     </div>
+
+    <script>
+        async function loadProfile() {
+            try {
+                const response = await fetch('profile.json?t=' + new Date().getTime());
+                if (!response.ok) throw new Error("프로필 데이터를 불러오지 못했습니다.");
+                const data = await response.json();
+
+                // 1. 이름 및 캐치프레이즈 적용 (줄바꿈 허용)
+                document.getElementById("view-name").textContent = data.name || "바다비。";
+                document.getElementById("view-catchphrase").innerHTML = (data.catchphrase || "").replace(/\n/g, '<br>');
+
+                // 2. 정보 그리드 구성
+                const gridEl = document.getElementById("view-info-grid");
+                const fields = [
+                    { label: "나이", val: data.age },
+                    { label: "생일", val: data.birthday },
+                    { label: "성별", val: data.gender },
+                    { label: "인간키", val: data.height },
+                    { label: "종족", val: data.species },
+                    { label: "데뷔일", val: data.debut },
+                    { label: "방송시간", val: data.time },
+                    { label: "주 컨텐츠", val: data.content }
+                ];
+
+                gridEl.innerHTML = fields
+                    .filter(item => item.val) // 값이 있는 항목만 출력
+                    .map(item => `<div class="info-item"><span class="info-label">${item.label}</span> ${item.val}</div>`)
+                    .join('');
+
+                // 3. 하단 소개말 구성
+                const bioEl = document.getElementById("view-bio-box");
+                bioEl.innerHTML = `
+                    <p>${data.bio1 || ''}</p>
+                    <p>${(data.bio2 || '').replace(/\n/g, '<br>')}</p>
+                `;
+
+                // 4. 움짤 이미지 설정 (만약 profile.json에 gif 주소 필드가 있다면 연동, 없으면 기본 파일 유지)
+                if (data.gifUrl) {
+                    document.getElementById("profile-gif").style.backgroundImage = `url('${data.gifUrl}')`;
+                }
+
+            } catch (error) {
+                console.error(error);
+                document.getElementById("view-name").textContent = "데이터 로드 실패";
+            }
+        }
+
+        loadProfile();
+    </script>
 
 </body>
 </html>
