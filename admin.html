@@ -189,7 +189,7 @@
         <div class="menu-grid">
             <div class="menu-card" onclick="showPanel('intro')">
                 <h4>👤 자기소개 수정</h4>
-                <p>이름, 프로필 이미지, 캐치프레이즈 및 상세 프로필 정보 변경</p>
+                <p>이름, 캐치프레이즈 및 상세 프로필 정보 변경</p>
             </div>
             <div class="menu-card" onclick="showPanel('links')">
                 <h4>🔗 링크 수정</h4>
@@ -211,16 +211,6 @@
 
         <label>활동 이름</label>
         <input type="text" id="p-name" placeholder="예: 바다비。">
-
-        <div style="background: #f8fafc; border: 1px dashed #cbd5e1; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
-            <label style="font-size: 13px; color: #0284c7; margin-bottom: 5px;">🖼️ 프로필 이미지 (아바타/로고) 업로드 (자동 최적화)</label>
-            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-                <input type="file" id="profile-img-file" accept="image/gif, image/png, image/jpeg, image/webp" style="flex: 1; font-size: 13px; margin-bottom: 0; background: #fff;">
-                <button onclick="uploadProfileImage()" style="background-color: #0284c7; padding: 8px 14px; font-size: 13px;">이미지 업로드</button>
-            </div>
-            <input type="hidden" id="p-image-url">
-            <div id="profile-img-preview" style="margin-top: 10px; font-size: 12px; color: #64748b;"></div>
-        </div>
 
         <label>캐치프레이즈 (오시마크 / 팬덤명 등)</label>
         <textarea id="p-catchphrase" class="profile-textarea" placeholder="오시마크: 🌊🌧️ &#10;팬덤 명: 꼬용이"></textarea>
@@ -275,9 +265,9 @@
             <textarea id="notice-input" placeholder="공지사항을 입력하세요..."></textarea>
             
             <div style="background: #f8fafc; border: 1px dashed #cbd5e1; padding: 15px; border-radius: 8px; margin-top: 10px;">
-                <label style="font-size: 13px; color: #0284c7; margin-bottom: 5px;">🖼️ 컴퓨터에서 움짤(GIF) 추가하기 (자동 최적화)</label>
+                <label style="font-size: 13px; color: #0284c7; margin-bottom: 5px;">🖼️ 컴퓨터에서 이미지/움짤(GIF) 추가하기 (원본 형식 유지)</label>
                 <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-                    <input type="file" id="gif-file-input" accept="image/gif, image/png, image/jpeg" style="flex: 1; font-size: 13px; margin-bottom: 0; background: #fff;">
+                    <input type="file" id="gif-file-input" accept="image/gif, image/png, image/jpeg, image/webp" style="flex: 1; font-size: 13px; margin-bottom: 0; background: #fff;">
                     <button onclick="uploadGifImage()" style="background-color: #0284c7; padding: 8px 14px; font-size: 13px;">업로드 후 공지에 삽입</button>
                 </div>
                 <div id="upload-status" style="font-size: 12px; margin-top: 6px; color: #64748b;"></div>
@@ -360,7 +350,7 @@
 
     let songData = { notice: "", songs: [] };
     let profileData = { 
-        name: "", image: "", catchphrase: "", details: [], 
+        name: "", catchphrase: "", details: [], 
         time: "", content: "", bio1: "", bio2: "" 
     };
     let linksData = { broadcast: "", youtube: "" };
@@ -381,8 +371,6 @@
         if (type === 'intro') {
             document.getElementById("panel-intro").style.display = "block";
             document.getElementById("p-name").value = profileData.name || "";
-            document.getElementById("p-image-url").value = profileData.image || "";
-            document.getElementById("profile-img-preview").textContent = profileData.image ? `현재 이미지: ${profileData.image}` : "등록된 이미지 없음";
             document.getElementById("p-catchphrase").value = profileData.catchphrase || "";
             document.getElementById("p-time").value = profileData.time || "";
             document.getElementById("p-content").value = profileData.content || "";
@@ -474,7 +462,6 @@
                 }
                 profileData = {
                     name: data.name || "",
-                    image: data.image || "",
                     catchphrase: data.catchphrase || "",
                     details: details,
                     time: data.time || "",
@@ -526,79 +513,17 @@
         }
     }
 
-    // 🌟 클라이언트 측 이미지 압축 및 리사이징 핵심 함수
-    async function compressAndConvertImage(file) {
+    // 🌟 원본 형식을 유지하면서 읽어오는 함수 (Base64 추출)
+    async function getOriginalFileBase64(file) {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.readAsDataURL(file);
-            
             reader.onload = (event) => {
-                const img = new Image();
-                img.src = event.target.result;
-                
-                img.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    let width = img.width;
-                    let height = img.height;
-
-                    // 최대 너비/높이 제한 (900px 기준)
-                    const MAX_SIZE = 900;
-                    if (width > height && width > MAX_SIZE) {
-                        height *= MAX_SIZE / width;
-                        width = MAX_SIZE;
-                    } else if (height > MAX_SIZE) {
-                        width *= MAX_SIZE / height;
-                        height = MAX_SIZE;
-                    }
-
-                    canvas.width = width;
-                    canvas.height = height;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, width, height);
-
-                    // JPEG 80% 품질로 압축하여 Base64 데이터 추출
-                    const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.8);
-                    resolve(compressedDataUrl.split(',')[1]);
-                };
-                img.onerror = (error) => reject(error);
+                const base64String = event.target.result.split(',')[1];
+                resolve(base64String);
             };
             reader.onerror = (error) => reject(error);
         });
-    }
-
-    async function uploadProfileImage() {
-        const password = document.getElementById("admin-password").value;
-        const fileInput = document.getElementById("profile-img-file");
-        const previewDiv = document.getElementById("profile-img-preview");
-
-        if (!fileInput.files || fileInput.files.length === 0) { alert("이미지를 선택해주세요."); return; }
-
-        const file = fileInput.files[0];
-        previewDiv.style.color = "#0077b6";
-        previewDiv.textContent = "이미지 최적화 및 업로드 중...";
-
-        try {
-            // 브라우저에서 가볍게 압축 후 Base64 추출
-            const base64Data = await compressAndConvertImage(file);
-
-            const response = await fetch(WORKER_URL, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ password: password, action: "upload_image", filename: file.name.replace(/\.[^/.]+$/, "") + ".jpg", filedata: base64Data })
-            });
-            const result = await response.json();
-            if (response.ok && result.url) {
-                previewDiv.style.color = "#10b981";
-                previewDiv.textContent = `업로드 성공! 주소: ${result.url}`;
-                document.getElementById("p-image-url").value = result.url;
-                fileInput.value = "";
-            } else {
-                throw new Error(result.error || "업로드 실패");
-            }
-        } catch (err) {
-            previewDiv.style.color = "#ef4444";
-            previewDiv.textContent = "오류: " + err.message;
-        }
     }
 
     async function uploadGifImage() {
@@ -610,15 +535,20 @@
 
         const file = fileInput.files[0];
         statusDiv.style.color = "#0077b6";
-        statusDiv.textContent = "이미지 최적화 및 업로드 중...";
+        statusDiv.textContent = "이미지 업로드 중...";
 
         try {
-            const base64Data = await compressAndConvertImage(file);
+            const base64Data = await getOriginalFileBase64(file);
 
             const response = await fetch(WORKER_URL, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ password: password, action: "upload_image", filename: file.name.replace(/\.[^/.]+$/, "") + ".jpg", filedata: base64Data })
+                body: JSON.stringify({ 
+                    password: password, 
+                    action: "upload_image", 
+                    filename: file.name, 
+                    filedata: base64Data 
+                })
             });
             const result = await response.json();
             if (response.ok && result.url) {
@@ -636,7 +566,6 @@
 
     function saveProfile() {
         profileData.name = document.getElementById("p-name").value.trim();
-        profileData.image = document.getElementById("p-image-url").value.trim();
         profileData.catchphrase = document.getElementById("p-catchphrase").value.trim();
         
         const rows = document.querySelectorAll("#detail-rows-container .detail-item-row");
