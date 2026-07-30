@@ -3,15 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Badabi Songbook - 관리자 페이지</title>
+    <title>Badabi Songbook - 관리자 인증</title>
     <style>
-        body { font-family: 'Malgun Gothic', sans-serif; max-width: 800px; margin: 40px auto; padding: 20px; background: #f9f9f9; color: #333; }
-        .card { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        input, textarea, button { width: 100%; padding: 10px; margin-top: 8px; margin-bottom: 15px; box-sizing: border-box; border: 1px solid #ddd; border-radius: 4px; }
-        textarea { height: 250px; font-family: monospace; }
-        button { background: #4f46e5; color: white; border: none; font-weight: bold; cursor: pointer; }
+        body { font-family: 'Malgun Gothic', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background: #f9f9f9; color: #333; }
+        .card { background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 100%; max-width: 350px; text-align: center; }
+        input, button { width: 100%; padding: 12px; margin-top: 10px; box-sizing: border-box; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }
+        button { background: #4f46e5; color: white; border: none; font-weight: bold; cursor: pointer; margin-top: 15px; }
         button:hover { background: #4338ca; }
-        .status { margin-top: 10px; font-weight: bold; }
+        .status { margin-top: 15px; font-weight: bold; font-size: 14px; }
         .success { color: green; }
         .error { color: red; }
     </style>
@@ -20,64 +19,37 @@
 
     <div class="card">
         <h2>🔒 관리자 인증</h2>
-        <label for="password">관리자 비밀번호:</label>
-        <input type="password" id="password" placeholder="비밀번호를 입력하세요">
-    </div>
-
-    <div class="card">
-        <h2>🎵 송북 데이터 편집 (JSON)</h2>
-        <p style="font-size: 13px; color: #666;">GitHub의 <code>songlist.json</code>에 반영될 전체 JSON 데이터를 입력하거나 수정하세요.</p>
-        <textarea id="jsonData" placeholder="데이터를 불러오는 중이거나 입력해주세요..."></textarea>
-        <button onclick="saveData()">GitHub에 반영하기</button>
+        <p style="font-size: 13px; color: #666; margin-bottom: 20px;">비밀번호를 입력하세요.</p>
+        <input type="password" id="password" placeholder="비밀번호" onkeydown="if(event.key==='Enter') verifyPassword()">
+        <button onclick="verifyPassword()">확인</button>
         <div id="status" class="status"></div>
     </div>
 
     <script>
-        // 페이지가 열릴 때 기존 깃허브에 있는 songlist.json 데이터를 불러와서 textarea에 채워줍니다.
-        async function loadCurrentData() {
-            try {
-                const res = await fetch('https://raw.githubusercontent.com/lunaplena0/badabi/main/songlist.json');
-                if (res.ok) {
-                    const data = await res.json();
-                    document.getElementById('jsonData').value = JSON.stringify(data, null, 2);
-                } else {
-                    document.getElementById('jsonData').value = '[]';
-                }
-            } catch (e) {
-                document.getElementById('jsonData').value = '[]';
-            }
-        }
-
-        loadCurrentData();
-
-        // 저장 버튼을 눌렀을 때 Cloudflare Worker로 데이터를 전송하는 함수
-        async function saveData() {
+        async function verifyPassword() {
             const password = document.getElementById('password').value;
-            const rawData = document.getElementById('jsonData').value;
             const statusEl = document.getElementById('status');
 
-            statusEl.className = 'status';
-            statusEl.innerText = '저장 중...';
-
-            let parsedData;
-            try {
-                parsedData = JSON.parse(rawData);
-            } catch (e) {
+            if (!password) {
                 statusEl.className = 'status error';
-                statusEl.innerText = '에러: JSON 형식이 올바르지 않습니다. 문법을 확인해주세요.';
+                statusEl.innerText = '비밀번호를 입력해주세요.';
                 return;
             }
 
+            statusEl.className = 'status';
+            statusEl.innerText = '확인 중...';
+
             try {
-                // 👉 아래의 URL을 아까 복사해 둔 본인의 Cloudflare Worker 주소로 변경해주세요!
+                // 👉 아래의 URL을 본인의 Cloudflare Worker 주소로 변경해주세요!
                 const workerUrl = 'https://badabi-api.dalkkumli054.workers.dev/'; 
 
+                // 비밀번호 검증을 위해 빈 데이터나 현재 데이터를 전송 (여기서는 비밀번호만 단독 검증하기 위해 빈 배열 전달)
                 const response = await fetch(workerUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         password: password,
-                        songsData: parsedData
+                        songsData: [] // 혹은 기존 데이터를 유지하려면 이 부분을 수정할 수 있습니다.
                     })
                 });
 
@@ -85,14 +57,14 @@
 
                 if (response.ok && result.success) {
                     statusEl.className = 'status success';
-                    statusEl.innerText = '성공적으로 GitHub에 반영되었습니다!';
+                    statusEl.innerText = '입력되었습니다!';
                 } else {
                     statusEl.className = 'status error';
-                    statusEl.innerText = '실패: ' + (result.message || '권한이 없거나 오류가 발생했습니다.');
+                    statusEl.innerText = '비밀번호가 틀렸습니다.';
                 }
             } catch (err) {
                 statusEl.className = 'status error';
-                statusEl.innerText = '통신 에러 발생: ' + err.message;
+                statusEl.innerText = '통신 에러가 발생했습니다.';
             }
         }
     </script>
