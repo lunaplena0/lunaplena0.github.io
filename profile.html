@@ -36,7 +36,7 @@
             position: relative;
             width: 650px; 
             height: 650px;
-            background-image: url('바다비.gif'); /* 기본값, JS로 변경 가능 */
+            background-image: url('바다비.gif'); /* 기본값, JS로 변경됨 */
             background-size: contain;
             background-position: center;
             background-repeat: no-repeat;
@@ -215,39 +215,41 @@
                 if (!response.ok) throw new Error("프로필 데이터를 불러오지 못했습니다.");
                 const data = await response.json();
 
-                // 1. 이름 및 캐치프레이즈 적용 (줄바꿈 허용)
+                // 1. 이름 및 캐치프레이즈 적용
                 document.getElementById("view-name").textContent = data.name || "바다비。";
                 document.getElementById("view-catchphrase").innerHTML = (data.catchphrase || "").replace(/\n/g, '<br>');
 
-                // 2. 정보 그리드 구성
+                // 2. 왼쪽 프로필 GIF 이미지 적용
+                if (data.image) {
+                    document.getElementById("profile-gif").style.backgroundImage = `url('${data.image}')`;
+                }
+
+                // 3. 동적 상세 프로필 그리드 구성 (details 배열 및 방송시간, 주 컨텐츠 병합 처리)
                 const gridEl = document.getElementById("view-info-grid");
-                const fields = [
-                    { label: "나이", val: data.age },
-                    { label: "생일", val: data.birthday },
-                    { label: "성별", val: data.gender },
-                    { label: "인간키", val: data.height },
-                    { label: "종족", val: data.species },
-                    { label: "데뷔일", val: data.debut },
-                    { label: "방송시간", val: data.time },
-                    { label: "주 컨텐츠", val: data.content }
-                ];
+                let fields = [];
+
+                if (Array.isArray(data.details)) {
+                    data.details.forEach(item => {
+                        if (item.key && item.value) {
+                            fields.push({ label: item.key, val: item.value });
+                        }
+                    });
+                }
+
+                // 방송시간 및 주 컨텐츠 추가
+                if (data.time) fields.push({ label: "방송시간", val: data.time });
+                if (data.content) fields.push({ label: "주 컨텐츠", val: data.content });
 
                 gridEl.innerHTML = fields
-                    .filter(item => item.val) // 값이 있는 항목만 출력
                     .map(item => `<div class="info-item"><span class="info-label">${item.label}</span> ${item.val}</div>`)
                     .join('');
 
-                // 3. 하단 소개말 구성
+                // 4. 하단 소개말 구성
                 const bioEl = document.getElementById("view-bio-box");
                 bioEl.innerHTML = `
                     <p>${data.bio1 || ''}</p>
                     <p>${(data.bio2 || '').replace(/\n/g, '<br>')}</p>
                 `;
-
-                // 4. 움짤 이미지 설정 (만약 profile.json에 gif 주소 필드가 있다면 연동, 없으면 기본 파일 유지)
-                if (data.gifUrl) {
-                    document.getElementById("profile-gif").style.backgroundImage = `url('${data.gifUrl}')`;
-                }
 
             } catch (error) {
                 console.error(error);
