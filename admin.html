@@ -190,7 +190,7 @@
         name: "", image: "", catchphrase: "", details: [], 
         time: "", content: "", bio1: "", bio2: "" 
     };
-    let linksData = { broadcast: "", youtube: "" };
+    let linksData = []; // 배열 형태로 관리 (항목별 {title, url, target} 객체 배열)
 
     // 🔒 로그인 성공 시 동적으로 주입할 관리자 UI 전체 HTML 템플릿
     const adminHtmlTemplate = `
@@ -271,17 +271,25 @@
         <!-- 링크 수정 패널 -->
         <div id="panel-links" class="card" style="display: none;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h3 style="margin: 0; color: #03045e;">🔗 링크 수정</h3>
+                <h3 style="margin: 0; color: #03045e;">🔗 링크 페이지 관리</h3>
                 <button onclick="showDashboard()" style="background-color: #64748b; padding: 6px 12px; font-size: 13px;">← 메뉴 목록으로</button>
             </div>
-            <label>방송국 링크</label>
-            <input type="text" id="link-broadcast" placeholder="https://...">
-            <label>유튜브 링크</label>
-            <input type="text" id="link-youtube" placeholder="https://...">
-            <button onclick="saveLinks()" style="width: 100%;">GitHub에 링크 반영하기</button>
+            
+            <p style="color: #64748b; font-size: 14px; margin-bottom: 15px;">
+                프로필 링크 페이지에 보여질 버튼들을 자유롭게 추가하고 관리하세요.
+            </p>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h4 style="color: #0077b6; margin: 0;">링크 목록</h4>
+                <button onclick="addLinkRow()" style="background-color: #10b981; padding: 6px 12px; font-size: 12px;">+ 새 링크 추가</button>
+            </div>
+
+            <div id="links-rows-container" style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;"></div>
+
+            <button onclick="saveLinks()" style="width: 100%; background-color: #0077b6; padding: 14px; font-size: 16px;">GitHub에 링크 변경사항 반영하기</button>
             <div id="links-status" class="status-msg"></div>
         </div>
-
+        
         <!-- 노래책 수정 패널 -->
         <div id="panel-songs" class="card" style="display: none;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
@@ -409,16 +417,74 @@
             });
 
         } else if (type === 'links') {
+            // 🔗 새로 교체하신 링크 동적 행 생성 코드
             document.getElementById("panel-links").style.display = "block";
-            document.getElementById("link-broadcast").value = linksData.broadcast || "";
-            document.getElementById("link-youtube").value = linksData.youtube || "";
-        } else if (type === 'songs') {
+            const container = document.getElementById("links-rows-container");
+            container.innerHTML = "";
+
+            let list = Array.isArray(linksData) ? linksData : [];
+            if (list.length === 0 && !Array.isArray(linksData)) {
+                if (linksData.broadcast) list.push({ title: "방송국", url: linksData.broadcast, target: "_blank" });
+                if (linksData.youtube) list.push({ title: "유튜브", url: linksData.youtube, target: "_blank" });
+            }
+
+            if (list.length === 0) {
+                list = [
+                    { title: "🎤 노래책", url: "https://badabi.pages.dev/songlist", target: "_blank" },
+                    { title: "📁 팬아카이브", url: "https://badabi.pages.dev/", target: "_blank" }
+                ];
+            }
+
+            list.forEach(item => {
+                addLinkRow(item.title, item.url, item.target);
+            });
+        } 
+        else if (type === 'songs') {
+            // 🎶 기존에 유지하시는 노래책 패널 코드
             document.getElementById("panel-songs").style.display = "block";
             document.getElementById("notice-input").value = songData.notice || "";
             renderTable();
         }
     }
 
+    function addLinkRow(title = "", url = "", target = "_blank") {
+        const container = document.getElementById("links-rows-container");
+        if (!container) return;
+        const row = document.createElement("div");
+        row.className = "link-item-row";
+        row.style.cssText = "background: #f8fafc; border: 1px solid #cbd5e1; padding: 15px; border-radius: 8px; display: flex; flex-direction: column; gap: 10px;";
+        
+        row.innerHTML = `
+            <div style="display: flex; gap: 10px;">
+                <input type="text" class="link-title" placeholder="버튼 이름 (예: 🎤 노래책)" value="${escapeHtml(title)}" style="flex: 1; margin-bottom: 0;">
+                <select class="link-target" style="padding: 10px; border: 1px solid rgba(0, 119, 190, 0.25); border-radius: 8px; background: #fff; font-weight: 600; color: #0077b6;">
+                    <option value="_blank" ${target === '_blank' ? 'selected' : ''}>새 창에서 열기</option>
+                    <option value="_self" ${target === '_self' ? 'selected' : ''}>현재 창에서 열기</option>
+                </select>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <input type="text" class="link-url" placeholder="주소 (https://...)" value="${escapeHtml(url)}" style="flex: 1; margin-bottom: 0;">
+                <button onclick="this.closest('.link-item-row').remove()" style="background-color: #ef4444; padding: 8px 14px; font-size: 13px; margin-bottom: 0;">삭제</button>
+            </div>
+        `;
+        container.appendChild(row);
+    }
+
+    function saveLinks() {
+        const rows = document.querySelectorAll("#links-rows-container .link-item-row");
+        let newLinksArr = [];
+        rows.forEach(row => {
+            const t = row.querySelector(".link-title").value.trim();
+            const u = row.querySelector(".link-url").value.trim();
+            const tg = row.querySelector(".link-target").value;
+            if (t || u) {
+                newLinksArr.push({ title: t, url: u, target: tg });
+            }
+        });
+        linksData = newLinksArr;
+        saveDataToWorker("links", linksData, "links-status");
+    }
+    
     function addDetailRow(key = "", val = "") {
         const container = document.getElementById("detail-rows-container");
         if (!container) return;
