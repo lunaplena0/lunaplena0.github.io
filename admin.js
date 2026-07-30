@@ -70,7 +70,7 @@
             <label style="margin-top: 20px;">방송시간</label>
             <input type="text" id="p-time" placeholder="평일 오후 4시 / 주말 오후 2시">
 
-            <label>주 컨텐츠</label>
+            <label>컨텐츠</label>
             <input type="text" id="p-content" placeholder="소통 & 노래 & 춤 & 기타연주 노래 & ASMR">
 
             <h4 style="color: #0077b6; margin: 20px 0 10px 0; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;">하단 소개말 (메시지)</h4>
