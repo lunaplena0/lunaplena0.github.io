@@ -31,7 +31,7 @@
             background: transparent; 
         }
 
-        /* 왼쪽 매우 커진 바다비 GIF 영역 (화면의 절반 수준을 차지하며 오른쪽 텍스트와 겹침) */
+        /* 왼쪽 바다비 GIF 영역 (이미지가 오른쪽 글씨 영역을 넓게 가리도록 설정) */
         .profile-main-gif {
             position: relative;
             width: 650px; 
@@ -41,21 +41,21 @@
             background-position: center;
             background-repeat: no-repeat;
             
-            /* 부드러운 페이드 효과 */
+            /* 부드러운 페이드 효과 (오른쪽으로 갈수록 투명해지도록 반전) */
             -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 15%, rgba(0,0,0,1) 85%, rgba(0,0,0,0) 100%),
-                                linear-gradient(to right, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 15%, rgba(0,0,0,1) 100%);
+                                linear-gradient(to right, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 60%, rgba(0,0,0,0) 100%);
             -webkit-mask-composite: intersect;
             mask-image: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 15%, rgba(0,0,0,1) 85%, rgba(0,0,0,0) 100%),
-                        linear-gradient(to right, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 15%, rgba(0,0,0,1) 100%);
+                        linear-gradient(to right, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 60%, rgba(0,0,0,0) 100%);
             mask-composite: intersect;
 
             filter: drop-shadow(0 0 35px rgba(0, 119, 190, 0.5));
-            z-index: 3; /* 이미지가 텍스트 위로 겹쳐서 가리도록 설정 */
+            z-index: 3;
             flex-shrink: 0;
-            margin-right: -100px; /* 오른쪽 텍스트 영역과 깊게 겹치도록 마이너스 여백 부여 */
+            margin-right: -120px; /* 오른쪽 텍스트 영역과 깊게 겹치도록 설정 */
         }
 
-        /* 오른쪽 프로필 카드 영역 (박스 없이 우측 정렬 및 블러 처리) */
+        /* 오른쪽 프로필 카드 영역 (블러 및 페이드 방향을 글씨 쪽인 왼쪽이 흐려지도록 반대로 적용) */
         .profile-info-card {
             position: relative;
             z-index: 1;
@@ -70,9 +70,9 @@
             color: #2b2d42; 
             box-sizing: border-box;
             
-            /* 이미지가 겹치는 왼쪽 영역이 자연스럽게 블러/페이드되도록 처리 */
-            mask-image: linear-gradient(to right, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 35%, rgba(0,0,0,1) 100%);
-            -webkit-mask-image: linear-gradient(to right, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 35%, rgba(0,0,0,1) 100%);
+            /* 왼쪽(이미지와 겹치는 글씨 쪽)이 흐려지도록 마스크 방향 반전 */
+            mask-image: linear-gradient(to right, rgba(0,0,0,0) 0%, rgba(0,0,0,0.3) 25%, rgba(0,0,0,1) 60%, rgba(0,0,0,1) 100%);
+            -webkit-mask-image: linear-gradient(to right, rgba(0,0,0,0) 0%, rgba(0,0,0,0.3) 25%, rgba(0,0,0,1) 60%, rgba(0,0,0,1) 100%);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
             padding: 20px;
@@ -197,10 +197,10 @@
 <body>
 
     <div class="ocean-profile-container">
-        <!-- 왼쪽 큰 이미지(GIF) 영역 (화면의 절반을 가리도록 크기를 키우고 마진으로 겹침 구현) -->
+        <!-- 왼쪽 큰 이미지(GIF) 영역 -->
         <div class="profile-main-gif"></div>
 
-        <!-- 오른쪽 프로필 카드 (박스 없음, 우측 정렬, 이미지가 겹치는 부분 블러 페이드 처리) -->
+        <!-- 오른쪽 프로필 카드 (이미지와 겹치는 왼쪽 글씨 쪽이 블러/페이드 처리되도록 반전 적용) -->
         <div class="profile-info-card">
             <div class="profile-header-top">
                 <div class="profile-name">바다비。</div>
