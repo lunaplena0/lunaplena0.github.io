@@ -200,7 +200,7 @@
         </div>
     </div>
 
-    <!-- [3단계-1] 자기소개 수정 패널 (필요에 맞춰 내부 내용을 채워 사용하세요) -->
+    <!-- [3단계-1] 자기소개 수정 패널 -->
     <div id="panel-intro" class="card" style="display: none;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
             <h3 style="margin: 0; color: #03045e;">👤 자기소개 수정</h3>
@@ -211,7 +211,7 @@
         <button onclick="alert('준비중인 기능입니다.')">저장하기</button>
     </div>
 
-    <!-- [3단계-2] 링크 수정 패널 (필요에 맞춰 내부 내용을 채워 사용하세요) -->
+    <!-- [3단계-2] 링크 수정 패널 -->
     <div id="panel-links" class="card" style="display: none;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
             <h3 style="margin: 0; color: #03045e;">🔗 링크 수정</h3>
@@ -223,14 +223,14 @@
         <button onclick="alert('준비중인 기능입니다.')">저장하기</button>
     </div>
 
-    <!-- [3단계-3] 노래책 수정 패널 (기존 기능) -->
+    <!-- [3단계-3] 노래책 수정 패널 -->
     <div id="panel-songs" class="card" style="display: none;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
             <h3 style="margin: 0; color: #03045e;">📝 노래책 내용 편집</h3>
             <button onclick="showDashboard()" style="background-color: #64748b; padding: 6px 12px; font-size: 13px;">← 메뉴 목록으로</button>
         </div>
 
-        <!-- 공지사항 수정 영역 (높이 확대) -->
+        <!-- 공지사항 수정 영역 -->
         <div style="margin-bottom: 25px;">
             <label for="notice-input">📢 공지사항 내용</label>
             <textarea id="notice-input" placeholder="공지사항을 입력하세요..."></textarea>
@@ -238,7 +238,7 @@
 
         <hr style="border: 0; border-top: 1px solid #e2e8f0; margin-bottom: 25px;">
 
-        <!-- 구글 시트 데이터 일괄 붙여넣기 섹션 (기본 접힌 상태) -->
+        <!-- 구글 시트 데이터 일괄 붙여넣기 섹션 -->
         <div class="batch-container">
             <div class="batch-header" onclick="toggleBatchBox()">
                 <span>📊 구글 시트(엑셀) 데이터 한 번에 가져오기 (클릭하여 열기/닫기)</span>
@@ -257,10 +257,13 @@
         <!-- 노래 목록 제어 영역 -->
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
             <label style="margin: 0;">🎶 노래 목록 (<span id="song-count-badge">0</span>곡)</label>
-            <div style="display: flex; gap: 10px; flex: 1; max-width: 400px;">
+            <div style="display: flex; gap: 10px; flex: 1; max-width: 350px;">
                 <input type="text" id="search-input" placeholder="🔍 제목, 가수, 장르 검색..." oninput="renderTable()" style="margin-bottom: 0; padding: 8px 12px;">
             </div>
-            <button onclick="openEditModal(-1)" style="background-color: #10b981; padding: 8px 14px; font-size: 13px;">+ 새 노래 추가하기</button>
+            <div style="display: flex; gap: 8px;">
+                <button onclick="downloadCsvFile()" style="background-color: #059669; padding: 8px 12px; font-size: 13px;">📥 시트 파일로 받기(CSV)</button>
+                <button onclick="openEditModal(-1)" style="background-color: #10b981; padding: 8px 12px; font-size: 13px;">+ 새 노래 추가하기</button>
+            </div>
         </div>
 
         <!-- 테이블 형태의 목록 -->
@@ -320,7 +323,6 @@
 
     let loadedData = { notice: "", songs: [] };
 
-    // 화면 전환 함수 (대시보드 <-> 각 패널)
     function showDashboard() {
         document.getElementById("dashboard-section").style.display = "block";
         document.getElementById("panel-intro").style.display = "none";
@@ -340,11 +342,10 @@
             document.getElementById("panel-links").style.display = "block";
         } else if (type === 'songs') {
             document.getElementById("panel-songs").style.display = "block";
-            renderTable(); // 노래책 패널이 열릴 때 테이블 렌더링
+            renderTable();
         }
     }
 
-    // 구글 시트 영역 접기/펼치기 토글 함수
     function toggleBatchBox() {
         const body = document.getElementById("batch-body-content");
         const icon = document.getElementById("batch-toggle-icon");
@@ -380,7 +381,6 @@
                 songs: Array.isArray(data.songs) ? data.songs : []
             };
 
-            // 로그인 성공 시 대시보드(메뉴 선택 화면)로 이동
             document.getElementById("login-section").style.display = "none";
             document.getElementById("dashboard-section").style.display = "block";
 
@@ -423,6 +423,56 @@
             `;
             tbody.appendChild(tr);
         });
+    }
+
+    // CSV 파일로 다운로드하는 함수
+    function downloadCsvFile() {
+        if (!Array.isArray(loadedData.songs) || loadedData.songs.length === 0) {
+            alert("내보낼 노래 데이터가 없습니다.");
+            return;
+        }
+
+        const keyword = document.getElementById("search-input").value.toLowerCase().trim();
+        let csvRows = [];
+
+        // 엑셀/구글시트용 헤더 추가
+        csvRows.push('"\uFEFF제목","가수","장르","제한","기타"');
+
+        loadedData.songs.forEach(song => {
+            const title = (song.title || "").toLowerCase();
+            const artist = (song.artist || "").toLowerCase();
+            const genre = (song.genre || "").toLowerCase();
+
+            if (keyword && !title.includes(keyword) && !artist.includes(keyword) && !genre.includes(keyword)) {
+                return;
+            }
+
+            // 쌍따옴표 이스케이프 처리 (CSV 포맷 안전성 확보)
+            const cleanTitle = (song.title || "").replace(/"/g, '""');
+            const cleanArtist = (song.artist || "").replace(/"/g, '""');
+            const cleanGenre = (song.genre || "").replace(/"/g, '""');
+            const cleanLimit = (song.limit || "").replace(/"/g, '""');
+            const cleanEtc = (song.etc || "").replace(/"/g, '""');
+
+            csvRows.push(`"${cleanTitle}","${cleanArtist}","${cleanGenre}","${cleanLimit}","${cleanEtc}"`);
+        });
+
+        if (csvRows.length <= 1) {
+            alert("검색 결과에 해당하는 곡이 없습니다.");
+            return;
+        }
+
+        const csvString = csvRows.join("\n");
+        const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        
+        a.href = url;
+        a.download = `badabi_songlist_${new Date().toISOString().slice(0,10)}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
     }
 
     function openEditModal(index) {
