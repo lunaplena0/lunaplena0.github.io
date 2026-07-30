@@ -253,7 +253,7 @@
             <!-- 검색 입력창 -->
             <input type="text" id="search-input" class="search-box" placeholder="노래 제목이나 가수를 검색한 뒤 엔터를 눌러주세요...">
 
-            <!-- 빠른 필터 토글 버튼 영역 (요청 순서 반영: 전체, 기타연주, K팝, J팝, 팝) -->
+            <!-- 빠른 필터 토글 버튼 영역 -->
             <div class="filter-tags-container">
                 <button class="filter-btn" data-filter="전체">전체</button>
                 <button class="filter-btn" data-filter="기타연주">기타연주</button>
@@ -373,7 +373,6 @@
             // 필터 버튼 이벤트 설정
             const filterButtons = document.querySelectorAll('.filter-btn');
             filterButtons.forEach(btn => {
-                // 초기 '전체' 버튼 활성화 상태 부여
                 if (btn.getAttribute('data-filter') === '전체') {
                     btn.classList.add('active');
                 }
@@ -399,7 +398,7 @@
 
                 if (!matchesKeyword) return false;
 
-                // 2. 카테고리 토글 버튼 필터링 (KPOP, JPOP, POP 등 대소문자 무시 대응)
+                // 2. 카테고리 토글 버튼 필터링 (K팝, J팝, 팝 개별 정확 분리)
                 const g = song.genre.toLowerCase();
                 const l = song.limit.toLowerCase();
 
@@ -412,8 +411,10 @@
                 } else if (currentFilter === 'j팝') {
                     return g.includes('j') || g.includes('일단') || g.includes('일본');
                 } else if (currentFilter === '팝') {
-                    // '팝'을 누르면 POP, KPOP, JPOP 등 '팝' 글자가 포함된 모든 장르가 검색되도록 허용
-                    return g.includes('팝') || g.includes('pop');
+                    // '팝' 또는 'pop'이 포함되어 있으면서, k나 j가 붙은 k팝/j팝은 제외
+                    const hasPop = g.includes('팝') || g.includes('pop');
+                    const isKOrJ = g.includes('k') || g.includes('j') || g.includes('가요') || g.includes('일본');
+                    return hasPop && !isKOrJ;
                 }
                 return true;
             });
