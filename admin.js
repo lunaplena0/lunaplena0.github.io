@@ -488,7 +488,8 @@ async function saveProfile() {
             }
         });
 
-        const profileData = {
+        // 💡 수정: const 키워드를 빼고 전역 변수 profileData 값을 업데이트합니다.
+        profileData = {
             name: document.getElementById("p-name").value.trim(),
             image: base64Image,
             catchphrase: document.getElementById("p-catchphrase").value.trim(),
