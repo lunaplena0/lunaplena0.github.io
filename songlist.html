@@ -520,11 +520,13 @@
             songs.forEach(song => {
                 const tr = document.createElement('tr');
                 
-                // 긴 제목 말줄임표 처리 (30자 이상)
+                // 화면 너비에 따라 제목 글자 수 제한 다르게 설정 (모바일: 16자, PC: 30자)
                 let rawTitle = song.title || '제목없음';
                 let cleanTitle = rawTitle;
-                if (cleanTitle.length > 30) {
-                    cleanTitle = cleanTitle.substring(0, 30) + '...';
+                const maxLength = window.innerWidth < 768 ? 16 : 40;
+                
+                if (cleanTitle.length > maxLength) {
+                    cleanTitle = cleanTitle.substring(0, maxLength) + '...';
                 }
 
                 // 음역대 또는 연주 제한(limit) 뱃지 스타일 동적 설정
@@ -539,7 +541,7 @@
                     } else if (limitVal.includes("기타")) {
                         badgeColor = "#8b5cf6";
                     }
-                    limitBadgeHtml += `<span style="background-color: ${badgeColor}; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 600; display: inline-block; margin-right: 4px;">${limitVal}</span>`;
+                    limitBadgeHtml += `<span style="background-color: ${badgeColor}; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 600; display: inline-block; margin-right: 2px;">${limitVal}</span>`;
                 }
 
                 // 기타 추가 정보(etc) 처리
