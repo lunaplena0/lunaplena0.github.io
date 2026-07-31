@@ -11,7 +11,7 @@
             width: 100vw;
             min-height: 100vh;
             display: flex;
-            flex-direction: column; /* 네비게이션바 배치를 위해 세로 정렬로 변경 */
+            flex-direction: column;
             background-color: #f4f7f9;
             overflow-x: hidden;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -79,7 +79,7 @@
             position: relative;
             width: 100%;
             max-width: 1400px;
-            flex: 1; /* 남은 화면 공간을 채우도록 수정 */
+            flex: 1;
             margin: 0 auto;
             display: flex;
             align-items: center;
@@ -90,17 +90,15 @@
             background: transparent; 
         }
 
-        /* 왼쪽 바다비 GIF 영역 (좌우 및 상하 부드러운 마스크 페이드 적용) */
+        /* 왼쪽 바다비 GIF 영역 (페이드 인 애니메이션 적용) */
         .profile-main-gif {
             position: relative;
             width: 650px; 
             height: 650px;
-            background-image: url('바다비.gif'); /* 기본값, JS로 변경됨 */
             background-size: contain;
             background-position: center;
             background-repeat: no-repeat;
             
-            /* 이미지 가장자리를 부드럽게 지워주는 마스크 효과 */
             -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 15%, rgba(0,0,0,1) 85%, rgba(0,0,0,0) 100%),
                                 linear-gradient(to right, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 15%, rgba(0,0,0,1) 60%, rgba(0,0,0,0) 100%);
             -webkit-mask-composite: intersect;
@@ -112,9 +110,20 @@
             z-index: 3;
             flex-shrink: 0;
             margin-right: -120px;
+
+            /* 초기 상태 숨김 및 애니메이션 준비 */
+            opacity: 0;
+            transform: scale(0.95);
+            transition: opacity 0.8s ease, transform 0.8s ease;
         }
 
-        /* 오른쪽 프로필 카드 영역 */
+        /* 이미지가 로드된 후 부드럽게 나타나도록 하는 클래스 */
+        .profile-main-gif.loaded {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        /* 오른쪽 프로필 카드 영역 (페이드 인 애니메이션 적용) */
         .profile-info-card {
             position: relative;
             z-index: 1;
@@ -131,6 +140,17 @@
             color: #2b2d42; 
             box-sizing: border-box;
             padding: 20px;
+
+            /* 초기 상태 숨김 및 애니메이션 준비 */
+            opacity: 0;
+            transform: translateY(15px);
+            transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+
+        /* 카드가 로드된 후 부드럽게 나타나도록 하는 클래스 */
+        .profile-info-card.loaded {
+            opacity: 1;
+            transform: translateY(0);
         }
 
         /* 프로필 헤더(이름 및 캐치프레이즈) 정렬 영역 */
@@ -152,7 +172,7 @@
             text-shadow: 0 0 10px rgba(255, 255, 255, 1), 0 0 20px rgba(255, 255, 255, 0.9), 0 2px 4px rgba(0, 0, 0, 0.15);
         }
 
-        /* 프로필 캐치프레이즈 스타일 (중앙 정렬 및 가독성 개선) */
+        /* 프로필 캐치프레이즈 스타일 */
         .profile-catchphrase {
             display: inline-block;
             font-size: clamp(14px, 1.4vw, 16px);
@@ -171,31 +191,31 @@
             width: 100%;
             display: flex;
             flex-direction: column;
-            gap: 6px; /* 항목 간 간격 살짝 조정 */
+            gap: 6px;
             background: transparent; 
             padding: 0 0 0 40px;
             border: none;
             box-sizing: border-box;
         }
 
-        /* 개별 상세 정보 아이템 스타일 (CSS Grid 적용) */
+        /* 개별 상세 정보 아이템 스타일 */
         .info-item {
             font-size: clamp(14px, 1.3vw, 17px);
             line-height: 1.6;
             display: grid;
-            grid-template-columns: 75px 1fr; /* 1번 칸(라벨): 75px 고정, 2번 칸(내용): 남은 공간(1fr) 차지 */
+            grid-template-columns: 75px 1fr;
             align-items: baseline;
-            gap: 5px; /* 라벨과 데이터 사이의 간격 */
+            gap: 5px;
             color: #334155;
             text-shadow: 0 0 10px rgba(255, 255, 255, 1), 0 0 15px rgba(255, 255, 255, 0.9);
             text-align: left;
         }
 
-        /* 상세 정보 라벨(항목 이름) 스타일 */
+        /* 상세 정보 라벨 스타일 */
         .info-label {
             font-weight: 800;
             color: #0077b6;
-            text-align: left; /* 라벨 글씨도 확실하게 왼쪽 정렬 */
+            text-align: left;
         }
 
         /* 하단 자기소개 박스 스타일 */
@@ -215,7 +235,6 @@
         }
 
         .profile-bio-box p { margin: 0; }
-        /* 소개 박스의 첫 번째 문단 강조 스타일 */
         .profile-bio-box p:first-child {
             font-weight: 800;
             margin-bottom: 6px;
@@ -236,7 +255,7 @@
                 gap: 20px;
             }
             .profile-main-gif {
-                width: 250px; /* 모바일 환경에서 이미지 크기를 기존보다 줄임 */
+                width: 250px;
                 height: 250px;
                 margin-right: 0;
             }
@@ -253,7 +272,7 @@
             }
             .info-item {
                 text-align: left;
-                grid-template-columns: 50px 1fr; /* 1번 칸(라벨): 50px 고정, 2번 칸(내용): 남은 공간(1fr) 차지 */
+                grid-template-columns: 50px 1fr;
             }
         }
     </style>
@@ -276,45 +295,40 @@
         <!-- 왼쪽 큰 이미지(GIF) 영역 -->
         <div class="profile-main-gif" id="profile-gif"></div>
 
-        <!-- 오른쪽 프로필 카드 (동적 바인딩 영역) -->
-        <div class="profile-info-card">
+        <!-- 오른쪽 프로필 카드 -->
+        <div class="profile-info-card" id="profile-card">
             <!-- 이름 및 캐치프레이즈 출력 영역 -->
             <div class="profile-header-top">
                 <div class="profile-name" id="view-name">로딩 중...</div>
                 <div class="profile-catchphrase" id="view-catchphrase"></div>
             </div>
 
-            <!-- 상세 정보(방송시간, 주 컨텐츠 등) 동적 생성 그리드 영역 -->
-            <div class="profile-info-grid" id="view-info-grid">
-                <!-- JS로 자동 생성됨 -->
-            </div>
+            <!-- 상세 정보 동적 생성 그리드 영역 -->
+            <div class="profile-info-grid" id="view-info-grid"></div>
 
             <!-- 하단 자기소개글 동적 생성 영역 -->
-            <div class="profile-bio-box" id="view-bio-box">
-                <!-- JS로 자동 생성됨 -->
-            </div>
+            <div class="profile-bio-box" id="view-bio-box"></div>
         </div>
     </div>
 
     <script>
-        // 비동기로 profile.json 데이터를 불러와 화면에 적용하는 함수
         async function loadProfile() {
             try {
-                // 수정된 부분: Cloudflare Worker API 주소로 호출
                 const response = await fetch('https://badabi-api.dalkkumli054.workers.dev/?type=profile&t=' + new Date().getTime());
                 if (!response.ok) throw new Error("프로필 데이터를 불러오지 못했습니다.");
                 const data = await response.json();
 
-                // 1. 이름 및 캐치프레이즈 데이터 바인딩 (줄바꿈 기호 처리 포함)
+                // 1. 이름 및 캐치프레이즈 데이터 바인딩
                 document.getElementById("view-name").textContent = data.name || "바다비。";
                 document.getElementById("view-catchphrase").innerHTML = (data.catchphrase || "").replace(/\n/g, '<br>');
 
                 // 2. 왼쪽 프로필 GIF 이미지 경로 동적 적용
+                const gifEl = document.getElementById("profile-gif");
                 if (data.image) {
-                    document.getElementById("profile-gif").style.backgroundImage = `url('${data.image}')`;
+                    gifEl.style.backgroundImage = `url('${data.image}')`;
                 }
 
-                // 3. 동적 상세 프로필 그리드 구성 (details 배열 및 방송시간, 주 컨텐츠 병합 처리)
+                // 3. 동적 상세 프로필 그리드 구성
                 const gridEl = document.getElementById("view-info-grid");
                 let fields = [];
 
@@ -326,29 +340,33 @@
                     });
                 }
 
-                // 방송시간 및 주 컨텐츠 데이터가 존재할 경우 목록에 추가
                 if (data.time) fields.push({ label: "방송시간", val: data.time });
                 if (data.content) fields.push({ label: "컨텐츠", val: data.content });
 
-                // 생성된 배열을 HTML 태그로 변환하여 삽입
                 gridEl.innerHTML = fields
                     .map(item => `<div class="info-item"><span class="info-label">${item.label}</span> ${item.val}</div>`)
                     .join('');
 
-                // 4. 하단 소개말(bio1, bio2) 구성 및 삽입
+                // 4. 하단 소개말 구성
                 const bioEl = document.getElementById("view-bio-box");
                 bioEl.innerHTML = `
                     <p>${data.bio1 || ''}</p>
                     <p>${(data.bio2 || '').replace(/\n/g, '<br>')}</p>
                 `;
 
+                // 5. 모든 데이터 바인딩이 끝난 직후 페이드 인 애니메이션 클래스 추가
+                gifEl.classList.add('loaded');
+                document.getElementById("profile-card").classList.add('loaded');
+
             } catch (error) {
                 console.error(error);
                 document.getElementById("view-name").textContent = "데이터 로드 실패";
+                // 에러 발생 시에도 화면이 나타나도록 처리
+                document.getElementById("profile-gif").classList.add('loaded');
+                document.getElementById("profile-card").classList.add('loaded');
             }
         }
 
-        // 페이지 로드 시 프로필 데이터 불러오기 함수 실행
         loadProfile();
     </script>
 
