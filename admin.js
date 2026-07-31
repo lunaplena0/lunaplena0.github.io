@@ -8,7 +8,7 @@ let profileData = {
 };
 let linksData = []; 
 
-// 🔒 로그인 성공 시 동적으로 주입할 관리자 UI 전체 HTML 템플릿
+// 🔒 로그인 성공 시 동적으로 주입할 관리자 UI 전체 HTML 템플릿 (파일 업로드 UI 제거됨)
 const adminHtmlTemplate = `
     <!-- 대시보드 메뉴 -->
     <div id="dashboard-section" class="card">
@@ -17,7 +17,7 @@ const adminHtmlTemplate = `
             <button onclick="location.reload()" style="background-color: #64748b; padding: 6px 12px; font-size: 13px;">로그아웃</button>
         </div>
         <p style="color: #64748b; font-size: 14px;">수정할 항목을 선택해주세요.</p>
-        
+         
         <div class="menu-grid">
             <div class="menu-card" onclick="showPanel('intro')">
                 <h4>👤 자기소개 수정</h4>
@@ -44,17 +44,8 @@ const adminHtmlTemplate = `
         <label>활동 이름</label>
         <input type="text" id="p-name" placeholder="예: 바다비。">
 
-        <label>프로필 이미지 주소 (아바타/로고)</label>
-        <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-            <input type="text" id="p-image" placeholder="https://... 또는 아래에서 이미지 업로드" style="margin-bottom: 0; flex: 1;">
-        </div>
-        <div style="background: #f8fafc; border: 1px dashed #cbd5e1; padding: 12px; border-radius: 8px; margin-bottom: 15px;">
-            <label style="font-size: 12px; color: #0284c7; margin-bottom: 5px;">🖼️ 새 프로필 이미지 업로드 (Base64 변환 저장)</label>
-            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-                <input type="file" id="profile-file-input" accept="image/gif, image/png, image/jpeg, image/webp" style="flex: 1; font-size: 13px; margin-bottom: 0; background: #fff;">
-            </div>
-            <div id="profile-upload-status" style="font-size: 11px; margin-top: 4px; color: #64748b;">파일 선택 후 아래 '페이지에 자기소개 반영하기'를 누르면 자동 반영됩니다.</div>
-        </div>
+        <label>프로필 이미지 주소 (아바타/로고 URL)</label>
+        <input type="text" id="p-image" placeholder="이미지 주소를 입력하세요 (https://...)">
 
         <label>캐치프레이즈 (닉네임 하단에 파란색 글씨)</label>
         <textarea id="p-catchphrase" class="profile-textarea" placeholder="𝐏 𝐫 𝐨 𝐟 𝐢 𝐥 𝐞"></textarea>
@@ -63,7 +54,7 @@ const adminHtmlTemplate = `
             <h4 style="color: #0077b6; margin: 0;">상세 프로필 정보</h4>
             <button onclick="addDetailRow()" style="background-color: #10b981; padding: 4px 10px; font-size: 12px;">+ 항목 추가</button>
         </div>
-        
+         
         <div id="detail-rows-container"></div>
 
         <label style="margin-top: 20px;">방송시간</label>
@@ -75,7 +66,7 @@ const adminHtmlTemplate = `
         <h4 style="color: #0077b6; margin: 20px 0 10px 0; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;">하단 소개말 (메시지)</h4>
         <label style="font-size: 13px;">첫 번째 줄 (강조 문구)</label>
         <input type="text" id="p-bio1" placeholder="바다의 작은 용 , 잘못 만지면 아파요! ↜(⃔っ•̤ ༝ •̤c)⃕">
-        
+         
         <label style="font-size: 13px;">두 번째 줄 (대사/소개)</label>
         <textarea id="p-bio2" class="profile-textarea" placeholder="바다의 작은 용? 아니, 바다의 독가시!..."></textarea>
 
@@ -89,7 +80,7 @@ const adminHtmlTemplate = `
             <h3 style="margin: 0; color: #03045e;">🔗 링크 페이지 관리</h3>
             <button onclick="showDashboard()" style="background-color: #64748b; padding: 6px 12px; font-size: 13px;">← 메뉴 목록으로</button>
         </div>
-        
+         
         <p style="color: #64748b; font-size: 14px; margin-bottom: 15px;">
             프로필 링크 페이지에 보여질 버튼들을 자유롭게 추가하고 관리하세요.
         </p>
@@ -105,7 +96,7 @@ const adminHtmlTemplate = `
         <button onclick="saveLinks()" style="width: 100%; background-color: #0077b6; padding: 14px; font-size: 16px;">페이지에 링크 변경사항 반영하기</button>
         <div id="links-status" class="status-msg"></div>
     </div>
-    
+     
     <!-- 노래책 수정 패널 -->
     <div id="panel-songs" class="card" style="display: none;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
@@ -267,7 +258,7 @@ function addLinkRow(title = "", url = "", target = "_blank") {
     const row = document.createElement("div");
     row.className = "link-item-row";
     row.style.cssText = "background: #f8fafc; border: 1px solid #cbd5e1; padding: 10px; border-radius: 8px; display: flex; flex-direction: column; gap: 6px;";
-    
+     
     row.innerHTML = `
         <div style="display: flex; gap: 6px; align-items: center;">
             <input type="text" class="link-title" placeholder="버튼 이름 (예: 🎤 노래책)" value="${escapeHtml(title)}" style="flex: 1; height: 38px; padding: 0 12px; margin-bottom: 0; box-sizing: border-box;">
@@ -324,7 +315,7 @@ function addDetailRow(key = "", val = "") {
     const row = document.createElement("div");
     row.className = "detail-item-row";
     row.style.cssText = "display: flex; gap: 6px; align-items: center; margin-bottom: 8px;";
-    
+     
     row.innerHTML = `
         <input type="text" class="detail-key" placeholder="항목 이름 (예: 나이)" value="${escapeHtml(key)}" style="flex: 1; height: 38px; padding: 0 12px; margin-bottom: 0; box-sizing: border-box;">
         <input type="text" class="detail-val" placeholder="내용 (예: 20살)" value="${escapeHtml(val)}" style="flex: 2; height: 38px; padding: 0 12px; margin-bottom: 0; box-sizing: border-box;">
@@ -453,15 +444,6 @@ async function saveDataToWorker(fileType, contentObj, statusElementId) {
     }
 }
 
-function getFileBase64(file) {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = (event) => resolve(event.target.result); 
-        reader.onerror = (error) => reject(error);
-    });
-}
-
 async function saveProfile() {
     const statusEl = document.getElementById("intro-status");
     statusEl.style.color = "#0077b6";
@@ -478,12 +460,11 @@ async function saveProfile() {
             }
         });
 
-        // 💡 fileInput으로 Base64를 변환하는 대신, 입력된 이미지 URL(또는 주소)을 그대로 사용합니다.
         const imageUrl = document.getElementById("p-image").value.trim();
 
         profileData = {
             name: document.getElementById("p-name").value.trim(),
-            image: imageUrl, // 👈 텍스트 주소(URL)만 저장
+            image: imageUrl, 
             catchphrase: document.getElementById("p-catchphrase").value.trim(),
             details: detailsArr,
             time: document.getElementById("p-time").value.trim(),
