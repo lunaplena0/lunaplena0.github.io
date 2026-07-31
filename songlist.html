@@ -537,12 +537,7 @@
                 
                 let rawTitle = song.title || '제목없음';
                 let cleanTitle = rawTitle;
-                const maxLength = window.innerWidth < 768 ? 20 : 50;
                 
-                if (cleanTitle.length > maxLength) {
-                    cleanTitle = cleanTitle.substring(0, maxLength) + '...';
-                }
-
                 let limitVal = song.limit || '';
                 let limitBadgeHtml = "";
                 if (limitVal !== "") {
@@ -556,6 +551,18 @@
                         badgeColor = "#8b5cf6";
                     }
                     limitBadgeHtml += `<span style="background-color: ${badgeColor}; color: white; padding: 2px 4px; border-radius: 4px; font-size: 11px; font-weight: 600; display: inline-block;">${cleanLimitVal}</span>`;
+                }
+
+                // 태그가 있으면 모바일에서 16글자, 없으면 기존대로 20글자로 제한
+                let maxLength;
+                if (window.innerWidth < 768) {
+                    maxLength = (limitVal !== "") ? 16 : 20;
+                } else {
+                    maxLength = 50;
+                }
+                
+                if (cleanTitle.length > maxLength) {
+                    cleanTitle = cleanTitle.substring(0, maxLength) + '...';
                 }
 
                 let etcVal = song.etc || '';
