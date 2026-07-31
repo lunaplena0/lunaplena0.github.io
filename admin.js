@@ -259,26 +259,30 @@ function showPanel(type) {
 // 🖼️ 이미지 파일을 Base64로 변환 후 GitHub 저장용 Worker로 전송
 async function uploadProfileImage() {
     const fileInput = document.getElementById("p-image-file");
-    const statusEl = document.getElementById("intro-status"); // 하단에 있는 상태 메시지 영역 활용
+    const statusEl = document.getElementById("intro-status"); // 👈 상태 메시지 영역
     
     if (!fileInput.files || fileInput.files.length === 0) {
-        alert("업로드할 이미지 파일을 선택해주세요.");
+        if (statusEl) {
+            statusEl.style.color = "#ef4444";
+            statusEl.textContent = "❌ 업로드할 이미지 파일을 선택해주세요.";
+        }
         return;
     }
 
     const file = fileInput.files[0];
+    const passwordInput = document.getElementById("admin-password");
+    const password = passwordInput ? passwordInput.value : "";
+
     if (statusEl) {
-        statusEl.style.color = "#0077b6";
-        statusEl.textContent = "깃허브로 이미지 업로드 중입니다. 잠시만 기다려주세요...";
+        statusEl.style.color = "#0284c7";
+        statusEl.textContent = "⏳ 이미지를 깃허브에 업로드하는 중입니다...";
     }
 
     const reader = new FileReader();
     reader.onload = async function(e) {
-        const base64Content = e.target.result.split(',')[1];
-        const passwordInput = document.getElementById("admin-password");
-        const password = passwordInput ? passwordInput.value : "";
-
         try {
+            const base64Content = e.target.result.split(',')[1];
+
             const response = await fetch(WORKER_URL, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -290,26 +294,39 @@ async function uploadProfileImage() {
                 })
             });
 
-            const result = await response.json();
-            if (response.ok && result.success) {
-                document.getElementById("p-image").value = result.url;
-                if (statusEl) {
-                    statusEl.style.color = "#10b981";
-                    statusEl.textContent = "✅ 이미지가 깃허브에 성공적으로 업로드되었습니다!";
+            // 서버 응답이 정상인지 확인 (500 에러 등 처리)
+            if (response.ok) {
+                const result = await response.json();
+                if (result.success) {
+                    document.getElementById("p-image").value = result.url;
+                    if (statusEl) {
+                        statusEl.style.color = "#166534";
+                        statusEl.textContent = "✅ 이미지 업로드가 성공적으로 완료되었습니다!";
+                    }
+                } else {
+                    throw new Error(result.error || "업로드 실패");
                 }
             } else {
-                throw new Error(result.error || "업로드 실패");
+                const errText = await response.text();
+                throw new Error(`서버 오류 (${response.status}): ${errText}`);
             }
         } catch (error) {
             if (statusEl) {
                 statusEl.style.color = "#ef4444";
-                statusEl.textContent = "❌ 이미지 업로드 실패: " + error.message;
+                statusEl.textContent = "❌ 업로드 실패: " + error.message;
             }
         }
     };
+
+    reader.onerror = function() {
+        if (statusEl) {
+            statusEl.style.color = "#ef4444";
+            statusEl.textContent = "❌ 파일을 읽는 중 오류가 발생했습니다.";
+        }
+    };
+
     reader.readAsDataURL(file);
 }
-
 function addLinkRow(title = "", url = "", target = "_blank") {
     const container = document.getElementById("links-rows-container");
     if (!container) return;
