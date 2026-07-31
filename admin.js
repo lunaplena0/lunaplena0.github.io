@@ -174,9 +174,9 @@ const adminHtmlTemplate = `
             <label style="font-size: 13px;">가수</label>
             <input type="text" id="modal-artist-input" placeholder="가수">
             <label style="font-size: 13px;">장르</label>
-            <input type="text" id="modal-genre-input" placeholder="장르">
+            <input type="text" id="modal-genre-input" placeholder="KPOP, JPOP, POP, 기타연주">
             <label style="font-size: 13px;">제한 / 조건</label>
-            <input type="text" id="modal-limit-input" placeholder="조건">
+            <input type="text" id="modal-limit-input" placeholder="200개, 300개, 기타">
             <label style="font-size: 13px;">기타 정보</label>
             <input type="text" id="modal-etc-input" placeholder="특이사항">
             <div style="display: flex; gap: 10px; margin-top: 15px;">
