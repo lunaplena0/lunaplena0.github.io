@@ -380,9 +380,9 @@
         // 이후 데이터 로드 코드 동일...
         const timestamp = new Date().getTime();
         const [songRes, profileRes, linksRes] = await Promise.all([
-            fetch(GITHUB_BASE_URL + "songlist.json?t=" + timestamp),
-            fetch(GITHUB_BASE_URL + "profile.json?t=" + timestamp),
-            fetch(GITHUB_BASE_URL + "links.json?t=" + timestamp)
+            fetch(WORKER_URL + "?type=songlist&t=" + timestamp),
+            fetch(WORKER_URL + "?type=profile&t=" + timestamp),
+            fetch(WORKER_URL + "?type=links&t=" + timestamp)
         ]);
 
         if (songRes.ok) {
