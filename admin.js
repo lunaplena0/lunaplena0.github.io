@@ -44,10 +44,10 @@ const adminHtmlTemplate = `
         <label>활동 이름</label>
         <input type="text" id="p-name" placeholder="예: 바다비。">
 
-        <label>프로필 이미지 (깃허브 업로드)</label>
+        <label>프로필 이미지 (업로드)</label>
         <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 8px;">
             <input type="file" id="p-image-file" accept="image/*" style="flex: 1; padding: 8px; border: 1px solid #cbd5e1; border-radius: 8px; background: #f8fafc; margin-bottom: 0;">
-            <button type="button" onclick="uploadProfileImage()" style="background-color: #0284c7; padding: 10px 16px; font-size: 13px; white-space: nowrap; margin-bottom: 0;">깃허브로 업로드</button>
+            <button type="button" onclick="uploadProfileImage()" style="background-color: #0284c7; padding: 10px 16px; font-size: 13px; white-space: nowrap; margin-bottom: 0;">업로드</button>
         </div>
         <!-- 💡 이미지 전용 상태 메시지 영역 추가 -->
         <div id="image-status" style="font-size: 13px; margin-bottom: 12px; font-weight: 500; min-height: 18px;"></div>
@@ -278,7 +278,7 @@ async function uploadProfileImage() {
 
     if (statusEl) {
         statusEl.style.color = "#0284c7";
-        statusEl.textContent = "⏳ 이미지를 깃허브에 업로드하는 중입니다...";
+        statusEl.textContent = "⏳ 이미지를 업로드하는 중입니다...";
     }
 
     const reader = new FileReader();
