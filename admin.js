@@ -45,10 +45,13 @@ const adminHtmlTemplate = `
         <input type="text" id="p-name" placeholder="예: 바다비。">
 
         <label>프로필 이미지 (깃허브 업로드)</label>
-        <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 15px;">
-            <input type="file" id="p-image-file" accept="image/*" style="flex: 1; padding: 8px; border: 1px solid #cbd5e1; border-radius: 8px; background: #f8fafc;">
+        <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 8px;">
+            <input type="file" id="p-image-file" accept="image/*" style="flex: 1; padding: 8px; border: 1px solid #cbd5e1; border-radius: 8px; background: #f8fafc; margin-bottom: 0;">
             <button type="button" onclick="uploadProfileImage()" style="background-color: #0284c7; padding: 10px 16px; font-size: 13px; white-space: nowrap; margin-bottom: 0;">깃허브로 업로드</button>
         </div>
+        <!-- 💡 이미지 전용 상태 메시지 영역 추가 -->
+        <div id="image-status" style="font-size: 13px; margin-bottom: 12px; font-weight: 500; min-height: 18px;"></div>
+        
         <input type="text" id="p-image" placeholder="업로드된 이미지 주소가 여기에 자동으로 입력됩니다" readonly style="background: #f1f5f9; color: #475569; font-size: 13px;">
 
         <label>캐치프레이즈 (닉네임 하단에 파란색 글씨)</label>
@@ -259,7 +262,7 @@ function showPanel(type) {
 // 🖼️ 이미지 파일을 Base64로 변환 후 GitHub 저장용 Worker로 전송
 async function uploadProfileImage() {
     const fileInput = document.getElementById("p-image-file");
-    const statusEl = document.getElementById("intro-status"); // 👈 상태 메시지 영역
+    const statusEl = document.getElementById("image-status"); // 👈 이미지 전용 상태창으로 변경
     
     if (!fileInput.files || fileInput.files.length === 0) {
         if (statusEl) {
@@ -294,7 +297,6 @@ async function uploadProfileImage() {
                 })
             });
 
-            // 서버 응답이 정상인지 확인 (500 에러 등 처리)
             if (response.ok) {
                 const result = await response.json();
                 if (result.success) {
