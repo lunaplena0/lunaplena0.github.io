@@ -537,21 +537,23 @@
                     cleanTitle = cleanTitle.substring(0, maxLength) + '...';
                 }
 
-                // 음역대 또는 연주 제한(limit) 뱃지 스타일 동적 설정
+                // 연주 제한(limit) 뱃지 스타일 동적 설정
                 let limitVal = song.limit || '';
-                let limitBadgeHtml = "";
-                if (limitVal !== "") {
-                    let badgeColor = "#0ea5e9";
-                    if (limitVal.includes("200")) {
-                        badgeColor = "#10b981";
-                    } else if (limitVal.includes("300")) {
-                        badgeColor = "#f97316";
-                    } else if (limitVal.includes("기타")) {
-                        badgeColor = "#8b5cf6";
-                    }
-                    limitBadgeHtml += `<span style="background-color: ${badgeColor}; color: white; padding: 2px 4px; border-radius: 4px; font-size: 11px; font-weight: 600; display: inline-block;">${limitVal}</span>`;
-                }
+let limitBadgeHtml = "";
+if (limitVal !== "") {
+    // 데이터에 들어있을 수 있는 대괄호([, ])를 강제로 제거합니다.
+    let cleanLimitVal = limitVal.replace(/[\[\]]/g, ''); 
 
+    let badgeColor = "#0ea5e9";
+    if (cleanLimitVal.includes("200")) {
+        badgeColor = "#10b981";
+    } else if (cleanLimitVal.includes("300")) {
+        badgeColor = "#f97316";
+    } else if (cleanLimitVal.includes("기타")) {
+        badgeColor = "#8b5cf6";
+    }
+    limitBadgeHtml += `<span style="background-color: ${badgeColor}; color: white; padding: 2px 4px; border-radius: 4px; font-size: 11px; font-weight: 600; display: inline-block;">${cleanLimitVal}</span>`;
+}
                 // 기타 추가 정보(etc) 처리
                 let etcVal = song.etc || '';
 let etcHtml = '';
