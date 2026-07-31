@@ -49,7 +49,7 @@
                 <input type="text" id="p-image" placeholder="https://... 또는 아래에서 이미지 업로드" style="margin-bottom: 0; flex: 1;">
             </div>
             <div style="background: #f8fafc; border: 1px dashed #cbd5e1; padding: 12px; border-radius: 8px; margin-bottom: 15px;">
-                <label style="font-size: 12px; color: #0284c7; margin-bottom: 5px;">🖼️ 새 프로필 이미지 업로드 (원본 형식 유지)</label>
+                <label style="font-size: 12px; color: #0284c7; margin-bottom: 5px;">🖼️ 새 프로필 이미지 업로드 (20mb 초과 시 에러가 생길 수도 있습니다)</label>
                 <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
                     <input type="file" id="profile-file-input" accept="image/gif, image/png, image/jpeg, image/webp" style="flex: 1; font-size: 13px; margin-bottom: 0; background: #fff;">
                     <button onclick="uploadProfileImage()" style="background-color: #0284c7; padding: 6px 12px; font-size: 12px;">업로드 후 주소 자동입력</button>
