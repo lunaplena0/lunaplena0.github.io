@@ -517,31 +517,65 @@
         }
     }
 
-    // 파일 읽기 헬퍼 함수
-    function getOriginalFileBase64(file) {
+    // 파일을 읽어 Base64 문자열로 변환하는 헬퍼 함수
+    function getFileBase64(file) {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.readAsDataURL(file);
-            reader.onload = (event) => resolve(event.target.result.split(',')[1]);
+            reader.onload = (event) => resolve(event.target.result); // "data:image/gif;base64,..." 형태 전체 반환
             reader.onerror = (error) => reject(error);
         });
     }
 
-    // 2단계: 프로필 정보 저장 함수 (이미지가 선택되어 있다면 업로드 후 URL 포함하여 저장)
+    // [중요] 별도의 업로드 버튼 함수는 제거하고, saveProfile 내부에서 이미지 파일을 한 번에 처리합니다.
     async function saveProfile() {
-        const fileInput = document.getElementById("profile-file-input");
-        let imageUrl = document.getElementById("p-image").value.trim();
+        const statusEl = document.getElementById("intro-status");
+        statusEl.style.color = "#0077b6";
+        statusEl.textContent = "프로필 및 이미지 저장 중...";
 
-        // 새 이미지를 선택했다면 업로드를 먼저 실행해서 URL을 획득
-        if (fileInput.files && fileInput.files.length > 0) {
-            const uploadedUrl = await uploadProfileImage();
-            if (uploadedUrl) {
-                imageUrl = uploadedUrl;
-                document.getElementById("p-image").value = imageUrl; // input창에도 반영
-            } else {
-                return; // 업로드 실패 시 저장 중단
+        try {
+            const fileInput = document.getElementById("profile-file-input");
+            let base64Image = document.getElementById("p-image").value.trim(); // 기존 주소 유지용
+
+            // 새 파일이 선택되었다면 Base64로 변환
+            if (fileInput.files && fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                statusEl.textContent = "이미지 변환 중...";
+                base64Image = await getFileBase64(file);
+                document.getElementById("p-image").value = base64Image; // input창에도 반영
             }
+
+            // 상세 프로필 행 데이터 수집
+            const rows = document.querySelectorAll("#detail-rows-container .detail-item-row");
+            let detailsArr = [];
+            rows.forEach(row => {
+                const k = row.querySelector(".detail-key").value.trim();
+                const v = row.querySelector(".detail-val").value.trim();
+                if (k) {
+                    detailsArr.push({ key: k, value: v });
+                }
+            });
+
+            // Worker로 보낼 프로필 객체 구성 (KV에 들어갈 구조)
+            const profileData = {
+                name: document.getElementById("p-name").value.trim(),
+                image: base64Image, // Base64 문자열이 통째로 들어감
+                catchphrase: document.getElementById("p-catchphrase").value.trim(),
+                details: detailsArr,
+                time: document.getElementById("p-time").value.trim(),
+                content: document.getElementById("p-content").value.trim(),
+                bio1: document.getElementById("p-bio1").value.trim(),
+                bio2: document.getElementById("p-bio2").value.trim()
+            };
+
+            // Worker로 전송 (fileType: 'profile')
+            await saveDataToWorker("profile", profileData, "intro-status");
+
+        } catch (err) {
+            statusEl.style.color = "#ef4444";
+            statusEl.textContent = "저장 실패: " + err.message;
         }
+    }
 
         // 상세 프로필 행 데이터 수집
         const rows = document.querySelectorAll("#detail-rows-container .detail-item-row");
