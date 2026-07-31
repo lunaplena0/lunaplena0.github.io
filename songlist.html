@@ -378,7 +378,7 @@
         // 데이터를 가져올 외부 JSON 파일 주소
         const WORKER_URL = "https://badabi-api.dalkkumli054.workers.dev/";
         const jsonUrl = WORKER_URL + "?type=songs&t=";
-        
+         
         // 브라우저 로컬 스토리지 캐시 설정용 키 및 유효기간(5분)
         const CACHE_KEY = 'badabi_songbook_json_data';
         const CACHE_EXPIRY_KEY = 'badabi_songbook_json_expiry';
@@ -409,11 +409,11 @@
 
             // 캐시가 없거나 만료된 경우 외부 JSON 데이터 로드
             try {
-                const response = await fetch(jsonUrl + "?t=" + new Date().getTime());
+                const response = await fetch(jsonUrl + new Date().getTime());
                 if (!response.ok) throw new Error("songlist.json을 불러오지 못했습니다.");
-                
+                 
                 const jsonData = await response.json();
-                
+                 
                 const noticeText = jsonData.notice || "";
                 globalSongs = jsonData.songs || [];
 
@@ -514,7 +514,7 @@
             renderTable(filtered);
         }
 
-        // 필터링된 노래 목록을 HTML 테이블 엘리먼트로 변환하여 화면에 그리는 함수
+        // 필터링된 노래 목록을 가수 기준(가나다순) 및 곡 제목순으로 정렬 후 화면에 그리는 함수
         function renderTable(songs) {
             const tbody = document.getElementById('song-tbody');
             tbody.innerHTML = "";
@@ -525,8 +525,38 @@
                 return;
             }
 
-            // 각 노래 데이터를 순회하며 테이블 행 생성
-            songs.forEach(song => {
+            // 1. 가수 기준 가나다/알파벳순 정렬, 2. 같은 가수 내에서 곡 제목순 정렬
+            const sortedSongs = [...songs].sort((a, b) => {
+                const artistA = (a.artist || '아티스트 미상').toLowerCase();
+                const artistB = (b.artist || '아티스트 미상').toLowerCase();
+                
+                if (artistA < artistB) return -1;
+                if (artistA > artistB) return 1;
+
+                // 가수가 같다면 제목순 정렬
+                const titleA = (a.title || '').toLowerCase();
+                const titleB = (b.title || '').toLowerCase();
+                return titleA.localeCompare(titleB, 'ko');
+            });
+
+            let lastArtist = '';
+
+            // 각 노래 데이터를 순회하며 테이블 행 생성 (가수별 구분을 위한 헤더 행 추가)
+            sortedSongs.forEach(song => {
+                const currentArtist = song.artist || '아티스트 미상';
+
+                // 새로운 가수 그룹이 시작될 때 구분선(또는 소제목 행) 추가
+                if (currentArtist !== lastArtist) {
+                    lastArtist = currentArtist;
+                    const groupTr = document.createElement('tr');
+                    groupTr.innerHTML = `
+                        <td colspan="2" style="background: rgba(0, 119, 190, 0.12); font-weight: 800; color: #03045e; padding: 8px 12px; font-size: 13px;">
+                            🎵 ${currentArtist}
+                        </td>
+                    `;
+                    tbody.appendChild(groupTr);
+                }
+
                 const tr = document.createElement('tr');
                 
                 // 화면 너비에 따라 제목 글자 수 제한 다르게 설정 (모바일: 16자, PC: 40자)
@@ -540,59 +570,53 @@
 
                 // 연주 제한(limit) 뱃지 스타일 동적 설정
                 let limitVal = song.limit || '';
-let limitBadgeHtml = "";
-if (limitVal !== "") {
-    // 데이터에 들어있을 수 있는 대괄호([, ])를 강제로 제거합니다.
-    let cleanLimitVal = limitVal.replace(/[\[\]]/g, ''); 
+                let limitBadgeHtml = "";
+                if (limitVal !== "") {
+                    let cleanLimitVal = limitVal.replace(/[\[\]]/g, ''); 
+                    let badgeColor = "#0ea5e9";
+                    if (cleanLimitVal.includes("200")) {
+                        badgeColor = "#10b981";
+                    } else if (cleanLimitVal.includes("300")) {
+                        badgeColor = "#f97316";
+                    } else if (cleanLimitVal.includes("기타")) {
+                        badgeColor = "#8b5cf6";
+                    }
+                    limitBadgeHtml += `<span style="background-color: ${badgeColor}; color: white; padding: 2px 4px; border-radius: 4px; font-size: 11px; font-weight: 600; display: inline-block;">${cleanLimitVal}</span>`;
+                }
 
-    let badgeColor = "#0ea5e9";
-    if (cleanLimitVal.includes("200")) {
-        badgeColor = "#10b981";
-    } else if (cleanLimitVal.includes("300")) {
-        badgeColor = "#f97316";
-    } else if (cleanLimitVal.includes("기타")) {
-        badgeColor = "#8b5cf6";
-    }
-    limitBadgeHtml += `<span style="background-color: ${badgeColor}; color: white; padding: 2px 4px; border-radius: 4px; font-size: 11px; font-weight: 600; display: inline-block;">${cleanLimitVal}</span>`;
-}
                 // 기타 추가 정보(etc) 처리
                 let etcVal = song.etc || '';
-let etcHtml = '';
-
-if (etcVal !== "") {
-    // 모바일(768px 미만)에서는 10글자, PC에서는 25글자가 넘어가면 잘라서 '...' 처리
-    const maxEtcLength = window.innerWidth < 768 ? 10 : 25;
-    let displayEtc = etcVal;
-    
-    if (displayEtc.length > maxEtcLength) {
-        displayEtc = displayEtc.substring(0, maxEtcLength) + '...';
-    }
-
-    etcHtml = `<div style="color: #64748b; font-size: 11px; font-weight: 500; margin-top: 2px;" title="${etcVal}">${displayEtc}</div>`;
-}
+                let etcHtml = '';
+                if (etcVal !== "") {
+                    const maxEtcLength = window.innerWidth < 768 ? 10 : 25;
+                    let displayEtc = etcVal;
+                    if (displayEtc.length > maxEtcLength) {
+                        displayEtc = displayEtc.substring(0, maxEtcLength) + '...';
+                    }
+                    etcHtml = `<div style="color: #64748b; font-size: 11px; font-weight: 500; margin-top: 2px;" title="${etcVal}">${displayEtc}</div>`;
+                }
                 
-                // HTML 구조 조합
+                // HTML 구조 조합 (가수가 이미 그룹 행으로 표시되므로 곡 정보 칸에는 제목과 연주 제한만 강조)
                 tr.innerHTML = `
                     <td>
-                        <div style="display: flex; align-items: center; gap: 4px; margin-bottom: 4px; flex-wrap: wrap;">
+                        <div style="display: flex; align-items: center; gap: 4px; margin-bottom: 2px; flex-wrap: wrap; padding-left: 10px;">
                             ${limitBadgeHtml}
-                            <span style="font-weight: 700; color: #1e293b; font-size: 15px;">${cleanTitle}</span>
+                            <span style="font-weight: 700; color: #1e293b; font-size: 14px;">${cleanTitle}</span>
                         </div>
-                        <div style="color: #64748b; font-size: 13px;">${song.artist || '아티스트 미상'}</div>
                     </td>
                     <td>
                         <div style="display: flex; flex-direction: column; gap: 4px;">
-                            <span style="font-weight: 600; color: #0077b6; font-size: 14px;">${song.genre || '-'}</span>
+                            <span style="font-weight: 600; color: #0077b6; font-size: 13px;">${song.genre || '-'}</span>
                             <div>${etcHtml}</div>
                         </div>
                     </td>
                 `;
                 tbody.appendChild(tr);
             });
-        }
+      }
 
-        // 페이지 로드 시 데이터 불러오기 함수 실행
-        loadSongbookData();
+      // 페이지 로드 시 데이터 불러오기 함수 실행
+      loadSongbookData();
     </script>
 </body>
 </html>
