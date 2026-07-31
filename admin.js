@@ -259,7 +259,7 @@ function showPanel(type) {
 // 🖼️ 이미지 파일을 Base64로 변환 후 GitHub 저장용 Worker로 전송
 async function uploadProfileImage() {
     const fileInput = document.getElementById("p-image-file");
-    const statusEl = document.getElementById("intro-status");
+    const statusEl = document.getElementById("intro-status"); // 하단에 있는 상태 메시지 영역 활용
     
     if (!fileInput.files || fileInput.files.length === 0) {
         alert("업로드할 이미지 파일을 선택해주세요.");
@@ -267,14 +267,16 @@ async function uploadProfileImage() {
     }
 
     const file = fileInput.files[0];
-    statusEl.style.color = "#0077b6";
-    statusEl.textContent = "깃허브로 이미지 업로드 중...";
+    if (statusEl) {
+        statusEl.style.color = "#0077b6";
+        statusEl.textContent = "깃허브로 이미지 업로드 중입니다. 잠시만 기다려주세요...";
+    }
 
     const reader = new FileReader();
     reader.onload = async function(e) {
-        // Base64 데이터에서 'data:image/...;base64,' 부분 제거
         const base64Content = e.target.result.split(',')[1];
-        const password = document.getElementById("admin-password").value;
+        const passwordInput = document.getElementById("admin-password");
+        const password = passwordInput ? passwordInput.value : "";
 
         try {
             const response = await fetch(WORKER_URL, {
@@ -291,14 +293,18 @@ async function uploadProfileImage() {
             const result = await response.json();
             if (response.ok && result.success) {
                 document.getElementById("p-image").value = result.url;
-                statusEl.style.color = "#10b981";
-                statusEl.textContent = "이미지가 깃허브에 성공적으로 업로드되었습니다!";
+                if (statusEl) {
+                    statusEl.style.color = "#10b981";
+                    statusEl.textContent = "✅ 이미지가 깃허브에 성공적으로 업로드되었습니다!";
+                }
             } else {
                 throw new Error(result.error || "업로드 실패");
             }
         } catch (error) {
-            statusEl.style.color = "#ef4444";
-            statusEl.textContent = "이미지 업로드 실패: " + error.message;
+            if (statusEl) {
+                statusEl.style.color = "#ef4444";
+                statusEl.textContent = "❌ 이미지 업로드 실패: " + error.message;
+            }
         }
     };
     reader.readAsDataURL(file);
