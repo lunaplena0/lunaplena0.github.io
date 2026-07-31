@@ -471,18 +471,23 @@
         });
     }
 
+    // 1단계: 이미지 파일을 먼저 업로드하고 주소(URL)를 받아오는 함수
     async function uploadProfileImage() {
-        const password = document.getElementById("admin-password").value;
-        const fileInput = document.getElementById("profile-file-input");
+        const password = document.getElementById("admin-password").value; // 실제 비밀번호 input ID에 맞게 수정
+        const fileInput = document.getElementById("profile-file-input"); // 실제 파일 input ID
         const statusDiv = document.getElementById("profile-upload-status");
 
-        if (!fileInput.files || fileInput.files.length === 0) { alert("이미지를 선택해주세요."); return; }
+        if (!fileInput.files || fileInput.files.length === 0) { 
+            alert("이미지 파일을 먼저 선택해주세요."); 
+            return null; 
+        }
 
         const file = fileInput.files[0];
         statusDiv.style.color = "#0077b6";
-        statusDiv.textContent = "프로필 이미지 업로드 중...";
+        statusDiv.textContent = "이미지 업로드 중...";
 
         try {
+            // 파일을 Base64로 변환 (서버 전송용)
             const base64Data = await getOriginalFileBase64(file);
 
             const response = await fetch(WORKER_URL, {
@@ -490,48 +495,77 @@
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ 
                     password: password, 
-                    action: "upload_image", 
+                    action: "upload_image", // Worker에서 이미지 처리 분기용
                     filename: file.name, 
                     filedata: base64Data 
                 })
             });
+
             const result = await response.json();
+            
             if (response.ok && result.url) {
                 statusDiv.style.color = "#10b981";
-                statusDiv.textContent = "업로드 성공! 주소가 자동 입력되었습니다.";
-                document.getElementById("p-image").value = result.url;
-                fileInput.value = "";
+                statusDiv.textContent = "이미지 업로드 성공!";
+                return result.url; // 서버가 반환한 이미지 주소(URL) 리턴
             } else {
-                throw new Error(result.error || "업로드 실패");
+                throw new Error(result.error || "이미지 업로드 실패");
             }
         } catch (err) {
             statusDiv.style.color = "#ef4444";
             statusDiv.textContent = "오류: " + err.message;
+            return null;
         }
     }
 
-    function saveProfile() {
-        profileData.name = document.getElementById("p-name").value.trim();
-        profileData.image = document.getElementById("p-image").value.trim();
-        profileData.catchphrase = document.getElementById("p-catchphrase").value.trim();
-        
+    // 파일 읽기 헬퍼 함수
+    function getOriginalFileBase64(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = (event) => resolve(event.target.result.split(',')[1]);
+            reader.onerror = (error) => reject(error);
+        });
+    }
+
+    // 2단계: 프로필 정보 저장 함수 (이미지가 선택되어 있다면 업로드 후 URL 포함하여 저장)
+    async function saveProfile() {
+        const fileInput = document.getElementById("profile-file-input");
+        let imageUrl = document.getElementById("p-image").value.trim();
+
+        // 새 이미지를 선택했다면 업로드를 먼저 실행해서 URL을 획득
+        if (fileInput.files && fileInput.files.length > 0) {
+            const uploadedUrl = await uploadProfileImage();
+            if (uploadedUrl) {
+                imageUrl = uploadedUrl;
+                document.getElementById("p-image").value = imageUrl; // input창에도 반영
+            } else {
+                return; // 업로드 실패 시 저장 중단
+            }
+        }
+
+        // 상세 프로필 행 데이터 수집
         const rows = document.querySelectorAll("#detail-rows-container .detail-item-row");
         let detailsArr = [];
         rows.forEach(row => {
             const k = row.querySelector(".detail-key").value.trim();
             const v = row.querySelector(".detail-val").value.trim();
-            if (k) {
-                detailsArr.push({ key: k, value: v });
-            }
+            if (k) detailsArr.push({ key: k, value: v });
         });
-        profileData.details = detailsArr;
 
-        profileData.time = document.getElementById("p-time").value.trim();
-        profileData.content = document.getElementById("p-content").value.trim();
-        profileData.bio1 = document.getElementById("p-bio1").value.trim();
-        profileData.bio2 = document.getElementById("p-bio2").value.trim();
+        // 최종 프로필 데이터 객체 생성
+        const profileData = {
+            name: document.getElementById("p-name").value.trim(),
+            image: imageUrl, // KV에는 거대한 Base 대신 가벼운 URL 문자열이 저장됨
+            catchphrase: document.getElementById("p-catchphrase").value.trim(),
+            details: detailsArr,
+            time: document.getElementById("p-time").value.trim(),
+            content: document.getElementById("p-content").value.trim(),
+            bio1: document.getElementById("p-bio1").value.trim(),
+            bio2: document.getElementById("p-bio2").value.trim()
+        };
 
-        saveDataToWorker("profile", profileData, "intro-status");
+        // Worker로 전송
+        await saveDataToWorker("profile", profileData, "intro-status");
     }
     function saveSonglist() {
         songData.notice = document.getElementById("notice-input").value;
