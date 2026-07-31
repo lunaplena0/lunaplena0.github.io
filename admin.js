@@ -278,7 +278,6 @@ function addLinkRow(title = "", url = "", target = "_blank") {
 }
 
 function moveRow(button, direction) {
-    // 상세 프로필 행(.detail-item-row) 또는 링크 행(.link-item-row)을 정확히 찾습니다.
     const row = button.closest('.detail-item-row') || button.closest('.link-item-row');
     if (!row) return;
 
@@ -314,9 +313,9 @@ function addDetailRow(key = "", val = "") {
     const container = document.getElementById("detail-rows-container");
     if (!container) return;
     const row = document.createElement("div");
-    row.className = "detail-item-row"; // moveRow가 인식할 수 있는 클래스 명시
+    row.className = "detail-item-row";
     row.style.cssText = "display: flex; gap: 6px; align-items: center; margin-bottom: 8px;";
-    
+     
     row.innerHTML = `
         <input type="text" class="detail-key" placeholder="항목 이름 (예: 나이)" value="${escapeHtml(key)}" style="flex: 1; height: 38px; padding: 0 12px; margin-bottom: 0; box-sizing: border-box;">
         <input type="text" class="detail-val" placeholder="내용 (예: 20살)" value="${escapeHtml(val)}" style="flex: 2; height: 38px; padding: 0 12px; margin-bottom: 0; box-sizing: border-box;">
