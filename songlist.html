@@ -554,10 +554,19 @@
 
                 // 기타 추가 정보(etc) 처리
                 let etcVal = song.etc || '';
-                let etcTextHtml = "";
-                if (etcVal !== "") {
-                    etcTextHtml += `<span style="color: #64748b; font-size: 12px; font-weight: 500;">${etcVal}</span>`;
-                }
+let etcHtml = '';
+
+if (etcVal !== "") {
+    // 모바일(768px 미만)에서는 12글자, PC에서는 25글자가 넘어가면 잘라서 '...' 처리
+    const maxEtcLength = window.innerWidth < 768 ? 8 : 25;
+    let displayEtc = etcVal;
+    
+    if (displayEtc.length > maxEtcLength) {
+        displayEtc = displayEtc.substring(0, maxEtcLength) + '...';
+    }
+
+    etcHtml = `<div style="color: #64748b; font-size: 11px; font-weight: 500; margin-top: 2px;" title="${etcVal}">${displayEtc}</div>`;
+}
                 
                 // HTML 구조 조합
                 tr.innerHTML = `
