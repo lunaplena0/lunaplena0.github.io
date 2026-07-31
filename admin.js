@@ -8,7 +8,7 @@ let profileData = {
 };
 let linksData = []; 
 
-// 🔒 로그인 성공 시 동적으로 주입할 관리자 UI 전체 HTML 템플릿 (파일 업로드 UI 제거됨)
+// 🔒 로그인 성공 시 동적으로 주입할 관리자 UI 전체 HTML 템플릿 (이미지 업로드 기능 포함)
 const adminHtmlTemplate = `
     <!-- 대시보드 메뉴 -->
     <div id="dashboard-section" class="card">
@@ -44,8 +44,12 @@ const adminHtmlTemplate = `
         <label>활동 이름</label>
         <input type="text" id="p-name" placeholder="예: 바다비。">
 
-        <label>프로필 이미지 주소 (아바타/로고 URL)</label>
-        <input type="text" id="p-image" placeholder="이미지 주소를 입력하세요 (https://...)">
+        <label>프로필 이미지 (깃허브 업로드)</label>
+        <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 15px;">
+            <input type="file" id="p-image-file" accept="image/*" style="flex: 1; padding: 8px; border: 1px solid #cbd5e1; border-radius: 8px; background: #f8fafc;">
+            <button type="button" onclick="uploadProfileImage()" style="background-color: #0284c7; padding: 10px 16px; font-size: 13px; white-space: nowrap; margin-bottom: 0;">깃허브로 업로드</button>
+        </div>
+        <input type="text" id="p-image" placeholder="업로드된 이미지 주소가 여기에 자동으로 입력됩니다" readonly style="background: #f1f5f9; color: #475569; font-size: 13px;">
 
         <label>캐치프레이즈 (닉네임 하단에 파란색 글씨)</label>
         <textarea id="p-catchphrase" class="profile-textarea" placeholder="𝐏 𝐫 𝐨 𝐟 𝐢 𝐥 𝐞"></textarea>
@@ -250,6 +254,54 @@ function showPanel(type) {
         document.getElementById("notice-input").value = songData.notice || "";
         renderTable();
     }
+}
+
+// 🖼️ 이미지 파일을 Base64로 변환 후 GitHub 저장용 Worker로 전송
+async function uploadProfileImage() {
+    const fileInput = document.getElementById("p-image-file");
+    const statusEl = document.getElementById("intro-status");
+    
+    if (!fileInput.files || fileInput.files.length === 0) {
+        alert("업로드할 이미지 파일을 선택해주세요.");
+        return;
+    }
+
+    const file = fileInput.files[0];
+    statusEl.style.color = "#0077b6";
+    statusEl.textContent = "깃허브로 이미지 업로드 중...";
+
+    const reader = new FileReader();
+    reader.onload = async function(e) {
+        // Base64 데이터에서 'data:image/...;base64,' 부분 제거
+        const base64Content = e.target.result.split(',')[1];
+        const password = document.getElementById("admin-password").value;
+
+        try {
+            const response = await fetch(WORKER_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    password: password,
+                    action: "upload_image",
+                    filename: file.name,
+                    filedata: base64Content
+                })
+            });
+
+            const result = await response.json();
+            if (response.ok && result.success) {
+                document.getElementById("p-image").value = result.url;
+                statusEl.style.color = "#10b981";
+                statusEl.textContent = "이미지가 깃허브에 성공적으로 업로드되었습니다!";
+            } else {
+                throw new Error(result.error || "업로드 실패");
+            }
+        } catch (error) {
+            statusEl.style.color = "#ef4444";
+            statusEl.textContent = "이미지 업로드 실패: " + error.message;
+        }
+    };
+    reader.readAsDataURL(file);
 }
 
 function addLinkRow(title = "", url = "", target = "_blank") {
