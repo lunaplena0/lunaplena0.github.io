@@ -465,19 +465,9 @@ function getFileBase64(file) {
 async function saveProfile() {
     const statusEl = document.getElementById("intro-status");
     statusEl.style.color = "#0077b6";
-    statusEl.textContent = "프로필 및 이미지 저장 중...";
+    statusEl.textContent = "프로필 정보 저장 중...";
 
     try {
-        const fileInput = document.getElementById("profile-file-input");
-        let base64Image = document.getElementById("p-image").value.trim();
-
-        if (fileInput.files && fileInput.files.length > 0) {
-            const file = fileInput.files[0];
-            statusEl.textContent = "이미지 변환 중...";
-            base64Image = await getFileBase64(file);
-            document.getElementById("p-image").value = base64Image;
-        }
-
         const rows = document.querySelectorAll("#detail-rows-container .detail-item-row");
         let detailsArr = [];
         rows.forEach(row => {
@@ -488,10 +478,12 @@ async function saveProfile() {
             }
         });
 
-        // 💡 수정: const 키워드를 빼고 전역 변수 profileData 값을 업데이트합니다.
+        // 💡 fileInput으로 Base64를 변환하는 대신, 입력된 이미지 URL(또는 주소)을 그대로 사용합니다.
+        const imageUrl = document.getElementById("p-image").value.trim();
+
         profileData = {
             name: document.getElementById("p-name").value.trim(),
-            image: base64Image,
+            image: imageUrl, // 👈 텍스트 주소(URL)만 저장
             catchphrase: document.getElementById("p-catchphrase").value.trim(),
             details: detailsArr,
             time: document.getElementById("p-time").value.trim(),
