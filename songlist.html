@@ -298,7 +298,6 @@
                 padding: 16px;
                 gap: 16px;
             }
-            /* 모바일에서는 오른쪽 칸 공간을 조금 더 넓혀줌 */
             .song-table th:nth-child(1), .song-table td:nth-child(1) {
                 width: 60% !important;
             }
@@ -309,7 +308,6 @@
                 padding: 8px 10px;
                 font-size: 10px;
             }
-            
         }
     </style>
 </head>
@@ -375,27 +373,22 @@
 
     <!-- 스크립트 로직 영역 -->
     <script>
-        // 데이터를 가져올 외부 JSON 파일 주소
         const WORKER_URL = "https://badabi-api.dalkkumli054.workers.dev/";
         const jsonUrl = WORKER_URL + "?type=songlist&t=";
          
-        // 브라우저 로컬 스토리지 캐시 설정용 키 및 유효기간(5분)
         const CACHE_KEY = 'badabi_songbook_json_data';
         const CACHE_EXPIRY_KEY = 'badabi_songbook_json_expiry';
         const CACHE_DURATION = 5 * 60 * 1000; 
 
-        // 전역 변수 선언 (노래 목록 배열, 현재 선택된 필터, 검색 키워드)
         let globalSongs = [];
         let currentFilter = '전체';
         let currentKeyword = '';
 
-        // 노래책 데이터 비동기 로드 함수 (캐시 확인 후 없으면 서버에서 fetch)
         async function loadSongbookData() {
             const cachedData = localStorage.getItem(CACHE_KEY);
             const cacheExpiry = localStorage.getItem(CACHE_EXPIRY_KEY);
             const now = new Date().getTime();
 
-            // 유효한 캐시 데이터가 존재할 경우 서버 요청을 생략하고 캐시 데이터 사용
             if (cachedData && cacheExpiry && now < parseInt(cacheExpiry, 10)) {
                 try {
                     const parsedData = JSON.parse(cachedData);
@@ -407,7 +400,6 @@
                 }
             }
 
-            // 캐시가 없거나 만료된 경우 외부 JSON 데이터 로드
             try {
                 const response = await fetch(jsonUrl + new Date().getTime());
                 if (!response.ok) throw new Error("songlist.json을 불러오지 못했습니다.");
@@ -417,7 +409,6 @@
                 const noticeText = jsonData.notice || "";
                 globalSongs = jsonData.songs || [];
 
-                // 새로 받아온 데이터를 로컬 스토리지에 캐싱 저장
                 const dataToCache = { noticeText, allSongs: globalSongs };
                 localStorage.setItem(CACHE_KEY, JSON.stringify(dataToCache));
                 localStorage.setItem(CACHE_EXPIRY_KEY, (now + CACHE_DURATION).toString());
@@ -430,9 +421,7 @@
             }
         }
 
-        // 로드된 데이터를 화면 UI에 반영하고 이벤트 리스너를 등록하는 함수
         function applyDataToUI(noticeText, allSongs) {
-            // 공지사항 텍스트 반영 (줄바꿈 처리)
             if (noticeText && noticeText.trim() !== "") {
                 let formattedNotice = noticeText.trim().replace(/<\/br>/gi, '\n');
                 document.querySelector('.notice-content').innerText = formattedNotice;
@@ -440,13 +429,10 @@
                 document.querySelector('.notice-content').innerText = "공지사항이 없습니다.";
             }
 
-            // 총 곡 개수 뱃지 텍스트 갱신
             document.getElementById('song-count').innerText = `${allSongs.length}곡`;
 
-            // 테이블 렌더링 실행
             renderTable(allSongs);
 
-            // 검색 입력창 이벤트 설정 (엔터를 칠 때만 작동)
             const searchInput = document.getElementById('search-input');
 
             searchInput.onkeydown = (e) => {
@@ -456,11 +442,10 @@
                 }
             };
 
-            // 필터 버튼 클릭 이벤트 설정
             const filterButtons = document.querySelectorAll('.filter-btn');
             filterButtons.forEach(btn => {
                 if (btn.getAttribute('data-filter') === '전체') {
-                    btn.classList.add('active'); // 초기 기본 '전체' 버튼 활성화
+                    btn.classList.add('active');
                 }
 
                 btn.onclick = () => {
@@ -472,7 +457,6 @@
             });
         }
 
-        // 검색어와 선택된 필터 조건에 따라 노래 목록을 필터링하고 화면을 갱신하는 함수
         function filterAndRender() {
             let filtered = globalSongs.filter(song => {
                 const title = song.title || '';
@@ -481,7 +465,6 @@
                 const limit = song.limit || '';
                 const etc = song.etc || '';
 
-                // 키워드 포함 여부 확인
                 const matchesKeyword = 
                     title.toLowerCase().includes(currentKeyword) || 
                     artist.toLowerCase().includes(currentKeyword) ||
@@ -494,7 +477,6 @@
                 const g = genre.toLowerCase();
                 const l = limit.toLowerCase();
 
-                // 장르별 필터 조건 분기 처리
                 if (currentFilter === '전체') {
                     return true;
                 } else if (currentFilter === '기타연주') {
@@ -514,18 +496,15 @@
             renderTable(filtered);
         }
 
-        // 필터링된 노래 목록을 가수 기준(가나다순) 및 곡 제목순으로 정렬 후 화면에 그리는 함수
         function renderTable(songs) {
             const tbody = document.getElementById('song-tbody');
             tbody.innerHTML = "";
 
-            // 검색 결과가 없을 경우 처리
             if (songs.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="2" class="loading-text" style="padding: 30px;">검색된 노래가 없습니다.</td></tr>`;
                 return;
             }
 
-            // 1. 가수 기준 가나다/알파벳순 정렬, 2. 같은 가수 내에서 곡 제목순 정렬
             const sortedSongs = [...songs].sort((a, b) => {
                 const artistA = (a.artist || '아티스트 미상').toLowerCase();
                 const artistB = (b.artist || '아티스트 미상').toLowerCase();
@@ -533,24 +512,22 @@
                 if (artistA < artistB) return -1;
                 if (artistA > artistB) return 1;
 
-                // 가수가 같다면 제목순 정렬
                 const titleA = (a.title || '').toLowerCase();
                 const titleB = (b.title || '').toLowerCase();
                 return titleA.localeCompare(titleB, 'ko');
             });
 
-            let lastArtist = '';
+            let lastArtist = "";
 
-            // 각 노래 데이터를 순회하며 테이블 행 생성 (가수별 구분을 위한 헤더 행 추가)
             sortedSongs.forEach(song => {
                 const currentArtist = song.artist || '아티스트 미상';
 
-                // 새로운 가수 그룹이 시작될 때 구분선(또는 소제목 행) 추가
                 if (currentArtist !== lastArtist) {
                     lastArtist = currentArtist;
                     const groupTr = document.createElement('tr');
+                    // 가수 그룹 행의 배경색과 글자색을 은은하고 부드럽게 조정
                     groupTr.innerHTML = `
-                        <td colspan="2" style="background: rgba(0, 119, 190, 0.12); font-weight: 800; color: #03045e; padding: 8px 12px; font-size: 13px;">
+                        <td colspan="2" style="background: rgba(0, 119, 190, 0.05); border-top: 1px solid rgba(0, 119, 190, 0.1); border-bottom: 1px solid rgba(0, 119, 190, 0.1); font-weight: 700; color: #1e3a8a; padding: 6px 12px; font-size: 12.5px;">
                             🎵 ${currentArtist}
                         </td>
                     `;
@@ -559,7 +536,6 @@
 
                 const tr = document.createElement('tr');
                 
-                // 화면 너비에 따라 제목 글자 수 제한 다르게 설정 (모바일: 16자, PC: 40자)
                 let rawTitle = song.title || '제목없음';
                 let cleanTitle = rawTitle;
                 const maxLength = window.innerWidth < 768 ? 16 : 40;
@@ -568,7 +544,6 @@
                     cleanTitle = cleanTitle.substring(0, maxLength) + '...';
                 }
 
-                // 연주 제한(limit) 뱃지 스타일 동적 설정
                 let limitVal = song.limit || '';
                 let limitBadgeHtml = "";
                 if (limitVal !== "") {
@@ -584,7 +559,6 @@
                     limitBadgeHtml += `<span style="background-color: ${badgeColor}; color: white; padding: 2px 4px; border-radius: 4px; font-size: 11px; font-weight: 600; display: inline-block;">${cleanLimitVal}</span>`;
                 }
 
-                // 기타 추가 정보(etc) 처리
                 let etcVal = song.etc || '';
                 let etcHtml = '';
                 if (etcVal !== "") {
@@ -596,7 +570,6 @@
                     etcHtml = `<div style="color: #64748b; font-size: 11px; font-weight: 500; margin-top: 2px;" title="${etcVal}">${displayEtc}</div>`;
                 }
                 
-                // HTML 구조 조합 (가수가 이미 그룹 행으로 표시되므로 곡 정보 칸에는 제목과 연주 제한만 강조)
                 tr.innerHTML = `
                     <td>
                         <div style="display: flex; align-items: center; gap: 4px; margin-bottom: 2px; flex-wrap: wrap; padding-left: 10px;">
@@ -613,10 +586,9 @@
                 `;
                 tbody.appendChild(tr);
             });
-      }
+        }
 
-      // 페이지 로드 시 데이터 불러오기 함수 실행
-      loadSongbookData();
+        loadSongbookData();
     </script>
 </body>
 </html>
