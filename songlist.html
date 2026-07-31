@@ -561,19 +561,15 @@
                 let etcVal = song.etc || '';
                 let etcHtml = '';
                 
-                // 모바일과 PC 환경에 따른 최대 글자 수 설정 유지
                 const maxEtcLength = window.innerWidth < 768 ? 10 : 25;
                 
+                // etc가 있을 때만 HTML을 생성합니다. 없으면 아예 생성하지 않습니다.
                 if (etcVal !== "") {
                     let displayEtc = etcVal;
                     if (displayEtc.length > maxEtcLength) {
                         displayEtc = displayEtc.substring(0, maxEtcLength) + '...';
                     }
-                    // 내용이 있을 때의 스타일 (높이와 줄높이를 고정하여 흔들림 방지)
-                    etcHtml = `<div style="color: #64748b; font-size: 11px; font-weight: 500; margin-top: 2px; height: 16px; line-height: 16px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;" title="${etcVal}">${displayEtc}</div>`;
-                } else {
-                    // 내용이 없을 때도 정확히 똑같은 높이(16px)와 공간을 차지하도록 설정
-                    etcHtml = `<div style="font-size: 11px; margin-top: 2px; height: 16px; line-height: 16px; visibility: hidden; user-select: none;">&nbsp;</div>`;
+                    etcHtml = `<div style="color: #64748b; font-size: 11px; font-weight: 500; margin-top: 2px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden;" title="${etcVal}">${displayEtc}</div>`;
                 }
                 
                 tr.innerHTML = `
@@ -584,9 +580,10 @@
                         </div>
                     </td>
                     <td>
-                        <div style="display: flex; flex-direction: column; gap: 4px;">
-                            <span style="font-weight: 600; color: #0077b6; font-size: 13px;">${song.genre || '-'}</span>
-                            <div>${etcHtml}</div>
+                        <!-- justify-content와 align-items를 이용해 etc가 없으면 장르가 자연스럽게 수직 가운데 정렬됩니다 -->
+                        <div style="display: flex; flex-direction: column; justify-content: center; min-height: 36px;">
+                            <span style="font-weight: 600; color: #0077b6; font-size: 13px; line-height: 1.2;">${song.genre || '-'}</span>
+                            ${etcHtml}
                         </div>
                     </td>
                 `;
