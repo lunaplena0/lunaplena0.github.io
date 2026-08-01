@@ -53,6 +53,14 @@
             padding: 0;
         }
 
+        .nav-links {
+            display: flex;
+            gap: 16px;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
         .nav-links a {
             color: #90e0ef;
             text-decoration: none;
@@ -84,7 +92,7 @@
             position: relative;
             z-index: 2;
             background: transparent; 
-            max-width: 600px;
+            max-width: 400px; /* 링크 그룹의 전체 폭을 고정하여 화면 중앙에 배치 */
             width: 100%;
             display: flex;
             flex-direction: column;
@@ -98,34 +106,53 @@
             flex-direction: column;
             gap: 16px;
             box-sizing: border-box;
-            align-items: center;
+            align-items: stretch; /* 좌우로 꽉 차게 정렬 */
         }
 
-        /* 상자 모양을 없애고 깔끔한 텍스트 링크 스타일로 변경 */
+        /* 💡 상자를 없애고 왼쪽 바와 왼쪽 정렬 텍스트 적용 */
         .profile-btn {
             background: transparent;
             border: none;
             border-radius: 0;
-            padding: 4px 0;
+            /* 왼쪽에 들어갈 바를 위한 공간(padding-left) 확보 */
+            padding: 10px 0 10px 16px; 
             font-size: 16px;
             font-weight: 600;
             color: #0077b6;
             cursor: pointer;
-            transition: color 0.2s ease-in-out;
-            text-align: center;
+            transition: all 0.2s ease-in-out;
+            text-align: left; /* 글씨 왼쪽 정렬 */
             box-shadow: none;
             text-decoration: none;
-            display: inline-block;
-            width: auto;
+            display: block;
+            width: 100%;
             position: relative;
+            box-sizing: border-box;
         }
 
+        /* 링크 왼쪽에 세로 바 만들기 */
+        .profile-btn::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 4px;
+            height: 16px;
+            background-color: #0077b6;
+            border-radius: 2px;
+            transition: background-color 0.2s ease-in-out, height 0.2s ease-in-out;
+        }
+
+        /* 마우스 호버 시 효과 */
         .profile-btn:hover {
-            background: transparent;
             color: #03045e;
-            transform: none;
-            box-shadow: none;
-            text-decoration: underline;
+            transform: translateX(4px); /* 마우스 올렸을 때 살짝 오른쪽으로 이동하는 효과 */
+        }
+
+        .profile-btn:hover::before {
+            background-color: #03045e;
+            height: 20px; /* 호버 시 바가 살짝 길어짐 */
         }
 
         @media (max-width: 768px) { 
@@ -169,7 +196,6 @@
 
         async function loadProfileLinks() {
             try {
-                // 타임스탬프를 올바르게 붙이도록 수정
                 const response = await fetch(GITHUB_LINKS_URL + new Date().getTime());
                 if (!response.ok) throw new Error("링크 정보를 불러오지 못했습니다.");
                 
