@@ -96,12 +96,12 @@
             width: 100%;
             display: flex;
             flex-direction: column;
-            gap: 16px; /* 항목 간 간격 */
+            gap: 16px;
             box-sizing: border-box;
-            align-items: center; /* 중앙 정렬 (원하는 경우 flex-start로 변경 가능) */
+            align-items: center;
         }
 
-        /* 💡 상자 모양을 없애고 깔끔한 텍스트 링크 스타일로 변경 */
+        /* 상자 모양을 없애고 깔끔한 텍스트 링크 스타일로 변경 */
         .profile-btn {
             background: transparent;
             border: none;
@@ -120,7 +120,6 @@
             position: relative;
         }
 
-        /* 마우스 호버 시 은은한 밑줄 효과나 색상 변경 */
         .profile-btn:hover {
             background: transparent;
             color: #03045e;
@@ -157,7 +156,7 @@
 
     <div class="ocean-profile-container">
         <div class="profile-info-card">
-            <!-- links.json 데이터를 받아와 동적으로 생성될 링크 영역 -->
+            <!-- 링크 영역 -->
             <div class="profile-button-grid" id="button-grid">
                 <p style="text-align: center; color: #64748b; font-size: 14px;">링크를 불러오는 중...</p>
             </div>
@@ -170,47 +169,7 @@
 
         async function loadProfileLinks() {
             try {
-                const response = await fetch(GITHUB_LINKS_URL + new Date().getTime());
-                if (!response.ok) throw new Error("링크 정보를 불러오지 못했습니다.");
-                
-                const data = await response.json();
-                const gridContainer = document.getElementById("button-grid");
-                gridContainer.innerHTML = "";
-
-                let links = Array.isArray(data) ? data : [];
-                if (links.length === 0 && !Array.isArray(data)) {
-                    if (data.broadcast) links.push({ title: "방송국", url: data.broadcast, target: "_blank" });
-                    if (data.youtube) links.push({ title: "유튜브", url: data.youtube, target: "_blank" });
-                }
-
-                if (links.length === 0) {
-                    gridContainer.innerHTML = '<p style="text-align: center; color: #64748b;">등록된 링크가 없습니다.</p>';
-                    return;
-                }
-
-                links.forEach(item => {
-                    if (!item.url) return;
-                    const a = document.createElement("a");
-                    a.href = item.url;
-                    a.className = "profile-btn";
-                    a.textContent = item.title || item.url;
-                    a.target = item.target || "_blank";
-                    
-                    if (a.target === "_blank") {
-                        a.rel = "noopener noreferrer";
-                    }
-                    
-                    gridContainer.appendChild(a);
-                });
-
-            } else (err) { // 오타 수정 (catch로 변경)
-                
-            }
-        }
-
-        // 실제 오류 방지를 위해 정상적인 catch 문으로 작성된 로직
-        async function loadProfileLinksSafe() {
-            try {
+                // 타임스탬프를 올바르게 붙이도록 수정
                 const response = await fetch(GITHUB_LINKS_URL + new Date().getTime());
                 if (!response.ok) throw new Error("링크 정보를 불러오지 못했습니다.");
                 
@@ -249,7 +208,7 @@
             }
         }
 
-        loadProfileLinksSafe();
+        loadProfileLinks();
     </script>
 </body>
 </html>
