@@ -53,14 +53,6 @@
             padding: 0;
         }
 
-        .nav-links {
-            display: flex;
-            gap: 16px;
-            list-style: none;
-            margin: 0;
-            padding: 0;
-        }
-
         .nav-links a {
             color: #90e0ef;
             text-decoration: none;
@@ -92,8 +84,9 @@
             position: relative;
             z-index: 2;
             background: transparent; 
-            max-width: 400px; /* 링크 그룹의 전체 폭을 고정하여 화면 중앙에 배치 */
+            max-width: 380px; /* 💡 전체 목록이 차지할 최대 폭 설정 */
             width: 100%;
+            margin: 0 auto; /* 💡 화면 중앙에 배치 */
             display: flex;
             flex-direction: column;
             gap: 24px;
@@ -106,16 +99,15 @@
             flex-direction: column;
             gap: 16px;
             box-sizing: border-box;
-            align-items: stretch; /* 좌우로 꽉 차게 정렬 */
+            align-items: flex-start; /* 💡 내부 링크들을 왼쪽 정렬로 고정 */
         }
 
-        /* 💡 상자를 없애고 왼쪽 바와 왼쪽 정렬 텍스트 적용 */
+        /* 💡 깔끔한 왼쪽 바 + 왼쪽 정렬 텍스트 스타일 */
         .profile-btn {
             background: transparent;
             border: none;
             border-radius: 0;
-            /* 왼쪽에 들어갈 바를 위한 공간(padding-left) 확보 */
-            padding: 10px 0 10px 16px; 
+            padding: 8px 0 8px 16px; /* 왼쪽에 바가 들어갈 공간 확보 */
             font-size: 16px;
             font-weight: 600;
             color: #0077b6;
@@ -124,7 +116,7 @@
             text-align: left; /* 글씨 왼쪽 정렬 */
             box-shadow: none;
             text-decoration: none;
-            display: block;
+            display: inline-block;
             width: 100%;
             position: relative;
             box-sizing: border-box;
@@ -147,12 +139,12 @@
         /* 마우스 호버 시 효과 */
         .profile-btn:hover {
             color: #03045e;
-            transform: translateX(4px); /* 마우스 올렸을 때 살짝 오른쪽으로 이동하는 효과 */
+            transform: translateX(4px); /* 마우스 올릴 때 살짝 오른쪽으로 이동 */
         }
 
         .profile-btn:hover::before {
             background-color: #03045e;
-            height: 20px; /* 호버 시 바가 살짝 길어짐 */
+            height: 20px;
         }
 
         @media (max-width: 768px) { 
@@ -185,7 +177,7 @@
         <div class="profile-info-card">
             <!-- 링크 영역 -->
             <div class="profile-button-grid" id="button-grid">
-                <p style="text-align: center; color: #64748b; font-size: 14px;">링크를 불러오는 중...</p>
+                <p style="text-align: center; color: #64748b; font-size: 14px; width: 100%;">링크를 불러오는 중...</p>
             </div>
         </div>
     </div>
@@ -210,7 +202,7 @@
                 }
 
                 if (links.length === 0) {
-                    gridContainer.innerHTML = '<p style="text-align: center; color: #64748b;">등록된 링크가 없습니다.</p>';
+                    gridContainer.innerHTML = '<p style="text-align: center; color: #64748b; width: 100%;">등록된 링크가 없습니다.</p>';
                     return;
                 }
 
@@ -230,7 +222,7 @@
                 });
 
             } catch (err) {
-                document.getElementById("button-grid").innerHTML = `<p style="text-align: center; color: #ef4444;">링크 로드 실패</p>`;
+                document.getElementById("button-grid").innerHTML = `<p style="text-align: center; color: #ef4444; width: 100%;">링크 로드 실패</p>`;
             }
         }
 
