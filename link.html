@@ -97,17 +97,27 @@
             width: 100%;
             display: flex;
             flex-direction: column;
-            gap: 0; /* 💡 항목 간 간격을 없애고 아래 테두리로 대체 */
+            gap: 0; 
             box-sizing: border-box;
             align-items: flex-start;
         }
 
-        /* 💡 체크리스트 느낌의 밑줄과 왼쪽 바가 있는 스타일 */
+        /* 💡 애니메이션 키프레임 정의: 아래에서 위로 살짝 올라오며 나타남 */
+        @keyframes fadeUpIn {
+            0% {
+                opacity: 0;
+                transform: translateY(15px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
         .profile-btn {
             background: transparent;
             border: none;
             border-radius: 0;
-            /* 체크리스트처럼 항목 아래에 은은한 밑줄 추가 */
             border-bottom: 1px solid rgba(0, 119, 190, 0.15); 
             padding: 18px 0 18px 28px; 
             font-size: 26px;
@@ -122,6 +132,10 @@
             width: 100%;
             position: relative;
             box-sizing: border-box;
+            
+            /* 💡 애니메이션 기본 설정 (초기엔 투명하게) */
+            opacity: 0;
+            animation: fadeUpIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
         /* 왼쪽에 있는 세로 바 */
@@ -141,8 +155,8 @@
         /* 마우스 호버 시 효과 */
         .profile-btn:hover {
             color: #03045e;
-            transform: translateX(8px);
-            border-bottom-color: rgba(3, 4, 94, 0.3); /* 호버 시 밑줄 색상도 살짝 진하게 */
+            transform: translateX(8px) !important; /* 애니메이션 종료 후 호버 위치 덮어쓰기 */
+            border-bottom-color: rgba(3, 4, 94, 0.3);
         }
 
         .profile-btn:hover::before {
@@ -209,7 +223,8 @@
                     return;
                 }
 
-                links.forEach(item => {
+                // 💡 forEach에서 인덱스(index)를 받아와 순차적으로 애니메이션 지연시간을 줍니다.
+                links.forEach((item, index) => {
                     if (!item.url) return;
                     const a = document.createElement("a");
                     a.href = item.url;
@@ -220,6 +235,9 @@
                     if (a.target === "_blank") {
                         a.rel = "noopener noreferrer";
                     }
+                    
+                    // 각 항목마다 0.1초씩 딜레이를 주어 순서대로 등장하게 함
+                    a.style.animationDelay = `${index * 0.1}s`;
                     
                     gridContainer.appendChild(a);
                 });
