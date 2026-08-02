@@ -259,23 +259,19 @@ function showPanel(type) {
     document.getElementById("panel-songs").style.display = "none";
 
     if (type === 'mainpage') {
-        const panel = document.getElementById("panel-mainpage");
-        panel.style.display = "block"; // 1. 패널을 눈에 보이게 확실히 켠 뒤에
-        
-        // 2. DOM이 완전히 노출된 상태에서 데이터를 채우고 메뉴를 렌더링합니다.
-        setTimeout(() => {
-            initMainPagePanel();
-        }, 50);
+        document.getElementById("panel-mainpage").style.display = "block";
+        // 💡 딜레이 없이 즉시 실행하여 인풋 유실 방지
+        initMainPagePanel();
         
     } else if (type === 'intro') {
         document.getElementById("panel-intro").style.display = "block";
-        setTimeout(() => { if (typeof initIntroPanel === 'function') initIntroPanel(); }, 50);
+        if (typeof initIntroPanel === 'function') initIntroPanel();
     } else if (type === 'links') {
         document.getElementById("panel-links").style.display = "block";
-        setTimeout(() => { if (typeof initLinksPanel === 'function') initLinksPanel(); }, 50);
+        if (typeof initLinksPanel === 'function') initLinksPanel();
     } else if (type === 'songs') {
         document.getElementById("panel-songs").style.display = "block";
-        setTimeout(() => { if (typeof initSongsPanel === 'function') initSongsPanel(); }, 50);
+        if (typeof initSongsPanel === 'function') initSongsPanel();
     }
 }
 
@@ -462,13 +458,6 @@ async function verifyAndLoad() {
 
         document.getElementById("login-section").style.display = "none";
         document.getElementById("admin-app-container").innerHTML = adminHtmlTemplate;
-        
-        // 💡 로그인 직후 초기 데이터가 패널에 바로 반영되도록 강제 호출
-        setTimeout(() => {
-            if (typeof initMainPagePanel === 'function') {
-                initMainPagePanel();
-            }
-        }, 100);
 
         showDashboard();
         
