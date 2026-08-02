@@ -283,28 +283,35 @@ function showPanel(type) {
 }
 
 function initMainPagePanel() {
-    console.log("🛠️ 메인페이지 패널 초기화 실행, 현재 데이터:", mainpageData);
+    console.log("🛠️ 메인페이지 패널 초기화 실행 시작");
 
-    // 브라우저 렌더링 주기에 맞춰 확실하게 값을 꽂아넣도록 이중 안전장치 적용
-    requestAnimationFrame(() => {
-        setTimeout(() => {
-            const navBgInput = document.getElementById("mp-nav-bgcolor");
-            const logoTextInput = document.getElementById("mp-logo-text");
-            const mainContentInput = document.getElementById("mp-main-content");
+    setTimeout(() => {
+        const navBgInput = document.getElementById("mp-nav-bgcolor");
+        const logoTextInput = document.getElementById("mp-logo-text");
+        const mainContentInput = document.getElementById("mp-main-content");
 
-            if (navBgInput) navBgInput.value = mainpageData.navBgColor || "";
-            if (logoTextInput) logoTextInput.value = mainpageData.logoText || "";
-            
-            if (mainContentInput) {
-                mainContentInput.value = mainpageData.mainContent || "";
-                console.log("✅ 본문 입력창에 값 주입 완료:", mainpageData.mainContent);
-            } else {
-                console.warn("⚠️ mp-main-content 요소를 찾지 못했습니다!");
-            }
+        // 1. 기본 입력 필드 채우기
+        if (navBgInput) {
+            navBgInput.value = (mainpageData && mainpageData.navBgColor) ? mainpageData.navBgColor : "rgba(3, 4, 94, 0.9)";
+        }
+        
+        if (logoTextInput) {
+            logoTextInput.value = (mainpageData && mainpageData.logoText) ? mainpageData.logoText : "";
+        }
+        
+        if (mainContentInput) {
+            mainContentInput.value = (mainpageData && mainpageData.mainContent) ? mainpageData.mainContent : "";
+            console.log("✅ mainContent 입력 완료:", mainpageData.mainContent);
+        }
 
+        // 2. 네비게이션 메뉴 목록 렌더링 강제 실행
+        try {
             renderMainPageMenuRows();
-        }, 150); // 시간을 0.15초로 살짝 여유 있게 조절
-    });
+            console.log("✅ 네비게이션 메뉴 렌더링 완료");
+        } catch (err) {
+            console.error("⚠️ 메뉴 렌더링 중 오류 발생:", err);
+        }
+    }, 150);
 }
 
 function renderMainPageMenuRows() {
