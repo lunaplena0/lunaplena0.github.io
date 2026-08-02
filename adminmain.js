@@ -14,7 +14,7 @@ let mainpageData = {
     menuItems: []
 };
 
-// 🔒 로그인 성공 시 동적으로 주입할 관리자 UI 전체 HTML 템플릿 (이미지 업로드 기능 포함)
+// 🔒 로그인 성공 시 동적으로 주입할 관리자 UI 전체 HTML 템플릿 (메인페이지 패널 포함)
 const adminHtmlTemplate = `
     <!-- 대시보드 메뉴 -->
     <div id="dashboard-section" class="card">
@@ -44,7 +44,7 @@ const adminHtmlTemplate = `
         </div>
     </div>
 
-    <!-- 메인페이지 수정 패널 (새로 생성) -->
+    <!-- 메인페이지 수정 패널 -->
     <div id="panel-mainpage" class="card" style="display: none;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
             <h3 style="margin: 0; color: #03045e;">🏠 메인페이지 수정</h3>
@@ -229,7 +229,6 @@ function showPanel(type) {
         if (typeof initMainPagePanel === 'function') initMainPagePanel();
     } else if (type === 'intro') {
         document.getElementById("panel-intro").style.display = "block";
-        // intro.js의 초기화 함수 호출 연결
         if (typeof initIntroPanel === 'function') initIntroPanel();
     } else if (type === 'links') {
         document.getElementById("panel-links").style.display = "block";
@@ -265,12 +264,12 @@ async function verifyAndLoad() {
         }
 
         const timestamp = new Date().getTime();
-const [songRes, profileRes, linksRes, mainpageRes] = await Promise.all([
-    fetch(WORKER_URL + "?type=songlist&t=" + timestamp),
-    fetch(WORKER_URL + "?type=profile&t=" + timestamp),
-    fetch(WORKER_URL + "?type=links&t=" + timestamp),
-    fetch(WORKER_URL + "?type=mainpage&t=" + timestamp)
-]);
+        const [songRes, profileRes, linksRes, mainpageRes] = await Promise.all([
+            fetch(WORKER_URL + "?type=songlist&t=" + timestamp),
+            fetch(WORKER_URL + "?type=profile&t=" + timestamp),
+            fetch(WORKER_URL + "?type=links&t=" + timestamp),
+            fetch(WORKER_URL + "?type=mainpage&t=" + timestamp)
+        ]);
 
         if (songRes.ok) {
             const data = await songRes.json();
@@ -307,14 +306,14 @@ const [songRes, profileRes, linksRes, mainpageRes] = await Promise.all([
             }
         }
         if (mainpageRes.ok) {
-    const data = await mainpageRes.json() || {};
-    mainpageData = {
-        navBgColor: data.navBgColor || "rgba(3, 4, 94, 0.9)",
-        logoText: data.logoText || "BABABI FAN ARCHIVE",
-        logoUrl: data.logoUrl || "mainpages.html",
-        menuItems: Array.isArray(data.menuItems) ? data.menuItems : []
-    };
-}
+            const data = await mainpageRes.json() || {};
+            mainpageData = {
+                navBgColor: data.navBgColor || "rgba(3, 4, 94, 0.9)",
+                logoText: data.logoText || "BABABI FAN ARCHIVE",
+                logoUrl: data.logoUrl || "mainpages.html",
+                menuItems: Array.isArray(data.menuItems) ? data.menuItems : []
+            };
+        }
 
         document.getElementById("login-section").style.display = "none";
         document.getElementById("admin-app-container").innerHTML = adminHtmlTemplate;
