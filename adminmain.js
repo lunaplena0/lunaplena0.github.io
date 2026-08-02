@@ -276,30 +276,41 @@ function showPanel(type) {
 }
 
 function initMainPagePanel(retryCount = 0) {
-    console.log("🛠️ 메인페이지 패널 초기화 실행 (시도:", retryCount, ")", window.mainpageData);
+    console.log("🛠️ [디버깅 시작] initMainPagePanel 실행됨, 시도 횟수:", retryCount);
 
     const navBgInput = document.getElementById("mp-nav-bgcolor");
     const logoTextInput = document.getElementById("mp-logo-text");
     const mainContentInput = document.getElementById("mp-main-content");
     const container = document.getElementById("mp-menu-rows-container");
 
-    // DOM 요소가 아직 안 그려졌다면 재시도
-    if ((!mainContentInput || !container) && retryCount < 5) {
-        setTimeout(() => initMainPagePanel(retryCount + 1), 100);
-        return;
-    }
+    console.log("🔍 찾은 인풋창:", mainContentInput);
+    console.log("🔍 찾은 컨테이너:", container);
 
-    // 전역 변수 값이 존재하는지 확인 후 대입
-    if (navBgInput) navBgInput.value = window.mainpageData?.navBgColor || "";
-    if (logoTextInput) logoTextInput.value = window.mainpageData?.logoText || "";
+    if (navBgInput) {
+        navBgInput.value = mainpageData.navBgColor || "";
+        console.log("✔️ navBgColor 세팅 완료:", navBgInput.value);
+    }
+    if (logoTextInput) {
+        logoTextInput.value = mainpageData.logoText || "";
+        console.log("✔️ logoText 세팅 완료:", logoTextInput.value);
+    }
+    
     if (mainContentInput) {
-        mainContentInput.value = window.mainpageData?.mainContent || "";
-        console.log("✅ [mp-main-content] 값 주입 완료:", mainContentInput.value);
+        mainContentInput.value = mainpageData.mainContent || "";
+        console.log("✅ [성공] mainContent 세팅 완료:", mainContentInput.value);
+    } else {
+        console.error("❌ 실패: mainContentInput을 찾지 못했습니다.");
     }
 
-    // 메뉴 행 렌더링
-    if (typeof renderMainPageMenuRows === 'function') {
-        renderMainPageMenuRows();
+    try {
+        if (typeof renderMainPageMenuRows === 'function') {
+            renderMainPageMenuRows();
+            console.log("✔️ renderMainPageMenuRows 호출 성공");
+        } else {
+            console.warn("⚠️ renderMainPageMenuRows 함수가 없습니다.");
+        }
+    } catch (err) {
+        console.error("⚠️ 메뉴 렌더링 중 에러 발생:", err);
     }
 }
 
