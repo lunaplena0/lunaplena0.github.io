@@ -260,7 +260,6 @@ function showPanel(type) {
 
     if (type === 'mainpage') {
         document.getElementById("panel-mainpage").style.display = "block";
-        // 💡 DOM이 화면에 완전히 그려진 직후에 데이터를 채우도록 약간의 지연(setTimeout)을 줍니다.
         setTimeout(() => {
             if (typeof initMainPagePanel === 'function') initMainPagePanel();
         }, 10);
