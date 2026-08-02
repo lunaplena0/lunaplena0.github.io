@@ -275,30 +275,41 @@ function showPanel(type) {
     }
 }
 
-function initMainPagePanel() {
-    console.log("🛠️ 메인페이지 패널 초기화 실행", mainpageData);
+function initMainPagePanel(retryCount = 0) {
+    console.log("🛠️ 메인페이지 패널 초기화 실행 시작 (시도 횟수:", retryCount, ")", mainpageData);
 
     const navBgInput = document.getElementById("mp-nav-bgcolor");
     const logoTextInput = document.getElementById("mp-logo-text");
     const mainContentInput = document.getElementById("mp-main-content");
+    const container = document.getElementById("mp-menu-rows-container");
 
-    console.log("🔍 찾은 인풋 요소들:", {
-        navBgInput: !!navBgInput,
-        logoTextInput: !!logoTextInput,
-        mainContentInput: !!mainContentInput
-    });
+    // 만약 아직 DOM에 요소들이 안 그려졌다면(0.1초 뒤에 최대 5번까지 재시도)
+    if ((!mainContentInput || !container) && retryCount < 5) {
+        console.warn("⚠️ DOM 요소가 아직 준비되지 않았습니다. 잠시 후 다시 시도합니다...");
+        setTimeout(() => initMainPagePanel(retryCount + 1), 100);
+        return;
+    }
 
     if (navBgInput) navBgInput.value = mainpageData.navBgColor || "";
     if (logoTextInput) logoTextInput.value = mainpageData.logoText || "";
     
     if (mainContentInput) {
         mainContentInput.value = mainpageData.mainContent || "";
-        console.log("✅ mainContent 값 주입 성공:", mainpageData.mainContent);
+        console.log("✅ [mp-main-content]에 값 세팅 완료:", mainContentInput.value);
     } else {
-        console.error("❌ 'mp-main-content' ID를 가진 텍스트에어리어를 HTML에서 찾지 못했습니다!");
+        console.error("❌ 끝내 [mp-main-content] 텍스트에어리어를 찾지 못했습니다.");
     }
 
-    renderMainPageMenuRows();
+    // 메뉴 아이템 렌더링 호출
+    try {
+        if (typeof renderMainPageMenuRows === 'function') {
+            renderMainPageMenuRows();
+        } else {
+            console.warn("⚠️ renderMainPageMenuRows 함수가 정의되지 않았습니다.");
+        }
+    } catch (err) {
+        console.error("⚠️ 메뉴 렌더링 중 오류:", err);
+    }
 }
 
 function renderMainPageMenuRows() {
