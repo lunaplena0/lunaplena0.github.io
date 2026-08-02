@@ -15,7 +15,7 @@ let mainpageData = {
     menuItems: []
 };
 
-// 🔒 로그인 성공 시 동적으로 주입할 관리자 UI 전체 HTML 템플릿 (임시 버튼 스타일 통일 및 비활성화)
+// 🔒 로그인 성공 시 동적으로 주입할 관리자 UI 전체 HTML 템플릿 (임시 버튼 디자인을 상단 카드와 완벽히 일치시킴)
 const adminHtmlTemplate = `
     <!-- 대시보드 메뉴 -->
     <div id="dashboard-section" class="card">
@@ -47,11 +47,20 @@ const adminHtmlTemplate = `
         <!-- ⬅️ 4개 상자 아래 구분선 추가 -->
         <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 25px 0 20px 0;">
 
-        <!-- ⬅️ 디자인을 통일하고 작동하지 않도록 처리한 임시 버튼 영역 -->
-        <div style="display: flex; gap: 12px; justify-content: space-between;">
-            <button style="flex: 1; background-color: #0077b6; padding: 14px; font-size: 16px; font-weight: 600; cursor: default;" disabled>임시</button>
-            <button style="flex: 1; background-color: #0077b6; padding: 14px; font-size: 16px; font-weight: 600; cursor: default;" disabled>임시</button>
-            <button style="flex: 1; background-color: #0077b6; padding: 14px; font-size: 16px; font-weight: 600; cursor: default;" disabled>임시</button>
+        <!-- ⬅️ 상단 메뉴 카드와 동일한 class(.menu-card)를 적용해 디자인을 통일한 임시 영역 -->
+        <div class="menu-grid" style="grid-template-columns: repeat(3, 1fr);">
+            <div class="menu-card" style="cursor: default; opacity: 0.7;">
+                <h4>📌 임시 메뉴 1</h4>
+                <p>추후 확장 예정인 기능입니다</p>
+            </div>
+            <div class="menu-card" style="cursor: default; opacity: 0.7;">
+                <h4>📌 임시 메뉴 2</h4>
+                <p>추후 확장 예정인 기능입니다</p>
+            </div>
+            <div class="menu-card" style="cursor: default; opacity: 0.7;">
+                <h4>📌 임시 메뉴 3</h4>
+                <p>추후 확장 예정인 기능입니다</p>
+            </div>
         </div>
     </div>
 
