@@ -280,20 +280,18 @@ function showPanel(type) {
 }
 
 function initMainPagePanel() {
-    console.log("🛠️ 메인페이지 패널 초기화 실행 시작");
-    console.log("현재 mainpageData 상태:", mainpageData);
+    console.log("🛠️ 메인페이지 패널 초기화 실행 시작", mainpageData);
 
     if (!mainpageData) {
         console.warn("⚠️ mainpageData가 비어있습니다.");
         return;
     }
 
-    // 1. 각 인풋 요소 가져오기 (실제 HTML의 id와 정확히 일치하는지 확인 필수!)
+    // 1. 기본 인풋 값 세팅 (navBgColor, logoText, mainContent)
     const navBgInput = document.getElementById("mp-nav-bgcolor");
     const logoTextInput = document.getElementById("mp-logo-text");
     const mainContentInput = document.getElementById("mp-main-content");
 
-    // 2. 데이터 매핑 (객체 프로퍼티를 인풋 value에 정확히 대입)
     if (navBgInput) {
         navBgInput.value = mainpageData.navBgColor || "";
     }
@@ -301,15 +299,21 @@ function initMainPagePanel() {
     if (logoTextInput) {
         logoTextInput.value = mainpageData.logoText || "";
     }
-    
+
+    // 💡 누락되었던 mainContent(본문 URL/텍스트) 채우기!
     if (mainContentInput) {
         mainContentInput.value = mainpageData.mainContent || "";
+        console.log("✅ [mp-main-content]에 값 세팅 완료:", mainContentInput.value);
+    } else {
+        console.warn("⚠️ [mp-main-content] 텍스트에어리어를 찾지 못했습니다.");
     }
 
-    // 3. 메뉴 아이템 및 기타 렌더링
+    // 2. 메뉴 아이템 배열 렌더링 호출
     try {
         if (typeof renderMainPageMenuRows === 'function') {
-            renderMainPageMenuRows(mainpageData.menuItems);
+            renderMainPageMenuRows();
+        } else {
+            console.warn("⚠️ renderMainPageMenuRows 함수가 정의되지 않았습니다.");
         }
     } catch (err) {
         console.error("⚠️ 메뉴 렌더링 중 오류:", err);
