@@ -19,10 +19,6 @@ const adminHtmlTemplate = `
         <p style="color: #64748b; font-size: 14px;">수정할 항목을 선택해주세요.</p>
          
         <div class="menu-grid">
-            <div class="menu-card" onclick="showPanel('mainpage')">
-                <h4>🏠 메인페이지 수정</h4>
-                <p>메인 화면 설정 및 공통 구성 변경</p>
-            </div>
             <div class="menu-card" onclick="showPanel('intro')">
                 <h4>👤 자기소개 수정</h4>
                 <p>이름, 프로필 이미지, 정보 변경</p>
@@ -34,6 +30,10 @@ const adminHtmlTemplate = `
             <div class="menu-card" onclick="showPanel('songs')">
                 <h4>🎶 노래책 수정</h4>
                 <p>노래 공지, 곡 목록 추가/삭제/편집</p>
+            </div>
+            <div class="menu-card" onclick="showPanel('mainpage')">
+                <h4>🏠 메인페이지 수정</h4>
+                <p>메인 화면 설정 및 공통 구성 변경</p>
             </div>
         </div>
     </div>
