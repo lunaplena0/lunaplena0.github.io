@@ -260,16 +260,25 @@ function showPanel(type) {
 
     if (type === 'mainpage') {
         document.getElementById("panel-mainpage").style.display = "block";
-        if (typeof initMainPagePanel === 'function') initMainPagePanel();
+        // 💡 DOM이 화면에 완전히 그려진 직후에 데이터를 채우도록 약간의 지연(setTimeout)을 줍니다.
+        setTimeout(() => {
+            if (typeof initMainPagePanel === 'function') initMainPagePanel();
+        }, 10);
     } else if (type === 'intro') {
         document.getElementById("panel-intro").style.display = "block";
-        if (typeof initIntroPanel === 'function') initIntroPanel();
+        setTimeout(() => {
+            if (typeof initIntroPanel === 'function') initIntroPanel();
+        }, 10);
     } else if (type === 'links') {
         document.getElementById("panel-links").style.display = "block";
-        if (typeof initLinksPanel === 'function') initLinksPanel();
+        setTimeout(() => {
+            if (typeof initLinksPanel === 'function') initLinksPanel();
+        }, 10);
     } else if (type === 'songs') {
         document.getElementById("panel-songs").style.display = "block";
-        if (typeof initSongsPanel === 'function') initSongsPanel();
+        setTimeout(() => {
+            if (typeof initSongsPanel === 'function') initSongsPanel();
+        }, 10);
     }
 }
 
