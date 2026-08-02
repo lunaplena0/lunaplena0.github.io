@@ -281,7 +281,7 @@ function showPanel(type) {
 
 function initMainPagePanel() {
     console.log("🛠️ 메인페이지 패널 초기화 실행 시작");
-    console.log("현재 mainpageData 상태:", mainpageData); // 👈 이 로그를 찍어보세요!
+    console.log("현재 mainpageData 상태:", mainpageData);
 
     const navBgInput = document.getElementById("mp-nav-bgcolor");
     const logoTextInput = document.getElementById("mp-logo-text");
@@ -304,7 +304,6 @@ function initMainPagePanel() {
     } catch (err) {
         console.error("⚠️ 메뉴 렌더링 중 오류:", err);
     }
-}, 150);
 }
 
 function renderMainPageMenuRows() {
