@@ -47,6 +47,7 @@
             letter-spacing: 2px;
             color: #caf0f8;
             text-decoration: none;
+            cursor: pointer;
         }
 
         /* 네비게이션 링크 리스트 스타일 */
@@ -67,6 +68,7 @@
             transition: color 0.2s ease;
             padding: 6px 6px;
             border-radius: 6px;
+            cursor: pointer;
         }
 
         .nav-links a:hover {
@@ -74,12 +76,12 @@
             background: rgba(255, 255, 255, 0.1);
         }
 
-        /* 메인 콘텐츠 영역 (여백을 없애고 꽉 차도록 수정) */
+        /* 메인 콘텐츠 영역 (여백을 없애고 꽉 차도록 설정) */
         .main-content-container {
             flex: 1;
             width: 100vw;
             margin: 0;
-            padding: 0; /* 여백 제거 */
+            padding: 0;
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
@@ -91,7 +93,7 @@
     <!-- 상단 네비게이션 바 -->
     <nav class="marine-nav">
         <div class="nav-container">
-            <a href="index.html" class="nav-logo">BABABI FAN ARCHIVE</a>
+            <a href="#" class="nav-logo" id="default-home-link">BABABI FAN ARCHIVE</a>
             <ul class="nav-links"></ul>
         </div>
     </nav>
@@ -118,14 +120,20 @@
                 navEl.style.background = data.navBgColor;
             }
 
-            // 2. 로고 텍스트 및 링크 적용
+            // 2. 로고 텍스트 및 기본 링크 적용 (로고 클릭 시 관리자 설정 기본 본문/주소로 이동)
             const logoEl = document.querySelector('.nav-logo');
             if (logoEl) {
                 if (data.logoText) logoEl.textContent = data.logoText;
-                if (data.logoUrl) logoEl.setAttribute('href', data.logoUrl);
+                
+                logoEl.onclick = (e) => {
+                    e.preventDefault();
+                    if (data.mainContent) {
+                        renderMainContent(data.mainContent);
+                    }
+                };
             }
 
-            // 3. 네비게이션 메뉴 목록 동적 생성 적용
+            // 3. 네비게이션 메뉴 목록 동적 생성 및 싱글 페이지(SPA) 스타일 연동
             const navLinksContainer = document.querySelector('.nav-links');
             if (navLinksContainer && Array.isArray(data.menuItems)) {
                 navLinksContainer.innerHTML = "";
@@ -134,29 +142,44 @@
                     if (!item.name) return;
                     const li = document.createElement('li');
                     const a = document.createElement('a');
-                    a.href = item.url || "#";
                     a.textContent = item.name;
+                    a.href = item.url || "#";
+
+                    // 메뉴 클릭 시 페이지 전체 이동 대신 iframe 내부 주소만 변경
+                    a.onclick = (e) => {
+                        e.preventDefault();
+                        if (item.url) {
+                            renderMainContent(item.url);
+                        }
+                    };
+
                     li.appendChild(a);
                     navLinksContainer.appendChild(li);
                 });
             }
 
-            // 4. 메인페이지 본문 콘텐츠 영역 적용 (화면을 꽉 채우도록 수정)
-            const mainContainer = document.querySelector('.main-content-container');
-            if (mainContainer && data.mainContent) {
-                const contentValue = data.mainContent.trim();
-
-                if (contentValue.endsWith('.html') || contentValue.startsWith('http://') || contentValue.startsWith('https://')) {
-                    mainContainer.innerHTML = `
-                        <iframe src="${contentValue}" style="width: 100%; height: calc(100vh - 55px); border: none; background: white; margin: 0; display: block;"></iframe>
-                    `;
-                } else {
-                    mainContainer.innerHTML = contentValue;
-                }
+            // 4. 초기 메인페이지 본문 콘텐츠 영역 렌더링
+            if (data.mainContent) {
+                renderMainContent(data.mainContent);
             }
 
         } catch (err) {
             console.error("메인페이지 설정 로드 실패:", err);
+        }
+    }
+
+    // 메인 콘텐츠 영역에 주소(.html, http) 혹은 일반 HTML을 채워 넣는 공통 함수
+    function renderMainContent(contentValue) {
+        const mainContainer = document.querySelector('.main-content-container');
+        if (!mainContainer) return;
+
+        const trimmed = contentValue.trim();
+        if (trimmed.endsWith('.html') || trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+            mainContainer.innerHTML = `
+                <iframe src="${trimmed}" style="width: 100%; height: calc(100vh - 55px); border: none; background: white; margin: 0; display: block;"></iframe>
+            `;
+        } else {
+            mainContainer.innerHTML = trimmed;
         }
     }
 
