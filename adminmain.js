@@ -75,6 +75,10 @@ const adminHtmlTemplate = `
         <label>로고 텍스트</label>
         <input type="text" id="mp-logo-text" placeholder="예: BABABI FAN ARCHIVE">
 
+        <!-- 💡 누락되었던 로고 URL 인풋 추가 -->
+        <label>로고 링크 URL</label>
+        <input type="text" id="mp-logo-url" placeholder="예: mainpages.html">
+
         <label>메인페이지 첫 화면 본문/HTML 설정</label>
         <textarea id="mp-main-content" placeholder="메인페이지 상단 본문에 노출할 텍스트나 HTML을 입력하세요" style="height: 120px; resize: vertical;"></textarea>
 
@@ -372,10 +376,12 @@ function removeMainPageMenu(index) {
 async function saveMainPageSettings() {
     const navBgInput = document.getElementById("mp-nav-bgcolor");
     const logoTextInput = document.getElementById("mp-logo-text");
+    const logoUrlInput = document.getElementById("mp-logo-url"); // 💡 추가
     const mainContentInput = document.getElementById("mp-main-content");
 
     if (navBgInput) mainpageData.navBgColor = navBgInput.value.trim();
     if (logoTextInput) mainpageData.logoText = logoTextInput.value.trim();
+    if (logoUrlInput) mainpageData.logoUrl = logoUrlInput.value.trim(); // 💡 추가
     if (mainContentInput) mainpageData.mainContent = mainContentInput.value.trim();
 
     await saveDataToWorker("mainpage", mainpageData, "mainpage-status");
