@@ -456,6 +456,18 @@ async function verifyAndLoad() {
         document.getElementById("login-section").style.display = "none";
         document.getElementById("admin-app-container").innerHTML = adminHtmlTemplate;
 
+        // 💡 템플릿이 주입된 직후 각 패널 카드들에 클릭 이벤트를 강제로 안전하게 연결
+        setTimeout(() => {
+            const cards = document.querySelectorAll('.menu-grid .menu-card');
+            if (cards.length >= 4) {
+                cards[0].onclick = () => showPanel('intro');
+                cards[1].onclick = () => showPanel('links');
+                cards[2].onclick = () => showPanel('songs');
+                cards[3].onclick = () => showPanel('mainpage');
+                console.log("✅ 관리자 대시보드 메뉴 버튼 이벤트 강제 바인딩 완료");
+            }
+        }, 50);
+
         showDashboard();
         
     } catch (error) {
