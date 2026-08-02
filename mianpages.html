@@ -94,64 +94,68 @@
     <nav class="marine-nav">
         <div class="nav-container">
             <a href="index.html" class="nav-logo">BABABI FAN ARCHIVE</a>
-            <ul class="nav-links">
-                <li><a href="profile.html">프로필</a></li>
-                <li><a href="link.html">주소모음</a></li>
-            </ul>
+
         </div>
     </nav>
 
     <!-- 메인 콘텐츠 영역 (내부가 비어 있는 상태) -->
     <div class="main-content-container">
-        <!-- 필요한 메인 화면 내용을 이 안쪽에 자유롭게 채워 넣으시면 됩니다. -->
     </div>
 <script>
-        const WORKER_URL = "https://badabi-api.dalkkumli054.workers.dev/";
+    const WORKER_URL = "https://badabi-api.dalkkumli054.workers.dev/";
 
-        async function loadMainPageSettings() {
-            try {
-                const timestamp = new Date().getTime();
-                const response = await fetch(WORKER_URL + "?type=mainpage&t=" + timestamp);
-                if (!response.ok) return;
-                
-                const data = await response.json();
-                if (!data) return;
+    async function loadMainPageSettings() {
+        try {
+            const timestamp = new Date().getTime();
+            const response = await fetch(WORKER_URL + "?type=mainpage&t=" + timestamp);
+            if (!response.ok) return;
+            
+            const data = await response.json();
+            if (!data) return;
 
-                // 1. 네비게이션 배경 색상 적용
-                const navEl = document.querySelector('.marine-nav');
-                if (navEl && data.navBgColor) {
-                    navEl.style.background = data.navBgColor;
-                }
-
-                // 2. 로고 텍스트 및 링크 적용
-                const logoEl = document.querySelector('.nav-logo');
-                if (logoEl) {
-                    if (data.logoText) logoEl.textContent = data.logoText;
-                    if (data.logoUrl) logoEl.setAttribute('href', data.logoUrl);
-                }
-
-                // 3. 네비게이션 메뉴 목록 동적 생성 적용
-                const navLinksContainer = document.querySelector('.nav-links');
-                if (navLinksContainer && Array.isArray(data.menuItems)) {
-                    navLinksContainer.innerHTML = ""; // 기존 고정 메뉴 초기화
-                    
-                    data.menuItems.forEach(item => {
-                        if (!item.name) return;
-                        const li = document.createElement('li');
-                        const a = document.createElement('a');
-                        a.href = item.url || "#";
-                        a.textContent = item.name;
-                        li.appendChild(a);
-                        navLinksContainer.appendChild(li);
-                    });
-                }
-            } catch (err) {
-                console.error("메인페이지 설정 로드 실패:", err);
+            // 1. 네비게이션 배경 색상 적용
+            const navEl = document.querySelector('.marine-nav');
+            if (navEl && data.navBgColor) {
+                navEl.style.background = data.navBgColor;
             }
-        }
 
-        // 페이지가 열릴 때 실행
-        document.addEventListener("DOMContentLoaded", loadMainPageSettings);
-    </script>
+            // 2. 로고 텍스트 및 링크 적용
+            const logoEl = document.querySelector('.nav-logo');
+            if (logoEl) {
+                if (data.logoText) logoEl.textContent = data.logoText;
+                if (data.logoUrl) logoEl.setAttribute('href', data.logoUrl);
+            }
+
+            // 3. 네비게이션 메뉴 목록 동적 생성 적용
+            const navLinksContainer = document.querySelector('.nav-links');
+            if (navLinksContainer && Array.isArray(data.menuItems)) {
+                navLinksContainer.innerHTML = ""; // 기존 고정 메뉴 초기화
+                
+                data.menuItems.forEach(item => {
+                    if (!item.name) return;
+                    const li = document.createElement('li');
+                    const a = document.createElement('a');
+                    a.href = item.url || "#";
+                    a.textContent = item.name;
+                    li.appendChild(a);
+                    navLinksContainer.appendChild(li);
+                });
+            }
+
+            // 4. 메인페이지 본문 콘텐츠 영역 적용 (⬅️ [추가됨])
+            const mainContainer = document.querySelector('.main-content-container');
+            if (mainContainer && data.mainContent) {
+                // HTML 태그를 그대로 허용하여 렌더링하려면 innerHTML 사용
+                mainContainer.innerHTML = data.mainContent;
+            }
+
+        } catch (err) {
+            console.error("메인페이지 설정 로드 실패:", err);
+        }
+    }
+
+    // 페이지가 열릴 때 실행
+    document.addEventListener("DOMContentLoaded", loadMainPageSettings);
+</script>
 </body>
 </html>
