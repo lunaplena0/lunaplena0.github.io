@@ -105,6 +105,53 @@
     <div class="main-content-container">
         <!-- 필요한 메인 화면 내용을 이 안쪽에 자유롭게 채워 넣으시면 됩니다. -->
     </div>
+<script>
+        const WORKER_URL = "https://badabi-api.dalkkumli054.workers.dev/";
 
+        async function loadMainPageSettings() {
+            try {
+                const timestamp = new Date().getTime();
+                const response = await fetch(WORKER_URL + "?type=mainpage&t=" + timestamp);
+                if (!response.ok) return;
+                
+                const data = await response.json();
+                if (!data) return;
+
+                // 1. 네비게이션 배경 색상 적용
+                const navEl = document.querySelector('.marine-nav');
+                if (navEl && data.navBgColor) {
+                    navEl.style.background = data.navBgColor;
+                }
+
+                // 2. 로고 텍스트 및 링크 적용
+                const logoEl = document.querySelector('.nav-logo');
+                if (logoEl) {
+                    if (data.logoText) logoEl.textContent = data.logoText;
+                    if (data.logoUrl) logoEl.setAttribute('href', data.logoUrl);
+                }
+
+                // 3. 네비게이션 메뉴 목록 동적 생성 적용
+                const navLinksContainer = document.querySelector('.nav-links');
+                if (navLinksContainer && Array.isArray(data.menuItems)) {
+                    navLinksContainer.innerHTML = ""; // 기존 고정 메뉴 초기화
+                    
+                    data.menuItems.forEach(item => {
+                        if (!item.name) return;
+                        const li = document.createElement('li');
+                        const a = document.createElement('a');
+                        a.href = item.url || "#";
+                        a.textContent = item.name;
+                        li.appendChild(a);
+                        navLinksContainer.appendChild(li);
+                    });
+                }
+            } catch (err) {
+                console.error("메인페이지 설정 로드 실패:", err);
+            }
+        }
+
+        // 페이지가 열릴 때 실행
+        document.addEventListener("DOMContentLoaded", loadMainPageSettings);
+    </script>
 </body>
 </html>
