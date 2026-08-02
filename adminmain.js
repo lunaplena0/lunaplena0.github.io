@@ -7,6 +7,7 @@ let profileData = {
     time: "", content: "", bio1: "", bio2: "" 
 };
 let linksData = []; 
+
 let mainpageData = {
     navBgColor: "rgba(3, 4, 94, 0.9)",
     logoText: "BABABI FAN ARCHIVE",
@@ -259,11 +260,11 @@ function showPanel(type) {
 
     if (type === 'mainpage') {
         document.getElementById("panel-mainpage").style.display = "block";
-        // 💡 DOM이 화면에 확실히 그려진 직후에 값이 입력되도록 약간의 틱(tick) 지연 적용
         setTimeout(() => {
-            initMainPagePanel();
-        }, 30);
-        
+            if (typeof window.initMainPagePanel === 'function') {
+                window.initMainPagePanel();
+            }
+        }, 50);
     } else if (type === 'intro') {
         document.getElementById("panel-intro").style.display = "block";
         if (typeof initIntroPanel === 'function') initIntroPanel();
@@ -443,8 +444,7 @@ async function verifyAndLoad() {
         }
        if (mainpageRes.ok) {
             const data = await mainpageRes.json() || {};
-            console.log("🔥 [서버 응답 raw 데이터]:", data);
-
+            
             mainpageData = {
                 navBgColor: data.navBgColor || "rgba(3, 4, 94, 0.9)",
                 logoText: data.logoText || "BABABI FAN ARCHIVE",
@@ -452,10 +452,9 @@ async function verifyAndLoad() {
                 mainContent: data.mainContent !== undefined ? data.mainContent : "", 
                 menuItems: Array.isArray(data.menuItems) ? data.menuItems : []
             };
-
-            console.log("🔥 [정제된 mainpageData]:", mainpageData);
+            window.mainpageData = mainpageData;
         }
-
+        
         document.getElementById("login-section").style.display = "none";
         document.getElementById("admin-app-container").innerHTML = adminHtmlTemplate;
 
