@@ -291,18 +291,21 @@ function initMainPagePanel() {
 
     if (navBgInput) {
         navBgInput.value = mainpageData.navBgColor || "";
+        console.log("✨ navBgColor 값 주입 완료:", mainpageData.navBgColor);
     } else {
         console.warn("⚠️ mp-nav-bgcolor 요소를 찾을 수 없습니다.");
     }
 
     if (logoTextInput) {
         logoTextInput.value = mainpageData.logoText || "";
+        console.log("✨ logoText 값 주입 완료:", mainpageData.logoText);
     } else {
         console.warn("⚠️ mp-logo-text 요소를 찾을 수 없습니다.");
     }
 
     if (mainContentInput) {
         mainContentInput.value = mainpageData.mainContent || "";
+        console.log("✨ mainContent 값 주입 완료:", mainpageData.mainContent);
     } else {
         console.warn("⚠️ mp-main-content 요소를 찾을 수 없습니다.");
     }
