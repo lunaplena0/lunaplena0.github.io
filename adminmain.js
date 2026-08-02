@@ -282,31 +282,52 @@ function showPanel(type) {
     }
 }
 
-// 🏠 메인페이지 패널 초기화 및 메뉴 렌더링 함수들 추가
 function initMainPagePanel() {
+    console.log("🛠️ initMainPagePanel 실행됨, 현재 mainpageData:", mainpageData);
+
     const navBgInput = document.getElementById("mp-nav-bgcolor");
     const logoTextInput = document.getElementById("mp-logo-text");
     const mainContentInput = document.getElementById("mp-main-content");
 
-    if (navBgInput) navBgInput.value = mainpageData.navBgColor || "";
-    if (logoTextInput) logoTextInput.value = mainpageData.logoText || "";
-    if (mainContentInput) mainContentInput.value = mainpageData.mainContent || "";
+    if (navBgInput) {
+        navBgInput.value = mainpageData.navBgColor || "";
+    } else {
+        console.warn("⚠️ mp-nav-bgcolor 요소를 찾을 수 없습니다.");
+    }
+
+    if (logoTextInput) {
+        logoTextInput.value = mainpageData.logoText || "";
+    } else {
+        console.warn("⚠️ mp-logo-text 요소를 찾을 수 없습니다.");
+    }
+
+    if (mainContentInput) {
+        mainContentInput.value = mainpageData.mainContent || "";
+    } else {
+        console.warn("⚠️ mp-main-content 요소를 찾을 수 없습니다.");
+    }
 
     renderMainPageMenuRows();
 }
 
 function renderMainPageMenuRows() {
     const container = document.getElementById("mp-menu-rows-container");
-    if (!container) return;
+    if (!container) {
+        console.warn("⚠️ mp-menu-rows-container 요소를 찾을 수 없습니다.");
+        return;
+    }
     
     container.innerHTML = "";
 
-    (mainpageData.menuItems || []).forEach((item, index) => {
+    const items = Array.isArray(mainpageData.menuItems) ? mainpageData.menuItems : [];
+    console.log("📋 렌더링할 메뉴 아이템 목록:", items);
+
+    items.forEach((item, index) => {
         const row = document.createElement("div");
         row.style.cssText = "display: flex; gap: 10px; align-items: center; background: #f8fafc; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1;";
         row.innerHTML = `
-            <input type="text" placeholder="메뉴 이름" value="${escapeHtml(item.name)}" oninput="updateMainPageMenu(${index}, 'name', this.value)" style="flex: 1; margin-bottom: 0; padding: 6px;">
-            <input type="text" placeholder="연결 주소" value="${escapeHtml(item.url)}" oninput="updateMainPageMenu(${index}, 'url', this.value)" style="flex: 1.5; margin-bottom: 0; padding: 6px;">
+            <input type="text" placeholder="메뉴 이름" value="${escapeHtml(item.name || '')}" oninput="updateMainPageMenu(${index}, 'name', this.value)" style="flex: 1; margin-bottom: 0; padding: 6px;">
+            <input type="text" placeholder="연결 주소" value="${escapeHtml(item.url || '')}" oninput="updateMainPageMenu(${index}, 'url', this.value)" style="flex: 1.5; margin-bottom: 0; padding: 6px;">
             <button type="button" onclick="removeMainPageMenu(${index})" style="background-color: #ef4444; padding: 6px 12px; font-size: 13px; margin-bottom: 0;">삭제</button>
         `;
         container.appendChild(row);
