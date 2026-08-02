@@ -260,8 +260,10 @@ function showPanel(type) {
 
     if (type === 'mainpage') {
         document.getElementById("panel-mainpage").style.display = "block";
-        // 💡 딜레이 없이 즉시 실행하여 인풋 유실 방지
-        initMainPagePanel();
+        // 💡 DOM이 화면에 확실히 그려진 직후에 값이 입력되도록 약간의 틱(tick) 지연 적용
+        setTimeout(() => {
+            initMainPagePanel();
+        }, 30);
         
     } else if (type === 'intro') {
         document.getElementById("panel-intro").style.display = "block";
@@ -458,7 +460,7 @@ async function verifyAndLoad() {
         document.getElementById("login-section").style.display = "none";
         document.getElementById("admin-app-container").innerHTML = adminHtmlTemplate;
 
-        // 💡 템플릿이 주입된 직후 각 패널 카드들에 클릭 이벤트를 강제로 안전하게 연결
+        // 💡 HTML 템플릿이 브라우저 DOM에 완전히 파싱되고 그려질 때까지 0.05초 대기 후 대시보드 노출 및 이벤트 바인딩
         setTimeout(() => {
             const cards = document.querySelectorAll('.menu-grid .menu-card');
             if (cards.length >= 4) {
@@ -468,9 +470,8 @@ async function verifyAndLoad() {
                 cards[3].onclick = () => showPanel('mainpage');
                 console.log("✅ 관리자 대시보드 메뉴 버튼 이벤트 강제 바인딩 완료");
             }
+            showDashboard();
         }, 50);
-
-        showDashboard();
         
     } catch (error) {
         statusEl.style.color = "#ef4444";
