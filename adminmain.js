@@ -265,11 +265,12 @@ async function verifyAndLoad() {
         }
 
         const timestamp = new Date().getTime();
-        const [songRes, profileRes, linksRes] = await Promise.all([
-            fetch(WORKER_URL + "?type=songlist&t=" + timestamp),
-            fetch(WORKER_URL + "?type=profile&t=" + timestamp),
-            fetch(WORKER_URL + "?type=links&t=" + timestamp)
-        ]);
+const [songRes, profileRes, linksRes, mainpageRes] = await Promise.all([
+    fetch(WORKER_URL + "?type=songlist&t=" + timestamp),
+    fetch(WORKER_URL + "?type=profile&t=" + timestamp),
+    fetch(WORKER_URL + "?type=links&t=" + timestamp),
+    fetch(WORKER_URL + "?type=mainpage&t=" + timestamp)
+]);
 
         if (songRes.ok) {
             const data = await songRes.json();
@@ -305,6 +306,15 @@ async function verifyAndLoad() {
                 linksData = [];
             }
         }
+        if (mainpageRes.ok) {
+    const data = await mainpageRes.json() || {};
+    mainpageData = {
+        navBgColor: data.navBgColor || "rgba(3, 4, 94, 0.9)",
+        logoText: data.logoText || "BABABI FAN ARCHIVE",
+        logoUrl: data.logoUrl || "mainpages.html",
+        menuItems: Array.isArray(data.menuItems) ? data.menuItems : []
+    };
+}
 
         document.getElementById("login-section").style.display = "none";
         document.getElementById("admin-app-container").innerHTML = adminHtmlTemplate;
