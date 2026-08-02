@@ -446,14 +446,31 @@ async function verifyAndLoad() {
                 linksData = [];
             }
         }
-        if (mainpageRes.ok) {
+       if (mainpageRes.ok) {
             const data = await mainpageRes.json() || {};
             console.log("🔥 서버에서 받은 raw mainpage 데이터:", data);
+
+            // 🛡️ mainContent에 URL이 있거나 끝에 .html이 붙어있는 경우 안전하게 필터링
+            let rawContent = data.mainContent || "";
+            let safeMainContent = "";
+            let safeLogoUrl = data.logoUrl || "mainpages.html";
+
+            const isUrl = rawContent.startsWith("http://") || rawContent.startsWith("https://");
+            const endsWithHtml = rawContent.trim().toLowerCase().endsWith(".html");
+
+            if (isUrl || endsWithHtml) {
+                // 주소 형식이거나 .html로 끝난다면 본문이 아니므로 logoUrl로 백업하고 본문은 비움
+                safeLogoUrl = rawContent;
+                safeMainContent = ""; 
+            } else {
+                safeMainContent = rawContent;
+            }
 
             mainpageData = {
                 navBgColor: data.navBgColor || "rgba(3, 4, 94, 0.9)",
                 logoText: data.logoText || "BABABI FAN ARCHIVE",
-                mainContent: data.mainContent || "", 
+                logoUrl: safeLogoUrl,
+                mainContent: safeMainContent, 
                 menuItems: Array.isArray(data.menuItems) ? data.menuItems : []
             };
         }
