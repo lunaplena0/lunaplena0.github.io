@@ -1,8 +1,8 @@
-// 메인페이지 설정 데이터 상태 변수 (logoUrl 제거, 본문 설정 추가)
+// 메인페이지 설정 데이터 상태 변수 (logoUrl 제거, 본문 설정 및 menuItems 추가)
 let mainpageData = {
     navBgColor: "rgba(3, 4, 94, 0.9)",
     logoText: "BABABI FAN ARCHIVE",
-    mainContent: "", // 메인페이지 본문 처음 영역에 나타날 설정/내용
+    mainContent: "",
     menuItems: []
 };
 
@@ -14,7 +14,7 @@ function initMainPagePanel() {
     // 값 세팅
     const navBgInput = document.getElementById("mp-nav-bgcolor");
     const logoTextInput = document.getElementById("mp-logo-text");
-    const mainContentInput = document.getElementById("mp-main-content"); // 본문 설정 입력창
+    const mainContentInput = document.getElementById("mp-main-content");
 
     if (navBgInput) navBgInput.value = mainpageData.navBgColor || "";
     if (logoTextInput) logoTextInput.value = mainpageData.logoText || "";
@@ -49,17 +49,21 @@ function updateMainPageMenu(index, field, value) {
     }
 }
 
-// 4. 새 메뉴 행 추가
+// 4. 새 메뉴 행 추가 (이 함수가 정상 호출되도록 연결)
 function addMainPageMenuRow() {
-    if (!mainpageData.menuItems) mainpageData.menuItems = [];
+    if (!Array.isArray(mainpageData.menuItems)) {
+        mainpageData.menuItems = [];
+    }
     mainpageData.menuItems.push({ name: "", url: "" });
     renderMainPageMenuRows();
 }
 
 // 5. 메뉴 행 삭제
 function removeMainPageMenu(index) {
-    mainpageData.menuItems.splice(index, 1);
-    renderMainPageMenuRows();
+    if (mainpageData.menuItems) {
+        mainpageData.menuItems.splice(index, 1);
+        renderMainPageMenuRows();
+    }
 }
 
 // 6. 메인페이지 설정 서버 저장 함수
