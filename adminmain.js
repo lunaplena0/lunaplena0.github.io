@@ -276,44 +276,29 @@ function showPanel(type) {
 }
 
 function initMainPagePanel() {
-    console.log("🛠️ 메인페이지 패널 초기화 실행 시작", mainpageData);
+    console.log("🛠️ 메인페이지 패널 초기화 실행", mainpageData);
 
-    if (!mainpageData) {
-        console.warn("⚠️ mainpageData가 비어있습니다.");
-        return;
-    }
-
-    // 1. 기본 인풋 값 세팅 (navBgColor, logoText, mainContent)
     const navBgInput = document.getElementById("mp-nav-bgcolor");
     const logoTextInput = document.getElementById("mp-logo-text");
     const mainContentInput = document.getElementById("mp-main-content");
 
-    if (navBgInput) {
-        navBgInput.value = mainpageData.navBgColor || "";
-    }
-    
-    if (logoTextInput) {
-        logoTextInput.value = mainpageData.logoText || "";
-    }
+    console.log("🔍 찾은 인풋 요소들:", {
+        navBgInput: !!navBgInput,
+        logoTextInput: !!logoTextInput,
+        mainContentInput: !!mainContentInput
+    });
 
-    // 💡 누락되었던 mainContent(본문 URL/텍스트) 채우기!
+    if (navBgInput) navBgInput.value = mainpageData.navBgColor || "";
+    if (logoTextInput) logoTextInput.value = mainpageData.logoText || "";
+    
     if (mainContentInput) {
         mainContentInput.value = mainpageData.mainContent || "";
-        console.log("✅ [mp-main-content]에 값 세팅 완료:", mainContentInput.value);
+        console.log("✅ mainContent 값 주입 성공:", mainpageData.mainContent);
     } else {
-        console.warn("⚠️ [mp-main-content] 텍스트에어리어를 찾지 못했습니다.");
+        console.error("❌ 'mp-main-content' ID를 가진 텍스트에어리어를 HTML에서 찾지 못했습니다!");
     }
 
-    // 2. 메뉴 아이템 배열 렌더링 호출
-    try {
-        if (typeof renderMainPageMenuRows === 'function') {
-            renderMainPageMenuRows();
-        } else {
-            console.warn("⚠️ renderMainPageMenuRows 함수가 정의되지 않았습니다.");
-        }
-    } catch (err) {
-        console.error("⚠️ 메뉴 렌더링 중 오류:", err);
-    }
+    renderMainPageMenuRows();
 }
 
 function renderMainPageMenuRows() {
@@ -444,16 +429,17 @@ async function verifyAndLoad() {
         }
        if (mainpageRes.ok) {
             const data = await mainpageRes.json() || {};
-            console.log("🔥 서버에서 받은 raw mainpage 데이터:", data);
+            console.log("🔥 [서버 응답 raw 데이터]:", data);
 
             mainpageData = {
                 navBgColor: data.navBgColor || "rgba(3, 4, 94, 0.9)",
                 logoText: data.logoText || "BABABI FAN ARCHIVE",
                 logoUrl: data.logoUrl || "mainpages.html",
-                // 💡 필터링해서 숨기거나 비우지 않고, 서버에 저장된 그 값을 고스란히 가져옵니다.
                 mainContent: data.mainContent !== undefined ? data.mainContent : "", 
                 menuItems: Array.isArray(data.menuItems) ? data.menuItems : []
             };
+
+            console.log("🔥 [정제된 mainpageData]:", mainpageData);
         }
 
         document.getElementById("login-section").style.display = "none";
