@@ -283,6 +283,9 @@ function showPanel(type) {
 }
 
 function initMainPagePanel() {
+    console.log("🛠️ 메인페이지 패널 초기화 실행, 현재 데이터:", mainpageData);
+
+    // 패널이 완전히 눈에 뜰 수 있도록 0.1초 뒤에 확실하게 값 주입
     setTimeout(() => {
         const navBgInput = document.getElementById("mp-nav-bgcolor");
         const logoTextInput = document.getElementById("mp-logo-text");
@@ -291,13 +294,16 @@ function initMainPagePanel() {
         if (navBgInput) navBgInput.value = mainpageData.navBgColor || "";
         if (logoTextInput) logoTextInput.value = mainpageData.logoText || "";
         
-        // 💡 서버에 들어있는 내용이 무엇이든(주소든 텍스트든 `.html`이 끝에 붙어있든) 입력창에 그대로 띄움
         if (mainContentInput) {
+            // 서버에 들어있는 값을 강제로 확실하게 꽂아넣기
             mainContentInput.value = mainpageData.mainContent || "";
+            console.log("✅ 본문 입력창에 값 주입 완료:", mainpageData.mainContent);
+        } else {
+            console.warn("⚠️ mp-main-content 요소를 찾지 못했습니다!");
         }
 
         renderMainPageMenuRows();
-    }, 50);
+    }, 100);
 }
 
 function renderMainPageMenuRows() {
