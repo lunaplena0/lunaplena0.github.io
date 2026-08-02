@@ -287,23 +287,25 @@ function initMainPagePanel() {
     const navBgInput = document.getElementById("mp-nav-bgcolor");
     const logoTextInput = document.getElementById("mp-logo-text");
     const mainContentInput = document.getElementById("mp-main-content");
+
     if (navBgInput) {
-        navBgInput.value = mainpageData.navBgColor || "";
+        navBgInput.value = mainpageData.navBgColor || "rgba(3, 4, 94, 0.9)";
     }
 
     if (logoTextInput) {
-        logoTextInput.value = mainpageData.logoText || "";
+        logoTextInput.value = mainpageData.logoText || "BABABI FAN ARCHIVE";
     }
 
     if (mainContentInput) {
-        let val = mainpageData.mainContent || "";
-        if (val.startsWith("http://") || val.startsWith("https://")) {
-            mainpageData.logoUrl = val; 
-            val = ""; 
+        // 본문 칸에는 URL이 아닌 진짜 텍스트/HTML만 들어가도록 매핑
+        let contentVal = mainpageData.mainContent || "";
+        if (contentVal.startsWith("http://") || contentVal.startsWith("https://")) {
+            contentVal = ""; // URL이면 본문 칸은 비움
         }
-        mainContentInput.value = val;
+        mainContentInput.value = contentVal;
     }
 
+    // 메뉴 목록이 비어있지 않다면 확실하게 다시 렌더링
     renderMainPageMenuRows();
 }
 
@@ -318,6 +320,11 @@ function renderMainPageMenuRows() {
 
     const items = Array.isArray(mainpageData.menuItems) ? mainpageData.menuItems : [];
     console.log("📋 렌더링할 메뉴 아이템 목록:", items);
+
+    if (items.length === 0) {
+        container.innerHTML = `<div style="color: #64748b; font-size: 13px; text-align: center; padding: 10px;">등록된 메뉴가 없습니다. '+ 메뉴 추가' 버튼을 눌러주세요.</div>`;
+        return;
+    }
 
     items.forEach((item, index) => {
         const row = document.createElement("div");
@@ -433,11 +440,24 @@ async function verifyAndLoad() {
             
             console.log("🔥 서버에서 받은 raw mainpage 데이터:", data);
 
+            // 🛡️ 서버 데이터의 필드가 섞여 있거나 누락된 경우 안전하게 파싱
+            let rawContent = data.mainContent || "";
+            let actualMainContent = "";
+            let actualLogoUrl = data.logoUrl || "mainpages.html";
+
+            // 만약 mainContent에 URL이 들어가 있다면 실제 본문이 아니므로 분리
+            if (rawContent.startsWith("http://") || rawContent.startsWith("https://")) {
+                actualLogoUrl = rawContent;
+                actualMainContent = ""; 
+            } else {
+                actualMainContent = rawContent;
+            }
+
             mainpageData = {
                 navBgColor: data.navBgColor || "rgba(3, 4, 94, 0.9)",
                 logoText: data.logoText || "BABABI FAN ARCHIVE",
-                logoUrl: data.logoUrl || "mainpages.html",
-                mainContent: data.mainContent || "", 
+                logoUrl: actualLogoUrl,
+                mainContent: actualMainContent, 
                 menuItems: Array.isArray(data.menuItems) ? data.menuItems : []
             };
         }
