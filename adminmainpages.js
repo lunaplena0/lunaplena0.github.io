@@ -1,13 +1,15 @@
-// 메인페이지 설정 데이터 상태 변수 (logoUrl 제거, 본문 설정 및 menuItems 추가)
-let mainpageData = {
-    navBgColor: "rgba(3, 4, 94, 0.9)",
-    logoText: "BABABI FAN ARCHIVE",
-    mainContent: "",
-    menuItems: []
-};
+// 메인페이지 설정 데이터 상태 변수 (window 객체에 등록하여 전역 공유)
+if (!window.mainpageData) {
+    window.mainpageData = {
+        navBgColor: "rgba(3, 4, 94, 0.9)",
+        logoText: "BABABI FAN ARCHIVE",
+        mainContent: "",
+        menuItems: []
+    };
+}
 
 // 1. 메인페이지 패널 초기화 및 UI 구성
-function initMainPagePanel() {
+window.initMainPagePanel = function() {
     const container = document.getElementById("panel-mainpage") || document.getElementById("mainpage-content-container");
     if (!container) return;
     
@@ -16,21 +18,21 @@ function initMainPagePanel() {
     const logoTextInput = document.getElementById("mp-logo-text");
     const mainContentInput = document.getElementById("mp-main-content");
 
-    if (navBgInput) navBgInput.value = mainpageData.navBgColor || "";
-    if (logoTextInput) logoTextInput.value = mainpageData.logoText || "";
-    if (mainContentInput) mainContentInput.value = mainpageData.mainContent || "";
+    if (navBgInput) navBgInput.value = window.mainpageData.navBgColor || "";
+    if (logoTextInput) logoTextInput.value = window.mainpageData.logoText || "";
+    if (mainContentInput) mainContentInput.value = window.mainpageData.mainContent || "";
 
-    renderMainPageMenuRows();
+    window.renderMainPageMenuRows();
 }
 
 // 2. 네비게이션 메뉴 행 동적 렌더링
-function renderMainPageMenuRows() {
+window.renderMainPageMenuRows = function() {
     const container = document.getElementById("mp-menu-rows-container");
     if (!container) return;
     
     container.innerHTML = "";
 
-    (mainpageData.menuItems || []).forEach((item, index) => {
+    (window.mainpageData.menuItems || []).forEach((item, index) => {
         const row = document.createElement("div");
         row.style.cssText = "display: flex; gap: 10px; align-items: center; background: #f8fafc; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1;";
         row.innerHTML = `
@@ -43,31 +45,31 @@ function renderMainPageMenuRows() {
 }
 
 // 3. 메뉴 항목 값 변경 감지
-function updateMainPageMenu(index, field, value) {
-    if (mainpageData.menuItems[index]) {
-        mainpageData.menuItems[index][field] = value;
+window.updateMainPageMenu = function(index, field, value) {
+    if (window.mainpageData.menuItems[index]) {
+        window.mainpageData.menuItems[index][field] = value;
     }
 }
 
-// 4. 새 메뉴 행 추가 (이 함수가 정상 호출되도록 연결)
-function addMainPageMenuRow() {
-    if (!Array.isArray(mainpageData.menuItems)) {
-        mainpageData.menuItems = [];
+// 4. 새 메뉴 행 추가
+window.addMainPageMenuRow = function() {
+    if (!Array.isArray(window.mainpageData.menuItems)) {
+        window.mainpageData.menuItems = [];
     }
-    mainpageData.menuItems.push({ name: "", url: "" });
-    renderMainPageMenuRows();
+    window.mainpageData.menuItems.push({ name: "", url: "" });
+    window.renderMainPageMenuRows();
 }
 
 // 5. 메뉴 행 삭제
-function removeMainPageMenu(index) {
-    if (mainpageData.menuItems) {
-        mainpageData.menuItems.splice(index, 1);
-        renderMainPageMenuRows();
+window.removeMainPageMenu = function(index) {
+    if (window.mainpageData.menuItems) {
+        window.mainpageData.menuItems.splice(index, 1);
+        window.renderMainPageMenuRows();
     }
 }
 
 // 6. 메인페이지 설정 서버 저장 함수
-async function saveMainPageSettings() {
+window.saveMainPageSettings = async function() {
     const statusEl = document.getElementById("mainpage-status");
     if (statusEl) {
         statusEl.style.color = "#0077b6";
@@ -80,12 +82,12 @@ async function saveMainPageSettings() {
         const logoTextInput = document.getElementById("mp-logo-text");
         const mainContentInput = document.getElementById("mp-main-content");
 
-        if (navBgInput) mainpageData.navBgColor = navBgInput.value.trim();
-        if (logoTextInput) mainpageData.logoText = logoTextInput.value.trim();
-        if (mainContentInput) mainpageData.mainContent = mainContentInput.value.trim();
+        if (navBgInput) window.mainpageData.navBgColor = navBgInput.value.trim();
+        if (logoTextInput) window.mainpageData.logoText = logoTextInput.value.trim();
+        if (mainContentInput) window.mainpageData.mainContent = mainContentInput.value.trim();
 
         // 워커로 전송 (`mainpage` 타입으로 KV 저장)
-        await saveDataToWorker("mainpage", mainpageData, "mainpage-status");
+        await saveDataToWorker("mainpage", window.mainpageData, "mainpage-status");
     } catch (err) {
         if (statusEl) {
             statusEl.style.color = "#ef4444";
