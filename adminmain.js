@@ -260,24 +260,25 @@ function showPanel(type) {
 
     if (type === 'mainpage') {
         document.getElementById("panel-mainpage").style.display = "block";
+        // 💡 패널이 눈에 보이기 시작한 직후에 데이터를 다시 확실하게 꽂아줍니다.
         setTimeout(() => {
             if (typeof initMainPagePanel === 'function') initMainPagePanel();
-        }, 10);
+        }, 30);
     } else if (type === 'intro') {
         document.getElementById("panel-intro").style.display = "block";
         setTimeout(() => {
             if (typeof initIntroPanel === 'function') initIntroPanel();
-        }, 10);
+        }, 30);
     } else if (type === 'links') {
         document.getElementById("panel-links").style.display = "block";
         setTimeout(() => {
             if (typeof initLinksPanel === 'function') initLinksPanel();
-        }, 10);
+        }, 30);
     } else if (type === 'songs') {
         document.getElementById("panel-songs").style.display = "block";
         setTimeout(() => {
             if (typeof initSongsPanel === 'function') initSongsPanel();
-        }, 10);
+        }, 30);
     }
 }
 
@@ -447,35 +448,28 @@ async function verifyAndLoad() {
         }
         if (mainpageRes.ok) {
             const data = await mainpageRes.json() || {};
-            
             console.log("🔥 서버에서 받은 raw mainpage 데이터:", data);
-
-            // 🛡️ 서버 데이터의 필드가 섞여 있거나 누락된 경우 안전하게 파싱
-            let rawContent = data.mainContent || "";
-            let actualMainContent = "";
-            let actualLogoUrl = data.logoUrl || "mainpages.html";
-
-            // 만약 mainContent에 URL이 들어가 있다면 실제 본문이 아니므로 분리
-            if (rawContent.startsWith("http://") || rawContent.startsWith("https://")) {
-                actualLogoUrl = rawContent;
-                actualMainContent = ""; 
-            } else {
-                actualMainContent = rawContent;
-            }
 
             mainpageData = {
                 navBgColor: data.navBgColor || "rgba(3, 4, 94, 0.9)",
                 logoText: data.logoText || "BABABI FAN ARCHIVE",
-                logoUrl: actualLogoUrl,
-                mainContent: actualMainContent, 
+                mainContent: data.mainContent || "", 
                 menuItems: Array.isArray(data.menuItems) ? data.menuItems : []
             };
         }
 
         document.getElementById("login-section").style.display = "none";
         document.getElementById("admin-app-container").innerHTML = adminHtmlTemplate;
-        showDashboard();
+        
+        // 💡 로그인 직후 초기 데이터가 패널에 바로 반영되도록 강제 호출
+        setTimeout(() => {
+            if (typeof initMainPagePanel === 'function') {
+                initMainPagePanel();
+            }
+        }, 100);
 
+        showDashboard();
+        
     } catch (error) {
         statusEl.style.color = "#ef4444";
         statusEl.textContent = "로그인 실패: " + error.message;
