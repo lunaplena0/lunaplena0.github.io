@@ -50,10 +50,28 @@ const adminHtmlTemplate = `
             <h3 style="margin: 0; color: #03045e;">🏠 메인페이지 수정</h3>
             <button onclick="showDashboard()" style="background-color: #64748b; padding: 6px 12px; font-size: 13px;">← 메뉴 목록으로</button>
         </div>
-        <div id="mainpage-content-container">
-            <!-- 메인페이지 관리 UI 영역 -->
+        
+        <!-- ▼ 이 아래의 입력 폼 요소들이 반드시 존재해야 합니다! ▼ -->
+        <label>네비게이션 배경 색상</label>
+        <input type="text" id="mp-nav-bgcolor" placeholder="예: rgba(3, 4, 94, 0.9)">
+
+        <label>로고 텍스트</label>
+        <input type="text" id="mp-logo-text" placeholder="예: BABABI FAN ARCHIVE">
+
+        <label>로고 클릭 주소</label>
+        <input type="text" id="mp-logo-url" placeholder="예: mainpages.html">
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin: 20px 0 10px 0; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;">
+            <h4 style="color: #0077b6; margin: 0;">네비게이션 메뉴 목록</h4>
+            <button type="button" onclick="addMainPageMenuRow()" style="background-color: #10b981; padding: 4px 10px; font-size: 12px;">+ 메뉴 추가</button>
         </div>
-        <button onclick="saveMainPageSettings()" style="width: 100%; margin-top: 15px; background-color: #0077b6;">메인페이지 설정 반영하기</button>
+
+        <div id="mp-menu-rows-container" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
+            <!-- 자바스크립트가 메뉴 행들을 동적으로 그려주는 자리 -->
+        </div>
+        <!-- ▲ 여기까지 필수 입력 요소들 ▲ -->
+
+        <button onclick="saveMainPageSettings()" style="width: 100%; margin-top: 15px; background-color: #0077b6; padding: 14px; font-size: 16px;">메인페이지 설정 반영하기</button>
         <div id="mainpage-status" class="status-msg"></div>
     </div>
 
