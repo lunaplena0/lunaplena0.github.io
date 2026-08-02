@@ -11,6 +11,7 @@ let mainpageData = {
     navBgColor: "rgba(3, 4, 94, 0.9)",
     logoText: "BABABI FAN ARCHIVE",
     logoUrl: "mainpages.html",
+    mainContent: "", // ⬅️ [추가됨] 메인페이지 본문 데이터 기본값
     menuItems: []
 };
 
@@ -58,7 +59,7 @@ const adminHtmlTemplate = `
     <label>로고 텍스트</label>
     <input type="text" id="mp-logo-text" placeholder="예: BABABI FAN ARCHIVE">
 
-    <!-- [추가됨] 네비게이션바 아래 메인페이지 본문 처음 영역 설정 -->
+    <!-- 네비게이션바 아래 메인페이지 본문 처음 영역 설정 -->
     <label>메인페이지 첫 화면 본문/HTML 설정</label>
     <textarea id="mp-main-content" placeholder="메인페이지 상단 본문에 노출할 텍스트나 HTML을 입력하세요" style="height: 120px; resize: vertical;"></textarea>
 
@@ -330,6 +331,7 @@ async function verifyAndLoad() {
                 navBgColor: data.navBgColor || "rgba(3, 4, 94, 0.9)",
                 logoText: data.logoText || "BABABI FAN ARCHIVE",
                 logoUrl: data.logoUrl || "mainpages.html",
+                mainContent: data.mainContent || "", // ⬅️ [추가됨] 서버에서 메인페이지 본문 로드
                 menuItems: Array.isArray(data.menuItems) ? data.menuItems : []
             };
         }
