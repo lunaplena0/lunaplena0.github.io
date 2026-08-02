@@ -16,6 +16,7 @@ let mainpageData = {
 };
 
 // 🔒 로그인 성공 시 동적으로 주입할 관리자 UI 전체 HTML 템플릿 (메인페이지 패널 포함)
+// 🔒 로그인 성공 시 동적으로 주입할 관리자 UI 전체 HTML 템플릿 (임시 버튼 3개 추가)
 const adminHtmlTemplate = `
     <!-- 대시보드 메뉴 -->
     <div id="dashboard-section" class="card">
@@ -42,6 +43,16 @@ const adminHtmlTemplate = `
                 <h4>🏠 메인페이지 수정</h4>
                 <p>메인 화면 설정 및 공통 구성 변경</p>
             </div>
+        </div>
+
+        <!-- ⬅️ 4개 상자 아래 구분선 추가 -->
+        <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 25px 0 20px 0;">
+
+        <!-- ⬅️ "임시" 버튼 3개가 들어 있는 상자 영역 -->
+        <div style="display: flex; gap: 12px; justify-content: space-between;">
+            <button onclick="alert('임시 버튼 1')" style="flex: 1; background-color: #64748b; padding: 12px; font-size: 14px; font-weight: 600;">임시</button>
+            <button onclick="alert('임시 버튼 2')" style="flex: 1; background-color: #64748b; padding: 12px; font-size: 14px; font-weight: 600;">임시</button>
+            <button onclick="alert('임시 버튼 3')" style="flex: 1; background-color: #64748b; padding: 12px; font-size: 14px; font-weight: 600;">임시</button>
         </div>
     </div>
 
