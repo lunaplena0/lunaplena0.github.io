@@ -346,11 +346,15 @@ async function verifyAndLoad() {
         }
         if (mainpageRes.ok) {
             const data = await mainpageRes.json() || {};
+            
+            // 🔍 아래 콘솔 출력을 통해 서버에서 실제로 어떤 데이터가 넘어오는지 확인합니다.
+            console.log("🔥 서버에서 받은 raw mainpage 데이터:", data);
+
             mainpageData = {
                 navBgColor: data.navBgColor || "rgba(3, 4, 94, 0.9)",
                 logoText: data.logoText || "BABABI FAN ARCHIVE",
                 logoUrl: data.logoUrl || "mainpages.html",
-                mainContent: data.mainContent || "", // ⬅️ [추가됨] 서버에서 메인페이지 본문 로드
+                mainContent: data.mainContent || "", 
                 menuItems: Array.isArray(data.menuItems) ? data.menuItems : []
             };
         }
