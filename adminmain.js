@@ -7,6 +7,12 @@ let profileData = {
     time: "", content: "", bio1: "", bio2: "" 
 };
 let linksData = []; 
+let mainpageData = {
+    navBgColor: "rgba(3, 4, 94, 0.9)",
+    logoText: "BABABI FAN ARCHIVE",
+    logoUrl: "mainpages.html",
+    menuItems: []
+};
 
 // 🔒 로그인 성공 시 동적으로 주입할 관리자 UI 전체 HTML 템플릿 (이미지 업로드 기능 포함)
 const adminHtmlTemplate = `
