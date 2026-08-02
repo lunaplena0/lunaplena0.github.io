@@ -1,35 +1,94 @@
-// 메인페이지 수정 기능 관련 로직 (신규 생성)
+// 메인페이지 설정 데이터 상태 변수
+let mainpageData = {
+    navBgColor: "rgba(3, 4, 94, 0.9)",
+    logoText: "BABABI FAN ARCHIVE",
+    logoUrl: "mainpages.html",
+    menuItems: []
+};
 
+// 1. 메인페이지 패널 초기화 및 UI 구성
 function initMainPagePanel() {
-    const container = document.getElementById("mainpage-content-container");
+    const container = document.getElementById("panel-mainpage") || document.getElementById("mainpage-content-container");
     if (!container) return;
-    
-    // 메인페이지 관리용 초기 폼 UI 구성
-    container.innerHTML = `
-        <label>메인페이지 상단 환영 문구 또는 타이틀</label>
-        <input type="text" id="mp-title" placeholder="환영 문구를 입력하세요" value="${escapeHtml(profileData.name || '')}의 메인 페이지">
 
-        <label style="margin-top: 15px;">메인 페이지 공지/테마 설정</label>
-        <textarea id="mp-notice" class="profile-textarea" placeholder="메인 화면 최상단에 띄울 공지사항 스타일 내용..."></textarea>
-    `;
+    // 만약 HTML 템플릿 영역이 아니라 자바스크립트로 직접 UI를 그려야 하는 경우라면 아래와 같이 구성할 수 있습니다.
+    // 기존에 admin.html에 HTML 마크업을 두었다면 이 innerHTML 부분은 생략하거나 필요한 부분만 맞추어 쓰시면 됩니다.
+    
+    // 값 세팅
+    const navBgInput = document.getElementById("mp-nav-bgcolor");
+    const logoTextInput = document.getElementById("mp-logo-text");
+    const logoUrlInput = document.getElementById("mp-logo-url");
+
+    if (navBgInput) navBgInput.value = mainpageData.navBgColor || "";
+    if (logoTextInput) logoTextInput.value = mainpageData.logoText || "";
+    if (logoUrlInput) logoUrlInput.value = mainpageData.logoUrl || "";
+
+    renderMainPageMenuRows();
 }
 
+// 2. 네비게이션 메뉴 행 동적 렌더링
+function renderMainPageMenuRows() {
+    const container = document.getElementById("mp-menu-rows-container");
+    if (!container) return;
+    
+    container.innerHTML = "";
+
+    (mainpageData.menuItems || []).forEach((item, index) => {
+        const row = document.createElement("div");
+        row.style.cssText = "display: flex; gap: 10px; align-items: center; background: #f8fafc; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1;";
+        row.innerHTML = `
+            <input type="text" placeholder="메뉴 이름 (예: 프로필)" value="${escapeHtml(item.name)}" oninput="updateMainPageMenu(${index}, 'name', this.value)" style="flex: 1; margin-bottom: 0; padding: 6px;">
+            <input type="text" placeholder="연결 주소 (예: profile.html)" value="${escapeHtml(item.url)}" oninput="updateMainPageMenu(${index}, 'url', this.value)" style="flex: 1.5; margin-bottom: 0; padding: 6px;">
+            <button type="button" onclick="removeMainPageMenu(${index})" style="background-color: #ef4444; padding: 6px 12px; font-size: 13px; margin-bottom: 0;">삭제</button>
+        `;
+        container.appendChild(row);
+    });
+}
+
+// 3. 메뉴 항목 값 변경 감지
+function updateMainPageMenu(index, field, value) {
+    if (mainpageData.menuItems[index]) {
+        mainpageData.menuItems[index][field] = value;
+    }
+}
+
+// 4. 새 메뉴 행 추가
+function addMainPageMenuRow() {
+    if (!mainpageData.menuItems) mainpageData.menuItems = [];
+    mainpageData.menuItems.push({ name: "", url: "" });
+    renderMainPageMenuRows();
+}
+
+// 5. 메뉴 행 삭제
+function removeMainPageMenu(index) {
+    mainpageData.menuItems.splice(index, 1);
+    renderMainPageMenuRows();
+}
+
+// 6. 메인페이지 설정 서버 저장 함수
 async function saveMainPageSettings() {
     const statusEl = document.getElementById("mainpage-status");
-    statusEl.style.color = "#0077b6";
-    statusEl.textContent = "메인페이지 설정 저장 중...";
+    if (statusEl) {
+        statusEl.style.color = "#0077b6";
+        statusEl.textContent = "메인페이지 설정 저장 중...";
+    }
 
     try {
-        // 필요시 서버 저장 혹은 프로필 데이터와 연계 처리
-        const mainPageConfig = {
-            title: document.getElementById("mp-title").value.trim(),
-            notice: document.getElementById("mp-notice").value.trim()
-        };
+        // 입력된 값들을 mainpageData에 반영
+        const navBgInput = document.getElementById("mp-nav-bgcolor");
+        const logoTextInput = document.getElementById("mp-logo-text");
+        const logoUrlInput = document.getElementById("mp-logo-url");
 
-        // 예시로 저장 워커 연동 (필요에 따라 fileType 변경 가능)
-        await saveDataToWorker("mainpage", mainPageConfig, "mainpage-status");
+        if (navBgInput) mainpageData.navBgColor = navBgInput.value.trim();
+        if (logoTextInput) mainpageData.logoText = logoTextInput.value.trim();
+        if (logoUrlInput) mainpageData.logoUrl = logoUrlInput.value.trim();
+
+        // 워커로 전송 (`mainpage` 타입으로 KV 저장)
+        await saveDataToWorker("mainpage", mainpageData, "mainpage-status");
     } catch (err) {
-        statusEl.style.color = "#ef4444";
-        statusEl.textContent = "저장 실패: " + err.message;
+        if (statusEl) {
+            statusEl.style.color = "#ef4444";
+            statusEl.textContent = "저장 실패: " + err.message;
+        }
     }
 }
