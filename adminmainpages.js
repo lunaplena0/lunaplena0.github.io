@@ -1,27 +1,30 @@
-// 메인페이지 설정 데이터 상태 변수 (window 객체에 등록하여 전역 공유)
+// 메인페이지 설정 데이터 상태 변수 (이미 선언되어 있다면 생략 가능)
 if (!window.mainpageData) {
     window.mainpageData = {
         navBgColor: "rgba(3, 4, 94, 0.9)",
         logoText: "BABABI FAN ARCHIVE",
+        logoUrl: "mainpages.html",
         mainContent: "",
         menuItems: []
     };
 }
 
-// 1. 메인페이지 패널 초기화 및 UI 구성
+// 1. 메인페이지 패널 초기화 및 UI 구성 (필수!)
 window.initMainPagePanel = function() {
-    const container = document.getElementById("panel-mainpage") || document.getElementById("mainpage-content-container");
+    const container = document.getElementById("panel-mainpage");
     if (!container) return;
     
-    // 값 세팅
+    // HTML 입력창 요소들 가져오기
     const navBgInput = document.getElementById("mp-nav-bgcolor");
     const logoTextInput = document.getElementById("mp-logo-text");
     const mainContentInput = document.getElementById("mp-main-content");
 
+    // 전역 변수(mainpageData)에 담긴 값을 실제 화면 입력창에 세팅
     if (navBgInput) navBgInput.value = window.mainpageData.navBgColor || "";
     if (logoTextInput) logoTextInput.value = window.mainpageData.logoText || "";
     if (mainContentInput) mainContentInput.value = window.mainpageData.mainContent || "";
 
+    // 메뉴 목록 행 렌더링 함수 호출
     window.renderMainPageMenuRows();
 }
 
