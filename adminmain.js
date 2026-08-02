@@ -283,41 +283,21 @@ function showPanel(type) {
 }
 
 function initMainPagePanel() {
-    console.log("🛠️ initMainPagePanel 실행 시작, 현재 mainpageData:", JSON.parse(JSON.stringify(mainpageData)));
-
-    // 1초 동안 DOM이 생성되기를 안전하게 기다리면서 값을 채워넣는 방식
     setTimeout(() => {
         const navBgInput = document.getElementById("mp-nav-bgcolor");
         const logoTextInput = document.getElementById("mp-logo-text");
         const mainContentInput = document.getElementById("mp-main-content");
 
-        console.log("🔍 DOM 요소 검색 결과:", {
-            navBgInput: !!navBgInput,
-            logoTextInput: !!logoTextInput,
-            mainContentInput: !!mainContentInput
-        });
-
-        if (navBgInput) {
-            navBgInput.value = mainpageData.navBgColor || "rgba(3, 4, 94, 0.9)";
-        }
-
-        if (logoTextInput) {
-            logoTextInput.value = mainpageData.logoText || "BABABI FAN ARCHIVE";
-        }
-
+        if (navBgInput) navBgInput.value = mainpageData.navBgColor || "";
+        if (logoTextInput) logoTextInput.value = mainpageData.logoText || "";
+        
+        // 💡 서버에 들어있는 내용이 무엇이든(주소든 텍스트든 `.html`이 끝에 붙어있든) 입력창에 그대로 띄움
         if (mainContentInput) {
-            let contentVal = mainpageData.mainContent || "";
-            // 만약 서버에서 URL이 들어있던 경우라면 본문 칸에 그대로 보여주거나 비울 수 있음
-            // 여기서는 사용자가 볼 수 있게 일단 그대로 넣어주되, 주소 형태인지 확인합니다.
-            if (contentVal.startsWith("http://") || contentVal.startsWith("https://")) {
-                console.log("💡 mainContent에 URL이 감지되었습니다:", contentVal);
-            }
-            mainContentInput.value = contentVal;
+            mainContentInput.value = mainpageData.mainContent || "";
         }
 
-        // 메뉴 목록 렌더링 강제 실행
         renderMainPageMenuRows();
-    }, 50); // DOM 렌더링 직후 바로 실행되도록 0.05초 지연
+    }, 50);
 }
 
 function renderMainPageMenuRows() {
