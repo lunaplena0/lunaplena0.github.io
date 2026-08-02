@@ -282,31 +282,41 @@ function showPanel(type) {
 }
 
 function initMainPagePanel() {
-    console.log("🛠️ initMainPagePanel 실행됨, 현재 mainpageData:", mainpageData);
+    console.log("🛠️ initMainPagePanel 실행 시작, 현재 mainpageData:", JSON.parse(JSON.stringify(mainpageData)));
 
-    const navBgInput = document.getElementById("mp-nav-bgcolor");
-    const logoTextInput = document.getElementById("mp-logo-text");
-    const mainContentInput = document.getElementById("mp-main-content");
+    // 1초 동안 DOM이 생성되기를 안전하게 기다리면서 값을 채워넣는 방식
+    setTimeout(() => {
+        const navBgInput = document.getElementById("mp-nav-bgcolor");
+        const logoTextInput = document.getElementById("mp-logo-text");
+        const mainContentInput = document.getElementById("mp-main-content");
 
-    if (navBgInput) {
-        navBgInput.value = mainpageData.navBgColor || "rgba(3, 4, 94, 0.9)";
-    }
+        console.log("🔍 DOM 요소 검색 결과:", {
+            navBgInput: !!navBgInput,
+            logoTextInput: !!logoTextInput,
+            mainContentInput: !!mainContentInput
+        });
 
-    if (logoTextInput) {
-        logoTextInput.value = mainpageData.logoText || "BABABI FAN ARCHIVE";
-    }
-
-    if (mainContentInput) {
-        // 본문 칸에는 URL이 아닌 진짜 텍스트/HTML만 들어가도록 매핑
-        let contentVal = mainpageData.mainContent || "";
-        if (contentVal.startsWith("http://") || contentVal.startsWith("https://")) {
-            contentVal = ""; // URL이면 본문 칸은 비움
+        if (navBgInput) {
+            navBgInput.value = mainpageData.navBgColor || "rgba(3, 4, 94, 0.9)";
         }
-        mainContentInput.value = contentVal;
-    }
 
-    // 메뉴 목록이 비어있지 않다면 확실하게 다시 렌더링
-    renderMainPageMenuRows();
+        if (logoTextInput) {
+            logoTextInput.value = mainpageData.logoText || "BABABI FAN ARCHIVE";
+        }
+
+        if (mainContentInput) {
+            let contentVal = mainpageData.mainContent || "";
+            // 만약 서버에서 URL이 들어있던 경우라면 본문 칸에 그대로 보여주거나 비울 수 있음
+            // 여기서는 사용자가 볼 수 있게 일단 그대로 넣어주되, 주소 형태인지 확인합니다.
+            if (contentVal.startsWith("http://") || contentVal.startsWith("https://")) {
+                console.log("💡 mainContent에 URL이 감지되었습니다:", contentVal);
+            }
+            mainContentInput.value = contentVal;
+        }
+
+        // 메뉴 목록 렌더링 강제 실행
+        renderMainPageMenuRows();
+    }, 50); // DOM 렌더링 직후 바로 실행되도록 0.05초 지연
 }
 
 function renderMainPageMenuRows() {
