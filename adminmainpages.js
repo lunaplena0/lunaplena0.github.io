@@ -3,7 +3,6 @@ if (!window.mainpageData) {
     window.mainpageData = {
         navBgColor: "rgba(3, 4, 94, 0.9)",
         logoText: "BABABI FAN ARCHIVE",
-        logoUrl: "mainpages.html",
         mainContent: "",
         menuItems: []
     };
