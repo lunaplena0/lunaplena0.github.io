@@ -11,11 +11,11 @@ let mainpageData = {
     navBgColor: "rgba(3, 4, 94, 0.9)",
     logoText: "BABABI FAN ARCHIVE",
     logoUrl: "mainpages.html",
-    mainContent: "", // ⬅️ [추가됨] 메인페이지 본문 데이터 기본값
+    mainContent: "", 
     menuItems: []
 };
 
-// 🔒 로그인 성공 시 동적으로 주입할 관리자 UI 전체 HTML 템플릿 (임시 버튼 디자인을 상단 카드와 완벽히 일치시킴)
+// 🔒 로그인 성공 시 동적으로 주입할 관리자 UI 전체 HTML 템플릿
 const adminHtmlTemplate = `
     <!-- 대시보드 메뉴 -->
     <div id="dashboard-section" class="card">
@@ -44,10 +44,8 @@ const adminHtmlTemplate = `
             </div>
         </div>
 
-        <!-- ⬅️ 4개 상자 아래 구분선 추가 -->
         <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 25px 0 20px 0;">
 
-        <!-- ⬅️ 상단 메뉴 카드와 동일한 class(.menu-card)를 적용해 디자인을 통일한 임시 영역 -->
         <div class="menu-grid" style="grid-template-columns: repeat(3, 1fr);">
             <div class="menu-card" style="cursor: default; opacity: 0.7;">
                 <h4>📌 임시 메뉴 1</h4>
@@ -64,37 +62,34 @@ const adminHtmlTemplate = `
         </div>
     </div>
 
+    <!-- 메인페이지 수정 패널 -->
     <div id="panel-mainpage" class="card" style="display: none;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <h3 style="margin: 0; color: #03045e;">🏠 메인페이지 수정</h3>
-        <button onclick="showDashboard()" style="background-color: #64748b; padding: 6px 12px; font-size: 13px;">← 메뉴 목록으로</button>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 style="margin: 0; color: #03045e;">🏠 메인페이지 수정</h3>
+            <button onclick="showDashboard()" style="background-color: #64748b; padding: 6px 12px; font-size: 13px;">← 메뉴 목록으로</button>
+        </div>
+
+        <label>네비게이션 배경 색상</label>
+        <input type="text" id="mp-nav-bgcolor" placeholder="예: rgba(3, 4, 94, 0.9)">
+
+        <label>로고 텍스트</label>
+        <input type="text" id="mp-logo-text" placeholder="예: BABABI FAN ARCHIVE">
+
+        <label>메인페이지 첫 화면 본문/HTML 설정</label>
+        <textarea id="mp-main-content" placeholder="메인페이지 상단 본문에 노출할 텍스트나 HTML을 입력하세요" style="height: 120px; resize: vertical;"></textarea>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin: 20px 0 10px 0; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;">
+            <h4 style="color: #0077b6; margin: 0;">네비게이션 메뉴 목록</h4>
+            <button type="button" onclick="addMainPageMenuRow()" style="background-color: #10b981; padding: 4px 10px; font-size: 12px;">+ 메뉴 추가</button>
+        </div>
+        
+        <div id="mp-menu-rows-container" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
+            <!-- 동적 메뉴 행 -->
+        </div>
+
+        <button onclick="saveMainPageSettings()" style="width: 100%; margin-top: 15px; background-color: #0077b6; padding: 14px; font-size: 16px;">메인페이지 설정 반영하기</button>
+        <div id="mainpage-status" class="status-msg"></div>
     </div>
-
-    <!-- 네비게이션 배경색 설정 -->
-    <label>네비게이션 배경 색상</label>
-    <input type="text" id="mp-nav-bgcolor" placeholder="예: rgba(3, 4, 94, 0.9)">
-
-    <!-- 로고 텍스트 설정 -->
-    <label>로고 텍스트</label>
-    <input type="text" id="mp-logo-text" placeholder="예: BABABI FAN ARCHIVE">
-
-    <!-- 네비게이션바 아래 메인페이지 본문 처음 영역 설정 -->
-    <label>메인페이지 첫 화면 본문/HTML 설정</label>
-    <textarea id="mp-main-content" placeholder="메인페이지 상단 본문에 노출할 텍스트나 HTML을 입력하세요" style="height: 120px; resize: vertical;"></textarea>
-
-    <!-- 네비게이션 메뉴 목록 관리 영역 -->
-    <div style="display: flex; justify-content: space-between; align-items: center; margin: 20px 0 10px 0; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;">
-        <h4 style="color: #0077b6; margin: 0;">네비게이션 메뉴 목록</h4>
-        <button type="button" onclick="addMainPageMenuRow()" style="background-color: #10b981; padding: 4px 10px; font-size: 12px;">+ 메뉴 추가</button>
-    </div>
-    
-    <div id="mp-menu-rows-container" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
-        <!-- 동적 메뉴 행 -->
-    </div>
-
-    <button onclick="saveMainPageSettings()" style="width: 100%; margin-top: 15px; background-color: #0077b6; padding: 14px; font-size: 16px;">메인페이지 설정 반영하기</button>
-    <div id="mainpage-status" class="status-msg"></div>
-</div>
 
     <!-- 자기소개 수정 패널 -->
     <div id="panel-intro" class="card" style="display: none;">
@@ -278,6 +273,68 @@ function showPanel(type) {
     }
 }
 
+// 🏠 메인페이지 패널 초기화 및 메뉴 렌더링 함수들 추가
+function initMainPagePanel() {
+    const navBgInput = document.getElementById("mp-nav-bgcolor");
+    const logoTextInput = document.getElementById("mp-logo-text");
+    const mainContentInput = document.getElementById("mp-main-content");
+
+    if (navBgInput) navBgInput.value = mainpageData.navBgColor || "";
+    if (logoTextInput) logoTextInput.value = mainpageData.logoText || "";
+    if (mainContentInput) mainContentInput.value = mainpageData.mainContent || "";
+
+    renderMainPageMenuRows();
+}
+
+function renderMainPageMenuRows() {
+    const container = document.getElementById("mp-menu-rows-container");
+    if (!container) return;
+    
+    container.innerHTML = "";
+
+    (mainpageData.menuItems || []).forEach((item, index) => {
+        const row = document.createElement("div");
+        row.style.cssText = "display: flex; gap: 10px; align-items: center; background: #f8fafc; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1;";
+        row.innerHTML = `
+            <input type="text" placeholder="메뉴 이름" value="${escapeHtml(item.name)}" oninput="updateMainPageMenu(${index}, 'name', this.value)" style="flex: 1; margin-bottom: 0; padding: 6px;">
+            <input type="text" placeholder="연결 주소" value="${escapeHtml(item.url)}" oninput="updateMainPageMenu(${index}, 'url', this.value)" style="flex: 1.5; margin-bottom: 0; padding: 6px;">
+            <button type="button" onclick="removeMainPageMenu(${index})" style="background-color: #ef4444; padding: 6px 12px; font-size: 13px; margin-bottom: 0;">삭제</button>
+        `;
+        container.appendChild(row);
+    });
+}
+
+function updateMainPageMenu(index, field, value) {
+    if (mainpageData.menuItems[index]) {
+        mainpageData.menuItems[index][field] = value;
+    }
+}
+
+function addMainPageMenuRow() {
+    if (!Array.isArray(mainpageData.menuItems)) mainpageData.menuItems = [];
+    mainpageData.menuItems.push({ name: "", url: "" });
+    renderMainPageMenuRows();
+}
+
+function removeMainPageMenu(index) {
+    if (mainpageData.menuItems) {
+        mainpageData.menuItems.splice(index, 1);
+        renderMainPageMenuRows();
+    }
+}
+
+async function saveMainPageSettings() {
+    const navBgInput = document.getElementById("mp-nav-bgcolor");
+    const logoTextInput = document.getElementById("mp-logo-text");
+    const mainContentInput = document.getElementById("mp-main-content");
+
+    if (navBgInput) mainpageData.navBgColor = navBgInput.value.trim();
+    if (logoTextInput) mainpageData.logoText = logoTextInput.value.trim();
+    if (mainContentInput) mainpageData.mainContent = mainContentInput.value.trim();
+
+    await saveDataToWorker("mainpage", mainpageData, "mainpage-status");
+}
+
 async function verifyAndLoad() {
     const password = document.getElementById("admin-password").value;
     const statusEl = document.getElementById("login-status");
@@ -347,7 +404,6 @@ async function verifyAndLoad() {
         if (mainpageRes.ok) {
             const data = await mainpageRes.json() || {};
             
-            // 🔍 아래 콘솔 출력을 통해 서버에서 실제로 어떤 데이터가 넘어오는지 확인합니다.
             console.log("🔥 서버에서 받은 raw mainpage 데이터:", data);
 
             mainpageData = {
