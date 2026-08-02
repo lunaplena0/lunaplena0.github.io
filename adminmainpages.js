@@ -1,8 +1,8 @@
-// 메인페이지 설정 데이터 상태 변수
+// 메인페이지 설정 데이터 상태 변수 (logoUrl 제거, 본문 설정 추가)
 let mainpageData = {
     navBgColor: "rgba(3, 4, 94, 0.9)",
     logoText: "BABABI FAN ARCHIVE",
-    logoUrl: "mainpages.html",
+    mainContent: "", // 메인페이지 본문 처음 영역에 나타날 설정/내용
     menuItems: []
 };
 
@@ -10,18 +10,15 @@ let mainpageData = {
 function initMainPagePanel() {
     const container = document.getElementById("panel-mainpage") || document.getElementById("mainpage-content-container");
     if (!container) return;
-
-    // 만약 HTML 템플릿 영역이 아니라 자바스크립트로 직접 UI를 그려야 하는 경우라면 아래와 같이 구성할 수 있습니다.
-    // 기존에 admin.html에 HTML 마크업을 두었다면 이 innerHTML 부분은 생략하거나 필요한 부분만 맞추어 쓰시면 됩니다.
     
     // 값 세팅
     const navBgInput = document.getElementById("mp-nav-bgcolor");
     const logoTextInput = document.getElementById("mp-logo-text");
-    const logoUrlInput = document.getElementById("mp-logo-url");
+    const mainContentInput = document.getElementById("mp-main-content"); // 본문 설정 입력창
 
     if (navBgInput) navBgInput.value = mainpageData.navBgColor || "";
     if (logoTextInput) logoTextInput.value = mainpageData.logoText || "";
-    if (logoUrlInput) logoUrlInput.value = mainpageData.logoUrl || "";
+    if (mainContentInput) mainContentInput.value = mainpageData.mainContent || "";
 
     renderMainPageMenuRows();
 }
@@ -77,11 +74,11 @@ async function saveMainPageSettings() {
         // 입력된 값들을 mainpageData에 반영
         const navBgInput = document.getElementById("mp-nav-bgcolor");
         const logoTextInput = document.getElementById("mp-logo-text");
-        const logoUrlInput = document.getElementById("mp-logo-url");
+        const mainContentInput = document.getElementById("mp-main-content");
 
         if (navBgInput) mainpageData.navBgColor = navBgInput.value.trim();
         if (logoTextInput) mainpageData.logoText = logoTextInput.value.trim();
-        if (logoUrlInput) mainpageData.logoUrl = logoUrlInput.value.trim();
+        if (mainContentInput) mainpageData.mainContent = mainContentInput.value.trim();
 
         // 워커로 전송 (`mainpage` 타입으로 KV 저장)
         await saveDataToWorker("mainpage", mainpageData, "mainpage-status");
