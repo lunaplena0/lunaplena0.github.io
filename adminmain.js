@@ -281,34 +281,30 @@ function showPanel(type) {
 
 function initMainPagePanel() {
     console.log("🛠️ 메인페이지 패널 초기화 실행 시작");
+    console.log("현재 mainpageData 상태:", mainpageData); // 👈 이 로그를 찍어보세요!
 
-    setTimeout(() => {
-        const navBgInput = document.getElementById("mp-nav-bgcolor");
-        const logoTextInput = document.getElementById("mp-logo-text");
-        const mainContentInput = document.getElementById("mp-main-content");
+    const navBgInput = document.getElementById("mp-nav-bgcolor");
+    const logoTextInput = document.getElementById("mp-logo-text");
+    const mainContentInput = document.getElementById("mp-main-content");
 
-        // 1. 기본 입력 필드 채우기
-        if (navBgInput) {
-            navBgInput.value = (mainpageData && mainpageData.navBgColor) ? mainpageData.navBgColor : "rgba(3, 4, 94, 0.9)";
-        }
-        
-        if (logoTextInput) {
-            logoTextInput.value = (mainpageData && mainpageData.logoText) ? mainpageData.logoText : "";
-        }
-        
-        if (mainContentInput) {
-            mainContentInput.value = (mainpageData && mainpageData.mainContent) ? mainpageData.mainContent : "";
-            console.log("✅ mainContent 입력 완료:", mainpageData.mainContent);
-        }
+    if (navBgInput) {
+        navBgInput.value = (mainpageData && mainpageData.navBgColor) ? mainpageData.navBgColor : "rgba(3, 4, 94, 0.9)";
+    }
+    
+    if (logoTextInput) {
+        logoTextInput.value = (mainpageData && mainpageData.logoText) ? mainpageData.logoText : "";
+    }
+    
+    if (mainContentInput) {
+        mainContentInput.value = (mainpageData && mainpageData.mainContent) ? mainpageData.mainContent : "";
+    }
 
-        // 2. 네비게이션 메뉴 목록 렌더링 강제 실행
-        try {
-            renderMainPageMenuRows();
-            console.log("✅ 네비게이션 메뉴 렌더링 완료");
-        } catch (err) {
-            console.error("⚠️ 메뉴 렌더링 중 오류 발생:", err);
-        }
-    }, 150);
+    try {
+        renderMainPageMenuRows();
+    } catch (err) {
+        console.error("⚠️ 메뉴 렌더링 중 오류:", err);
+    }
+}, 150);
 }
 
 function renderMainPageMenuRows() {
