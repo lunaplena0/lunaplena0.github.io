@@ -427,24 +427,29 @@ function adjustPreviewScale() {
         return;
     }
 
-    // 💡 래퍼의 실제 렌더링된 너비를 정확하게 측정
-    const parentWidth = wrapper.clientWidth;
+    // 1. 우측 패널(부모)의 실제 가용 너비 측정
+    const parentWidth = wrapper.parentElement.clientWidth;
     if (!parentWidth || parentWidth <= 0) return;
     
     const targetWidth = 1920;
     const targetHeight = 1080;
 
-    // 현재 부모 박스 너비에 맞춘 정확한 스케일 비율 산출
+    // 2. 가로 폭에 맞춘 축소 비율 계산
     const scale = parentWidth / targetWidth;
     
+    // 3. 뷰포트에 스케일 및 원본 1920x1080 크기 적용
     viewport.style.transformOrigin = "top left";
     viewport.style.transform = `scale(${scale})`;
     viewport.style.width = `${targetWidth}px`;
     viewport.style.height = `${targetHeight}px`;
     
-    // 16:9 비율 높이를 정확히 반영하여 잘림 방지
+    // 4. ⭐ 핵심: 래퍼의 높이를 축소된 비율(scale)만큼 곱해서 정확히 줄여줌 (잘림 방지)
+    wrapper.style.width = `${parentWidth}px`;
     wrapper.style.height = `${targetHeight * scale}px`;
 }
+
+// 화면 크기가 변할 때 자동 조절되도록 이벤트 연결
+window.addEventListener('resize', adjustPreviewScale);
 
 function updateMainPageMenu(index, field, value) {
     if (mainpageData.menuItems[index]) {
