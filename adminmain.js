@@ -93,26 +93,33 @@ const adminHtmlTemplate = `
 
             <!-- 우측: 실시간 미리보기 영역 -->
             <div>
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 5px;">
                     <h4 style="color: #0077b6; margin: 0;">👁️ 실시간 미리보기</h4>
-                    <!-- 🔄 미리보기 새로고침 버튼 추가 -->
-                    <button type="button" onclick="updateMainPagePreview()" style="background-color: #0284c7; padding: 4px 10px; font-size: 12px; margin-bottom: 0;">🔄 새로고침</button>
+                    <div style="display: flex; gap: 6px;">
+                        <!-- 디바이스 비율 변경 버튼 -->
+                        <button type="button" onclick="setPreviewMode('pc')" id="btn-mode-pc" style="background-color: #0284c7; padding: 4px 8px; font-size: 11px; margin-bottom: 0;">💻 PC</button>
+                        <button type="button" onclick="setPreviewMode('mobile')" id="btn-mode-mobile" style="background-color: #64748b; padding: 4px 8px; font-size: 11px; margin-bottom: 0;">📱 모바일</button>
+                        <!-- 새로고침 버튼 -->
+                        <button type="button" onclick="updateMainPagePreview()" style="background-color: #059669; padding: 4px 8px; font-size: 11px; margin-bottom: 0;">🔄 새로고침</button>
+                    </div>
                 </div>
 
-                <div id="mp-preview-wrapper" style="border: 1px solid #cbd5e1; border-radius: 12px; overflow: hidden; background: #fff; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
-                    <!-- 미리보기 네비게이션바 -->
-                    <div id="preview-nav" style="padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; color: white; transition: background 0.2s;">
-                        <span id="preview-logo" style="font-weight: bold; font-size: 14px;">BABABI FAN ARCHIVE</span>
-                        <div id="preview-menu-links" style="display: flex; gap: 12px; font-size: 12px;"></div>
-                    </div>
-                    <!-- 미리보기 본문 -->
-                    <div id="preview-content" style="padding: 20px; min-height: 180px; font-size: 14px; color: #334155; word-break: break-all;">
-                        본문 내용이 여기에 표시됩니다.
+                <!-- 모바일 모드일 때 스마트폰처럼 보이게 감싸주는 아웃터 프레임 -->
+                <div id="mp-preview-outer" style="display: flex; justify-content: center; background: #e2e8f0; padding: 15px; border-radius: 12px; transition: all 0.3s ease;">
+                    <div id="mp-preview-wrapper" style="width: 100%; border: 1px solid #cbd5e1; border-radius: 8px; overflow: hidden; background: #fff; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); transition: width 0.3s ease;">
+                        <!-- 미리보기 네비게이션바 -->
+                        <div id="preview-nav" style="padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; color: white; transition: background 0.2s;">
+                            <span id="preview-logo" style="font-weight: bold; font-size: 14px;">BABABI FAN ARCHIVE</span>
+                            <div id="preview-menu-links" style="display: flex; gap: 12px; font-size: 12px;"></div>
+                        </div>
+                        <!-- 미리보기 본문 -->
+                        <div id="preview-content" style="padding: 20px; min-height: 180px; font-size: 14px; color: #334155; word-break: break-all;">
+                            본문 내용이 여기에 표시됩니다.
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-
+            
         <button onclick="saveMainPageSettings()" style="width: 100%; margin-top: 20px; background-color: #0077b6; padding: 14px; font-size: 16px;">메인페이지 설정 반영하기</button>
         <div id="mainpage-status" class="status-msg"></div>
     </div>
@@ -359,7 +366,29 @@ function renderMainPageMenuRows() {
         container.appendChild(row);
     });
 }
+// PC / 모바일 미리보기 비율 전환 함수
+function setPreviewMode(mode) {
+    const wrapper = document.getElementById("mp-preview-wrapper");
+    const outer = document.getElementById("mp-preview-outer");
+    const btnPc = document.getElementById("btn-mode-pc");
+    const btnMobile = document.getElementById("btn-mode-mobile");
 
+    if (!wrapper || !outer) return;
+
+    if (mode === 'mobile') {
+        // 모바일 비율 (가로 폭을 줄여서 스마트폰 세로 화면처럼 연출)
+        wrapper.style.width = "320px";
+        outer.style.background = "#334155"; // 스마트폰 케이스 느낌의 배경색
+        if (btnMobile) btnMobile.style.backgroundColor = "#0284c7";
+        if (btnPc) btnPc.style.backgroundColor = "#64748b";
+    } else {
+        // PC 비율 (꽉 찬 화면)
+        wrapper.style.width = "100%";
+        outer.style.background = "#e2e8f0";
+        if (btnPc) btnPc.style.backgroundColor = "#0284c7";
+        if (btnMobile) btnMobile.style.backgroundColor = "#64748b";
+    }
+}
 function updateMainPageMenu(index, field, value) {
     if (mainpageData.menuItems[index]) {
         mainpageData.menuItems[index][field] = value;
