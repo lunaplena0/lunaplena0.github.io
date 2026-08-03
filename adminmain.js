@@ -393,28 +393,55 @@ function removeMainPageMenu(index) {
 function updateMainPagePreview() {
     const navBg = document.getElementById("mp-nav-bgcolor")?.value.trim();
     const logoText = document.getElementById("mp-logo-text")?.value.trim();
-    const mainContent = document.getElementById("mp-main-content")?.value;
+    const mainContent = document.getElementById("mp-main-content")?.value.trim() || "";
 
+    // 1. 네비게이션바 배경 및 로고 텍스트 반영
     const previewNav = document.getElementById("preview-nav");
     const previewLogo = document.getElementById("preview-logo");
     if (previewNav) previewNav.style.backgroundColor = navBg || "rgba(3, 4, 94, 0.9)";
     if (previewLogo) previewLogo.textContent = logoText || "BABABI FAN ARCHIVE";
 
+    // 2. 메인 콘텐츠 미리보기 반영 (실제 메인페이지의 renderMainContent 로직과 동일하게 처리)
     const previewContent = document.getElementById("preview-content");
     if (previewContent) {
-        previewContent.innerHTML = mainContent || "<span style='color: #94a3b8;'>본문 내용이 여기에 표시됩니다.</span>";
+        // 미리보기 박스이므로 컨테이너 스타일 재정의 (높이 지정 등)
+        previewContent.style.padding = "0";
+        previewContent.style.background = "#fff";
+
+        if (mainContent.endsWith('.html') || mainContent.startsWith('http://') || mainContent.startsWith('https://')) {
+            previewContent.innerHTML = `
+                <iframe src="${mainContent}" style="width: 100%; height: 250px; border: none; background: white; margin: 0; display: block;"></iframe>
+            `;
+        } else if (mainContent === "") {
+            previewContent.style.padding = "20px";
+            previewContent.innerHTML = "<span style='color: #94a3b8;'>본문 내용이나 연결할 .html 파일 주소를 입력하세요.</span>";
+        } else {
+            previewContent.style.padding = "20px";
+            previewContent.innerHTML = mainContent;
+        }
     }
 
+    // 3. 네비게이션 메뉴 목록 실시간 반영
     const previewMenuLinks = document.getElementById("preview-menu-links");
     if (previewMenuLinks) {
         previewMenuLinks.innerHTML = "";
         const items = mainpageData.menuItems || [];
-        items.forEach(item => {
+        
+        if (items.length === 0) {
             const span = document.createElement("span");
-            span.textContent = item.name || "메뉴";
-            span.style.opacity = "0.9";
+            span.textContent = "메뉴 없음";
+            span.style.opacity = "0.5";
             previewMenuLinks.appendChild(span);
-        });
+        } else {
+            items.forEach(item => {
+                if (!item.name) return;
+                const a = document.createElement("a");
+                a.textContent = item.name;
+                a.href = item.url || "#";
+                a.style.cssText = "color: #90e0ef; text-decoration: none; font-size: 12px; font-weight: 600;";
+                previewMenuLinks.appendChild(a);
+            });
+        }
     }
 }
 
