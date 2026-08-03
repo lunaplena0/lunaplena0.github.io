@@ -377,7 +377,7 @@ function setPreviewMode(mode) {
     if (!wrapper || !outer || !viewport) return;
 
     if (currentPreviewMode === 'mobile') {
-        // 모바일 모드: 가상 해상도 380px 고정 (축소 없이 1:1 크기 유지)
+        // 모바일 모드: 16:9 비율 (380px × 675px)
         wrapper.style.width = "320px";
         wrapper.style.borderRadius = "24px";
         wrapper.style.boxShadow = "0 10px 25px -5px rgba(0,0,0,0.3)";
@@ -385,20 +385,24 @@ function setPreviewMode(mode) {
         outer.style.padding = "20px 10px";
         
         viewport.style.width = "380px";
+        viewport.style.height = "675px";
+        viewport.style.overflowY = "auto"; // 16:9 프레임 안에서 스크롤되도록 설정
         viewport.style.transform = "none";
-        wrapper.style.height = "auto";
+        wrapper.style.height = "675px"; // 프레임 높이 고정
         
         if (btnMobile) btnMobile.style.backgroundColor = "#0284c7";
         if (btnPc) btnPc.style.backgroundColor = "#64748b";
     } else {
-        // PC 모드: 가상 해상도 1280px 고정 후 축소
+        // PC 모드: 1920 × 1080 (16:9) 해상도 기준 후 축소
         wrapper.style.width = "100%";
         wrapper.style.borderRadius = "8px";
         wrapper.style.boxShadow = "0 4px 6px -1px rgba(0,0,0,0.1)";
         outer.style.background = "#e2e8f0";
         outer.style.padding = "15px";
 
-        viewport.style.width = "1280px";
+        viewport.style.width = "1920px";
+        viewport.style.height = "auto";
+        viewport.style.overflowY = "visible";
 
         if (btnPc) btnPc.style.backgroundColor = "#0284c7";
         if (btnMobile) btnMobile.style.backgroundColor = "#64748b";
@@ -417,15 +421,17 @@ function adjustPreviewScale() {
     if (currentPreviewMode === 'mobile') {
         viewport.style.transform = "none";
         viewport.style.width = "380px";
-        wrapper.style.height = "auto";
+        viewport.style.height = "675px";
+        wrapper.style.height = "675px";
         return;
     }
 
-    // 부모 래퍼의 실제 가용 너비 기준
+    // PC 모드 (1920x1080 기준)
     const parentWidth = wrapper.clientWidth;
-    const targetWidth = 1280;
+    const targetWidth = 1920;
+    const targetHeight = 1080;
 
-    // 스케일 비율 계산 (너비 기준 축소)
+    // 스케일 비율 계산 (1920폭 기준 축소)
     const scale = parentWidth / targetWidth;
     
     // 왼쪽 위 기준으로 축소 변형 적용
@@ -433,9 +439,8 @@ function adjustPreviewScale() {
     viewport.style.transform = `scale(${scale})`;
     viewport.style.width = `${targetWidth}px`;
     
-    // 💡 축소된 비율을 고려하여 부모 래퍼의 높이를 정확히 매칭 (하단 잘림 방지)
-    const realHeight = viewport.scrollHeight || viewport.offsetHeight;
-    wrapper.style.height = `${realHeight * scale}px`;
+    // 1920x1080 비율(16:9)에 맞게 부모 래퍼 높이도 실시간 동기화
+    wrapper.style.height = `${targetHeight * scale}px`;
 }
 
 function updateMainPageMenu(index, field, value) {
