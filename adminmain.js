@@ -13,7 +13,7 @@ let mainpageData = {
     logoText: "BABABI FAN ARCHIVE",
     mainContent: "", 
     menuItems: [],
-    memo: "" // 📌 1. 서버와 동기화될 참고용 메모 필드 추가
+    memo: "" 
 };
 
 // 🔒 로그인 성공 시 동적으로 주입할 관리자 UI 전체 HTML 템플릿
@@ -70,7 +70,7 @@ const adminHtmlTemplate = `
             <button onclick="showDashboard()" style="background-color: #64748b; padding: 6px 12px; font-size: 13px;">← 메뉴 목록으로</button>
         </div>
 
-        <!-- 📌 2. 좌우 2분할 레이아웃 (설정 입력 폼 + 영구 참고용 메모장) -->
+        <!-- 📌 좌우 2분할 레이아웃 -->
         <div style="display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap;">
             
             <!-- 왼쪽: 기존 메인페이지 설정 폼 -->
@@ -94,16 +94,19 @@ const adminHtmlTemplate = `
                 </div>
             </div>
 
-            <!-- 오른쪽: 영구 참고용 메모장 영역 -->
-            <div style="flex: 1; min-width: 250px; background: #fefce8; border: 1px solid #fde047; border-radius: 12px; padding: 15px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px dashed #facc15; padding-bottom: 8px;">
-                    <h4 style="margin: 0; color: #854d0e; font-size: 15px;">📌 참고용 메모장</h4>
-                    <span style="font-size: 12px; color: #a16207;">서버 저장됨</span>
+            <!-- 오른쪽: 수정 불가한 '읽기 전용 비밀 공지' 카드 영역 -->
+            <div style="flex: 1; min-width: 250px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 12px; padding: 15px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px;">
+                    <h4 style="margin: 0; color: #1e293b; font-size: 15px;">🔒 관리자 비밀 공지</h4>
+                    <span style="font-size: 12px; color: #0284c7; background: #e0f2fe; padding: 2px 6px; border-radius: 4px; font-weight: 500;">Read-Only</span>
                 </div>
-                <p style="font-size: 12px; color: #713f12; margin-top: 0; margin-bottom: 10px;">
-                    수정 시 참고할 내용이나 코드 초안을 적어두세요. '설정 반영하기' 시 함께 저장됩니다!
+                <p style="font-size: 12px; color: #475569; margin-top: 0; margin-bottom: 12px; line-height: 1.4;">
+                    운영진 및 권한자들을 위한 공지 및 안내사항입니다. (읽기 전용)
                 </p>
-                <textarea id="mp-memo-pad" placeholder="여기에 참고용 메모를 입력하세요..." style="width: 100%; height: 320px; background: #fffbeb; border: 1px solid #fde047; border-radius: 8px; padding: 10px; font-size: 13px; color: #422006; resize: vertical; box-sizing: border-box;"></textarea>
+                <!-- 수정이 불가능한 일반 div 박스로 변경하여 공지 내용이 깔끔하게 렌더링되도록 함 -->
+                <div id="mp-memo-notice-box" style="width: 100%; height: 320px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px; font-size: 13px; color: #0f172a; overflow-y: auto; white-space: pre-wrap; box-sizing: border-box; line-height: 1.5;">
+                    공지 내용을 불러오는 중...
+                </div>
             </div>
 
         </div>
@@ -128,7 +131,7 @@ const adminHtmlTemplate = `
             <button type="button" onclick="uploadProfileImage()" style="background-color: #0284c7; padding: 10px 16px; font-size: 13px; white-space: nowrap; margin-bottom: 0;">업로드</button>
         </div>
         <div id="image-status" style="font-size: 13px; margin-bottom: 12px; font-weight: 500; min-height: 18px;"></div>
-        
+         
         <input type="text" id="p-image" placeholder="업로드된 이미지 주소가 여기에 자동으로 입력됩니다" readonly style="background: #f1f5f9; color: #475569; font-size: 13px;">
 
         <label>캐치프레이즈 (닉네임 하단에 파란색 글씨)</label>
@@ -299,22 +302,19 @@ function showPanel(type) {
 }
 
 function initMainPagePanel(retryCount = 0) {
-    console.log("🛠️ [디버깅 시작] initMainPagePanel 실행됨, 시도 횟수:", retryCount);
-
     const navBgInput = document.getElementById("mp-nav-bgcolor");
     const logoTextInput = document.getElementById("mp-logo-text");
     const mainContentInput = document.getElementById("mp-main-content");
-    const memoInput = document.getElementById("mp-memo-pad"); // 📌 3. 메모장 요소 가져오기
+    const memoNoticeBox = document.getElementById("mp-memo-notice-box"); // 📌 읽기 전용 공지 박스
     const container = document.getElementById("mp-menu-rows-container");
 
     if (navBgInput) navBgInput.value = mainpageData.navBgColor || "";
     if (logoTextInput) logoTextInput.value = mainpageData.logoText || "";
     if (mainContentInput) mainContentInput.value = mainpageData.mainContent || "";
     
-    // 📌 4. 서버에 저장되어 있던 메모 내용 채워넣기
-    if (memoInput) {
-        memoInput.value = mainpageData.memo || "";
-        console.log("✔️ 참고용 메모 세팅 완료");
+    // 📌 서버에서 불러온 공지 내용을 읽기 전용 박스에 출력 (없으면 기본 안내 문구)
+    if (memoNoticeBox) {
+        memoNoticeBox.textContent = mainpageData.memo || "등록된 비밀 공지가 없습니다.";
     }
 
     try {
@@ -373,15 +373,12 @@ async function saveMainPageSettings() {
     const navBgInput = document.getElementById("mp-nav-bgcolor");
     const logoTextInput = document.getElementById("mp-logo-text");
     const mainContentInput = document.getElementById("mp-main-content");
-    const memoInput = document.getElementById("mp-memo-pad"); // 📌 5. 메모장 내용 읽어오기
 
     if (navBgInput) mainpageData.navBgColor = navBgInput.value.trim();
     if (logoTextInput) mainpageData.logoText = logoTextInput.value.trim();
     if (mainContentInput) mainpageData.mainContent = mainContentInput.value.trim();
     
-    // 📌 6. 메모장에 적힌 내용을 데이터 객체에 담기
-    if (memoInput) mainpageData.memo = memoInput.value;
-
+    // 💡 읽기 전용이므로 기존에 서버에서 불러왔던 `mainpageData.memo` 값을 그대로 유지한 채 전송합니다.
     await saveDataToWorker("mainpage", mainpageData, "mainpage-status");
 }
 
@@ -460,7 +457,7 @@ async function verifyAndLoad() {
                 logoUrl: data.logoUrl || "mainpages.html",
                 mainContent: data.mainContent !== undefined ? data.mainContent : "", 
                 menuItems: Array.isArray(data.menuItems) ? data.menuItems : [],
-                memo: data.memo || "" // 📌 7. 서버에서 저장된 메모 불러오기
+                memo: data.memo || "" 
             };
             window.mainpageData = mainpageData;
         }
