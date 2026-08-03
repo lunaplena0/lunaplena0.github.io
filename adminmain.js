@@ -12,7 +12,8 @@ let mainpageData = {
     navBgColor: "rgba(3, 4, 94, 0.9)",
     logoText: "BABABI FAN ARCHIVE",
     mainContent: "", 
-    menuItems: []
+    menuItems: [],
+    memo: "" // 📌 1. 서버와 동기화될 참고용 메모 필드 추가
 };
 
 // 🔒 로그인 성공 시 동적으로 주입할 관리자 UI 전체 HTML 템플릿
@@ -69,25 +70,45 @@ const adminHtmlTemplate = `
             <button onclick="showDashboard()" style="background-color: #64748b; padding: 6px 12px; font-size: 13px;">← 메뉴 목록으로</button>
         </div>
 
-        <label>네비게이션 배경 색상</label>
-        <input type="text" id="mp-nav-bgcolor" placeholder="예: rgba(3, 4, 94, 0.9)">
+        <!-- 📌 2. 좌우 2분할 레이아웃 (설정 입력 폼 + 영구 참고용 메모장) -->
+        <div style="display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap;">
+            
+            <!-- 왼쪽: 기존 메인페이지 설정 폼 -->
+            <div style="flex: 1.5; min-width: 300px;">
+                <label>네비게이션 배경 색상</label>
+                <input type="text" id="mp-nav-bgcolor" placeholder="예: rgba(3, 4, 94, 0.9)">
 
-        <label>로고 텍스트</label>
-        <input type="text" id="mp-logo-text" placeholder="예: BABABI FAN ARCHIVE">
+                <label>로고 텍스트</label>
+                <input type="text" id="mp-logo-text" placeholder="예: BABABI FAN ARCHIVE">
 
-        <label>메인페이지 첫 화면 본문/HTML 설정</label>
-        <textarea id="mp-main-content" placeholder="메인페이지 상단 본문에 노출할 텍스트나 HTML을 입력하세요" style="height: 120px; resize: vertical;"></textarea>
+                <label>메인페이지 첫 화면 본문/HTML 설정</label>
+                <textarea id="mp-main-content" placeholder="메인페이지 상단 본문에 노출할 텍스트나 HTML을 입력하세요" style="height: 120px; resize: vertical;"></textarea>
 
-        <div style="display: flex; justify-content: space-between; align-items: center; margin: 20px 0 10px 0; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;">
-            <h4 style="color: #0077b6; margin: 0;">네비게이션 메뉴 목록</h4>
-            <button type="button" onclick="addMainPageMenuRow()" style="background-color: #10b981; padding: 4px 10px; font-size: 12px;">+ 메뉴 추가</button>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin: 20px 0 10px 0; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;">
+                    <h4 style="color: #0077b6; margin: 0;">네비게이션 메뉴 목록</h4>
+                    <button type="button" onclick="addMainPageMenuRow()" style="background-color: #10b981; padding: 4px 10px; font-size: 12px;">+ 메뉴 추가</button>
+                </div>
+                
+                <div id="mp-menu-rows-container" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
+                    <!-- 동적 메뉴 행 -->
+                </div>
+            </div>
+
+            <!-- 오른쪽: 영구 참고용 메모장 영역 -->
+            <div style="flex: 1; min-width: 250px; background: #fefce8; border: 1px solid #fde047; border-radius: 12px; padding: 15px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px dashed #facc15; padding-bottom: 8px;">
+                    <h4 style="margin: 0; color: #854d0e; font-size: 15px;">📌 참고용 메모장</h4>
+                    <span style="font-size: 12px; color: #a16207;">서버 저장됨</span>
+                </div>
+                <p style="font-size: 12px; color: #713f12; margin-top: 0; margin-bottom: 10px;">
+                    수정 시 참고할 내용이나 코드 초안을 적어두세요. '설정 반영하기' 시 함께 저장됩니다!
+                </p>
+                <textarea id="mp-memo-pad" placeholder="여기에 참고용 메모를 입력하세요..." style="width: 100%; height: 320px; background: #fffbeb; border: 1px solid #fde047; border-radius: 8px; padding: 10px; font-size: 13px; color: #422006; resize: vertical; box-sizing: border-box;"></textarea>
+            </div>
+
         </div>
-        
-        <div id="mp-menu-rows-container" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
-            <!-- 동적 메뉴 행 -->
-        </div>
 
-        <button onclick="saveMainPageSettings()" style="width: 100%; margin-top: 15px; background-color: #0077b6; padding: 14px; font-size: 16px;">메인페이지 설정 반영하기</button>
+        <button onclick="saveMainPageSettings()" style="width: 100%; margin-top: 25px; background-color: #0077b6; padding: 14px; font-size: 16px;">메인페이지 설정 반영하기</button>
         <div id="mainpage-status" class="status-msg"></div>
     </div>
 
@@ -283,33 +304,22 @@ function initMainPagePanel(retryCount = 0) {
     const navBgInput = document.getElementById("mp-nav-bgcolor");
     const logoTextInput = document.getElementById("mp-logo-text");
     const mainContentInput = document.getElementById("mp-main-content");
+    const memoInput = document.getElementById("mp-memo-pad"); // 📌 3. 메모장 요소 가져오기
     const container = document.getElementById("mp-menu-rows-container");
 
-    console.log("🔍 찾은 인풋창:", mainContentInput);
-    console.log("🔍 찾은 컨테이너:", container);
-
-    if (navBgInput) {
-        navBgInput.value = mainpageData.navBgColor || "";
-        console.log("✔️ navBgColor 세팅 완료:", navBgInput.value);
-    }
-    if (logoTextInput) {
-        logoTextInput.value = mainpageData.logoText || "";
-        console.log("✔️ logoText 세팅 완료:", logoTextInput.value);
-    }
+    if (navBgInput) navBgInput.value = mainpageData.navBgColor || "";
+    if (logoTextInput) logoTextInput.value = mainpageData.logoText || "";
+    if (mainContentInput) mainContentInput.value = mainpageData.mainContent || "";
     
-    if (mainContentInput) {
-        mainContentInput.value = mainpageData.mainContent || "";
-        console.log("✅ [성공] mainContent 세팅 완료:", mainContentInput.value);
-    } else {
-        console.error("❌ 실패: mainContentInput을 찾지 못했습니다.");
+    // 📌 4. 서버에 저장되어 있던 메모 내용 채워넣기
+    if (memoInput) {
+        memoInput.value = mainpageData.memo || "";
+        console.log("✔️ 참고용 메모 세팅 완료");
     }
 
     try {
         if (typeof renderMainPageMenuRows === 'function') {
             renderMainPageMenuRows();
-            console.log("✔️ renderMainPageMenuRows 호출 성공");
-        } else {
-            console.warn("⚠️ renderMainPageMenuRows 함수가 없습니다.");
         }
     } catch (err) {
         console.error("⚠️ 메뉴 렌더링 중 에러 발생:", err);
@@ -318,15 +328,10 @@ function initMainPagePanel(retryCount = 0) {
 
 function renderMainPageMenuRows() {
     const container = document.getElementById("mp-menu-rows-container");
-    if (!container) {
-        console.warn("⚠️ mp-menu-rows-container 요소를 찾을 수 없습니다.");
-        return;
-    }
+    if (!container) return;
     
     container.innerHTML = "";
-
     const items = Array.isArray(mainpageData.menuItems) ? mainpageData.menuItems : [];
-    console.log("📋 렌더링할 메뉴 아이템 목록:", items);
 
     if (items.length === 0) {
         container.innerHTML = `<div style="color: #64748b; font-size: 13px; text-align: center; padding: 10px;">등록된 메뉴가 없습니다. '+ 메뉴 추가' 버튼을 눌러주세요.</div>`;
@@ -368,10 +373,14 @@ async function saveMainPageSettings() {
     const navBgInput = document.getElementById("mp-nav-bgcolor");
     const logoTextInput = document.getElementById("mp-logo-text");
     const mainContentInput = document.getElementById("mp-main-content");
+    const memoInput = document.getElementById("mp-memo-pad"); // 📌 5. 메모장 내용 읽어오기
 
     if (navBgInput) mainpageData.navBgColor = navBgInput.value.trim();
     if (logoTextInput) mainpageData.logoText = logoTextInput.value.trim();
     if (mainContentInput) mainpageData.mainContent = mainContentInput.value.trim();
+    
+    // 📌 6. 메모장에 적힌 내용을 데이터 객체에 담기
+    if (memoInput) mainpageData.memo = memoInput.value;
 
     await saveDataToWorker("mainpage", mainpageData, "mainpage-status");
 }
@@ -442,7 +451,7 @@ async function verifyAndLoad() {
                 linksData = [];
             }
         }
-       if (mainpageRes.ok) {
+        if (mainpageRes.ok) {
             const data = await mainpageRes.json() || {};
             
             mainpageData = {
@@ -450,7 +459,8 @@ async function verifyAndLoad() {
                 logoText: data.logoText || "BABABI FAN ARCHIVE",
                 logoUrl: data.logoUrl || "mainpages.html",
                 mainContent: data.mainContent !== undefined ? data.mainContent : "", 
-                menuItems: Array.isArray(data.menuItems) ? data.menuItems : []
+                menuItems: Array.isArray(data.menuItems) ? data.menuItems : [],
+                memo: data.memo || "" // 📌 7. 서버에서 저장된 메모 불러오기
             };
             window.mainpageData = mainpageData;
         }
@@ -458,7 +468,6 @@ async function verifyAndLoad() {
         document.getElementById("login-section").style.display = "none";
         document.getElementById("admin-app-container").innerHTML = adminHtmlTemplate;
 
-        // 💡 HTML 템플릿이 브라우저 DOM에 완전히 파싱되고 그려질 때까지 0.05초 대기 후 대시보드 노출 및 이벤트 바인딩
         setTimeout(() => {
             const cards = document.querySelectorAll('.menu-grid .menu-card');
             if (cards.length >= 4) {
@@ -466,7 +475,6 @@ async function verifyAndLoad() {
                 cards[1].onclick = () => showPanel('links');
                 cards[2].onclick = () => showPanel('songs');
                 cards[3].onclick = () => showPanel('mainpage');
-                console.log("✅ 관리자 대시보드 메뉴 버튼 이벤트 강제 바인딩 완료");
             }
             showDashboard();
         }, 50);
