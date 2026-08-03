@@ -427,22 +427,21 @@ function adjustPreviewScale() {
         return;
     }
 
-    // 실제 래퍼가 차지하는 내부 너비 측정
     const parentWidth = wrapper.clientWidth;
     if (!parentWidth) return;
     
     const targetWidth = 1920;
-    const targetHeight = 1080;
 
-    // 스케일 비율 계산
+    // 1. 스케일 비율 계산
     const scale = parentWidth / targetWidth;
     
     viewport.style.transformOrigin = "top left";
     viewport.style.transform = `scale(${scale})`;
     viewport.style.width = `${targetWidth}px`;
     
-    // 높이 동기화
-    wrapper.style.height = `${targetHeight * scale}px`;
+    // 2. 💡 핵심 수정: 뷰포트 내부 콘텐츠의 실제 높이를 가져와 스케일을 곱해 래퍼 높이 지정 (하단 여백 제거)
+    const contentHeight = viewport.scrollHeight || 1080;
+    wrapper.style.height = `${contentHeight * scale}px`;
 }
 
 // 💡 창 크기가 바뀔 때 미리보기가 깨지지 않도록 리사이즈 이벤트 등록
