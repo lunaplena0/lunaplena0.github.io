@@ -13,7 +13,7 @@ let mainpageData = {
     logoText: "BABABI FAN ARCHIVE",
     mainContent: "", 
     menuItems: [],
-    memo: "" 
+    memo: "현재 등록된 URI 목록\n프로필:profile.html\n주소모음:link.html\n노래책:songlist.html"
 };
 
 // 🔒 로그인 성공 시 동적으로 주입할 관리자 UI 전체 HTML 템플릿
@@ -312,9 +312,9 @@ function initMainPagePanel(retryCount = 0) {
     if (logoTextInput) logoTextInput.value = mainpageData.logoText || "";
     if (mainContentInput) mainContentInput.value = mainpageData.mainContent || "";
     
-    // 📌 서버에서 불러온 공지 내용을 읽기 전용 박스에 출력 (없으면 기본 안내 문구)
+    // 📌 코드에 넣어둔 memo 내용을 읽기 전용 박스에 바로 출력
     if (memoNoticeBox) {
-        memoNoticeBox.textContent = mainpageData.memo || "등록된 비밀 공지가 없습니다.";
+        memoNoticeBox.textContent = mainpageData.memo;
     }
 
     try {
