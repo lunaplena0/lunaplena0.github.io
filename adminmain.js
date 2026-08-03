@@ -290,10 +290,11 @@ function showPanel(type) {
     if (type === 'mainpage') {
         document.getElementById("panel-mainpage").style.display = "block";
         
-        // 💡 패널이 화면에 확실히 그려진 직후 데이터 주입 및 미리보기 강제 실행
+        // 💡 브라우저가 레이아웃을 완전히 그린 뒤(100ms 후) 스케일 계산 수행
         setTimeout(() => {
             initMainPagePanel();
-        }, 50);
+            adjustPreviewScale(); // 강제 재계산
+        }, 100);
 
     } else if (type === 'intro') {
         document.getElementById("panel-intro").style.display = "block";
@@ -306,7 +307,18 @@ function showPanel(type) {
         if (typeof initSongsPanel === 'function') initSongsPanel();
     }
 }
-
+// 💡 우측 미리보기 영역의 크기 변화를 실시간으로 감지하여 스케일 자동 보정
+window.addEventListener('DOMContentLoaded', () => {
+    const wrapper = document.getElementById("mp-preview-wrapper");
+    if (wrapper && window.ResizeObserver) {
+        const observer = new ResizeObserver(() => {
+            if (document.getElementById("panel-mainpage").style.display !== "none") {
+                adjustPreviewScale();
+            }
+        });
+        observer.observe(wrapper.parentElement);
+    }
+});
 function initMainPagePanel() {
     console.log("🛠️ initMainPagePanel 실행됨");
 
