@@ -69,54 +69,25 @@ const adminHtmlTemplate = `
             <button onclick="showDashboard()" style="background-color: #64748b; padding: 6px 12px; font-size: 13px;">← 메뉴 목록으로</button>
         </div>
 
-        <!-- 전체 그리드 레이아웃 (좌우 1:1 비율) -->
-        <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; align-items: start;">
-            <!-- 좌측: 입력 폼 영역 -->
-            <div style="min-width: 0;">
-                <input type="text" id="mp-nav-bgcolor" placeholder="예: rgba(3, 4, 94, 0.9)" oninput="updateMainPagePreview()" onkeyup="updateMainPagePreview()">
-                <input type="text" id="mp-logo-text" placeholder="예: BABABI FAN ARCHIVE" oninput="updateMainPagePreview()" onkeyup="updateMainPagePreview()">
-                <textarea id="mp-main-content" placeholder="메인페이지 상단 본문에 노출할 텍스트나 HTML을 입력하세요" style="height: 120px; resize: vertical;" oninput="updateMainPagePreview()" onkeyup="updateMainPagePreview()"></textarea>
+        <label>네비게이션 배경 색상</label>
+        <input type="text" id="mp-nav-bgcolor" placeholder="예: rgba(3, 4, 94, 0.9)">
 
-                <div style="display: flex; justify-content: space-between; align-items: center; margin: 20px 0 10px 0; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;">
-                    <h4 style="color: #0077b6; margin: 0;">네비게이션 메뉴 목록</h4>
-                    <button type="button" onclick="addMainPageMenuRow()" style="background-color: #10b981; padding: 4px 10px; font-size: 12px;">+ 메뉴 추가</button>
-                </div>
-                
-                <div id="mp-menu-rows-container" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;"></div>
-            </div>
+        <label>로고 텍스트</label>
+        <input type="text" id="mp-logo-text" placeholder="예: BABABI FAN ARCHIVE">
 
-            <!-- 우측: 실시간 미리보기 영역 -->
-<div style="min-width: 0; width: 100%;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 5px;">
-        <h4 style="color: #0077b6; margin: 0;">👁️ 실시간 미리보기</h4>
-        <div style="display: flex; gap: 6px;">
-            <button type="button" onclick="setPreviewMode('pc')" id="btn-mode-pc" style="background-color: #0284c7; padding: 4px 8px; font-size: 11px; margin-bottom: 0;">💻 PC</button>
-            <button type="button" onclick="setPreviewMode('mobile')" id="btn-mode-mobile" style="background-color: #64748b; padding: 4px 8px; font-size: 11px; margin-bottom: 0;">📱 모바일</button>
-            <button type="button" onclick="updateMainPagePreview()" style="background-color: #059669; padding: 4px 8px; font-size: 11px; margin-bottom: 0;">🔄 새로고침</button>
+        <label>메인페이지 첫 화면 본문/HTML 설정</label>
+        <textarea id="mp-main-content" placeholder="메인페이지 상단 본문에 노출할 텍스트나 HTML을 입력하세요" style="height: 120px; resize: vertical;"></textarea>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin: 20px 0 10px 0; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;">
+            <h4 style="color: #0077b6; margin: 0;">네비게이션 메뉴 목록</h4>
+            <button type="button" onclick="addMainPageMenuRow()" style="background-color: #10b981; padding: 4px 10px; font-size: 12px;">+ 메뉴 추가</button>
         </div>
-    </div>
-
-    <!-- 외곽 프레임 (padding을 제거하거나 최소화하여 내부 공간 확보) -->
-    <div id="mp-preview-outer" style="background: #e2e8f0; padding: 10px; border-radius: 12px; width: 100%; box-sizing: border-box;">
-        <!-- 스케일(축소)을 적용할 가상 뷰포트 래퍼 -->
-        <div id="mp-preview-wrapper" style="width: 100%; border: 1px solid #cbd5e1; border-radius: 8px; background: #fff; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); position: relative; overflow: hidden;">
-            
-            <!-- 내부 실제 컨텐츠를 담는 고정 해상도 컨테이너 -->
-            <div id="preview-viewport" style="width: 1920px; height: 1080px; transform-origin: top left; background: #fff; overflow-y: auto;">
-                <div id="preview-nav" style="padding: 16px 30px; display: flex; justify-content: space-between; align-items: center; color: white; transition: background 0.2s;">
-                    <span id="preview-logo" style="font-weight: bold; font-size: 18px;">BABABI FAN ARCHIVE</span>
-                    <div id="preview-menu-links" style="display: flex; gap: 20px; font-size: 15px; flex-wrap: wrap;"></div>
-                </div>
-                <div id="preview-content" style="padding: 30px; min-height: 250px; font-size: 16px; color: #334155; word-break: break-all;">
-                    본문 내용이 여기에 표시됩니다.
-                </div>
-            </div>
-
+        
+        <div id="mp-menu-rows-container" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
+            <!-- 동적 메뉴 행 -->
         </div>
-    </div>
-</div>
 
-        <button onclick="saveMainPageSettings()" style="width: 100%; margin-top: 20px; background-color: #0077b6; padding: 14px; font-size: 16px;">메인페이지 설정 반영하기</button>
+        <button onclick="saveMainPageSettings()" style="width: 100%; margin-top: 15px; background-color: #0077b6; padding: 14px; font-size: 16px;">메인페이지 설정 반영하기</button>
         <div id="mainpage-status" class="status-msg"></div>
     </div>
 
@@ -136,7 +107,7 @@ const adminHtmlTemplate = `
             <button type="button" onclick="uploadProfileImage()" style="background-color: #0284c7; padding: 10px 16px; font-size: 13px; white-space: nowrap; margin-bottom: 0;">업로드</button>
         </div>
         <div id="image-status" style="font-size: 13px; margin-bottom: 12px; font-weight: 500; min-height: 18px;"></div>
-         
+        
         <input type="text" id="p-image" placeholder="업로드된 이미지 주소가 여기에 자동으로 입력됩니다" readonly style="background: #f1f5f9; color: #475569; font-size: 13px;">
 
         <label>캐치프레이즈 (닉네임 하단에 파란색 글씨)</label>
@@ -289,13 +260,11 @@ function showPanel(type) {
 
     if (type === 'mainpage') {
         document.getElementById("panel-mainpage").style.display = "block";
-        
-        // 💡 브라우저가 레이아웃을 완전히 그린 뒤(100ms 후) 스케일 계산 수행
         setTimeout(() => {
-            initMainPagePanel();
-            adjustPreviewScale(); // 강제 재계산
-        }, 100);
-
+            if (typeof window.initMainPagePanel === 'function') {
+                window.initMainPagePanel();
+            }
+        }, 50);
     } else if (type === 'intro') {
         document.getElementById("panel-intro").style.display = "block";
         if (typeof initIntroPanel === 'function') initIntroPanel();
@@ -307,43 +276,44 @@ function showPanel(type) {
         if (typeof initSongsPanel === 'function') initSongsPanel();
     }
 }
-// 💡 우측 미리보기 영역의 크기 변화를 실시간으로 감지하여 스케일 자동 보정
-window.addEventListener('DOMContentLoaded', () => {
-    const wrapper = document.getElementById("mp-preview-wrapper");
-    if (wrapper && window.ResizeObserver) {
-        const observer = new ResizeObserver(() => {
-            if (document.getElementById("panel-mainpage").style.display !== "none") {
-                adjustPreviewScale();
-            }
-        });
-        observer.observe(wrapper.parentElement);
-    }
-});
-function initMainPagePanel() {
-    console.log("🛠️ initMainPagePanel 실행됨");
+
+function initMainPagePanel(retryCount = 0) {
+    console.log("🛠️ [디버깅 시작] initMainPagePanel 실행됨, 시도 횟수:", retryCount);
 
     const navBgInput = document.getElementById("mp-nav-bgcolor");
     const logoTextInput = document.getElementById("mp-logo-text");
     const mainContentInput = document.getElementById("mp-main-content");
+    const container = document.getElementById("mp-menu-rows-container");
+
+    console.log("🔍 찾은 인풋창:", mainContentInput);
+    console.log("🔍 찾은 컨테이너:", container);
 
     if (navBgInput) {
-        navBgInput.value = mainpageData.navBgColor || "rgba(3, 4, 94, 0.9)";
+        navBgInput.value = mainpageData.navBgColor || "";
+        console.log("✔️ navBgColor 세팅 완료:", navBgInput.value);
     }
     if (logoTextInput) {
-        logoTextInput.value = mainpageData.logoText || "BABABI FAN ARCHIVE";
+        logoTextInput.value = mainpageData.logoText || "";
+        console.log("✔️ logoText 세팅 완료:", logoTextInput.value);
     }
+    
     if (mainContentInput) {
         mainContentInput.value = mainpageData.mainContent || "";
+        console.log("✅ [성공] mainContent 세팅 완료:", mainContentInput.value);
+    } else {
+        console.error("❌ 실패: mainContentInput을 찾지 못했습니다.");
     }
 
     try {
-        renderMainPageMenuRows();
+        if (typeof renderMainPageMenuRows === 'function') {
+            renderMainPageMenuRows();
+            console.log("✔️ renderMainPageMenuRows 호출 성공");
+        } else {
+            console.warn("⚠️ renderMainPageMenuRows 함수가 없습니다.");
+        }
     } catch (err) {
         console.error("⚠️ 메뉴 렌더링 중 에러 발생:", err);
     }
-
-    // 💡 데이터 세팅 직후 미리보기를 강제로 한 번 그려줌
-    updateMainPagePreview();
 }
 
 function renderMainPageMenuRows() {
@@ -374,98 +344,10 @@ function renderMainPageMenuRows() {
         container.appendChild(row);
     });
 }
-// 현재 선택된 미리보기 모드 기억용 변수
-let currentPreviewMode = 'pc';
-
-// PC / 모바일 미리보기 비율 전환 및 스케일(축소) 적용 함수
-function setPreviewMode(mode) {
-    currentPreviewMode = mode || currentPreviewMode;
-    const wrapper = document.getElementById("mp-preview-wrapper");
-    const outer = document.getElementById("mp-preview-outer");
-    const viewport = document.getElementById("preview-viewport");
-    const btnPc = document.getElementById("btn-mode-pc");
-    const btnMobile = document.getElementById("btn-mode-mobile");
-
-    if (!wrapper || !outer || !viewport) return;
-
-    if (currentPreviewMode === 'mobile') {
-        // 모바일 모드: 고정 크기 세팅
-        wrapper.style.width = "320px";
-        wrapper.style.maxWidth = "100%";
-        wrapper.style.height = "675px";
-        wrapper.style.borderRadius = "24px";
-        wrapper.style.boxShadow = "0 10px 25px -5px rgba(0,0,0,0.3)";
-        outer.style.background = "#1e293b";
-        outer.style.padding = "20px 10px";
-        
-        viewport.style.width = "380px";
-        viewport.style.height = "675px";
-        viewport.style.overflowY = "auto";
-        viewport.style.transform = "none";
-        
-        if (btnMobile) btnMobile.style.backgroundColor = "#0284c7";
-        if (btnPc) btnPc.style.backgroundColor = "#64748b";
-    } else {
-        // PC 모드
-        wrapper.style.borderRadius = "8px";
-        wrapper.style.boxShadow = "0 4px 6px -1px rgba(0,0,0,0.1)";
-        outer.style.background = "#e2e8f0";
-        outer.style.padding = "15px";
-
-        viewport.style.width = "1920px";
-        viewport.style.height = "1080px";
-        viewport.style.overflowY = "auto";
-
-        if (btnPc) btnPc.style.backgroundColor = "#0284c7";
-        if (btnMobile) btnMobile.style.backgroundColor = "#64748b";
-    }
-
-    setTimeout(adjustPreviewScale, 30);
-}
-
-function adjustPreviewScale() {
-    const wrapper = document.getElementById("mp-preview-wrapper");
-    const viewport = document.getElementById("preview-viewport");
-    if (!wrapper || !viewport) return;
-
-    if (currentPreviewMode === 'mobile') {
-        viewport.style.transform = "none";
-        viewport.style.width = "380px";
-        viewport.style.height = "675px";
-        wrapper.style.width = "320px";
-        wrapper.style.height = "675px";
-        return;
-    }
-
-    // 1. 부모 컨테이너(우측 그리드 칸)의 정확한 너비 측정
-    const parentContainer = wrapper.parentElement;
-    const parentWidth = parentContainer.clientWidth;
-    if (!parentWidth || parentWidth <= 0) return;
-    
-    const targetWidth = 1920;
-    const targetHeight = 1080;
-
-    // 2. 가로 폭에 맞춘 축소 비율 계산 (좌우 여백 고려하여 패딩 제외 너비 확보)
-    const scale = parentWidth / targetWidth;
-    
-    // 3. 뷰포트에 스케일 적용
-    viewport.style.transformOrigin = "top left";
-    viewport.style.transform = `scale(${scale})`;
-    viewport.style.width = `${targetWidth}px`;
-    viewport.style.height = `${targetHeight}px`;
-    
-    // 4. 래퍼(Wrapper) 크기를 축소된 비율에 맞춰 동적으로 잠금 (이 부분이 잘림 및 유령 스크롤 방지)
-    wrapper.style.width = `${parentWidth}px`;
-    wrapper.style.height = `${targetHeight * scale}px`;
-}
-
-// 화면 크기가 변할 때 자동 조절되도록 이벤트 연결
-window.addEventListener('resize', adjustPreviewScale);
 
 function updateMainPageMenu(index, field, value) {
     if (mainpageData.menuItems[index]) {
         mainpageData.menuItems[index][field] = value;
-        updateMainPagePreview();
     }
 }
 
@@ -473,72 +355,13 @@ function addMainPageMenuRow() {
     if (!Array.isArray(mainpageData.menuItems)) mainpageData.menuItems = [];
     mainpageData.menuItems.push({ name: "", url: "" });
     renderMainPageMenuRows();
-    updateMainPagePreview();
 }
 
 function removeMainPageMenu(index) {
     if (mainpageData.menuItems) {
         mainpageData.menuItems.splice(index, 1);
         renderMainPageMenuRows();
-        updateMainPagePreview();
     }
-}
-
-function updateMainPagePreview() {
-    const navBg = document.getElementById("mp-nav-bgcolor")?.value.trim();
-    const logoText = document.getElementById("mp-logo-text")?.value.trim();
-    const mainContent = document.getElementById("mp-main-content")?.value.trim() || "";
-
-    // 1. 네비게이션바 배경 및 로고 텍스트 반영
-    const previewNav = document.getElementById("preview-nav");
-    const previewLogo = document.getElementById("preview-logo");
-    if (previewNav) previewNav.style.backgroundColor = navBg || "rgba(3, 4, 94, 0.9)";
-    if (previewLogo) previewLogo.textContent = logoText || "BABABI FAN ARCHIVE";
-
-    // 2. 메인 콘텐츠 미리보기 반영
-    const previewContent = document.getElementById("preview-content");
-    if (previewContent) {
-        previewContent.style.padding = "0";
-        previewContent.style.background = "#fff";
-
-        if (mainContent.endsWith('.html') || mainContent.startsWith('http://') || mainContent.startsWith('https://')) {
-            previewContent.innerHTML = `
-                <iframe src="${mainContent}" style="width: 100%; height: 250px; border: none; background: white; margin: 0; display: block;"></iframe>
-            `;
-        } else if (mainContent === "") {
-            previewContent.style.padding = "20px";
-            previewContent.innerHTML = "<span style='color: #94a3b8;'>본문 내용이나 연결할 .html 파일 주소를 입력하세요.</span>";
-        } else {
-            previewContent.style.padding = "20px";
-            previewContent.innerHTML = mainContent;
-        }
-    }
-
-    // 3. 네비게이션 메뉴 목록 실시간 반영
-    const previewMenuLinks = document.getElementById("preview-menu-links");
-    if (previewMenuLinks) {
-        previewMenuLinks.innerHTML = "";
-        const items = mainpageData.menuItems || [];
-
-        if (items.length === 0) {
-            const span = document.createElement("span");
-            span.textContent = "메뉴 없음";
-            span.style.opacity = "0.5";
-            previewMenuLinks.appendChild(span);
-        } else {
-            items.forEach(item => {
-                if (!item.name) return;
-                const a = document.createElement("a");
-                a.textContent = item.name;
-                a.href = item.url || "#";
-                a.style.cssText = "color: #90e0ef; text-decoration: none; font-size: 12px; font-weight: 600;";
-                previewMenuLinks.appendChild(a);
-            });
-        }
-    }
-
-    // 💡 미리보기 내용과 메뉴가 모두 그려진 직후 스케일 및 높이 재계산 실행
-    setTimeout(adjustPreviewScale, 30);
 }
 
 async function saveMainPageSettings() {
@@ -635,7 +458,7 @@ async function verifyAndLoad() {
         document.getElementById("login-section").style.display = "none";
         document.getElementById("admin-app-container").innerHTML = adminHtmlTemplate;
 
-        // 💡 템플릿 주입 후 대시보드 메뉴 클릭 이벤트 바인딩 및 초기 대시보드 노출
+        // 💡 HTML 템플릿이 브라우저 DOM에 완전히 파싱되고 그려질 때까지 0.05초 대기 후 대시보드 노출 및 이벤트 바인딩
         setTimeout(() => {
             const cards = document.querySelectorAll('.menu-grid .menu-card');
             if (cards.length >= 4) {
@@ -645,9 +468,6 @@ async function verifyAndLoad() {
                 cards[3].onclick = () => showPanel('mainpage');
                 console.log("✅ 관리자 대시보드 메뉴 버튼 이벤트 강제 바인딩 완료");
             }
-            
-            // 최초 로그인 시에는 메인 대시보드만 깔끔하게 보여줍니다.
-            // (데이터 채우기와 미리보기 초기화는 사용자가 '메인페이지 수정' 카드를 클릭해 패널을 열 때 showPanel에서 실행됩니다.)
             showDashboard();
         }, 50);
         
