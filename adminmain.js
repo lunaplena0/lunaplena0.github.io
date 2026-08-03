@@ -541,7 +541,7 @@ async function verifyAndLoad() {
         document.getElementById("login-section").style.display = "none";
         document.getElementById("admin-app-container").innerHTML = adminHtmlTemplate;
 
-        // 💡 HTML 템플릿이 DOM에 완전히 생성된 직후, 기존 데이터를 인풋창에 채우고 미리보기를 미리 초기화합니다!
+        // 💡 템플릿 주입 후 대시보드 메뉴 클릭 이벤트 바인딩 및 초기 대시보드 노출
         setTimeout(() => {
             const cards = document.querySelectorAll('.menu-grid .menu-card');
             if (cards.length >= 4) {
@@ -552,11 +552,8 @@ async function verifyAndLoad() {
                 console.log("✅ 관리자 대시보드 메뉴 버튼 이벤트 강제 바인딩 완료");
             }
             
-            // ✨ 여기에 추가: 미리보기와 인풋창을 초기 데이터로 즉시 세팅
-            if (typeof initMainPagePanel === 'function') {
-                initMainPagePanel();
-            }
-
+            // 최초 로그인 시에는 메인 대시보드만 깔끔하게 보여줍니다.
+            // (데이터 채우기와 미리보기 초기화는 사용자가 '메인페이지 수정' 카드를 클릭해 패널을 열 때 showPanel에서 실행됩니다.)
             showDashboard();
         }, 50);
         
