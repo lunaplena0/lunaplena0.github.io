@@ -12,8 +12,7 @@ let mainpageData = {
     navBgColor: "rgba(3, 4, 94, 0.9)",
     logoText: "BABABI FAN ARCHIVE",
     mainContent: "", 
-    menuItems: [],
-    memo: "현재 등록된 URI 목록\n프로필:profile.html\n주소모음:link.html\n노래책:songlist.html"
+    menuItems: []
 };
 
 // 🔒 로그인 성공 시 동적으로 주입할 관리자 UI 전체 HTML 템플릿
@@ -97,11 +96,11 @@ const adminHtmlTemplate = `
             <!-- 오른쪽: 수정 불가한 '읽기 전용 비밀 공지' 카드 영역 -->
             <div style="flex: 1; min-width: 250px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 12px; padding: 15px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03);">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px;">
-                    <h4 style="margin: 0; color: #1e293b; font-size: 15px;">🔒 관리자 비밀 공지</h4>
+                    <h4 style="margin: 0; color: #1e293b; font-size: 15px;">페이지 관련 공지</h4>
                     <span style="font-size: 12px; color: #0284c7; background: #e0f2fe; padding: 2px 6px; border-radius: 4px; font-weight: 500;">Read-Only</span>
                 </div>
                 <p style="font-size: 12px; color: #475569; margin-top: 0; margin-bottom: 12px; line-height: 1.4;">
-                    운영진 및 권한자들을 위한 공지 및 안내사항입니다. (읽기 전용)
+                    페이지 관련 공지(읽기 전용)
                 </p>
                 <!-- 수정이 불가능한 일반 div 박스로 변경하여 공지 내용이 깔끔하게 렌더링되도록 함 -->
                 <div id="mp-memo-notice-box" style="width: 100%; height: 320px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px; font-size: 13px; color: #0f172a; overflow-y: auto; white-space: pre-wrap; box-sizing: border-box; line-height: 1.5; text-align: center;">
