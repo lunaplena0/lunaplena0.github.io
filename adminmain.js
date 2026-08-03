@@ -446,13 +446,6 @@ function adjustPreviewScale() {
     wrapper.style.height = `${targetHeight * scale}px`;
 }
 
-// 💡 창 크기가 바뀔 때 미리보기가 깨지지 않도록 리사이즈 이벤트 등록
-window.addEventListener('resize', () => {
-    if (document.getElementById("panel-mainpage")?.style.display === "block") {
-        adjustPreviewScale();
-    }
-});
-
 function updateMainPageMenu(index, field, value) {
     if (mainpageData.menuItems[index]) {
         mainpageData.menuItems[index][field] = value;
