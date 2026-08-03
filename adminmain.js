@@ -96,19 +96,25 @@ const adminHtmlTemplate = `
                     </div>
                 </div>
 
-                <div id="mp-preview-outer" style="display: flex; justify-content: center; background: #e2e8f0; padding: 15px; border-radius: 12px; transition: all 0.3s ease; overflow: hidden; width: 100%; box-sizing: border-box;">
-                    <div id="mp-preview-wrapper" style="width: 100%; border: 1px solid #cbd5e1; border-radius: 8px; overflow: hidden; background: #fff; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); transition: all 0.3s ease;">
-                        <div id="preview-nav" style="padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; color: white; transition: background 0.2s;">
-                            <span id="preview-logo" style="font-weight: bold; font-size: 14px;">BABABI FAN ARCHIVE</span>
-                            <div id="preview-menu-links" style="display: flex; gap: 12px; font-size: 12px; flex-wrap: wrap;"></div>
+                <!-- 외곽 프레임 -->
+                <div id="mp-preview-outer" style="display: flex; justify-content: center; background: #e2e8f0; padding: 15px; border-radius: 12px; transition: all 0.3s ease; width: 100%; box-sizing: border-box; overflow: hidden;">
+                    <!-- 스케일(축소)을 적용할 가상 뷰포트 래퍼 -->
+                    <div id="mp-preview-wrapper" style="width: 100%; max-width: 100%; border: 1px solid #cbd5e1; border-radius: 8px; overflow: hidden; background: #fff; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); transition: all 0.3s ease; position: relative;">
+                        
+                        <!-- 내부 실제 컨텐츠를 담는 고정 해상도 컨테이너 (JS에서 width와 transform scale 제어) -->
+                        <div id="preview-viewport" style="width: 1280px; transform-origin: top left; background: #fff;">
+                            <div id="preview-nav" style="padding: 16px 30px; display: flex; justify-content: space-between; align-items: center; color: white; transition: background 0.2s;">
+                                <span id="preview-logo" style="font-weight: bold; font-size: 18px;">BABABI FAN ARCHIVE</span>
+                                <div id="preview-menu-links" style="display: flex; gap: 20px; font-size: 15px; flex-wrap: wrap;"></div>
+                            </div>
+                            <div id="preview-content" style="padding: 30px; min-height: 250px; font-size: 16px; color: #334155; word-break: break-all;">
+                                본문 내용이 여기에 표시됩니다.
+                            </div>
                         </div>
-                        <div id="preview-content" style="padding: 20px; min-height: 180px; font-size: 14px; color: #334155; word-break: break-all;">
-                            본문 내용이 여기에 표시됩니다.
-                        </div>
+
                     </div>
                 </div>
             </div>
-        </div>
 
         <button onclick="saveMainPageSettings()" style="width: 100%; margin-top: 20px; background-color: #0077b6; padding: 14px; font-size: 16px;">메인페이지 설정 반영하기</button>
         <div id="mainpage-status" class="status-msg"></div>
@@ -356,38 +362,75 @@ function renderMainPageMenuRows() {
         container.appendChild(row);
     });
 }
-// PC / 모바일 미리보기 비율 전환 함수
+// 현재 선택된 미리보기 모드 기억용 변수
+let currentPreviewMode = 'pc';
+
+// PC / 모바일 미리보기 비율 전환 및 스케일(축소) 적용 함수
 function setPreviewMode(mode) {
+    currentPreviewMode = mode || currentPreviewMode;
     const wrapper = document.getElementById("mp-preview-wrapper");
     const outer = document.getElementById("mp-preview-outer");
+    const viewport = document.getElementById("preview-viewport");
     const btnPc = document.getElementById("btn-mode-pc");
     const btnMobile = document.getElementById("btn-mode-mobile");
 
-    if (!wrapper || !outer) return;
+    if (!wrapper || !outer || !viewport) return;
 
-    if (mode === 'mobile') {
-        // 모바일 비율 (스마트폰 세로 화면 크기: 380px)
-        wrapper.style.width = "380px";
-        wrapper.style.maxWidth = "380px";
+    if (currentPreviewMode === 'mobile') {
+        // 모바일 모드: 가상 해상도 380px 고정
+        wrapper.style.width = "320px"; // 화면에 보여질 박스 폭
         wrapper.style.borderRadius = "24px";
         wrapper.style.boxShadow = "0 10px 25px -5px rgba(0,0,0,0.3)";
         outer.style.background = "#1e293b";
         outer.style.padding = "20px 10px";
         
+        viewport.style.width = "380px"; // 실제 모바일 레이아웃 기준 해상도
+        
         if (btnMobile) btnMobile.style.backgroundColor = "#0284c7";
         if (btnPc) btnPc.style.backgroundColor = "#64748b";
     } else {
-        // PC 비율 (컴퓨터 화면 브라우저 창 크기 느낌으로 고정: 예시 860px)
-        wrapper.style.width = "860px";
-        wrapper.style.maxWidth = "100%"; // 화면이 너무 작아지면 꽉 차게 대응
+        // PC 모드: 가상 해상도 1280px 고정 (넓은 PC 화면 레이아웃 유지)
+        wrapper.style.width = "100%"; // 우측 패널 공간에 맞춤
         wrapper.style.borderRadius = "8px";
         wrapper.style.boxShadow = "0 4px 6px -1px rgba(0,0,0,0.1)";
         outer.style.background = "#e2e8f0";
         outer.style.padding = "15px";
 
+        viewport.style.width = "1280px"; // 실제 PC 레이아웃 기준 해상도
+
         if (btnPc) btnPc.style.backgroundColor = "#0284c7";
         if (btnMobile) btnMobile.style.backgroundColor = "#64748b";
     }
+
+    // 컨테이너 크기에 맞춰 뷰포트 스케일 자동 조절 계산
+    setTimeout(adjustPreviewScale, 50);
+}
+
+// 부모 박스 크기에 맞춰 가상 뷰포트 축소 비율(Scale) 계산 함수
+function adjustPreviewScale() {
+    const wrapper = document.getElementById("mp-preview-wrapper");
+    const viewport = document.getElementById("preview-viewport");
+    if (!wrapper || !viewport) return;
+
+    const parentWidth = wrapper.clientWidth;
+    const targetWidth = currentPreviewMode === 'mobile' ? 380 : 1280;
+
+    // 모바일 모드일 때는 scale이 필요 없으므로 1배율 고정
+    if (currentPreviewMode === 'mobile') {
+        viewport.style.transform = "none";
+        viewport.style.width = "380px";
+        wrapper.style.height = "auto";
+        return;
+    }
+
+    // PC 모드일 때 부모 박스보다 가상 해상도가 크면 비율에 맞게 축소
+    const scale = parentWidth / targetWidth;
+    viewport.style.transform = `scale(${scale})`;
+    viewport.style.width = `${targetWidth}px`;
+    
+    // 축소된 만큼 부모 래퍼의 높이도 가변적으로 맞춰줌
+    const renderedHeight = viewport.offsetHeight;
+    wrapper.style.height = `${renderedHeight * scale}px`;
 }
 
 function updateMainPageMenu(index, field, value) {
