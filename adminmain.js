@@ -389,9 +389,10 @@ function setPreviewMode(mode) {
     if (!wrapper || !outer || !viewport) return;
 
     if (currentPreviewMode === 'mobile') {
-        // 모바일 모드: 16:9 비율 (380px × 675px)
+        // 모바일 모드: 고정 크기 세팅
         wrapper.style.width = "320px";
         wrapper.style.maxWidth = "100%";
+        wrapper.style.height = "675px";
         wrapper.style.borderRadius = "24px";
         wrapper.style.boxShadow = "0 10px 25px -5px rgba(0,0,0,0.3)";
         outer.style.background = "#1e293b";
@@ -401,22 +402,19 @@ function setPreviewMode(mode) {
         viewport.style.height = "675px";
         viewport.style.overflowY = "auto";
         viewport.style.transform = "none";
-        wrapper.style.height = "675px";
         
         if (btnMobile) btnMobile.style.backgroundColor = "#0284c7";
         if (btnPc) btnPc.style.backgroundColor = "#64748b";
     } else {
-        // PC 모드: 1920 × 1080 (16:9) 고정 프레임
-        wrapper.style.width = "100%";
-        wrapper.style.maxWidth = "100%";
+        // PC 모드
         wrapper.style.borderRadius = "8px";
         wrapper.style.boxShadow = "0 4px 6px -1px rgba(0,0,0,0.1)";
         outer.style.background = "#e2e8f0";
         outer.style.padding = "15px";
 
         viewport.style.width = "1920px";
-        viewport.style.height = "1080px"; // 💡 1080px 높이 고정 (16:9 비율 유지)
-        viewport.style.overflowY = "auto"; // 💡 1080px를 넘어가면 내부 스크롤바 생성
+        viewport.style.height = "1080px";
+        viewport.style.overflowY = "auto";
 
         if (btnPc) btnPc.style.backgroundColor = "#0284c7";
         if (btnMobile) btnMobile.style.backgroundColor = "#64748b";
@@ -439,23 +437,24 @@ function adjustPreviewScale() {
         return;
     }
 
-    // 1. 우측 패널(부모)의 실제 가용 너비 측정
-    const parentWidth = wrapper.parentElement.clientWidth;
+    // 1. 부모 컨테이너(우측 그리드 칸)의 정확한 너비 측정
+    const parentContainer = wrapper.parentElement;
+    const parentWidth = parentContainer.clientWidth;
     if (!parentWidth || parentWidth <= 0) return;
     
     const targetWidth = 1920;
     const targetHeight = 1080;
 
-    // 2. 가로 폭에 맞춘 축소 비율 계산
+    // 2. 가로 폭에 맞춘 축소 비율 계산 (좌우 여백 고려하여 패딩 제외 너비 확보)
     const scale = parentWidth / targetWidth;
     
-    // 3. 뷰포트에 스케일 및 원본 1920x1080 크기 적용
+    // 3. 뷰포트에 스케일 적용
     viewport.style.transformOrigin = "top left";
     viewport.style.transform = `scale(${scale})`;
     viewport.style.width = `${targetWidth}px`;
     viewport.style.height = `${targetHeight}px`;
     
-    // 4. ⭐ 핵심: 래퍼의 높이를 축소된 비율(scale)만큼 곱해서 정확히 줄여줌 (잘림 방지)
+    // 4. 래퍼(Wrapper) 크기를 축소된 비율에 맞춰 동적으로 잠금 (이 부분이 잘림 및 유령 스크롤 방지)
     wrapper.style.width = `${parentWidth}px`;
     wrapper.style.height = `${targetHeight * scale}px`;
 }
