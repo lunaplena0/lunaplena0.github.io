@@ -69,16 +69,12 @@ const adminHtmlTemplate = `
             <button onclick="showDashboard()" style="background-color: #64748b; padding: 6px 12px; font-size: 13px;">← 메뉴 목록으로</button>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start;">
+        <!-- 전체 그리드 레이아웃 (좌우 1:1 비율) -->
+        <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; align-items: start;">
             <!-- 좌측: 입력 폼 영역 -->
-            <div>
-                <!-- 네비게이션 배경 색상 -->
+            <div style="min-width: 0;">
                 <input type="text" id="mp-nav-bgcolor" placeholder="예: rgba(3, 4, 94, 0.9)" oninput="updateMainPagePreview()" onkeyup="updateMainPagePreview()">
-
-                <!-- 로고 텍스트 -->
                 <input type="text" id="mp-logo-text" placeholder="예: BABABI FAN ARCHIVE" oninput="updateMainPagePreview()" onkeyup="updateMainPagePreview()">
-
-                <!-- 메인페이지 첫 화면 본문/HTML 설정 -->
                 <textarea id="mp-main-content" placeholder="메인페이지 상단 본문에 노출할 텍스트나 HTML을 입력하세요" style="height: 120px; resize: vertical;" oninput="updateMainPagePreview()" onkeyup="updateMainPagePreview()"></textarea>
 
                 <div style="display: flex; justify-content: space-between; align-items: center; margin: 20px 0 10px 0; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;">
@@ -86,41 +82,34 @@ const adminHtmlTemplate = `
                     <button type="button" onclick="addMainPageMenuRow()" style="background-color: #10b981; padding: 4px 10px; font-size: 12px;">+ 메뉴 추가</button>
                 </div>
                 
-                <div id="mp-menu-rows-container" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
-                    <!-- 동적 메뉴 행 -->
-                </div>
+                <div id="mp-menu-rows-container" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;"></div>
             </div>
 
             <!-- 우측: 실시간 미리보기 영역 -->
-            <div>
+            <div style="min-width: 0;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 5px;">
                     <h4 style="color: #0077b6; margin: 0;">👁️ 실시간 미리보기</h4>
                     <div style="display: flex; gap: 6px;">
-                        <!-- 디바이스 비율 변경 버튼 -->
                         <button type="button" onclick="setPreviewMode('pc')" id="btn-mode-pc" style="background-color: #0284c7; padding: 4px 8px; font-size: 11px; margin-bottom: 0;">💻 PC</button>
                         <button type="button" onclick="setPreviewMode('mobile')" id="btn-mode-mobile" style="background-color: #64748b; padding: 4px 8px; font-size: 11px; margin-bottom: 0;">📱 모바일</button>
-                        <!-- 새로고침 버튼 -->
                         <button type="button" onclick="updateMainPagePreview()" style="background-color: #059669; padding: 4px 8px; font-size: 11px; margin-bottom: 0;">🔄 새로고침</button>
                     </div>
                 </div>
 
-                <!-- 모바일 모드 시 스마트폰 프레임 느낌을 주는 아우터 -->
-                <div id="mp-preview-outer" style="display: flex; justify-content: center; background: #e2e8f0; padding: 15px; border-radius: 12px; transition: all 0.3s ease; overflow: hidden;">
-                    <!-- 실제 컨텐츠를 담는 래퍼 (모바일 시 고정 폭 380px 설정) -->
+                <div id="mp-preview-outer" style="display: flex; justify-content: center; background: #e2e8f0; padding: 15px; border-radius: 12px; transition: all 0.3s ease; overflow: hidden; width: 100%; box-sizing: border-box;">
                     <div id="mp-preview-wrapper" style="width: 100%; border: 1px solid #cbd5e1; border-radius: 8px; overflow: hidden; background: #fff; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); transition: all 0.3s ease;">
-                        <!-- 미리보기 네비게이션바 -->
                         <div id="preview-nav" style="padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; color: white; transition: background 0.2s;">
                             <span id="preview-logo" style="font-weight: bold; font-size: 14px;">BABABI FAN ARCHIVE</span>
                             <div id="preview-menu-links" style="display: flex; gap: 12px; font-size: 12px; flex-wrap: wrap;"></div>
                         </div>
-                        <!-- 미리보기 본문 -->
                         <div id="preview-content" style="padding: 20px; min-height: 180px; font-size: 14px; color: #334155; word-break: break-all;">
                             본문 내용이 여기에 표시됩니다.
                         </div>
                     </div>
                 </div>
             </div>
-            
+        </div>
+
         <button onclick="saveMainPageSettings()" style="width: 100%; margin-top: 20px; background-color: #0077b6; padding: 14px; font-size: 16px;">메인페이지 설정 반영하기</button>
         <div id="mainpage-status" class="status-msg"></div>
     </div>
@@ -377,18 +366,18 @@ function setPreviewMode(mode) {
     if (!wrapper || !outer) return;
 
     if (mode === 'mobile') {
-        // 모바일 비율: 스마트폰 화면처럼 보이도록 폭을 380px로 고정하고 배경색을 다크하게 설정
+        // 모바일 비율: 스마트폰 세로 화면 크기 (380px)
         wrapper.style.width = "380px";
         wrapper.style.maxWidth = "380px";
-        wrapper.style.borderRadius = "24px"; // 스마트폰 모서리 느낌
+        wrapper.style.borderRadius = "24px";
         wrapper.style.boxShadow = "0 10px 25px -5px rgba(0,0,0,0.3)";
-        outer.style.background = "#1e293b"; // 다크한 외곽 프레임 배경
+        outer.style.background = "#1e293b";
         outer.style.padding = "20px 10px";
         
         if (btnMobile) btnMobile.style.backgroundColor = "#0284c7";
         if (btnPc) btnPc.style.backgroundColor = "#64748b";
     } else {
-        // PC 비율: 꽉 찬 화면
+        // PC 비율: 우측 패널 공간에 꽉 차게 100%
         wrapper.style.width = "100%";
         wrapper.style.maxWidth = "none";
         wrapper.style.borderRadius = "8px";
