@@ -104,9 +104,9 @@ const adminHtmlTemplate = `
                     운영진 및 권한자들을 위한 공지 및 안내사항입니다. (읽기 전용)
                 </p>
                 <!-- 수정이 불가능한 일반 div 박스로 변경하여 공지 내용이 깔끔하게 렌더링되도록 함 -->
-                <div id="mp-memo-notice-box" style="width: 100%; height: 320px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px; font-size: 13px; color: #0f172a; overflow-y: auto; white-space: pre-wrap; box-sizing: border-box; line-height: 1.5;">
-                    현재 등록된 URI 목록\n프로필:profile.html\n주소모음:link.html\n노래책:songlist.html
-                </div>
+                <div id="mp-memo-notice-box" style="width: 100%; height: 320px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px; font-size: 13px; color: #0f172a; overflow-y: auto; white-space: pre-wrap; box-sizing: border-box; line-height: 1.5; text-align: center;">
+    현재 등록된 URI 목록\n프로필:profile.html\n주소모음:link.html\n노래책:songlist.html
+</div>
             </div>
 
         </div>
