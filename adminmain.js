@@ -104,13 +104,14 @@ const adminHtmlTemplate = `
                     </div>
                 </div>
 
-                <!-- 모바일 모드일 때 스마트폰처럼 보이게 감싸주는 아웃터 프레임 -->
-                <div id="mp-preview-outer" style="display: flex; justify-content: center; background: #e2e8f0; padding: 15px; border-radius: 12px; transition: all 0.3s ease;">
-                    <div id="mp-preview-wrapper" style="width: 100%; border: 1px solid #cbd5e1; border-radius: 8px; overflow: hidden; background: #fff; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); transition: width 0.3s ease;">
+                <!-- 모바일 모드 시 스마트폰 프레임 느낌을 주는 아우터 -->
+                <div id="mp-preview-outer" style="display: flex; justify-content: center; background: #e2e8f0; padding: 15px; border-radius: 12px; transition: all 0.3s ease; overflow: hidden;">
+                    <!-- 실제 컨텐츠를 담는 래퍼 (모바일 시 고정 폭 380px 설정) -->
+                    <div id="mp-preview-wrapper" style="width: 100%; border: 1px solid #cbd5e1; border-radius: 8px; overflow: hidden; background: #fff; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); transition: all 0.3s ease;">
                         <!-- 미리보기 네비게이션바 -->
                         <div id="preview-nav" style="padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; color: white; transition: background 0.2s;">
                             <span id="preview-logo" style="font-weight: bold; font-size: 14px;">BABABI FAN ARCHIVE</span>
-                            <div id="preview-menu-links" style="display: flex; gap: 12px; font-size: 12px;"></div>
+                            <div id="preview-menu-links" style="display: flex; gap: 12px; font-size: 12px; flex-wrap: wrap;"></div>
                         </div>
                         <!-- 미리보기 본문 -->
                         <div id="preview-content" style="padding: 20px; min-height: 180px; font-size: 14px; color: #334155; word-break: break-all;">
