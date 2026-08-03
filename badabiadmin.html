@@ -172,6 +172,11 @@
 
             <form id="mainpage-form">
                 <div>
+                    <label for="admin-password">관리자 비밀번호</label>
+                    <input type="password" id="admin-password" placeholder="관리자 비밀번호를 입력하세요">
+                </div>
+
+                <div>
                     <label for="nav-bg-color">네비게이션 배경 색상</label>
                     <input type="text" id="nav-bg-color" placeholder="예: rgba(3, 4, 94, 0.9) 또는 #03045e">
                 </div>
@@ -226,7 +231,6 @@
 
             try {
                 const timestamp = new Date().getTime();
-                // type을 fanmainpages로 요청
                 const response = await fetch(WORKER_URL + "?type=fanmainpages&t=" + timestamp);
                 if (!response.ok) {
                     throw new Error("서버 응답 실패");
@@ -277,6 +281,13 @@
         async function saveMainPageSettings() {
             const statusEl = document.getElementById('save-status');
             
+            const password = document.getElementById('admin-password').value.trim();
+            if (!password) {
+                statusEl.textContent = "관리자 비밀번호를 입력해주세요.";
+                statusEl.style.color = "#ef4444";
+                return;
+            }
+
             const navBgColor = document.getElementById('nav-bg-color').value.trim();
             const logoText = document.getElementById('logo-text').value.trim();
             const mainContent = document.getElementById('main-content').value.trim();
@@ -292,13 +303,16 @@
                 }
             });
 
-            // type을 fanmainpages로 설정하여 전송
+            // 워커가 요구하는 양식(password, fileType, content)으로 전송
             const payload = {
-                type: "fanmainpages",
-                navBgColor,
-                logoText,
-                menuItems,
-                mainContent
+                password: password,
+                fileType: "fanmainpages",
+                content: {
+                    navBgColor,
+                    logoText,
+                    menuItems,
+                    mainContent
+                }
             };
 
             statusEl.textContent = "저장 중...";
@@ -313,15 +327,17 @@
                     body: JSON.stringify(payload)
                 });
 
-                if (response.ok) {
+                const result = await response.json();
+
+                if (response.ok && result.success) {
                     statusEl.textContent = "성공적으로 저장되었습니다!";
                     statusEl.style.color = "#10b981";
                 } else {
-                    throw new Error("저장 실패");
+                    throw new Error(result.error || "저장 실패");
                 }
             } catch (err) {
                 console.error("저장 오류:", err);
-                statusEl.textContent = "저장 중 오류가 발생했습니다.";
+                statusEl.textContent = "저장 오류: " + err.message;
                 statusEl.style.color = "#ef4444";
             }
         }
