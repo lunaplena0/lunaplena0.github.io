@@ -281,12 +281,10 @@ function showPanel(type) {
     if (type === 'mainpage') {
         document.getElementById("panel-mainpage").style.display = "block";
         
-        // 💡 패널이 화면에 확실히 나타난 직후(display: block 상태) 데이터를 채우고 미리보기 실행
+        // 💡 패널이 화면에 확실히 그려진 직후 데이터 주입 및 미리보기 강제 실행
         setTimeout(() => {
-            if (typeof initMainPagePanel === 'function') {
-                initMainPagePanel();
-            }
-        }, 10);
+            initMainPagePanel();
+        }, 50);
 
     } else if (type === 'intro') {
         document.getElementById("panel-intro").style.display = "block";
@@ -300,44 +298,30 @@ function showPanel(type) {
     }
 }
 
-function initMainPagePanel(retryCount = 0) {
-    console.log("🛠️ [디버깅 시작] initMainPagePanel 실행됨, 시도 횟수:", retryCount);
+function initMainPagePanel() {
+    console.log("🛠️ initMainPagePanel 실행됨");
 
     const navBgInput = document.getElementById("mp-nav-bgcolor");
     const logoTextInput = document.getElementById("mp-logo-text");
     const mainContentInput = document.getElementById("mp-main-content");
-    const container = document.getElementById("mp-menu-rows-container");
-
-    console.log("🔍 찾은 인풋창:", mainContentInput);
-    console.log("🔍 찾은 컨테이너:", container);
 
     if (navBgInput) {
-        navBgInput.value = mainpageData.navBgColor || "";
-        console.log("✔️ navBgColor 세팅 완료:", navBgInput.value);
+        navBgInput.value = mainpageData.navBgColor || "rgba(3, 4, 94, 0.9)";
     }
     if (logoTextInput) {
-        logoTextInput.value = mainpageData.logoText || "";
-        console.log("✔️ logoText 세팅 완료:", logoTextInput.value);
+        logoTextInput.value = mainpageData.logoText || "BABABI FAN ARCHIVE";
     }
-    
     if (mainContentInput) {
         mainContentInput.value = mainpageData.mainContent || "";
-        console.log("✅ [성공] mainContent 세팅 완료:", mainContentInput.value);
-    } else {
-        console.error("❌ 실패: mainContentInput을 찾지 못했습니다.");
     }
 
     try {
-        if (typeof renderMainPageMenuRows === 'function') {
-            renderMainPageMenuRows();
-            console.log("✔️ renderMainPageMenuRows 호출 성공");
-        } else {
-            console.warn("⚠️ renderMainPageMenuRows 함수가 없습니다.");
-        }
+        renderMainPageMenuRows();
     } catch (err) {
         console.error("⚠️ 메뉴 렌더링 중 에러 발생:", err);
     }
 
+    // 💡 데이터 세팅 직후 미리보기를 강제로 한 번 그려줌
     updateMainPagePreview();
 }
 
