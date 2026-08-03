@@ -466,10 +466,9 @@ function updateMainPagePreview() {
     if (previewNav) previewNav.style.backgroundColor = navBg || "rgba(3, 4, 94, 0.9)";
     if (previewLogo) previewLogo.textContent = logoText || "BABABI FAN ARCHIVE";
 
-    // 2. 메인 콘텐츠 미리보기 반영 (실제 메인페이지의 renderMainContent 로직과 동일하게 처리)
+    // 2. 메인 콘텐츠 미리보기 반영
     const previewContent = document.getElementById("preview-content");
     if (previewContent) {
-        // 미리보기 박스이므로 컨테이너 스타일 재정의 (높이 지정 등)
         previewContent.style.padding = "0";
         previewContent.style.background = "#fff";
 
@@ -479,19 +478,22 @@ function updateMainPagePreview() {
             `;
         } else if (mainContent === "") {
             previewContent.style.padding = "20px";
-            previewContent.innerHTML = "<span style='color: #94a3b8;'>본문 내용이나 연결할 .html 파일 주소를 입력하세요.</span>";
+            previewContent.style.innerHTML = "<span style='color: #94a3b8;'>본문 내용이나 연결할 .html 파일 주소를 입력하세요.</span>";
         } else {
             previewContent.style.padding = "20px";
             previewContent.innerHTML = mainContent;
         }
-    }
+    } // <- 이 괄호(if문 닫기)가 누락되지 않았는지 확인해주세요!
+
+    // 💡 미리보기 렌더링이 모두 끝난 직후 스케일 및 높이 재계산 실행
+    setTimeout(adjustPreviewScale, 30);
 
     // 3. 네비게이션 메뉴 목록 실시간 반영
     const previewMenuLinks = document.getElementById("preview-menu-links");
     if (previewMenuLinks) {
         previewMenuLinks.innerHTML = "";
         const items = mainpageData.menuItems || [];
-        
+
         if (items.length === 0) {
             const span = document.createElement("span");
             span.textContent = "메뉴 없음";
