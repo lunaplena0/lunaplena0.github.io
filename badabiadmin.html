@@ -88,7 +88,6 @@
         .menu-card h4 { margin: 0 0 8px 0; color: #03045e; font-size: 18px; }
         .menu-card p { margin: 0; color: #64748b; font-size: 13px; }
         
-        /* 비활성화된 빈 칸 카드 스타일 */
         .menu-card.empty {
             background: #f1f5f9;
             border-color: #e2e8f0;
@@ -233,17 +232,20 @@
                 const response = await fetch(WORKER_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ password: password, action: "verify" })
+                    body: JSON.stringify({ 
+                        password: password, 
+                        action: "verify",
+                        fileType: "verify" 
+                    })
                 });
 
-                const result = await response.json();
-
-                if (response.ok && result.success) {
-                    document.getElementById('login-section').style.display = 'none';
-                    document.getElementById('admin-app-container').style.display = 'block';
-                } else {
-                    throw new Error(result.error || "비밀번호가 틀렸습니다.");
+                if (!response.ok) {
+                    const errResult = await response.json();
+                    throw new Error(errResult.error || "비밀번호가 틀렸습니다.");
                 }
+
+                document.getElementById('login-section').style.display = 'none';
+                document.getElementById('admin-app-container').style.display = 'block';
             } catch (err) {
                 console.error("인증 실패:", err);
                 statusEl.textContent = err.message || "비밀번호가 올바르지 않습니다.";
@@ -366,7 +368,7 @@
 
                 const result = await response.json();
 
-                if (response.ok && result.success) {
+                if (response.ok) {
                     statusEl.textContent = "성공적으로 저장되었습니다!";
                     statusEl.style.color = "#10b981";
                 } else {
