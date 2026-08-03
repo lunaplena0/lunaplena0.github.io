@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>바다비 메인페이지</title>
+    <!-- Noto Sans KR 폰트 불러오기 -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;900&display=swap" rel="stylesheet">
     <style>
         /* 전체 페이지 기본 설정: 세로 정렬 및 배경 색상 지정 */
         body {
@@ -14,10 +16,11 @@
             flex-direction: column;
             background-color: #f4f7f9;
             overflow-x: hidden;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Noto Sans KR', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #2b2d42;
         }
 
-        /* 상단 네비게이션 바 스타일: 고정 및 블러 효과 적용 */
+        /* 상단 네비게이션 바 스타일: 고정 및 블러 효과 적용 (기본값 설정 후 JS로 동적 변경 가능) */
         .marine-nav {
             position: sticky;
             top: 0;
@@ -29,6 +32,7 @@
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             box-sizing: border-box;
             padding: 12px 24px;
+            transition: background 0.3s ease;
         }
 
         /* 네비게이션바 내부 컨테이너 정렬 */
@@ -43,7 +47,7 @@
         /* 네비게이션 로고 스타일 */
         .nav-logo {
             font-weight: 900;
-            font-size: 14px;
+            font-size: 15px;
             letter-spacing: 2px;
             color: #caf0f8;
             text-decoration: none;
@@ -65,8 +69,8 @@
             text-decoration: none;
             font-size: 13px;
             font-weight: 600;
-            transition: color 0.2s ease;
-            padding: 5px 5px;
+            transition: color 0.2s ease, background 0.2s ease;
+            padding: 5px 8px;
             border-radius: 6px;
             cursor: pointer;
         }
@@ -76,31 +80,118 @@
             background: rgba(255, 255, 255, 0.1);
         }
 
-        /* 메인 콘텐츠 영역 (여백을 없애고 꽉 차도록 설정) */
+        /* 메인 콘텐츠 영역 */
         .main-content-container {
             flex: 1;
-            width: 100vw;
-            margin: 0;
-            padding: 0;
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 24px;
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
+        }
+
+        /* 로딩 상태 표시 */
+        .loading-text {
+            text-align: center;
+            color: #64748b;
+            margin-top: 50px;
+            font-size: 15px;
         }
     </style>
 </head>
 <body>
 
     <!-- 상단 네비게이션 바 -->
-    <nav class="marine-nav">
+    <nav class="marine-nav" id="marine-nav-bar">
         <div class="nav-container">
-            <a href="#" class="nav-logo" id="default-home-link"></a>
-            <ul class="nav-links"></ul>
+            <a href="#" class="nav-logo" id="default-home-link">바다비 아카이브</a>
+            <ul class="nav-links" id="nav-links-container">
+                <!-- 동적 메뉴가 여기에 생성됩니다 -->
+            </ul>
         </div>
     </nav>
 
     <!-- 메인 콘텐츠 영역 -->
-    <div class="main-content-container">
+    <div class="main-content-container" id="main-content-area">
+        <div class="loading-text">데이터를 불러오는 중입니다...</div>
     </div>
 
+    <script>
+        const WORKER_URL = "https://badabi-api.dalkkumli054.workers.dev/";
+
+        // 페이지가 로드될 때 서버에서 메인페이지 설정 데이터를 불러와 적용
+        async function loadMainPageData() {
+            const contentArea = document.getElementById('main-content-area');
+            const navBar = document.getElementById('marine-nav-bar');
+            const logoEl = document.getElementById('default-home-link');
+            const navLinksContainer = document.getElementById('nav-links-container');
+
+            try {
+                const timestamp = new Date().getTime();
+                const response = await fetch(WORKER_URL + "?type=fanmainpages&t=" + timestamp);
+                
+                if (!response.ok) {
+                    throw new Error("서버에서 데이터를 불러오지 못했습니다.");
+                }
+
+                const data = await response.json();
+
+                if (data) {
+                    // 1. 네비게이션 배경 색상 적용
+                    if (data.navBgColor) {
+                        navBar.style.background = data.navBgColor;
+                    }
+
+                    // 2. 로고 텍스트 및 링크 적용
+                    if (data.logoText) {
+                        logoEl.textContent = data.logoText;
+                    }
+                    logoEl.onclick = (e) => {
+                        e.preventDefault();
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                    };
+
+                    // 3. 네비게이션 메뉴 목록 동적 생성
+                    navLinksContainer.innerHTML = "";
+                    if (Array.isArray(data.menuItems) && data.menuItems.length > 0) {
+                        data.menuItems.forEach(item => {
+                            const li = document.createElement('li');
+                            const a = document.createElement('a');
+                            a.textContent = item.name;
+                            a.href = item.url ? item.url : "#";
+                            li.appendChild(a);
+                            navLinksContainer.appendChild(li);
+                        });
+                    }
+
+                    // 4. 메인 콘텐츠 본문 설정 적용 (HTML 태그 허용 혹은 일반 텍스트)
+                    if (data.mainContent) {
+                        // HTML 태그가 포함되어 있을 수 있으므로 innerHTML 사용
+                        contentArea.innerHTML = data.mainContent;
+                    } else {
+                        contentArea.innerHTML = `
+                            <div style="background: #fff; padding: 40px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0, 119, 190, 0.08); text-align: center;">
+                                <h1 style="color: #03045e; margin-top: 0;">환영합니다!</h1>
+                                <p style="color: #64748b; font-size: 16px;">등록된 메인페이지 본문 내용이 없습니다. 관리자 페이지에서 설정을 완료해주세요.</p>
+                            </div>
+                        `;
+                    }
+                }
+            } catch (err) {
+                console.error("데이터 로드 오류:", err);
+                contentArea.innerHTML = `
+                    <div style="background: #fff; padding: 40px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0, 119, 190, 0.08); text-align: center;">
+                        <h2 style="color: #ef4444; margin-top: 0;">데이터를 불러오지 못했습니다</h2>
+                        <p style="color: #64748b; font-size: 14px;">네트워크 상태를 확인하거나 잠시 후 다시 시도해주세요.</p>
+                    </div>
+                `;
+            }
+        }
+
+        // 실행
+        loadMainPageData();
+    </script>
 </body>
 </html>
