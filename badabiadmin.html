@@ -25,7 +25,7 @@
             border: 1px solid rgba(0, 119, 190, 0.15);
         }
         label { display: block; margin-bottom: 8px; font-weight: 700; color: #0077b6; }
-        input[type="text"], input[type="password"], textarea {
+        input[type="text"], input[type="password"], textarea, select {
             width: 100%;
             padding: 12px;
             border: 1px solid rgba(0, 119, 190, 0.25);
@@ -36,7 +36,7 @@
             background: #fafbfc;
             font-family: 'Noto Sans KR', sans-serif;
         }
-        #archive-input, .profile-textarea { height: 240px; resize: vertical; }
+        textarea { height: 120px; resize: vertical; }
         
         button {
             background-color: #0077b6;
@@ -57,6 +57,13 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
         
+        .secondary-btn {
+            background-color: #64748b;
+        }
+        .secondary-btn:hover {
+            background-color: #475569;
+        }
+
         .menu-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -95,55 +102,21 @@
             box-shadow: none;
         }
 
-        .archive-table-container {
-            max-height: 500px;
-            overflow-y: auto;
-            border: 1px solid #cbd5e1;
-            border-radius: 8px;
-            background: #fff;
-            margin-bottom: 15px;
+        .menu-item-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: center;
         }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            text-align: left;
+        .menu-item-row input {
+            margin-bottom: 0;
+        }
+        .delete-item-btn {
+            background-color: #ef4444;
+            padding: 12px 15px;
             font-size: 14px;
         }
-        th, td {
-            padding: 12px 15px;
-            border-bottom: 1px solid #e2e8f0;
-        }
-        th {
-            background-color: #f8fafc;
-            color: #0f172a;
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
-        tr:hover { background-color: #f1f5f9; }
-        
-        .delete-btn { background-color: #ef4444; padding: 5px 10px; font-size: 12px; }
-        .delete-btn:hover { background-color: #dc2626; }
-        .edit-btn { background-color: #0284c7; padding: 5px 10px; font-size: 12px; margin-right: 5px; }
-        .edit-btn:hover { background-color: #02689c; }
-        
-        #edit-modal {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5);
-            justify-content: center;
-            align-items: center;
-            z-index: 100;
-        }
-        .modal-content {
-            background: white;
-            padding: 30px;
-            border-radius: 12px;
-            width: 90%;
-            max-width: 500px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
-        }
+        .delete-item-btn:hover { background-color: #dc2626; }
 
         .status-msg { margin-top: 15px; font-weight: 700; font-size: 14px; }
     </style>
@@ -152,15 +125,16 @@
 
     <h2>바다비아카이브 관리 페이지</h2>
 
-    <!-- 관리 대시보드 및 3개씩 2줄(총 6개) 메뉴 그리드 영역 -->
+    <!-- 관리 대시보드 및 설정 폼 컨테이너 -->
     <div id="admin-app-container">
-        <div class="card">
+        <!-- 1. 대시보드 메인 화면 (기본 노출) -->
+        <div id="dashboard-view" class="card">
             <h3>📂 아카이브 관리 대시보드</h3>
             <p style="color: #64748b; font-size: 14px; margin-bottom: 15px;">관리할 메뉴를 선택해주세요.</p>
             
             <div class="menu-grid">
                 <!-- 1행 -->
-                <div class="menu-card" onclick="location.href='#'">
+                <div class="menu-card" onclick="showMainPageSettings()">
                     <h4>메인페이지 관리</h4>
                     <p>메인 화면 설정 및 관리</p>
                 </div>
@@ -188,9 +162,169 @@
                 </div>
             </div>
         </div>
+
+        <!-- 2. 메인페이지 설정 화면 (기본 숨김) -->
+        <div id="mainpage-settings-view" class="card" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid rgba(0, 119, 190, 0.2); padding-bottom: 10px; margin-bottom: 20px;">
+                <h3 style="margin: 0; color: #03045e;">🖥️ 메인페이지 설정</h3>
+                <button type="button" class="secondary-btn" onclick="showDashboard()">대시보드로 돌아가기</button>
+            </div>
+
+            <form id="mainpage-form">
+                <div>
+                    <label for="nav-bg-color">네비게이션 배경 색상</label>
+                    <input type="text" id="nav-bg-color" placeholder="예: rgba(3, 4, 94, 0.9) 또는 #03045e">
+                </div>
+
+                <div>
+                    <label for="logo-text">네비게이션바 로고 글씨</label>
+                    <input type="text" id="logo-text" placeholder="예: BABABI FAN ARCHIVE">
+                </div>
+
+                <div>
+                    <label>네비게이션 메뉴 설정</label>
+                    <div id="menu-items-container">
+                        <!-- 동적으로 메뉴 입력 행 추가 영역 -->
+                    </div>
+                    <button type="button" onclick="addMenuItemRow()" style="background-color: #10b981; margin-bottom: 20px;">+ 메뉴 추가</button>
+                </div>
+
+                <div>
+                    <label for="main-content">메인메뉴 설정 (초기 본문 HTML 또는 주소)</label>
+                    <textarea id="main-content" placeholder="HTML 코드 혹은 연결할 .html 파일 주소를 입력하세요"></textarea>
+                </div>
+
+                <div style="display: flex; gap: 10px;">
+                    <button type="button" onclick="saveMainPageSettings()">설정 저장</button>
+                    <button type="button" class="secondary-btn" onclick="loadMainPageSettingsData()">불러오기 / 새로고침</button>
+                </div>
+                <div id="save-status" class="status-msg"></div>
+            </form>
+        </div>
     </div>
 
-    <script src="archive-admin.js"></script>
+    <script>
+        const WORKER_URL = "https://badabi-api.dalkkumli054.workers.dev/";
+
+        // 화면 전환 함수
+        function showMainPageSettings() {
+            document.getElementById('dashboard-view').style.display = 'none';
+            document.getElementById('mainpage-settings-view').style.display = 'block';
+            loadMainPageSettingsData();
+        }
+
+        function showDashboard() {
+            document.getElementById('mainpage-settings-view').style.display = 'none';
+            document.getElementById('dashboard-view').style.display = 'block';
+        }
+
+        // 서버에서 기존 메인페이지 설정 데이터 불러오기
+        async function loadMainPageSettingsData() {
+            const statusEl = document.getElementById('save-status');
+            statusEl.textContent = "데이터를 불러오는 중...";
+            statusEl.style.color = "#0077b6";
+
+            try {
+                const timestamp = new Date().getTime();
+                const response = await fetch(WORKER_URL + "?type=mainpage&t=" + timestamp);
+                if (!response.ok) {
+                    throw new Error("서버 응답 실패");
+                }
+                
+                const data = await response.json();
+                if (data) {
+                    document.getElementById('nav-bg-color').value = data.navBgColor || "";
+                    document.getElementById('logo-text').value = data.logoText || "";
+                    document.getElementById('main-content').value = data.mainContent || "";
+
+                    // 메뉴 아이템 렌더링
+                    const container = document.getElementById('menu-items-container');
+                    container.innerHTML = "";
+                    if (Array.isArray(data.menuItems) && data.menuItems.length > 0) {
+                        data.menuItems.forEach(item => {
+                            addMenuItemRow(item.name, item.url);
+                        });
+                    } else {
+                        addMenuItemRow(); // 최소 1개 기본 생성
+                    }
+                }
+                statusEl.textContent = "데이터를 성공적으로 불러왔습니다.";
+                statusEl.style.color = "#10b981";
+            } catch (err) {
+                console.error("불러오기 실패:", err);
+                statusEl.textContent = "데이터를 불러오지 못했습니다. (기본값 사용)";
+                statusEl.style.color = "#ef4444";
+                // 실패 시 빈 행 하나 추가
+                const container = document.getElementById('menu-items-container');
+                if (container.children.length === 0) addMenuItemRow();
+            }
+        }
+
+        // 메뉴 입력 행 동적 추가 함수
+        function addMenuItemRow(name = "", url = "") {
+            const container = document.getElementById('menu-items-container');
+            const row = document.createElement('div');
+            row.className = 'menu-item-row';
+            row.innerHTML = `
+                <input type="text" placeholder="메뉴 이름" class="menu-name-input" value="${name}" style="flex: 1;">
+                <input type="text" placeholder="연결 주소 (URL 또는 .html)" class="menu-url-input" value="${url}" style="flex: 2;">
+                <button type="button" class="delete-item-btn" onclick="this.parentElement.remove()">삭제</button>
+            `;
+            container.appendChild(row);
+        }
+
+        // 설정 저장 함수
+        async function saveMainPageSettings() {
+            const statusEl = document.getElementById('save-status');
+            
+            const navBgColor = document.getElementById('nav-bg-color').value.trim();
+            const logoText = document.getElementById('logo-text').value.trim();
+            const mainContent = document.getElementById('main-content').value.trim();
+
+            // 메뉴 리스트 수집
+            const menuItems = [];
+            const rows = document.querySelectorAll('.menu-item-row');
+            rows.forEach(row => {
+                const name = row.querySelector('.menu-name-input').value.trim();
+                const url = row.querySelector('.menu-url-input').value.trim();
+                if (name) {
+                    menuItems.push({ name, url });
+                }
+            });
+
+            const payload = {
+                type: "mainpage",
+                navBgColor,
+                logoText,
+                menuItems,
+                mainContent
+            };
+
+            statusEl.textContent = "저장 중...";
+            statusEl.style.color = "#0077b6";
+
+            try {
+                const response = await fetch(WORKER_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.ok) {
+                    statusEl.textContent = "성공적으로 저장되었습니다!";
+                    statusEl.style.color = "#10b981";
+                } else {
+                    throw new Error("저장 실패");
+                }
+            } catch (err) {
+                console.error("저장 오류:", err);
+                statusEl.textContent = "저장 중 오류가 발생했습니다.";
+                statusEl.style.color = "#ef4444";
+            }
+        }
+    </script>
     
     <!-- 푸터 영역 -->
     <footer style="text-align: center; padding: 20px 10px; color: #718096; font-size: 11px; border-top: 1px solid rgba(0, 119, 190, 0.12); margin-top: 20px; width: 100%; box-sizing: border-box;">
