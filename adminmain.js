@@ -86,35 +86,35 @@ const adminHtmlTemplate = `
             </div>
 
             <!-- 우측: 실시간 미리보기 영역 -->
-            <div style="min-width: 0;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 5px;">
-                    <h4 style="color: #0077b6; margin: 0;">👁️ 실시간 미리보기</h4>
-                    <div style="display: flex; gap: 6px;">
-                        <button type="button" onclick="setPreviewMode('pc')" id="btn-mode-pc" style="background-color: #0284c7; padding: 4px 8px; font-size: 11px; margin-bottom: 0;">💻 PC</button>
-                        <button type="button" onclick="setPreviewMode('mobile')" id="btn-mode-mobile" style="background-color: #64748b; padding: 4px 8px; font-size: 11px; margin-bottom: 0;">📱 모바일</button>
-                        <button type="button" onclick="updateMainPagePreview()" style="background-color: #059669; padding: 4px 8px; font-size: 11px; margin-bottom: 0;">🔄 새로고침</button>
-                    </div>
-                </div>
-
-               <!-- 외곽 프레임 -->
-<div id="mp-preview-outer" style="display: flex; justify-content: center; align-items: flex-start; background: #e2e8f0; padding: 15px; border-radius: 12px; transition: all 0.3s ease; width: 100%; box-sizing: border-box; overflow: auto;">
-    <!-- 스케일(축소)을 적용할 가상 뷰포트 래퍼 -->
-    <div id="mp-preview-wrapper" style="width: 100%; max-width: 100%; border: 1px solid #cbd5e1; border-radius: 8px; background: #fff; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); transition: all 0.3s ease; position: relative; flex-shrink: 0;">
-        
-        <!-- 내부 실제 컨텐츠를 담는 고정 해상도 컨테이너 -->
-        <div id="preview-viewport" style="width: 1920px; height: 1080px; transform-origin: top left; background: #fff; overflow-y: auto;">
-            <div id="preview-nav" style="padding: 16px 30px; display: flex; justify-content: space-between; align-items: center; color: white; transition: background 0.2s;">
-                <span id="preview-logo" style="font-weight: bold; font-size: 18px;">BABABI FAN ARCHIVE</span>
-                <div id="preview-menu-links" style="display: flex; gap: 20px; font-size: 15px; flex-wrap: wrap;"></div>
-            </div>
-            <div id="preview-content" style="padding: 30px; min-height: 250px; font-size: 16px; color: #334155; word-break: break-all;">
-                본문 내용이 여기에 표시됩니다.
-            </div>
+<div style="min-width: 0; width: 100%;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 5px;">
+        <h4 style="color: #0077b6; margin: 0;">👁️ 실시간 미리보기</h4>
+        <div style="display: flex; gap: 6px;">
+            <button type="button" onclick="setPreviewMode('pc')" id="btn-mode-pc" style="background-color: #0284c7; padding: 4px 8px; font-size: 11px; margin-bottom: 0;">💻 PC</button>
+            <button type="button" onclick="setPreviewMode('mobile')" id="btn-mode-mobile" style="background-color: #64748b; padding: 4px 8px; font-size: 11px; margin-bottom: 0;">📱 모바일</button>
+            <button type="button" onclick="updateMainPagePreview()" style="background-color: #059669; padding: 4px 8px; font-size: 11px; margin-bottom: 0;">🔄 새로고침</button>
         </div>
+    </div>
 
+    <!-- 외곽 프레임 (padding을 제거하거나 최소화하여 내부 공간 확보) -->
+    <div id="mp-preview-outer" style="background: #e2e8f0; padding: 10px; border-radius: 12px; width: 100%; box-sizing: border-box;">
+        <!-- 스케일(축소)을 적용할 가상 뷰포트 래퍼 -->
+        <div id="mp-preview-wrapper" style="width: 100%; border: 1px solid #cbd5e1; border-radius: 8px; background: #fff; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); position: relative; overflow: hidden;">
+            
+            <!-- 내부 실제 컨텐츠를 담는 고정 해상도 컨테이너 -->
+            <div id="preview-viewport" style="width: 1920px; height: 1080px; transform-origin: top left; background: #fff; overflow-y: auto;">
+                <div id="preview-nav" style="padding: 16px 30px; display: flex; justify-content: space-between; align-items: center; color: white; transition: background 0.2s;">
+                    <span id="preview-logo" style="font-weight: bold; font-size: 18px;">BABABI FAN ARCHIVE</span>
+                    <div id="preview-menu-links" style="display: flex; gap: 20px; font-size: 15px; flex-wrap: wrap;"></div>
+                </div>
+                <div id="preview-content" style="padding: 30px; min-height: 250px; font-size: 16px; color: #334155; word-break: break-all;">
+                    본문 내용이 여기에 표시됩니다.
+                </div>
+            </div>
+
+        </div>
     </div>
 </div>
-            </div>
 
         <button onclick="saveMainPageSettings()" style="width: 100%; margin-top: 20px; background-color: #0077b6; padding: 14px; font-size: 16px;">메인페이지 설정 반영하기</button>
         <div id="mainpage-status" class="status-msg"></div>
@@ -413,7 +413,6 @@ function setPreviewMode(mode) {
     setTimeout(adjustPreviewScale, 30);
 }
 
-// 부모 박스 크기에 맞춰 가상 뷰포트 축소 비율(Scale) 및 높이 계산 함수
 function adjustPreviewScale() {
     const wrapper = document.getElementById("mp-preview-wrapper");
     const viewport = document.getElementById("preview-viewport");
@@ -428,15 +427,14 @@ function adjustPreviewScale() {
         return;
     }
 
-    // 부모 카드의 실제 가용 너비 기준 측정 (패널 안쪽의 실제 공간)
-    const parentContainer = wrapper.parentElement;
-    const parentWidth = parentContainer ? parentContainer.clientWidth - 30 : wrapper.clientWidth;
+    // 💡 래퍼의 실제 렌더링된 너비를 정확하게 측정
+    const parentWidth = wrapper.clientWidth;
     if (!parentWidth || parentWidth <= 0) return;
     
     const targetWidth = 1920;
     const targetHeight = 1080;
 
-    // 스케일 비율 계산
+    // 현재 부모 박스 너비에 맞춘 정확한 스케일 비율 산출
     const scale = parentWidth / targetWidth;
     
     viewport.style.transformOrigin = "top left";
@@ -444,8 +442,7 @@ function adjustPreviewScale() {
     viewport.style.width = `${targetWidth}px`;
     viewport.style.height = `${targetHeight}px`;
     
-    // 래퍼 자체의 크기를 16:9 비율에 맞춰 정확히 고정
-    wrapper.style.width = `${parentWidth}px`;
+    // 16:9 비율 높이를 정확히 반영하여 잘림 방지
     wrapper.style.height = `${targetHeight * scale}px`;
 }
 
