@@ -166,7 +166,7 @@
         <!-- 2. 메인페이지 설정 화면 (기본 숨김) -->
         <div id="mainpage-settings-view" class="card" style="display: none;">
             <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid rgba(0, 119, 190, 0.2); padding-bottom: 10px; margin-bottom: 20px;">
-                <h3 style="margin: 0; color: #03045e;">🖥️ 메인페이지 설정</h3>
+                <h3 style="margin: 0; color: #03045e;">🖥️ 메인페이지 설정 (fanmainpages)</h3>
                 <button type="button" class="secondary-btn" onclick="showDashboard()">대시보드로 돌아가기</button>
             </div>
 
@@ -218,7 +218,7 @@
             document.getElementById('dashboard-view').style.display = 'block';
         }
 
-        // 서버에서 기존 메인페이지 설정 데이터 불러오기
+        // 서버에서 fanmainpages 설정 데이터 불러오기 (GET)
         async function loadMainPageSettingsData() {
             const statusEl = document.getElementById('save-status');
             statusEl.textContent = "데이터를 불러오는 중...";
@@ -226,7 +226,8 @@
 
             try {
                 const timestamp = new Date().getTime();
-                const response = await fetch(WORKER_URL + "?type=mainpage&t=" + timestamp);
+                // type을 fanmainpages로 요청
+                const response = await fetch(WORKER_URL + "?type=fanmainpages&t=" + timestamp);
                 if (!response.ok) {
                     throw new Error("서버 응답 실패");
                 }
@@ -254,7 +255,6 @@
                 console.error("불러오기 실패:", err);
                 statusEl.textContent = "데이터를 불러오지 못했습니다. (기본값 사용)";
                 statusEl.style.color = "#ef4444";
-                // 실패 시 빈 행 하나 추가
                 const container = document.getElementById('menu-items-container');
                 if (container.children.length === 0) addMenuItemRow();
             }
@@ -273,7 +273,7 @@
             container.appendChild(row);
         }
 
-        // 설정 저장 함수
+        // 설정 저장 함수 (POST)
         async function saveMainPageSettings() {
             const statusEl = document.getElementById('save-status');
             
@@ -292,8 +292,9 @@
                 }
             });
 
+            // type을 fanmainpages로 설정하여 전송
             const payload = {
-                type: "mainpage",
+                type: "fanmainpages",
                 navBgColor,
                 logoText,
                 menuItems,
