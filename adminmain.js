@@ -72,14 +72,14 @@ const adminHtmlTemplate = `
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start;">
             <!-- 좌측: 입력 폼 영역 -->
             <div>
-               <!-- 네비게이션 배경 색상 -->
-<input type="text" id="mp-nav-bgcolor" placeholder="예: rgba(3, 4, 94, 0.9)" oninput="updateMainPagePreview()" onkeyup="updateMainPagePreview()">
+                <!-- 네비게이션 배경 색상 -->
+                <input type="text" id="mp-nav-bgcolor" placeholder="예: rgba(3, 4, 94, 0.9)" oninput="updateMainPagePreview()" onkeyup="updateMainPagePreview()">
 
-<!-- 로고 텍스트 -->
-<input type="text" id="mp-logo-text" placeholder="예: BABABI FAN ARCHIVE" oninput="updateMainPagePreview()" onkeyup="updateMainPagePreview()">
+                <!-- 로고 텍스트 -->
+                <input type="text" id="mp-logo-text" placeholder="예: BABABI FAN ARCHIVE" oninput="updateMainPagePreview()" onkeyup="updateMainPagePreview()">
 
-<!-- 메인페이지 첫 화면 본문/HTML 설정 -->
-<textarea id="mp-main-content" placeholder="메인페이지 상단 본문에 노출할 텍스트나 HTML을 입력하세요" style="height: 120px; resize: vertical;" oninput="updateMainPagePreview()" onkeyup="updateMainPagePreview()"></textarea>
+                <!-- 메인페이지 첫 화면 본문/HTML 설정 -->
+                <textarea id="mp-main-content" placeholder="메인페이지 상단 본문에 노출할 텍스트나 HTML을 입력하세요" style="height: 120px; resize: vertical;" oninput="updateMainPagePreview()" onkeyup="updateMainPagePreview()"></textarea>
 
                 <div style="display: flex; justify-content: space-between; align-items: center; margin: 20px 0 10px 0; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;">
                     <h4 style="color: #0077b6; margin: 0;">네비게이션 메뉴 목록</h4>
@@ -93,7 +93,12 @@ const adminHtmlTemplate = `
 
             <!-- 우측: 실시간 미리보기 영역 -->
             <div>
-                <h4 style="color: #0077b6; margin-top: 0; margin-bottom: 10px;">👁️ 실시간 미리보기</h4>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <h4 style="color: #0077b6; margin: 0;">👁️ 실시간 미리보기</h4>
+                    <!-- 🔄 미리보기 새로고침 버튼 추가 -->
+                    <button type="button" onclick="updateMainPagePreview()" style="background-color: #0284c7; padding: 4px 10px; font-size: 12px; margin-bottom: 0;">🔄 새로고침</button>
+                </div>
+
                 <div id="mp-preview-wrapper" style="border: 1px solid #cbd5e1; border-radius: 12px; overflow: hidden; background: #fff; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
                     <!-- 미리보기 네비게이션바 -->
                     <div id="preview-nav" style="padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; color: white; transition: background 0.2s;">
