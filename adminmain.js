@@ -377,19 +377,30 @@ function setPreviewMode(mode) {
     if (!wrapper || !outer) return;
 
     if (mode === 'mobile') {
-        // 모바일 비율 (가로 폭을 줄여서 스마트폰 세로 화면처럼 연출)
-        wrapper.style.width = "320px";
-        outer.style.background = "#334155"; // 스마트폰 케이스 느낌의 배경색
+        // 모바일 비율: 스마트폰 화면처럼 보이도록 폭을 380px로 고정하고 배경색을 다크하게 설정
+        wrapper.style.width = "380px";
+        wrapper.style.maxWidth = "380px";
+        wrapper.style.borderRadius = "24px"; // 스마트폰 모서리 느낌
+        wrapper.style.boxShadow = "0 10px 25px -5px rgba(0,0,0,0.3)";
+        outer.style.background = "#1e293b"; // 다크한 외곽 프레임 배경
+        outer.style.padding = "20px 10px";
+        
         if (btnMobile) btnMobile.style.backgroundColor = "#0284c7";
         if (btnPc) btnPc.style.backgroundColor = "#64748b";
     } else {
-        // PC 비율 (꽉 찬 화면)
+        // PC 비율: 꽉 찬 화면
         wrapper.style.width = "100%";
+        wrapper.style.maxWidth = "none";
+        wrapper.style.borderRadius = "8px";
+        wrapper.style.boxShadow = "0 4px 6px -1px rgba(0,0,0,0.1)";
         outer.style.background = "#e2e8f0";
+        outer.style.padding = "15px";
+
         if (btnPc) btnPc.style.backgroundColor = "#0284c7";
         if (btnMobile) btnMobile.style.backgroundColor = "#64748b";
     }
 }
+
 function updateMainPageMenu(index, field, value) {
     if (mainpageData.menuItems[index]) {
         mainpageData.menuItems[index][field] = value;
