@@ -124,7 +124,7 @@
 
     <h2>바다비아카이브 관리 페이지</h2>
 
-    <!-- [1단계] 로그인 영역 (처음에 이 화면만 보임) -->
+    <!-- [1단계] 로그인 영역 -->
     <div id="login-section" class="card">
         <h3>🔐 관리자 인증</h3>
         <p style="color: #64748b; font-size: 14px; margin-bottom: 15px;">관리페이지를 이용하려면 비밀번호를 입력해주세요.</p>
@@ -133,7 +133,7 @@
         <div id="login-status" style="margin-top: 10px; font-weight: bold;"></div>
     </div>
 
-    <!-- [2단계] 로그인 성공 시 동적으로 생성되어 삽입될 컨테이너 영역 -->
+    <!-- [2단계] 관리자 앱 컨테이너 -->
     <div id="admin-app-container" style="display: none;">
         <!-- 1. 대시보드 메인 화면 -->
         <div id="dashboard-view" class="card">
@@ -171,43 +171,56 @@
             </div>
         </div>
 
-        <!-- 2. 메인페이지 설정 화면 (기본 숨김) -->
-        <div id="mainpage-settings-view" class="card" style="display: none;">
-            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid rgba(0, 119, 190, 0.2); padding-bottom: 10px; margin-bottom: 20px;">
-                <h3 style="margin: 0; color: #03045e;">🖥️ 메인페이지 설정 (fanmainpages)</h3>
-                <button type="button" class="secondary-btn" onclick="showDashboard()">대시보드로 돌아가기</button>
+        <!-- 2. 메인페이지 수정 패널 (좌우 2분할 레이아웃 적용) -->
+        <div id="panel-mainpage" class="card" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid rgba(0, 119, 190, 0.2); padding-bottom: 10px;">
+                <h3 style="margin: 0; color: #03045e;">🏠 메인페이지 수정</h3>
+                <button onclick="showDashboard()" class="secondary-btn" style="padding: 6px 12px; font-size: 13px;">← 메뉴 목록으로</button>
             </div>
 
-            <form id="mainpage-form">
-                <div>
-                    <label for="nav-bg-color">네비게이션 배경 색상</label>
-                    <input type="text" id="nav-bg-color" placeholder="예: rgba(3, 4, 94, 0.9) 또는 #03045e">
-                </div>
+            <!-- 📌 좌우 2분할 레이아웃 -->
+            <div style="display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap;">
+                
+                <!-- 왼쪽: 메인페이지 설정 폼 -->
+                <div style="flex: 1.5; min-width: 300px;">
+                    <label>네비게이션 배경 색상</label>
+                    <input type="text" id="mp-nav-bgcolor" placeholder="예: rgba(3, 4, 94, 0.9)">
 
-                <div>
-                    <label for="logo-text">네비게이션바 로고 글씨</label>
-                    <input type="text" id="logo-text" placeholder="예: BABABI FAN ARCHIVE">
-                </div>
+                    <label>로고 텍스트</label>
+                    <input type="text" id="mp-logo-text" placeholder="예: BABABI FAN ARCHIVE">
 
-                <div>
-                    <label>네비게이션 메뉴 설정</label>
-                    <div id="menu-items-container">
-                        <!-- 동적으로 메뉴 입력 행 추가 영역 -->
+                    <label>메인페이지 첫 화면 본문/HTML 설정</label>
+                    <textarea id="mp-main-content" placeholder="메인페이지 상단 본문에 노출할 텍스트나 HTML을 입력하세요" style="height: 120px; resize: vertical;"></textarea>
+
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin: 20px 0 10px 0; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;">
+                        <h4 style="color: #0077b6; margin: 0;">네비게이션 메뉴 목록</h4>
+                        <button type="button" onclick="addMainPageMenuRow()" style="background-color: #10b981; padding: 4px 10px; font-size: 12px;">+ 메뉴 추가</button>
                     </div>
-                    <button type="button" onclick="addMenuItemRow()" style="background-color: #10b981; margin-bottom: 20px;">+ 메뉴 추가</button>
+                    
+                    <div id="mp-menu-rows-container" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
+                        <!-- 동적 메뉴 행 -->
+                    </div>
                 </div>
 
-                <div>
-                    <label for="main-content">메인메뉴 설정 (초기 본문 HTML 또는 주소)</label>
-                    <textarea id="main-content" placeholder="HTML 코드 혹은 연결할 .html 파일 주소를 입력하세요"></textarea>
+                <!-- 오른쪽: 수정 불가한 '읽기 전용 비밀 공지' 카드 영역 -->
+                <div style="flex: 1; min-width: 250px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 12px; padding: 15px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px;">
+                        <h4 style="margin: 0; color: #1e293b; font-size: 15px;">🔒 관리자 비밀 공지</h4>
+                        <span style="font-size: 12px; color: #0284c7; background: #e0f2fe; padding: 2px 6px; border-radius: 4px; font-weight: 500;">Read-Only</span>
+                    </div>
+                    <p style="font-size: 12px; color: #475569; margin-top: 0; margin-bottom: 12px; line-height: 1.4;">
+                        운영진 및 권한자들을 위한 공지 및 안내사항입니다. (읽기 전용)
+                    </p>
+                    <div id="mp-memo-notice-box" style="width: 100%; height: 320px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px; font-size: 13px; color: #0f172a; overflow-y: auto; white-space: pre-wrap; box-sizing: border-box; line-height: 1.5; text-align: left;">현재 등록된 URI 목록
+프로필 : profile.html
+주소모음 : link.html
+노래책 : songlist.html</div>
                 </div>
 
-                <div style="display: flex; gap: 10px;">
-                    <button type="button" onclick="saveMainPageSettings()">설정 저장</button>
-                    <button type="button" class="secondary-btn" onclick="loadMainPageSettingsData()">불러오기 / 새로고침</button>
-                </div>
-                <div id="save-status" class="status-msg"></div>
-            </form>
+            </div>
+
+            <button onclick="saveMainPageSettings()" style="width: 100%; margin-top: 25px; background-color: #0077b6; padding: 14px; font-size: 16px;">메인페이지 설정 반영하기</button>
+            <div id="mainpage-status" class="status-msg"></div>
         </div>
     </div>
 
@@ -256,18 +269,18 @@
         // 화면 전환 함수
         function showMainPageSettings() {
             document.getElementById('dashboard-view').style.display = 'none';
-            document.getElementById('mainpage-settings-view').style.display = 'block';
+            document.getElementById('panel-mainpage').style.display = 'block';
             loadMainPageSettingsData();
         }
 
         function showDashboard() {
-            document.getElementById('mainpage-settings-view').style.display = 'none';
+            document.getElementById('panel-mainpage').style.display = 'none';
             document.getElementById('dashboard-view').style.display = 'block';
         }
 
         // 서버에서 fanmainpages 설정 데이터 불러오기 (GET)
         async function loadMainPageSettingsData() {
-            const statusEl = document.getElementById('save-status');
+            const statusEl = document.getElementById('mainpage-status');
             statusEl.textContent = "데이터를 불러오는 중...";
             statusEl.style.color = "#0077b6";
 
@@ -280,18 +293,18 @@
                 
                 const data = await response.json();
                 if (data) {
-                    document.getElementById('nav-bg-color').value = data.navBgColor || "";
-                    document.getElementById('logo-text').value = data.logoText || "";
-                    document.getElementById('main-content').value = data.mainContent || "";
+                    document.getElementById('mp-nav-bgcolor').value = data.navBgColor || "";
+                    document.getElementById('mp-logo-text').value = data.logoText || "";
+                    document.getElementById('mp-main-content').value = data.mainContent || "";
 
-                    const container = document.getElementById('menu-items-container');
+                    const container = document.getElementById('mp-menu-rows-container');
                     container.innerHTML = "";
                     if (Array.isArray(data.menuItems) && data.menuItems.length > 0) {
                         data.menuItems.forEach(item => {
-                            addMenuItemRow(item.name, item.url);
+                            addMainPageMenuRow(item.name, item.url);
                         });
                     } else {
-                        addMenuItemRow();
+                        addMainPageMenuRow();
                     }
                 }
                 statusEl.textContent = "데이터를 성공적으로 불러왔습니다.";
@@ -300,14 +313,14 @@
                 console.error("불러오기 실패:", err);
                 statusEl.textContent = "데이터를 불러오지 못했습니다. (기본값 사용)";
                 statusEl.style.color = "#ef4444";
-                const container = document.getElementById('menu-items-container');
-                if (container.children.length === 0) addMenuItemRow();
+                const container = document.getElementById('mp-menu-rows-container');
+                if (container.children.length === 0) addMainPageMenuRow();
             }
         }
 
         // 메뉴 입력 행 동적 추가 함수
-        function addMenuItemRow(name = "", url = "") {
-            const container = document.getElementById('menu-items-container');
+        function addMainPageMenuRow(name = "", url = "") {
+            const container = document.getElementById('mp-menu-rows-container');
             const row = document.createElement('div');
             row.className = 'menu-item-row';
             row.innerHTML = `
@@ -320,7 +333,7 @@
 
         // 설정 저장 함수 (POST)
         async function saveMainPageSettings() {
-            const statusEl = document.getElementById('save-status');
+            const statusEl = document.getElementById('mainpage-status');
             
             const password = document.getElementById('admin-password').value.trim();
             if (!password) {
@@ -329,12 +342,12 @@
                 return;
             }
 
-            const navBgColor = document.getElementById('nav-bg-color').value.trim();
-            const logoText = document.getElementById('logo-text').value.trim();
-            const mainContent = document.getElementById('main-content').value.trim();
+            const navBgColor = document.getElementById('mp-nav-bgcolor').value.trim();
+            const logoText = document.getElementById('mp-logo-text').value.trim();
+            const mainContent = document.getElementById('mp-main-content').value.trim();
 
             const menuItems = [];
-            const rows = document.querySelectorAll('.menu-item-row');
+            const rows = document.querySelectorAll('#mp-menu-rows-container .menu-item-row');
             rows.forEach(row => {
                 const name = row.querySelector('.menu-name-input').value.trim();
                 const url = row.querySelector('.menu-url-input').value.trim();
