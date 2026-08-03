@@ -377,8 +377,9 @@ function setPreviewMode(mode) {
     if (!wrapper || !outer || !viewport) return;
 
     if (currentPreviewMode === 'mobile') {
-        // 모바일 모드: 16:9 비율 (380px × 675px)
+        // 모바일 모드 (380px 폭 고정)
         wrapper.style.width = "320px";
+        wrapper.style.maxWidth = "100%";
         wrapper.style.borderRadius = "24px";
         wrapper.style.boxShadow = "0 10px 25px -5px rgba(0,0,0,0.3)";
         outer.style.background = "#1e293b";
@@ -386,15 +387,16 @@ function setPreviewMode(mode) {
         
         viewport.style.width = "380px";
         viewport.style.height = "675px";
-        viewport.style.overflowY = "auto"; // 16:9 프레임 안에서 스크롤되도록 설정
+        viewport.style.overflowY = "auto";
         viewport.style.transform = "none";
-        wrapper.style.height = "675px"; // 프레임 높이 고정
+        wrapper.style.height = "675px";
         
         if (btnMobile) btnMobile.style.backgroundColor = "#0284c7";
         if (btnPc) btnPc.style.backgroundColor = "#64748b";
     } else {
-        // PC 모드: 1920 × 1080 (16:9) 해상도 기준 후 축소
+        // PC 모드 (1920 해상도 기준 축소)
         wrapper.style.width = "100%";
+        wrapper.style.maxWidth = "100%";
         wrapper.style.borderRadius = "8px";
         wrapper.style.boxShadow = "0 4px 6px -1px rgba(0,0,0,0.1)";
         outer.style.background = "#e2e8f0";
@@ -408,7 +410,6 @@ function setPreviewMode(mode) {
         if (btnMobile) btnMobile.style.backgroundColor = "#64748b";
     }
 
-    // 모드 변경 직후 스케일 재계산
     setTimeout(adjustPreviewScale, 30);
 }
 
@@ -426,22 +427,30 @@ function adjustPreviewScale() {
         return;
     }
 
-    // PC 모드 (1920x1080 기준)
+    // 실제 래퍼가 차지하는 내부 너비 측정
     const parentWidth = wrapper.clientWidth;
+    if (!parentWidth) return;
+    
     const targetWidth = 1920;
     const targetHeight = 1080;
 
-    // 스케일 비율 계산 (1920폭 기준 축소)
+    // 스케일 비율 계산
     const scale = parentWidth / targetWidth;
     
-    // 왼쪽 위 기준으로 축소 변형 적용
     viewport.style.transformOrigin = "top left";
     viewport.style.transform = `scale(${scale})`;
     viewport.style.width = `${targetWidth}px`;
     
-    // 1920x1080 비율(16:9)에 맞게 부모 래퍼 높이도 실시간 동기화
+    // 높이 동기화
     wrapper.style.height = `${targetHeight * scale}px`;
 }
+
+// 💡 창 크기가 바뀔 때 미리보기가 깨지지 않도록 리사이즈 이벤트 등록
+window.addEventListener('resize', () => {
+    if (document.getElementById("panel-mainpage")?.style.display === "block") {
+        adjustPreviewScale();
+    }
+});
 
 function updateMainPageMenu(index, field, value) {
     if (mainpageData.menuItems[index]) {
