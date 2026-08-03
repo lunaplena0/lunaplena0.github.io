@@ -378,29 +378,65 @@ function setPreviewMode(mode) {
 
     if (currentPreviewMode === 'mobile') {
         // 모바일 모드: 가상 해상도 380px 고정
-        wrapper.style.width = "320px"; // 화면에 보여질 박스 폭
+        wrapper.style.width = "320px";
         wrapper.style.borderRadius = "24px";
         wrapper.style.boxShadow = "0 10px 25px -5px rgba(0,0,0,0.3)";
         outer.style.background = "#1e293b";
         outer.style.padding = "20px 10px";
         
-        viewport.style.width = "380px"; // 실제 모바일 레이아웃 기준 해상도
+        viewport.style.width = "380px";
+        viewport.style.transform = "none";
+        wrapper.style.height = "auto";
         
         if (btnMobile) btnMobile.style.backgroundColor = "#0284c7";
         if (btnPc) btnPc.style.backgroundColor = "#64748b";
     } else {
-        // PC 모드: 가상 해상도 1280px 고정 (넓은 PC 화면 레이아웃 유지)
-        wrapper.style.width = "100%"; // 우측 패널 공간에 맞춤
+        // PC 모드: 가상 해상도 1280px 고정
+        wrapper.style.width = "100%";
         wrapper.style.borderRadius = "8px";
         wrapper.style.boxShadow = "0 4px 6px -1px rgba(0,0,0,0.1)";
         outer.style.background = "#e2e8f0";
         outer.style.padding = "15px";
 
-        viewport.style.width = "1280px"; // 실제 PC 레이아웃 기준 해상도
+        viewport.style.width = "1280px";
 
         if (btnPc) btnPc.style.backgroundColor = "#0284c7";
         if (btnMobile) btnMobile.style.backgroundColor = "#64748b";
     }
+
+    // 크기 변경 직후 스케일 재계산
+    setTimeout(adjustPreviewScale, 50);
+}
+
+// 부모 박스 크기에 맞춰 가상 뷰포트 축소 비율(Scale) 및 높이 계산 함수 (수정됨)
+function adjustPreviewScale() {
+    const wrapper = document.getElementById("mp-preview-wrapper");
+    const viewport = document.getElementById("preview-viewport");
+    if (!wrapper || !viewport) return;
+
+    if (currentPreviewMode === 'mobile') {
+        viewport.style.transform = "none";
+        viewport.style.width = "380px";
+        wrapper.style.height = "auto";
+        return;
+    }
+
+    // 부모 래퍼의 실제 가용 너비 기준
+    const parentWidth = wrapper.clientWidth;
+    const targetWidth = 1280;
+
+    // 스케일 비율 계산
+    const scale = parentWidth / targetWidth;
+    
+    // transform 시 기준점을 왼쪽 위로 고정하여 엇나감 방지
+    viewport.style.transformOrigin = "top left";
+    viewport.style.transform = `scale(${scale})`;
+    viewport.style.width = `${targetWidth}px`;
+    
+    // 💡 핵심: 축소된 비율을 반영하여 부모 래퍼의 높이를 정확히 잡아주어야 하단 잘림이나 여백 과다를 방지할 수 있습니다.
+    const realHeight = viewport.scrollHeight || viewport.offsetHeight;
+    wrapper.style.height = `${realHeight * scale}px`;
+}
 
     // 컨테이너 크기에 맞춰 뷰포트 스케일 자동 조절 계산
     setTimeout(adjustPreviewScale, 50);
