@@ -377,7 +377,7 @@ function setPreviewMode(mode) {
     if (!wrapper || !outer || !viewport) return;
 
     if (currentPreviewMode === 'mobile') {
-        // 모바일 모드 (380px 폭 고정)
+        // 모바일 모드: 16:9 비율 (380px × 675px)
         wrapper.style.width = "320px";
         wrapper.style.maxWidth = "100%";
         wrapper.style.borderRadius = "24px";
@@ -394,7 +394,7 @@ function setPreviewMode(mode) {
         if (btnMobile) btnMobile.style.backgroundColor = "#0284c7";
         if (btnPc) btnPc.style.backgroundColor = "#64748b";
     } else {
-        // PC 모드 (1920 해상도 기준 축소)
+        // PC 모드: 1920 × 1080 (16:9) 고정 프레임
         wrapper.style.width = "100%";
         wrapper.style.maxWidth = "100%";
         wrapper.style.borderRadius = "8px";
@@ -403,8 +403,8 @@ function setPreviewMode(mode) {
         outer.style.padding = "15px";
 
         viewport.style.width = "1920px";
-        viewport.style.height = "auto";
-        viewport.style.overflowY = "visible";
+        viewport.style.height = "1080px"; // 💡 1080px 높이 고정 (16:9 비율 유지)
+        viewport.style.overflowY = "auto"; // 💡 1080px를 넘어가면 내부 스크롤바 생성
 
         if (btnPc) btnPc.style.backgroundColor = "#0284c7";
         if (btnMobile) btnMobile.style.backgroundColor = "#64748b";
@@ -427,21 +427,23 @@ function adjustPreviewScale() {
         return;
     }
 
+    // PC 모드 (1920x1080 기준 16:9 비율 고정)
     const parentWidth = wrapper.clientWidth;
     if (!parentWidth) return;
     
     const targetWidth = 1920;
+    const targetHeight = 1080;
 
-    // 1. 스케일 비율 계산
+    // 스케일 비율 계산
     const scale = parentWidth / targetWidth;
     
     viewport.style.transformOrigin = "top left";
     viewport.style.transform = `scale(${scale})`;
     viewport.style.width = `${targetWidth}px`;
+    viewport.style.height = `${targetHeight}px`;
     
-    // 2. 💡 핵심 수정: 뷰포트 내부 콘텐츠의 실제 높이를 가져와 스케일을 곱해 래퍼 높이 지정 (하단 여백 제거)
-    const contentHeight = viewport.scrollHeight || 1080;
-    wrapper.style.height = `${contentHeight * scale}px`;
+    // 💡 1920x1080 비율(16:9)에 맞춰 부모 래퍼 높이를 정확히 고정 (1080 * scale)
+    wrapper.style.height = `${targetHeight * scale}px`;
 }
 
 // 💡 창 크기가 바뀔 때 미리보기가 깨지지 않도록 리사이즈 이벤트 등록
