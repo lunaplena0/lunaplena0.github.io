@@ -72,15 +72,14 @@ const adminHtmlTemplate = `
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start;">
             <!-- 좌측: 입력 폼 영역 -->
             <div>
-                <label>네비게이션 배경 색상</label>
-                <input type="text" id="mp-nav-bgcolor" placeholder="예: rgba(3, 4, 94, 0.9)" oninput="updateMainPagePreview()">
+                <!-- 네비게이션 배경 색상 -->
+<input type="text" id="mp-nav-bgcolor" placeholder="예: rgba(3, 4, 94, 0.9)" oninput="updateMainPagePreview()" onkeyup="updateMainPagePreview()">
 
-                <label>로고 텍스트</label>
-                <input type="text" id="mp-logo-text" placeholder="예: BABABI FAN ARCHIVE" oninput="updateMainPagePreview()">
+<!-- 로고 텍스트 -->
+<input type="text" id="mp-logo-text" placeholder="예: BABABI FAN ARCHIVE" oninput="updateMainPagePreview()" onkeyup="updateMainPagePreview()">
 
-                <label>메인페이지 첫 화면 본문/HTML 설정</label>
-                <textarea id="mp-main-content" placeholder="메인페이지 상단 본문에 노출할 텍스트나 HTML을 입력하세요" style="height: 120px; resize: vertical;" oninput="updateMainPagePreview()"></textarea>
-
+<!-- 메인페이지 첫 화면 본문/HTML 설정 -->
+<textarea id="mp-main-content" placeholder="메인페이지 상단 본문에 노출할 텍스트나 HTML을 입력하세요" style="height: 120px; resize: vertical;" oninput="updateMainPagePreview()" onkeyup="updateMainPagePreview()"></textarea>
                 <div style="display: flex; justify-content: space-between; align-items: center; margin: 20px 0 10px 0; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;">
                     <h4 style="color: #0077b6; margin: 0;">네비게이션 메뉴 목록</h4>
                     <button type="button" onclick="addMainPageMenuRow()" style="background-color: #10b981; padding: 4px 10px; font-size: 12px;">+ 메뉴 추가</button>
@@ -281,11 +280,10 @@ function showPanel(type) {
 
     if (type === 'mainpage') {
         document.getElementById("panel-mainpage").style.display = "block";
-        setTimeout(() => {
-            if (typeof window.initMainPagePanel === 'function') {
-                window.initMainPagePanel();
-            }
-        }, 50);
+        // 💡 패널이 열리는 시점에 기존 데이터를 인풋에 채우고 미리보기 갱신
+        if (typeof window.initMainPagePanel === 'function') {
+            window.initMainPagePanel();
+        }
     } else if (type === 'intro') {
         document.getElementById("panel-intro").style.display = "block";
         if (typeof initIntroPanel === 'function') initIntroPanel();
