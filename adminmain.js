@@ -366,7 +366,7 @@ function setPreviewMode(mode) {
     if (!wrapper || !outer) return;
 
     if (mode === 'mobile') {
-        // 모바일 비율: 스마트폰 세로 화면 크기 (380px)
+        // 모바일 비율 (스마트폰 세로 화면 크기: 380px)
         wrapper.style.width = "380px";
         wrapper.style.maxWidth = "380px";
         wrapper.style.borderRadius = "24px";
@@ -377,9 +377,9 @@ function setPreviewMode(mode) {
         if (btnMobile) btnMobile.style.backgroundColor = "#0284c7";
         if (btnPc) btnPc.style.backgroundColor = "#64748b";
     } else {
-        // PC 비율: 우측 패널 공간에 꽉 차게 100%
-        wrapper.style.width = "100%";
-        wrapper.style.maxWidth = "none";
+        // PC 비율 (컴퓨터 화면 브라우저 창 크기 느낌으로 고정: 예시 860px)
+        wrapper.style.width = "860px";
+        wrapper.style.maxWidth = "100%"; // 화면이 너무 작아지면 꽉 차게 대응
         wrapper.style.borderRadius = "8px";
         wrapper.style.boxShadow = "0 4px 6px -1px rgba(0,0,0,0.1)";
         outer.style.background = "#e2e8f0";
