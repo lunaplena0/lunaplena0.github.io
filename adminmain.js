@@ -537,7 +537,7 @@ async function verifyAndLoad() {
         document.getElementById("login-section").style.display = "none";
         document.getElementById("admin-app-container").innerHTML = adminHtmlTemplate;
 
-        // 💡 HTML 템플릿이 브라우저 DOM에 완전히 파싱되고 그려질 때까지 0.05초 대기 후 대시보드 노출 및 이벤트 바인딩
+        // 💡 HTML 템플릿이 DOM에 완전히 생성된 직후, 기존 데이터를 인풋창에 채우고 미리보기를 미리 초기화합니다!
         setTimeout(() => {
             const cards = document.querySelectorAll('.menu-grid .menu-card');
             if (cards.length >= 4) {
@@ -547,6 +547,12 @@ async function verifyAndLoad() {
                 cards[3].onclick = () => showPanel('mainpage');
                 console.log("✅ 관리자 대시보드 메뉴 버튼 이벤트 강제 바인딩 완료");
             }
+            
+            // ✨ 여기에 추가: 미리보기와 인풋창을 초기 데이터로 즉시 세팅
+            if (typeof initMainPagePanel === 'function') {
+                initMainPagePanel();
+            }
+
             showDashboard();
         }, 50);
         
