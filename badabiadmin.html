@@ -125,9 +125,18 @@
 
     <h2>바다비아카이브 관리 페이지</h2>
 
-    <!-- 관리 대시보드 및 설정 폼 컨테이너 -->
-    <div id="admin-app-container">
-        <!-- 1. 대시보드 메인 화면 (기본 노출) -->
+    <!-- [1단계] 로그인 영역 (처음에 이 화면만 보임) -->
+    <div id="login-section" class="card">
+        <h3>🔐 관리자 인증</h3>
+        <p style="color: #64748b; font-size: 14px; margin-bottom: 15px;">관리페이지를 이용하려면 비밀번호를 입력해주세요.</p>
+        <input type="password" id="admin-password" placeholder="비밀번호 입력" onkeydown="if(event.key === 'Enter') verifyAndLoad()">
+        <button onclick="verifyAndLoad()" style="width: 100%;">로그인 하기</button>
+        <div id="login-status" style="margin-top: 10px; font-weight: bold;"></div>
+    </div>
+
+    <!-- [2단계] 로그인 성공 시 동적으로 생성되어 삽입될 컨테이너 영역 -->
+    <div id="admin-app-container" style="display: none;">
+        <!-- 1. 대시보드 메인 화면 -->
         <div id="dashboard-view" class="card">
             <h3>📂 아카이브 관리 대시보드</h3>
             <p style="color: #64748b; font-size: 14px; margin-bottom: 15px;">관리할 메뉴를 선택해주세요.</p>
@@ -172,11 +181,6 @@
 
             <form id="mainpage-form">
                 <div>
-                    <label for="admin-password">관리자 비밀번호</label>
-                    <input type="password" id="admin-password" placeholder="관리자 비밀번호를 입력하세요">
-                </div>
-
-                <div>
                     <label for="nav-bg-color">네비게이션 배경 색상</label>
                     <input type="text" id="nav-bg-color" placeholder="예: rgba(3, 4, 94, 0.9) 또는 #03045e">
                 </div>
@@ -210,6 +214,44 @@
 
     <script>
         const WORKER_URL = "https://badabi-api.dalkkumli054.workers.dev/";
+
+        // 로그인 및 비밀번호 검증 함수
+        async function verifyAndLoad() {
+            const password = document.getElementById('admin-password').value.trim();
+            const statusEl = document.getElementById('login-status');
+
+            if (!password) {
+                statusEl.textContent = "비밀번호를 입력해주세요.";
+                statusEl.style.color = "#ef4444";
+                return;
+            }
+
+            statusEl.textContent = "확인 중...";
+            statusEl.style.color = "#0077b6";
+
+            try {
+                // 워커에 verify 액션 요청을 보내 비밀번호가 맞는지 확인
+                const response = await fetch(WORKER_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password: password, action: "verify" })
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    // 인증 성공 시 로그인 창 숨기고 관리 대시보드 화면 노출
+                    document.getElementById('login-section').style.display = 'none';
+                    document.getElementById('admin-app-container').style.display = 'block';
+                } else {
+                    throw new Error(result.error || "비밀번호가 틀렸습니다.");
+                }
+            } catch (err) {
+                console.error("인증 실패:", err);
+                statusEl.textContent = err.message || "비밀번호가 올바르지 않습니다.";
+                statusEl.style.color = "#ef4444";
+            }
+        }
 
         // 화면 전환 함수
         function showMainPageSettings() {
@@ -281,9 +323,10 @@
         async function saveMainPageSettings() {
             const statusEl = document.getElementById('save-status');
             
+            // 로그인할 때 입력한 비밀번호 가져오기
             const password = document.getElementById('admin-password').value.trim();
             if (!password) {
-                statusEl.textContent = "관리자 비밀번호를 입력해주세요.";
+                statusEl.textContent = "로그인 정보가 유실되었습니다. 다시 로그인해주세요.";
                 statusEl.style.color = "#ef4444";
                 return;
             }
@@ -303,7 +346,6 @@
                 }
             });
 
-            // 워커가 요구하는 양식(password, fileType, content)으로 전송
             const payload = {
                 password: password,
                 fileType: "fanmainpages",
