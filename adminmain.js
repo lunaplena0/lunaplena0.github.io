@@ -377,7 +377,7 @@ function setPreviewMode(mode) {
     if (!wrapper || !outer || !viewport) return;
 
     if (currentPreviewMode === 'mobile') {
-        // 모바일 모드: 가상 해상도 380px 고정
+        // 모바일 모드: 가상 해상도 380px 고정 (축소 없이 1:1 크기 유지)
         wrapper.style.width = "320px";
         wrapper.style.borderRadius = "24px";
         wrapper.style.boxShadow = "0 10px 25px -5px rgba(0,0,0,0.3)";
@@ -391,7 +391,7 @@ function setPreviewMode(mode) {
         if (btnMobile) btnMobile.style.backgroundColor = "#0284c7";
         if (btnPc) btnPc.style.backgroundColor = "#64748b";
     } else {
-        // PC 모드: 가상 해상도 1280px 고정
+        // PC 모드: 가상 해상도 1280px 고정 후 축소
         wrapper.style.width = "100%";
         wrapper.style.borderRadius = "8px";
         wrapper.style.boxShadow = "0 4px 6px -1px rgba(0,0,0,0.1)";
@@ -404,11 +404,11 @@ function setPreviewMode(mode) {
         if (btnMobile) btnMobile.style.backgroundColor = "#64748b";
     }
 
-    // 크기 변경 직후 스케일 재계산
-    setTimeout(adjustPreviewScale, 50);
+    // 모드 변경 직후 스케일 재계산
+    setTimeout(adjustPreviewScale, 30);
 }
 
-// 부모 박스 크기에 맞춰 가상 뷰포트 축소 비율(Scale) 및 높이 계산 함수 (수정됨)
+// 부모 박스 크기에 맞춰 가상 뷰포트 축소 비율(Scale) 및 높이 계산 함수
 function adjustPreviewScale() {
     const wrapper = document.getElementById("mp-preview-wrapper");
     const viewport = document.getElementById("preview-viewport");
@@ -425,48 +425,17 @@ function adjustPreviewScale() {
     const parentWidth = wrapper.clientWidth;
     const targetWidth = 1280;
 
-    // 스케일 비율 계산
+    // 스케일 비율 계산 (너비 기준 축소)
     const scale = parentWidth / targetWidth;
     
-    // transform 시 기준점을 왼쪽 위로 고정하여 엇나감 방지
+    // 왼쪽 위 기준으로 축소 변형 적용
     viewport.style.transformOrigin = "top left";
     viewport.style.transform = `scale(${scale})`;
     viewport.style.width = `${targetWidth}px`;
     
-    // 💡 핵심: 축소된 비율을 반영하여 부모 래퍼의 높이를 정확히 잡아주어야 하단 잘림이나 여백 과다를 방지할 수 있습니다.
+    // 💡 축소된 비율을 고려하여 부모 래퍼의 높이를 정확히 매칭 (하단 잘림 방지)
     const realHeight = viewport.scrollHeight || viewport.offsetHeight;
     wrapper.style.height = `${realHeight * scale}px`;
-}
-
-    // 컨테이너 크기에 맞춰 뷰포트 스케일 자동 조절 계산
-    setTimeout(adjustPreviewScale, 50);
-}
-
-// 부모 박스 크기에 맞춰 가상 뷰포트 축소 비율(Scale) 계산 함수
-function adjustPreviewScale() {
-    const wrapper = document.getElementById("mp-preview-wrapper");
-    const viewport = document.getElementById("preview-viewport");
-    if (!wrapper || !viewport) return;
-
-    const parentWidth = wrapper.clientWidth;
-    const targetWidth = currentPreviewMode === 'mobile' ? 380 : 1280;
-
-    // 모바일 모드일 때는 scale이 필요 없으므로 1배율 고정
-    if (currentPreviewMode === 'mobile') {
-        viewport.style.transform = "none";
-        viewport.style.width = "380px";
-        wrapper.style.height = "auto";
-        return;
-    }
-
-    // PC 모드일 때 부모 박스보다 가상 해상도가 크면 비율에 맞게 축소
-    const scale = parentWidth / targetWidth;
-    viewport.style.transform = `scale(${scale})`;
-    viewport.style.width = `${targetWidth}px`;
-    
-    // 축소된 만큼 부모 래퍼의 높이도 가변적으로 맞춰줌
-    const renderedHeight = viewport.offsetHeight;
-    wrapper.style.height = `${renderedHeight * scale}px`;
 }
 
 function updateMainPageMenu(index, field, value) {
@@ -514,15 +483,12 @@ function updateMainPagePreview() {
             `;
         } else if (mainContent === "") {
             previewContent.style.padding = "20px";
-            previewContent.style.innerHTML = "<span style='color: #94a3b8;'>본문 내용이나 연결할 .html 파일 주소를 입력하세요.</span>";
+            previewContent.innerHTML = "<span style='color: #94a3b8;'>본문 내용이나 연결할 .html 파일 주소를 입력하세요.</span>";
         } else {
             previewContent.style.padding = "20px";
             previewContent.innerHTML = mainContent;
         }
-    } // <- 이 괄호(if문 닫기)가 누락되지 않았는지 확인해주세요!
-
-    // 💡 미리보기 렌더링이 모두 끝난 직후 스케일 및 높이 재계산 실행
-    setTimeout(adjustPreviewScale, 30);
+    }
 
     // 3. 네비게이션 메뉴 목록 실시간 반영
     const previewMenuLinks = document.getElementById("preview-menu-links");
@@ -546,6 +512,9 @@ function updateMainPagePreview() {
             });
         }
     }
+
+    // 💡 미리보기 내용과 메뉴가 모두 그려진 직후 스케일 및 높이 재계산 실행
+    setTimeout(adjustPreviewScale, 30);
 }
 
 async function saveMainPageSettings() {
