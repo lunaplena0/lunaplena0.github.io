@@ -280,10 +280,14 @@ function showPanel(type) {
 
     if (type === 'mainpage') {
         document.getElementById("panel-mainpage").style.display = "block";
-        // 💡 패널이 열리는 시점에 기존 데이터를 인풋에 채우고 미리보기 갱신
-        if (typeof window.initMainPagePanel === 'function') {
-            window.initMainPagePanel();
-        }
+        
+        // 💡 패널이 화면에 확실히 나타난 직후(display: block 상태) 데이터를 채우고 미리보기 실행
+        setTimeout(() => {
+            if (typeof initMainPagePanel === 'function') {
+                initMainPagePanel();
+            }
+        }, 10);
+
     } else if (type === 'intro') {
         document.getElementById("panel-intro").style.display = "block";
         if (typeof initIntroPanel === 'function') initIntroPanel();
