@@ -11,19 +11,18 @@
         body {
             margin: 0;
             width: 100vw;
-            min-height: 100vh;
+            height: 100vh;
             display: flex;
             flex-direction: column;
             background-color: #f4f7f9;
-            overflow-x: hidden;
+            overflow: hidden; /* 전체 페이지 스크롤 방지 및 내부 스크롤 유도 */
             font-family: 'Noto Sans KR', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             color: #2b2d42;
         }
 
         /* 상단 네비게이션 바 스타일: 고정 및 블러 효과 적용 */
         .marine-nav {
-            position: sticky;
-            top: 0;
+            position: relative;
             z-index: 40;
             width: 100%;
             background: rgba(3, 4, 94, 0.9);
@@ -33,6 +32,7 @@
             box-sizing: border-box;
             padding: 12px 24px;
             transition: background 0.3s ease;
+            flex-shrink: 0; /* 네비게이션 크기 고정 */
         }
 
         /* 네비게이션바 내부 컨테이너 정렬 */
@@ -80,16 +80,16 @@
             background: rgba(255, 255, 255, 0.1);
         }
 
-        /* 메인 콘텐츠 영역 */
+        /* 메인 콘텐츠 영역: 남은 공간을 정확히 채우도록 설정 */
         .main-content-container {
             flex: 1;
             width: 100%;
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 40px 24px;
+            margin: 0;
+            padding: 0;
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
+            overflow: hidden;
         }
 
         /* 로딩 상태 표시 */
@@ -129,7 +129,7 @@
 
             try {
                 const timestamp = new Date().getTime();
-                const response = await fetch(WORKER_URL + "?type=fanmainpages&t=" + timestamp);
+                const response = await fetch(WORKER_URL + "?type=fanmainpage&t=" + timestamp);
                 
                 if (!response.ok) {
                     throw new Error("서버에서 데이터를 불러오지 못했습니다.");
@@ -201,14 +201,14 @@
             const trimmed = contentValue.trim();
             if (trimmed.endsWith('.html') || trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
                 mainContainer.innerHTML = `
-                    <iframe src="${trimmed}" style="width: 100%; height: calc(100vh - 75px); border: none; background: white; margin: 0; display: block;"></iframe>
+                    <iframe src="${trimmed}" style="width: 100%; height: 100%; border: none; background: white; margin: 0; display: block; flex: 1;"></iframe>
                 `;
             } else {
                 mainContainer.innerHTML = trimmed;
             }
         }
 
-        // 페이지가 열릴 때 실행 (함수명 일치시킴)
+        // 페이지가 열릴 때 실행
         document.addEventListener("DOMContentLoaded", loadMainPageSettings);
     </script>
 </body>
