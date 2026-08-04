@@ -335,22 +335,20 @@
                 document.getElementById("view-name").textContent = data.name || "바다비。";
                 document.getElementById("view-catchphrase").innerHTML = (data.message || "").replace(/\n/g, '<br>');
 
-                // 2. 최근 공지 링크 및 텍스트 바인딩 (제목이 있으면 제목 표시, 없으면 기본 안내 문구 표시)
+                // 2. 최근 공지 링크 및 텍스트 바인딩
                 if (data.notice) {
                     const noticeEl = document.getElementById("widget-notice-link");
                     const noticeTextEl = document.getElementById("widget-notice-text");
                     noticeEl.href = data.notice;
-                    // data.noticeTitle이 있다면 그것을 보여주고, 없다면 깔끔하게 안내 문구 표시
-                    noticeTextEl.textContent = data.noticeTitle || "등록된 공지사항";
+                    noticeTextEl.textContent = data.noticeTitle || "최근 등록된 공지사항이 있습니다.";
                 }
 
-                // 3. 최근 VOD 링크 및 텍스트 바인딩 (제목이 있으면 제목 표시, 없으면 기본 안내 문구 표시)
+                // 3. 최근 VOD 링크 및 텍스트 바인딩
                 if (data.vod) {
                     const vodEl = document.getElementById("widget-vod-link");
                     const vodTextEl = document.getElementById("widget-vod-text");
                     vodEl.href = data.vod;
-                    // data.vodTitle이 있다면 그것을 보여주고, 없다면 깔끔하게 안내 문구 표시
-                    vodTextEl.textContent = data.vodTitle || "등록된 VOD";
+                    vodTextEl.textContent = data.vodTitle || "최근 등록된 VOD 영상이 있습니다.";
                 }
 
                 // 4. 타임라인 리스트 바인딩
@@ -377,7 +375,7 @@
                     gifEl.classList.add('loaded');
                 }
 
-            } `catch` (error) {
+            } catch (error) {
                 console.error(error);
                 document.getElementById("view-name").textContent = "데이터 로드 실패";
                 document.getElementById("profile-gif").classList.add('loaded');
@@ -387,6 +385,5 @@
 
         loadProfile();
     </script>
-
 </body>
 </html>
