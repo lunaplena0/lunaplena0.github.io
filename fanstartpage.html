@@ -227,7 +227,7 @@
             text-overflow: ellipsis;
         }
 
-        /* 타임라인 영역 스타일 (상하 화살표 네비게이션 구조) */
+        /* 타임라인 영역 스타일 */
         .timeline-container {
             background: rgba(255, 255, 255, 1);
             backdrop-filter: blur(10px);
@@ -249,6 +249,12 @@
             margin-bottom: 12px;
         }
 
+        .timeline-title-area {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
         .timeline-title {
             font-size: 13px;
             font-weight: 800;
@@ -257,6 +263,16 @@
             display: flex;
             align-items: center;
             gap: 5px;
+        }
+
+        /* 타임라인 카운터 스타일 (예: 1 / 5) */
+        .timeline-counter {
+            font-size: 11.5px;
+            font-weight: 700;
+            color: #64748b;
+            background: rgba(0, 119, 190, 0.06);
+            padding: 1px 6px;
+            border-radius: 4px;
         }
 
         /* 상하 화살표 컨트롤러 버튼들 */
@@ -317,7 +333,7 @@
             position: relative;
             font-size: 12.5px;
             color: #1e293b;
-            display: none; /* 기본 숨김, 페이지네이션으로 제어 */
+            display: none; /* 기본 숨김 */
             flex-direction: column; /* 2줄 구조 (상단 날짜, 하단 내용) */
             gap: 3px;
             padding-left: 16px;
@@ -416,10 +432,13 @@
                 </a>
             </div>
 
-            <!-- 공지·VOD 아래에 위치하는 타임라인 영역 (위/아래 화살표 컨트롤 방식) -->
+            <!-- 공지·VOD 아래에 위치하는 타임라인 영역 -->
             <div class="timeline-container">
                 <div class="timeline-header-wrap">
-                    <h4 class="timeline-title">🕒 타임라인</h4>
+                    <div class="timeline-title-area">
+                        <h4 class="timeline-title">🕒 타임라인</h4>
+                        <span class="timeline-counter" id="timeline-counter">1 / 1</span>
+                    </div>
                     <div class="timeline-nav-btns">
                         <button type="button" class="timeline-arrow-btn" id="timeline-prev-btn" onclick="moveTimeline(-1)" title="이전 기록">▲</button>
                         <button type="button" class="timeline-arrow-btn" id="timeline-next-btn" onclick="moveTimeline(1)" title="다음 기록">▼</button>
@@ -437,7 +456,7 @@
 
     <script>
         const WORKER_URL = "https://badabi-api.dalkkumli054.workers.dev";
-        let currentIndex = 0; // 현재 보고 있는 타임라인 인덱스
+        let currentIndex = 0; 
         let allTimelineData = [];
 
         function preloadImage(url) {
@@ -451,6 +470,7 @@
 
         function renderTimeline() {
             const timelineListEl = document.getElementById("timeline-list");
+            const counterEl = document.getElementById("timeline-counter");
             const prevBtn = document.getElementById("timeline-prev-btn");
             const nextBtn = document.getElementById("timeline-next-btn");
 
@@ -461,6 +481,7 @@
                         <span class="timeline-text">기록이 없습니다.</span>
                     </li>
                 `;
+                counterEl.textContent = "1 / 1";
                 prevBtn.disabled = true;
                 nextBtn.disabled = true;
                 return;
@@ -472,13 +493,16 @@
 
             const item = allTimelineData[currentIndex];
 
-            // 1개 항목만 쏙 보여주도록 렌더링
+            // 1개 항목 렌더링
             timelineListEl.innerHTML = `
                 <li class="timeline-item show">
                     <span class="timeline-date">${item.time || ''}</span>
                     <span class="timeline-text">${item.text || ''}</span>
                 </li>
             `;
+
+            // 카운터 업데이트 (예: 1 / 5)
+            counterEl.textContent = `${currentIndex + 1} / ${allTimelineData.length}`;
 
             // 화살표 활성화/비활성화 상태 업데이트
             prevBtn.disabled = (currentIndex === 0);
@@ -535,7 +559,7 @@
                     vodListEl.innerHTML = vods.map(item => `<li class="widget-item">· ${item}</li>`).join('');
                 }
 
-                // 4. 타임라인 데이터 저장 및 초기화 (첫 번째 기록부터 표시)
+                // 4. 타임라인 데이터 저장 및 초기화
                 allTimelineData = data.timeline || [];
                 currentIndex = 0;
                 renderTimeline();
