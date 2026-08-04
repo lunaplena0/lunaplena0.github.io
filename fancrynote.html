@@ -57,11 +57,11 @@
             background: #ffffff;
             border: 1px solid rgba(0, 119, 190, 0.2);
             border-radius: 12px;
-            padding: 16px 20px;
+            padding: 14px 20px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 2px; /* 통계 카드 내부 텍스트 간격 축소 */
             text-align: center;
             opacity: 0;
             animation: fadeUpIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
@@ -84,7 +84,7 @@
             width: 100%;
             display: flex;
             flex-direction: column;
-            gap: 16px;
+            gap: 12px;
             margin-bottom: 24px;
         }
 
@@ -107,7 +107,7 @@
             width: 100%;
             display: flex;
             flex-direction: column;
-            margin-bottom: 8px;
+            margin-bottom: 3px; /* 월 단위 사이의 간격 축소 */
             opacity: 0;
             animation: fadeUpIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
@@ -149,7 +149,7 @@
         .month-content-wrapper {
             overflow: hidden;
             transition: max-height 0.3s ease-in-out;
-            max-height: 2000px; /* 충분히 큰 값 설정 */
+            max-height: 2000px;
         }
 
         .month-group.collapsed .month-content-wrapper {
@@ -366,7 +366,6 @@
                     const yearSection = document.createElement("div");
                     yearSection.className = "year-section";
 
-                    // 해당 연도의 총 울음 횟수 계산
                     let yearTotalCount = 0;
                     Object.keys(groupedData[year]).forEach(month => {
                         yearTotalCount += groupedData[year][month].length;
@@ -382,14 +381,11 @@
                     const sortedMonths = Object.keys(groupedData[year]).sort().reverse();
 
                     sortedMonths.forEach(month => {
-                        // 월별 그룹 컨테이너 (아코디언)
                         const monthGroup = document.createElement("div");
-                        // 최신 월만 기본 펼침, 나머지는 접힘(.collapsed) 처리
                         monthGroup.className = isFirstMonth ? "month-group" : "month-group collapsed";
                         monthGroup.style.animationDelay = `${globalIndex * 0.05}s`;
                         globalIndex++;
 
-                        // 월 헤더 (클릭 시 토글)
                         const monthHeading = document.createElement("div");
                         monthHeading.className = "month-heading";
                         
@@ -401,7 +397,6 @@
                         });
                         monthGroup.appendChild(monthHeading);
 
-                        // 컨텐츠 래퍼
                         const contentWrapper = document.createElement("div");
                         contentWrapper.className = "month-content-wrapper";
 
@@ -439,7 +434,7 @@
                         monthGroup.appendChild(contentWrapper);
                         yearSection.appendChild(monthGroup);
 
-                        isFirstMonth = false; // 첫 번째 월 이후로는 기본 접힘 상태 적용
+                        isFirstMonth = false;
                     });
 
                     container.appendChild(yearSection);
