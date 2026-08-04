@@ -153,45 +153,59 @@
                         window.scrollTo({ top: 0, behavior: 'smooth' });
                     };
 
-                    // 3. 네비게이션 메뉴 목록 동적 생성
-                    navLinksContainer.innerHTML = "";
-                    if (Array.isArray(data.menuItems) && data.menuItems.length > 0) {
-                        data.menuItems.forEach(item => {
-                            const li = document.createElement('li');
-                            const a = document.createElement('a');
-                            a.textContent = item.name;
-                            a.href = item.url ? item.url : "#";
-                            li.appendChild(a);
-                            navLinksContainer.appendChild(li);
-                        });
-                    }
+                    // 3. 네비게이션 메뉴 목록 동적 생성 및 싱글 페이지(SPA) 스타일 연동
+            const navLinksContainer = document.querySelector('.nav-links');
+            if (navLinksContainer && Array.isArray(data.menuItems)) {
+                navLinksContainer.innerHTML = "";
+                
+                data.menuItems.forEach(item => {
+                    if (!item.name) return;
+                    const li = document.createElement('li');
+                    const a = document.createElement('a');
+                    a.textContent = item.name;
+                    a.href = item.url || "#";
 
-                    // 4. 메인 콘텐츠 본문 설정 적용 (HTML 태그 허용 혹은 일반 텍스트)
-                    if (data.mainContent) {
-                        // HTML 태그가 포함되어 있을 수 있으므로 innerHTML 사용
-                        contentArea.innerHTML = data.mainContent;
-                    } else {
-                        contentArea.innerHTML = `
-                            <div style="background: #fff; padding: 40px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0, 119, 190, 0.08); text-align: center;">
-                                <h1 style="color: #03045e; margin-top: 0;">환영합니다!</h1>
-                                <p style="color: #64748b; font-size: 16px;">등록된 메인페이지 본문 내용이 없습니다. 관리자 페이지에서 설정을 완료해주세요.</p>
-                            </div>
-                        `;
-                    }
-                }
-            } catch (err) {
-                console.error("데이터 로드 오류:", err);
-                contentArea.innerHTML = `
-                    <div style="background: #fff; padding: 40px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0, 119, 190, 0.08); text-align: center;">
-                        <h2 style="color: #ef4444; margin-top: 0;">데이터를 불러오지 못했습니다</h2>
-                        <p style="color: #64748b; font-size: 14px;">네트워크 상태를 확인하거나 잠시 후 다시 시도해주세요.</p>
-                    </div>
-                `;
+                    // 메뉴 클릭 시 페이지 전체 이동 대신 iframe 내부 주소만 변경
+                    a.onclick = (e) => {
+                        e.preventDefault();
+                        if (item.url) {
+                            renderMainContent(item.url);
+                        }
+                    };
+
+                    li.appendChild(a);
+                    navLinksContainer.appendChild(li);
+                });
             }
-        }
 
-        // 실행
-        loadMainPageData();
-    </script>
+            // 4. 초기 메인페이지 본문 콘텐츠 영역 렌더링
+            if (data.mainContent) {
+                renderMainContent(data.mainContent);
+            }
+
+        } catch (err) {
+            console.error("메인페이지 설정 로드 실패:", err);
+        }
+    }
+
+    // 메인 콘텐츠 영역에 주소(.html, http) 혹은 일반 HTML을 채워 넣는 공통 함수
+    function renderMainContent(contentValue) {
+        const mainContainer = document.querySelector('.main-content-container');
+        if (!mainContainer) return;
+
+        const trimmed = contentValue.trim();
+        if (trimmed.endsWith('.html') || trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+            mainContainer.innerHTML = `
+                <iframe src="${trimmed}" style="width: 100%; height: calc(100vh - 55px); border: none; background: white; margin: 0; display: block;"></iframe>
+            `;
+        } else {
+            mainContainer.innerHTML = trimmed;
+        }
+    }
+
+    // 페이지가 열릴 때 실행
+    document.addEventListener("DOMContentLoaded", loadMainPageSettings);
+</script>
+
 </body>
 </html>
