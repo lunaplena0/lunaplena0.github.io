@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>바다비 프로필</title>
+    <style>
+        /* 전체 페이지 기본 설정 */
+        body {
+            margin: 0;
+            width: 100vw;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-color: #f4f7f9;
+            overflow-x: hidden;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        /* 메인 콘텐츠 영역 */
+        .ocean-profile-container {
+            position: relative;
+            width: 100%;
+            max-width: 1400px;
+            flex: 1;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center; 
+            gap: 20px; 
+            padding: 20px;
+            box-sizing: border-box;
+            background: transparent; 
+        }
+
+        /* 왼쪽 이미지 영역 기본 스타일 (로딩 전 투명) */
+        .profile-main-gif {
+            position: relative;
+            width: 650px; 
+            height: 650px;
+            background-size: contain;
+            background-position: center;
+            background-repeat: no-repeat;
+            
+            /* 마스크 효과 */
+            -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 15%, rgba(0,0,0,1) 85%, rgba(0,0,0,0) 100%),
+                                linear-gradient(to right, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 15%, rgba(0,0,0,1) 60%, rgba(0,0,0,0) 100%);
+            -webkit-mask-composite: intersect;
+            mask-image: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 15%, rgba(0,0,0,1) 85%, rgba(0,0,0,0) 100%),
+                        linear-gradient(to right, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 15%, rgba(0,0,0,1) 60%, rgba(0,0,0,0) 100%);
+            mask-composite: intersect;
+
+            filter: drop-shadow(0 0 35px rgba(0, 119, 190, 0.5));
+            z-index: 3;
+            flex-shrink: 0;
+            margin-right: -120px;
+
+            /* 애니메이션 설정 */
+            opacity: 0;
+            transform: scale(0.95);
+            transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+
+        /* 이미지 로딩 완료 시 표시되는 클래스 */
+        .profile-main-gif.loaded {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        /* 오른쪽 프로필 카드 영역 */
+        .profile-info-card {
+            position: relative;
+            z-index: 1;
+            background: transparent; 
+            border: none; 
+            box-shadow: none; 
+            max-width: 650px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            color: #2b2d42; 
+            box-sizing: border-box;
+            padding: 20px;
+
+            /* 애니메이션 설정 */
+            opacity: 0;
+            transform: translateY(15px);
+            transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+
+        /* 텍스트 로딩 완료 시 표시되는 클래스 */
+        .profile-info-card.loaded {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* 프로필 텍스트 스타일들 */
+        .profile-header-top {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            text-align: center;
+        }
+
+        .profile-name {
+            font-size: clamp(36px, 4.5vw, 48px);
+            font-weight: 900;
+            margin-bottom: 6px;
+            letter-spacing: -1px;
+            color: #03045e;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 1), 0 0 20px rgba(255, 255, 255, 0.9), 0 2px 4px rgba(0, 0, 0, 0.15);
+        }
+
+        .profile-catchphrase {
+            display: inline-block;
+            font-size: clamp(14px, 1.4vw, 16px);
+            line-height: 1.5;
+            color: #0077b6;
+            background: transparent; 
+            padding: 0;
+            border: none;
+            font-weight: 600;
+            text-align: center;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 1), 0 0 15px rgba(255, 255, 255, 0.9);
+        }
+
+        .profile-info-grid {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            background: transparent; 
+            padding: 0 0 0 40px;
+            box-sizing: border-box;
+        }
+
+        .info-item {
+            font-size: clamp(14px, 1.3vw, 17px);
+            line-height: 1.6;
+            display: grid;
+            grid-template-columns: 75px 1fr;
+            align-items: baseline;
+            gap: 5px;
+            color: #334155;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 1), 0 0 15px rgba(255, 255, 255, 0.9);
+            text-align: left;
+        }
+
+        .info-label {
+            font-weight: 800;
+            color: #0077b6;
+            text-align: left;
+        }
+
+        .profile-bio-box {
+            width: 100%;
+            text-align: center;
+            font-size: clamp(13px, 1.2vw, 15px);
+            line-height: 1.7;
+            color: #1e293b;
+            background: transparent; 
+            padding: 0;
+            border: none;
+            box-sizing: border-box;
+            word-break: keep-all;
+            font-weight: 500;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 1), 0 0 15px rgba(255, 255, 255, 0.9);
+        }
+
+        .profile-bio-box p { margin: 0; }
+        .profile-bio-box p:first-child {
+            font-weight: 800;
+            margin-bottom: 6px;
+            color: #03045e;
+        }
+
+        /* 모바일 반응형 */
+        @media (max-width: 768px) {
+            .ocean-profile-container {
+                flex-direction: column;
+                padding: 16px;
+                gap: 20px;
+            }
+            .profile-main-gif {
+                width: 250px;
+                height: 250px;
+                margin-right: 0;
+            }
+            .profile-info-card {
+                padding: 10px;
+            }
+            .profile-info-grid {
+                padding: 0 0 0 0;
+            }
+            .info-item {
+                grid-template-columns: 50px 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="ocean-profile-container">
+        <!-- 왼쪽 이미지 영역 (로딩 전에는 비어있음) -->
+        <div class="profile-main-gif" id="profile-gif"></div>
+
+        <!-- 오른쪽 프로필 카드 -->
+        <div class="profile-info-card" id="profile-card">
+            <div class="profile-header-top">
+                <div class="profile-name" id="view-name">로딩 중...</div>
+                <div class="profile-catchphrase" id="view-catchphrase"></div>
+            </div>
+            <div class="profile-info-grid" id="view-info-grid"></div>
+            <div class="profile-bio-box" id="view-bio-box"></div>
+        </div>
+    </div>
+
+    <script>
+        // 이미지 프리로딩을 처리하는 함수
+        function preloadImage(url) {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.onload = () => resolve(url);
+                img.onerror = reject;
+                img.src = url;
+            });
+        }
+
+        async function loadProfile() {
+            try {
+                // 1. fanstartpage.json 내부의 profile 객체 데이터 호출
+                const timestamp = new Date().getTime();
+                const response = await fetch('fanstartpage.json?t=' + timestamp);
+                if (!response.ok) throw new Error("데이터를 불러오지 못했습니다.");
+                
+                const rootData = await response.json();
+                const data = rootData.profile || {}; // fanstartpage.json 안의 profile 데이터 참조
+
+                // 2. 텍스트 데이터 먼저 바인딩
+                document.getElementById("view-name").textContent = data.name || "바다비。";
+                document.getElementById("view-catchphrase").innerHTML = (data.catchphrase || "").replace(/\n/g, '<br>');
+
+                const gridEl = document.getElementById("view-info-grid");
+                let fields = [];
+                if (Array.isArray(data.details)) {
+                    data.details.forEach(item => {
+                        if (item.key && item.value) fields.push({ label: item.key, val: item.value });
+                    });
+                }
+                if (data.time) fields.push({ label: "방송시간", val: data.time });
+                if (data.content) fields.push({ label: "컨텐츠", val: data.content });
+                gridEl.innerHTML = fields
+                    .map(item => `<div class="info-item"><span class="info-label">${item.label}</span> ${item.val}</div>`)
+                    .join('');
+
+                const bioEl = document.getElementById("view-bio-box");
+                bioEl.innerHTML = `
+                    <p>${data.bio1 || ''}</p>
+                    <p>${(data.bio2 || '').replace(/\n/g, '<br>')}</p>
+                `;
+
+                // 3. 텍스트 로딩 완료 후 카드 등장
+                document.getElementById("profile-card").classList.add('loaded');
+
+                // 4. 이미지 프리로딩 시작
+                if (data.image) {
+                    await preloadImage(data.image); 
+                    
+                    const gifEl = document.getElementById("profile-gif");
+                    gifEl.style.backgroundImage = `url('${data.image}')`;
+                    gifEl.classList.add('loaded');
+                }
+
+            } catch (error) {
+                console.error(error);
+                document.getElementById("view-name").textContent = "데이터 로드 실패";
+                document.getElementById("profile-gif").classList.add('loaded');
+                document.getElementById("profile-card").classList.add('loaded');
+            }
+        }
+
+        // 페이지 로드 시 실행
+        loadProfile();
+    </script>
+
+</body>
+</html>
