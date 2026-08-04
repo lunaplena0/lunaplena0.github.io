@@ -41,13 +41,43 @@
             box-sizing: border-box;
         }
         
-        /* 페이지 타이틀 */
+        /* 페이지 메인 타이틀 */
         .page-title {
             text-align: center;
             color: #03045e;
             margin: 0 0 10px 0;
             font-size: 28px;
             font-weight: 800;
+            opacity: 0;
+            animation: fadeUpIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        /* 💡 연도별 섹션 스타일 */
+        .year-section {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .year-heading {
+            font-size: 24px;
+            font-weight: 800;
+            color: #03045e;
+            margin: 20px 0 10px 0;
+            padding-bottom: 8px;
+            border-bottom: 2px solid rgba(0, 119, 190, 0.2);
+            opacity: 0;
+            animation: fadeUpIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        /* 💡 월별 구분 라벨 스타일 */
+        .month-heading {
+            font-size: 16px;
+            font-weight: 700;
+            color: #0077b6;
+            margin: 12px 0 4px 8px;
             opacity: 0;
             animation: fadeUpIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
@@ -61,7 +91,7 @@
             align-items: flex-start;
         }
 
-        /* 💡 애니메이션 키프레임 정의: 아래에서 위로 살짝 올라오며 나타남 */
+        /* 애니메이션 키프레임 정의 */
         @keyframes fadeUpIn {
             0% {
                 opacity: 0;
@@ -73,7 +103,7 @@
             }
         }
 
-        /* 울보노트 리스트 아이템 디자인 (기존 profile-btn 기반) */
+        /* 울보노트 리스트 아이템 디자인 */
         .crynote-item {
             background: transparent;
             border: none;
@@ -91,7 +121,6 @@
             position: relative;
             box-sizing: border-box;
             
-            /* 💡 애니메이션 기본 설정 (초기엔 투명하게) */
             opacity: 0;
             animation: fadeUpIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
@@ -112,13 +141,13 @@
 
         /* 마우스 호버 시 효과 */
         .crynote-item:hover {
-            transform: translateX(8px) !important; /* 애니메이션 종료 후 호버 위치 덮어쓰기 */
+            transform: translateX(8px) !important;
             border-bottom-color: rgba(3, 4, 94, 0.3);
         }
 
         .crynote-item:hover::before {
             background-color: #03045e;
-            height: 44px; /* 높이를 살짝 더 키워서 두 줄을 감싸는 느낌을 줌 */
+            height: 44px;
         }
 
         /* 내부 텍스트 디자인 */
@@ -162,8 +191,8 @@
             
             <h2 class="page-title">💧 울보노트</h2>
 
-            <!-- 링크 영역 -->
-            <div class="profile-button-grid" id="button-grid">
+            <!-- 데이터가 렌더링될 컨테이너 -->
+            <div id="content-container">
                 <p style="text-align: center; color: #64748b; font-size: 16px; width: 100%;">노트를 불러오는 중...</p>
             </div>
         </div>
@@ -178,10 +207,8 @@
             if (!timeStr) return 0;
             const parts = timeStr.split(':').map(Number);
             if (parts.length === 3) {
-                // 시:분:초 (예: 1:56:56 -> 1시간 * 3600 + 56분 * 60 + 56초)
                 return parts[0] * 3600 + parts[1] * 60 + parts[2];
             } else if (parts.length === 2) {
-                // 분:초 (예: 56:56 -> 56분 * 60 + 56초)
                 return parts[0] * 60 + parts[1];
             }
             return 0;
@@ -193,8 +220,8 @@
                 if (!response.ok) throw new Error("노트 정보를 불러오지 못했습니다.");
                 
                 const data = await response.json();
-                const gridContainer = document.getElementById("button-grid");
-                gridContainer.innerHTML = "";
+                const container = document.getElementById("content-container");
+                container.innerHTML = "";
 
                 let notes = [];
                 if (data && Array.isArray(data.notes)) {
@@ -204,44 +231,105 @@
                 }
 
                 if (notes.length === 0) {
-                    gridContainer.innerHTML = '<p style="text-align: center; color: #64748b; width: 100%; font-size: 16px;">등록된 울보노트가 없습니다.</p>';
+                    container.innerHTML = '<p style="text-align: center; color: #64748b; width: 100%; font-size: 16px;">등록된 울보노트가 없습니다.</p>';
                     return;
                 }
 
-                notes.forEach((item, index) => {
-                    if (!item.url && !item.description) return;
-                    
-                    const a = document.createElement("a");
-                    a.className = "crynote-item";
-                    a.target = "_blank";
-                    a.rel = "noopener noreferrer";
-                    
-                    // URL에 ?change_second=초 포맷 적용
-                    if (item.url) {
-                        const totalSeconds = convertTimeToSeconds(item.time);
-                        // 이미 주소에 ? 가 포함되어 있는지 여부에 따라 안전하게 결합
-                        const separator = item.url.includes('?') ? '&' : '?';
-                        a.href = `${item.url}${separator}change_second=${totalSeconds}`;
-                    } else {
-                        a.href = "#";
+                // 💡 1. 데이터를 연도별 -> 월별로 그룹화하기
+                // 구조: groupedData[연도][월] = [노트목록...]
+                const groupedData = {};
+
+                notes.forEach(item => {
+                    if (!item.date) return;
+                    const dateParts = item.date.split('-'); // "2026-04-24" -> ["2026", "04", "24"]
+                    if (dateParts.length < 2) return;
+
+                    const year = dateParts[0];
+                    const month = dateParts[1]; // 예: "04", "05", "07"
+
+                    if (!groupedData[year]) {
+                        groupedData[year] = {};
                     }
-                    
-                    a.style.animationDelay = `${index * 0.1}s`;
-                    
-                    a.innerHTML = `
-                        <div class="crynote-meta">
-                            <span>📅 ${item.date || "날짜 없음"}</span>
-                            <span>⏱️ ${item.time || "시간 없음"}</span>
-                        </div>
-                        <p class="crynote-desc">${item.description || "내용 없음"}</p>
-                    `;
-                    
-                    gridContainer.appendChild(a);
+                    if (!groupedData[year][month]) {
+                        groupedData[year][month] = [];
+                    }
+                    groupedData[year][month].push(item);
+                });
+
+                // 연도 내림차순 정렬 (최신 연도가 위로 오도록) 혹은 오름차순 원하시면 .reverse() 제거
+                const sortedYears = Object.keys(groupedData).sort().reverse();
+
+                let globalIndex = 0; // 전체 애니메이션 딜레이 순서 유지를 위한 변수
+
+                // 💡 2. 그룹화된 데이터를 HTML 구조로 변환
+                sortedYears.forEach(year => {
+                    const yearSection = document.createElement("div");
+                    yearSection.className = "year-section";
+
+                    // 연도 큰 제목 추가
+                    const yearHeading = h = document.createElement("h3");
+                    yearHeading.className = "year-heading";
+                    yearHeading.textContent = `${year}년`;
+                    yearHeading.style.animationDelay = `${globalIndex * 0.05}s`;
+                    yearSection.appendChild(yearHeading);
+                    globalIndex++;
+
+                    // 해당 연도의 월 목록 정렬 (최신 월이 위로 오도록 내림차순)
+                    const sortedMonths = Object.keys(groupedData[year]).sort().reverse();
+
+                    sortedMonths.forEach(month => {
+                        // 월 제목 추가 (예: "4월" 또는 "04월")
+                        const monthHeading = document.createElement("div");
+                        monthHeading.className = "month-heading";
+                        monthHeading.textContent = `${parseInt(month, 10)}월`; // "04" -> "4월"
+                        monthHeading.style.animationDelay = `${globalIndex * 0.05}s`;
+                        yearSection.appendChild(monthHeading);
+                        globalIndex++;
+
+                        // 해당 월의 아이템들을 감싸는 그리드 생성
+                        const gridContainer = document.createElement("div");
+                        gridContainer.className = "profile-button-grid";
+
+                        groupedData[year][month].forEach((item) => {
+                            if (!item.url && !item.description) return;
+
+                            const a = document.createElement("a");
+                            a.className = "crynote-item";
+                            a.target = "_blank";
+                            a.rel = "noopener noreferrer";
+                            
+                            // URL에 ?change_second=초 포맷 적용
+                            if (item.url) {
+                                const totalSeconds = convertTimeToSeconds(item.time);
+                                const separator = item.url.includes('?') ? '&' : '?';
+                                a.href = `${item.url}${separator}change_second=${totalSeconds}`;
+                            } else {
+                                a.href = "#";
+                            }
+                            
+                            a.style.animationDelay = `${globalIndex * 0.08}s`;
+                            
+                            a.innerHTML = `
+                                <div class="crynote-meta">
+                                    <span>📅 ${item.date || "날짜 없음"}</span>
+                                    <span>⏱️ ${item.time || "시간 없음"}</span>
+                                </div>
+                                <p class="crynote-desc">${item.description || "내용 없음"}</p>
+                            `;
+                            
+                            gridContainer.appendChild(a);
+                            globalIndex++;
+                        });
+
+                        yearSection.appendChild(gridContainer);
+                    });
+
+                    container.appendChild(yearSection);
                 });
 
             } catch (err) {
                 console.error(err);
-                document.getElementById("button-grid").innerHTML = `<p style="text-align: center; color: #ef4444; width: 100%; font-size: 16px;">노트 로드 실패</p>`;
+                document.getElementById("content-container").innerHTML = `<p style="text-align: center; color: #ef4444; width: 100%; font-size: 16px;">노트 로드 실패</p>`;
             }
         }
 
