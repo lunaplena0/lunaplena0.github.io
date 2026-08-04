@@ -21,7 +21,7 @@
             width: 100%;
             flex: 1;
             display: flex;
-            align-items: flex-start; /* 중앙 정렬에서 위쪽 정렬로 변경하여 리스트가 길어져도 자연스럽게 */
+            align-items: flex-start;
             justify-content: center; 
             padding: 50px 20px;
             box-sizing: border-box;
@@ -32,7 +32,7 @@
             position: relative;
             z-index: 2;
             background: transparent; 
-            max-width: 560px; /* 텍스트가 길어질 수 있으므로 너비를 살짝 넓힘 */
+            max-width: 560px;
             width: 100%;
             margin: 0 auto;
             display: flex;
@@ -173,6 +173,20 @@
         const WORKER_URL = "https://badabi-api.dalkkumli054.workers.dev/";
         const CRYNOTE_URL = WORKER_URL + "?type=fancrynote&t=";
 
+        // "HH:MM:SS" 또는 "MM:SS" 형태의 시간을 총 초(Second)로 변환하는 함수
+        function convertTimeToSeconds(timeStr) {
+            if (!timeStr) return 0;
+            const parts = timeStr.split(':').map(Number);
+            if (parts.length === 3) {
+                // 시:분:초 (예: 1:56:56 -> 1시간 * 3600 + 56분 * 60 + 56초)
+                return parts[0] * 3600 + parts[1] * 60 + parts[2];
+            } else if (parts.length === 2) {
+                // 분:초 (예: 56:56 -> 56분 * 60 + 56초)
+                return parts[0] * 60 + parts[1];
+            }
+            return 0;
+        }
+
         async function loadCryNotes() {
             try {
                 const response = await fetch(CRYNOTE_URL + new Date().getTime());
@@ -182,7 +196,6 @@
                 const gridContainer = document.getElementById("button-grid");
                 gridContainer.innerHTML = "";
 
-                // 데이터가 { "notes": [...] } 형태로 들어오는 것에 대응
                 let notes = [];
                 if (data && Array.isArray(data.notes)) {
                     notes = data.notes;
@@ -195,21 +208,26 @@
                     return;
                 }
 
-                // 💡 forEach에서 인덱스(index)를 받아와 순차적으로 애니메이션 지연시간을 줍니다.
                 notes.forEach((item, index) => {
                     if (!item.url && !item.description) return;
                     
                     const a = document.createElement("a");
-                    // url이 없으면 클릭되지 않도록 # 처리 및 커서 기본값 변경 가능하지만, 주신 데이터엔 다 url이 있으므로 a 태그 유지
-                    a.href = item.url || "#"; 
                     a.className = "crynote-item";
                     a.target = "_blank";
                     a.rel = "noopener noreferrer";
                     
-                    // 각 항목마다 0.1초씩 딜레이를 주어 순서대로 등장하게 함
+                    // URL에 ?change_second=초 포맷 적용
+                    if (item.url) {
+                        const totalSeconds = convertTimeToSeconds(item.time);
+                        // 이미 주소에 ? 가 포함되어 있는지 여부에 따라 안전하게 결합
+                        const separator = item.url.includes('?') ? '&' : '?';
+                        a.href = `${item.url}${separator}change_second=${totalSeconds}`;
+                    } else {
+                        a.href = "#";
+                    }
+                    
                     a.style.animationDelay = `${index * 0.1}s`;
                     
-                    // HTML 구조 삽입 (날짜/시간 라인 + 설명 라인)
                     a.innerHTML = `
                         <div class="crynote-meta">
                             <span>📅 ${item.date || "날짜 없음"}</span>
