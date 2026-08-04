@@ -126,56 +126,6 @@
             text-shadow: 0 0 10px rgba(255, 255, 255, 1), 0 0 15px rgba(255, 255, 255, 0.9);
         }
 
-        .profile-info-grid {
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            background: transparent; 
-            padding: 0 0 0 40px;
-            box-sizing: border-box;
-        }
-
-        .info-item {
-            font-size: clamp(14px, 1.3vw, 17px);
-            line-height: 1.6;
-            display: grid;
-            grid-template-columns: 75px 1fr;
-            align-items: baseline;
-            gap: 5px;
-            color: #334155;
-            text-shadow: 0 0 10px rgba(255, 255, 255, 1), 0 0 15px rgba(255, 255, 255, 0.9);
-            text-align: left;
-        }
-
-        .info-label {
-            font-weight: 800;
-            color: #0077b6;
-            text-align: left;
-        }
-
-        .profile-bio-box {
-            width: 100%;
-            text-align: center;
-            font-size: clamp(13px, 1.2vw, 15px);
-            line-height: 1.7;
-            color: #1e293b;
-            background: transparent; 
-            padding: 0;
-            border: none;
-            box-sizing: border-box;
-            word-break: keep-all;
-            font-weight: 500;
-            text-shadow: 0 0 10px rgba(255, 255, 255, 1), 0 0 15px rgba(255, 255, 255, 0.9);
-        }
-
-        .profile-bio-box p { margin: 0; }
-        .profile-bio-box p:first-child {
-            font-weight: 800;
-            margin-bottom: 6px;
-            color: #03045e;
-        }
-
         /* 하단 공지 및 VOD 섹션 스타일 (2분할 상자) */
         .profile-widgets-container {
             display: grid;
@@ -229,6 +179,58 @@
             -webkit-box-orient: vertical;
         }
 
+        /* 타임라인 섹션 스타일 */
+        .timeline-container {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 119, 190, 0.2);
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 4px 15px rgba(0, 119, 190, 0.08);
+            box-sizing: border-box;
+            width: 100%;
+            text-shadow: none;
+        }
+
+        .timeline-title {
+            font-size: 14px;
+            font-weight: 800;
+            color: #0077b6;
+            margin: 0 0 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .timeline-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            max-height: 120px;
+            overflow-y: auto;
+        }
+
+        .timeline-item {
+            font-size: 13px;
+            color: #334155;
+            display: flex;
+            gap: 10px;
+            align-items: baseline;
+        }
+
+        .timeline-date {
+            font-weight: 700;
+            color: #0077b6;
+            white-space: nowrap;
+        }
+
+        .timeline-text {
+            word-break: break-all;
+        }
+
         /* 모바일 반응형 */
         @media (max-width: 768px) {
             .ocean-profile-container {
@@ -244,12 +246,6 @@
             .profile-info-card {
                 padding: 10px;
             }
-            .profile-info-grid {
-                padding: 0 0 0 0;
-            }
-            .info-item {
-                grid-template-columns: 50px 1fr;
-            }
             .profile-widgets-container {
                 grid-template-columns: 1fr;
             }
@@ -259,7 +255,7 @@
 <body>
 
     <div class="ocean-profile-container">
-        <!-- 왼쪽 이미지 영역 (로딩 전에는 비어있음) -->
+        <!-- 왼쪽 이미지 영역 -->
         <div class="profile-main-gif" id="profile-gif"></div>
 
         <!-- 오른쪽 프로필 카드 -->
@@ -268,8 +264,6 @@
                 <div class="profile-name" id="view-name">로딩 중...</div>
                 <div class="profile-catchphrase" id="view-catchphrase"></div>
             </div>
-            <div class="profile-info-grid" id="view-info-grid"></div>
-            <div class="profile-bio-box" id="view-bio-box"></div>
             
             <!-- 하단 최근 공지 / 최근 VOD 2분할 상자 영역 -->
             <div class="profile-widgets-container">
@@ -282,14 +276,20 @@
                     <p class="widget-content" id="widget-vod-text">등록된 VOD가 없습니다.</p>
                 </a>
             </div>
+
+            <!-- 타임라인 영역 -->
+            <div class="timeline-container">
+                <h4 class="timeline-title">🕒 타임라인</h4>
+                <ul class="timeline-list" id="timeline-list">
+                    <li class="timeline-item"><span class="timeline-text">기록이 없습니다.</span></li>
+                </ul>
+            </div>
         </div>
     </div>
 
     <script>
-        // 본인의 Cloudflare Worker URL로 변경해 주세요
         const WORKER_URL = "https://badabi-api.dalkkumli054.workers.dev";
 
-        // 이미지 프리로딩을 처리하는 함수
         function preloadImage(url) {
             return new Promise((resolve, reject) => {
                 const img = new Image();
@@ -301,61 +301,51 @@
 
         async function loadProfile() {
             try {
-                // 1. Cloudflare Worker를 통해 KV에 저장된 최신 fanstartpage 데이터 호출
                 const timestamp = new Date().getTime();
                 const response = await fetch(`${WORKER_URL}?type=fanstartpage&t=${timestamp}`);
                 if (!response.ok) throw new Error("데이터를 불러오지 못했습니다.");
                 
-                const rootData = await response.json();
-                const data = rootData.profile || rootData || {}; // 저장된 구조에 맞춰 profile 참조
+                const data = await response.json();
 
-                // 2. 텍스트 데이터 먼저 바인딩
+                // 1. 기본 프로필 정보 바인딩
                 document.getElementById("view-name").textContent = data.name || "바다비。";
-                document.getElementById("view-catchphrase").innerHTML = (data.catchphrase || "").replace(/\n/g, '<br>');
+                document.getElementById("view-catchphrase").innerHTML = (data.message || "").replace(/\n/g, '<br>');
 
-                const gridEl = document.getElementById("view-info-grid");
-                let fields = [];
-                if (Array.isArray(data.details)) {
-                    data.details.forEach(item => {
-                        if (item.key && item.value) fields.push({ label: item.key, val: item.value });
-                    });
-                }
-                if (data.time) fields.push({ label: "방송시간", val: data.time });
-                if (data.content) fields.push({ label: "컨텐츠", val: data.content });
-                gridEl.innerHTML = fields
-                    .map(item => `<div class="info-item"><span class="info-label">${item.label}</span> ${item.val}</div>`)
-                    .join('');
-
-                const bioEl = document.getElementById("view-bio-box");
-                bioEl.innerHTML = `
-                    <p>${data.bio1 || ''}</p>
-                    <p>${(data.bio2 || '').replace(/\n/g, '<br>')}</p>
-                `;
-
-                // 3. 하단 위젯 데이터 바인딩 (최근 공지 / 최근 VOD)
+                // 2. 최근 공지 링크 및 텍스트 바인딩
                 if (data.notice) {
-                    const noticeText = data.notice.title || data.notice.text || "공지사항 내용";
-                    document.getElementById("widget-notice-text").textContent = noticeText;
-                    if (data.notice.link) {
-                        document.getElementById("widget-notice-link").href = data.notice.link;
-                    }
+                    const noticeEl = document.getElementById("widget-notice-link");
+                    const noticeTextEl = document.getElementById("widget-notice-text");
+                    noticeEl.href = data.notice;
+                    noticeTextEl.textContent = data.notice;
                 }
 
+                // 3. 최근 VOD 링크 및 텍스트 바인딩
                 if (data.vod) {
-                    const vodText = data.vod.title || data.vod.text || "최근 VOD 영상";
-                    document.getElementById("widget-vod-text").textContent = vodText;
-                    if (data.vod.link) {
-                        document.getElementById("widget-vod-link").href = data.vod.link;
-                    }
+                    const vodEl = document.getElementById("widget-vod-link");
+                    const vodTextEl = document.getElementById("widget-vod-text");
+                    vodEl.href = data.vod;
+                    vodTextEl.textContent = data.vod;
                 }
 
-                // 4. 텍스트 로딩 완료 후 카드 등장
+                // 4. 타임라인 리스트 바인딩
+                const timelineListEl = document.getElementById("timeline-list");
+                if (Array.isArray(data.timeline) && data.timeline.length > 0) {
+                    timelineListEl.innerHTML = data.timeline.map(item => `
+                        <li class="timeline-item">
+                            <span class="timeline-date">[${item.time || ''}]</span>
+                            <span class="timeline-text">${item.text || ''}</span>
+                        </li>
+                    `).join('');
+                } else {
+                    timelineListEl.innerHTML = `<li class="timeline-item"><span class="timeline-text">기록이 없습니다.</span></li>`;
+                }
+
+                // 5. 카드 등장 애니메이션 활성화
                 document.getElementById("profile-card").classList.add('loaded');
 
-                // 5. 이미지 프리로딩 시작
+                // 6. 이미지 프리로딩 및 배경 지정
                 if (data.image) {
                     await preloadImage(data.image); 
-                    
                     const gifEl = document.getElementById("profile-gif");
                     gifEl.style.backgroundImage = `url('${data.image}')`;
                     gifEl.classList.add('loaded');
@@ -369,7 +359,6 @@
             }
         }
 
-        // 페이지 로드 시 실행
         loadProfile();
     </script>
 
