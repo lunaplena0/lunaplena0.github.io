@@ -146,27 +146,27 @@
                     <h4>메인페이지 관리</h4>
                     <p>메인 화면 설정 및 관리</p>
                 </div>
-                <div class="menu-card" onclick="showStartPageSettings()">
+                <div class="menu-card" onclick="showIntroSettings()">
                     <h4>시작페이지 관리</h4>
                     <p>시작 화면 설정 및 관리</p>
                 </div>
-                <div class="menu-card empty">
+                <div class="menu-card" onclick="location.href='#'">
                     <h4>울보노트</h4>
-                    <p>추후 확장 예정인 기능입니다</p>
+                    <p>울보노트 데이터 관리</p>
                 </div>
                 
                 <!-- 2행 -->
-                <div class="menu-card empty">
+                <div class="menu-card" onclick="location.href='#'">
                     <h4>월간일정</h4>
-                    <p>추후 확장 예정인 기능입니다</p>
+                    <p>월간 일정 관리</p>
                 </div>
-                <div class="menu-card empty">
+                <div class="menu-card" onclick="location.href='#'">
                     <h4>VOD리스트</h4>
-                    <p>추후 확장 예정인 기능입니다</p>
+                    <p>VOD 목록 관리</p>
                 </div>
-                <div class="menu-card empty">
+                <div class="menu-card" onclick="location.href='#'">
                     <h4>노래통계</h4>
-                    <p>추후 확장 예정인 기능입니다</p>
+                    <p>노래 통계 데이터 관리</p>
                 </div>
             </div>
         </div>
@@ -179,7 +179,6 @@
             </div>
 
             <div style="display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap;">
-                
                 <!-- 왼쪽: 메인페이지 설정 폼 -->
                 <div style="flex: 1.5; min-width: 300px;">
                     <label>네비게이션 배경 색상</label>
@@ -201,7 +200,7 @@
                     </div>
                 </div>
 
-                <!-- 오른쪽: 수정 불가한 '읽기 전용 비밀 공지' 카드 영역 -->
+                <!-- 오른쪽: 읽기 전용 공지 카드 영역 -->
                 <div style="flex: 1; min-width: 250px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 12px; padding: 15px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03);">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px;">
                         <h4 style="margin: 0; color: #1e293b; font-size: 15px;">페이지 관련 공지</h4>
@@ -215,59 +214,50 @@
 주소모음 : 
 노래책 :</div>
                 </div>
-
             </div>
 
             <button onclick="saveMainPageSettings()" style="width: 100%; margin-top: 25px; background-color: #0077b6; padding: 14px; font-size: 16px;">메인페이지 설정 반영하기</button>
             <div id="mainpage-status" class="status-msg"></div>
         </div>
 
-        <!-- 3. 시작페이지 수정 패널 (신규 추가) -->
-        <div id="panel-startpage" class="card" style="display: none;">
+        <!-- 3. 시작페이지 수정 패널 -->
+        <div id="panel-intro" class="card" style="display: none;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid rgba(0, 119, 190, 0.2); padding-bottom: 10px;">
-                <h3 style="margin: 0; color: #03045e;">🚀 시작페이지 수정</h3>
+                <h3 style="margin: 0; color: #03045e;">👤 시작페이지(소개) 수정</h3>
                 <button onclick="showDashboard()" class="secondary-btn" style="padding: 6px 12px; font-size: 13px;">← 메뉴 목록으로</button>
             </div>
 
-            <div style="display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap;">
-                
-                <!-- 왼쪽: 시작페이지 설정 폼 -->
-                <div style="flex: 1.5; min-width: 300px;">
-                    <label>상단 배경 색상</label>
-                    <input type="text" id="sp-nav-bgcolor" placeholder="예: rgba(3, 4, 94, 0.9)">
+            <label>활동 이름 (닉네임)</label>
+            <input type="text" id="intro-name" placeholder="예: 바다비。">
 
-                    <label>대표 타이틀 텍스트</label>
-                    <input type="text" id="sp-logo-text" placeholder="예: BABABI START PAGE">
+            <label>프로필 이미지 (업로드)</label>
+            <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 8px;">
+                <input type="file" id="intro-image-file" accept="image/*" style="flex: 1; padding: 8px; border: 1px solid #cbd5e1; border-radius: 8px; background: #f8fafc; margin-bottom: 0;">
+                <button type="button" onclick="uploadIntroImage()" style="background-color: #0284c7; padding: 10px 16px; font-size: 13px; white-space: nowrap; margin-bottom: 0;">업로드</button>
+            </div>
+            <div id="intro-image-status" style="font-size: 13px; margin-bottom: 12px; font-weight: 500; min-height: 18px;"></div>
+            <input type="text" id="intro-image" placeholder="업로드된 이미지 주소가 여기에 자동으로 입력됩니다" readonly style="background: #f1f5f9; color: #475569; font-size: 13px;">
 
-                    <label>시작페이지 첫 화면 본문/HTML 설정</label>
-                    <textarea id="sp-main-content" placeholder="시작페이지 상단에 노출할 텍스트나 HTML을 입력하세요" style="height: 120px; resize: vertical;"></textarea>
+            <label>프로필 메시지</label>
+            <textarea id="intro-message" placeholder="프로필 메시지를 입력하세요"></textarea>
 
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin: 20px 0 10px 0; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;">
-                        <h4 style="color: #0077b6; margin: 0;">바로가기 링크 목록</h4>
-                        <button type="button" onclick="addStartPageMenuRow()" style="background-color: #10b981; padding: 4px 10px; font-size: 12px;">+ 링크 추가</button>
-                    </div>
-                    
-                    <div id="sp-menu-rows-container" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
-                        <!-- 동적 링크 행 -->
-                    </div>
-                </div>
+            <label>최근 공지</label>
+            <textarea id="intro-notice" placeholder="최근 공지 내용을 입력하세요" style="height: 80px;"></textarea>
 
-                <!-- 오른쪽: 읽기 전용 공지 영역 -->
-                <div style="flex: 1; min-width: 250px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 12px; padding: 15px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03);">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px;">
-                        <h4 style="margin: 0; color: #1e293b; font-size: 15px;">시작페이지 안내</h4>
-                        <span style="font-size: 12px; color: #0284c7; background: #e0f2fe; padding: 2px 6px; border-radius: 4px; font-weight: 500;">Read-Only</span>
-                    </div>
-                    <p style="font-size: 12px; color: #475569; margin-top: 0; margin-bottom: 12px; line-height: 1.4;">
-                        (읽기 전용 안내)
-                    </p>
-                    <div style="width: 100%; height: 320px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px; font-size: 13px; color: #0f172a; overflow-y: auto; white-space: pre-wrap; box-sizing: border-box; line-height: 1.5; text-align: left;">접속 시 가장 먼저 노출되는 시작화면 설정을 관리합니다.</div>
-                </div>
+            <label>최근 VOD</label>
+            <input type="text" id="intro-vod" placeholder="최근 VOD 링크 또는 설명">
 
+            <div style="display: flex; justify-content: space-between; align-items: center; margin: 20px 0 10px 0; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;">
+                <h4 style="color: #0077b6; margin: 0;">타임라인 항목</h4>
+                <button type="button" onclick="addIntroTimelineRow()" style="background-color: #10b981; padding: 4px 10px; font-size: 12px;">+ 타임라인 추가</button>
+            </div>
+            
+            <div id="intro-timeline-rows-container" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
+                <!-- 동적 타임라인 행 -->
             </div>
 
-            <button onclick="saveStartPageSettings()" style="width: 100%; margin-top: 25px; background-color: #0077b6; padding: 14px; font-size: 16px;">시작페이지 설정 반영하기</button>
-            <div id="startpage-status" class="status-msg"></div>
+            <button onclick="saveIntroSettings()" style="width: 100%; margin-top: 25px; background-color: #0077b6; padding: 14px; font-size: 16px;">시작페이지 설정 반영하기</button>
+            <div id="intro-status" class="status-msg"></div>
         </div>
     </div>
 
@@ -313,28 +303,28 @@
             }
         }
 
-        // 화면 전환 함수
+        // 화면 전환 함수들
         function showDashboard() {
             document.getElementById('panel-mainpage').style.display = 'none';
-            document.getElementById('panel-startpage').style.display = 'none';
+            document.getElementById('panel-intro').style.display = 'none';
             document.getElementById('dashboard-view').style.display = 'block';
         }
 
         function showMainPageSettings() {
             document.getElementById('dashboard-view').style.display = 'none';
-            document.getElementById('panel-startpage').style.display = 'none';
+            document.getElementById('panel-intro').style.display = 'none';
             document.getElementById('panel-mainpage').style.display = 'block';
             loadMainPageSettingsData();
         }
 
-        function showStartPageSettings() {
+        function showIntroSettings() {
             document.getElementById('dashboard-view').style.display = 'none';
             document.getElementById('panel-mainpage').style.display = 'none';
-            document.getElementById('panel-startpage').style.display = 'block';
-            loadStartPageSettingsData();
+            document.getElementById('panel-intro').style.display = 'block';
+            loadIntroSettingsData();
         }
 
-        // 메인페이지 데이터 불러오기
+        // --- 메인페이지 관련 함수 ---
         async function loadMainPageSettingsData() {
             const statusEl = document.getElementById('mainpage-status');
             statusEl.textContent = "데이터를 불러오는 중...";
@@ -370,60 +360,12 @@
             }
         }
 
-        // 시작페이지 데이터 불러오기 (신규)
-        async function loadStartPageSettingsData() {
-            const statusEl = document.getElementById('startpage-status');
-            statusEl.textContent = "데이터를 불러오는 중...";
-            statusEl.style.color = "#0077b6";
-
-            try {
-                const timestamp = new Date().getTime();
-                const response = await fetch(WORKER_URL + "?type=startpage&t=" + timestamp);
-                if (!response.ok) throw new Error("서버 응답 실패");
-                
-                const data = await response.json();
-                if (data) {
-                    document.getElementById('sp-nav-bgcolor').value = data.navBgColor || "";
-                    document.getElementById('sp-logo-text').value = data.logoText || "";
-                    document.getElementById('sp-main-content').value = data.mainContent || "";
-
-                    const container = document.getElementById('sp-menu-rows-container');
-                    container.innerHTML = "";
-                    if (Array.isArray(data.menuItems) && data.menuItems.length > 0) {
-                        data.menuItems.forEach(item => addStartPageMenuRow(item.name, item.url));
-                    } else {
-                        addStartPageMenuRow();
-                    }
-                }
-                statusEl.textContent = "데이터를 성공적으로 불러왔습니다.";
-                statusEl.style.color = "#10b981";
-            } catch (err) {
-                console.error("불러오기 실패:", err);
-                statusEl.textContent = "데이터를 불러오지 못했습니다. (기본값 사용)";
-                statusEl.style.color = "#ef4444";
-                const container = document.getElementById('sp-menu-rows-container');
-                if (container.children.length === 0) addStartPageMenuRow();
-            }
-        }
-
         function addMainPageMenuRow(name = "", url = "") {
             const container = document.getElementById('mp-menu-rows-container');
             const row = document.createElement('div');
             row.className = 'menu-item-row';
             row.innerHTML = `
                 <input type="text" placeholder="메뉴 이름" class="menu-name-input" value="${name}" style="flex: 1;">
-                <input type="text" placeholder="연결 주소 (URL 또는 .html)" class="menu-url-input" value="${url}" style="flex: 2;">
-                <button type="button" class="delete-item-btn" onclick="this.parentElement.remove()">삭제</button>
-            `;
-            container.appendChild(row);
-        }
-
-        function addStartPageMenuRow(name = "", url = "") {
-            const container = document.getElementById('sp-menu-rows-container');
-            const row = document.createElement('div');
-            row.className = 'menu-item-row';
-            row.innerHTML = `
-                <input type="text" placeholder="링크 이름" class="menu-name-input" value="${name}" style="flex: 1;">
                 <input type="text" placeholder="연결 주소 (URL 또는 .html)" class="menu-url-input" value="${url}" style="flex: 2;">
                 <button type="button" class="delete-item-btn" onclick="this.parentElement.remove()">삭제</button>
             `;
@@ -479,8 +421,121 @@
             }
         }
 
-        async function saveStartPageSettings() {
-            const statusEl = document.getElementById('startpage-status');
+        // --- 시작페이지 관련 함수 ---
+        function addIntroTimelineRow(time = "", text = "") {
+            const container = document.getElementById('intro-timeline-rows-container');
+            const row = document.createElement('div');
+            row.className = 'menu-item-row';
+            row.innerHTML = `
+                <input type="text" placeholder="시간/일시 (예: 18:00)" class="timeline-time-input" value="${time}" style="flex: 1;">
+                <input type="text" placeholder="내용" class="timeline-text-input" value="${text}" style="flex: 2.5;">
+                <button type="button" class="delete-item-btn" onclick="this.parentElement.remove()">삭제</button>
+            `;
+            container.appendChild(row);
+        }
+
+        // 이미지 업로드 함수
+        async function uploadIntroImage() {
+            const fileInput = document.getElementById("intro-image-file");
+            const statusEl = document.getElementById("intro-image-status"); 
+            
+            if (!fileInput.files || fileInput.files.length === 0) {
+                if (statusEl) {
+                    statusEl.style.color = "#ef4444";
+                    statusEl.textContent = "❌ 업로드할 이미지 파일을 선택해주세요.";
+                }
+                return;
+            }
+
+            const file = fileInput.files[0];
+            const passwordInput = document.getElementById("admin-password");
+            const password = passwordInput ? passwordInput.value : "";
+
+            if (statusEl) {
+                statusEl.style.color = "#0284c7";
+                statusEl.textContent = "⏳ 이미지를 업로드하는 중입니다...";
+            }
+
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                try {
+                    const base64Content = e.target.result.split(',')[1];
+
+                    const response = await fetch(WORKER_URL, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            password: password,
+                            action: "upload_image",
+                            filename: file.name,
+                            filedata: base64Content
+                        })
+                    });
+
+                    if (response.ok) {
+                        const result = await response.json();
+                        if (result.success) {
+                            document.getElementById("intro-image").value = result.url;
+                            if (statusEl) {
+                                statusEl.style.color = "#166534";
+                                statusEl.textContent = "✅ 이미지 업로드가 성공적으로 완료되었습니다!";
+                            }
+                        } else {
+                            throw new Error(result.error || "업로드 실패");
+                        }
+                    } else {
+                        const errText = await response.text();
+                        throw new Error(`서버 오류 (${response.status}): ${errText}`);
+                    }
+                } catch (error) {
+                    if (statusEl) {
+                        statusEl.style.color = "#ef4444";
+                        statusEl.textContent = "❌ 업로드 실패: " + error.message;
+                    }
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+
+        async function loadIntroSettingsData() {
+            const statusEl = document.getElementById('intro-status');
+            statusEl.textContent = "데이터를 불러오는 중...";
+            statusEl.style.color = "#0077b6";
+
+            try {
+                const timestamp = new Date().getTime();
+                const response = await fetch(WORKER_URL + "?type=fanstartpage&t=" + timestamp);
+                if (!response.ok) throw new Error("서버 응답 실패");
+                
+                const data = await response.json();
+                if (data) {
+                    document.getElementById('intro-name').value = data.name || "";
+                    document.getElementById('intro-image').value = data.image || "";
+                    document.getElementById('intro-message').value = data.message || "";
+                    document.getElementById('intro-notice').value = data.notice || "";
+                    document.getElementById('intro-vod').value = data.vod || "";
+
+                    const container = document.getElementById('intro-timeline-rows-container');
+                    container.innerHTML = "";
+                    if (Array.isArray(data.timeline) && data.timeline.length > 0) {
+                        data.timeline.forEach(item => addIntroTimelineRow(item.time, item.text));
+                    } else {
+                        addIntroTimelineRow();
+                    }
+                }
+                statusEl.textContent = "데이터를 성공적으로 불러왔습니다.";
+                statusEl.style.color = "#10b981";
+            } catch (err) {
+                console.error("불러오기 실패:", err);
+                statusEl.textContent = "데이터를 불러오지 못했습니다. (기본값 사용)";
+                statusEl.style.color = "#ef4444";
+                const container = document.getElementById('intro-timeline-rows-container');
+                if (container.children.length === 0) addIntroTimelineRow();
+            }
+        }
+
+        async function saveIntroSettings() {
+            const statusEl = document.getElementById('intro-status');
             const password = document.getElementById('admin-password').value.trim();
             if (!password) {
                 statusEl.textContent = "로그인 정보가 유실되었습니다. 다시 로그인해주세요.";
@@ -488,21 +543,23 @@
                 return;
             }
 
-            const navBgColor = document.getElementById('sp-nav-bgcolor').value.trim();
-            const logoText = document.getElementById('sp-logo-text').value.trim();
-            const mainContent = document.getElementById('sp-main-content').value.trim();
+            const name = document.getElementById('intro-name').value.trim();
+            const image = document.getElementById('intro-image').value.trim();
+            const message = document.getElementById('intro-message').value.trim();
+            const notice = document.getElementById('intro-notice').value.trim();
+            const vod = document.getElementById('intro-vod').value.trim();
 
-            const menuItems = [];
-            document.querySelectorAll('#sp-menu-rows-container .menu-item-row').forEach(row => {
-                const name = row.querySelector('.menu-name-input').value.trim();
-                const url = row.querySelector('.menu-url-input').value.trim();
-                if (name) menuItems.push({ name, url });
+            const timeline = [];
+            document.querySelectorAll('#intro-timeline-rows-container .menu-item-row').forEach(row => {
+                const time = row.querySelector('.timeline-time-input').value.trim();
+                const text = row.querySelector('.timeline-text-input').value.trim();
+                if (time || text) timeline.push({ time, text });
             });
 
             const payload = {
                 password: password,
-                fileType: "startpage",
-                content: { navBgColor, logoText, menuItems, mainContent }
+                fileType: "fanstartpage",
+                content: { name, image, message, notice, vod, timeline }
             };
 
             statusEl.textContent = "저장 중...";
