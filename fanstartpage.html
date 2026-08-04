@@ -191,7 +191,7 @@
             text-overflow: ellipsis;
         }
 
-        /* 공지·VOD 아래에 위치하는 타임라인 영역 스타일 (내용에 따라 아래로 늘어남) */
+        /* 공지·VOD 아래에 위치하는 타임라인 영역 스타일 */
         .timeline-container {
             background: rgba(255, 255, 255, 0.85);
             backdrop-filter: blur(10px);
@@ -204,7 +204,7 @@
             text-shadow: none;
             display: flex;
             flex-direction: column;
-            height: auto; /* 고정 크기 제거 */
+            height: auto; 
         }
 
         .timeline-title {
@@ -225,10 +225,10 @@
             flex-direction: column;
             gap: 10px;
             position: relative;
-            overflow: visible; /* 스크롤 제거 후 자연스럽게 노출 */
+            overflow: visible; 
         }
 
-        /* 타임라인 세로 축(라인) 구현 (항목이 늘어날 때 같이 늘어남) */
+        /* 타임라인 세로 축(라인) 구현 */
         .timeline-list::before {
             content: '';
             position: absolute;
@@ -237,27 +237,31 @@
             left: 5px;
             width: 2px;
             background-color: rgba(0, 119, 190, 0.25);
+            transition: height 0.4s ease;
         }
 
         .timeline-item {
             font-size: 12px;
             color: #334155;
-            display: none; /* 기본 숨김 */
+            display: flex; 
             gap: 12px;
             align-items: center;
             position: relative;
             padding-left: 18px;
             
-            /* 페이드인 애니메이션 효과 추가 */
+            /* 아래로 부드럽게 펼쳐지는 아코디언 애니메이션 핵심 설정 */
+            max-height: 0;
             opacity: 0;
-            transform: translateY(-5px);
-            transition: opacity 0.4s ease, transform 0.4s ease;
+            overflow: hidden;
+            margin: 0;
+            transition: max-height 0.4s ease-out, opacity 0.3s ease-out, margin 0.4s ease-out;
         }
 
+        /* 펼쳐질 때 활성화되는 클래스 */
         .timeline-item.show {
-            display: flex; 
+            max-height: 60px; /* 항목 하나가 차지할 최대 높이 */
             opacity: 1;
-            transform: translateY(0);
+            margin-bottom: 10px; /* 항목 간 간격 복원 */
         }
 
         /* 타임라인 점(dot) 구현 */
@@ -287,7 +291,7 @@
         /* 더보기 버튼 스타일 */
         .timeline-more-btn {
             width: 100%;
-            margin-top: 12px;
+            margin-top: 6px;
             padding: 6px;
             background: rgba(0, 119, 190, 0.08);
             border: 1px solid rgba(0, 119, 190, 0.2);
@@ -364,7 +368,7 @@
             <div class="timeline-container">
                 <h4 class="timeline-title">🕒 타임라인</h4>
                 <ul class="timeline-list" id="timeline-list">
-                    <li class="timeline-item"><span class="timeline-text">기록이 없습니다.</span></li>
+                    <li class="timeline-item show"><span class="timeline-text">기록이 없습니다.</span></li>
                 </ul>
                 <button type="button" class="timeline-more-btn" id="timeline-more-btn" onclick="showMoreTimeline()">더보기 ▼</button>
             </div>
@@ -395,16 +399,25 @@
                 return;
             }
 
-            // HTML 생성
-            timelineListEl.innerHTML = allTimelineData.map((item, index) => {
-                const showClass = index < currentTimelineLimit ? "show" : "";
-                return `
-                    <li class="timeline-item ${showClass}">
+            // 최초 1회 전체 리스트 HTML 구조를 한 번만 그림 (내부는 숨겨진 상태)
+            if (timelineListEl.children.length !== allTimelineData.length) {
+                timelineListEl.innerHTML = allTimelineData.map((item) => `
+                    <li class="timeline-item">
                         <span class="timeline-date">${item.time || ''}</span>
                         <span class="timeline-text">${item.text || ''}</span>
                     </li>
-                `;
-            }).join('');
+                `).join('');
+            }
+
+            // 지정된 개수(currentTimelineLimit)만큼만 순서대로 .show 클래스를 붙여 부드럽게 아래로 슬라이드 확장시킴
+            const items = timelineListEl.getElementsByClassName("timeline-item");
+            for (let i = 0; i < items.length; i++) {
+                if (i < currentTimelineLimit) {
+                    items[i].classList.add("show");
+                } else {
+                    items[i].classList.remove("show");
+                }
+            }
 
             // 전체 데이터 개수보다 현재 보여주는 개수가 적다면 '더보기' 버튼 노출
             if (allTimelineData.length > currentTimelineLimit) {
