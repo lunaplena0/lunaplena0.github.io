@@ -126,7 +126,7 @@
             text-shadow: 0 0 10px rgba(255, 255, 255, 1), 0 0 15px rgba(255, 255, 255, 0.9);
         }
 
-        /* 관련 링크 박스 컨테이너 (프로필 메시지 아래) */
+        /* 관련 링크 박스 컨테이너 */
         .profile-links-container {
             display: flex;
             gap: 10px;
@@ -138,7 +138,7 @@
         .profile-link-box {
             flex: 1;
             min-width: 100px;
-            background: rgba(255, 255, 255, 1); /* 불투명도 1로 변경 */
+            background: rgba(255, 255, 255, 1);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(0, 119, 190, 0.2);
             border-radius: 10px;
@@ -173,7 +173,7 @@
         }
 
         .widget-box {
-            background: rgba(255, 255, 255, 1); /* 불투명도 1로 변경 */
+            background: rgba(255, 255, 255, 1);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(0, 119, 190, 0.2);
             border-radius: 12px;
@@ -188,7 +188,6 @@
             text-decoration: none;
             color: inherit;
             
-            /* 크기 컴팩트 고정 설정 */
             height: 75px;
             min-height: 75px;
             max-height: 75px;
@@ -228,13 +227,13 @@
             text-overflow: ellipsis;
         }
 
-        /* 공지·VOD 아래에 위치하는 타임라인 영역 스타일 */
+        /* 타임라인 영역 스타일 (가독성 개선 적용) */
         .timeline-container {
-            background: rgba(255, 255, 255, 1); /* 불투명도 1로 변경 */
+            background: rgba(255, 255, 255, 1);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(0, 119, 190, 0.2);
             border-radius: 12px;
-            padding: 12px 15px;
+            padding: 14px 18px;
             box-shadow: 0 4px 15px rgba(0, 119, 190, 0.08);
             box-sizing: border-box;
             width: 100%;
@@ -248,7 +247,7 @@
             font-size: 13px;
             font-weight: 800;
             color: #0077b6;
-            margin: 0 0 10px 0;
+            margin: 0 0 12px 0;
             display: flex;
             align-items: center;
             gap: 5px;
@@ -260,49 +259,47 @@
             margin: 0;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 12px; /* 항목 간 여백 확대 */
             position: relative;
         }
 
-        /* 타임라인 세로 축(라인) 구현 - 정확한 위치 고정 */
+        /* 타임라인 세로 축(라인) 구현 */
         .timeline-list::before {
             content: '';
             position: absolute;
-            top: 6px;
-            bottom: 6px;
-            left: 5px; /* 점의 중심 위치와 일치시킴 */
+            top: 8px;
+            bottom: 8px;
+            left: 5px;
             width: 2px;
             background-color: rgba(0, 119, 190, 0.25);
         }
 
         .timeline-item {
-            font-size: 12px;
-            color: #334155;
-            display: none; /* 기본 숨김 */
-            align-items: center;
+            font-size: 13px; /* 글자 크기 미세 상향 (12px -> 13px) */
+            color: #1e293b; /* 가독성을 위해 텍스트 색상 진하게 변경 */
+            display: none; 
+            align-items: flex-start; /* 멀티라인 텍스트 대응을 위해 상단 정렬 */
             position: relative;
-            padding-left: 20px; /* 세로줄 및 점 공간 확보 */
+            padding-left: 22px; 
+            line-height: 1.5; /* 줄 간격 확보 */
             
-            /* 위에서 아래로 떨어지는 애니메이션 */
             opacity: 0;
             transform: translateY(-8px);
             transition: opacity 0.25s ease, transform 0.25s ease;
         }
 
-        /* 펼쳐질 때 활성화되는 클래스 */
         .timeline-item.show {
             display: flex; 
             opacity: 1;
             transform: translateY(0);
         }
 
-        /* 타임라인 점(dot) 구현 - 세로 줄 위에 정확히 안착하도록 위치 정렬 */
+        /* 타임라인 점(dot) 구현 */
         .timeline-item::before {
             content: '';
             position: absolute;
-            left: 3px; /* 세로선(left: 5px)의 중앙(2px 두께 고려)에 정확히 오도록 설정 */
-            top: 50%;
-            transform: translateY(-50%);
+            left: 3px;
+            top: 7px; /* 텍스트 첫 줄 높이에 맞게 조정 */
             width: 6px;
             height: 6px;
             background-color: #0077b6;
@@ -311,11 +308,19 @@
             z-index: 2;
         }
 
+        /* 날짜 영역 스타일링 (구분을 위해 배경 및 형태 부여) */
         .timeline-date {
             font-weight: 700;
-            color: #0077b6;
+            color: #0284c7;
+            background-color: rgba(0, 119, 190, 0.08); /* 연한 배경색 */
+            padding: 1px 6px;
+            border-radius: 4px;
             white-space: nowrap;
             margin-right: 10px;
+            font-size: 11px;
+            letter-spacing: -0.3px;
+            flex-shrink: 0;
+            margin-top: 1px; /* 텍스트와 수직 정렬 맞춤 */
         }
 
         .timeline-text {
@@ -325,8 +330,8 @@
         /* 더보기 버튼 스타일 */
         .timeline-more-btn {
             width: 100%;
-            margin-top: 10px;
-            padding: 6px;
+            margin-top: 12px;
+            padding: 8px;
             background: rgba(0, 119, 190, 0.08);
             border: 1px solid rgba(0, 119, 190, 0.2);
             border-radius: 8px;
