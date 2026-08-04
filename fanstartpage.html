@@ -126,6 +126,43 @@
             text-shadow: 0 0 10px rgba(255, 255, 255, 1), 0 0 15px rgba(255, 255, 255, 0.9);
         }
 
+        /* [추가] 관련 링크 박스 컨테이너 (프로필 메시지 아래) */
+        .profile-links-container {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+            box-sizing: border-box;
+            flex-wrap: wrap;
+        }
+
+        .profile-link-box {
+            flex: 1;
+            min-width: 100px;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 119, 190, 0.2);
+            border-radius: 10px;
+            padding: 10px 12px;
+            text-align: center;
+            text-decoration: none;
+            color: #0077b6;
+            font-size: 13px;
+            font-weight: 700;
+            box-shadow: 0 4px 12px rgba(0, 119, 190, 0.06);
+            transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, color 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .profile-link-box:hover {
+            transform: translateY(-2px);
+            background: #0077b6;
+            color: #ffffff;
+            box-shadow: 0 6px 16px rgba(0, 119, 190, 0.15);
+        }
+
         /* 하단 공지 및 VOD 섹션 스타일 */
         .profile-widgets-container {
             display: grid;
@@ -338,13 +375,18 @@
         <!-- 왼쪽 이미지 영역 -->
         <div class="profile-main-gif" id="profile-gif"></div>
 
-        <!-- 오른쪽 프로필 카드 (공지, VOD, 타임라인을 모두 포함) -->
+        <!-- 오른쪽 프로필 카드 -->
         <div class="profile-info-card" id="profile-card">
             <div class="profile-header-top">
                 <div class="profile-name" id="view-name">로딩 중...</div>
                 <div class="profile-catchphrase" id="view-catchphrase"></div>
             </div>
             
+            <!-- [추가] 프로필 메시지 바로 아래 관련 링크 상자 영역 -->
+            <div class="profile-links-container" id="profile-links-container">
+                <!-- 동적으로 링크 상자들이 생성됩니다 -->
+            </div>
+
             <!-- 하단 최근 공지 / 최근 VOD 리스트 영역 -->
             <div class="profile-widgets-container">
                 <a href="#" id="widget-notice-link" class="widget-box" target="_blank">
@@ -446,6 +488,18 @@
                 // 1. 기본 프로필 정보 바인딩
                 document.getElementById("view-name").textContent = data.name || "바다비。";
                 document.getElementById("view-catchphrase").innerHTML = (data.message || "").replace(/\n/g, '<br>');
+
+                // [추가] 1-1. 관련 링크 상자들 바인딩
+                const linksContainer = document.getElementById("profile-links-container");
+                if (Array.isArray(data.links) && data.links.length > 0) {
+                    linksContainer.innerHTML = data.links.map(link => `
+                        <a href="${link.url}" class="profile-link-box" target="_blank">
+                            ${link.name}
+                        </a>
+                    `).join('');
+                } else {
+                    linksContainer.innerHTML = "";
+                }
 
                 // 2. 최근 공지 리스트 바인딩
                 if (data.notice) {
