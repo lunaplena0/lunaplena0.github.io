@@ -156,12 +156,12 @@
             max-height: 0;
         }
 
-        /* 💡 오래된 월 전체를 숨기는 클래스 */
+        /* 오래된 월 전체를 숨기는 클래스 */
         .month-group.hidden-by-default {
             display: none;
         }
 
-        /* 💡 '더보기' 버튼 스타일 */
+        /* '더보기' 버튼 스타일 */
         .load-more-btn {
             width: 100%;
             padding: 14px;
@@ -381,18 +381,9 @@
 
                 const sortedYears = Object.keys(groupedData).sort().reverse();
                 
-                // 💡 전체 연도/월 목록을 최신순으로 플랫하게 수집하여 상위 3개 판정 준비
-                let allMonthIdentifiers = [];
-                sortedYears.forEach(year => {
-                    const sortedMonths = Object.keys(groupedData[year]).sort().reverse();
-                    sortedMonths.forEach(month => {
-                        allMonthIdentifiers.push({ year, month });
-                    });
-                });
-
                 let globalIndex = 1;
                 let renderedMonthCounter = 0;
-                let hiddenMonthGroups = []; // 더보기로 열어줄 요소들 보관용 배열
+                let hiddenMonthGroups = []; 
 
                 sortedYears.forEach(year => {
                     const yearSection = document.createElement("div");
@@ -415,13 +406,13 @@
                     sortedMonths.forEach(month => {
                         const monthGroup = document.createElement("div");
                         
-                        // 전체 최신순 기준 상위 3개 월에 포함되는지 확인
                         renderedMonthCounter++;
+                        // 💡 최신 3개의 월이든, 그 이후의 월이든 모두 'collapsed(접힘)' 클래스를 기본 추가
                         if (renderedMonthCounter > 3) {
-                            monthGroup.className = "month-group hidden-by-default"; // 3개 초과분은 숨김
+                            monthGroup.className = "month-group hidden-by-default collapsed"; 
                             hiddenMonthGroups.push(monthGroup);
                         } else {
-                            monthGroup.className = "month-group"; // 최신 3개 월은 표시
+                            monthGroup.className = "month-group collapsed"; 
                         }
 
                         monthGroup.style.animationDelay = `${globalIndex * 0.05}s`;
@@ -479,7 +470,7 @@
                     container.appendChild(yearSection);
                 });
 
-                // 💡 숨겨진 월이 존재할 경우 맨 아래에 '더보기' 버튼 생성
+                // 숨겨진 월이 존재할 경우 맨 아래에 '더보기' 버튼 생성
                 if (hiddenMonthGroups.length > 0) {
                     const loadMoreBtn = document.createElement("button");
                     loadMoreBtn.className = "load-more-btn";
