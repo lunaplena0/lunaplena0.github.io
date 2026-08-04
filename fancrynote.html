@@ -52,7 +52,34 @@
             animation: fadeUpIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
-        /* 💡 연도별 섹션 스타일 */
+        /* 💡 통계 요약 카드 스타일 */
+        .stats-card {
+            background: #ffffff;
+            border: 1px solid rgba(0, 119, 190, 0.2);
+            border-radius: 12px;
+            padding: 16px 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            text-align: center;
+            opacity: 0;
+            animation: fadeUpIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .stats-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #64748b;
+        }
+
+        .stats-value {
+            font-size: 18px;
+            font-weight: 800;
+            color: #0077b6;
+        }
+
+        /* 연도별 섹션 스타일 */
         .year-section {
             width: 100%;
             display: flex;
@@ -72,7 +99,7 @@
             animation: fadeUpIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
-        /* 💡 월별 구분 라벨 스타일 */
+        /* 월별 구분 라벨 스타일 */
         .month-heading {
             font-size: 16px;
             font-weight: 700;
@@ -191,6 +218,9 @@
             
             <h2 class="page-title">💧 울보노트</h2>
 
+            <!-- 💡 통계가 표시될 영역 (최상단) -->
+            <div id="stats-container"></div>
+
             <!-- 데이터가 렌더링될 컨테이너 -->
             <div id="content-container">
                 <p style="text-align: center; color: #64748b; font-size: 16px; width: 100%;">노트를 불러오는 중...</p>
@@ -201,6 +231,7 @@
     <script>
         const WORKER_URL = "https://badabi-api.dalkkumli054.workers.dev/";
         const CRYNOTE_URL = WORKER_URL + "?type=fancrynote&t=";
+        const BASE_DATE = new Date("2026-04-20"); // 기준일 설정
 
         // "HH:MM:SS" 또는 "MM:SS" 형태의 시간을 총 초(Second)로 변환하는 함수
         function convertTimeToSeconds(timeStr) {
@@ -221,7 +252,9 @@
                 
                 const data = await response.json();
                 const container = document.getElementById("content-container");
+                const statsContainer = document.getElementById("stats-container");
                 container.innerHTML = "";
+                statsContainer.innerHTML = "";
 
                 let notes = [];
                 if (data && Array.isArray(data.notes)) {
@@ -235,17 +268,51 @@
                     return;
                 }
 
-                // 💡 1. 데이터를 연도별 -> 월별로 그룹화하기
-                // 구조: groupedData[연도][월] = [노트목록...]
+                // 💡 통계 계산 로직 (2026년 04월 20일 기준)
+                const today = new Date();
+                // 시분초 차이로 인한 오차 방지를 위해 날짜 단위로 초기화
+                today.setHours(0, 0, 0, 0);
+                BASE_DATE.setHours(0, 0, 0, 0);
+
+                // 기준일 이후부터 오늘까지의 일수 계산 (최소 1일 보정)
+                const diffTime = today - BASE_DATE;
+                const diffDays = Math.max(1, Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1);
+
+                // 2026년 4월 20일 이후에 발생한 울음 횟수 필터링 및 카운트
+                const filteredNotesForStats = notes.filter(item => {
+                    if (!item.date) return false;
+                    const itemDate = new Date(item.date);
+                    return itemDate >= BASE_DATE;
+                });
+
+                const totalCryCount = filteredNotesForStats.length;
+                let avgText = "";
+
+                if (totalCryCount > 0) {
+                    const daysPerCry = (diffDays / totalCryCount).toFixed(1);
+                    avgText = `2026년 4월 20일 이후 총 <b>${totalCryCount}번</b> 울음 (약 <b>${daysPerCry}일당 1회</b>)`;
+                } else {
+                    avgText = `2026년 4월 20일 이후 기록된 울음이 없습니다.`;
+                }
+
+                // 통계 카드 UI 생성
+                statsContainer.innerHTML = `
+                    <div class="stats-card" style="animation-delay: 0.05s;">
+                        <span class="stats-title">📊 울음 빈도 통계 (2026.04.20 ~ 기준)</span>
+                        <span class="stats-value">${avgText}</span>
+                    </div>
+                `;
+
+                // 데이터 연도별 -> 월별 그룹화
                 const groupedData = {};
 
                 notes.forEach(item => {
                     if (!item.date) return;
-                    const dateParts = item.date.split('-'); // "2026-04-24" -> ["2026", "04", "24"]
+                    const dateParts = item.date.split('-');
                     if (dateParts.length < 2) return;
 
                     const year = dateParts[0];
-                    const month = dateParts[1]; // 예: "04", "05", "07"
+                    const month = dateParts[1];
 
                     if (!groupedData[year]) {
                         groupedData[year] = {};
@@ -256,37 +323,30 @@
                     groupedData[year][month].push(item);
                 });
 
-                // 연도 내림차순 정렬 (최신 연도가 위로 오도록) 혹은 오름차순 원하시면 .reverse() 제거
                 const sortedYears = Object.keys(groupedData).sort().reverse();
+                let globalIndex = 1; // 통계 카드 다음 순번부터 애니메이션 딜레이 적용
 
-                let globalIndex = 0; // 전체 애니메이션 딜레이 순서 유지를 위한 변수
-
-                // 💡 2. 그룹화된 데이터를 HTML 구조로 변환
                 sortedYears.forEach(year => {
                     const yearSection = document.createElement("div");
                     yearSection.className = "year-section";
 
-                    // 연도 큰 제목 추가
-                    const yearHeading = h = document.createElement("h3");
+                    const yearHeading = document.createElement("h3");
                     yearHeading.className = "year-heading";
                     yearHeading.textContent = `${year}년`;
                     yearHeading.style.animationDelay = `${globalIndex * 0.05}s`;
                     yearSection.appendChild(yearHeading);
                     globalIndex++;
 
-                    // 해당 연도의 월 목록 정렬 (최신 월이 위로 오도록 내림차순)
                     const sortedMonths = Object.keys(groupedData[year]).sort().reverse();
 
                     sortedMonths.forEach(month => {
-                        // 월 제목 추가 (예: "4월" 또는 "04월")
                         const monthHeading = document.createElement("div");
                         monthHeading.className = "month-heading";
-                        monthHeading.textContent = `${parseInt(month, 10)}월`; // "04" -> "4월"
+                        monthHeading.textContent = `${parseInt(month, 10)}월`;
                         monthHeading.style.animationDelay = `${globalIndex * 0.05}s`;
                         yearSection.appendChild(monthHeading);
                         globalIndex++;
 
-                        // 해당 월의 아이템들을 감싸는 그리드 생성
                         const gridContainer = document.createElement("div");
                         gridContainer.className = "profile-button-grid";
 
@@ -298,7 +358,6 @@
                             a.target = "_blank";
                             a.rel = "noopener noreferrer";
                             
-                            // URL에 ?change_second=초 포맷 적용
                             if (item.url) {
                                 const totalSeconds = convertTimeToSeconds(item.time);
                                 const separator = item.url.includes('?') ? '&' : '?';
