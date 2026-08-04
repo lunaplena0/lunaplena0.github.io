@@ -37,7 +37,7 @@
             margin: 0 auto;
             display: flex;
             flex-direction: column;
-            gap: 12px; /* 타이틀, 스탯창, 리스트 사이 간격 축소 */
+            gap: 12px;
             box-sizing: border-box;
         }
         
@@ -102,7 +102,7 @@
             animation: fadeUpIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
-        /* 💡 월별 아코디언 컨테이너 스타일 */
+        /* 월별 아코디언 컨테이너 스타일 */
         .month-group {
             width: 100%;
             display: flex;
@@ -145,7 +145,7 @@
             transform: rotate(-90deg);
         }
 
-        /* 아이템들을 담는 래퍼 (접고 펼칠 때 높이 조절) */
+        /* 아이템들을 담는 래퍼 */
         .month-content-wrapper {
             overflow: hidden;
             transition: max-height 0.3s ease-in-out;
@@ -154,6 +154,33 @@
 
         .month-group.collapsed .month-content-wrapper {
             max-height: 0;
+        }
+
+        /* 💡 오래된 월 전체를 숨기는 클래스 */
+        .month-group.hidden-by-default {
+            display: none;
+        }
+
+        /* 💡 '더보기' 버튼 스타일 */
+        .load-more-btn {
+            width: 100%;
+            padding: 14px;
+            margin: 15px 0 25px 0;
+            background-color: rgba(0, 119, 190, 0.08);
+            border: 1px dashed rgba(0, 119, 190, 0.3);
+            border-radius: 10px;
+            color: #0077b6;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            text-align: center;
+        }
+
+        .load-more-btn:hover {
+            background-color: rgba(0, 119, 190, 0.15);
+            color: #03045e;
+            border-color: #0077b6;
         }
 
         .profile-button-grid {
@@ -166,7 +193,6 @@
             padding-left: 8px;
         }
 
-        /* 애니메이션 키프레임 정의 */
         @keyframes fadeUpIn {
             0% {
                 opacity: 0;
@@ -178,7 +204,6 @@
             }
         }
 
-        /* 눈물노트 리스트 아이템 디자인 */
         .crynote-item {
             background: transparent;
             border: none;
@@ -197,7 +222,6 @@
             box-sizing: border-box;
         }
 
-        /* 왼쪽에 있는 세로 바 */
         .crynote-item::before {
             content: '';
             position: absolute;
@@ -211,7 +235,6 @@
             transition: background-color 0.2s ease-in-out, height 0.2s ease-in-out;
         }
 
-        /* 마우스 호버 시 효과 */
         .crynote-item:hover {
             transform: translateX(8px) !important;
             border-bottom-color: rgba(3, 4, 94, 0.3);
@@ -222,7 +245,6 @@
             height: 44px;
         }
 
-        /* 내부 텍스트 디자인 */
         .crynote-meta {
             font-size: 13px;
             color: #64748b;
@@ -312,7 +334,6 @@
                     return;
                 }
 
-                // 통계 계산 로직 (2026년 4월 20일 기준)
                 const today = new Date();
                 today.setHours(0, 0, 0, 0);
                 BASE_DATE.setHours(0, 0, 0, 0);
@@ -359,7 +380,19 @@
                 });
 
                 const sortedYears = Object.keys(groupedData).sort().reverse();
+                
+                // 💡 전체 연도/월 목록을 최신순으로 플랫하게 수집하여 상위 3개 판정 준비
+                let allMonthIdentifiers = [];
+                sortedYears.forEach(year => {
+                    const sortedMonths = Object.keys(groupedData[year]).sort().reverse();
+                    sortedMonths.forEach(month => {
+                        allMonthIdentifiers.push({ year, month });
+                    });
+                });
+
                 let globalIndex = 1;
+                let renderedMonthCounter = 0;
+                let hiddenMonthGroups = []; // 더보기로 열어줄 요소들 보관용 배열
 
                 sortedYears.forEach(year => {
                     const yearSection = document.createElement("div");
@@ -382,8 +415,15 @@
                     sortedMonths.forEach(month => {
                         const monthGroup = document.createElement("div");
                         
-                        // 모든 월을 기본적으로 접힌 상태로 설정 ("collapsed" 클래스 부여)
-                        monthGroup.className = "month-group collapsed";
+                        // 전체 최신순 기준 상위 3개 월에 포함되는지 확인
+                        renderedMonthCounter++;
+                        if (renderedMonthCounter > 3) {
+                            monthGroup.className = "month-group hidden-by-default"; // 3개 초과분은 숨김
+                            hiddenMonthGroups.push(monthGroup);
+                        } else {
+                            monthGroup.className = "month-group"; // 최신 3개 월은 표시
+                        }
+
                         monthGroup.style.animationDelay = `${globalIndex * 0.05}s`;
                         globalIndex++;
 
@@ -438,6 +478,22 @@
 
                     container.appendChild(yearSection);
                 });
+
+                // 💡 숨겨진 월이 존재할 경우 맨 아래에 '더보기' 버튼 생성
+                if (hiddenMonthGroups.length > 0) {
+                    const loadMoreBtn = document.createElement("button");
+                    loadMoreBtn.className = "load-more-btn";
+                    loadMoreBtn.innerHTML = `펼치기 (이전 월 ${hiddenMonthGroups.length}개 더보기)`;
+                    
+                    loadMoreBtn.addEventListener("click", () => {
+                        hiddenMonthGroups.forEach(group => {
+                            group.classList.remove("hidden-by-default");
+                        });
+                        loadMoreBtn.remove(); // 버튼 클릭 후 제거
+                    });
+
+                    container.appendChild(loadMoreBtn);
+                }
 
             } catch (err) {
                 console.error(err);
