@@ -161,26 +161,42 @@
             display: none;
         }
 
-        /* '더보기' 버튼 스타일 */
+        /* 💡 세련되게 개선된 '더보기' 버튼 스타일 */
         .load-more-btn {
             width: 100%;
-            padding: 14px;
-            margin: 15px 0 25px 0;
-            background-color: rgba(0, 119, 190, 0.08);
-            border: 1px dashed rgba(0, 119, 190, 0.3);
+            padding: 14px 20px;
+            margin: 20px 0 10px 0;
+            background-color: #ffffff;
+            border: 1px solid rgba(0, 119, 190, 0.25);
             border-radius: 10px;
             color: #0077b6;
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 700;
             cursor: pointer;
-            transition: all 0.2s ease-in-out;
-            text-align: center;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 2px 6px rgba(0, 119, 190, 0.04);
         }
 
         .load-more-btn:hover {
-            background-color: rgba(0, 119, 190, 0.15);
-            color: #03045e;
+            background-color: rgba(0, 119, 190, 0.05);
             border-color: #0077b6;
+            color: #03045e;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px rgba(0, 119, 190, 0.08);
+        }
+
+        .load-more-btn::after {
+            content: '▼';
+            font-size: 10px;
+            transition: transform 0.2s ease;
+        }
+
+        .load-more-btn:hover::after {
+            transform: translateY(2px);
         }
 
         .profile-button-grid {
@@ -407,7 +423,6 @@
                         const monthGroup = document.createElement("div");
                         
                         renderedMonthCounter++;
-                        // 💡 최신 3개의 월이든, 그 이후의 월이든 모두 'collapsed(접힘)' 클래스를 기본 추가
                         if (renderedMonthCounter > 3) {
                             monthGroup.className = "month-group hidden-by-default collapsed"; 
                             hiddenMonthGroups.push(monthGroup);
@@ -470,11 +485,11 @@
                     container.appendChild(yearSection);
                 });
 
-                // 숨겨진 월이 존재할 경우 맨 아래에 '더보기' 버튼 생성
+                // 숨겨진 월이 존재할 경우 세련된 디자인의 '더보기' 버튼 생성
                 if (hiddenMonthGroups.length > 0) {
                     const loadMoreBtn = document.createElement("button");
                     loadMoreBtn.className = "load-more-btn";
-                    loadMoreBtn.innerHTML = `펼치기 (이전 월 ${hiddenMonthGroups.length}개 더보기)`;
+                    loadMoreBtn.innerHTML = `이전 월 ${hiddenMonthGroups.length}개 더보기`;
                     
                     loadMoreBtn.addEventListener("click", () => {
                         hiddenMonthGroups.forEach(group => {
