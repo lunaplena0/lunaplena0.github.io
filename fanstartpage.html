@@ -192,6 +192,68 @@
             text-overflow: ellipsis;
         }
 
+        /* 화면 맨아래 중앙에 위치하는 타임라인 섹션 스타일 */
+        .timeline-wrapper {
+            width: 100vw;
+            display: flex;
+            justify-content: center;
+            padding: 0 20px 20px 20px;
+            box-sizing: border-box;
+            z-index: 10;
+        }
+
+        .timeline-container {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 119, 190, 0.2);
+            border-radius: 12px;
+            padding: 15px 20px;
+            box-shadow: 0 4px 15px rgba(0, 119, 190, 0.08);
+            box-sizing: border-box;
+            width: 100%;
+            max-width: 1400px;
+            text-shadow: none;
+        }
+
+        .timeline-title {
+            font-size: 14px;
+            font-weight: 800;
+            color: #0077b6;
+            margin: 0 0 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .timeline-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            max-height: 100px;
+            overflow-y: auto;
+        }
+
+        .timeline-item {
+            font-size: 13px;
+            color: #334155;
+            display: flex;
+            gap: 10px;
+            align-items: baseline;
+        }
+
+        .timeline-date {
+            font-weight: 700;
+            color: #0077b6;
+            white-space: nowrap;
+        }
+
+        .timeline-text {
+            word-break: break-all;
+        }
+
         /* 모바일 반응형 */
         @media (max-width: 768px) {
             .ocean-profile-container {
@@ -249,6 +311,16 @@
         </div>
     </div>
 
+    <!-- 화면 맨아래 중앙에 위치하는 타임라인 영역 -->
+    <div class="timeline-wrapper">
+        <div class="timeline-container">
+            <h4 class="timeline-title">🕒 타임라인</h4>
+            <ul class="timeline-list" id="timeline-list">
+                <li class="timeline-item"><span class="timeline-text">기록이 없습니다.</span></li>
+            </ul>
+        </div>
+    </div>
+
     <script>
         const WORKER_URL = "https://badabi-api.dalkkumli054.workers.dev";
 
@@ -279,7 +351,6 @@
                     const noticeListEl = document.getElementById("widget-notice-list");
                     noticeEl.href = data.notice;
                     
-                    // 만약 API에서 배열 형태의 리스트나 여러 공지를 준다면 처리, 단일 제목이라면 리스트 아이템으로 표현
                     const notices = Array.isArray(data.noticeList) ? data.noticeList : [data.noticeTitle || "공지사항 바로가기"];
                     noticeListEl.innerHTML = notices.map(item => `<li class="widget-item">· ${item}</li>`).join('');
                 }
@@ -294,10 +365,23 @@
                     vodListEl.innerHTML = vods.map(item => `<li class="widget-item">· ${item}</li>`).join('');
                 }
 
-                // 4. 카드 등장 애니메이션 활성화
+                // 4. 타임라인 리스트 바인딩
+                const timelineListEl = document.getElementById("timeline-list");
+                if (Array.isArray(data.timeline) && data.timeline.length > 0) {
+                    timelineListEl.innerHTML = data.timeline.map(item => `
+                        <li class="timeline-item">
+                            <span class="timeline-date">[${item.time || ''}]</span>
+                            <span class="timeline-text">${item.text || ''}</span>
+                        </li>
+                    `).join('');
+                } else {
+                    timelineListEl.innerHTML = `<li class="timeline-item"><span class="timeline-text">기록이 없습니다.</span></li>`;
+                }
+
+                // 5. 카드 등장 애니메이션 활성화
                 document.getElementById("profile-card").classList.add('loaded');
 
-                // 5. 이미지 프리로딩 및 배경 지정
+                // 6. 이미지 프리로딩 및 배경 지정
                 if (data.image) {
                     await preloadImage(data.image); 
                     const gifEl = document.getElementById("profile-gif");
