@@ -227,7 +227,7 @@
             text-overflow: ellipsis;
         }
 
-        /* 타임라인 영역 스타일 */
+        /* 타임라인 영역 스타일 (5개 단위 페이지네이션 구조) */
         .timeline-container {
             background: rgba(255, 255, 255, 1);
             backdrop-filter: blur(10px);
@@ -265,7 +265,7 @@
             gap: 5px;
         }
 
-        /* 타임라인 카운터 스타일 (예: 1 / 5) */
+        /* 타임라인 페이지 범위 카운터 (예: 1-5 / 12) */
         .timeline-counter {
             font-size: 11.5px;
             font-weight: 700;
@@ -312,10 +312,9 @@
             padding: 0 0 0 12px; /* 세로줄 공간 */
             margin: 0;
             position: relative;
-            min-height: 52px; /* 2줄 내용 공간 안정화 */
             display: flex;
             flex-direction: column;
-            justify-content: center;
+            gap: 10px;
         }
 
         /* 왼쪽 타임라인 세로줄 */
@@ -323,8 +322,8 @@
             content: '';
             position: absolute;
             left: 4px;
-            top: 2px;
-            bottom: 2px;
+            top: 4px;
+            bottom: 4px;
             width: 2px;
             background-color: rgba(0, 119, 190, 0.2);
         }
@@ -333,7 +332,7 @@
             position: relative;
             font-size: 12.5px;
             color: #1e293b;
-            display: none; /* 기본 숨김 */
+            display: none; /* 기본 숨김, 5개 단위로 제어 */
             flex-direction: column; /* 2줄 구조 (상단 날짜, 하단 내용) */
             gap: 3px;
             padding-left: 16px;
@@ -432,16 +431,16 @@
                 </a>
             </div>
 
-            <!-- 공지·VOD 아래에 위치하는 타임라인 영역 -->
+            <!-- 공지·VOD 아래에 위치하는 타임라인 영역 (5개 단위 화살표 네비게이션) -->
             <div class="timeline-container">
                 <div class="timeline-header-wrap">
                     <div class="timeline-title-area">
                         <h4 class="timeline-title">🕒 타임라인</h4>
-                        <span class="timeline-counter" id="timeline-counter">1 / 1</span>
+                        <span class="timeline-counter" id="timeline-counter">1-5 / 1</span>
                     </div>
                     <div class="timeline-nav-btns">
-                        <button type="button" class="timeline-arrow-btn" id="timeline-prev-btn" onclick="moveTimeline(-1)" title="이전 기록">▲</button>
-                        <button type="button" class="timeline-arrow-btn" id="timeline-next-btn" onclick="moveTimeline(1)" title="다음 기록">▼</button>
+                        <button type="button" class="timeline-arrow-btn" id="timeline-prev-btn" onclick="moveTimelinePage(-1)" title="이전 5개">▲</button>
+                        <button type="button" class="timeline-arrow-btn" id="timeline-next-btn" onclick="moveTimelinePage(1)" title="다음 5개">▼</button>
                     </div>
                 </div>
                 <ul class="timeline-list" id="timeline-list">
@@ -456,7 +455,8 @@
 
     <script>
         const WORKER_URL = "https://badabi-api.dalkkumli054.workers.dev";
-        let currentIndex = 0; 
+        let currentPage = 0; // 현재 페이지 인덱스 (0페이지 = 1~5번째 항목)
+        const pageSize = 5;  // 한 번에 보여줄 개수 5개
         let allTimelineData = [];
 
         function preloadImage(url) {
@@ -481,37 +481,44 @@
                         <span class="timeline-text">기록이 없습니다.</span>
                     </li>
                 `;
-                counterEl.textContent = "1 / 1";
+                counterEl.textContent = "1-1 / 1";
                 prevBtn.disabled = true;
                 nextBtn.disabled = true;
                 return;
             }
 
-            // 인덱스 범위 안전장치
-            if (currentIndex < 0) currentIndex = 0;
-            if (currentIndex >= allTimelineData.length) currentIndex = allTimelineData.length - 1;
+            const totalCount = allTimelineData.length;
+            const maxPage = Math.ceil(totalCount / pageSize) - 1;
 
-            const item = allTimelineData[currentIndex];
+            // 페이지 범위 안전장치
+            if (currentPage < 0) currentPage = 0;
+            if (currentPage > maxPage) currentPage = maxPage;
 
-            // 1개 항목 렌더링
-            timelineListEl.innerHTML = `
-                <li class="timeline-item show">
-                    <span class="timeline-date">${item.time || ''}</span>
-                    <span class="timeline-text">${item.text || ''}</span>
-                </li>
-            `;
+            const startIndex = currentPage * pageSize;
+            const endIndex = Math.min(startIndex + pageSize, totalCount);
 
-            // 카운터 업데이트 (예: 1 / 5)
-            counterEl.textContent = `${currentIndex + 1} / ${allTimelineData.length}`;
+            // 5개 단위로 리스트 생성
+            timelineListEl.innerHTML = allTimelineData.map((item, index) => {
+                const isShow = (index >= startIndex && index < endIndex) ? "show" : "";
+                return `
+                    <li class="timeline-item ${isShow}">
+                        <span class="timeline-date">${item.time || ''}</span>
+                        <span class="timeline-text">${item.text || ''}</span>
+                    </li>
+                `;
+            }).join('');
+
+            // 카운터 텍스트 업데이트 (예: 1-5 / 12)
+            counterEl.textContent = `${startIndex + 1}-${endIndex} / ${totalCount}`;
 
             // 화살표 활성화/비활성화 상태 업데이트
-            prevBtn.disabled = (currentIndex === 0);
-            nextBtn.disabled = (currentIndex === allTimelineData.length - 1);
+            prevBtn.disabled = (currentPage === 0);
+            nextBtn.disabled = (currentPage >= maxPage);
         }
 
-        // 화살표 클릭 시 이전(-1)/다음(+1) 기록으로 전환하는 함수
-        function moveTimeline(direction) {
-            currentIndex += direction;
+        // 화살표 클릭 시 이전(-1 페이지)/다음(+1 페이지) 5개 단위로 이동하는 함수
+        function moveTimelinePage(direction) {
+            currentPage += direction;
             renderTimeline();
         }
 
@@ -561,7 +568,7 @@
 
                 // 4. 타임라인 데이터 저장 및 초기화
                 allTimelineData = data.timeline || [];
-                currentIndex = 0;
+                currentPage = 0;
                 renderTimeline();
 
                 // 5. 카드 등장 애니메이션 활성화
