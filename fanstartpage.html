@@ -227,7 +227,7 @@
             text-overflow: ellipsis;
         }
 
-        /* 타임라인 영역 스타일 (가독성 개선 적용) */
+        /* 타임라인 영역 스타일 (상단 날짜, 하단 내용의 2줄 구조) */
         .timeline-container {
             background: rgba(255, 255, 255, 1);
             backdrop-filter: blur(10px);
@@ -240,14 +240,13 @@
             text-shadow: none;
             display: flex;
             flex-direction: column;
-            height: auto; 
         }
 
         .timeline-title {
             font-size: 13px;
             font-weight: 800;
             color: #0077b6;
-            margin: 0 0 12px 0;
+            margin: 0 0 10px 0;
             display: flex;
             align-items: center;
             gap: 5px;
@@ -259,33 +258,30 @@
             margin: 0;
             display: flex;
             flex-direction: column;
-            gap: 12px; /* 항목 간 여백 확대 */
-            position: relative;
-        }
-
-        /* 타임라인 세로 축(라인) 구현 */
-        .timeline-list::before {
-            content: '';
-            position: absolute;
-            top: 8px;
-            bottom: 8px;
-            left: 5px;
-            width: 2px;
-            background-color: rgba(0, 119, 190, 0.25);
+            gap: 8px; /* 항목 간 간격 */
         }
 
         .timeline-item {
-            font-size: 13px; /* 글자 크기 미세 상향 (12px -> 13px) */
-            color: #1e293b; /* 가독성을 위해 텍스트 색상 진하게 변경 */
-            display: none; 
-            align-items: flex-start; /* 멀티라인 텍스트 대응을 위해 상단 정렬 */
-            position: relative;
-            padding-left: 22px; 
-            line-height: 1.5; /* 줄 간격 확보 */
+            font-size: 12.5px;
+            color: #1e293b;
+            display: none; /* 기본 숨김 */
+            flex-direction: column; /* 세로(2줄) 정렬 */
+            gap: 3px; /* 날짜와 내용 사이 간격 */
+            padding: 8px 10px;
+            border-radius: 8px;
+            background-color: rgba(244, 247, 249, 0.6); /* 은은한 배경 */
+            border-left: 3px solid #0077b6; /* 왼쪽 포인트 바 */
+            transition: background-color 0.2s ease, transform 0.2s ease;
             
+            /* 등장 애니메이션 */
             opacity: 0;
-            transform: translateY(-8px);
-            transition: opacity 0.25s ease, transform 0.25s ease;
+            transform: translateY(-6px);
+            transition: opacity 0.25s ease, transform 0.25s ease, background-color 0.2s ease;
+        }
+
+        .timeline-item:hover {
+            background-color: rgba(0, 119, 190, 0.06);
+            transform: translateY(-1px);
         }
 
         .timeline-item.show {
@@ -294,43 +290,25 @@
             transform: translateY(0);
         }
 
-        /* 타임라인 점(dot) 구현 */
-        .timeline-item::before {
-            content: '';
-            position: absolute;
-            left: 3px;
-            top: 7px; /* 텍스트 첫 줄 높이에 맞게 조정 */
-            width: 6px;
-            height: 6px;
-            background-color: #0077b6;
-            border-radius: 50%;
-            box-shadow: 0 0 0 3px rgba(0, 119, 190, 0.15);
-            z-index: 2;
-        }
-
-        /* 날짜 영역 스타일링 (구분을 위해 배경 및 형태 부여) */
+        /* 1번째 줄: 날짜 영역 */
         .timeline-date {
             font-weight: 700;
-            color: #0284c7;
-            background-color: rgba(0, 119, 190, 0.08); /* 연한 배경색 */
-            padding: 1px 6px;
-            border-radius: 4px;
-            white-space: nowrap;
-            margin-right: 10px;
-            font-size: 11px;
+            color: #0077b6;
+            font-size: 11.5px;
             letter-spacing: -0.3px;
-            flex-shrink: 0;
-            margin-top: 1px; /* 텍스트와 수직 정렬 맞춤 */
         }
 
+        /* 2번째 줄: 내용 영역 */
         .timeline-text {
             word-break: break-all;
+            line-height: 1.4;
+            color: #334155;
         }
 
         /* 더보기 버튼 스타일 */
         .timeline-more-btn {
             width: 100%;
-            margin-top: 12px;
+            margin-top: 10px;
             padding: 8px;
             background: rgba(0, 119, 190, 0.08);
             border: 1px solid rgba(0, 119, 190, 0.2);
@@ -412,7 +390,10 @@
             <div class="timeline-container">
                 <h4 class="timeline-title">🕒 타임라인</h4>
                 <ul class="timeline-list" id="timeline-list">
-                    <li class="timeline-item show"><span class="timeline-text">기록이 없습니다.</span></li>
+                    <li class="timeline-item show">
+                        <span class="timeline-date">-</span>
+                        <span class="timeline-text">기록이 없습니다.</span>
+                    </li>
                 </ul>
                 <button type="button" class="timeline-more-btn" id="timeline-more-btn" onclick="showMoreTimeline()">더보기 ▼</button>
             </div>
@@ -438,12 +419,17 @@
             const moreBtnEl = document.getElementById("timeline-more-btn");
 
             if (!Array.isArray(allTimelineData) || allTimelineData.length === 0) {
-                timelineListEl.innerHTML = `<li class="timeline-item show"><span class="timeline-text">기록이 없습니다.</span></li>`;
+                timelineListEl.innerHTML = `
+                    <li class="timeline-item show">
+                        <span class="timeline-date">-</span>
+                        <span class="timeline-text">기록이 없습니다.</span>
+                    </li>
+                `;
                 moreBtnEl.style.display = "none";
                 return;
             }
 
-            // 타임라인 리스트 HTML 생성
+            // 타임라인 리스트 HTML 생성 (1번 줄 날짜, 2번 줄 내용 구조)
             timelineListEl.innerHTML = allTimelineData.map((item, index) => {
                 const showClass = index < currentTimelineLimit ? "show" : "";
                 return `
@@ -485,10 +471,10 @@
         async function loadProfile() {
             try {
                 const timestamp = new Date().getTime();
-                const response = await fetch(`${WORKER_URL}?type=fanstartpage&t=${timestamp}`);
-                if (!response.ok) throw new Error("데이터를 불러오지 못했습니다.");
+                const response = await fetch(`${WORKR_URL}?type=fanstartpage&t=${timestamp}`); // 원본 WORKER_URL 유지
+                const res = await response.json();
                 
-                const data = await response.json();
+                const data = res;
 
                 // 1. 기본 프로필 정보 바인딩
                 document.getElementById("view-name").textContent = data.name || "바다비。";
