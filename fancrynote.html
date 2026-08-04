@@ -380,8 +380,11 @@
 
                     const sortedMonths = Object.keys(groupedData[year]).sort().reverse();
 
+                    // 전체 월 중에서 최신순으로 3개까지만 펼치고 나머지는 접어두기 위한 카운터
                     sortedMonths.forEach(month => {
                         const monthGroup = document.createElement("div");
+                        
+                        // 최신순 기준 상위 3개만 기본 펼침(collapsed 클래스 안 붙임), 나머지는 collapsed 적용
                         monthGroup.className = isFirstMonth ? "month-group" : "month-group collapsed";
                         monthGroup.style.animationDelay = `${globalIndex * 0.05}s`;
                         globalIndex++;
@@ -434,7 +437,12 @@
                         monthGroup.appendChild(contentWrapper);
                         yearSection.appendChild(monthGroup);
 
-                        isFirstMonth = false;
+                        // 전역 월 카운터를 감소시켜 최초 3개 월만 펼쳐지도록 제어
+                        if (globalMonthLimit > 1) {
+                            globalMonthLimit--;
+                        } else {
+                            isFirstMonth = false;
+                        }
                     });
 
                     container.appendChild(yearSection);
