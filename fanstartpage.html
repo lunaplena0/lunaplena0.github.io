@@ -227,7 +227,7 @@
             text-overflow: ellipsis;
         }
 
-        /* 세로줄과 점이 포함된 타임라인 영역 스타일 */
+        /* 타임라인 영역 스타일 (상하 화살표 네비게이션 구조) */
         .timeline-container {
             background: rgba(255, 255, 255, 1);
             backdrop-filter: blur(10px);
@@ -242,33 +242,73 @@
             flex-direction: column;
         }
 
+        .timeline-header-wrap {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
         .timeline-title {
             font-size: 13px;
             font-weight: 800;
             color: #0077b6;
-            margin: 0 0 12px 0;
+            margin: 0;
             display: flex;
             align-items: center;
             gap: 5px;
         }
 
-        .timeline-list {
-            list-style: none;
-            padding: 0 0 0 12px; /* 세로줄 공간 확보 */
-            margin: 0;
-            position: relative;
+        /* 상하 화살표 컨트롤러 버튼들 */
+        .timeline-nav-btns {
             display: flex;
-            flex-direction: column;
-            gap: 12px;
+            gap: 4px;
         }
 
-        /* 왼쪽 타임라인 세로줄 복원 */
+        .timeline-arrow-btn {
+            background: rgba(0, 119, 190, 0.08);
+            border: 1px solid rgba(0, 119, 190, 0.2);
+            border-radius: 6px;
+            color: #0077b6;
+            width: 26px;
+            height: 26px;
+            font-size: 12px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.2s ease, color 0.2s ease, opacity 0.2s ease;
+        }
+
+        .timeline-arrow-btn:hover:not(:disabled) {
+            background: #0077b6;
+            color: #ffffff;
+        }
+
+        .timeline-arrow-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .timeline-list {
+            list-style: none;
+            padding: 0 0 0 12px; /* 세로줄 공간 */
+            margin: 0;
+            position: relative;
+            min-height: 52px; /* 2줄 내용 공간 안정화 */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        /* 왼쪽 타임라인 세로줄 */
         .timeline-list::before {
             content: '';
             position: absolute;
             left: 4px;
-            top: 6px;
-            bottom: 6px;
+            top: 2px;
+            bottom: 2px;
             width: 2px;
             background-color: rgba(0, 119, 190, 0.2);
         }
@@ -277,21 +317,17 @@
             position: relative;
             font-size: 12.5px;
             color: #1e293b;
-            display: none; /* 기본 숨김 */
+            display: none; /* 기본 숨김, 페이지네이션으로 제어 */
             flex-direction: column; /* 2줄 구조 (상단 날짜, 하단 내용) */
             gap: 3px;
-            padding-left: 16px; /* 점과의 간격 */
-            
-            opacity: 0;
-            transform: translateY(-6px);
-            transition: opacity 0.25s ease, transform 0.25s ease;
+            padding-left: 16px;
         }
 
-        /* 타임라인 점(마커) 복원 */
+        /* 타임라인 점(마커) */
         .timeline-item::before {
             content: '';
             position: absolute;
-            left: -12px; /* 세로줄 위에 위치하도록 조정 */
+            left: -12px;
             top: 4px;
             width: 8px;
             height: 8px;
@@ -303,8 +339,6 @@
 
         .timeline-item.show {
             display: flex; 
-            opacity: 1;
-            transform: translateY(0);
         }
 
         /* 1번째 줄: 날짜 영역 */
@@ -320,27 +354,6 @@
             word-break: break-all;
             line-height: 1.4;
             color: #334155;
-        }
-
-        /* 더보기 버튼 스타일 */
-        .timeline-more-btn {
-            width: 100%;
-            margin-top: 12px;
-            padding: 8px;
-            background: rgba(0, 119, 190, 0.08);
-            border: 1px solid rgba(0, 119, 190, 0.2);
-            border-radius: 8px;
-            color: #0077b6;
-            font-size: 12px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: background 0.2s ease, color 0.2s ease;
-            display: none; 
-        }
-
-        .timeline-more-btn:hover {
-            background: #0077b6;
-            color: #ffffff;
         }
 
         /* 모바일 반응형 */
@@ -403,23 +416,28 @@
                 </a>
             </div>
 
-            <!-- 공지·VOD 아래에 위치하는 타임라인 영역 -->
+            <!-- 공지·VOD 아래에 위치하는 타임라인 영역 (위/아래 화살표 컨트롤 방식) -->
             <div class="timeline-container">
-                <h4 class="timeline-title">🕒 타임라인</h4>
+                <div class="timeline-header-wrap">
+                    <h4 class="timeline-title">🕒 타임라인</h4>
+                    <div class="timeline-nav-btns">
+                        <button type="button" class="timeline-arrow-btn" id="timeline-prev-btn" onclick="moveTimeline(-1)" title="이전 기록">▲</button>
+                        <button type="button" class="timeline-arrow-btn" id="timeline-next-btn" onclick="moveTimeline(1)" title="다음 기록">▼</button>
+                    </div>
+                </div>
                 <ul class="timeline-list" id="timeline-list">
                     <li class="timeline-item show">
                         <span class="timeline-date">-</span>
                         <span class="timeline-text">기록이 없습니다.</span>
                     </li>
                 </ul>
-                <button type="button" class="timeline-more-btn" id="timeline-more-btn" onclick="showMoreTimeline()">더보기 ▼</button>
             </div>
         </div>
     </div>
 
     <script>
         const WORKER_URL = "https://badabi-api.dalkkumli054.workers.dev";
-        let currentTimelineLimit = 5; // 한 번에 보여줄 기본 개수 5개
+        let currentIndex = 0; // 현재 보고 있는 타임라인 인덱스
         let allTimelineData = [];
 
         function preloadImage(url) {
@@ -433,7 +451,8 @@
 
         function renderTimeline() {
             const timelineListEl = document.getElementById("timeline-list");
-            const moreBtnEl = document.getElementById("timeline-more-btn");
+            const prevBtn = document.getElementById("timeline-prev-btn");
+            const nextBtn = document.getElementById("timeline-next-btn");
 
             if (!Array.isArray(allTimelineData) || allTimelineData.length === 0) {
                 timelineListEl.innerHTML = `
@@ -442,46 +461,33 @@
                         <span class="timeline-text">기록이 없습니다.</span>
                     </li>
                 `;
-                moreBtnEl.style.display = "none";
+                prevBtn.disabled = true;
+                nextBtn.disabled = true;
                 return;
             }
 
-            // 타임라인 리스트 HTML 생성 (1번 줄 날짜, 2번 줄 내용 구조 + 세로줄/점 연동)
-            timelineListEl.innerHTML = allTimelineData.map((item, index) => {
-                const showClass = index < currentTimelineLimit ? "show" : "";
-                return `
-                    <li class="timeline-item ${showClass}">
-                        <span class="timeline-date">${item.time || ''}</span>
-                        <span class="timeline-text">${item.text || ''}</span>
-                    </li>
-                `;
-            }).join('');
+            // 인덱스 범위 안전장치
+            if (currentIndex < 0) currentIndex = 0;
+            if (currentIndex >= allTimelineData.length) currentIndex = allTimelineData.length - 1;
 
-            // 새로 나타나는 항목들에 순차 지연 효과 부여
-            const items = timelineListEl.getElementsByClassName("timeline-item");
-            let delayCount = 0;
-            for (let i = 0; i < items.length; i++) {
-                if (items[i].classList.contains("show")) {
-                    if (i >= currentTimelineLimit - 5) {
-                        items[i].style.transitionDelay = `${delayCount * 0.03}s`;
-                        delayCount++;
-                    } else {
-                        items[i].style.transitionDelay = "0s";
-                    }
-                }
-            }
+            const item = allTimelineData[currentIndex];
 
-            // 전체 데이터 개수보다 현재 보여주는 개수가 적다면 '더보기' 버튼 노출
-            if (allTimelineData.length > currentTimelineLimit) {
-                moreBtnEl.style.display = "block";
-            } else {
-                moreBtnEl.style.display = "none";
-            }
+            // 1개 항목만 쏙 보여주도록 렌더링
+            timelineListEl.innerHTML = `
+                <li class="timeline-item show">
+                    <span class="timeline-date">${item.time || ''}</span>
+                    <span class="timeline-text">${item.text || ''}</span>
+                </li>
+            `;
+
+            // 화살표 활성화/비활성화 상태 업데이트
+            prevBtn.disabled = (currentIndex === 0);
+            nextBtn.disabled = (currentIndex === allTimelineData.length - 1);
         }
 
-        // 더보기 버튼을 누를 때 5개씩 추가로 보여주는 함수
-        function showMoreTimeline() {
-            currentTimelineLimit += 5;
+        // 화살표 클릭 시 이전(-1)/다음(+1) 기록으로 전환하는 함수
+        function moveTimeline(direction) {
+            currentIndex += direction;
             renderTimeline();
         }
 
@@ -529,9 +535,9 @@
                     vodListEl.innerHTML = vods.map(item => `<li class="widget-item">· ${item}</li>`).join('');
                 }
 
-                // 4. 타임라인 데이터 저장 및 렌더링 초기화
+                // 4. 타임라인 데이터 저장 및 초기화 (첫 번째 기록부터 표시)
                 allTimelineData = data.timeline || [];
-                currentTimelineLimit = 5;
+                currentIndex = 0;
                 renderTimeline();
 
                 // 5. 카드 등장 애니메이션 활성화
