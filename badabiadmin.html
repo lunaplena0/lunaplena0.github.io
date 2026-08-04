@@ -535,55 +535,57 @@
         }
 
         async function saveIntroSettings() {
-            const statusEl = document.getElementById('intro-status');
-            const password = document.getElementById('admin-password').value.trim();
-            if (!password) {
-                statusEl.textContent = "로그인 정보가 유실되었습니다. 다시 로그인해주세요.";
-                statusEl.style.color = "#ef4444";
-                return;
-            }
+    const statusEl = document.getElementById('intro-status');
+    const password = document.getElementById('admin-password').value.trim();
+    if (!password) {
+        statusEl.textContent = "로그인 정보가 유실되었습니다. 다시 로그인해주세요.";
+        statusEl.style.color = "#ef4444";
+        return;
+    }
 
-            const name = document.getElementById('intro-name').value.trim();
-            const image = document.getElementById('intro-image').value.trim();
-            const message = document.getElementById('intro-message').value.trim();
-            const notice = document.getElementById('intro-notice').value.trim();
-            const vod = document.getElementById('intro-vod').value.trim();
+    const name = document.getElementById('intro-name').value.trim();
+    const image = document.getElementById('intro-image').value.trim();
+    const message = document.getElementById('intro-message').value.trim();
+    const notice = document.getElementById('intro-notice').value.trim();
+    const vod = document.getElementById('intro-vod').value.trim();
 
-            const timeline = [];
-            document.querySelectorAll('#intro-timeline-rows-container .menu-item-row').forEach(row => {
-                const time = row.querySelector('.timeline-time-input').value.trim();
-                const text = row.querySelector('.timeline-text-input').value.trim();
-                if (time || text) timeline.push({ time, text });
-            });
+    const timeline = [];
+    document.querySelectorAll('#intro-timeline-rows-container .menu-item-row').forEach(row => {
+        const time = row.querySelector('.timeline-time-input').value.trim();
+        const text = row.querySelector('.timeline-text-input').value.trim();
+        if (time || text) timeline.push({ time, text });
+    });
 
-            const payload = {
-                password: password,
-                fileType: "fanstartpage",
-                content: { name, image, message, notice, vod, timeline }
-            };
+    const payload = {
+        password: password,
+        fileType: "fanstartpage",
+        content: { name, image, message, notice, vod, timeline }
+    };
 
-            statusEl.textContent = "저장 중...";
-            statusEl.style.color = "#0077b6";
+    statusEl.textContent = "저장 중...";
+    statusEl.style.color = "#0077b6";
 
-            try {
-                const response = await fetch(WORKER_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                const result = await response.json();
-                if (response.ok) {
-                    statusEl.textContent = "성공적으로 저장되었습니다!";
-                    statusEl.style.color = "#10b981";
-                } else {
-                    throw new Error(result.error || "저장 실패");
-                }
-            } catch (err) {
-                console.error("저장 오류:", err);
-                statusEl.textContent = "저장 오류: " + err.message;
-                statusEl.style.color = "#ef4444";
-            }
+    try {
+        const response = await fetch(WORKER_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        // ⭐ 변경 포인트: 응답 본문이 {} 이더라도 response.ok(성공 코드)면 정상 완료 처리
+        if (response.ok) {
+            statusEl.textContent = "성공적으로 저장되었습니다!";
+            statusEl.style.color = "#10b981";
+        } else {
+            const errText = await response.text();
+            throw new Error(errText || "저장 실패");
         }
+    } catch (err) {
+        console.error("저장 오류:", err);
+        statusEl.textContent = "저장 오류: " + err.message;
+        statusEl.style.color = "#ef4444";
+    }
+}
     </script>
     
     <!-- 푸터 영역 -->
