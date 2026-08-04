@@ -219,22 +219,21 @@
 
         .timeline-list {
             list-style: none;
-            padding: 0 0 0 5px;
+            padding: 0;
             margin: 0;
             display: flex;
             flex-direction: column;
             gap: 10px;
             position: relative;
-            overflow: visible; 
         }
 
-        /* 타임라인 세로 축(라인) 구현 */
+        /* 타임라인 세로 축(라인) 구현 - 정확한 위치 고정 */
         .timeline-list::before {
             content: '';
             position: absolute;
-            top: 4px;
-            bottom: 4px;
-            left: 5px;
+            top: 6px;
+            bottom: 6px;
+            left: 5px; /* 점의 중심 위치와 일치시킴 */
             width: 2px;
             background-color: rgba(0, 119, 190, 0.25);
         }
@@ -243,15 +242,14 @@
             font-size: 12px;
             color: #334155;
             display: none; /* 기본 숨김 */
-            gap: 12px;
             align-items: center;
             position: relative;
-            padding-left: 18px;
+            padding-left: 20px; /* 세로줄 및 점 공간 확보 */
             
-            /* 위에서 아래로 뚝 떨어지며 나타나는 애니메이션 */
+            /* 위에서 아래로 떨어지는 애니메이션 */
             opacity: 0;
-            transform: translateY(-10px);
-            transition: opacity 0.3s ease, transform 0.3s ease;
+            transform: translateY(-8px);
+            transition: opacity 0.25s ease, transform 0.25s ease;
         }
 
         /* 펼쳐질 때 활성화되는 클래스 */
@@ -261,24 +259,26 @@
             transform: translateY(0);
         }
 
-        /* 타임라인 점(dot) 구현 */
+        /* 타임라인 점(dot) 구현 - 세로 줄 위에 정확히 안착하도록 위치 정렬 */
         .timeline-item::before {
             content: '';
             position: absolute;
-            left: 2px;
+            left: 3px; /* 세로선(left: 5px)의 중앙(2px 두께 고려)에 정확히 오도록 설정 */
             top: 50%;
             transform: translateY(-50%);
-            width: 7px;
-            height: 7px;
+            width: 6px;
+            height: 6px;
             background-color: #0077b6;
             border-radius: 50%;
             box-shadow: 0 0 0 3px rgba(0, 119, 190, 0.15);
+            z-index: 2;
         }
 
         .timeline-date {
             font-weight: 700;
             color: #0077b6;
             white-space: nowrap;
+            margin-right: 10px;
         }
 
         .timeline-text {
@@ -396,7 +396,7 @@
                 return;
             }
 
-            // 전체 타임라인 리스트 HTML을 먼저 생성
+            // 타임라인 리스트 HTML 생성
             timelineListEl.innerHTML = allTimelineData.map((item, index) => {
                 const showClass = index < currentTimelineLimit ? "show" : "";
                 return `
@@ -407,14 +407,13 @@
                 `;
             }).join('');
 
-            // 새로 나타나는 항목들에만 미세한 시차(Stagger)를 주어 위에서 아래로 순차적으로 쏟아지듯 나타나게 처리
+            // 새로 나타나는 항목들에 순차 지연 효과 부여
             const items = timelineListEl.getElementsByClassName("timeline-item");
             let delayCount = 0;
             for (let i = 0; i < items.length; i++) {
                 if (items[i].classList.contains("show")) {
-                    // 이미 화면에 있던 것들보다 새로 추가된 항목들에 순차 지연 효과 부여
                     if (i >= currentTimelineLimit - 5) {
-                        items[i].style.transitionDelay = `${delayCount * 0.05}s`;
+                        items[i].style.transitionDelay = `${delayCount * 0.03}s`;
                         delayCount++;
                     } else {
                         items[i].style.transitionDelay = "0s";
