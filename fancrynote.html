@@ -95,6 +95,9 @@
             margin: 20px 0 10px 0;
             padding-bottom: 8px;
             border-bottom: 2px solid rgba(0, 119, 190, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
             opacity: 0;
             animation: fadeUpIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
@@ -328,7 +331,6 @@
 
                 if (totalCryCount > 0) {
                     const daysPerCry = (diffDays / totalCryCount).toFixed(1);
-                    // 💡 요청하신 간결한 문구 적용
                     avgText = `(약 <b>${daysPerCry}일당 1번</b> 울었어요)`;
                 } else {
                     avgText = `2026년 4월 20일 이후 기록된 울음이 없습니다.`;
@@ -364,9 +366,15 @@
                     const yearSection = document.createElement("div");
                     yearSection.className = "year-section";
 
+                    // 해당 연도의 총 울음 횟수 계산
+                    let yearTotalCount = 0;
+                    Object.keys(groupedData[year]).forEach(month => {
+                        yearTotalCount += groupedData[year][month].length;
+                    });
+
                     const yearHeading = document.createElement("h3");
                     yearHeading.className = "year-heading";
-                    yearHeading.textContent = `${year}년`;
+                    yearHeading.innerHTML = `<span>${year}년</span> <span style="font-size: 16px; font-weight: 500; color: #64748b;">(총 ${yearTotalCount}번)</span>`;
                     yearHeading.style.animationDelay = `${globalIndex * 0.05}s`;
                     yearSection.appendChild(yearHeading);
                     globalIndex++;
