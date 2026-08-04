@@ -227,7 +227,7 @@
             text-overflow: ellipsis;
         }
 
-        /* 타임라인 영역 스타일 (상단 날짜, 하단 내용의 2줄 구조) */
+        /* 세로줄과 점이 포함된 타임라인 영역 스타일 */
         .timeline-container {
             background: rgba(255, 255, 255, 1);
             backdrop-filter: blur(10px);
@@ -246,7 +246,7 @@
             font-size: 13px;
             font-weight: 800;
             color: #0077b6;
-            margin: 0 0 10px 0;
+            margin: 0 0 12px 0;
             display: flex;
             align-items: center;
             gap: 5px;
@@ -254,34 +254,51 @@
 
         .timeline-list {
             list-style: none;
-            padding: 0;
+            padding: 0 0 0 12px; /* 세로줄 공간 확보 */
             margin: 0;
+            position: relative;
             display: flex;
             flex-direction: column;
-            gap: 8px; /* 항목 간 간격 */
+            gap: 12px;
+        }
+
+        /* 왼쪽 타임라인 세로줄 복원 */
+        .timeline-list::before {
+            content: '';
+            position: absolute;
+            left: 4px;
+            top: 6px;
+            bottom: 6px;
+            width: 2px;
+            background-color: rgba(0, 119, 190, 0.2);
         }
 
         .timeline-item {
+            position: relative;
             font-size: 12.5px;
             color: #1e293b;
             display: none; /* 기본 숨김 */
-            flex-direction: column; /* 세로(2줄) 정렬 */
-            gap: 3px; /* 날짜와 내용 사이 간격 */
-            padding: 8px 10px;
-            border-radius: 8px;
-            background-color: rgba(244, 247, 249, 0.6); /* 은은한 배경 */
-            border-left: 3px solid #0077b6; /* 왼쪽 포인트 바 */
-            transition: background-color 0.2s ease, transform 0.2s ease;
+            flex-direction: column; /* 2줄 구조 (상단 날짜, 하단 내용) */
+            gap: 3px;
+            padding-left: 16px; /* 점과의 간격 */
             
-            /* 등장 애니메이션 */
             opacity: 0;
             transform: translateY(-6px);
-            transition: opacity 0.25s ease, transform 0.25s ease, background-color 0.2s ease;
+            transition: opacity 0.25s ease, transform 0.25s ease;
         }
 
-        .timeline-item:hover {
-            background-color: rgba(0, 119, 190, 0.06);
-            transform: translateY(-1px);
+        /* 타임라인 점(마커) 복원 */
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -12px; /* 세로줄 위에 위치하도록 조정 */
+            top: 4px;
+            width: 8px;
+            height: 8px;
+            background-color: #0077b6;
+            border-radius: 50%;
+            border: 2px solid #ffffff;
+            box-shadow: 0 0 0 1px rgba(0, 119, 190, 0.3);
         }
 
         .timeline-item.show {
@@ -308,7 +325,7 @@
         /* 더보기 버튼 스타일 */
         .timeline-more-btn {
             width: 100%;
-            margin-top: 10px;
+            margin-top: 12px;
             padding: 8px;
             background: rgba(0, 119, 190, 0.08);
             border: 1px solid rgba(0, 119, 190, 0.2);
@@ -429,7 +446,7 @@
                 return;
             }
 
-            // 타임라인 리스트 HTML 생성 (1번 줄 날짜, 2번 줄 내용 구조)
+            // 타임라인 리스트 HTML 생성 (1번 줄 날짜, 2번 줄 내용 구조 + 세로줄/점 연동)
             timelineListEl.innerHTML = allTimelineData.map((item, index) => {
                 const showClass = index < currentTimelineLimit ? "show" : "";
                 return `
