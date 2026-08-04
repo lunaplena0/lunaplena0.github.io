@@ -218,6 +218,9 @@
     </div>
 
     <script>
+        // 본인의 Cloudflare Worker URL로 변경해 주세요
+        const WORKER_URL = "https://your-worker-subdomain.workers.dev";
+
         // 이미지 프리로딩을 처리하는 함수
         function preloadImage(url) {
             return new Promise((resolve, reject) => {
@@ -230,13 +233,13 @@
 
         async function loadProfile() {
             try {
-                // 1. fanstartpage.json 내부의 profile 객체 데이터 호출
+                // 1. Cloudflare Worker를 통해 KV에 저장된 최신 fanstartpage 데이터 호출
                 const timestamp = new Date().getTime();
-                const response = await fetch('fanstartpage.json?t=' + timestamp);
+                const response = await fetch(`${WORKER_URL}?type=fanstartpage&t=${timestamp}`);
                 if (!response.ok) throw new Error("데이터를 불러오지 못했습니다.");
                 
                 const rootData = await response.json();
-                const data = rootData.profile || {}; // fanstartpage.json 안의 profile 데이터 참조
+                const data = rootData.profile || rootData || {}; // 저장된 구조에 맞춰 profile 참조
 
                 // 2. 텍스트 데이터 먼저 바인딩
                 document.getElementById("view-name").textContent = data.name || "바다비。";
