@@ -237,31 +237,28 @@
             left: 5px;
             width: 2px;
             background-color: rgba(0, 119, 190, 0.25);
-            transition: height 0.4s ease;
         }
 
         .timeline-item {
             font-size: 12px;
             color: #334155;
-            display: flex; 
+            display: none; /* 기본 숨김 */
             gap: 12px;
             align-items: center;
             position: relative;
             padding-left: 18px;
             
-            /* 아래로 부드럽게 펼쳐지는 아코디언 애니메이션 핵심 설정 */
-            max-height: 0;
+            /* 위에서 아래로 뚝 떨어지며 나타나는 애니메이션 */
             opacity: 0;
-            overflow: hidden;
-            margin: 0;
-            transition: max-height 0.4s ease-out, opacity 0.3s ease-out, margin 0.4s ease-out;
+            transform: translateY(-10px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
         }
 
         /* 펼쳐질 때 활성화되는 클래스 */
         .timeline-item.show {
-            max-height: 60px; /* 항목 하나가 차지할 최대 높이 */
+            display: flex; 
             opacity: 1;
-            margin-bottom: 10px; /* 항목 간 간격 복원 */
+            transform: translateY(0);
         }
 
         /* 타임라인 점(dot) 구현 */
@@ -291,7 +288,7 @@
         /* 더보기 버튼 스타일 */
         .timeline-more-btn {
             width: 100%;
-            margin-top: 6px;
+            margin-top: 10px;
             padding: 6px;
             background: rgba(0, 119, 190, 0.08);
             border: 1px solid rgba(0, 119, 190, 0.2);
@@ -399,23 +396,29 @@
                 return;
             }
 
-            // 최초 1회 전체 리스트 HTML 구조를 한 번만 그림 (내부는 숨겨진 상태)
-            if (timelineListEl.children.length !== allTimelineData.length) {
-                timelineListEl.innerHTML = allTimelineData.map((item) => `
-                    <li class="timeline-item">
+            // 전체 타임라인 리스트 HTML을 먼저 생성
+            timelineListEl.innerHTML = allTimelineData.map((item, index) => {
+                const showClass = index < currentTimelineLimit ? "show" : "";
+                return `
+                    <li class="timeline-item ${showClass}">
                         <span class="timeline-date">${item.time || ''}</span>
                         <span class="timeline-text">${item.text || ''}</span>
                     </li>
-                `).join('');
-            }
+                `;
+            }).join('');
 
-            // 지정된 개수(currentTimelineLimit)만큼만 순서대로 .show 클래스를 붙여 부드럽게 아래로 슬라이드 확장시킴
+            // 새로 나타나는 항목들에만 미세한 시차(Stagger)를 주어 위에서 아래로 순차적으로 쏟아지듯 나타나게 처리
             const items = timelineListEl.getElementsByClassName("timeline-item");
+            let delayCount = 0;
             for (let i = 0; i < items.length; i++) {
-                if (i < currentTimelineLimit) {
-                    items[i].classList.add("show");
-                } else {
-                    items[i].classList.remove("show");
+                if (items[i].classList.contains("show")) {
+                    // 이미 화면에 있던 것들보다 새로 추가된 항목들에 순차 지연 효과 부여
+                    if (i >= currentTimelineLimit - 5) {
+                        items[i].style.transitionDelay = `${delayCount * 0.05}s`;
+                        delayCount++;
+                    } else {
+                        items[i].style.transitionDelay = "0s";
+                    }
                 }
             }
 
