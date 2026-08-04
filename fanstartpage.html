@@ -78,7 +78,7 @@
             width: 100%;
             display: flex;
             flex-direction: column;
-            gap: 24px;
+            gap: 20px;
             color: #2b2d42; 
             box-sizing: border-box;
             padding: 20px;
@@ -176,6 +176,59 @@
             color: #03045e;
         }
 
+        /* 하단 공지 및 VOD 섹션 스타일 (2분할 상자) */
+        .profile-widgets-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .widget-box {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 119, 190, 0.2);
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 4px 15px rgba(0, 119, 190, 0.08);
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            text-shadow: none;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .widget-box:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 119, 190, 0.15);
+        }
+
+        .widget-title {
+            font-size: 14px;
+            font-weight: 800;
+            color: #0077b6;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin: 0;
+        }
+
+        .widget-content {
+            font-size: 13px;
+            color: #334155;
+            line-height: 1.4;
+            margin: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+
         /* 모바일 반응형 */
         @media (max-width: 768px) {
             .ocean-profile-container {
@@ -197,6 +250,9 @@
             .info-item {
                 grid-template-columns: 50px 1fr;
             }
+            .profile-widgets-container {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -214,6 +270,18 @@
             </div>
             <div class="profile-info-grid" id="view-info-grid"></div>
             <div class="profile-bio-box" id="view-bio-box"></div>
+            
+            <!-- 하단 최근 공지 / 최근 VOD 2분할 상자 영역 -->
+            <div class="profile-widgets-container">
+                <a href="#" id="widget-notice-link" class="widget-box" target="_blank">
+                    <h4 class="widget-title">📢 최근 공지</h4>
+                    <p class="widget-content" id="widget-notice-text">등록된 공지가 없습니다.</p>
+                </a>
+                <a href="#" id="widget-vod-link" class="widget-box" target="_blank">
+                    <h4 class="widget-title">🎬 최근 VOD</h4>
+                    <p class="widget-content" id="widget-vod-text">등록된 VOD가 없습니다.</p>
+                </a>
+            </div>
         </div>
     </div>
 
@@ -264,10 +332,27 @@
                     <p>${(data.bio2 || '').replace(/\n/g, '<br>')}</p>
                 `;
 
-                // 3. 텍스트 로딩 완료 후 카드 등장
+                // 3. 하단 위젯 데이터 바인딩 (최근 공지 / 최근 VOD)
+                if (data.notice) {
+                    const noticeText = data.notice.title || data.notice.text || "공지사항 내용";
+                    document.getElementById("widget-notice-text").textContent = noticeText;
+                    if (data.notice.link) {
+                        document.getElementById("widget-notice-link").href = data.notice.link;
+                    }
+                }
+
+                if (data.vod) {
+                    const vodText = data.vod.title || data.vod.text || "최근 VOD 영상";
+                    document.getElementById("widget-vod-text").textContent = vodText;
+                    if (data.vod.link) {
+                        document.getElementById("widget-vod-link").href = data.vod.link;
+                    }
+                }
+
+                // 4. 텍스트 로딩 완료 후 카드 등장
                 document.getElementById("profile-card").classList.add('loaded');
 
-                // 4. 이미지 프리로딩 시작
+                // 5. 이미지 프리로딩 시작
                 if (data.image) {
                     await preloadImage(data.image); 
                     
