@@ -25,7 +25,7 @@
             border: 1px solid rgba(0, 119, 190, 0.15);
         }
         label { display: block; margin-bottom: 8px; font-weight: 700; color: #0077b6; }
-        input[type="text"], input[type="password"], textarea, select {
+        input[type="text"], input[type="password"], input[type="date"], textarea, select {
             width: 100%;
             padding: 12px;
             border: 1px solid rgba(0, 119, 190, 0.25);
@@ -150,7 +150,7 @@
                     <h4>시작페이지 관리</h4>
                     <p>시작 화면 설정 및 관리</p>
                 </div>
-                <div class="menu-card" onclick="location.href='#'">
+                <div class="menu-card" onclick="showCryNoteSettings()">
                     <h4>울보노트</h4>
                     <p>울보노트 데이터 관리</p>
                 </div>
@@ -247,7 +247,7 @@
             <label>최근 VOD</label>
             <input type="text" id="intro-vod" placeholder="최근 VOD 링크 또는 설명">
 
-            <!-- [추가된 영역] 최근 VOD 밑 관련 링크 입력칸 -->
+            <!-- 관련 링크 입력칸 -->
             <div style="display: flex; justify-content: space-between; align-items: center; margin: 20px 0 10px 0; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;">
                 <h4 style="color: #0077b6; margin: 0;">관련 링크</h4>
                 <button type="button" onclick="addIntroLinkRow()" style="background-color: #10b981; padding: 4px 10px; font-size: 12px;">+ 링크 추가</button>
@@ -268,6 +268,28 @@
 
             <button onclick="saveIntroSettings()" style="width: 100%; margin-top: 25px; background-color: #0077b6; padding: 14px; font-size: 16px;">시작페이지 설정 반영하기</button>
             <div id="intro-status" class="status-msg"></div>
+        </div>
+
+        <!-- 4. 울보노트 수정 패널 (신규 추가) -->
+        <div id="panel-crynote" class="card" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid rgba(0, 119, 190, 0.2); padding-bottom: 10px;">
+                <h3 style="margin: 0; color: #03045e;">💧 울보노트 데이터 관리</h3>
+                <button onclick="showDashboard()" class="secondary-btn" style="padding: 6px 12px; font-size: 13px;">← 메뉴 목록으로</button>
+            </div>
+
+            <p style="color: #64748b; font-size: 14px; margin-bottom: 15px;">울보노트 기록을 추가, 수정 및 삭제할 수 있습니다. (항목: 날짜, 설명, 시간, 주소)</p>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; margin: 20px 0 10px 0; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;">
+                <h4 style="color: #0077b6; margin: 0;">울보노트 항목 목록</h4>
+                <button type="button" onclick="addCryNoteRow()" style="background-color: #10b981; padding: 4px 10px; font-size: 12px;">+ 노트 추가</button>
+            </div>
+            
+            <div id="crynote-rows-container" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
+                <!-- 동적 울보노트 행 -->
+            </div>
+
+            <button onclick="saveCryNoteSettings()" style="width: 100%; margin-top: 25px; background-color: #0077b6; padding: 14px; font-size: 16px;">울보노트 설정 반영하기</button>
+            <div id="crynote-status" class="status-msg"></div>
         </div>
     </div>
 
@@ -317,12 +339,14 @@
         function showDashboard() {
             document.getElementById('panel-mainpage').style.display = 'none';
             document.getElementById('panel-intro').style.display = 'none';
+            document.getElementById('panel-crynote').style.display = 'none';
             document.getElementById('dashboard-view').style.display = 'block';
         }
 
         function showMainPageSettings() {
             document.getElementById('dashboard-view').style.display = 'none';
             document.getElementById('panel-intro').style.display = 'none';
+            document.getElementById('panel-crynote').style.display = 'none';
             document.getElementById('panel-mainpage').style.display = 'block';
             loadMainPageSettingsData();
         }
@@ -330,8 +354,17 @@
         function showIntroSettings() {
             document.getElementById('dashboard-view').style.display = 'none';
             document.getElementById('panel-mainpage').style.display = 'none';
+            document.getElementById('panel-crynote').style.display = 'none';
             document.getElementById('panel-intro').style.display = 'block';
             loadIntroSettingsData();
+        }
+
+        function showCryNoteSettings() {
+            document.getElementById('dashboard-view').style.display = 'none';
+            document.getElementById('panel-mainpage').style.display = 'none';
+            document.getElementById('panel-intro').style.display = 'none';
+            document.getElementById('panel-crynote').style.display = 'block';
+            loadCryNoteSettingsData();
         }
 
         // --- 메인페이지 관련 함수 ---
@@ -605,6 +638,112 @@
                 password: password,
                 fileType: "fanstartpage",
                 content: { name, image, message, notice, vod, links, timeline }
+            };
+
+            statusEl.textContent = "저장 중...";
+            statusEl.style.color = "#0077b6";
+
+            try {
+                const response = await fetch(WORKER_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.ok) {
+                    statusEl.textContent = "성공적으로 저장되었습니다!";
+                    statusEl.style.color = "#10b981";
+                } else {
+                    const errText = await response.text();
+                    throw new Error(errText || "저장 실패");
+                }
+            } catch (err) {
+                console.error("저장 오류:", err);
+                statusEl.textContent = "저장 오류: " + err.message;
+                statusEl.style.color = "#ef4444";
+            }
+        }
+
+        // --- 울보노트(fancrynote) 관련 함수 ---
+        function addCryNoteRow(date = "", description = "", time = "", url = "") {
+            const container = document.getElementById('crynote-rows-container');
+            const row = document.createElement('div');
+            row.className = 'menu-item-row';
+            row.innerHTML = `
+                <input type="text" placeholder="날짜 (예: 2026-04-12)" class="crynote-date-input" value="${date}" style="flex: 1;">
+                <input type="text" placeholder="설명" class="crynote-desc-input" value="${description}" style="flex: 2;">
+                <input type="text" placeholder="시간 (예: 14:30)" class="crynote-time-input" value="${time}" style="flex: 1;">
+                <input type="text" placeholder="주소 (URL)" class="crynote-url-input" value="${url}" style="flex: 2;">
+                <button type="button" class="delete-item-btn" onclick="this.parentElement.remove()">삭제</button>
+            `;
+            container.appendChild(row);
+        }
+
+        async function loadCryNoteSettingsData() {
+            const statusEl = document.getElementById('crynote-status');
+            statusEl.textContent = "데이터를 불러오는 중...";
+            statusEl.style.color = "#0077b6";
+
+            try {
+                const timestamp = new Date().getTime();
+                const response = await fetch(WORKER_URL + "?type=fancrynote&t=" + timestamp);
+                if (!response.ok) throw new Error("서버 응답 실패");
+                
+                const data = await response.json();
+                const container = document.getElementById('crynote-rows-container');
+                container.innerHTML = "";
+
+                // 데이터 구조가 배열 형태이거나 객체 내 배열 형태일 경우 모두 대응
+                let notesArray = [];
+                if (Array.isArray(data)) {
+                    notesArray = data;
+                } else if (data && Array.isArray(data.notes)) {
+                    notesArray = data.notes;
+                }
+
+                if (notesArray.length > 0) {
+                    notesArray.forEach(item => addCryNoteRow(item.date, item.description, item.time, item.url));
+                } else {
+                    addCryNoteRow();
+                }
+
+                statusEl.textContent = "데이터를 성공적으로 불러왔습니다.";
+                statusEl.style.color = "#10b981";
+            } catch (err) {
+                console.error("불러오기 실패:", err);
+                statusEl.textContent = "데이터를 불러오지 못했습니다. (빈 양식 사용)";
+                statusEl.style.color = "#ef4444";
+                
+                const container = document.getElementById('crynote-rows-container');
+                if (container.children.length === 0) addCryNoteRow();
+            }
+        }
+
+        async function saveCryNoteSettings() {
+            const statusEl = document.getElementById('crynote-status');
+            const password = document.getElementById('admin-password').value.trim();
+            if (!password) {
+                statusEl.textContent = "로그인 정보가 유실되었습니다. 다시 로그인해주세요.";
+                statusEl.style.color = "#ef4444";
+                return;
+            }
+
+            // 울보노트 항목 수집
+            const notes = [];
+            document.querySelectorAll('#crynote-rows-container .menu-item-row').forEach(row => {
+                const date = row.querySelector('.crynote-date-input').value.trim();
+                const description = row.querySelector('.crynote-desc-input').value.trim();
+                const time = row.querySelector('.crynote-time-input').value.trim();
+                const url = row.querySelector('.crynote-url-input').value.trim();
+                if (date || description || time || url) {
+                    notes.push({ date, description, time, url });
+                }
+            });
+
+            const payload = {
+                password: password,
+                fileType: "fancrynote",
+                content: { notes } // 서버 구조에 맞춰 객체 혹은 배열로 전송
             };
 
             statusEl.textContent = "저장 중...";
