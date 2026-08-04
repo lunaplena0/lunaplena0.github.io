@@ -126,7 +126,7 @@
             text-shadow: 0 0 10px rgba(255, 255, 255, 1), 0 0 15px rgba(255, 255, 255, 0.9);
         }
 
-        /* 하단 공지 및 VOD 섹션 스타일 (리스트형, 크기 컴팩트 조절) */
+        /* 하단 공지 및 VOD 섹션 스타일 */
         .profile-widgets-container {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -173,7 +173,6 @@
             margin: 0;
         }
 
-        /* 리스트 스타일 컨테이너 */
         .widget-list {
             list-style: none;
             padding: 0;
@@ -192,7 +191,7 @@
             text-overflow: ellipsis;
         }
 
-        /* 공지·VOD 아래에 위치하는 타임라인 영역 스타일 */
+        /* 공지·VOD 아래에 위치하는 타임라인 영역 스타일 (내용에 따라 아래로 늘어남) */
         .timeline-container {
             background: rgba(255, 255, 255, 0.85);
             backdrop-filter: blur(10px);
@@ -205,7 +204,9 @@
             text-shadow: none;
             display: flex;
             flex-direction: column;
+            height: auto; /* 고정 크기 제거 */
         }
+
         .timeline-title {
             font-size: 13px;
             font-weight: 800;
@@ -218,15 +219,16 @@
 
         .timeline-list {
             list-style: none;
-            padding: 0;
+            padding: 0 0 0 5px;
             margin: 0;
             display: flex;
             flex-direction: column;
             gap: 10px;
             position: relative;
+            overflow: visible; /* 스크롤 제거 후 자연스럽게 노출 */
         }
 
-        /* 타임라인 세로 축(라인) 구현 (항목이 늘어날 때 같이 늘어나도록 수정) */
+        /* 타임라인 세로 축(라인) 구현 (항목이 늘어날 때 같이 늘어남) */
         .timeline-list::before {
             content: '';
             position: absolute;
@@ -240,15 +242,22 @@
         .timeline-item {
             font-size: 12px;
             color: #334155;
-            display: none; /* 기본적으로 모두 숨김 (JS로 제어) */
+            display: none; /* 기본 숨김 */
             gap: 12px;
             align-items: center;
             position: relative;
             padding-left: 18px;
+            
+            /* 페이드인 애니메이션 효과 추가 */
+            opacity: 0;
+            transform: translateY(-5px);
+            transition: opacity 0.4s ease, transform 0.4s ease;
         }
 
         .timeline-item.show {
-            display: flex; /* 보이기 처리된 항목만 표시 */
+            display: flex; 
+            opacity: 1;
+            transform: translateY(0);
         }
 
         /* 타임라인 점(dot) 구현 */
@@ -288,7 +297,7 @@
             font-weight: 700;
             cursor: pointer;
             transition: background 0.2s ease, color 0.2s ease;
-            display: none; /* 데이터가 5개 이하일 경우 숨김 */
+            display: none; 
         }
 
         .timeline-more-btn:hover {
@@ -338,13 +347,13 @@
             <!-- 하단 최근 공지 / 최근 VOD 리스트 영역 -->
             <div class="profile-widgets-container">
                 <a href="#" id="widget-notice-link" class="widget-box" target="_blank">
-                    <h4 class="widget-title">📢 최근 공지</h4>
+                    <h4 class="widget-title">📢 공지</h4>
                     <ul class="widget-list" id="widget-notice-list">
                         <li class="widget-item">등록된 공지가 없습니다.</li>
                     </ul>
                 </a>
                 <a href="#" id="widget-vod-link" class="widget-box" target="_blank">
-                    <h4 class="widget-title">🎬 최근 VOD</h4>
+                    <h4 class="widget-title">🎬 VOD</h4>
                     <ul class="widget-list" id="widget-vod-list">
                         <li class="widget-item">등록된 VOD가 없습니다.</li>
                     </ul>
@@ -388,7 +397,6 @@
 
             // HTML 생성
             timelineListEl.innerHTML = allTimelineData.map((item, index) => {
-                // 현재 지정된 제한 개수(currentTimelineLimit) 이하일 때만 'show' 클래스 부여
                 const showClass = index < currentTimelineLimit ? "show" : "";
                 return `
                     <li class="timeline-item ${showClass}">
