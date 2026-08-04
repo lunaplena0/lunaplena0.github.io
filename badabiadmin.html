@@ -247,6 +247,16 @@
             <label>최근 VOD</label>
             <input type="text" id="intro-vod" placeholder="최근 VOD 링크 또는 설명">
 
+            <!-- [추가된 영역] 최근 VOD 밑 관련 링크 입력칸 -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin: 20px 0 10px 0; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;">
+                <h4 style="color: #0077b6; margin: 0;">관련 링크</h4>
+                <button type="button" onclick="addIntroLinkRow()" style="background-color: #10b981; padding: 4px 10px; font-size: 12px;">+ 링크 추가</button>
+            </div>
+            
+            <div id="intro-link-rows-container" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
+                <!-- 동적 관련 링크 행 -->
+            </div>
+
             <div style="display: flex; justify-content: space-between; align-items: center; margin: 20px 0 10px 0; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;">
                 <h4 style="color: #0077b6; margin: 0;">타임라인 항목</h4>
                 <button type="button" onclick="addIntroTimelineRow()" style="background-color: #10b981; padding: 4px 10px; font-size: 12px;">+ 타임라인 추가</button>
@@ -422,6 +432,18 @@
         }
 
         // --- 시작페이지 관련 함수 ---
+        function addIntroLinkRow(name = "", url = "") {
+            const container = document.getElementById('intro-link-rows-container');
+            const row = document.createElement('div');
+            row.className = 'menu-item-row';
+            row.innerHTML = `
+                <input type="text" placeholder="링크 이름 (예: 유튜브 채널)" class="link-name-input" value="${name}" style="flex: 1;">
+                <input type="text" placeholder="연결 주소 (URL)" class="link-url-input" value="${url}" style="flex: 2.5;">
+                <button type="button" class="delete-item-btn" onclick="this.parentElement.remove()">삭제</button>
+            `;
+            container.appendChild(row);
+        }
+
         function addIntroTimelineRow(time = "", text = "") {
             const container = document.getElementById('intro-timeline-rows-container');
             const row = document.createElement('div');
@@ -515,6 +537,16 @@
                     document.getElementById('intro-notice').value = data.notice || "";
                     document.getElementById('intro-vod').value = data.vod || "";
 
+                    // 관련 링크 불러오기
+                    const linkContainer = document.getElementById('intro-link-rows-container');
+                    linkContainer.innerHTML = "";
+                    if (Array.isArray(data.links) && data.links.length > 0) {
+                        data.links.forEach(item => addIntroLinkRow(item.name, item.url));
+                    } else {
+                        addIntroLinkRow();
+                    }
+
+                    // 타임라인 불러오기
                     const container = document.getElementById('intro-timeline-rows-container');
                     container.innerHTML = "";
                     if (Array.isArray(data.timeline) && data.timeline.length > 0) {
@@ -529,63 +561,75 @@
                 console.error("불러오기 실패:", err);
                 statusEl.textContent = "데이터를 불러오지 못했습니다. (기본값 사용)";
                 statusEl.style.color = "#ef4444";
+                
+                const linkContainer = document.getElementById('intro-link-rows-container');
+                if (linkContainer.children.length === 0) addIntroLinkRow();
+
                 const container = document.getElementById('intro-timeline-rows-container');
                 if (container.children.length === 0) addIntroTimelineRow();
             }
         }
 
         async function saveIntroSettings() {
-    const statusEl = document.getElementById('intro-status');
-    const password = document.getElementById('admin-password').value.trim();
-    if (!password) {
-        statusEl.textContent = "로그인 정보가 유실되었습니다. 다시 로그인해주세요.";
-        statusEl.style.color = "#ef4444";
-        return;
-    }
+            const statusEl = document.getElementById('intro-status');
+            const password = document.getElementById('admin-password').value.trim();
+            if (!password) {
+                statusEl.textContent = "로그인 정보가 유실되었습니다. 다시 로그인해주세요.";
+                statusEl.style.color = "#ef4444";
+                return;
+            }
 
-    const name = document.getElementById('intro-name').value.trim();
-    const image = document.getElementById('intro-image').value.trim();
-    const message = document.getElementById('intro-message').value.trim();
-    const notice = document.getElementById('intro-notice').value.trim();
-    const vod = document.getElementById('intro-vod').value.trim();
+            const name = document.getElementById('intro-name').value.trim();
+            const image = document.getElementById('intro-image').value.trim();
+            const message = document.getElementById('intro-message').value.trim();
+            const notice = document.getElementById('intro-notice').value.trim();
+            const vod = document.getElementById('intro-vod').value.trim();
 
-    const timeline = [];
-    document.querySelectorAll('#intro-timeline-rows-container .menu-item-row').forEach(row => {
-        const time = row.querySelector('.timeline-time-input').value.trim();
-        const text = row.querySelector('.timeline-text-input').value.trim();
-        if (time || text) timeline.push({ time, text });
-    });
+            // 관련 링크 수집
+            const links = [];
+            document.querySelectorAll('#intro-link-rows-container .menu-item-row').forEach(row => {
+                const name = row.querySelector('.link-name-input').value.trim();
+                const url = row.querySelector('.link-url-input').value.trim();
+                if (name || url) links.push({ name, url });
+            });
 
-    const payload = {
-        password: password,
-        fileType: "fanstartpage",
-        content: { name, image, message, notice, vod, timeline }
-    };
+            // 타임라인 수집
+            const timeline = [];
+            document.querySelectorAll('#intro-timeline-rows-container .menu-item-row').forEach(row => {
+                const time = row.querySelector('.timeline-time-input').value.trim();
+                const text = row.querySelector('.timeline-text-input').value.trim();
+                if (time || text) timeline.push({ time, text });
+            });
 
-    statusEl.textContent = "저장 중...";
-    statusEl.style.color = "#0077b6";
+            const payload = {
+                password: password,
+                fileType: "fanstartpage",
+                content: { name, image, message, notice, vod, links, timeline }
+            };
 
-    try {
-        const response = await fetch(WORKER_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
+            statusEl.textContent = "저장 중...";
+            statusEl.style.color = "#0077b6";
 
-        // ⭐ 변경 포인트: 응답 본문이 {} 이더라도 response.ok(성공 코드)면 정상 완료 처리
-        if (response.ok) {
-            statusEl.textContent = "성공적으로 저장되었습니다!";
-            statusEl.style.color = "#10b981";
-        } else {
-            const errText = await response.text();
-            throw new Error(errText || "저장 실패");
+            try {
+                const response = await fetch(WORKER_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.ok) {
+                    statusEl.textContent = "성공적으로 저장되었습니다!";
+                    statusEl.style.color = "#10b981";
+                } else {
+                    const errText = await response.text();
+                    throw new Error(errText || "저장 실패");
+                }
+            } catch (err) {
+                console.error("저장 오류:", err);
+                statusEl.textContent = "저장 오류: " + err.message;
+                statusEl.style.color = "#ef4444";
+            }
         }
-    } catch (err) {
-        console.error("저장 오류:", err);
-        statusEl.textContent = "저장 오류: " + err.message;
-        statusEl.style.color = "#ef4444";
-    }
-}
     </script>
     
     <!-- 푸터 영역 -->
