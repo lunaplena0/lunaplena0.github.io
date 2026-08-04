@@ -20,7 +20,7 @@
             color: #2b2d42;
         }
 
-        /* 상단 네비게이션 바 스타일: 고정 및 블러 효과 적용 (기본값 설정 후 JS로 동적 변경 가능) */
+        /* 상단 네비게이션 바 스타일: 고정 및 블러 효과 적용 */
         .marine-nav {
             position: sticky;
             top: 0;
@@ -122,15 +122,15 @@
         const WORKER_URL = "https://badabi-api.dalkkumli054.workers.dev/";
 
         // 페이지가 로드될 때 서버에서 메인페이지 설정 데이터를 불러와 적용
-        async function loadMainPageData() {
-            const contentArea = document.getElementById('main-content-area');
+        async function loadMainPageSettings() {
             const navBar = document.getElementById('marine-nav-bar');
             const logoEl = document.getElementById('default-home-link');
             const navLinksContainer = document.getElementById('nav-links-container');
 
             try {
                 const timestamp = new Date().getTime();
-                const response = await fetch(WORKER_URL + "?type=fanmainpages&t=" + timestamp);
+                // 필요에 따라 'mainpage' 또는 'fanmainpages'로 유지하세요. (기본은 mainpage 추천)
+                const response = await fetch(WORKER_URL + "?type=mainpage&t=" + timestamp);
                 
                 if (!response.ok) {
                     throw new Error("서버에서 데이터를 불러오지 못했습니다.");
@@ -150,62 +150,67 @@
                     }
                     logoEl.onclick = (e) => {
                         e.preventDefault();
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                    };
-
-                    // 3. 네비게이션 메뉴 목록 동적 생성 및 싱글 페이지(SPA) 스타일 연동
-            const navLinksContainer = document.querySelector('.nav-links');
-            if (navLinksContainer && Array.isArray(data.menuItems)) {
-                navLinksContainer.innerHTML = "";
-                
-                data.menuItems.forEach(item => {
-                    if (!item.name) return;
-                    const li = document.createElement('li');
-                    const a = document.createElement('a');
-                    a.textContent = item.name;
-                    a.href = item.url || "#";
-
-                    // 메뉴 클릭 시 페이지 전체 이동 대신 iframe 내부 주소만 변경
-                    a.onclick = (e) => {
-                        e.preventDefault();
-                        if (item.url) {
-                            renderMainContent(item.url);
+                        if (data.mainContent) {
+                            renderMainContent(data.mainContent);
                         }
                     };
 
-                    li.appendChild(a);
-                    navLinksContainer.appendChild(li);
-                });
+                    // 3. 네비게이션 메뉴 목록 동적 생성 및 싱글 페이지(SPA) 스타일 연동
+                    if (navLinksContainer && Array.isArray(data.menuItems)) {
+                        navLinksContainer.innerHTML = "";
+                        
+                        data.menuItems.forEach(item => {
+                            if (!item.name) return;
+                            const li = document.createElement('li');
+                            const a = document.createElement('a');
+                            a.textContent = item.name;
+                            a.href = item.url || "#";
+
+                            // 메뉴 클릭 시 페이지 전체 이동 대신 iframe 내부 주소만 변경
+                            a.onclick = (e) => {
+                                e.preventDefault();
+                                if (item.url) {
+                                    renderMainContent(item.url);
+                                }
+                            };
+
+                            li.appendChild(a);
+                            navLinksContainer.appendChild(li);
+                        });
+                    }
+
+                    // 4. 초기 메인페이지 본문 콘텐츠 영역 렌더링
+                    if (data.mainContent) {
+                        renderMainContent(data.mainContent);
+                    }
+                }
+
+            } catch (err) {
+                console.error("메인페이지 설정 로드 실패:", err);
+                const mainContainer = document.querySelector('.main-content-container');
+                if (mainContainer) {
+                    mainContainer.innerHTML = `<div class="loading-text" style="color: #ef4444;">설정을 불러오지 못했습니다. 잠시 후 다시 시도해주세요.</div>`;
+                }
             }
+        }
 
-            // 4. 초기 메인페이지 본문 콘텐츠 영역 렌더링
-            if (data.mainContent) {
-                renderMainContent(data.mainContent);
+        // 메인 콘텐츠 영역에 주소(.html, http) 혹은 일반 HTML을 채워 넣는 공통 함수
+        function renderMainContent(contentValue) {
+            const mainContainer = document.querySelector('.main-content-container');
+            if (!mainContainer) return;
+
+            const trimmed = contentValue.trim();
+            if (trimmed.endsWith('.html') || trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+                mainContainer.innerHTML = `
+                    <iframe src="${trimmed}" style="width: 100%; height: calc(100vh - 75px); border: none; background: white; margin: 0; display: block;"></iframe>
+                `;
+            } else {
+                mainContainer.innerHTML = trimmed;
             }
-
-        } catch (err) {
-            console.error("메인페이지 설정 로드 실패:", err);
         }
-    }
 
-    // 메인 콘텐츠 영역에 주소(.html, http) 혹은 일반 HTML을 채워 넣는 공통 함수
-    function renderMainContent(contentValue) {
-        const mainContainer = document.querySelector('.main-content-container');
-        if (!mainContainer) return;
-
-        const trimmed = contentValue.trim();
-        if (trimmed.endsWith('.html') || trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
-            mainContainer.innerHTML = `
-                <iframe src="${trimmed}" style="width: 100%; height: calc(100vh - 55px); border: none; background: white; margin: 0; display: block;"></iframe>
-            `;
-        } else {
-            mainContainer.innerHTML = trimmed;
-        }
-    }
-
-    // 페이지가 열릴 때 실행
-    document.addEventListener("DOMContentLoaded", loadMainPageSettings);
-</script>
-
+        // 페이지가 열릴 때 실행 (함수명 일치시킴)
+        document.addEventListener("DOMContentLoaded", loadMainPageSettings);
+    </script>
 </body>
 </html>
