@@ -9,7 +9,7 @@
     <style>
         body {
             font-family: 'Noto Sans KR', sans-serif;
-            max-width: 950px;
+            max-width: 1050px;
             margin: 30px auto;
             padding: 20px;
             background-color: #f4f7f9;
@@ -87,33 +87,26 @@
         }
         .menu-card h4 { margin: 0 0 8px 0; color: #03045e; font-size: 18px; }
         .menu-card p { margin: 0; color: #64748b; font-size: 13px; }
-        
-        .menu-card.empty {
-            background: #f1f5f9;
-            border-color: #e2e8f0;
-            cursor: default;
-            opacity: 0.6;
-        }
-        .menu-card.empty:hover {
-            background: #f1f5f9;
-            border-color: #e2e8f0;
-            transform: none;
-            box-shadow: none;
-        }
 
         .menu-item-row {
             display: flex;
-            gap: 10px;
-            margin-bottom: 10px;
+            gap: 8px;
+            margin-bottom: 12px;
             align-items: center;
+            background: #f8fafc;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
         }
-        .menu-item-row input {
+        .menu-item-row input, .menu-item-row select {
             margin-bottom: 0;
+            background: #fff;
         }
         .delete-item-btn {
             background-color: #ef4444;
             padding: 12px 15px;
             font-size: 14px;
+            white-space: nowrap;
         }
         .delete-item-btn:hover { background-color: #dc2626; }
 
@@ -179,7 +172,6 @@
             </div>
 
             <div style="display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap;">
-                <!-- 왼쪽: 메인페이지 설정 폼 -->
                 <div style="flex: 1.5; min-width: 300px;">
                     <label>네비게이션 배경 색상</label>
                     <input type="text" id="mp-nav-bgcolor" placeholder="예: rgba(3, 4, 94, 0.9)">
@@ -195,21 +187,15 @@
                         <button type="button" onclick="addMainPageMenuRow()" style="background-color: #10b981; padding: 4px 10px; font-size: 12px;">+ 메뉴 추가</button>
                     </div>
                     
-                    <div id="mp-menu-rows-container" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
-                        <!-- 동적 메뉴 행 -->
-                    </div>
+                    <div id="mp-menu-rows-container" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;"></div>
                 </div>
 
-                <!-- 오른쪽: 읽기 전용 공지 카드 영역 -->
-                <div style="flex: 1; min-width: 250px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 12px; padding: 15px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03);">
+                <div style="flex: 1; min-width: 250px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 12px; padding: 15px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px;">
                         <h4 style="margin: 0; color: #1e293b; font-size: 15px;">페이지 관련 공지</h4>
                         <span style="font-size: 12px; color: #0284c7; background: #e0f2fe; padding: 2px 6px; border-radius: 4px; font-weight: 500;">Read-Only</span>
                     </div>
-                    <p style="font-size: 12px; color: #475569; margin-top: 0; margin-bottom: 12px; line-height: 1.4;">
-                        (읽기 전용)
-                    </p>
-                    <div id="mp-memo-notice-box" style="width: 100%; height: 320px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px; font-size: 13px; color: #0f172a; overflow-y: auto; white-space: pre-wrap; box-sizing: border-box; line-height: 1.5; text-align: left;">현재 등록된 URI 목록
+                    <div id="mp-memo-notice-box" style="width: 100%; height: 320px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px; font-size: 13px; color: #0f172a; overflow-y: auto; white-space: pre-wrap; text-align: left;">현재 등록된 URI 목록
 프로필 :
 주소모음 : 
 노래책 :</div>
@@ -247,24 +233,17 @@
             <label>최근 VOD</label>
             <input type="text" id="intro-vod" placeholder="최근 VOD 링크 또는 설명">
 
-            <!-- 관련 링크 입력칸 -->
             <div style="display: flex; justify-content: space-between; align-items: center; margin: 20px 0 10px 0; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;">
                 <h4 style="color: #0077b6; margin: 0;">관련 링크</h4>
                 <button type="button" onclick="addIntroLinkRow()" style="background-color: #10b981; padding: 4px 10px; font-size: 12px;">+ 링크 추가</button>
             </div>
-            
-            <div id="intro-link-rows-container" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
-                <!-- 동적 관련 링크 행 -->
-            </div>
+            <div id="intro-link-rows-container" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;"></div>
 
             <div style="display: flex; justify-content: space-between; align-items: center; margin: 20px 0 10px 0; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;">
                 <h4 style="color: #0077b6; margin: 0;">타임라인 항목</h4>
                 <button type="button" onclick="addIntroTimelineRow()" style="background-color: #10b981; padding: 4px 10px; font-size: 12px;">+ 타임라인 추가</button>
             </div>
-            
-            <div id="intro-timeline-rows-container" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
-                <!-- 동적 타임라인 행 -->
-            </div>
+            <div id="intro-timeline-rows-container" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;"></div>
 
             <button onclick="saveIntroSettings()" style="width: 100%; margin-top: 25px; background-color: #0077b6; padding: 14px; font-size: 16px;">시작페이지 설정 반영하기</button>
             <div id="intro-status" class="status-msg"></div>
@@ -277,38 +256,36 @@
                 <button onclick="showDashboard()" class="secondary-btn" style="padding: 6px 12px; font-size: 13px;">← 메뉴 목록으로</button>
             </div>
 
-            <p style="color: #64748b; font-size: 14px; margin-bottom: 15px;">울보노트 기록을 추가, 수정 및 삭제할 수 있습니다. (항목: 날짜, 설명, 시간, 주소)</p>
+            <p style="color: #64748b; font-size: 14px; margin-bottom: 15px;">울보노트 기록을 추가, 수정 및 삭제할 수 있습니다.</p>
 
             <div style="display: flex; justify-content: space-between; align-items: center; margin: 20px 0 10px 0; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;">
                 <h4 style="color: #0077b6; margin: 0;">울보노트 항목 목록</h4>
                 <button type="button" onclick="addCryNoteRow()" style="background-color: #10b981; padding: 4px 10px; font-size: 12px;">+ 노트 추가</button>
             </div>
-            
-            <div id="crynote-rows-container" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
-                <!-- 동적 울보노트 행 -->
-            </div>
+            <div id="crynote-rows-container" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;"></div>
 
             <button onclick="saveCryNoteSettings()" style="width: 100%; margin-top: 25px; background-color: #0077b6; padding: 14px; font-size: 16px;">울보노트 설정 반영하기</button>
             <div id="crynote-status" class="status-msg"></div>
         </div>
 
-        <!-- 5. 월간일정 수정 패널 (fancalenar 추가) -->
+        <!-- 5. 월간일정 수정 패널 (fancalenar - 신규 커스텀 필드 적용) -->
         <div id="panel-calendar" class="card" style="display: none;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid rgba(0, 119, 190, 0.2); padding-bottom: 10px;">
                 <h3 style="margin: 0; color: #03045e;">📅 월간일정 데이터 관리 (fancalenar)</h3>
                 <button onclick="showDashboard()" class="secondary-btn" style="padding: 6px 12px; font-size: 13px;">← 메뉴 목록으로</button>
             </div>
 
-            <p style="color: #64748b; font-size: 14px; margin-bottom: 15px;">월간 일정 데이터를 추가, 수정 및 삭제할 수 있습니다. (항목: 날짜, 일정 제목/설명, 시간, 주소)</p>
+            <p style="color: #64748b; font-size: 14px; margin-bottom: 15px;">
+                입력 항목: <b>날짜, 시간, 방송유형, 방송제목, 컨텐츠종류, 다시보기 주소</b><br>
+                <span style="color: #0284c7; font-size: 13px;">💡 방송 또는 합방 유형이 아닐 경우 시간 칸을 비워둘 수 있습니다.</span>
+            </p>
 
             <div style="display: flex; justify-content: space-between; align-items: center; margin: 20px 0 10px 0; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;">
                 <h4 style="color: #0077b6; margin: 0;">월간일정 항목 목록</h4>
                 <button type="button" onclick="addCalendarRow()" style="background-color: #10b981; padding: 4px 10px; font-size: 12px;">+ 일정 추가</button>
             </div>
             
-            <div id="calendar-rows-container" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
-                <!-- 동적 월간일정 행 -->
-            </div>
+            <div id="calendar-rows-container" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;"></div>
 
             <button onclick="saveCalendarSettings()" style="width: 100%; margin-top: 25px; background-color: #0077b6; padding: 14px; font-size: 16px;">월간일정 설정 반영하기</button>
             <div id="calendar-status" class="status-msg"></div>
@@ -318,7 +295,6 @@
     <script>
         const WORKER_URL = "https://badabi-api.dalkkumli054.workers.dev/";
 
-        // 로그인 및 비밀번호 검증 함수
         async function verifyAndLoad() {
             const password = document.getElementById('admin-password').value.trim();
             const statusEl = document.getElementById('login-status');
@@ -336,11 +312,7 @@
                 const response = await fetch(WORKER_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        password: password, 
-                        action: "verify",
-                        fileType: "verify" 
-                    })
+                    body: JSON.stringify({ password: password, action: "verify", fileType: "verify" })
                 });
 
                 if (!response.ok) {
@@ -357,7 +329,6 @@
             }
         }
 
-        // 화면 전환 함수들
         function showDashboard() {
             document.getElementById('panel-mainpage').style.display = 'none';
             document.getElementById('panel-intro').style.display = 'none';
@@ -367,37 +338,29 @@
         }
 
         function showMainPageSettings() {
+            showDashboard();
             document.getElementById('dashboard-view').style.display = 'none';
-            document.getElementById('panel-intro').style.display = 'none';
-            document.getElementById('panel-crynote').style.display = 'none';
-            document.getElementById('panel-calendar').style.display = 'none';
             document.getElementById('panel-mainpage').style.display = 'block';
             loadMainPageSettingsData();
         }
 
         function showIntroSettings() {
+            showDashboard();
             document.getElementById('dashboard-view').style.display = 'none';
-            document.getElementById('panel-mainpage').style.display = 'none';
-            document.getElementById('panel-crynote').style.display = 'none';
-            document.getElementById('panel-calendar').style.display = 'none';
             document.getElementById('panel-intro').style.display = 'block';
             loadIntroSettingsData();
         }
 
         function showCryNoteSettings() {
+            showDashboard();
             document.getElementById('dashboard-view').style.display = 'none';
-            document.getElementById('panel-mainpage').style.display = 'none';
-            document.getElementById('panel-intro').style.display = 'none';
-            document.getElementById('panel-calendar').style.display = 'none';
             document.getElementById('panel-crynote').style.display = 'block';
             loadCryNoteSettingsData();
         }
 
         function showCalendarSettings() {
+            showDashboard();
             document.getElementById('dashboard-view').style.display = 'none';
-            document.getElementById('panel-mainpage').style.display = 'none';
-            document.getElementById('panel-intro').style.display = 'none';
-            document.getElementById('panel-crynote').style.display = 'none';
             document.getElementById('panel-calendar').style.display = 'block';
             loadCalendarSettingsData();
         }
@@ -430,7 +393,6 @@
                 statusEl.textContent = "데이터를 성공적으로 불러왔습니다.";
                 statusEl.style.color = "#10b981";
             } catch (err) {
-                console.error("불러오기 실패:", err);
                 statusEl.textContent = "데이터를 불러오지 못했습니다. (기본값 사용)";
                 statusEl.style.color = "#ef4444";
                 const container = document.getElementById('mp-menu-rows-container');
@@ -453,16 +415,11 @@
         async function saveMainPageSettings() {
             const statusEl = document.getElementById('mainpage-status');
             const password = document.getElementById('admin-password').value.trim();
-            if (!password) {
-                statusEl.textContent = "로그인 정보가 유실되었습니다. 다시 로그인해주세요.";
-                statusEl.style.color = "#ef4444";
-                return;
-            }
+            if (!password) return;
 
             const navBgColor = document.getElementById('mp-nav-bgcolor').value.trim();
             const logoText = document.getElementById('mp-logo-text').value.trim();
             const mainContent = document.getElementById('mp-main-content').value.trim();
-
             const menuItems = [];
             document.querySelectorAll('#mp-menu-rows-container .menu-item-row').forEach(row => {
                 const name = row.querySelector('.menu-name-input').value.trim();
@@ -470,30 +427,17 @@
                 if (name) menuItems.push({ name, url });
             });
 
-            const payload = {
-                password: password,
-                fileType: "fanmainpages",
-                content: { navBgColor, logoText, menuItems, mainContent }
-            };
-
-            statusEl.textContent = "저장 중...";
-            statusEl.style.color = "#0077b6";
-
             try {
                 const response = await fetch(WORKER_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
+                    body: JSON.stringify({ password, fileType: "fanmainpages", content: { navBgColor, logoText, menuItems, mainContent } })
                 });
-                const result = await response.json();
                 if (response.ok) {
                     statusEl.textContent = "성공적으로 저장되었습니다!";
                     statusEl.style.color = "#10b981";
-                } else {
-                    throw new Error(result.error || "저장 실패");
-                }
+                } else { throw new Error("저장 실패"); }
             } catch (err) {
-                console.error("저장 오류:", err);
                 statusEl.textContent = "저장 오류: " + err.message;
                 statusEl.style.color = "#ef4444";
             }
@@ -505,7 +449,7 @@
             const row = document.createElement('div');
             row.className = 'menu-item-row';
             row.innerHTML = `
-                <input type="text" placeholder="링크 이름 (예: 유튜브 채널)" class="link-name-input" value="${name}" style="flex: 1;">
+                <input type="text" placeholder="링크 이름" class="link-name-input" value="${name}" style="flex: 1;">
                 <input type="text" placeholder="연결 주소 (URL)" class="link-url-input" value="${url}" style="flex: 2.5;">
                 <button type="button" class="delete-item-btn" onclick="this.parentElement.remove()">삭제</button>
             `;
@@ -517,71 +461,41 @@
             const row = document.createElement('div');
             row.className = 'menu-item-row';
             row.innerHTML = `
-                <input type="text" placeholder="시간/일시 (예: 18:00)" class="timeline-time-input" value="${time}" style="flex: 1;">
+                <input type="text" placeholder="시간/일시" class="timeline-time-input" value="${time}" style="flex: 1;">
                 <input type="text" placeholder="내용" class="timeline-text-input" value="${text}" style="flex: 2.5;">
                 <button type="button" class="delete-item-btn" onclick="this.parentElement.remove()">삭제</button>
             `;
             container.appendChild(row);
         }
 
-        // 이미지 업로드 함수
         async function uploadIntroImage() {
             const fileInput = document.getElementById("intro-image-file");
             const statusEl = document.getElementById("intro-image-status"); 
-            
-            if (!fileInput.files || fileInput.files.length === 0) {
-                if (statusEl) {
-                    statusEl.style.color = "#ef4444";
-                    statusEl.textContent = "❌ 업로드할 이미지 파일을 선택해주세요.";
-                }
-                return;
-            }
+            if (!fileInput.files || fileInput.files.length === 0) return;
 
             const file = fileInput.files[0];
-            const passwordInput = document.getElementById("admin-password");
-            const password = passwordInput ? passwordInput.value : "";
-
-            if (statusEl) {
-                statusEl.style.color = "#0284c7";
-                statusEl.textContent = "⏳ 이미지를 업로드하는 중입니다...";
-            }
+            const password = document.getElementById("admin-password").value;
+            statusEl.style.color = "#0284c7";
+            statusEl.textContent = "⏳ 이미지를 업로드하는 중입니다...";
 
             const reader = new FileReader();
             reader.onload = async function(e) {
                 try {
                     const base64Content = e.target.result.split(',')[1];
-
                     const response = await fetch(WORKER_URL, {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                            password: password,
-                            action: "upload_image",
-                            filename: file.name,
-                            filedata: base64Content
-                        })
+                        body: JSON.stringify({ password, action: "upload_image", filename: file.name, filedata: base64Content })
                     });
-
-                    if (response.ok) {
-                        const result = await response.json();
-                        if (result.success) {
-                            document.getElementById("intro-image").value = result.url;
-                            if (statusEl) {
-                                statusEl.style.color = "#166534";
-                                statusEl.textContent = "✅ 이미지 업로드가 성공적으로 완료되었습니다!";
-                            }
-                        } else {
-                            throw new Error(result.error || "업로드 실패");
-                        }
-                    } else {
-                        const errText = await response.text();
-                        throw new Error(`서버 오류 (${response.status}): ${errText}`);
-                    }
+                    const result = await response.json();
+                    if (response.ok && result.success) {
+                        document.getElementById("intro-image").value = result.url;
+                        statusEl.style.color = "#166534";
+                        statusEl.textContent = "✅ 이미지 업로드 완료!";
+                    } else { throw new Error(result.error || "업로드 실패"); }
                 } catch (error) {
-                    if (statusEl) {
-                        statusEl.style.color = "#ef4444";
-                        statusEl.textContent = "❌ 업로드 실패: " + error.message;
-                    }
+                    statusEl.style.color = "#ef4444";
+                    statusEl.textContent = "❌ 업로드 실패: " + error.message;
                 }
             };
             reader.readAsDataURL(file);
@@ -589,14 +503,8 @@
 
         async function loadIntroSettingsData() {
             const statusEl = document.getElementById('intro-status');
-            statusEl.textContent = "데이터를 불러오는 중...";
-            statusEl.style.color = "#0077b6";
-
             try {
-                const timestamp = new Date().getTime();
-                const response = await fetch(WORKER_URL + "?type=fanstartpage&t=" + timestamp);
-                if (!response.ok) throw new Error("서버 응답 실패");
-                
+                const response = await fetch(WORKER_URL + "?type=fanstartpage&t=" + Date.now());
                 const data = await response.json();
                 if (data) {
                     document.getElementById('intro-name').value = data.name || "";
@@ -607,57 +515,38 @@
 
                     const linkContainer = document.getElementById('intro-link-rows-container');
                     linkContainer.innerHTML = "";
-                    if (Array.isArray(data.links) && data.links.length > 0) {
-                        data.links.forEach(item => addIntroLinkRow(item.name, item.url));
-                    } else {
-                        addIntroLinkRow();
-                    }
+                    (data.links || []).forEach(item => addIntroLinkRow(item.name, item.url));
+                    if(linkContainer.children.length === 0) addIntroLinkRow();
 
                     const container = document.getElementById('intro-timeline-rows-container');
                     container.innerHTML = "";
-                    if (Array.isArray(data.timeline) && data.timeline.length > 0) {
-                        data.timeline.forEach(item => addIntroTimelineRow(item.time, item.text));
-                    } else {
-                        addIntroTimelineRow();
-                    }
+                    (data.timeline || []).forEach(item => addIntroTimelineRow(item.time, item.text));
+                    if(container.children.length === 0) addIntroTimelineRow();
                 }
-                statusEl.textContent = "데이터를 성공적으로 불러왔습니다.";
+                statusEl.textContent = "불러오기 성공";
                 statusEl.style.color = "#10b981";
             } catch (err) {
-                console.error("불러오기 실패:", err);
-                statusEl.textContent = "데이터를 불러오지 못했습니다. (기본값 사용)";
+                statusEl.textContent = "불러오기 실패";
                 statusEl.style.color = "#ef4444";
-                
-                const linkContainer = document.getElementById('intro-link-rows-container');
-                if (linkContainer.children.length === 0) addIntroLinkRow();
-
-                const container = document.getElementById('intro-timeline-rows-container');
-                if (container.children.length === 0) addIntroTimelineRow();
             }
         }
 
         async function saveIntroSettings() {
             const statusEl = document.getElementById('intro-status');
             const password = document.getElementById('admin-password').value.trim();
-            if (!password) {
-                statusEl.textContent = "로그인 정보가 유실되었습니다. 다시 로그인해주세요.";
-                statusEl.style.color = "#ef4444";
-                return;
-            }
+            if (!password) return;
 
             const name = document.getElementById('intro-name').value.trim();
             const image = document.getElementById('intro-image').value.trim();
             const message = document.getElementById('intro-message').value.trim();
             const notice = document.getElementById('intro-notice').value.trim();
             const vod = document.getElementById('intro-vod').value.trim();
-
             const links = [];
             document.querySelectorAll('#intro-link-rows-container .menu-item-row').forEach(row => {
                 const name = row.querySelector('.link-name-input').value.trim();
                 const url = row.querySelector('.link-url-input').value.trim();
                 if (name || url) links.push({ name, url });
             });
-
             const timeline = [];
             document.querySelectorAll('#intro-timeline-rows-container .menu-item-row').forEach(row => {
                 const time = row.querySelector('.timeline-time-input').value.trim();
@@ -665,46 +554,32 @@
                 if (time || text) timeline.push({ time, text });
             });
 
-            const payload = {
-                password: password,
-                fileType: "fanstartpage",
-                content: { name, image, message, notice, vod, links, timeline }
-            };
-
-            statusEl.textContent = "저장 중...";
-            statusEl.style.color = "#0077b6";
-
             try {
                 const response = await fetch(WORKER_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
+                    body: JSON.stringify({ password, fileType: "fanstartpage", content: { name, image, message, notice, vod, links, timeline } })
                 });
-
                 if (response.ok) {
                     statusEl.textContent = "성공적으로 저장되었습니다!";
                     statusEl.style.color = "#10b981";
-                } else {
-                    const errText = await response.text();
-                    throw new Error(errText || "저장 실패");
-                }
+                } else { throw new Error("저장 실패"); }
             } catch (err) {
-                console.error("저장 오류:", err);
                 statusEl.textContent = "저장 오류: " + err.message;
                 statusEl.style.color = "#ef4444";
             }
         }
 
-        // --- 울보노트(fancrynote) 관련 함수 ---
+        // --- 울보노트 관련 함수 ---
         function addCryNoteRow(date = "", description = "", time = "", url = "") {
             const container = document.getElementById('crynote-rows-container');
             const row = document.createElement('div');
             row.className = 'menu-item-row';
             row.innerHTML = `
-                <input type="text" placeholder="날짜 (예: 2026-04-12)" class="crynote-date-input" value="${date}" style="flex: 1;">
+                <input type="text" placeholder="날짜" class="crynote-date-input" value="${date}" style="flex: 1;">
                 <input type="text" placeholder="설명" class="crynote-desc-input" value="${description}" style="flex: 2;">
-                <input type="text" placeholder="시간 (예: 14:30)" class="crynote-time-input" value="${time}" style="flex: 1;">
-                <input type="text" placeholder="주소 (URL)" class="crynote-url-input" value="${url}" style="flex: 2;">
+                <input type="text" placeholder="시간" class="crynote-time-input" value="${time}" style="flex: 1;">
+                <input type="text" placeholder="주소" class="crynote-url-input" value="${url}" style="flex: 2;">
                 <button type="button" class="delete-item-btn" onclick="this.parentElement.remove()">삭제</button>
             `;
             container.appendChild(row);
@@ -712,51 +587,28 @@
 
         async function loadCryNoteSettingsData() {
             const statusEl = document.getElementById('crynote-status');
-            statusEl.textContent = "데이터를 불러오는 중...";
-            statusEl.style.color = "#0077b6";
-
             try {
-                const timestamp = new Date().getTime();
-                const response = await fetch(WORKER_URL + "?type=fancrynote&t=" + timestamp);
-                if (!response.ok) throw new Error("서버 응답 실패");
-                
+                const response = await fetch(WORKER_URL + "?type=fancrynote&t=" + Date.now());
                 const data = await response.json();
                 const container = document.getElementById('crynote-rows-container');
                 container.innerHTML = "";
-
-                let notesArray = [];
-                if (Array.isArray(data)) {
-                    notesArray = data;
-                } else if (data && Array.isArray(data.notes)) {
-                    notesArray = data.notes;
-                }
-
+                let notesArray = Array.isArray(data) ? data : (data?.notes || []);
                 if (notesArray.length > 0) {
                     notesArray.forEach(item => addCryNoteRow(item.date, item.description, item.time, item.url));
-                } else {
-                    addCryNoteRow();
-                }
-
-                statusEl.textContent = "데이터를 성공적으로 불러왔습니다.";
+                } else { addCryNoteRow(); }
+                statusEl.textContent = "불러오기 성공";
                 statusEl.style.color = "#10b981";
             } catch (err) {
-                console.error("불러오기 실패:", err);
-                statusEl.textContent = "데이터를 불러오지 못했습니다. (빈 양식 사용)";
+                statusEl.textContent = "불러오기 실패";
                 statusEl.style.color = "#ef4444";
-                
-                const container = document.getElementById('crynote-rows-container');
-                if (container.children.length === 0) addCryNoteRow();
+                if (document.getElementById('crynote-rows-container').children.length === 0) addCryNoteRow();
             }
         }
 
         async function saveCryNoteSettings() {
             const statusEl = document.getElementById('crynote-status');
             const password = document.getElementById('admin-password').value.trim();
-            if (!password) {
-                statusEl.textContent = "로그인 정보가 유실되었습니다. 다시 로그인해주세요.";
-                statusEl.style.color = "#ef4444";
-                return;
-            }
+            if (!password) return;
 
             const notes = [];
             document.querySelectorAll('#crynote-rows-container .menu-item-row').forEach(row => {
@@ -764,51 +616,42 @@
                 const description = row.querySelector('.crynote-desc-input').value.trim();
                 const time = row.querySelector('.crynote-time-input').value.trim();
                 const url = row.querySelector('.crynote-url-input').value.trim();
-                if (date || description || time || url) {
-                    notes.push({ date, description, time, url });
-                }
+                if (date || description || time || url) notes.push({ date, description, time, url });
             });
-
-            const payload = {
-                password: password,
-                fileType: "fancrynote",
-                content: { notes }
-            };
-
-            statusEl.textContent = "저장 중...";
-            statusEl.style.color = "#0077b6";
 
             try {
                 const response = await fetch(WORKER_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
+                    body: JSON.stringify({ password, fileType: "fancrynote", content: { notes } })
                 });
-
                 if (response.ok) {
                     statusEl.textContent = "성공적으로 저장되었습니다!";
                     statusEl.style.color = "#10b981";
-                } else {
-                    const errText = await response.text();
-                    throw new Error(errText || "저장 실패");
-                }
+                } else { throw new Error("저장 실패"); }
             } catch (err) {
-                console.error("저장 오류:", err);
                 statusEl.textContent = "저장 오류: " + err.message;
                 statusEl.style.color = "#ef4444";
             }
         }
 
-        // --- 월간일정(fancalenar) 관련 함수 (신규 추가) ---
-        function addCalendarRow(date = "", description = "", time = "", url = "") {
+        // --- 월간일정 (fancalenar) 관련 함수 (신규 포맷 적용) ---
+        function addCalendarRow(date = "", time = "", type = "방송", title = "", category = "", url = "") {
             const container = document.getElementById('calendar-rows-container');
             const row = document.createElement('div');
             row.className = 'menu-item-row';
             row.innerHTML = `
-                <input type="text" placeholder="날짜 (예: 2026-04-12)" class="calendar-date-input" value="${date}" style="flex: 1;">
-                <input type="text" placeholder="설명" class="calendar-desc-input" value="${description}" style="flex: 2;">
-                <input type="text" placeholder="시간 (예: 14:30)" class="calendar-time-input" value="${time}" style="flex: 1;">
-                <input type="text" placeholder="주소 (URL)" class="calendar-url-input" value="${url}" style="flex: 2;">
+                <input type="text" placeholder="날짜 (YYYY-MM-DD)" class="cal-date" value="${date}" style="flex: 1.2;">
+                <input type="text" placeholder="시간 (선택사항)" class="cal-time" value="${time}" style="flex: 1;">
+                <select class="cal-type" style="flex: 1;">
+                    <option value="방송" ${type === '방송' ? 'selected' : ''}>방송</option>
+                    <option value="합방" ${type === '합방' ? 'selected' : ''}>합방</option>
+                    <option value="휴방" ${type === '휴방' ? 'selected' : ''}>휴방</option>
+                    <option value="기타" ${type === '기타' ? 'selected' : ''}>기타</option>
+                </select>
+                <input type="text" placeholder="방송제목" class="cal-title" value="${title}" style="flex: 2;">
+                <input type="text" placeholder="컨텐츠종류" class="cal-category" value="${category}" style="flex: 1.2;">
+                <input type="text" placeholder="다시보기 주소" class="cal-url" value="${url}" style="flex: 2;">
                 <button type="button" class="delete-item-btn" onclick="this.parentElement.remove()">삭제</button>
             `;
             container.appendChild(row);
@@ -820,8 +663,7 @@
             statusEl.style.color = "#0077b6";
 
             try {
-                const timestamp = new Date().getTime();
-                const response = await fetch(WORKER_URL + "?type=fancalenar&t=" + timestamp);
+                const response = await fetch(WORKER_URL + "?type=fancalenar&t=" + Date.now());
                 if (!response.ok) throw new Error("서버 응답 실패");
                 
                 const data = await response.json();
@@ -838,7 +680,16 @@
                 }
 
                 if (calendarArray.length > 0) {
-                    calendarArray.forEach(item => addCalendarRow(item.date, item.description, item.time, item.url));
+                    calendarArray.forEach(item => {
+                        addCalendarRow(
+                            item.date || "", 
+                            item.time || "", 
+                            item.type || item.broadcastType || "방송", 
+                            item.title || item.description || "", 
+                            item.category || item.contentType || "", 
+                            item.url || ""
+                        );
+                    });
                 } else {
                     addCalendarRow();
                 }
@@ -846,10 +697,8 @@
                 statusEl.textContent = "데이터를 성공적으로 불러왔습니다.";
                 statusEl.style.color = "#10b981";
             } catch (err) {
-                console.error("불러오기 실패:", err);
                 statusEl.textContent = "데이터를 불러오지 못했습니다. (빈 양식 사용)";
                 statusEl.style.color = "#ef4444";
-                
                 const container = document.getElementById('calendar-rows-container');
                 if (container.children.length === 0) addCalendarRow();
             }
@@ -866,12 +715,15 @@
 
             const notes = [];
             document.querySelectorAll('#calendar-rows-container .menu-item-row').forEach(row => {
-                const date = row.querySelector('.calendar-date-input').value.trim();
-                const description = row.querySelector('.calendar-desc-input').value.trim();
-                const time = row.querySelector('.calendar-time-input').value.trim();
-                const url = row.querySelector('.calendar-url-input').value.trim();
-                if (date || description || time || url) {
-                    notes.push({ date, description, time, url });
+                const date = row.querySelector('.cal-date').value.trim();
+                const time = row.querySelector('.cal-time').value.trim();
+                const type = row.querySelector('.cal-type').value;
+                const title = row.querySelector('.cal-title').value.trim();
+                const category = row.querySelector('.cal-category').value.trim();
+                const url = row.querySelector('.cal-url').value.trim();
+
+                if (date || title) {
+                    notes.push({ date, time, type, title, category, url });
                 }
             });
 
@@ -899,7 +751,6 @@
                     throw new Error(errText || "저장 실패");
                 }
             } catch (err) {
-                console.error("저장 오류:", err);
                 statusEl.textContent = "저장 오류: " + err.message;
                 statusEl.style.color = "#ef4444";
             }
@@ -908,7 +759,7 @@
     
     <!-- 푸터 영역 -->
     <footer style="text-align: center; padding: 20px 10px; color: #718096; font-size: 11px; border-top: 1px solid rgba(0, 119, 190, 0.12); margin-top: 20px; width: 100%; box-sizing: border-box;">
-        <p style="margin: 0; opacity: 0.8; line-height: 1.6; word-break: keep-all; overflow-wrap: break-word;">
+        <p style="margin: 0; opacity: 0.8; line-height: 1.6;">
             <strong style="display: block; margin-bottom: 5px; color: #0077b6; font-size: 12px;">바다비아카이브 관리 페이지</strong>
             아카이브 데이터를 안전하게 관리하기 위한 전용 페이지입니다 <br>
         </p>
