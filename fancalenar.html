@@ -121,7 +121,6 @@
         .days-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
-            grid-auto-rows: minmax(120px, auto);
         }
 
         .calendar-cell {
@@ -132,8 +131,8 @@
             background: #ffffff;
             display: flex;
             flex-direction: column;
-            gap: 6px;
-            min-height: 120px;
+            /* 셀 높이를 고정하여 크기가 뒤죽박죽되는 것 방지 */
+            height: 140px; 
         }
 
         .calendar-cell.other-month {
@@ -145,11 +144,31 @@
             font-size: 13px;
             font-weight: 700;
             color: #334155;
-            margin-bottom: 2px;
+            margin-bottom: 4px;
+            flex-shrink: 0;
         }
 
         .calendar-cell:nth-child(7n) .cell-date-num { color: #0284c7; } /* 토요일 날짜 색상 */
         .calendar-cell:nth-child(7n+1) .cell-date-num { color: #dc2626; } /* 일요일 날짜 색상 */
+
+        /* 셀 내부 일정 목록 영역 (일정이 많으면 내부 스크롤 발생) */
+        .cell-schedules {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            overflow-y: auto;
+            flex: 1;
+            padding-right: 2px;
+        }
+
+        /* 스크롤바 디자인 심플하게 적용 */
+        .cell-schedules::-webkit-scrollbar {
+            width: 4px;
+        }
+        .cell-schedules::-webkit-scrollbar-thumb {
+            background: rgba(0, 119, 190, 0.2);
+            border-radius: 4px;
+        }
 
         /* 일정 칩 스타일 */
         .schedule-chip {
@@ -166,6 +185,7 @@
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
+            flex-shrink: 0;
         }
 
         .schedule-chip:hover {
@@ -197,12 +217,9 @@
             .ocean-calendar-container {
                 padding: 15px 10px;
             }
-            .days-grid {
-                grid-auto-rows: minmax(80px, auto);
-            }
             .calendar-cell {
+                height: 100px; /* 모바일에서는 높이를 조금 더 컴팩트하게 조절 */
                 padding: 4px;
-                min-height: 80px;
             }
             .schedule-chip {
                 font-size: 10px;
@@ -252,13 +269,11 @@
             const gridEl = document.getElementById("days-grid");
 
             try {
-                // 프로필 페이지와 동일한 Worker API 호출 (?type=fancalenar)
                 const response = await fetch('https://badabi-api.dalkkumli054.workers.dev/?type=fancalenar&t=' + new Date().getTime());
                 if (!response.ok) throw new Error("일정 데이터를 불러오지 못했습니다.");
                 
                 const data = await response.json();
                 
-                // 데이터 파싱 대응
                 if (Array.isArray(data)) {
                     allEvents = data;
                 } else if (data && Array.isArray(data.notes)) {
@@ -283,17 +298,13 @@
             const year = currentDate.getFullYear();
             const month = currentDate.getMonth(); // 0~11
 
-            // 상단 타이틀 업데이트 (오타 수정 완료)
             document.getElementById("current-month-label").textContent = `${year}년 ${String(month + 1).padStart(2, '0')}월`;
 
             const gridEl = document.getElementById("days-grid");
             gridEl.innerHTML = "";
 
-            // 해당 월의 첫 번째 요일 (0: 일요일 ~ 6: 토요일)
             const firstDayIndex = new Date(year, month, 1).getDay();
-            // 해당 월의 마지막 날짜 (28, 29, 30, 31)
             const lastDay = new Date(year, month + 1, 0).getDate();
-            // 이전 달의 마지막 날짜
             const prevLastDay = new Date(year, month, 0).getDate();
 
             let cellsHtml = "";
@@ -301,7 +312,7 @@
             // 1. 이전 달 빈 칸 채우기
             for (let i = firstDayIndex; i > 0; i--) {
                 const prevDateNum = prevLastDay - i + 1;
-                cellsHtml += `<div class="calendar-cell other-month"><div class="cell-date-num">${prevDateNum}</div></div>`;
+                cellsHtml += `<div class="calendar-cell other-month"><div class="cell-date-num">${prevDateNum}</div><div class="cell-schedules"></div></div>`;
             }
 
             // 2. 이번 달 날짜 채우기
@@ -310,7 +321,6 @@
                 const formattedDay = String(day).padStart(2, '0');
                 const dateString = `${year}-${formattedMonth}-${formattedDay}`;
 
-                // 해당 날짜에 맞는 일정 필터링
                 const daySchedules = allEvents.filter(event => event.date === dateString);
 
                 let schedulesHtml = "";
@@ -329,17 +339,19 @@
                 cellsHtml += `
                     <div class="calendar-cell">
                         <div class="cell-date-num">${day}</div>
-                        ${schedulesHtml}
+                        <div class="cell-schedules">
+                            ${schedulesHtml}
+                        </div>
                     </div>
                 `;
             }
 
-            // 3. 다음 달 빈 칸으로 남은 그리드 채우기 (총 35셀 또는 42셀 맞추기)
+            // 3. 다음 달 빈 칸으로 남은 그리드 채우기
             const totalCellsSoFar = firstDayIndex + lastDay;
             const nextDaysCount = totalCellsSoFar <= 35 ? (35 - totalCellsSoFar) : (42 - totalCellsSoFar);
             
             for (let i = 1; i <= nextDaysCount; i++) {
-                cellsHtml += `<div class="calendar-cell other-month"><div class="cell-date-num">${i}</div></div>`;
+                cellsHtml += `<div class="calendar-cell other-month"><div class="cell-date-num">${i}</div><div class="cell-schedules"></div></div>`;
             }
 
             gridEl.innerHTML = cellsHtml;
@@ -350,8 +362,8 @@
             renderCalendar();
         }
 
-        // 페이지 로드 시 실행
         loadCalendarData();
     </script>
+
 </body>
 </html>
