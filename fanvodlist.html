@@ -330,17 +330,19 @@
                 const sortedMonths = Object.keys(groupedVods).sort().reverse();
                 const latestMonth = sortedMonths[0]; // 가장 최신 월
 
-                // 3. 상단 월 선택 필터 바 생성 (전체보기 제외, 월 버튼들만 생성)
+                // 3. 상단 월 선택 필터 바 생성 (버튼에 개수 표시)
                 const filterBar = document.createElement("div");
                 filterBar.className = "filter-bar";
 
-                sortedMonths.forEach((ym, idx) => {
+                sortedMonths.forEach((ym) => {
                     const [y, m] = ym.split("-");
+                    const count = groupedVods[ym].length; // 해당 월의 VOD 총 개수
+                    
                     const btn = document.createElement("button");
                     btn.className = "filter-btn";
-                    if (ym === latestMonth) btn.classList.add("active"); // 최신 월 기본 활성화
+                    if (ym === latestMonth) btn.classList.add("active");
                     btn.dataset.month = ym;
-                    btn.textContent = `${y}년 ${parseInt(m, 10)}월`;
+                    btn.textContent = `${y}년 ${parseInt(m, 10)}월 (${count})`; // 💡 개수 표시 추가
                     btn.onclick = () => filterMonth(ym);
                     filterBar.appendChild(btn);
                 });
@@ -367,7 +369,6 @@
                     section.className = "month-section";
                     section.dataset.sectionMonth = yearMonth;
 
-                    // 기본적으로 최신 월만 보여주고 나머지는 숨김
                     if (yearMonth !== latestMonth) {
                         section.style.display = "none";
                     }
@@ -458,7 +459,7 @@
             }
         }
 
-        // 월별 필터링 기능 (클릭한 월만 표시)
+        // 월별 필터링 기능
         function filterMonth(targetMonth) {
             document.querySelectorAll(".filter-btn").forEach(btn => {
                 if (btn.dataset.month === targetMonth) {
