@@ -18,7 +18,7 @@
             color: #2b2d42;
         }
 
-        /* 메인 콘텐츠 영역 (상단 여백 축소 및 크기 고정) */
+        /* 메인 콘텐츠 영역 (상단 타이틀 삭제에 따른 여백 조정) */
         .ocean-calendar-container {
             position: relative;
             width: 100%;
@@ -28,7 +28,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 15px 15px 30px 15px;
+            padding: 20px 15px 30px 15px;
             box-sizing: border-box;
             background: transparent;
             opacity: 0;
@@ -39,22 +39,6 @@
         .ocean-calendar-container.loaded {
             opacity: 1;
             transform: translateY(0);
-        }
-
-        /* 페이지 타이틀 */
-        .calendar-header {
-            text-align: center;
-            margin-bottom: 10px;
-            width: 100%;
-        }
-
-        .calendar-title {
-            font-size: clamp(24px, 3vw, 32px);
-            font-weight: 900;
-            margin-bottom: 0;
-            letter-spacing: -1px;
-            color: #03045e;
-            text-shadow: 0 0 10px rgba(255, 255, 255, 1), 0 0 20px rgba(255, 255, 255, 0.9), 0 2px 4px rgba(0, 0, 0, 0.15);
         }
 
         /* 월 선택 컨트롤러 및 드롭다운 영역 */
@@ -138,7 +122,7 @@
             background-color: #03045e;
         }
 
-        /* 캘린더 그리드 스타일 (크기 고정 및 6주 고정 레이아웃 적용) */
+        /* 캘린더 그리드 스타일 (6주 고정) */
         .calendar-grid-box {
             width: 100%;
             max-width: 1050px;
@@ -168,11 +152,10 @@
         .days-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
-            /* 어떤 달이든 항상 6주(42개 칸)로 고정하여 모든 월의 전체 캘린더 세로 높이가 완벽히 동일하도록 설정 */
             grid-template-rows: repeat(6, 105px); 
         }
 
-        /* 캘린더 칸 높이 완전 고정 */
+        /* 캘린더 칸 높이 고정 및 클릭 가능하도록 설정 */
         .calendar-cell {
             border-right: 1px solid rgba(0, 119, 190, 0.1);
             border-bottom: 1px solid rgba(0, 119, 190, 0.1);
@@ -185,6 +168,12 @@
             min-height: 105px !important;
             max-height: 105px !important;
             overflow: hidden;
+            cursor: pointer;
+            transition: background-color 0.15s ease;
+        }
+
+        .calendar-cell:hover {
+            background-color: #f0f7ff;
         }
 
         .calendar-cell.other-month {
@@ -200,8 +189,8 @@
             flex-shrink: 0;
         }
 
-        .calendar-cell:nth-child(7n) .cell-date-num { color: #0284c7; } /* 토요일 날짜 색상 */
-        .calendar-cell:nth-child(7n+1) .cell-date-num { color: #dc2626; } /* 일요일 날짜 색상 */
+        .calendar-cell:nth-child(7n) .cell-date-num { color: #0284c7; } /* 토요일 */
+        .calendar-cell:nth-child(7n+1) .cell-date-num { color: #dc2626; } /* 일요일 */
 
         /* 셀 내부 일정 목록 영역 */
         .cell-schedules {
@@ -260,11 +249,87 @@
             color: #e0f2fe;
         }
 
-        .no-schedule {
-            text-align: center;
-            color: #64748b;
-            padding: 30px;
+        /* 하단 상세 일정 정보 패널 스타일 */
+        .day-detail-panel {
+            width: 100%;
+            max-width: 1050px;
+            margin-top: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 119, 190, 0.2);
+            border-radius: 14px;
+            padding: 20px;
+            box-sizing: border-box;
+            box-shadow: 0 8px 25px rgba(0, 119, 190, 0.08);
+        }
+
+        .detail-header {
+            font-size: 16px;
+            font-weight: 800;
+            color: #03045e;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 2px solid #e0f2fe;
+            padding-bottom: 8px;
+        }
+
+        .detail-content {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .detail-item {
+            background: #f8fafc;
+            border: 1px solid rgba(0, 119, 190, 0.1);
+            border-radius: 8px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .detail-item:hover {
+            border-color: rgba(0, 119, 190, 0.4);
+            background: #ffffff;
+        }
+
+        .detail-item-title {
             font-size: 14px;
+            font-weight: 700;
+            color: #03045e;
+        }
+
+        .detail-item-info {
+            font-size: 12px;
+            color: #475569;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .detail-item-link {
+            color: #0284c7;
+            text-decoration: none;
+            font-weight: 600;
+            display: inline-block;
+            margin-top: 4px;
+        }
+
+        .detail-item-link:hover {
+            text-decoration: underline;
+        }
+
+        .no-select-msg {
+            color: #64748b;
+            font-size: 14px;
+            text-align: center;
+            padding: 15px 0;
             font-weight: 600;
         }
 
@@ -292,15 +357,10 @@
 <body>
 
     <div class="ocean-calendar-container" id="calendar-container">
-        <div class="calendar-header">
-            <div class="calendar-title">바다비 월간 캘린더</div>
-        </div>
-
-        <!-- 년·월 선택 컨트롤러 및 드롭다운 박스 -->
+        <!-- 월 선택 컨트롤러 및 드롭다운 박스 -->
         <div class="calendar-nav">
             <button class="month-picker-btn" id="current-month-label" onclick="toggleMonthDropdown()">YYYY년 MM월 📅</button>
             
-            <!-- 드롭다운 선택 레이어 -->
             <div class="month-dropdown-box" id="month-dropdown">
                 <select id="select-year"></select>
                 <select id="select-month">
@@ -333,6 +393,14 @@
                 <div>토</div>
             </div>
             <div class="days-grid" id="days-grid"></div>
+        </div>
+
+        <!-- 하단 상세 일정 패널 -->
+        <div class="day-detail-panel" id="detail-panel">
+            <div class="detail-header" id="detail-header-title">날짜를 선택해주세요</div>
+            <div class="detail-content" id="detail-content-box">
+                <div class="no-select-msg">캘린더의 날짜를 클릭하면 해당 일자의 상세 일정이 여기에 표시됩니다.</div>
+            </div>
         </div>
     </div>
 
@@ -471,14 +539,14 @@
                     const linkClass = hasValidUrl ? "schedule-chip" : "schedule-chip no-link";
 
                     schedulesHtml += `
-                        <a href="${itemUrl}" ${targetAttr} class="${linkClass}" title="${schedule.title || ''}">
+                        <span class="${linkClass}" title="${schedule.title || ''}">
                             ${timeText ? `<span class="chip-time">${timeText}</span>` : ''}${schedule.title || '일정'}
-                        </a>
+                        </span>
                     `;
                 });
 
                 cellsHtml += `
-                    <div class="calendar-cell">
+                    <div class="calendar-cell" onclick="selectDateDetail('${dateString}')">
                         <div class="cell-date-num">${day}</div>
                         <div class="cell-schedules">
                             ${schedulesHtml}
@@ -487,7 +555,7 @@
                 `;
             }
 
-            // 3. 다음 달 빈 칸 채우기 (항상 6주(42칸) 체계를 맞추어 모든 월의 캘린더 크기가 동일하게 유지되도록 보장)
+            // 3. 다음 달 빈 칸 채우기 (6주 고정)
             const totalCellsSoFar = firstDayIndex + lastDay;
             const nextDaysCount = totalCellsSoFar <= 35 ? (35 - totalCellsSoFar) : (42 - totalCellsSoFar);
             
@@ -496,6 +564,45 @@
             }
 
             gridEl.innerHTML = cellsHtml;
+        }
+
+        // 날짜 클릭 시 하단 패널에 상세 일정 표시
+        function selectDateDetail(dateString) {
+            const headerTitleEl = document.getElementById("detail-header-title");
+            const contentBoxEl = document.getElementById("detail-content-box");
+
+            headerTitleEl.textContent = `${dateString} 상세 일정`;
+
+            const daySchedules = allEvents.filter(event => event.date === dateString);
+
+            if (daySchedules.length === 0) {
+                contentBoxEl.innerHTML = `<div class="no-select-msg">이 날 등록된 상세 일정이 없습니다.</div>`;
+                return;
+            }
+
+            let html = "";
+            daySchedules.forEach(item => {
+                const title = item.title || '제목 없음';
+                const time = item.time || '시간 미정';
+                const type = item.type || '분류 없음';
+                const category = item.category || '카테고리 없음';
+                const rawUrl = item.url ? item.url.trim() : "";
+                const hasValidUrl = rawUrl !== "" && rawUrl !== "-";
+
+                html += `
+                    <div class="detail-item">
+                        <div class="detail-item-title">${title}</div>
+                        <div class="detail-item-info">
+                            <span>🕒 시간: ${time}</span>
+                            <span>📌 분류: ${type}</span>
+                            <span>🏷️ 카테고리: ${category}</span>
+                        </div>
+                        ${hasValidUrl ? `<a href="${rawUrl}" target="_blank" class="detail-item-link">🔗 링크 바로가기 ↗</a>` : ''}
+                    </div>
+                `;
+            });
+
+            contentBoxEl.innerHTML = html;
         }
 
         function toggleMonthDropdown() {
