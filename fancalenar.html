@@ -251,14 +251,14 @@
             display: flex;
         }
 
-        /* 팝업 모달 박스 (높이 감싸는 제한 확장) */
+        /* 팝업 모달 박스 */
         .modal-box {
             background: #ffffff;
             border: 1px solid rgba(0, 119, 190, 0.2);
             border-radius: 16px;
             width: 90%;
             max-width: 520px;
-            max-height: 85vh; /* 화면 전체 대비 모달의 최대 높이 확대 */
+            max-height: 85vh;
             padding: 24px;
             box-sizing: border-box;
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
@@ -302,12 +302,11 @@
             color: #03045e;
         }
 
-        /* 상세 모달 콘텐츠 높이 확대 적용 */
         .modal-content {
             display: flex;
             flex-direction: column;
             gap: 14px;
-            max-height: 520px; /* 기존 380px에서 확장 */
+            max-height: 520px;
             overflow-y: auto;
             padding-right: 4px;
         }
@@ -405,7 +404,7 @@
 <body>
 
     <div class="ocean-calendar-container" id="calendar-container">
-        <!-- 월 선택 컨트롤러 및 드롭다운 박스 -->
+        <!-- 월 선택 컨트롤러 및 드롭다운 영역 -->
         <div class="calendar-nav">
             <button class="month-picker-btn" id="current-month-label" onclick="toggleMonthDropdown()">YYYY년 MM월 📅</button>
             
@@ -573,13 +572,33 @@
                 cellsHtml += `<div class="calendar-cell other-month"><div class="cell-date-num">${prevDateNum}</div><div class="cell-schedules"></div></div>`;
             }
 
+            // 기준 날짜 정의 (2026-04-20)
+            const cutoffDate = new Date("2026-04-20");
+            const today = new Date(); // 현재 날짜 (2026-08-05 기준)
+            today.setHours(0, 0, 0, 0);
+
             // 2. 이번 달 날짜 채우기
             for (let day = 1; day <= lastDay; day++) {
                 const formattedMonth = String(month + 1).padStart(2, '0');
                 const formattedDay = String(day).padStart(2, '0');
                 const dateString = `${year}-${formattedMonth}-${formattedDay}`;
 
-                const daySchedules = allEvents.filter(event => event.date === dateString);
+                let daySchedules = allEvents.filter(event => event.date === dateString);
+
+                // 2026년 4월 20일 이후부터 오늘(또는 이번 달 말일까지 중 과거/현재 시점)까지 데이터가 없는 경우 휴방 처리
+                const currentCellDate = new Date(dateString);
+                currentCellDate.setHours(0, 0, 0, 0);
+
+                if (currentCellDate >= cutoffDate && currentCellDate <= today && daySchedules.length === 0) {
+                    daySchedules = [{
+                        date: dateString,
+                        time: "",
+                        type: "휴방",
+                        title: "🌊 휴방",
+                        category: "-",
+                        url: "-"
+                    }];
+                }
 
                 let schedulesHtml = "";
                 daySchedules.forEach(schedule => {
@@ -620,7 +639,25 @@
 
             headerTitleEl.textContent = `${dateString} 상세 일정`;
 
-            const daySchedules = allEvents.filter(event => event.date === dateString);
+            let daySchedules = allEvents.filter(event => event.date === dateString);
+
+            // 모달 열 때도 동일하게 2026-04-20 이후 데이터 없는 날짜는 휴방 처리 반영
+            const cutoffDate = new Date("2026-04-20");
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const targetDate = new Date(dateString);
+            targetDate.setHours(0, 0, 0, 0);
+
+            if (targetDate >= cutoffDate && targetDate <= today && daySchedules.length === 0) {
+                daySchedules = [{
+                    date: dateString,
+                    time: "",
+                    type: "휴방",
+                    title: "🌊 휴방",
+                    category: "-",
+                    url: "-"
+                }];
+            }
 
             if (daySchedules.length === 0) {
                 contentBoxEl.innerHTML = `<div class="no-select-msg">이 날 등록된 상세 일정이 없습니다.</div>`;
