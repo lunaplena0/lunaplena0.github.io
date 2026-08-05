@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>바다비 월간일정</title>
+    <style>
+        /* 전체 페이지 기본 설정 (프로필 페이지와 동일) */
+        body {
+            margin: 0;
+            width: 100vw;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-color: #f4f7f9;
+            overflow-x: hidden;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #2b2d42;
+        }
+
+        /* 메인 콘텐츠 영역 */
+        .ocean-calendar-container {
+            position: relative;
+            width: 100%;
+            max-width: 1200px;
+            flex: 1;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+            box-sizing: border-box;
+            background: transparent;
+            opacity: 0;
+            transform: translateY(15px);
+            transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+
+        .ocean-calendar-container.loaded {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* 페이지 타이틀 */
+        .calendar-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .calendar-title {
+            font-size: clamp(32px, 4vw, 42px);
+            font-weight: 900;
+            margin-bottom: 8px;
+            letter-spacing: -1px;
+            color: #03045e;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 1), 0 0 20px rgba(255, 255, 255, 0.9), 0 2px 4px rgba(0, 0, 0, 0.15);
+        }
+
+        .calendar-subtitle {
+            font-size: clamp(14px, 1.3vw, 16px);
+            color: #0077b6;
+            font-weight: 600;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 1);
+        }
+
+        /* 월간 일정 목록 그리드 컨테이너 */
+        .calendar-grid {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            box-sizing: border-box;
+        }
+
+        /* 날짜별 그룹 카드 */
+        .calendar-date-group {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 119, 190, 0.15);
+            border-radius: 16px;
+            padding: 20px 25px;
+            box-shadow: 0 10px 30px rgba(0, 119, 190, 0.08);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .group-date-header {
+            font-size: 18px;
+            font-weight: 800;
+            color: #03045e;
+            border-bottom: 2px solid rgba(0, 119, 190, 0.15);
+            padding-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* 개별 일정 아이템 */
+        .schedule-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #fafbfc;
+            border: 1px solid rgba(0, 119, 190, 0.1);
+            padding: 14px 18px;
+            border-radius: 10px;
+            text-decoration: none;
+            color: #2b2d42;
+            transition: all 0.2s ease;
+            gap: 15px;
+        }
+
+        .schedule-item:hover {
+            background: #ffffff;
+            border-color: #0077b6;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0, 119, 190, 0.12);
+        }
+
+        .schedule-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex: 1;
+            flex-wrap: wrap;
+        }
+
+        .schedule-time {
+            font-size: 14px;
+            font-weight: 700;
+            color: #0284c7;
+            background: #e0f2fe;
+            padding: 4px 8px;
+            border-radius: 6px;
+            min-width: 45px;
+            text-align: center;
+        }
+
+        .schedule-type {
+            font-size: 13px;
+            font-weight: 700;
+            color: #ffffff;
+            background: #0077b6;
+            padding: 4px 10px;
+            border-radius: 6px;
+        }
+
+        .schedule-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #1e293b;
+            flex: 1;
+        }
+
+        .schedule-category {
+            font-size: 13px;
+            color: #64748b;
+            font-weight: 500;
+            background: #f1f5f9;
+            padding: 4px 10px;
+            border-radius: 6px;
+        }
+
+        .no-schedule {
+            text-align: center;
+            color: #64748b;
+            padding: 40px;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        /* 모바일 반응형 */
+        @media (max-width: 768px) {
+            .ocean-calendar-container {
+                padding: 20px 15px;
+            }
+            .schedule-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            .schedule-info {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="ocean-calendar-container" id="calendar-container">
+        <div class="calendar-header">
+            <div class="calendar-title">바다비 월간일정</div>
+            <div class="calendar-subtitle">🌊 방송 및 컨텐츠 아카이브 일정표</div>
+        </div>
+
+        <div class="calendar-grid" id="calendar-grid">
+            <div class="no-schedule">일정을 불러오는 중...</div>
+        </div>
+    </div>
+
+    <script>
+        async function loadCalendar() {
+            const containerEl = document.getElementById("calendar-container");
+            const gridEl = document.getElementById("calendar-grid");
+
+            try {
+                // 프로필 페이지와 동일한 Worker API 엔드포인트 호출 (?type=fancalenar)
+                const response = await fetch('https://badabi-api.dalkkumli054.workers.dev/?type=fancalenar&t=' + new Date().getTime());
+                if (!response.ok) throw new Error("일정 데이터를 불러오지 못했습니다.");
+                
+                const data = await response.json();
+                
+                // 데이터 파싱 (배열 형태 또는 { notes: [...] } 형태 대응)
+                let events = [];
+                if (Array.isArray(data)) {
+                    events = data;
+                } else if (data && Array.isArray(data.notes)) {
+                    events = data.notes;
+                } else if (data && Array.isArray(data.events)) {
+                    events = data.events;
+                }
+
+                if (events.length === 0) {
+                    gridEl.innerHTML = `<div class="no-schedule">등록된 일정이 없습니다.</div>`;
+                    containerEl.classList.add('loaded');
+                    return;
+                }
+
+                // 날짜별로 데이터 그룹화
+                const groupedByDate = {};
+                events.forEach(item => {
+                    const dateKey = item.date || "기타 일정";
+                    if (!groupedByDate[dateKey]) {
+                        groupedByDate[dateKey] = [];
+                    }
+                    groupedByDate[dateKey].push(item);
+                });
+
+                // 날짜 최신순 또는 오름차순 정렬 (여기서는 날짜 기준 정렬)
+                const sortedDates = Object.keys(groupedByDate).sort();
+
+                let htmlContent = "";
+                sortedDates.forEach(date => {
+                    htmlContent += `
+                        <div class="calendar-date-group">
+                            <div class="group-date-header">📅 ${date}</div>
+                    `;
+
+                    groupedByDate[date].forEach(schedule => {
+                        const timeBadge = schedule.time ? `<span class="schedule-time">${schedule.time}</span>` : `<span class="schedule-time" style="background:#f1f5f9; color:#94a3b8;">미정</span>`;
+                        const typeBadge = schedule.type ? `<span class="schedule-type">${schedule.type}</span>` : "";
+                        const categoryBadge = schedule.category ? `<span class="schedule-category">${schedule.category}</span>` : "";
+                        const itemUrl = schedule.url ? schedule.url : "#";
+                        const targetAttr = schedule.url ? `target="_blank"` : "";
+
+                        htmlContent += `
+                            <a href="${itemUrl}" ${targetAttr} class="schedule-item">
+                                <div class="schedule-info">
+                                    ${timeBadge}
+                                    ${typeBadge}
+                                    <span class="schedule-title">${schedule.title || "제목 없음"}</span>
+                                </div>
+                                ${categoryBadge}
+                            </a>
+                        `;
+                    });
+
+                    htmlContent += `</div>`;
+                });
+
+                gridEl.innerHTML = htmlContent;
+                containerEl.classList.add('loaded');
+
+            } catch (error) {
+                console.error(error);
+                gridEl.innerHTML = `<div class="no-schedule" style="color: #ef4444;">일정을 불러오는 중 오류가 발생했습니다.</div>`;
+                containerEl.classList.add('loaded');
+            }
+        }
+
+        // 페이지 로드 시 실행
+        loadCalendar();
+    </script>
+
+</body>
+</html>
