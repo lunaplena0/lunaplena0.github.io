@@ -339,7 +339,7 @@
                     btn.className = "filter-btn";
                     if (ym === latestMonth) btn.classList.add("active");
                     btn.dataset.month = ym;
-                    btn.textContent = `${y}년 ${parseInt(m, 10)}월 (${count})`; // 💡 개수 표시 추가
+                    btn.textContent = `${y}년 ${parseInt(m, 10)}월 (${count})`;
                     btn.onclick = () => filterMonth(ym);
                     filterBar.appendChild(btn);
                 });
@@ -355,6 +355,9 @@
                 container.appendChild(contentWrapper);
 
                 let globalIndex = 0;
+
+                // 화면 크기에 따른 기본 노출 개수 설정 (모바일 500px 이하: 6개, PC: 5개)
+                const defaultVisibleCount = window.innerWidth <= 500 ? 6 : 5;
 
                 // 4. 월별 섹션 구성
                 sortedMonths.forEach(yearMonth => {
@@ -381,8 +384,6 @@
 
                     const gridEl = document.createElement("div");
                     gridEl.className = "vod-grid";
-
-                    const defaultVisibleCount = 6; // 한 줄 기본 노출 개수
 
                     monthVods.forEach((item, itemIdx) => {
                         const card = document.createElement("a");
