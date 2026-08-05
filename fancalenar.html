@@ -18,7 +18,7 @@
             color: #2b2d42;
         }
 
-        /* 메인 콘텐츠 영역 (상단 타이틀 삭제에 따른 여백 조정) */
+        /* 메인 콘텐츠 영역 */
         .ocean-calendar-container {
             position: relative;
             width: 100%;
@@ -155,7 +155,7 @@
             grid-template-rows: repeat(6, 105px); 
         }
 
-        /* 캘린더 칸 높이 고정 및 클릭 가능하도록 설정 */
+        /* 캘린더 칸 높이 고정 및 클릭 가능 */
         .calendar-cell {
             border-right: 1px solid rgba(0, 119, 190, 0.1);
             border-bottom: 1px solid rgba(0, 119, 190, 0.1);
@@ -217,10 +217,8 @@
             border-left: 3px solid #0077b6;
             padding: 2px 4px;
             border-radius: 3px;
-            text-decoration: none;
             color: #03045e;
             font-size: 10px;
-            transition: all 0.2s ease;
             box-sizing: border-box;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -228,25 +226,10 @@
             flex-shrink: 0;
         }
 
-        .schedule-chip.no-link {
-            cursor: default;
-            pointer-events: none;
-        }
-
-        .schedule-chip:not(.no-link):hover {
-            background: #0077b6;
-            color: #ffffff;
-            transform: translateY(-1px);
-        }
-
         .schedule-chip .chip-time {
             font-weight: 700;
             margin-right: 3px;
             color: #0284c7;
-        }
-
-        .schedule-chip:not(.no-link):hover .chip-time {
-            color: #e0f2fe;
         }
 
         /* 하단 상세 일정 정보 패널 스타일 */
@@ -283,6 +266,7 @@
             overflow-y: auto;
         }
 
+        /* 상세 항목 카드 (링크가 있는 경우 전체 칸 클릭 가능 및 호버 효과 적용) */
         .detail-item {
             background: #f8fafc;
             border: 1px solid rgba(0, 119, 190, 0.1);
@@ -294,9 +278,14 @@
             transition: all 0.2s ease;
         }
 
-        .detail-item:hover {
+        .detail-item.clickable {
+            cursor: pointer;
+        }
+
+        .detail-item.clickable:hover {
             border-color: rgba(0, 119, 190, 0.4);
-            background: #ffffff;
+            background: #f0f7ff;
+            transform: translateY(-1px);
         }
 
         .detail-item-title {
@@ -311,18 +300,6 @@
             display: flex;
             gap: 15px;
             flex-wrap: wrap;
-        }
-
-        .detail-item-link {
-            color: #0284c7;
-            text-decoration: none;
-            font-weight: 600;
-            display: inline-block;
-            margin-top: 4px;
-        }
-
-        .detail-item-link:hover {
-            text-decoration: underline;
         }
 
         .no-select-msg {
@@ -531,15 +508,8 @@
                 let schedulesHtml = "";
                 daySchedules.forEach(schedule => {
                     const timeText = schedule.time ? schedule.time : "";
-                    const rawUrl = schedule.url ? schedule.url.trim() : "";
-                    
-                    const hasValidUrl = rawUrl !== "" && rawUrl !== "-";
-                    const itemUrl = hasValidUrl ? rawUrl : "#";
-                    const targetAttr = hasValidUrl ? `target="_blank"` : "";
-                    const linkClass = hasValidUrl ? "schedule-chip" : "schedule-chip no-link";
-
                     schedulesHtml += `
-                        <span class="${linkClass}" title="${schedule.title || ''}">
+                        <span class="schedule-chip" title="${schedule.title || ''}">
                             ${timeText ? `<span class="chip-time">${timeText}</span>` : ''}${schedule.title || '일정'}
                         </span>
                     `;
@@ -566,7 +536,7 @@
             gridEl.innerHTML = cellsHtml;
         }
 
-        // 날짜 클릭 시 하단 패널에 상세 일정 표시
+        // 날짜 클릭 시 하단 패널에 상세 일정 표시 (링크가 있는 경우 칸 전체 클릭 시 새 창 이동)
         function selectDateDetail(dateString) {
             const headerTitleEl = document.getElementById("detail-header-title");
             const contentBoxEl = document.getElementById("detail-content-box");
@@ -589,15 +559,17 @@
                 const rawUrl = item.url ? item.url.trim() : "";
                 const hasValidUrl = rawUrl !== "" && rawUrl !== "-";
 
+                const clickableClass = hasValidUrl ? "detail-item clickable" : "detail-item";
+                const clickAction = hasValidUrl ? `onclick="window.open('${rawUrl}', '_blank')"` : "";
+
                 html += `
-                    <div class="detail-item">
+                    <div class="${clickableClass}" ${clickAction}>
                         <div class="detail-item-title">${title}</div>
                         <div class="detail-item-info">
                             <span>🕒 시간: ${time}</span>
                             <span>📌 분류: ${type}</span>
                             <span>🏷️ 카테고리: ${category}</span>
                         </div>
-                        ${hasValidUrl ? `<a href="${rawUrl}" target="_blank" class="detail-item-link">🔗 링크 바로가기 ↗</a>` : ''}
                     </div>
                 `;
             });
