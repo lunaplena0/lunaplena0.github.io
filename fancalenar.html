@@ -18,7 +18,7 @@
             color: #2b2d42;
         }
 
-        /* 메인 콘텐츠 영역 */
+        /* 메인 콘텐츠 영역 (상하단 여백 최소화) */
         .ocean-calendar-container {
             position: relative;
             width: 100%;
@@ -28,7 +28,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 20px 15px 30px 15px;
+            padding: 5px 15px 5px 15px;
             box-sizing: border-box;
             background: transparent;
             opacity: 0;
@@ -47,7 +47,7 @@
             align-items: center;
             justify-content: center;
             gap: 10px;
-            margin-bottom: 15px;
+            margin-bottom: 8px;
             position: relative;
         }
 
@@ -55,11 +55,11 @@
             background: rgba(255, 255, 255, 0.9);
             border: 1px solid rgba(0, 119, 190, 0.25);
             color: #03045e;
-            padding: 5px 14px;
+            padding: 4px 12px;
             border-radius: 8px;
             cursor: pointer;
             font-weight: 800;
-            font-size: 16px;
+            font-size: 15px;
             transition: all 0.2s ease;
             box-shadow: 0 4px 10px rgba(0, 119, 190, 0.05);
             display: inline-flex;
@@ -77,7 +77,7 @@
         /* 드롭다운 셀렉트 박스 컨테이너 */
         .month-dropdown-box {
             position: absolute;
-            top: 40px;
+            top: 36px;
             background: #ffffff;
             border: 1px solid rgba(0, 119, 190, 0.2);
             border-radius: 10px;
@@ -142,7 +142,7 @@
             color: #ffffff;
             font-weight: 700;
             text-align: center;
-            padding: 8px 0;
+            padding: 6px 0;
             font-size: 13px;
         }
 
@@ -341,7 +341,6 @@
             transform: translateY(-1px);
         }
 
-        /* 제목 영역: 2줄 여유공간 확보 */
         .detail-item-title {
             font-size: 15px;
             font-weight: 700;
@@ -355,14 +354,12 @@
             text-overflow: ellipsis;
         }
 
-        /* 시간 및 분류 라인 */
         .detail-item-time-type {
             font-size: 13px;
             color: #475569;
             font-weight: 600;
         }
 
-        /* 카테고리 라인 */
         .detail-item-category {
             font-size: 13px;
             color: #0284c7;
@@ -380,7 +377,10 @@
         /* 모바일 반응형 디자인 */
         @media (max-width: 768px) {
             .ocean-calendar-container {
-                padding: 10px 10px 20px 10px;
+                padding: 2px 5px 2px 5px;
+            }
+            .calendar-nav {
+                margin-bottom: 5px;
             }
             .days-grid {
                 grid-template-rows: repeat(6, 90px);
@@ -389,11 +389,20 @@
                 height: 90px !important; 
                 min-height: 90px !important;
                 max-height: 90px !important;
-                padding: 3px;
+                padding: 2px;
+            }
+            /* 모바일 환경에서 칩 내부 텍스트 중 방송 여부(타입 또는 휴방 표시)만 노출되도록 제어 */
+            .schedule-chip .chip-time,
+            .schedule-chip .chip-title-text {
+                display: none !important;
+            }
+            .schedule-chip::after {
+                content: attr(data-display-text);
             }
             .schedule-chip {
                 font-size: 9px;
-                padding: 1px 2px;
+                padding: 2px;
+                text-align: center;
             }
             .modal-content {
                 max-height: 60vh;
@@ -572,9 +581,8 @@
                 cellsHtml += `<div class="calendar-cell other-month"><div class="cell-date-num">${prevDateNum}</div><div class="cell-schedules"></div></div>`;
             }
 
-            // 기준 날짜 정의 (2026-04-20)
             const cutoffDate = new Date("2026-04-20");
-            const today = new Date(); // 현재 날짜 (2026-08-05 기준)
+            const today = new Date();
             today.setHours(0, 0, 0, 0);
 
             // 2. 이번 달 날짜 채우기
@@ -585,7 +593,6 @@
 
                 let daySchedules = allEvents.filter(event => event.date === dateString);
 
-                // 2026년 4월 20일 이후부터 오늘(또는 이번 달 말일까지 중 과거/현재 시점)까지 데이터가 없는 경우 휴방 처리
                 const currentCellDate = new Date(dateString);
                 currentCellDate.setHours(0, 0, 0, 0);
 
@@ -603,9 +610,11 @@
                 let schedulesHtml = "";
                 daySchedules.forEach(schedule => {
                     const timeText = schedule.time ? schedule.time : "";
+                    const displayStateText = (schedule.type === "휴방" || (schedule.title && schedule.title.includes("휴방"))) ? "🌊 휴방" : "방송";
+                    
                     schedulesHtml += `
-                        <span class="schedule-chip" title="${schedule.title || ''}">
-                            ${timeText ? `<span class="chip-time">${timeText}</span>` : ''}${schedule.title || '일정'}
+                        <span class="schedule-chip" title="${schedule.title || ''}" data-display-text="${displayStateText}">
+                            ${timeText ? `<span class="chip-time">${timeText}</span>` : ''}<span class="chip-title-text">${schedule.title || '일정'}</span>
                         </span>
                     `;
                 });
@@ -641,7 +650,6 @@
 
             let daySchedules = allEvents.filter(event => event.date === dateString);
 
-            // 모달 열 때도 동일하게 2026-04-20 이후 데이터 없는 날짜는 휴방 처리 반영
             const cutoffDate = new Date("2026-04-20");
             const today = new Date();
             today.setHours(0, 0, 0, 0);
