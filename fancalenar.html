@@ -138,7 +138,7 @@
             background-color: #03045e;
         }
 
-        /* 캘린더 그리드 스타일 (크기 고정) */
+        /* 캘린더 그리드 스타일 (크기 고정 및 6주 고정 레이아웃 적용) */
         .calendar-grid-box {
             width: 100%;
             max-width: 1050px;
@@ -168,9 +168,11 @@
         .days-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
+            /* 어떤 달이든 항상 6주(42개 칸)로 고정하여 모든 월의 전체 캘린더 세로 높이가 완벽히 동일하도록 설정 */
+            grid-template-rows: repeat(6, 105px); 
         }
 
-        /* 캘린더 칸 높이 완전 고정 (유동적 크기 변화 방지) */
+        /* 캘린더 칸 높이 완전 고정 */
         .calendar-cell {
             border-right: 1px solid rgba(0, 119, 190, 0.1);
             border-bottom: 1px solid rgba(0, 119, 190, 0.1);
@@ -219,7 +221,7 @@
             border-radius: 3px;
         }
 
-        /* 일정 칩 스타일 (이동 링크가 없거나 '-'인 경우 클릭 방지 처리) */
+        /* 일정 칩 스타일 */
         .schedule-chip {
             display: block;
             background: #e0f2fe;
@@ -270,6 +272,9 @@
         @media (max-width: 768px) {
             .ocean-calendar-container {
                 padding: 10px 10px 20px 10px;
+            }
+            .days-grid {
+                grid-template-rows: repeat(6, 90px);
             }
             .calendar-cell {
                 height: 90px !important; 
@@ -460,7 +465,6 @@
                     const timeText = schedule.time ? schedule.time : "";
                     const rawUrl = schedule.url ? schedule.url.trim() : "";
                     
-                    // 링크가 없거나 '-'인 경우 이동 불가 처리 (클래스 부여 및 샵 태그)
                     const hasValidUrl = rawUrl !== "" && rawUrl !== "-";
                     const itemUrl = hasValidUrl ? rawUrl : "#";
                     const targetAttr = hasValidUrl ? `target="_blank"` : "";
@@ -483,7 +487,7 @@
                 `;
             }
 
-            // 3. 다음 달 빈 칸 채우기
+            // 3. 다음 달 빈 칸 채우기 (항상 6주(42칸) 체계를 맞추어 모든 월의 캘린더 크기가 동일하게 유지되도록 보장)
             const totalCellsSoFar = firstDayIndex + lastDay;
             const nextDaysCount = totalCellsSoFar <= 35 ? (35 - totalCellsSoFar) : (42 - totalCellsSoFar);
             
