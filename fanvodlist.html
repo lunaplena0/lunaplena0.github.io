@@ -16,14 +16,34 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
-        .vod-container {
+        .main-container {
             width: 100%;
             max-width: 1300px;
             margin: 0 auto;
             padding: 30px 16px;
             box-sizing: border-box;
-            
-            /* 💡 카드가 더 많이 들어가도록 최소 크기를 240px로 축소 */
+            display: flex;
+            flex-direction: column;
+            gap: 36px;
+        }
+
+        /* 월별 섹션 스타일 */
+        .month-section {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .month-title {
+            font-size: 20px;
+            font-weight: 800;
+            color: #0f172a;
+            border-left: 5px solid #0077b6;
+            padding-left: 10px;
+            margin: 0;
+        }
+
+        .vod-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
             gap: 16px;
@@ -96,7 +116,7 @@
             border-radius: 3px;
         }
 
-        /* VOD 정보 영역 (패딩 축소) */
+        /* VOD 정보 영역 */
         .vod-info {
             padding: 12px;
             display: flex;
@@ -168,18 +188,23 @@
         }
 
         .full-width-message {
-            grid-column: 1 / -1;
             text-align: center;
             color: #64748b;
             font-size: 16px;
             padding: 40px 0;
+            width: 100%;
         }
 
         @media (max-width: 500px) {
-            .vod-container {
-                grid-template-columns: repeat(2, 1fr); /* 모바일에서는 2열로 배치하여 공간 활용 */
+            .vod-grid {
+                grid-template-columns: repeat(2, 1fr);
                 gap: 10px;
+            }
+            .main-container {
                 padding: 16px 10px;
+            }
+            .month-title {
+                font-size: 18px;
             }
             .vod-info {
                 padding: 8px;
@@ -188,14 +213,14 @@
                 font-size: 12px;
             }
             .vod-desc, .vod-meta {
-                display: none; /* 화면이 아주 작을 때는 요약 설명과 날짜를 숨겨 깔끔하게 유지 */
+                display: none;
             }
         }
     </style>
 </head>
 <body>
 
-    <div class="vod-container" id="vod-list">
+    <div class="main-container" id="main-container">
         <p class="full-width-message">VOD 리스트를 불러오는 중...</p>
     </div>
 
@@ -204,7 +229,7 @@
         const VOD_API_URL = WORKER_URL + "?type=fanvodlist&t=";
 
         async function loadVODs() {
-            const listContainer = document.getElementById("vod-list");
+            const container = document.getElementById("main-container");
             
             try {
                 const response = await fetch(VOD_API_URL + new Date().getTime());
@@ -213,52 +238,88 @@
                 const data = await response.json();
                 const vods = data.vods || [];
 
-                listContainer.innerHTML = "";
+                container.innerHTML = "";
 
                 if (vods.length === 0) {
-                    listContainer.innerHTML = '<p class="full-width-message">등록된 VOD가 없습니다.</p>';
+                    container.innerHTML = '<p class="full-width-message">등록된 VOD가 없습니다.</p>';
                     return;
                 }
 
-                vods.forEach((item, index) => {
-                    const card = document.createElement("a");
-                    card.href = item.link;
-                    card.className = "vod-card";
-                    card.target = "_blank";
-                    card.rel = "noopener noreferrer";
-                    card.style.animationDelay = `${index * 0.04}s`;
+                // 💡 1. 년-월(YYYY-MM) 기준으로 데이터 그룹화하기
+                const groupedVods = {};
+                vods.forEach(item => {
+                    if (!item.date) return;
+                    const yearMonth = item.date.substring(0, 7); // "2026-04" 형태 추출
+                    if (!groupedVods[yearMonth]) {
+                        groupedVods[yearMonth] = [];
+                    }
+                    groupedVods[yearMonth].push(item);
+                });
 
-                    const thumbHTML = item.thumbnail 
-                        ? `<img src="${item.thumbnail}" alt="thumbnail" class="vod-thumb" loading="lazy">` 
-                        : `<div class="vod-thumb no-thumb">No Image</div>`;
+                // 💡 2. 년-월 기준 내림차순 정렬 (최신 월이 위로 오도록)
+                const sortedMonths = Object.keys(groupedVods).sort().reverse();
 
-                    let badgesHTML = `<span class="badge badge-category">${item.category || "기타"}</span>`;
-                    if (item.adult === "Y") badgesHTML += `<span class="badge badge-adult">19+</span>`;
-                    if (item.subPlus === "Y") badgesHTML += `<span class="badge badge-sub">구독+</span>`;
+                let globalIndex = 0; // 전체 애니메이션 지연 계산용
 
-                    card.innerHTML = `
-                        <div class="vod-thumb-wrapper">
-                            ${thumbHTML}
-                            <div class="vod-duration">${item.duration || "-:--:--"}</div>
-                        </div>
-                        <div class="vod-info">
-                            <h3 class="vod-title">${item.title}</h3>
-                            <div class="vod-meta">
-                                <span>📅 ${item.date}</span>
+                // 💡 3. 월별 섹션 HTML 생성 및 조립
+                sortedMonths.forEach(yearMonth => {
+                    const [year, month] = yearMonth.split("-");
+                    const formattedMonthTitle = `${year}년 ${parseInt(month, 10)}월`;
+
+                    const section = document.createElement("div");
+                    section.className = "month-section";
+
+                    const titleEl = document.createElement("h2");
+                    titleEl.className = "month-title";
+                    titleEl.textContent = formattedMonthTitle;
+                    section.appendChild(titleEl);
+
+                    const gridEl = document.createElement("div");
+                    gridEl.className = "vod-grid";
+
+                    groupedVods[yearMonth].forEach((item) => {
+                        const card = document.createElement("a");
+                        card.href = item.link;
+                        card.className = "vod-card";
+                        card.target = "_blank";
+                        card.rel = "noopener noreferrer";
+                        card.style.animationDelay = `${(globalIndex++) * 0.03}s`;
+
+                        const thumbHTML = item.thumbnail 
+                            ? `<img src="${item.thumbnail}" alt="thumbnail" class="vod-thumb" loading="lazy">` 
+                            : `<div class="vod-thumb no-thumb">No Image</div>`;
+
+                        let badgesHTML = `<span class="badge badge-category">${item.category || "기타"}</span>`;
+                        if (item.adult === "Y") badgesHTML += `<span class="badge badge-adult">19+</span>`;
+                        if (item.subPlus === "Y") badgesHTML += `<span class="badge badge-sub">구독+</span>`;
+
+                        card.innerHTML = `
+                            <div class="vod-thumb-wrapper">
+                                ${thumbHTML}
+                                <div class="vod-duration">${item.duration || "-:--:--"}</div>
                             </div>
-                            <p class="vod-desc">${item.description || "설명 없음"}</p>
-                            <div class="badge-container">
-                                ${badgesHTML}
+                            <div class="vod-info">
+                                <h3 class="vod-title">${item.title}</h3>
+                                <div class="vod-meta">
+                                    <span>📅 ${item.date}</span>
+                                </div>
+                                <p class="vod-desc">${item.description || "설명 없음"}</p>
+                                <div class="badge-container">
+                                    ${badgesHTML}
+                                </div>
                             </div>
-                        </div>
-                    `;
+                        `;
 
-                    listContainer.appendChild(card);
+                        gridEl.appendChild(card);
+                    });
+
+                    section.appendChild(gridEl);
+                    container.appendChild(section);
                 });
 
             } catch (err) {
                 console.error(err);
-                listContainer.innerHTML = `<p class="full-width-message" style="color: #ef4444;">VOD 리스트 로드 실패</p>`;
+                container.innerHTML = `<p class="full-width-message" style="color: #ef4444;">VOD 리스트 로드 실패</p>`;
             }
         }
 
