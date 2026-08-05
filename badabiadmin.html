@@ -198,6 +198,163 @@
             font-size: 12px;
         }
         .month-dropdown-box button:hover { background-color: #03045e; }
+
+        .calendar-grid-box {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(0, 119, 190, 0.15);
+            border-radius: 14px;
+            box-shadow: 0 10px 30px rgba(0, 119, 190, 0.08);
+            overflow: hidden;
+            box-sizing: border-box;
+        }
+        .weekdays-header {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            background: #0077b6;
+            color: #ffffff;
+            font-weight: 700;
+            text-align: center;
+            padding: 8px 0;
+            font-size: 13px;
+        }
+        .weekdays-header div:first-child { color: #ffadad; }
+        .weekdays-header div:last-child { color: #9bf6ff; }
+
+        .days-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            grid-template-rows: repeat(6, 105px);
+        }
+        .calendar-cell {
+            border-right: 1px solid rgba(0, 119, 190, 0.1);
+            border-bottom: 1px solid rgba(0, 119, 190, 0.1);
+            padding: 5px;
+            box-sizing: border-box;
+            background: #ffffff;
+            display: flex;
+            flex-direction: column;
+            height: 105px !important;
+            min-height: 105px !important;
+            max-height: 105px !important;
+            overflow: hidden;
+            cursor: pointer;
+            transition: background-color 0.15s ease;
+        }
+        .calendar-cell:hover { background-color: #f0f7ff; }
+        .calendar-cell.other-month { background: #fafbfc; opacity: 0.5; }
+        .cell-date-num {
+            font-size: 11.5px;
+            font-weight: 700;
+            color: #334155;
+            margin-bottom: 2px;
+            flex-shrink: 0;
+        }
+        .calendar-cell:nth-child(7n) .cell-date-num { color: #0284c7; }
+        .calendar-cell:nth-child(7n+1) .cell-date-num { color: #dc2626; }
+
+        .cell-schedules {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            overflow-y: auto;
+            flex: 1;
+            padding-right: 2px;
+        }
+        .cell-schedules::-webkit-scrollbar { width: 3px; }
+        .cell-schedules::-webkit-scrollbar-thumb { background: rgba(0, 119, 190, 0.2); border-radius: 3px; }
+
+        .schedule-chip {
+            display: block;
+            background: #e0f2fe;
+            border-left: 3px solid #0077b6;
+            padding: 2px 4px;
+            border-radius: 3px;
+            color: #03045e;
+            font-size: 10px;
+            box-sizing: border-box;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .schedule-chip .chip-time { font-weight: 700; margin-right: 3px; color: #0284c7; }
+
+        /* 모달 창 스타일 */
+        .modal-backdrop {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .modal-backdrop.active { display: flex; }
+        .modal-box {
+            background: #ffffff;
+            border: 1px solid rgba(0, 119, 190, 0.2);
+            border-radius: 16px;
+            width: 90%;
+            max-width: 580px;
+            max-height: 85vh;
+            padding: 24px;
+            box-sizing: border-box;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+            display: flex;
+            flex-direction: column;
+        }
+        .modal-header {
+            font-size: 18px;
+            font-weight: 800;
+            color: #03045e;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 2px solid #e0f2fe;
+            padding-bottom: 12px;
+            margin-bottom: 15px;
+            flex-shrink: 0;
+        }
+        .modal-close-btn {
+            background: transparent;
+            border: none;
+            font-size: 20px;
+            font-weight: bold;
+            color: #64748b;
+            cursor: pointer;
+            padding: 0 4px;
+            border-radius: 4px;
+        }
+        .modal-close-btn:hover { background: #f1f5f9; color: #03045e; }
+        .modal-content {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-height: 480px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+        .modal-content::-webkit-scrollbar { width: 4px; }
+        .modal-content::-webkit-scrollbar-thumb { background: rgba(0, 119, 190, 0.2); border-radius: 4px; }
+        
+        .modal-schedule-row {
+            background: #f8fafc;
+            border: 1px solid #cbd5e1;
+            padding: 12px;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .modal-schedule-row input {
+            margin-bottom: 0;
+            background: #fff;
+            padding: 8px 10px;
+            font-size: 13px;
+        }
     </style>
 </head>
 <body>
@@ -274,21 +431,46 @@
             <div id="mainpage-status" class="status-msg"></div>
         </div>
 
-        <!-- 3. 시작페이지 수정 패널 -->
+        <!-- 3. 시작페이지 수정 패널 (fanstartpageadmin.js 연동) -->
         <div id="panel-intro" class="card" style="display: none;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid rgba(0, 119, 190, 0.2); padding-bottom: 10px;">
                 <h3 style="margin: 0; color: #03045e;">👤 시작페이지(소개) 수정</h3>
                 <button onclick="showDashboard()" class="secondary-btn" style="padding: 6px 12px; font-size: 13px;">← 메뉴 목록으로</button>
             </div>
             
-            <label>소개 타이틀</label>
-            <input type="text" id="intro-title" placeholder="소개 페이지 타이틀 입력">
+            <label>이름 / 타이틀</label>
+            <input type="text" id="intro-name" placeholder="이름 또는 타이틀 입력">
             
             <label>프로필 이미지 주소 (URL)</label>
-            <input type="text" id="intro-image" placeholder="프로필 이미지 URL 입력">
+            <input type="text" id="intro-image" placeholder="이미지 URL 직접 입력 또는 업로드">
+
+            <label>이미지 파일 업로드</label>
+            <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 15px;">
+                <input type="file" id="intro-image-file" accept="image/*" style="margin-bottom: 0; background: #fff;">
+                <button type="button" onclick="uploadIntroImage()" style="background-color: #10b981; white-space: nowrap; padding: 12px 15px;">이미지 업로드</button>
+            </div>
+            <div id="intro-image-status" style="font-size: 13px; font-weight: 600; margin-bottom: 15px;"></div>
             
-            <label>상세 소개 내용</label>
-            <textarea id="intro-content" placeholder="소개 텍스트 입력"></textarea>
+            <label>인사말 / 메시지</label>
+            <textarea id="intro-message" placeholder="인사말 입력"></textarea>
+
+            <label>공지사항</label>
+            <textarea id="intro-notice" placeholder="공지사항 입력"></textarea>
+
+            <label>추천 VOD 주소</label>
+            <input type="text" id="intro-vod" placeholder="추천 VOD 링크 입력">
+
+            <div style="display: flex; justify-content: space-between; align-items: center; margin: 20px 0 10px 0; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;">
+                <h4 style="color: #0077b6; margin: 0;">관련 링크 목록</h4>
+                <button type="button" onclick="addIntroLinkRow()" style="background-color: #10b981; padding: 4px 10px; font-size: 12px;">+ 링크 추가</button>
+            </div>
+            <div id="intro-link-rows-container" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;"></div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; margin: 20px 0 10px 0; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;">
+                <h4 style="color: #0077b6; margin: 0;">타임라인 연혁</h4>
+                <button type="button" onclick="addIntroTimelineRow()" style="background-color: #10b981; padding: 4px 10px; font-size: 12px;">+ 타임라인 추가</button>
+            </div>
+            <div id="intro-timeline-rows-container" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;"></div>
 
             <button onclick="saveIntroSettings()" style="width: 100%; margin-top: 25px; background-color: #0077b6; padding: 14px; font-size: 16px;">시작페이지 설정 반영하기</button>
             <div id="intro-status" class="status-msg"></div>
@@ -311,29 +493,45 @@
             <div id="crynote-status" class="status-msg"></div>
         </div>
 
-        <!-- 5. 월간일정 수정 패널 -->
+        <!-- 5. 월간일정 수정 패널 (fancalenaradmin.js 연동) -->
         <div id="panel-calendar" class="card" style="display: none;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid rgba(0, 119, 190, 0.2); padding-bottom: 10px;">
                 <h3 style="margin: 0; color: #03045e;">📅 월간일정 데이터 관리 (fancalenar)</h3>
                 <button onclick="showDashboard()" class="secondary-btn" style="padding: 6px 12px; font-size: 13px;">← 메뉴 목록으로</button>
             </div>
 
+            <!-- 캘린더 네비게이션 (스크립트가 찾는 ID 반영) -->
             <div class="calendar-nav">
-                <button type="button" class="month-picker-btn" onclick="toggleMonthDropdown(event)">
-                    <span id="current-year-month-label">2026년 08월</span> ▾
+                <button type="button" class="month-picker-btn" onclick="toggleMonthDropdown()">
+                    <span id="current-month-label">2026년 08월 📅</span> ▾
                 </button>
-                <div id="month-dropdown-box" class="month-dropdown-box">
-                    <select id="cal-year-select"></select>
-                    <select id="cal-month-select"></select>
-                    <button type="button" onclick="applyMonthPicker()">이동</button>
+                <div id="month-dropdown" class="month-dropdown-box">
+                    <select id="select-year"></select>
+                    <select id="select-month">
+                        <option value="1">1월</option>
+                        <option value="2">2월</option>
+                        <option value="3">3월</option>
+                        <option value="4">4월</option>
+                        <option value="5">5월</option>
+                        <option value="6">6월</option>
+                        <option value="7">7월</option>
+                        <option value="8">8월</option>
+                        <option value="9">9월</option>
+                        <option value="10">10월</option>
+                        <option value="11">11월</option>
+                        <option value="12">12월</option>
+                    </select>
+                    <button type="button" onclick="applySelectedMonth()">이동</button>
                 </div>
             </div>
 
-            <div style="display: flex; justify-content: space-between; align-items: center; margin: 20px 0 10px 0; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;">
-                <h4 style="color: #0077b6; margin: 0;">해당 월 일정 목록</h4>
-                <button type="button" onclick="addCalendarScheduleRow()" style="background-color: #10b981; padding: 4px 10px; font-size: 12px;">+ 일정 추가</button>
+            <!-- 캘린더 그리드 상자 -->
+            <div class="calendar-grid-box">
+                <div class="weekdays-header">
+                    <div>일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div>토</div>
+                </div>
+                <div id="days-grid" class="days-grid"></div>
             </div>
-            <div id="calendar-rows-container" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;"></div>
 
             <button onclick="saveCalendarSettings()" style="width: 100%; margin-top: 25px; background-color: #0077b6; padding: 14px; font-size: 16px;">월간일정 설정 반영하기</button>
             <div id="calendar-status" class="status-msg"></div>
@@ -356,6 +554,23 @@
 
             <button onclick="saveVodListSettings()" style="width: 100%; margin-top: 25px; background-color: #0077b6; padding: 14px; font-size: 16px;">VOD리스트 설정 반영하기</button>
             <div id="vodlist-status" class="status-msg"></div>
+        </div>
+    </div>
+
+    <!-- 캘린더 날짜 클릭 시 나타나는 편집 모달 창 -->
+    <div id="detail-modal" class="modal-backdrop" onclick="closeModalOnBackdrop(event)">
+        <div class="modal-box">
+            <div class="modal-header">
+                <span id="modal-header-title">일정 편집</span>
+                <button type="button" class="modal-close-btn" onclick="closeModal()">×</button>
+            </div>
+            <div id="modal-content-box" class="modal-content">
+                <!-- 동적으로 일정 입력 행이 추가되는 곳 -->
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 15px;">
+                <button type="button" onclick="addModalScheduleRow()" style="background-color: #10b981; flex: 1;">+ 일정 추가</button>
+                <button type="button" onclick="saveModalSchedules()" style="background-color: #0077b6; flex: 1;">적용</button>
+            </div>
         </div>
     </div>
 
