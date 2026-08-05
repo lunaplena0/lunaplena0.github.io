@@ -18,7 +18,7 @@
             color: #2b2d42;
         }
 
-        /* 메인 콘텐츠 영역 (상단 여백 축소) */
+        /* 메인 콘텐츠 영역 (상단 여백 축소 및 크기 고정) */
         .ocean-calendar-container {
             position: relative;
             width: 100%;
@@ -28,7 +28,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 15px 15px 30px 15px; /* 상단 패딩 축소 */
+            padding: 15px 15px 30px 15px;
             box-sizing: border-box;
             background: transparent;
             opacity: 0;
@@ -41,7 +41,7 @@
             transform: translateY(0);
         }
 
-        /* 페이지 타이틀 (마진 축소) */
+        /* 페이지 타이틀 */
         .calendar-header {
             text-align: center;
             margin-bottom: 10px;
@@ -90,7 +90,7 @@
             transform: translateY(-1px);
         }
 
-        /* 드롭다운 셀렉트 박스 컨테이너 (가로 한 줄 정렬 및 여백 최소화) */
+        /* 드롭다운 셀렉트 박스 컨테이너 */
         .month-dropdown-box {
             position: absolute;
             top: 40px;
@@ -138,7 +138,7 @@
             background-color: #03045e;
         }
 
-        /* 캘린더 그리드 스타일 */
+        /* 캘린더 그리드 스타일 (크기 고정) */
         .calendar-grid-box {
             width: 100%;
             max-width: 1050px;
@@ -170,7 +170,7 @@
             grid-template-columns: repeat(7, 1fr);
         }
 
-        /* 캘린더 칸 높이 추가 축소 (130px -> 105px) */
+        /* 캘린더 칸 높이 완전 고정 (유동적 크기 변화 방지) */
         .calendar-cell {
             border-right: 1px solid rgba(0, 119, 190, 0.1);
             border-bottom: 1px solid rgba(0, 119, 190, 0.1);
@@ -179,8 +179,9 @@
             background: #ffffff;
             display: flex;
             flex-direction: column;
-            height: 105px; 
-            max-height: 105px;
+            height: 105px !important; 
+            min-height: 105px !important;
+            max-height: 105px !important;
             overflow: hidden;
         }
 
@@ -218,7 +219,7 @@
             border-radius: 3px;
         }
 
-        /* 일정 칩 스타일 */
+        /* 일정 칩 스타일 (이동 링크가 없거나 '-'인 경우 클릭 방지 처리) */
         .schedule-chip {
             display: block;
             background: #e0f2fe;
@@ -236,7 +237,12 @@
             flex-shrink: 0;
         }
 
-        .schedule-chip:hover {
+        .schedule-chip.no-link {
+            cursor: default;
+            pointer-events: none;
+        }
+
+        .schedule-chip:not(.no-link):hover {
             background: #0077b6;
             color: #ffffff;
             transform: translateY(-1px);
@@ -248,7 +254,7 @@
             color: #0284c7;
         }
 
-        .schedule-chip:hover .chip-time {
+        .schedule-chip:not(.no-link):hover .chip-time {
             color: #e0f2fe;
         }
 
@@ -266,8 +272,9 @@
                 padding: 10px 10px 20px 10px;
             }
             .calendar-cell {
-                height: 90px; 
-                max-height: 90px;
+                height: 90px !important; 
+                min-height: 90px !important;
+                max-height: 90px !important;
                 padding: 3px;
             }
             .schedule-chip {
@@ -328,12 +335,10 @@
         let allEvents = [];
         let currentDate = new Date();
 
-        // 실제로 데이터가 존재하는 연도/월 목록만 추출하여 드롭다운(연도/월) 옵션 동적 구성
         function updateDropdownOptions() {
             const selectYearEl = document.getElementById("select-year");
             const selectMonthEl = document.getElementById("select-month");
 
-            // 데이터가 존재하는 연-월 세트 수집 (예: "2026-05")
             const availableYM = new Set();
             const availableYears = new Set();
 
@@ -343,14 +348,13 @@
                     const parts = d.split('-');
                     if (parts.length >= 2) {
                         const y = parts[0];
-                        const m = String(parseInt(parts[1], 10)); // 월 앞의 0 제거 비교용
+                        const m = String(parseInt(parts[1], 10));
                         availableYM.add(`${y}-${m}`);
                         availableYears.add(parseInt(y, 10));
                     }
                 }
             });
 
-            // 연도 옵션 생성 (데이터가 있는 연도들만, 없으면 현재 연도 기본 표시)
             let yearOptionsHtml = "";
             const sortedYears = Array.from(availableYears).sort((a, b) => a - b);
             if (sortedYears.length === 0) {
@@ -361,23 +365,19 @@
             });
             selectYearEl.innerHTML = yearOptionsHtml;
 
-            // 현재 선택된 연도에 맞춰 월 옵션 필터링 및 동적 구성
             const currentSelectedYear = selectYearEl.value || currentDate.getFullYear();
             let monthOptionsHtml = "";
             for (let m = 1; m <= 12; m++) {
-                // 해당 연도-월에 실제 데이터가 존재하는 경우에만 옵션에 포함
                 if (availableYM.has(`${currentSelectedYear}-${m}`)) {
                     monthOptionsHtml += `<option value="${m}">${m}월</option>`;
                 }
             }
 
-            // 만약 해당 연도에 데이터가 하나도 없다면 안내용 혹은 빈 상태 처리
             if (monthOptionsHtml === "") {
                 monthOptionsHtml = `<option value="">일정 없음</option>`;
             }
             selectMonthEl.innerHTML = monthOptionsHtml;
 
-            // 연도 변경 시 월 목록 동적 갱신 이벤트 연결
             selectYearEl.onchange = function() {
                 const chosenYear = selectYearEl.value;
                 let subHtml = "";
@@ -410,15 +410,12 @@
                     rawEvents = data.events;
                 }
 
-                // 날짜가 비어있거나 "-"인 데이터는 완전히 제외하고 유효한 데이터만 필터링
                 allEvents = rawEvents.filter(event => {
                     const d = event.date;
                     return d && typeof d === 'string' && d.trim() !== '' && d.trim() !== '-';
                 });
 
-                // 데이터 기반 드롭다운 옵션 구성
                 updateDropdownOptions();
-
                 renderCalendar();
                 containerEl.classList.add('loaded');
 
@@ -461,11 +458,16 @@
                 let schedulesHtml = "";
                 daySchedules.forEach(schedule => {
                     const timeText = schedule.time ? schedule.time : "";
-                    const itemUrl = schedule.url ? schedule.url : "#";
-                    const targetAttr = schedule.url ? `target="_blank"` : "";
+                    const rawUrl = schedule.url ? schedule.url.trim() : "";
+                    
+                    // 링크가 없거나 '-'인 경우 이동 불가 처리 (클래스 부여 및 샵 태그)
+                    const hasValidUrl = rawUrl !== "" && rawUrl !== "-";
+                    const itemUrl = hasValidUrl ? rawUrl : "#";
+                    const targetAttr = hasValidUrl ? `target="_blank"` : "";
+                    const linkClass = hasValidUrl ? "schedule-chip" : "schedule-chip no-link";
 
                     schedulesHtml += `
-                        <a href="${itemUrl}" ${targetAttr} class="schedule-chip" title="${schedule.title || ''}">
+                        <a href="${itemUrl}" ${targetAttr} class="${linkClass}" title="${schedule.title || ''}">
                             ${timeText ? `<span class="chip-time">${timeText}</span>` : ''}${schedule.title || '일정'}
                         </a>
                     `;
@@ -499,9 +501,7 @@
                 const selectYearEl = document.getElementById("select-year");
                 const selectMonthEl = document.getElementById("select-month");
                 
-                // 현재 달력의 연/월이 옵션에 존재한다면 선택 상태로 지정
                 selectYearEl.value = currentDate.getFullYear();
-                // 연도 변경에 따른 월 옵션 재반영 후 월 설정
                 selectYearEl.dispatchEvent(new Event('change'));
                 selectMonthEl.value = currentDate.getMonth() + 1;
             }
