@@ -47,33 +47,33 @@ function showMainPageSettings() {
     showDashboard(); 
     document.getElementById('dashboard-view').style.display = 'none'; 
     document.getElementById('panel-mainpage').style.display = 'block'; 
-    loadMainPageSettingsData(); 
+    loadMainPageSettingsData(); // 이 부분이 호출되는지 확인
 }
 
 function showIntroSettings() { 
     showDashboard(); 
     document.getElementById('dashboard-view').style.display = 'none'; 
     document.getElementById('panel-intro').style.display = 'block'; 
-    loadIntroSettingsData(); 
+    loadIntroSettingsData(); // 이 부분이 호출되는지 확인
 }
 
 function showCryNoteSettings() { 
     showDashboard(); 
     document.getElementById('dashboard-view').style.display = 'none'; 
     document.getElementById('panel-crynote').style.display = 'block'; 
-    loadCryNoteSettingsData(); 
+    loadCryNoteSettingsData(); // 이 부분이 호출되는지 확인
 }
 
 function showCalendarSettings() { 
     showDashboard(); 
     document.getElementById('dashboard-view').style.display = 'none'; 
     document.getElementById('panel-calendar').style.display = 'block'; 
-    loadCalendarSettingsData(); 
+    loadCalendarSettingsData(); // 이 부분이 호출되는지 확인
 }
 
 function showVodListSettings() {
     showDashboard();
     document.getElementById('dashboard-view').style.display = 'none';
     document.getElementById('panel-vodlist').style.display = 'block';
-    loadVodListSettingsData();
+    loadVodListSettingsData(); // 이 부분이 호출되는지 확인
 }
