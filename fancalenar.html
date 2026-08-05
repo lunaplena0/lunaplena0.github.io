@@ -18,11 +18,11 @@
             color: #2b2d42;
         }
 
-        /* 메인 콘텐츠 영역 */
+        /* 메인 콘텐츠 영역 (좌우 넓이 고정 및 중앙 정렬) */
         .ocean-calendar-container {
             position: relative;
             width: 100%;
-            max-width: 1300px;
+            max-width: 1300px; /* 전체 최대 가로 폭 고정 */
             flex: 1;
             margin: 0 auto;
             display: flex;
@@ -45,6 +45,7 @@
         .calendar-header {
             text-align: center;
             margin-bottom: 30px;
+            width: 100%;
         }
 
         .calendar-title {
@@ -92,9 +93,10 @@
             transform: translateY(-1px);
         }
 
-        /* 캘린더 그리드 스타일 */
+        /* 캘린더 그리드 스타일 (가로 폭 100% 고정) */
         .calendar-grid-box {
             width: 100%;
+            max-width: 1300px;
             background: rgba(255, 255, 255, 0.9);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(0, 119, 190, 0.15);
@@ -131,8 +133,8 @@
             background: #ffffff;
             display: flex;
             flex-direction: column;
-            /* 셀 높이를 고정하여 크기가 뒤죽박죽되는 것 방지 */
-            height: 140px; 
+            /* 셀 높이를 160px로 고정하여 4~5개 일정이 들어가도 일정한 크기 유지 */
+            height: 160px; 
         }
 
         .calendar-cell.other-month {
@@ -151,17 +153,17 @@
         .calendar-cell:nth-child(7n) .cell-date-num { color: #0284c7; } /* 토요일 날짜 색상 */
         .calendar-cell:nth-child(7n+1) .cell-date-num { color: #dc2626; } /* 일요일 날짜 색상 */
 
-        /* 셀 내부 일정 목록 영역 (일정이 많으면 내부 스크롤 발생) */
+        /* 셀 내부 일정 목록 영역 (일정이 4~5개 이상이면 내부 스크롤 처리) */
         .cell-schedules {
             display: flex;
             flex-direction: column;
-            gap: 5px;
+            gap: 4px;
             overflow-y: auto;
             flex: 1;
             padding-right: 2px;
         }
 
-        /* 스크롤바 디자인 심플하게 적용 */
+        /* 깔끔한 스크롤바 디자인 */
         .cell-schedules::-webkit-scrollbar {
             width: 4px;
         }
@@ -218,7 +220,7 @@
                 padding: 15px 10px;
             }
             .calendar-cell {
-                height: 100px; /* 모바일에서는 높이를 조금 더 컴팩트하게 조절 */
+                height: 120px; 
                 padding: 4px;
             }
             .schedule-chip {
@@ -262,7 +264,7 @@
 
     <script>
         let allEvents = [];
-        let currentDate = new Date(); // 현재 보여지는 달력 기준 날짜
+        let currentDate = new Date();
 
         async function loadCalendarData() {
             const containerEl = document.getElementById("calendar-container");
@@ -296,7 +298,7 @@
 
         function renderCalendar() {
             const year = currentDate.getFullYear();
-            const month = currentDate.getMonth(); // 0~11
+            const month = currentDate.getMonth();
 
             document.getElementById("current-month-label").textContent = `${year}년 ${String(month + 1).padStart(2, '0')}월`;
 
@@ -346,7 +348,7 @@
                 `;
             }
 
-            // 3. 다음 달 빈 칸으로 남은 그리드 채우기
+            // 3. 다음 달 빈 칸 채우기
             const totalCellsSoFar = firstDayIndex + lastDay;
             const nextDaysCount = totalCellsSoFar <= 35 ? (35 - totalCellsSoFar) : (42 - totalCellsSoFar);
             
