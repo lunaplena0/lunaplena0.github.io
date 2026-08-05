@@ -27,11 +27,51 @@
             gap: 36px;
         }
 
+        /* 💡 상단 월 선택 필터 바 */
+        .filter-bar {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+            scrollbar-width: thin;
+        }
+
+        .filter-btn {
+            background-color: #ffffff;
+            border: 1px solid #cbd5e1;
+            color: #475569;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+        }
+
+        .filter-btn:hover {
+            border-color: #0077b6;
+            color: #0077b6;
+        }
+
+        .filter-btn.active {
+            background-color: #0077b6;
+            border-color: #0077b6;
+            color: #ffffff;
+            box-shadow: 0 2px 8px rgba(0, 119, 182, 0.3);
+        }
+
         /* 월별 섹션 스타일 */
         .month-section {
             display: flex;
             flex-direction: column;
             gap: 16px;
+        }
+
+        .month-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .month-title {
@@ -79,6 +119,11 @@
             box-shadow: 0 6px 20px rgba(0, 119, 182, 0.12);
         }
 
+        /* 기본 숨김 처리 제어를 위한 클래스 */
+        .vod-card.collapsed-hidden {
+            display: none !important;
+        }
+
         /* 썸네일 영역 */
         .vod-thumb-wrapper {
             position: relative;
@@ -95,7 +140,6 @@
             display: block;
         }
 
-        /* 💡 이미지가 없을 때 정중앙 정렬을 보장하는 스타일 */
         .no-thumb {
             width: 100%;
             height: 100%;
@@ -128,7 +172,6 @@
             flex: 1;
         }
 
-        /* 제목 2줄 높이 고정 */
         .vod-title {
             font-size: 14px;
             font-weight: 700;
@@ -193,6 +236,26 @@
             color: #475569;
         }
 
+        /* 더보기 버튼 스타일 */
+        .expand-btn {
+            background-color: #ffffff;
+            border: 1px solid #cbd5e1;
+            color: #1e293b;
+            padding: 10px 0;
+            width: 100%;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s, border-color 0.2s;
+            text-align: center;
+        }
+
+        .expand-btn:hover {
+            background-color: #f1f5f9;
+            border-color: #94a3b8;
+        }
+
         .full-width-message {
             text-align: center;
             color: #64748b;
@@ -252,7 +315,7 @@
                     return;
                 }
 
-                // 1. 년-월(YYYY-MM) 기준으로 데이터 그룹화하기
+                // 1. 년-월(YYYY-MM) 기준으로 데이터 그룹화
                 const groupedVods = {};
                 vods.forEach(item => {
                     if (!item.date) return;
@@ -263,33 +326,79 @@
                     groupedVods[yearMonth].push(item);
                 });
 
-                // 2. 년-월 기준 내림차순 정렬
+                // 2. 최신순 정렬
                 const sortedMonths = Object.keys(groupedVods).sort().reverse();
+
+                // 3. 상단 월 선택 필터 바 생성 ("전체" + 각 월들)
+                const filterBar = document.createElement("div");
+                filterBar.className = "filter-bar";
+
+                const allBtn = document.createElement("button");
+                allBtn.className = "filter-btn active";
+                allBtn.textContent = "전체보기";
+                allBtn.onclick = () => filterMonth("all");
+                filterBar.appendChild(allBtn);
+
+                sortedMonths.forEach(ym => {
+                    const [y, m] = ym.split("-");
+                    const btn = document.createElement("button");
+                    btn.className = "filter-btn";
+                    btn.dataset.month = ym;
+                    btn.textContent = `${y}년 ${parseInt(m, 10)}월`;
+                    btn.onclick = () => filterMonth(ym);
+                    filterBar.appendChild(btn);
+                });
+
+                container.appendChild(filterBar);
+
+                // 컨텐츠가 담길 래퍼 생성
+                const contentWrapper = document.createElement("div");
+                contentWrapper.id = "content-wrapper";
+                contentWrapper.style.display = "flex";
+                contentWrapper.style.flexDirection = "column";
+                contentWrapper.style.gap = "36px";
+                container.appendChild(contentWrapper);
+
                 let globalIndex = 0;
 
-                // 3. 월별 섹션 HTML 생성 및 조립
+                // 4. 월별 섹션 구성
                 sortedMonths.forEach(yearMonth => {
                     const [year, month] = yearMonth.split("-");
                     const formattedMonthTitle = `${year}년 ${parseInt(month, 10)}월`;
+                    const monthVods = groupedVods[yearMonth];
 
                     const section = document.createElement("div");
                     section.className = "month-section";
+                    section.dataset.sectionMonth = yearMonth;
 
                     const titleEl = document.createElement("h2");
                     titleEl.className = "month-title";
                     titleEl.textContent = formattedMonthTitle;
-                    section.appendChild(titleEl);
+                    
+                    const headerEl = document.createElement("div");
+                    headerEl.className = "month-header";
+                    headerEl.appendChild(titleEl);
+                    section.appendChild(headerEl);
 
                     const gridEl = document.createElement("div");
                     gridEl.className = "vod-grid";
 
-                    groupedVods[yearMonth].forEach((item) => {
+                    // 화면의 한 줄 대략적인 개수 계산을 위한 기준 (화면 크기에 따라 다르지만 기본 4개 정도를 한 줄로 침)
+                    // 여기서는 기본 노출 개수를 4개로 지정하고, 그 이상일 경우에만 '더보기' 버튼을 생성합니다.
+                    const defaultVisibleCount = 4;
+
+                    monthVods.forEach((item, itemIdx) => {
                         const card = document.createElement("a");
                         card.href = item.link;
                         card.className = "vod-card";
                         card.target = "_blank";
                         card.rel = "noopener noreferrer";
                         card.style.animationDelay = `${(globalIndex++) * 0.03}s`;
+
+                        // 4번째 항목(인덱스 3) 이후부터는 기본적으로 숨김 처리 클래스 추가
+                        if (itemIdx >= defaultVisibleCount) {
+                            card.classList.add("collapsed-hidden");
+                        }
 
                         const thumbHTML = item.thumbnail 
                             ? `<img src="${item.thumbnail}" alt="thumbnail" class="vod-thumb" loading="lazy">` 
@@ -329,13 +438,48 @@
                     });
 
                     section.appendChild(gridEl);
-                    container.appendChild(section);
+
+                    // 만약 해당 월의 VOD 개수가 기본 노출 개수보다 많다면 '더보기' 버튼 생성
+                    if (monthVods.length > defaultVisibleCount) {
+                        const expandBtn = document.createElement("button");
+                        expandBtn.className = "expand-btn";
+                        expandBtn.textContent = `더보기 (${monthVods.length - defaultVisibleCount}개 더 있음)`;
+                        expandBtn.onclick = () => {
+                            const hiddenCards = gridEl.querySelectorAll(".collapsed-hidden");
+                            hiddenCards.forEach(c => c.classList.remove("collapsed-hidden"));
+                            expandBtn.style.display = "none"; // 버튼 숨기기
+                        };
+                        section.appendChild(expandBtn);
+                    }
+
+                    contentWrapper.appendChild(section);
                 });
 
             } catch (err) {
                 console.error(err);
                 container.innerHTML = `<p class="full-width-message" style="color: #ef4444;">VOD 리스트 로드 실패</p>`;
             }
+        }
+
+        // 월별 필터링 기능
+        function filterMonth(targetMonth) {
+            // 버튼 액티브 상태 변경
+            document.querySelectorAll(".filter-btn").forEach(btn => {
+                if ((targetMonth === "all" && btn.textContent === "전체보기") || btn.dataset.month === targetMonth) {
+                    btn.classList.add("active");
+                } else {
+                    btn.classList.remove("active");
+                }
+            });
+
+            // 섹션 토글 처리
+            document.querySelectorAll(".month-section").forEach(section => {
+                if (targetMonth === "all" || section.dataset.sectionMonth === targetMonth) {
+                    section.style.display = "flex";
+                } else {
+                    section.style.display = "none";
+                }
+            });
         }
 
         loadVODs();
