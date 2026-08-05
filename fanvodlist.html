@@ -18,12 +18,14 @@
 
         .vod-container {
             width: 100%;
-            max-width: 800px;
+            max-width: 1200px; /* 그리드 배치를 위해 최대 너비 확장 */
             margin: 0 auto;
             padding: 40px 20px;
             box-sizing: border-box;
-            display: flex;
-            flex-direction: column;
+            
+            /* 💡 바둑판 형식(Grid) 레이아웃 설정 */
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
             gap: 20px;
         }
 
@@ -40,6 +42,7 @@
 
         .vod-card {
             display: flex;
+            flex-direction: column; /* 세로 정렬 (썸네일 위, 텍스트 아래) */
             background: #ffffff;
             border-radius: 12px;
             overflow: hidden;
@@ -59,19 +62,19 @@
         /* 썸네일 영역 */
         .vod-thumb-wrapper {
             position: relative;
-            width: 280px;
-            flex-shrink: 0;
+            width: 100%;
+            aspect-ratio: 16 / 9; /* 16:9 비율 유지 */
             background-color: #e2e8f0;
             display: flex;
             align-items: center;
             justify-content: center;
+            overflow: hidden;
         }
 
         .vod-thumb {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            aspect-ratio: 16 / 9;
             display: block;
         }
 
@@ -95,19 +98,17 @@
 
         /* VOD 정보 영역 */
         .vod-info {
-            padding: 20px;
+            padding: 16px;
             display: flex;
             flex-direction: column;
-            justify-content: flex-start;
             flex: 1;
-            min-width: 0;
         }
 
         .vod-title {
-            font-size: 18px;
+            font-size: 16px;
             font-weight: 700;
             color: #1e293b;
-            margin: 0 0 10px 0;
+            margin: 0 0 8px 0;
             line-height: 1.4;
             display: -webkit-box;
             -webkit-line-clamp: 2;
@@ -126,10 +127,12 @@
         }
 
         .vod-desc {
-            font-size: 14px;
+            font-size: 13px;
             color: #475569;
-            margin: 0 0 12px 0;
-            white-space: nowrap;
+            margin: 0 0 14px 0;
+            display: -webkit-box;
+            -webkit-line-clamp: 2; /* 설명도 최대 2줄까지 표시 */
+            -webkit-box-orient: vertical;
             overflow: hidden;
             text-overflow: ellipsis;
         }
@@ -137,8 +140,9 @@
         /* 뱃지 영역 */
         .badge-container {
             display: flex;
+            flex-wrap: wrap;
             gap: 6px;
-            margin-top: auto;
+            margin-top: auto; /* 요소를 항상 하단에 붙임 */
         }
 
         .badge {
@@ -163,18 +167,19 @@
             color: #475569;
         }
 
+        /* 로딩 및 에러 문구 처리용 (그리드 무시하고 전체 너비 사용) */
+        .full-width-message {
+            grid-column: 1 / -1;
+            text-align: center;
+            color: #64748b;
+            font-size: 18px;
+            padding: 40px 0;
+        }
+
         @media (max-width: 640px) {
             .vod-container {
                 padding: 20px 16px;
-            }
-            .vod-card {
-                flex-direction: column;
-            }
-            .vod-thumb-wrapper {
-                width: 100%;
-            }
-            .vod-title {
-                font-size: 16px;
+                grid-template-columns: 1fr; /* 모바일에서는 1열로 표시 */
             }
         }
     </style>
@@ -182,7 +187,7 @@
 <body>
 
     <div class="vod-container" id="vod-list">
-        <p style="text-align: center; color: #64748b; font-size: 18px; width: 100%;">VOD 리스트를 불러오는 중...</p>
+        <p class="full-width-message">VOD 리스트를 불러오는 중...</p>
     </div>
 
     <script>
@@ -202,7 +207,7 @@
                 listContainer.innerHTML = "";
 
                 if (vods.length === 0) {
-                    listContainer.innerHTML = '<p style="text-align: center; color: #64748b; width: 100%; font-size: 18px;">등록된 VOD가 없습니다.</p>';
+                    listContainer.innerHTML = '<p class="full-width-message">등록된 VOD가 없습니다.</p>';
                     return;
                 }
 
@@ -212,11 +217,11 @@
                     card.className = "vod-card";
                     card.target = "_blank";
                     card.rel = "noopener noreferrer";
-                    card.style.animationDelay = `${index * 0.08}s`;
+                    card.style.animationDelay = `${index * 0.05}s`; // 카드가 많을 경우를 고려해 딜레이 살짝 단축
 
                     const thumbHTML = item.thumbnail 
                         ? `<img src="${item.thumbnail}" alt="thumbnail" class="vod-thumb" loading="lazy">` 
-                        : `<div class="vod-thumb no-thumb" style="display:flex; align-items:center; justify-content:center;">No Image</div>`;
+                        : `<div class="vod-thumb no-thumb">No Image</div>`;
 
                     let badgesHTML = `<span class="badge badge-category">${item.category || "기타"}</span>`;
                     if (item.adult === "Y") badgesHTML += `<span class="badge badge-adult">19+</span>`;
@@ -244,7 +249,7 @@
 
             } catch (err) {
                 console.error(err);
-                listContainer.innerHTML = `<p style="text-align: center; color: #ef4444; width: 100%; font-size: 18px;">VOD 리스트 로드 실패</p>`;
+                listContainer.innerHTML = `<p class="full-width-message" style="color: #ef4444;">VOD 리스트 로드 실패</p>`;
             }
         }
 
