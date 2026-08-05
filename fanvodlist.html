@@ -27,7 +27,7 @@
             gap: 36px;
         }
 
-        /* 💡 상단 월 선택 필터 바 */
+        /* 상단 월 선택 필터 바 */
         .filter-bar {
             display: flex;
             gap: 8px;
@@ -328,21 +328,17 @@
 
                 // 2. 최신순 정렬
                 const sortedMonths = Object.keys(groupedVods).sort().reverse();
+                const latestMonth = sortedMonths[0]; // 가장 최신 월
 
-                // 3. 상단 월 선택 필터 바 생성 ("전체" + 각 월들)
+                // 3. 상단 월 선택 필터 바 생성 (전체보기 제외, 월 버튼들만 생성)
                 const filterBar = document.createElement("div");
                 filterBar.className = "filter-bar";
 
-                const allBtn = document.createElement("button");
-                allBtn.className = "filter-btn active";
-                allBtn.textContent = "전체보기";
-                allBtn.onclick = () => filterMonth("all");
-                filterBar.appendChild(allBtn);
-
-                sortedMonths.forEach(ym => {
+                sortedMonths.forEach((ym, idx) => {
                     const [y, m] = ym.split("-");
                     const btn = document.createElement("button");
                     btn.className = "filter-btn";
+                    if (ym === latestMonth) btn.classList.add("active"); // 최신 월 기본 활성화
                     btn.dataset.month = ym;
                     btn.textContent = `${y}년 ${parseInt(m, 10)}월`;
                     btn.onclick = () => filterMonth(ym);
@@ -371,6 +367,11 @@
                     section.className = "month-section";
                     section.dataset.sectionMonth = yearMonth;
 
+                    // 기본적으로 최신 월만 보여주고 나머지는 숨김
+                    if (yearMonth !== latestMonth) {
+                        section.style.display = "none";
+                    }
+
                     const titleEl = document.createElement("h2");
                     titleEl.className = "month-title";
                     titleEl.textContent = formattedMonthTitle;
@@ -383,9 +384,7 @@
                     const gridEl = document.createElement("div");
                     gridEl.className = "vod-grid";
 
-                    // 화면의 한 줄 대략적인 개수 계산을 위한 기준 (화면 크기에 따라 다르지만 기본 4개 정도를 한 줄로 침)
-                    // 여기서는 기본 노출 개수를 4개로 지정하고, 그 이상일 경우에만 '더보기' 버튼을 생성합니다.
-                    const defaultVisibleCount = 4;
+                    const defaultVisibleCount = 4; // 한 줄 기본 노출 개수
 
                     monthVods.forEach((item, itemIdx) => {
                         const card = document.createElement("a");
@@ -395,7 +394,6 @@
                         card.rel = "noopener noreferrer";
                         card.style.animationDelay = `${(globalIndex++) * 0.03}s`;
 
-                        // 4번째 항목(인덱스 3) 이후부터는 기본적으로 숨김 처리 클래스 추가
                         if (itemIdx >= defaultVisibleCount) {
                             card.classList.add("collapsed-hidden");
                         }
@@ -439,7 +437,6 @@
 
                     section.appendChild(gridEl);
 
-                    // 만약 해당 월의 VOD 개수가 기본 노출 개수보다 많다면 '더보기' 버튼 생성
                     if (monthVods.length > defaultVisibleCount) {
                         const expandBtn = document.createElement("button");
                         expandBtn.className = "expand-btn";
@@ -447,7 +444,7 @@
                         expandBtn.onclick = () => {
                             const hiddenCards = gridEl.querySelectorAll(".collapsed-hidden");
                             hiddenCards.forEach(c => c.classList.remove("collapsed-hidden"));
-                            expandBtn.style.display = "none"; // 버튼 숨기기
+                            expandBtn.style.display = "none";
                         };
                         section.appendChild(expandBtn);
                     }
@@ -461,20 +458,18 @@
             }
         }
 
-        // 월별 필터링 기능
+        // 월별 필터링 기능 (클릭한 월만 표시)
         function filterMonth(targetMonth) {
-            // 버튼 액티브 상태 변경
             document.querySelectorAll(".filter-btn").forEach(btn => {
-                if ((targetMonth === "all" && btn.textContent === "전체보기") || btn.dataset.month === targetMonth) {
+                if (btn.dataset.month === targetMonth) {
                     btn.classList.add("active");
                 } else {
                     btn.classList.remove("active");
                 }
             });
 
-            // 섹션 토글 처리
             document.querySelectorAll(".month-section").forEach(section => {
-                if (targetMonth === "all" || section.dataset.sectionMonth === targetMonth) {
+                if (section.dataset.sectionMonth === targetMonth) {
                     section.style.display = "flex";
                 } else {
                     section.style.display = "none";
