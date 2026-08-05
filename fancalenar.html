@@ -232,49 +232,100 @@
             color: #0284c7;
         }
 
-        /* 하단 상세 일정 정보 패널 스타일 */
-        .day-detail-panel {
-            width: 100%;
-            max-width: 1050px;
-            margin-top: 20px;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(0, 119, 190, 0.2);
-            border-radius: 14px;
-            padding: 20px;
-            box-sizing: border-box;
-            box-shadow: 0 8px 25px rgba(0, 119, 190, 0.08);
+        /* 팝업 모달 백드롭 (화면 정중앙 팝업) */
+        .modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
         }
 
-        .detail-header {
-            font-size: 16px;
+        .modal-backdrop.active {
+            display: flex;
+        }
+
+        /* 팝업 모달 박스 */
+        .modal-box {
+            background: #ffffff;
+            border: 1px solid rgba(0, 119, 190, 0.2);
+            border-radius: 16px;
+            width: 90%;
+            max-width: 500px;
+            padding: 24px;
+            box-sizing: border-box;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+            display: flex;
+            flex-direction: column;
+            animation: modalPop 0.25s ease forwards;
+        }
+
+        @keyframes modalPop {
+            0% { opacity: 0; transform: scale(0.95); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        .modal-header {
+            font-size: 18px;
             font-weight: 800;
             color: #03045e;
-            margin-bottom: 12px;
             display: flex;
             align-items: center;
             justify-content: space-between;
             border-bottom: 2px solid #e0f2fe;
-            padding-bottom: 8px;
+            padding-bottom: 12px;
+            margin-bottom: 15px;
         }
 
-        .detail-content {
+        .modal-close-btn {
+            background: transparent;
+            border: none;
+            font-size: 20px;
+            font-weight: bold;
+            color: #64748b;
+            cursor: pointer;
+            padding: 0 4px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .modal-close-btn:hover {
+            background: #f1f5f9;
+            color: #03045e;
+        }
+
+        .modal-content {
             display: flex;
             flex-direction: column;
             gap: 10px;
-            max-height: 200px;
+            max-height: 350px;
             overflow-y: auto;
+            padding-right: 4px;
         }
 
-        /* 상세 항목 카드 (링크가 있는 경우 전체 칸 클릭 가능 및 호버 효과 적용) */
+        .modal-content::-webkit-scrollbar {
+            width: 4px;
+        }
+        .modal-content::-webkit-scrollbar-thumb {
+            background: rgba(0, 119, 190, 0.2);
+            border-radius: 4px;
+        }
+
+        /* 상세 항목 카드 */
         .detail-item {
             background: #f8fafc;
             border: 1px solid rgba(0, 119, 190, 0.1);
-            border-radius: 8px;
-            padding: 12px;
+            border-radius: 10px;
+            padding: 14px;
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            gap: 6px;
             transition: all 0.2s ease;
         }
 
@@ -289,13 +340,13 @@
         }
 
         .detail-item-title {
-            font-size: 14px;
+            font-size: 15px;
             font-weight: 700;
             color: #03045e;
         }
 
         .detail-item-info {
-            font-size: 12px;
+            font-size: 12.5px;
             color: #475569;
             display: flex;
             gap: 15px;
@@ -306,7 +357,7 @@
             color: #64748b;
             font-size: 14px;
             text-align: center;
-            padding: 15px 0;
+            padding: 25px 0;
             font-weight: 600;
         }
 
@@ -371,12 +422,17 @@
             </div>
             <div class="days-grid" id="days-grid"></div>
         </div>
+    </div>
 
-        <!-- 하단 상세 일정 패널 -->
-        <div class="day-detail-panel" id="detail-panel">
-            <div class="detail-header" id="detail-header-title">날짜를 선택해주세요</div>
-            <div class="detail-content" id="detail-content-box">
-                <div class="no-select-msg">캘린더의 날짜를 클릭하면 해당 일자의 상세 일정이 여기에 표시됩니다.</div>
+    <!-- 화면 정중앙 상세 일정 모달 팝업 -->
+    <div class="modal-backdrop" id="detail-modal" onclick="closeModalOnBackdrop(event)">
+        <div class="modal-box">
+            <div class="modal-header">
+                <span id="modal-header-title">상세 일정</span>
+                <button class="modal-close-btn" onclick="closeModal()">✕</button>
+            </div>
+            <div class="modal-content" id="modal-content-box">
+                <!-- 동적 상세 내용 표시 -->
             </div>
         </div>
     </div>
@@ -516,7 +572,7 @@
                 });
 
                 cellsHtml += `
-                    <div class="calendar-cell" onclick="selectDateDetail('${dateString}')">
+                    <div class="calendar-cell" onclick="openDateModal('${dateString}')">
                         <div class="cell-date-num">${day}</div>
                         <div class="cell-schedules">
                             ${schedulesHtml}
@@ -536,10 +592,11 @@
             gridEl.innerHTML = cellsHtml;
         }
 
-        // 날짜 클릭 시 하단 패널에 상세 일정 표시 (링크가 있는 경우 칸 전체 클릭 시 새 창 이동)
-        function selectDateDetail(dateString) {
-            const headerTitleEl = document.getElementById("detail-header-title");
-            const contentBoxEl = document.getElementById("detail-content-box");
+        // 날짜 클릭 시 정중앙 모달 팝업 열기
+        function openDateModal(dateString) {
+            const modalEl = document.getElementById("detail-modal");
+            const headerTitleEl = document.getElementById("modal-header-title");
+            const contentBoxEl = document.getElementById("modal-content-box");
 
             headerTitleEl.textContent = `${dateString} 상세 일정`;
 
@@ -547,6 +604,7 @@
 
             if (daySchedules.length === 0) {
                 contentBoxEl.innerHTML = `<div class="no-select-msg">이 날 등록된 상세 일정이 없습니다.</div>`;
+                modalEl.classList.add("active");
                 return;
             }
 
@@ -575,6 +633,19 @@
             });
 
             contentBoxEl.innerHTML = html;
+            modalEl.classList.add("active");
+        }
+
+        // 모달 닫기 함수
+        function closeModal() {
+            document.getElementById("detail-modal").classList.remove("active");
+        }
+
+        // 백드롭(바깥 영역) 클릭 시 닫기
+        function closeModalOnBackdrop(e) {
+            if (e.target.id === "detail-modal") {
+                closeModal();
+            }
         }
 
         function toggleMonthDropdown() {
