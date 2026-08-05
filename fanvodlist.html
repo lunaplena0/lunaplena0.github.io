@@ -85,9 +85,6 @@
             width: 100%;
             aspect-ratio: 16 / 9;
             background-color: #e2e8f0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
             overflow: hidden;
         }
 
@@ -98,10 +95,17 @@
             display: block;
         }
 
+        /* 💡 이미지가 없을 때 정중앙 정렬을 보장하는 스타일 */
         .no-thumb {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             color: #94a3b8;
             font-size: 13px;
-            font-weight: bold;
+            font-weight: 700;
+            background-color: #e2e8f0;
         }
 
         .vod-duration {
@@ -124,14 +128,14 @@
             flex: 1;
         }
 
-        /* 💡 제목이 1줄이든 2줄이든 항상 2줄 높이(공간)를 확보하도록 설정 */
+        /* 제목 2줄 높이 고정 */
         .vod-title {
             font-size: 14px;
             font-weight: 700;
             color: #1e293b;
             margin: 0 0 6px 0;
             line-height: 1.35;
-            height: calc(14px * 1.35 * 2); /* 글자크기 * 줄간격 * 2줄 */
+            height: calc(14px * 1.35 * 2);
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
@@ -289,9 +293,8 @@
 
                         const thumbHTML = item.thumbnail 
                             ? `<img src="${item.thumbnail}" alt="thumbnail" class="vod-thumb" loading="lazy">` 
-                            : `<div class="vod-thumb no-thumb">No Image</div>`;
+                            : `<div class="no-thumb">No Image</div>`;
 
-                        // 💡 쉼표(,)로 구분된 카테고리를 각각 개별 뱃지로 분리
                         let badgesHTML = "";
                         if (item.category) {
                             const categories = item.category.split(",").map(cat => cat.trim()).filter(Boolean);
@@ -302,7 +305,6 @@
                             badgesHTML += `<span class="badge badge-category">기타</span>`;
                         }
 
-                        // 성인 및 구독자 뱃지 추가
                         if (item.adult === "Y") badgesHTML += `<span class="badge badge-adult">19+</span>`;
                         if (item.subPlus === "Y") badgesHTML += `<span class="badge badge-sub">구독+</span>`;
 
