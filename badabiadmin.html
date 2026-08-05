@@ -156,9 +156,9 @@
                 </div>
                 
                 <!-- 2행 -->
-                <div class="menu-card" onclick="location.href='#'">
+                <div class="menu-card" onclick="showCalendarSettings()">
                     <h4>월간일정</h4>
-                    <p>월간 일정 관리</p>
+                    <p>월간 일정 관리 (fancalenar)</p>
                 </div>
                 <div class="menu-card" onclick="location.href='#'">
                     <h4>VOD리스트</h4>
@@ -270,7 +270,7 @@
             <div id="intro-status" class="status-msg"></div>
         </div>
 
-        <!-- 4. 울보노트 수정 패널 (신규 추가) -->
+        <!-- 4. 울보노트 수정 패널 -->
         <div id="panel-crynote" class="card" style="display: none;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid rgba(0, 119, 190, 0.2); padding-bottom: 10px;">
                 <h3 style="margin: 0; color: #03045e;">💧 울보노트 데이터 관리</h3>
@@ -290,6 +290,28 @@
 
             <button onclick="saveCryNoteSettings()" style="width: 100%; margin-top: 25px; background-color: #0077b6; padding: 14px; font-size: 16px;">울보노트 설정 반영하기</button>
             <div id="crynote-status" class="status-msg"></div>
+        </div>
+
+        <!-- 5. 월간일정 수정 패널 (fancalenar 추가) -->
+        <div id="panel-calendar" class="card" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid rgba(0, 119, 190, 0.2); padding-bottom: 10px;">
+                <h3 style="margin: 0; color: #03045e;">📅 월간일정 데이터 관리 (fancalenar)</h3>
+                <button onclick="showDashboard()" class="secondary-btn" style="padding: 6px 12px; font-size: 13px;">← 메뉴 목록으로</button>
+            </div>
+
+            <p style="color: #64748b; font-size: 14px; margin-bottom: 15px;">월간 일정 데이터를 추가, 수정 및 삭제할 수 있습니다. (항목: 날짜, 일정 제목/설명, 시간, 주소)</p>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; margin: 20px 0 10px 0; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;">
+                <h4 style="color: #0077b6; margin: 0;">월간일정 항목 목록</h4>
+                <button type="button" onclick="addCalendarRow()" style="background-color: #10b981; padding: 4px 10px; font-size: 12px;">+ 일정 추가</button>
+            </div>
+            
+            <div id="calendar-rows-container" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
+                <!-- 동적 월간일정 행 -->
+            </div>
+
+            <button onclick="saveCalendarSettings()" style="width: 100%; margin-top: 25px; background-color: #0077b6; padding: 14px; font-size: 16px;">월간일정 설정 반영하기</button>
+            <div id="calendar-status" class="status-msg"></div>
         </div>
     </div>
 
@@ -340,6 +362,7 @@
             document.getElementById('panel-mainpage').style.display = 'none';
             document.getElementById('panel-intro').style.display = 'none';
             document.getElementById('panel-crynote').style.display = 'none';
+            document.getElementById('panel-calendar').style.display = 'none';
             document.getElementById('dashboard-view').style.display = 'block';
         }
 
@@ -347,6 +370,7 @@
             document.getElementById('dashboard-view').style.display = 'none';
             document.getElementById('panel-intro').style.display = 'none';
             document.getElementById('panel-crynote').style.display = 'none';
+            document.getElementById('panel-calendar').style.display = 'none';
             document.getElementById('panel-mainpage').style.display = 'block';
             loadMainPageSettingsData();
         }
@@ -355,6 +379,7 @@
             document.getElementById('dashboard-view').style.display = 'none';
             document.getElementById('panel-mainpage').style.display = 'none';
             document.getElementById('panel-crynote').style.display = 'none';
+            document.getElementById('panel-calendar').style.display = 'none';
             document.getElementById('panel-intro').style.display = 'block';
             loadIntroSettingsData();
         }
@@ -363,8 +388,18 @@
             document.getElementById('dashboard-view').style.display = 'none';
             document.getElementById('panel-mainpage').style.display = 'none';
             document.getElementById('panel-intro').style.display = 'none';
+            document.getElementById('panel-calendar').style.display = 'none';
             document.getElementById('panel-crynote').style.display = 'block';
             loadCryNoteSettingsData();
+        }
+
+        function showCalendarSettings() {
+            document.getElementById('dashboard-view').style.display = 'none';
+            document.getElementById('panel-mainpage').style.display = 'none';
+            document.getElementById('panel-intro').style.display = 'none';
+            document.getElementById('panel-crynote').style.display = 'none';
+            document.getElementById('panel-calendar').style.display = 'block';
+            loadCalendarSettingsData();
         }
 
         // --- 메인페이지 관련 함수 ---
@@ -570,7 +605,6 @@
                     document.getElementById('intro-notice').value = data.notice || "";
                     document.getElementById('intro-vod').value = data.vod || "";
 
-                    // 관련 링크 불러오기
                     const linkContainer = document.getElementById('intro-link-rows-container');
                     linkContainer.innerHTML = "";
                     if (Array.isArray(data.links) && data.links.length > 0) {
@@ -579,7 +613,6 @@
                         addIntroLinkRow();
                     }
 
-                    // 타임라인 불러오기
                     const container = document.getElementById('intro-timeline-rows-container');
                     container.innerHTML = "";
                     if (Array.isArray(data.timeline) && data.timeline.length > 0) {
@@ -618,7 +651,6 @@
             const notice = document.getElementById('intro-notice').value.trim();
             const vod = document.getElementById('intro-vod').value.trim();
 
-            // 관련 링크 수집
             const links = [];
             document.querySelectorAll('#intro-link-rows-container .menu-item-row').forEach(row => {
                 const name = row.querySelector('.link-name-input').value.trim();
@@ -626,7 +658,6 @@
                 if (name || url) links.push({ name, url });
             });
 
-            // 타임라인 수집
             const timeline = [];
             document.querySelectorAll('#intro-timeline-rows-container .menu-item-row').forEach(row => {
                 const time = row.querySelector('.timeline-time-input').value.trim();
@@ -693,7 +724,6 @@
                 const container = document.getElementById('crynote-rows-container');
                 container.innerHTML = "";
 
-                // 데이터 구조가 배열 형태이거나 객체 내 배열 형태일 경우 모두 대응
                 let notesArray = [];
                 if (Array.isArray(data)) {
                     notesArray = data;
@@ -728,7 +758,6 @@
                 return;
             }
 
-            // 울보노트 항목 수집
             const notes = [];
             document.querySelectorAll('#crynote-rows-container .menu-item-row').forEach(row => {
                 const date = row.querySelector('.crynote-date-input').value.trim();
@@ -743,7 +772,113 @@
             const payload = {
                 password: password,
                 fileType: "fancrynote",
-                content: { notes } // 서버 구조에 맞춰 객체 혹은 배열로 전송
+                content: { notes }
+            };
+
+            statusEl.textContent = "저장 중...";
+            statusEl.style.color = "#0077b6";
+
+            try {
+                const response = await fetch(WORKER_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.ok) {
+                    statusEl.textContent = "성공적으로 저장되었습니다!";
+                    statusEl.style.color = "#10b981";
+                } else {
+                    const errText = await response.text();
+                    throw new Error(errText || "저장 실패");
+                }
+            } catch (err) {
+                console.error("저장 오류:", err);
+                statusEl.textContent = "저장 오류: " + err.message;
+                statusEl.style.color = "#ef4444";
+            }
+        }
+
+        // --- 월간일정(fancalenar) 관련 함수 (신규 추가) ---
+        function addCalendarRow(date = "", description = "", time = "", url = "") {
+            const container = document.getElementById('calendar-rows-container');
+            const row = document.createElement('div');
+            row.className = 'menu-item-row';
+            row.innerHTML = `
+                <input type="text" placeholder="날짜 (예: 2026-04-12)" class="calendar-date-input" value="${date}" style="flex: 1;">
+                <input type="text" placeholder="설명" class="calendar-desc-input" value="${description}" style="flex: 2;">
+                <input type="text" placeholder="시간 (예: 14:30)" class="calendar-time-input" value="${time}" style="flex: 1;">
+                <input type="text" placeholder="주소 (URL)" class="calendar-url-input" value="${url}" style="flex: 2;">
+                <button type="button" class="delete-item-btn" onclick="this.parentElement.remove()">삭제</button>
+            `;
+            container.appendChild(row);
+        }
+
+        async function loadCalendarSettingsData() {
+            const statusEl = document.getElementById('calendar-status');
+            statusEl.textContent = "데이터를 불러오는 중...";
+            statusEl.style.color = "#0077b6";
+
+            try {
+                const timestamp = new Date().getTime();
+                const response = await fetch(WORKER_URL + "?type=fancalenar&t=" + timestamp);
+                if (!response.ok) throw new Error("서버 응답 실패");
+                
+                const data = await response.json();
+                const container = document.getElementById('calendar-rows-container');
+                container.innerHTML = "";
+
+                let calendarArray = [];
+                if (Array.isArray(data)) {
+                    calendarArray = data;
+                } else if (data && Array.isArray(data.notes)) {
+                    calendarArray = data.notes;
+                } else if (data && Array.isArray(data.events)) {
+                    calendarArray = data.events;
+                }
+
+                if (calendarArray.length > 0) {
+                    calendarArray.forEach(item => addCalendarRow(item.date, item.description, item.time, item.url));
+                } else {
+                    addCalendarRow();
+                }
+
+                statusEl.textContent = "데이터를 성공적으로 불러왔습니다.";
+                statusEl.style.color = "#10b981";
+            } catch (err) {
+                console.error("불러오기 실패:", err);
+                statusEl.textContent = "데이터를 불러오지 못했습니다. (빈 양식 사용)";
+                statusEl.style.color = "#ef4444";
+                
+                const container = document.getElementById('calendar-rows-container');
+                if (container.children.length === 0) addCalendarRow();
+            }
+        }
+
+        async function saveCalendarSettings() {
+            const statusEl = document.getElementById('calendar-status');
+            const password = document.getElementById('admin-password').value.trim();
+            if (!password) {
+                statusEl.textContent = "로그인 정보가 유실되었습니다. 다시 로그인해주세요.";
+                statusEl.style.color = "#ef4444";
+                return;
+            }
+
+            const notes = [];
+            document.querySelectorAll('#calendar-rows-container .menu-item-row').forEach(row => {
+                const date = row.querySelector('.calendar-date-input').value.trim();
+                const description = row.querySelector('.calendar-desc-input').value.trim();
+                const time = row.querySelector('.calendar-time-input').value.trim();
+                const url = row.querySelector('.calendar-url-input').value.trim();
+                if (date || description || time || url) {
+                    notes.push({ date, description, time, url });
+                }
+            });
+
+            const payload = {
+                password: password,
+                fileType: "fancalenar",
+                content: { notes }
             };
 
             statusEl.textContent = "저장 중...";
