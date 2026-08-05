@@ -391,7 +391,7 @@
                 max-height: 90px !important;
                 padding: 2px;
             }
-            /* 모바일 환경에서 칩 내부 텍스트 중 방송 여부(타입 또는 휴방 표시)만 노출되도록 제어 */
+            /* 모바일 환경에서 칩 내부 텍스트 대신 'type' 값 그대로 출력 */
             .schedule-chip .chip-time,
             .schedule-chip .chip-title-text {
                 display: none !important;
@@ -610,7 +610,7 @@
                 let schedulesHtml = "";
                 daySchedules.forEach(schedule => {
                     const timeText = schedule.time ? schedule.time : "";
-                    const displayStateText = (schedule.type === "휴방" || (schedule.title && schedule.title.includes("휴방"))) ? "🌊 휴방" : "방송";
+                    const displayStateText = schedule.type ? schedule.type : (schedule.title && schedule.title.includes("휴방") ? "휴방" : "방송");
                     
                     schedulesHtml += `
                         <span class="schedule-chip" title="${schedule.title || ''}" data-display-text="${displayStateText}">
@@ -750,11 +750,6 @@
 
         loadCalendarData();
     </script>
-<footer style="text-align: center; padding: 10px 10px; color: #b3cde0; font-size: 11px; border-top: 1px solid rgba(0, 229, 255, 0.12); margin-top: 20px; width: 100%; box-sizing: border-box;">
-        <p style="margin: 0; opacity: 0.8; line-height: 1.6; word-break: keep-all; overflow-wrap: break-word;">
-            <strong style="display: block; margin-bottom: 5px; color: #03045e; font-size: 12px;">바다비 비공식 팬 아카이브</strong>
-            <span style="display: inline-block;">비영리로 운영되며, 정보 갱신 시 데이터 반영에 차이가 있을 수 있습니다.</span>
-        </p>
-    </footer>
+
 </body>
 </html>
