@@ -90,17 +90,17 @@
             transform: translateY(-1px);
         }
 
-        /* 드롭다운 셀렉트 박스 컨테이너 (숨김 처리 기본) */
+        /* 드롭다운 셀렉트 박스 컨테이너 (여백 축소 적용) */
         .month-dropdown-box {
             position: absolute;
             top: 55px;
             background: #ffffff;
             border: 1px solid rgba(0, 119, 190, 0.2);
             border-radius: 12px;
-            padding: 15px;
+            padding: 10px; /* 여백 줄임 */
             box-shadow: 0 10px 25px rgba(0, 119, 190, 0.15);
             display: none;
-            gap: 10px;
+            gap: 6px; /* 간격 줄임 */
             z-index: 10;
             align-items: center;
         }
@@ -110,10 +110,10 @@
         }
 
         .month-dropdown-box select {
-            padding: 8px 12px;
+            padding: 6px 10px; /* 내부 패딩 축소 */
             border: 1px solid rgba(0, 119, 190, 0.3);
             border-radius: 8px;
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 700;
             color: #03045e;
             background: #f8fafc;
@@ -125,11 +125,11 @@
             background-color: #0077b6;
             color: white;
             border: none;
-            padding: 8px 14px;
+            padding: 6px 12px; /* 버튼 패딩 축소 */
             border-radius: 8px;
             cursor: pointer;
             font-weight: 700;
-            font-size: 14px;
+            font-size: 13px;
         }
 
         .month-dropdown-box button:hover {
@@ -288,9 +288,7 @@
             
             <!-- 드롭다운 선택 레이어 -->
             <div class="month-dropdown-box" id="month-dropdown">
-                <select id="select-year">
-                    <!-- 자바스크립트로 연도 옵션 동적 생성 -->
-                </select>
+                <select id="select-year"></select>
                 <select id="select-month">
                     <option value="1">1월</option>
                     <option value="2">2월</option>
@@ -320,9 +318,7 @@
                 <div>금</div>
                 <div>토</div>
             </div>
-            <div class="days-grid" id="days-grid">
-                <!-- 동적으로 날짜 셀이 생성됩니다 -->
-            </div>
+            <div class="days-grid" id="days-grid"></div>
         </div>
     </div>
 
@@ -330,7 +326,6 @@
         let allEvents = [];
         let currentDate = new Date();
 
-        // 연도 선택 드롭다운 옵션 초기화 (현재 연도 기준 앞뒤 5년)
         function initYearSelect() {
             const selectYearEl = document.getElementById("select-year");
             const currentYear = new Date().getFullYear();
@@ -352,15 +347,20 @@
                 
                 const data = await response.json();
                 
+                let rawEvents = [];
                 if (Array.isArray(data)) {
-                    allEvents = data;
+                    rawEvents = data;
                 } else if (data && Array.isArray(data.notes)) {
-                    allEvents = data.notes;
+                    rawEvents = data.notes;
                 } else if (data && Array.isArray(data.events)) {
-                    allEvents = data.events;
-                } else {
-                    allEvents = [];
+                    rawEvents = data.events;
                 }
+
+                // 날짜가 비어있거나 "-"인 데이터는 제외하고 유효한 데이터만 필터링
+                allEvents = rawEvents.filter(event => {
+                    const d = event.date;
+                    return d && typeof d === 'string' && d.trim() !== '' && d.trim() !== '-';
+                });
 
                 renderCalendar();
                 containerEl.classList.add('loaded');
@@ -435,18 +435,15 @@
             gridEl.innerHTML = cellsHtml;
         }
 
-        // 드롭다운 토글 제어
         function toggleMonthDropdown() {
             const dropdown = document.getElementById("month-dropdown");
             if (!dropdown.classList.contains('active')) {
-                // 열릴 때 현재 달력의 연도/월 값으로 select 박스 세팅
                 document.getElementById("select-year").value = currentDate.getFullYear();
                 document.getElementById("select-month").value = currentDate.getMonth() + 1;
             }
             dropdown.classList.toggle('active');
         }
 
-        // 드롭다운에서 선택한 연/월로 달력 이동
         function applySelectedMonth() {
             const selectedYear = parseInt(document.getElementById("select-year").value, 10);
             const selectedMonth = parseInt(document.getElementById("select-month").value, 10);
@@ -458,7 +455,6 @@
             document.getElementById("month-dropdown").classList.remove('active');
         }
 
-        // 화면 바깥 클릭 시 드롭다운 닫기
         window.addEventListener('click', function(e) {
             const navContainer = document.querySelector('.calendar-nav');
             const dropdown = document.getElementById("month-dropdown");
