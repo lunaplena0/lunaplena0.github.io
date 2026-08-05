@@ -22,7 +22,7 @@
         .ocean-calendar-container {
             position: relative;
             width: 100%;
-            max-width: 1300px; /* 전체 최대 가로 폭 고정 */
+            max-width: 1300px;
             flex: 1;
             margin: 0 auto;
             display: flex;
@@ -44,56 +44,55 @@
         /* 페이지 타이틀 */
         .calendar-header {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
             width: 100%;
         }
 
         .calendar-title {
             font-size: clamp(32px, 4vw, 42px);
             font-weight: 900;
-            margin-bottom: 8px;
+            margin-bottom: 0;
             letter-spacing: -1px;
             color: #03045e;
             text-shadow: 0 0 10px rgba(255, 255, 255, 1), 0 0 20px rgba(255, 255, 255, 0.9), 0 2px 4px rgba(0, 0, 0, 0.15);
         }
 
-        .calendar-subtitle {
-            font-size: clamp(14px, 1.3vw, 16px);
-            color: #0077b6;
-            font-weight: 600;
-            text-shadow: 0 0 10px rgba(255, 255, 255, 1);
-        }
-
-        /* 월 선택 컨트롤러 */
+        /* 월 선택 컨트롤러 (년·월 클릭 가능하도록 수정) */
         .calendar-nav {
             display: flex;
             align-items: center;
-            gap: 20px;
+            justify-content: center;
+            gap: 15px;
             margin-bottom: 25px;
-            font-size: 20px;
+            font-size: 22px;
             font-weight: 800;
             color: #03045e;
         }
 
-        .nav-btn {
-            background: #ffffff;
+        .month-picker-btn {
+            background: rgba(255, 255, 255, 0.8);
             border: 1px solid rgba(0, 119, 190, 0.25);
-            color: #0077b6;
-            padding: 8px 16px;
-            border-radius: 8px;
+            color: #03045e;
+            padding: 8px 18px;
+            border-radius: 10px;
             cursor: pointer;
-            font-weight: bold;
+            font-weight: 800;
+            font-size: 20px;
             transition: all 0.2s ease;
             box-shadow: 0 4px 10px rgba(0, 119, 190, 0.05);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        .nav-btn:hover {
+        .month-picker-btn:hover {
             background: #0077b6;
             color: #ffffff;
+            border-color: #0077b6;
             transform: translateY(-1px);
         }
 
-        /* 캘린더 그리드 스타일 (가로 폭 100% 고정) */
+        /* 캘린더 그리드 스타일 */
         .calendar-grid-box {
             width: 100%;
             max-width: 1300px;
@@ -125,6 +124,7 @@
             grid-template-columns: repeat(7, 1fr);
         }
 
+        /* 캘린더 칸 높이 완전 고정 및 내부 오버플로우 방지 */
         .calendar-cell {
             border-right: 1px solid rgba(0, 119, 190, 0.1);
             border-bottom: 1px solid rgba(0, 119, 190, 0.1);
@@ -133,8 +133,9 @@
             background: #ffffff;
             display: flex;
             flex-direction: column;
-            /* 셀 높이를 160px로 고정하여 4~5개 일정이 들어가도 일정한 크기 유지 */
             height: 160px; 
+            max-height: 160px;
+            overflow: hidden;
         }
 
         .calendar-cell.other-month {
@@ -153,7 +154,7 @@
         .calendar-cell:nth-child(7n) .cell-date-num { color: #0284c7; } /* 토요일 날짜 색상 */
         .calendar-cell:nth-child(7n+1) .cell-date-num { color: #dc2626; } /* 일요일 날짜 색상 */
 
-        /* 셀 내부 일정 목록 영역 (일정이 4~5개 이상이면 내부 스크롤 처리) */
+        /* 셀 내부 일정 목록 영역 (최대 4~5개 고려하여 내부 스크롤 적용) */
         .cell-schedules {
             display: flex;
             flex-direction: column;
@@ -172,7 +173,7 @@
             border-radius: 4px;
         }
 
-        /* 일정 칩 스타일 */
+        /* 일정 칩 스타일 (텍스트가 길어져도 칸 형태 유지) */
         .schedule-chip {
             display: block;
             background: #e0f2fe;
@@ -221,6 +222,7 @@
             }
             .calendar-cell {
                 height: 120px; 
+                max-height: 120px;
                 padding: 4px;
             }
             .schedule-chip {
@@ -235,14 +237,11 @@
     <div class="ocean-calendar-container" id="calendar-container">
         <div class="calendar-header">
             <div class="calendar-title">바다비 월간 캘린더</div>
-            <div class="calendar-subtitle">🌊 한눈에 보는 방송 및 컨텐츠 일정표</div>
         </div>
 
-        <!-- 월 이동 컨트롤러 -->
+        <!-- 년·월 선택 컨트롤러 (클릭 시 직접 이동 가능) -->
         <div class="calendar-nav">
-            <button class="nav-btn" onclick="changeMonth(-1)">◀ 이전 달</button>
-            <span id="current-month-label">YYYY년 MM월</span>
-            <button class="nav-btn" onclick="changeMonth(1)">다음 달 ▶</button>
+            <button class="month-picker-btn" id="current-month-label" onclick="openMonthPicker()" title="클릭하여 년/월 직접 선택">YYYY년 MM월 📅</button>
         </div>
 
         <!-- 캘린더 본체 -->
@@ -300,7 +299,7 @@
             const year = currentDate.getFullYear();
             const month = currentDate.getMonth();
 
-            document.getElementById("current-month-label").textContent = `${year}년 ${String(month + 1).padStart(2, '0')}월`;
+            document.getElementById("current-month-label").textContent = `${year}년 ${String(month + 1).padStart(2, '0')}월 📅`;
 
             const gridEl = document.getElementById("days-grid");
             gridEl.innerHTML = "";
@@ -359,9 +358,29 @@
             gridEl.innerHTML = cellsHtml;
         }
 
-        function changeMonth(direction) {
-            currentDate.setMonth(currentDate.getMonth() + direction);
-            renderCalendar();
+        // 년·월 클릭 시 직접 이동하는 함수
+        function openMonthPicker() {
+            const currentYear = currentDate.getFullYear();
+            const currentMonth = String(currentDate.getMonth() + 1).padStart(2, '0');
+            
+            const inputVal = prompt("이동할 년도와 월을 입력해주세요 (형식: YYYY-MM)", `${currentYear}-${currentMonth}`);
+            if (!inputVal) return;
+
+            const parts = inputVal.split('-');
+            if (parts.length === 2) {
+                const targetYear = parseInt(parts[0], 10);
+                const targetMonth = parseInt(parts[1], 10);
+
+                if (!isNaN(targetYear) && !isNaN(targetMonth) && targetMonth >= 1 && targetMonth <= 12) {
+                    currentDate.setFullYear(targetYear);
+                    currentDate.setMonth(targetMonth - 1);
+                    renderCalendar();
+                } else {
+                    alert("올바른 형식(YYYY-MM)으로 입력해주세요. 예: 2026-07");
+                }
+            } else {
+                alert("형식이 올바르지 않습니다. 예: 2026-07");
+            }
         }
 
         loadCalendarData();
