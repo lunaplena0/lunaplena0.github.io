@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>바다비 VOD 리스트</title>
+    <style>
+        body {
+            margin: 0;
+            width: 100vw;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-color: #f4f7f9;
+            overflow-x: hidden;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .vod-container {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        @keyframes fadeUpIn {
+            0% {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .vod-card {
+            display: flex;
+            background: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            text-decoration: none;
+            color: inherit;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            opacity: 0;
+            animation: fadeUpIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .vod-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 119, 182, 0.15);
+        }
+
+        /* 썸네일 영역 */
+        .vod-thumb-wrapper {
+            position: relative;
+            width: 280px;
+            flex-shrink: 0;
+            background-color: #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .vod-thumb {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            aspect-ratio: 16 / 9;
+            display: block;
+        }
+
+        .no-thumb {
+            color: #94a3b8;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .vod-duration {
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            background: rgba(0, 0, 0, 0.75);
+            color: #fff;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 3px 6px;
+            border-radius: 4px;
+        }
+
+        /* VOD 정보 영역 */
+        .vod-info {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .vod-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1e293b;
+            margin: 0 0 10px 0;
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .vod-meta {
+            font-size: 13px;
+            color: #64748b;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .vod-desc {
+            font-size: 14px;
+            color: #475569;
+            margin: 0 0 12px 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* 뱃지 영역 */
+        .badge-container {
+            display: flex;
+            gap: 6px;
+            margin-top: auto;
+        }
+
+        .badge {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 8px;
+            border-radius: 6px;
+        }
+
+        .badge-adult {
+            background-color: #fee2e2;
+            color: #ef4444;
+        }
+
+        .badge-sub {
+            background-color: #e0e7ff;
+            color: #4f46e5;
+        }
+
+        .badge-category {
+            background-color: #f1f5f9;
+            color: #475569;
+        }
+
+        @media (max-width: 640px) {
+            .vod-container {
+                padding: 20px 16px;
+            }
+            .vod-card {
+                flex-direction: column;
+            }
+            .vod-thumb-wrapper {
+                width: 100%;
+            }
+            .vod-title {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="vod-container" id="vod-list">
+        <p style="text-align: center; color: #64748b; font-size: 18px; width: 100%;">VOD 리스트를 불러오는 중...</p>
+    </div>
+
+    <script>
+        const WORKER_URL = "https://badabi-api.dalkkumli054.workers.dev/";
+        const VOD_API_URL = WORKER_URL + "?type=fanvodlist&t=";
+
+        async function loadVODs() {
+            const listContainer = document.getElementById("vod-list");
+            
+            try {
+                const response = await fetch(VOD_API_URL + new Date().getTime());
+                if (!response.ok) throw new Error("VOD 정보를 불러오지 못했습니다.");
+                
+                const data = await response.json();
+                const vods = data.vods || [];
+
+                listContainer.innerHTML = "";
+
+                if (vods.length === 0) {
+                    listContainer.innerHTML = '<p style="text-align: center; color: #64748b; width: 100%; font-size: 18px;">등록된 VOD가 없습니다.</p>';
+                    return;
+                }
+
+                vods.forEach((item, index) => {
+                    const card = document.createElement("a");
+                    card.href = item.link;
+                    card.className = "vod-card";
+                    card.target = "_blank";
+                    card.rel = "noopener noreferrer";
+                    card.style.animationDelay = `${index * 0.08}s`;
+
+                    const thumbHTML = item.thumbnail 
+                        ? `<img src="${item.thumbnail}" alt="thumbnail" class="vod-thumb" loading="lazy">` 
+                        : `<div class="vod-thumb no-thumb" style="display:flex; align-items:center; justify-content:center;">No Image</div>`;
+
+                    let badgesHTML = `<span class="badge badge-category">${item.category || "기타"}</span>`;
+                    if (item.adult === "Y") badgesHTML += `<span class="badge badge-adult">19+</span>`;
+                    if (item.subPlus === "Y") badgesHTML += `<span class="badge badge-sub">구독+</span>`;
+
+                    card.innerHTML = `
+                        <div class="vod-thumb-wrapper">
+                            ${thumbHTML}
+                            <div class="vod-duration">${item.duration || "-:--:--"}</div>
+                        </div>
+                        <div class="vod-info">
+                            <h3 class="vod-title">${item.title}</h3>
+                            <div class="vod-meta">
+                                <span>📅 ${item.date}</span>
+                            </div>
+                            <p class="vod-desc">${item.description || "설명 없음"}</p>
+                            <div class="badge-container">
+                                ${badgesHTML}
+                            </div>
+                        </div>
+                    `;
+
+                    listContainer.appendChild(card);
+                });
+
+            } catch (err) {
+                console.error(err);
+                listContainer.innerHTML = `<p style="text-align: center; color: #ef4444; width: 100%; font-size: 18px;">VOD 리스트 로드 실패</p>`;
+            }
+        }
+
+        loadVODs();
+    </script>
+</body>
+</html>
