@@ -39,6 +39,7 @@ function showDashboard() {
     document.getElementById('panel-intro').style.display = 'none';
     document.getElementById('panel-crynote').style.display = 'none';
     document.getElementById('panel-calendar').style.display = 'none';
+    document.getElementById('panel-vodlist').style.display = 'none';
     document.getElementById('dashboard-view').style.display = 'block';
 }
 
@@ -68,4 +69,11 @@ function showCalendarSettings() {
     document.getElementById('dashboard-view').style.display = 'none'; 
     document.getElementById('panel-calendar').style.display = 'block'; 
     loadCalendarSettingsData(); 
+}
+
+function showVodListSettings() {
+    showDashboard();
+    document.getElementById('dashboard-view').style.display = 'none';
+    document.getElementById('panel-vodlist').style.display = 'block';
+    loadVodListSettingsData();
 }
