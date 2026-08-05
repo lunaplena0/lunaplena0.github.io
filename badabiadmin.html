@@ -91,14 +91,14 @@
         .menu-item-row {
             display: flex;
             gap: 8px;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
             align-items: center;
             background: #f8fafc;
             padding: 12px;
             border-radius: 8px;
             border: 1px solid #e2e8f0;
         }
-        .menu-item-row input, .menu-item-row select {
+        .menu-item-row input {
             margin-bottom: 0;
             background: #fff;
         }
@@ -268,7 +268,7 @@
             <div id="crynote-status" class="status-msg"></div>
         </div>
 
-        <!-- 5. 월간일정 수정 패널 (fancalenar - 신규 커스텀 필드 적용) -->
+        <!-- 5. 월간일정 수정 패널 (fancalenar - 스크롤 박스 및 직접 입력 적용) -->
         <div id="panel-calendar" class="card" style="display: none;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid rgba(0, 119, 190, 0.2); padding-bottom: 10px;">
                 <h3 style="margin: 0; color: #03045e;">📅 월간일정 데이터 관리 (fancalenar)</h3>
@@ -276,7 +276,7 @@
             </div>
 
             <p style="color: #64748b; font-size: 14px; margin-bottom: 15px;">
-                입력 항목: <b>날짜, 시간, 방송유형, 방송제목, 컨텐츠종류, 다시보기 주소</b><br>
+                입력 순서: <b>날짜, 시간, 방송유형, 방송제목, 컨텐츠종류, 다시보기 주소</b><br>
                 <span style="color: #0284c7; font-size: 13px;">💡 방송 또는 합방 유형이 아닐 경우 시간 칸을 비워둘 수 있습니다.</span>
             </p>
 
@@ -285,7 +285,8 @@
                 <button type="button" onclick="addCalendarRow()" style="background-color: #10b981; padding: 4px 10px; font-size: 12px;">+ 일정 추가</button>
             </div>
             
-            <div id="calendar-rows-container" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;"></div>
+            <!-- 스크롤 가능한 상자 영역 -->
+            <div id="calendar-rows-container" style="max-height: 450px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; padding-right: 5px; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; background: #fff;"></div>
 
             <button onclick="saveCalendarSettings()" style="width: 100%; margin-top: 25px; background-color: #0077b6; padding: 14px; font-size: 16px;">월간일정 설정 반영하기</button>
             <div id="calendar-status" class="status-msg"></div>
@@ -635,20 +636,15 @@
             }
         }
 
-        // --- 월간일정 (fancalenar) 관련 함수 (신규 포맷 적용) ---
+        // --- 월간일정 (fancalenar) 관련 함수 (방송유형 직접 입력 및 스크롤 박스 적용) ---
         function addCalendarRow(date = "", time = "", type = "방송", title = "", category = "", url = "") {
             const container = document.getElementById('calendar-rows-container');
             const row = document.createElement('div');
             row.className = 'menu-item-row';
             row.innerHTML = `
                 <input type="text" placeholder="날짜 (YYYY-MM-DD)" class="cal-date" value="${date}" style="flex: 1.2;">
-                <input type="text" placeholder="시간 (선택사항)" class="cal-time" value="${time}" style="flex: 1;">
-                <select class="cal-type" style="flex: 1;">
-                    <option value="방송" ${type === '방송' ? 'selected' : ''}>방송</option>
-                    <option value="합방" ${type === '합방' ? 'selected' : ''}>합방</option>
-                    <option value="휴방" ${type === '휴방' ? 'selected' : ''}>휴방</option>
-                    <option value="기타" ${type === '기타' ? 'selected' : ''}>기타</option>
-                </select>
+                <input type="text" placeholder="시간 (선택)" class="cal-time" value="${time}" style="flex: 1;">
+                <input type="text" placeholder="방송유형 (예: 방송)" class="cal-type" value="${type}" style="flex: 1.2;">
                 <input type="text" placeholder="방송제목" class="cal-title" value="${title}" style="flex: 2;">
                 <input type="text" placeholder="컨텐츠종류" class="cal-category" value="${category}" style="flex: 1.2;">
                 <input type="text" placeholder="다시보기 주소" class="cal-url" value="${url}" style="flex: 2;">
@@ -717,7 +713,7 @@
             document.querySelectorAll('#calendar-rows-container .menu-item-row').forEach(row => {
                 const date = row.querySelector('.cal-date').value.trim();
                 const time = row.querySelector('.cal-time').value.trim();
-                const type = row.querySelector('.cal-type').value;
+                const type = row.querySelector('.cal-type').value.trim();
                 const title = row.querySelector('.cal-title').value.trim();
                 const category = row.querySelector('.cal-category').value.trim();
                 const url = row.querySelector('.cal-url').value.trim();
