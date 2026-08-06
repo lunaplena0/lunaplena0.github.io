@@ -178,6 +178,21 @@
             padding-bottom: 0;
         }
 
+        /* 두 항목을 가로 한 줄로 묶어주는 컨테이너 */
+        .stat-row-group {
+            display: flex;
+            gap: 12px;
+            border-bottom: 1px solid #f1f5f9;
+            padding-bottom: 12px;
+        }
+
+        .stat-row-group .stat-item {
+            flex: 1;
+            border-bottom: none;
+            padding-bottom: 0;
+            min-width: 0;
+        }
+
         .stat-label {
             font-weight: 700;
             color: #0369a1;
@@ -188,6 +203,7 @@
             font-weight: 600;
             color: #1e293b;
             line-height: 1.5;
+            word-break: break-all;
         }
 
         /* 미니 프로그레스 바 스타일 */
@@ -440,6 +456,11 @@
                 padding: 6px 10px;
                 font-size: 12px;
             }
+            /* 모바일 화면에서는 좁으므로 세로 배치로 전환 */
+            .stat-row-group {
+                flex-direction: column;
+                gap: 16px;
+            }
         }
     </style>
 </head>
@@ -469,13 +490,16 @@
                         <span class="stat-label">👑 가장 많이 부른 곡 TOP 3</span>
                         <div id="topSongsStat" class="stat-value">-</div>
                     </div>
-                    <div class="stat-item">
-                        <span class="stat-label">🎤 가장 많이 부른 가수</span>
-                        <div id="topArtistStat" class="stat-value">-</div>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-label">🔥 최근 30일 이내 최다 부른 곡</span>
-                        <div id="recentTopSongsStat" class="stat-value">-</div>
+                    <!-- 가장 많이 부른 가수와 최근 30일 이내 최다 부른 곡을 가로 한 줄로 배치 -->
+                    <div class="stat-row-group">
+                        <div class="stat-item">
+                            <span class="stat-label">🎤 가장 많이 부른 가수</span>
+                            <div id="topArtistStat" class="stat-value">-</div>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">🔥 최근 30일 이내 최다 부른 곡</span>
+                            <div id="recentTopSongsStat" class="stat-value">-</div>
+                        </div>
                     </div>
                     <div class="stat-item">
                         <span class="stat-label">🎸 기타 노래 비율</span>
