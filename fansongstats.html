@@ -38,7 +38,7 @@
         }
 
         .page-title {
-            font-size: 28px; /* 제목 글씨 키움 */
+            font-size: 28px;
             font-weight: 800;
             color: #0f172a;
             border-left: 5px solid #0ea5e9;
@@ -461,11 +461,11 @@
                         <div id="guitarRatioStat" class="stat-value">-</div>
                     </div>
                     <div class="stat-item">
-                        <span class="stat-label">🎵 1회만 부른 곡 비율</span>
+                        <span class="stat-label">🎵 1회만 부른 곡 비율 (기타 제외)</span>
                         <div id="onceRatioStat" class="stat-value">-</div>
                     </div>
                     <div class="stat-item">
-                        <span class="stat-label">💤 등록 후 한 번도 안 부른 곡 비율</span>
+                        <span class="stat-label">💤 등록 후 한 번도 안 부른 곡 비율 (기타 제외)</span>
                         <div id="zeroRatioStat" class="stat-value">-</div>
                     </div>
                     <div class="stat-item">
@@ -640,33 +640,52 @@
                 document.getElementById("topArtistStat").textContent = "기록 없음";
             }
 
-            // 3. 기타 노래 비율
-            let guitarCount = 0;
-            songs.forEach(song => {
-                if (song.limit === "기타") guitarCount++;
+            // 3. 전체 노래 기준 기타 노래 비율 및 그 안에서의 부른/안 부른 비율
+            const allTotalSongs = [...registered, ...unregistered];
+            const totalCountAll = allTotalSongs.length;
+            
+            let totalGuitarSongs = [];
+            allTotalSongs.forEach(s => {
+                if (s.limit === "기타") totalGuitarSongs.push(s);
             });
-            const guitarRatio = ((guitarCount / songs.length) * 100).toFixed(1);
-            document.getElementById("guitarRatioStat").textContent = `${guitarCount}곡 중 부른 곡 기준 (${guitarRatio}%)`;
+            const guitarTotalCount = totalGuitarSongs.length;
+            const guitarOverallRatio = totalCountAll > 0 ? ((guitarTotalCount / totalCountAll) * 100).toFixed(1) : 0;
 
-            // 4. 1회만 부른 곡 비율 (전체 불렀던 곡 대비)
+            let playedGuitarCount = 0;
+            let unplayedGuitarCount = 0;
+            totalGuitarSongs.forEach(s => {
+                if (s.dateTimes && s.dateTimes.length > 0) {
+                    playedGuitarCount++;
+                } else {
+                    unplayedGuitarCount++;
+                }
+            });
+
+            document.getElementById("guitarRatioStat").innerHTML = `
+                전체 노래(${totalCountAll}곡) 중 <strong>${guitarTotalCount}곡 (${guitarOverallRatio}%)</strong><br>
+                <span style="font-size: 12px; color: #64748b;">- 부른 기타 곡: ${playedGuitarCount}곡 / 안 부른 기타 곡: ${unplayedGuitarCount}곡</span>
+            `;
+
+            // 4. 1회만 부른 곡 비율 (기타 제외, 부른 곡들 중)
+            const nonGuitarPlayed = songs.filter(s => s.limit !== "기타");
             let onceCount = 0;
-            songs.forEach(song => {
+            nonGuitarPlayed.forEach(song => {
                 if (song.dateTimes.length === 1) onceCount++;
             });
-            const onceRatio = ((onceCount / songs.length) * 100).toFixed(1);
-            document.getElementById("onceRatioStat").textContent = `${onceCount}곡 / 전체 부른 곡의 ${onceRatio}%`;
+            const onceRatio = nonGuitarPlayed.length > 0 ? ((onceCount / nonGuitarPlayed.length) * 100).toFixed(1) : 0;
+            document.getElementById("onceRatioStat").textContent = `${onceCount}곡 / 기타 제외 부른 곡(${nonGuitarPlayed.length}곡)의 ${onceRatio}%`;
 
-            // 5. 노래책에 등록되었으나 한 번도 안 불렀던 곡 비율
-            // registered 목록 중 dateTimes가 없거나 비어있는 곡들의 비율 계산
-            const totalRegisteredCount = registered.length;
+            // 5. 등록 후 한 번도 안 부른 곡 비율 (기타 제외, registered 기준)
+            const nonGuitarRegistered = registered.filter(s => s.limit !== "기타");
+            const totalNonGuitarRegCount = nonGuitarRegistered.length;
             let zeroPlayCount = 0;
-            registered.forEach(song => {
+            nonGuitarRegistered.forEach(song => {
                 if (!song.dateTimes || song.dateTimes.length === 0) {
                     zeroPlayCount++;
                 }
             });
-            const zeroRatio = totalRegisteredCount > 0 ? ((zeroPlayCount / totalRegisteredCount) * 100).toFixed(1) : 0;
-            document.getElementById("zeroRatioStat").textContent = `${zeroPlayCount}곡 / 등록된 전체 ${totalRegisteredCount}곡 중 ${zeroRatio}%`;
+            const zeroRatio = totalNonGuitarRegCount > 0 ? ((zeroPlayCount / totalNonGuitarRegCount) * 100).toFixed(1) : 0;
+            document.getElementById("zeroRatioStat").textContent = `${zeroPlayCount}곡 / 기타 제외 등록된 곡(${totalNonGuitarRegCount}곡)의 ${zeroRatio}%`;
 
             // 6. 최근 30일 이내 최다 부른 곡
             const allDateTimes = [];
