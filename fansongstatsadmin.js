@@ -176,11 +176,10 @@ function toggleAllSongDetails(containerId, expand = true) {
     });
 }
 
-// [수정] 등록된 노래 및 미등록된 노래 통합 검색 필터링 함수
+// 등록된 노래 및 미등록된 노래 통합 검색 필터링 함수
 function filterRegisteredSongs(queryInput) {
     const keyword = queryInput.value.trim().toLowerCase();
     
-    // 등록된 노래 목록과 미등록된 노래 목록을 모두 탐색
     const allSongRows = document.querySelectorAll('#registered-songs-container .reg-song-row, #unregistered-songs-container .unreg-song-row');
     
     allSongRows.forEach(row => {
@@ -382,7 +381,7 @@ function closeBatchTimeImportModal() {
     document.getElementById('batch-time-import-modal').classList.remove('active');
 }
 
-// 일괄 추가 텍스트 파싱 및 중복(동일 날짜+시간) 방지 매칭 실행 함수
+// [수정] 일괄 추가 텍스트 파싱 (🎸 이모티콘 시 limit='기타' 매칭) 및 중복 방지 실행 함수
 function executeBatchTimeImport() {
     const commonDateInput = document.getElementById('batch-common-date').value.trim();
     const rawText = document.getElementById('batch-text-input').value.trim();
@@ -413,7 +412,11 @@ function executeBatchTimeImport() {
         const trimmedLine = line.trim();
         if (!trimmedLine) return;
 
-        const match = trimmedLine.match(/^(\d{2}:\d{2}(?::\d{2})?)\s*(?:🎵)?\s*(.+?)\s*-\s*(.+)$/);
+        // 🎸 이모티콘 포함 여부 확인 후 파싱 정규식 적용
+        const hasGuitarIcon = trimmedLine.includes('🎸');
+        const cleanLine = trimmedLine.replace('🎸', '').trim();
+
+        const match = cleanLine.match(/^(\d{2}:\d{2}(?::\d{2})?)\s*(?:🎵)?\s*(.+?)\s*-\s*(.+)$/);
         
         if (!match) {
             mismatchLines.push(trimmedLine);
@@ -429,39 +432,47 @@ function executeBatchTimeImport() {
         rows.forEach(row => {
             const titleEl = row.querySelector('.reg-title') || row.querySelector('.unreg-title');
             const artistEl = row.querySelector('.reg-artist') || row.querySelector('.unreg-artist');
+            const limitEl = row.querySelector('.reg-limit') || row.querySelector('.unreg-limit');
             
             if (!titleEl || !artistEl) return;
 
             const rowTitle = titleEl.value.trim().toLowerCase();
             const rowArtist = artistEl.value.trim().toLowerCase();
+            const rowLimit = limitEl ? limitEl.value.trim().toLowerCase() : "";
 
+            // 기본 제목과 가수 일치 여부 확인
             if (rowTitle === targetTitle && rowArtist === targetArtist) {
-                found = true;
-                const dtContainer = row.querySelector('.datetime-container');
-                
-                let isAlreadyExists = false;
-                const existingSubRows = dtContainer.querySelectorAll('.datetime-sub-row');
-                existingSubRows.forEach(subRow => {
-                    const existingDate = subRow.querySelector('.sub-date').value.trim();
-                    const existingTime = subRow.querySelector('.sub-time').value.trim();
-                    if (existingDate === commonDateInput && existingTime === timeStr) {
-                        isAlreadyExists = true;
+                // 🎸 이모티콘이 있으면 limit이 '기타'인 항목만 매칭, 없으면 limit이 '기타'가 아닌 항목만 매칭
+                const isGuitarMatch = hasGuitarIcon ? (rowLimit === '기타') : (rowLimit !== '기타');
+
+                if (isGuitarMatch) {
+                    found = true;
+                    const dtContainer = row.querySelector('.datetime-container');
+                    
+                    let isAlreadyExists = false;
+                    const existingSubRows = dtContainer.querySelectorAll('.datetime-sub-row');
+                    existingSubRows.forEach(subRow => {
+                        const existingDate = subRow.querySelector('.sub-date').value.trim();
+                        const existingTime = subRow.querySelector('.sub-time').value.trim();
+                        if (existingDate === commonDateInput && existingTime === timeStr) {
+                            isAlreadyExists = true;
+                        }
+                    });
+
+                    if (isAlreadyExists) {
+                        skippedCount++;
+                        return;
                     }
-                });
 
-                if (isAlreadyExists) {
-                    skippedCount++;
-                    return;
-                }
-
-                matchedCount++;
-                
-                const firstSubRow = dtContainer.querySelector('.datetime-sub-row');
-                if (firstSubRow && !firstSubRow.querySelector('.sub-date').value && !firstSubRow.querySelector('.sub-time').value) {
-                    firstSubRow.querySelector('.sub-date').value = commonDateInput;
-                    firstSubRow.querySelector('.sub-time').value = timeStr;
-                } else {
-                    addDateTimeRow(dtContainer, { date: commonDateInput, time: timeStr });
+                    matchedCount++;
+                    
+                    const firstSubRow = dtContainer.querySelector('.datetime-sub-row');
+                    if (firstSubRow && !firstSubRow.querySelector('.sub-date').value && !firstSubRow.querySelector('.sub-time').value) {
+                        firstSubRow.querySelector('.sub-date').value = commonDateInput;
+                        firstSubRow.querySelector('.sub-time').value = timeStr;
+                    } else {
+                        addDateTimeRow(dtContainer, { date: commonDateInput, time: timeStr });
+                    }
                 }
             }
         });
