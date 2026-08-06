@@ -610,19 +610,31 @@
     <div id="songstats-status" class="status-msg"></div>
 </div>
 
-<!-- [추가] 노래책 불러오기 선택 모달 창 -->
+<!-- [추가] 노래책 불러오기 선택 모달 창 부분 수정 -->
 <div id="songlist-import-modal" class="modal-backdrop" onclick="if(event.target.id === 'songlist-import-modal') closeSongListImportModal()">
     <div class="modal-box" style="max-width: 650px;">
         <div class="modal-header">
             <span>노래책(songlist)에서 곡 선택하여 가져오기</span>
             <button type="button" class="modal-close-btn" onclick="closeSongListImportModal()">×</button>
         </div>
-        <p style="font-size: 13px; color: #64748b; margin-top: 0;">통계에 추가할 노래들을 체크하고 하단 버튼을 눌러주세요.</p>
-        <div id="songlist-import-items" class="modal-content" style="max-height: 350px;">
+        
+        <!-- 상단 옵션 및 전체 선택 버튼 -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <input type="checkbox" id="select-all-songs" onclick="toggleSelectAllSongs(this)" style="width: 16px; height: 16px; cursor: pointer;">
+                <label for="select-all-songs" style="font-size: 13px; color: #03045e; margin-bottom: 0; cursor: pointer;">전체 선택</label>
+            </div>
+            <button type="button" onclick="importAllSongsToRegistered()" style="background-color: #10b981; padding: 4px 10px; font-size: 12px;">⚡ 전체 노래 한번에 가져오기</button>
+        </div>
+
+        <div id="songlist-import-items" class="modal-content" style="max-height: 320px;">
             <!-- 동적 체크박스 목록 -->
         </div>
+
+        <!-- 하단 추가 방식 선택 (추가하기 vs 대체하기) -->
         <div style="display: flex; gap: 10px; margin-top: 15px;">
-            <button type="button" onclick="importSelectedSongsToRegistered()" style="background-color: #0077b6; width: 100%;">선택한 노래 추가하기</button>
+            <button type="button" onclick="importSelectedSongsToRegistered(false)" style="background-color: #0077b6; flex: 1; padding: 10px; font-size: 13px;">선택한 노래 추가하기</button>
+            <button type="button" onclick="importSelectedSongsToRegistered(true)" style="background-color: #ef4444; flex: 1; padding: 10px; font-size: 13px;">🔄 기존 목록 대체하기 (덮어쓰기)</button>
         </div>
     </div>
 </div>
