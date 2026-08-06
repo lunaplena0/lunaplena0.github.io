@@ -88,7 +88,7 @@ function addVodSourceRow(item = {}) {
     container.appendChild(row);
 }
 
-// --- 부른 날짜/시간 개별 항목 추가 서브 함수 ---
+// 부른 날짜/시간 개별 항목 추가 서브 함수
 function addDateTimeRow(containerEl, item = {}) {
     const row = document.createElement('div');
     row.className = 'datetime-sub-row';
@@ -101,7 +101,7 @@ function addDateTimeRow(containerEl, item = {}) {
     containerEl.appendChild(row);
 }
 
-// 노래책에 등록된 노래 행 추가 (다중 부른 날짜/시간 지원)
+// 노래책에 등록된 노래 행 추가 (제목 + 가수 복합 비교 버전)
 function addRegisteredSongRow(item = {}) {
     const container = document.getElementById('registered-songs-container');
     const row = document.createElement('div');
@@ -115,13 +115,26 @@ function addRegisteredSongRow(item = {}) {
     
     let mismatchWarning = "";
     if (title && globalSongList.length > 0) {
-        const matched = globalSongList.find(s => s.title === title);
+        // 1순위: 제목과 가수가 모두 일치하는 곡 찾기
+        let matched = globalSongList.find(s => 
+            (s.title || '').trim() === title.trim() && 
+            (s.artist || '').trim() === artist.trim()
+        );
+        
+        // 2순위: 정확히 일치하는 가수가 없으면 제목만이라도 일치하는 것 찾기
+        if (!matched) {
+            matched = globalSongList.find(s => (s.title || '').trim() === title.trim());
+        }
+
         if (matched) {
-            const matchedArtist = matched.artist || '';
-            const matchedEtc = matched.etc || matched.limit || '';
-            if (matchedArtist !== artist || matchedEtc !== etc) {
+            const matchedArtist = (matched.artist || '').trim();
+            const matchedEtc = (matched.etc || matched.limit || '').trim();
+            
+            if (matchedArtist !== artist.trim() || matchedEtc !== etc.trim()) {
                 mismatchWarning = `<span style="color: #ef4444; font-size: 11px; font-weight: bold;">⚠️ songlist 정보와 일치하지 않음 (변경됨)</span>`;
             }
+        } else {
+            mismatchWarning = `<span style="color: #f59e0b; font-size: 11px; font-weight: bold;">🔍 songlist에 존재하지 않는 제목입니다.</span>`;
         }
     }
 
@@ -133,7 +146,6 @@ function addRegisteredSongRow(item = {}) {
             <button type="button" class="delete-item-btn" onclick="this.closest('.menu-item-row').remove()" style="padding: 8px 12px; margin-bottom: 0;">노래 삭제</button>
         </div>
         
-        <!-- 부른 날짜/시간 다중 입력 영역 -->
         <div style="background: #f1f5f9; padding: 8px; border-radius: 6px; border: 1px solid #e2e8f0;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
                 <span style="font-size: 12px; font-weight: bold; color: #0077b6;">부른 날짜 및 시간 목록</span>
@@ -147,7 +159,6 @@ function addRegisteredSongRow(item = {}) {
 
     container.appendChild(row);
 
-    // 날짜/시간 데이터 주입 (과거 데이터 호환성 포함)
     const dtContainer = row.querySelector('.datetime-container');
     let dateTimes = item.dateTimes || [];
     if (dateTimes.length === 0 && (item.date || item.time)) {
@@ -160,7 +171,7 @@ function addRegisteredSongRow(item = {}) {
     }
 }
 
-// 실시간 변경 비교 함수
+// 실시간 변경 비교 함수 (복합 매칭 적용)
 function checkSongChanges(input) {
     const row = input.closest('.menu-item-row');
     const title = row.querySelector('.reg-title').value.trim();
@@ -173,10 +184,19 @@ function checkSongChanges(input) {
         return;
     }
 
-    const matched = globalSongList.find(s => s.title === title);
+    let matched = globalSongList.find(s => 
+        (s.title || '').trim() === title && 
+        (s.artist || '').trim() === artist
+    );
+    
+    if (!matched) {
+        matched = globalSongList.find(s => (s.title || '').trim() === title);
+    }
+
     if (matched) {
-        const matchedArtist = matched.artist || '';
-        const matchedEtc = matched.etc || matched.limit || '';
+        const matchedArtist = (matched.artist || '').trim();
+        const matchedEtc = (matched.etc || matched.limit || '').trim();
+        
         if (matchedArtist !== artist || matchedEtc !== etc) {
             warningSlot.innerHTML = `<span style="color: #ef4444; font-size: 11px; font-weight: bold;">⚠️ songlist 정보와 일치하지 않음 (변경됨)</span>`;
         } else {
@@ -187,7 +207,7 @@ function checkSongChanges(input) {
     }
 }
 
-// 노래책에 미등록된 노래 행 추가 (미등록곡도 다중 날짜/시간 지원)
+// 노래책에 미등록된 노래 행 추가 (다중 날짜/시간 지원)
 function addUnregisteredSongRow(item = {}) {
     const container = document.getElementById('unregistered-songs-container');
     const row = document.createElement('div');
@@ -230,7 +250,7 @@ function addUnregisteredSongRow(item = {}) {
     }
 }
 
-// --- 노래책(songlist) 불러오기 모달 제어 함수 ---
+// 노래책(songlist) 불러오기 모달 제어 함수
 async function openSongListImportModal() {
     if (globalSongList.length === 0) {
         await fetchSongListForComparison();
