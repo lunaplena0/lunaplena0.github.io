@@ -227,7 +227,7 @@
             transition: width 0.4s ease;
         }
 
-        /* 평소에는 검은색, 마우스 올릴 때 밑줄과 포인트 컬러로 변경되는 클릭 링크 스타일 */
+        /* 클릭 가능한 텍스트 링크 스타일 (공통) */
         .stat-clickable-link {
             color: #1e293b;
             font-weight: 700;
@@ -521,7 +521,7 @@
                         <div id="zeroRatioStat" class="stat-value">-</div>
                     </div>
                     <div class="stat-item">
-                        <span class="stat-label">✨ 미등록 후 부른 노래 비율 (등록된 전체 곡 기준)</span>
+                        <span class="stat-label">✨ 미등록 후 부른 노래 비율 (전체 노래 기준)</span>
                         <div id="unregRatioStat" class="stat-value">-</div>
                     </div>
                 </div>
@@ -648,7 +648,7 @@
                 return;
             }
 
-            // 1. 가장 많이 부른 곡 TOP 3 (공동 순위별로 묶어서 표시)
+            // 1. 가장 많이 부른 곡 TOP 3 (공동 순위별로 묶어서 클릭 링크 형태로 생성)
             const countGroups = {};
             songs.forEach(song => {
                 const count = song.dateTimes.length;
@@ -667,11 +667,15 @@
                 const titles = countGroups[count];
                 const medalIcon = medals[rankIndex] || `${rankIndex + 1}위`;
                 
-                const titlesJoined = titles.join(" / ");
+                const titlesLinks = titles.map(title => `
+                    <span class="stat-clickable-link" onclick="searchByKeyword('${title}')">
+                        ${title}
+                    </span>
+                `).join(" / ");
 
                 topSongsHtml += `
                     <div class="top-song-row">
-                        <span>${medalIcon} (${count}회)</span> ${titlesJoined}
+                        <span>${medalIcon} (${count}회)</span> ${titlesLinks}
                     </div>
                 `;
                 rankIndex++;
@@ -805,14 +809,13 @@
                 <div class="progress-bar-container"><div class="progress-bar-fill" style="width: ${zeroRatio}%;"></div></div>
             `;
 
-            // 7. 노래책에 등록되지 않았지만 부른 노래의 비율 (등록된 전체 곡 기준)
-            const totalRegisteredCount = registered.length;
+            // 7. 전체 노래(등록+미등록) 중 미등록 상태로 부른 노래의 비율
             const playedUnregCount = unregistered.filter(s => s.dateTimes && s.dateTimes.length > 0).length;
-            const unregVsRegRatio = totalRegisteredCount > 0 ? parseFloat(((playedUnregCount / totalRegisteredCount) * 100).toFixed(1)) : 0;
+            const unregVsTotalRatio = totalCountAll > 0 ? parseFloat(((playedUnregCount / totalCountAll) * 100).toFixed(1)) : 0;
 
             document.getElementById("unregRatioStat").innerHTML = `
-                <div>${playedUnregCount}곡 / 등록된 전체 곡(${totalRegisteredCount}곡) 중 <strong>${unregVsRegRatio}%</strong></div>
-                <div class="progress-bar-container"><div class="progress-bar-fill" style="width: ${Math.min(unregVsRegRatio, 100)}%;"></div></div>
+                <div>${playedUnregCount}곡 / 전체 노래(${totalCountAll}곡) 중 <strong>${unregVsTotalRatio}%</strong></div>
+                <div class="progress-bar-container"><div class="progress-bar-fill" style="width: ${Math.min(unregVsTotalRatio, 100)}%;"></div></div>
             `;
         }
 
