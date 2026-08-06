@@ -574,29 +574,27 @@
             </div>
         </div>
     </div>
-    <!-- VOD리스트 패널 아래쪽에 추가할 노래통계 수정 패널 -->
+   <!-- 노래통계 수정 패널 안의 공통 정보 및 노래 섹션 부분을 아래 내용으로 교체 -->
 <div id="panel-songstats" class="card" style="display: none;">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid rgba(0, 119, 190, 0.2); padding-bottom: 10px;">
         <h3 style="margin: 0; color: #03045e;">🎵 노래통계 데이터 관리 (fansongstats)</h3>
         <button onclick="showDashboard()" class="secondary-btn" style="padding: 6px 12px; font-size: 13px;">← 메뉴 목록으로</button>
     </div>
 
-    <!-- 공통 정보 (다시보기 날짜, 주소) -->
-    <div class="vod-row-inline" style="margin-bottom: 15px;">
-        <div>
-            <label>다시보기 날짜</label>
-            <input type="text" id="songstats-vod-date" placeholder="예: 2026-06-06">
-        </div>
-        <div>
-            <label>다시보기 주소 (URL)</label>
-            <input type="text" id="songstats-vod-url" placeholder="https://...">
-        </div>
+    <!-- 다중 다시보기 정보 관리 섹션 -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin: 10px 0 10px 0; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;">
+        <h4 style="color: #0077b6; margin: 0;">다시보기 정보 목록</h4>
+        <button type="button" onclick="addVodSourceRow()" style="background-color: #10b981; padding: 4px 10px; font-size: 12px;">+ 다시보기 추가</button>
     </div>
+    <div id="vod-sources-container" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;"></div>
 
-    <!-- 1. 노래책에 등록된 노래 섹션 -->
+    <!-- 1. 노래책에 등록된 노래 섹션 (songlist 자동 불러오기 포함) -->
     <div style="display: flex; justify-content: space-between; align-items: center; margin: 20px 0 10px 0; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;">
         <h4 style="color: #0077b6; margin: 0;">노래책에 등록된 노래</h4>
-        <button type="button" onclick="addRegisteredSongRow()" style="background-color: #10b981; padding: 4px 10px; font-size: 12px;">+ 등록곡 추가</button>
+        <div style="display: flex; gap: 6px;">
+            <button type="button" onclick="openSongListImportModal()" style="background-color: #0284c7; padding: 4px 10px; font-size: 12px;">📥 노래책에서 불러오기</button>
+            <button type="button" onclick="addRegisteredSongRow()" style="background-color: #10b981; padding: 4px 10px; font-size: 12px;">+ 등록곡 추가</button>
+        </div>
     </div>
     <p style="color: #64748b; font-size: 12px; margin-bottom: 10px;">songlist 데이터와 비교하여 정보가 변경된 경우 경고가 표시됩니다.</p>
     <div id="registered-songs-container" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;"></div>
@@ -610,6 +608,23 @@
 
     <button onclick="saveSongStatsSettings()" style="width: 100%; margin-top: 25px; background-color: #0077b6; padding: 14px; font-size: 16px;">노래통계 설정 반영하기</button>
     <div id="songstats-status" class="status-msg"></div>
+</div>
+
+<!-- [추가] 노래책 불러오기 선택 모달 창 -->
+<div id="songlist-import-modal" class="modal-backdrop" onclick="if(event.target.id === 'songlist-import-modal') closeSongListImportModal()">
+    <div class="modal-box" style="max-width: 650px;">
+        <div class="modal-header">
+            <span>노래책(songlist)에서 곡 선택하여 가져오기</span>
+            <button type="button" class="modal-close-btn" onclick="closeSongListImportModal()">×</button>
+        </div>
+        <p style="font-size: 13px; color: #64748b; margin-top: 0;">통계에 추가할 노래들을 체크하고 하단 버튼을 눌러주세요.</p>
+        <div id="songlist-import-items" class="modal-content" style="max-height: 350px;">
+            <!-- 동적 체크박스 목록 -->
+        </div>
+        <div style="display: flex; gap: 10px; margin-top: 15px;">
+            <button type="button" onclick="importSelectedSongsToRegistered()" style="background-color: #0077b6; width: 100%;">선택한 노래 추가하기</button>
+        </div>
+    </div>
 </div>
 
     <!-- 스크립트 파일 로드 -->
