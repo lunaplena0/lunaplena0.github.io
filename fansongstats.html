@@ -21,13 +21,20 @@
             width: 100%;
             max-width: 840px;
             margin: 0 auto;
-            /* 상단 14px, 하단 패딩 축소 */
             padding: 14px 20px 16px 20px;
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
             gap: 16px;
             flex: 1;
+        }
+
+        /* 상단 헤더 영역 (제목과 상세 통계 버튼 가로 배치) */
+        .header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
         }
 
         .page-title {
@@ -48,48 +55,108 @@
             margin-bottom: 2px;
         }
 
-        /* 통계 대시보드 카드 스타일 */
-        .stats-dashboard {
+        /* 상세 통계 팝업 트리거 버튼 */
+        .stats-popup-btn {
             background: #ffffff;
-            border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.1);
+            border: 1px solid #cbd5e1;
+            padding: 8px 14px;
+            font-size: 13px;
+            font-weight: 700;
+            color: #0369a1;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+            transition: all 0.2s;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .stats-popup-btn:hover {
+            background: #f8fafc;
+            border-color: #0ea5e9;
+        }
+
+        /* 모달 팝업 오버레이 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(15, 23, 42, 0.5);
+            backdrop-filter: blur(2px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* 모달 팝업 박스 */
+        .modal-box {
+            background: #ffffff;
+            width: 90%;
+            max-width: 480px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
             overflow: hidden;
+            transform: scale(0.95);
+            transition: transform 0.2s ease;
             border: 1px solid #e2e8f0;
         }
 
-        .stats-toggle-btn {
-            width: 100%;
-            background: #ffffff;
-            border: none;
-            padding: 14px 18px;
-            font-size: 14px;
-            font-weight: 700;
-            color: #0369a1;
-            text-align: left;
-            cursor: pointer;
+        .modal-overlay.active .modal-box {
+            transform: scale(1);
+        }
+
+        .modal-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid #f1f5f9;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            transition: background 0.2s;
-        }
-
-        .stats-toggle-btn:hover {
             background: #f8fafc;
         }
 
-        .stats-content {
-            padding: 16px 18px;
-            border-top: 1px solid #f1f5f9;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            font-size: 13px;
-            color: #334155;
-            background: #ffffff;
+        .modal-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 0;
         }
 
-        .stats-content.collapsed {
-            display: none;
+        .modal-close-btn {
+            background: none;
+            border: none;
+            font-size: 18px;
+            font-weight: 700;
+            color: #64748b;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+
+        .modal-close-btn:hover {
+            background: #e2e8f0;
+            color: #0f172a;
+        }
+
+        .modal-body {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
         }
 
         .stat-item {
@@ -97,7 +164,8 @@
             justify-content: space-between;
             align-items: center;
             border-bottom: 1px solid #f8fafc;
-            padding-bottom: 8px;
+            padding-bottom: 10px;
+            font-size: 13px;
         }
 
         .stat-item:last-child {
@@ -114,6 +182,7 @@
             font-weight: 700;
             color: #0f172a;
             text-align: right;
+            max-width: 60%;
         }
 
         /* 검색 및 필터 영역 */
@@ -314,39 +383,55 @@
                 align-items: flex-start;
                 gap: 2px;
             }
+            .header-row {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .stats-popup-btn {
+                width: 100%;
+                justify-content: center;
+            }
         }
     </style>
 </head>
 <body>
 
     <div class="main-container">
-        <div>
-            <h1 class="page-title">바다비 노래 통계</h1>
-            <div id="statsSummary" class="stats-summary">통계 계산 중...</div>
+        <!-- 상단 헤더 영역 (제목 & 상세 통계 버튼 가로 배치) -->
+        <div class="header-row">
+            <div>
+                <h1 class="page-title">바다비 노래 통계</h1>
+                <div id="statsSummary" class="stats-summary">통계 계산 중...</div>
+            </div>
+            <button class="stats-popup-btn" onclick="toggleModal(true)">
+                <span>📊 상세 통계 정보</span>
+            </button>
         </div>
 
-        <!-- 상세 통계 대시보드 (기본값: 접힌 상태) -->
-        <div class="stats-dashboard">
-            <button class="stats-toggle-btn" onclick="toggleStats()">
-                <span>📊 상세 통계 정보 요약</span>
-                <span id="toggleIcon">▼ 펼치기</span>
-            </button>
-            <div id="statsContent" class="stats-content collapsed">
-                <div class="stat-item">
-                    <span class="stat-label">👑 가장 많이 부른 곡 TOP 3</span>
-                    <span id="topSongsStat" class="stat-value">-</span>
+        <!-- 상세 통계 팝업 모달 -->
+        <div id="statsModal" class="modal-overlay" onclick="handleModalClick(event)">
+            <div class="modal-box">
+                <div class="modal-header">
+                    <h3 class="modal-title">📊 상세 통계 정보 요약</h3>
+                    <button class="modal-close-btn" onclick="toggleModal(false)">✕</button>
                 </div>
-                <div class="stat-item">
-                    <span class="stat-label">🎤 가장 많이 부른 가수</span>
-                    <span id="topArtistStat" class="stat-value">-</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">🎸 기타 노래 비율</span>
-                    <span id="guitarRatioStat" class="stat-value">-</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">🔥 최근 30일 이내 최다 부른 곡</span>
-                    <span id="recentTopSongsStat" class="stat-value">-</span>
+                <div class="modal-body">
+                    <div class="stat-item">
+                        <span class="stat-label">👑 가장 많이 부른 곡 TOP 3</span>
+                        <span id="topSongsStat" class="stat-value">-</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">🎤 가장 많이 부른 가수</span>
+                        <span id="topArtistStat" class="stat-value">-</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">🎸 기타 노래 비율</span>
+                        <span id="guitarRatioStat" class="stat-value">-</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">🔥 최근 30일 이내 최다 부른 곡</span>
+                        <span id="recentTopSongsStat" class="stat-value">-</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -357,7 +442,7 @@
             <p class="no-result">데이터를 불러오는 중...</p>
         </div>
 
-        <!-- 페이지네이션 컨트롤 (< 1/10 >) -->
+        <!-- 페이지네이션 컨트롤 -->
         <div id="paginationContainer" class="pagination" style="display: none;">
             <button id="prevBtn" class="page-btn" onclick="changePage(-1)">‹</button>
             <span id="pageIndicator" class="page-indicator">1 / 1</span>
@@ -387,15 +472,19 @@
             return 0;
         }
 
-        function toggleStats() {
-            const content = document.getElementById("statsContent");
-            const icon = document.getElementById("toggleIcon");
-            if (content.classList.contains("collapsed")) {
-                content.classList.remove("collapsed");
-                icon.textContent = "▲ 접기";
+        function toggleModal(open) {
+            const modal = document.getElementById("statsModal");
+            if (open) {
+                modal.classList.add("active");
             } else {
-                content.classList.add("collapsed");
-                icon.textContent = "▼ 펼치기";
+                modal.classList.remove("active");
+            }
+        }
+
+        // 팝업 바깥 영역 클릭 시 닫기
+        function handleModalClick(e) {
+            if (e.target.id === "statsModal") {
+                toggleModal(false);
             }
         }
 
