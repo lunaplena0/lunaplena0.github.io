@@ -26,7 +26,7 @@ async function loadSongStatsSettingsData() {
         
         const data = await response.json();
         
-        // 1. 다중 다시보기 소스 렌더링
+        // 1. 다중 다시보기 소스 렌더링 (처음 5개만 기본 표시)
         const vodContainer = document.getElementById('vod-sources-container');
         vodContainer.innerHTML = "";
         let vodSources = data.vodSources || [];
@@ -39,7 +39,7 @@ async function loadSongStatsSettingsData() {
             addVodSourceRow({}, 0);
         }
 
-        // 2. 등록된 노래 렌더링
+        // 2. 등록된 노래 렌더링 (처음 5개만 기본 표시)
         const regContainer = document.getElementById('registered-songs-container');
         regContainer.innerHTML = "";
         const registeredList = data.registeredSongs || data.registered || [];
@@ -49,7 +49,7 @@ async function loadSongStatsSettingsData() {
             addRegisteredSongRow({}, 0);
         }
 
-        // 3. 미등록된 노래 렌더링
+        // 3. 미등록된 노래 렌더링 (처음 5개만 기본 표시)
         const unregContainer = document.getElementById('unregistered-songs-container');
         unregContainer.innerHTML = "";
         const unregisteredList = data.unregisteredSongs || data.unregistered || [];
@@ -184,9 +184,9 @@ function filterRegisteredSongs(queryInput) {
     rows.forEach(row => {
         const title = row.querySelector('.reg-title').value.toLowerCase();
         const artist = row.querySelector('.reg-artist').value.toLowerCase();
-        const etc = row.querySelector('.reg-etc').value.toLowerCase();
+        const limit = row.querySelector('.reg-limit').value.toLowerCase();
         
-        if (!keyword || title.includes(keyword) || artist.includes(keyword) || etc.includes(keyword)) {
+        if (!keyword || title.includes(keyword) || artist.includes(keyword) || limit.includes(keyword)) {
             row.style.display = "flex";
         } else {
             row.style.display = "none";
@@ -210,7 +210,7 @@ function addRegisteredSongRow(item = {}, forcedIndex = null) {
     
     const title = item.title || '';
     const artist = item.artist || '';
-    const etc = item.limit || '';
+    const limitVal = item.limit || '';
     
     let mismatchWarning = "";
     if (title && globalSongList.length > 0) {
@@ -226,7 +226,7 @@ function addRegisteredSongRow(item = {}, forcedIndex = null) {
                 const sTitle = (s.title || '').trim();
                 const sArtist = (s.artist || '').trim();
                 const sLimit = (s.limit || '').trim();
-                return sTitle === title.trim() && sArtist === artist.trim() && sLimit === etc.trim();
+                return sTitle === title.trim() && sArtist === artist.trim() && sLimit === limitVal.trim();
             });
 
             if (!fullMatchExists) {
@@ -239,7 +239,7 @@ function addRegisteredSongRow(item = {}, forcedIndex = null) {
         <div style="display: flex; gap: 6px; align-items: center;">
             <input type="text" placeholder="노래제목" class="reg-title" value="${title}" style="flex: 2; margin-bottom: 0; height: 38px; box-sizing: border-box;" oninput="checkSongChanges(this)">
             <input type="text" placeholder="가수" class="reg-artist" value="${artist}" style="flex: 1.5; margin-bottom: 0; height: 38px; box-sizing: border-box;" oninput="checkSongChanges(this)">
-            <input type="text" placeholder="제한 / 기타" class="reg-etc" value="${etc}" style="flex: 1; margin-bottom: 0; height: 38px; box-sizing: border-box;" oninput="checkSongChanges(this)">
+            <input type="text" placeholder="제한 (limit)" class="reg-limit" value="${limitVal}" style="flex: 1; margin-bottom: 0; height: 38px; box-sizing: border-box;" oninput="checkSongChanges(this)">
             <button type="button" onclick="toggleSongDetail(this)" style="background-color: #0284c7; color: #fff; padding: 0 12px; height: 38px; font-size: 12px; border: none; border-radius: 4px; cursor: pointer; white-space: nowrap; margin-bottom: 0; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center;">✏️ 수정</button>
             <button type="button" class="delete-item-btn" onclick="this.closest('.menu-item-row').remove()" style="padding: 0 12px; height: 38px; margin-bottom: 0; white-space: nowrap; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center;">삭제</button>
         </div>
@@ -274,7 +274,7 @@ function checkSongChanges(input) {
     const row = input.closest('.menu-item-row');
     const title = row.querySelector('.reg-title').value.trim();
     const artist = row.querySelector('.reg-artist').value.trim();
-    const etc = row.querySelector('.reg-etc').value.trim();
+    const limitVal = row.querySelector('.reg-limit').value.trim();
     const warningSlot = row.querySelector('.warning-slot');
 
     if (!title || globalSongList.length === 0) {
@@ -296,7 +296,7 @@ function checkSongChanges(input) {
         const sTitle = (s.title || '').trim();
         const sArtist = (s.artist || '').trim();
         const sLimit = (s.limit || '').trim();
-        return sTitle === title && sArtist === artist && sLimit === etc;
+        return sTitle === title && sArtist === artist && sLimit === limitVal;
     });
 
     if (!fullMatchExists) {
@@ -322,13 +322,13 @@ function addUnregisteredSongRow(item = {}, forcedIndex = null) {
 
     const title = item.title || '';
     const artist = item.artist || '';
-    const etc = item.etc || '';
+    const limitVal = item.limit || item.etc || '';
 
     row.innerHTML = `
         <div style="display: flex; gap: 6px; align-items: center;">
             <input type="text" placeholder="노래제목" class="unreg-title" value="${title}" style="flex: 2; margin-bottom: 0; height: 38px; box-sizing: border-box;">
             <input type="text" placeholder="가수" class="unreg-artist" value="${artist}" style="flex: 1.5; margin-bottom: 0; height: 38px; box-sizing: border-box;">
-            <input type="text" placeholder="제한 / 기타" class="unreg-etc" value="${etc}" style="flex: 1; margin-bottom: 0; height: 38px; box-sizing: border-box;">
+            <input type="text" placeholder="제한 (limit)" class="unreg-limit" value="${limitVal}" style="flex: 1; margin-bottom: 0; height: 38px; box-sizing: border-box;">
             <button type="button" onclick="toggleSongDetail(this)" style="background-color: #0284c7; color: #fff; padding: 0 12px; height: 38px; font-size: 12px; border: none; border-radius: 4px; cursor: pointer; white-space: nowrap; margin-bottom: 0; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center;">✏️ 수정</button>
             <button type="button" class="delete-item-btn" onclick="this.closest('.menu-item-row').remove()" style="padding: 0 12px; height: 38px; margin-bottom: 0; white-space: nowrap; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center;">삭제</button>
         </div>
@@ -358,7 +358,7 @@ function addUnregisteredSongRow(item = {}, forcedIndex = null) {
 
 // [신규] 여러 노래 시간 일괄 추가 모달창 열기 함수
 function openBatchTimeImportModal() {
-    document.getElementById('batch-common-date').value = new Date().toISOString().slice(0, 10); // 오늘 날짜 기본 세팅
+    document.getElementById('batch-common-date').value = new Date().toISOString().slice(0, 10);
     document.getElementById('batch-text-input').value = "";
     document.getElementById('batch-result-status').innerHTML = "";
     document.getElementById('batch-time-import-modal').classList.add('active');
@@ -368,7 +368,7 @@ function closeBatchTimeImportModal() {
     document.getElementById('batch-time-import-modal').classList.remove('active');
 }
 
-// [신규] 일괄 추가 텍스트 파싱 및 매칭 실행 함수
+// [수정] 일괄 추가 텍스트 파싱 및 매칭 실행 함수 (등록된 노래 + 미등록된 노래 모두 탐색)
 function executeBatchTimeImport() {
     const commonDate = document.getElementById('batch-common-date').value.trim();
     const rawText = document.getElementById('batch-text-input').value.trim();
@@ -384,22 +384,23 @@ function executeBatchTimeImport() {
     }
 
     const lines = rawText.split('\n');
-    const rows = document.querySelectorAll('#registered-songs-container .reg-song-row');
+    
+    // 등록된 노래와 미등록된 노래 목록을 모두 수집
+    const rows = [
+        ...document.querySelectorAll('#registered-songs-container .reg-song-row'),
+        ...document.querySelectorAll('#unregistered-songs-container .unreg-song-row')
+    ];
     
     let matchedCount = 0;
     let mismatchLines = [];
 
-    // 입력된 텍스트 라인별 순회
     lines.forEach(line => {
         const trimmedLine = line.trim();
         if (!trimmedLine) return;
 
-        // 정규식 매칭: [시간] 🎵 [제목] - [가수] 형태 파싱
-        // 예: 00:06:49 🎵 Broken - 결
         const match = trimmedLine.match(/^(\d{2}:\d{2}(?::\d{2})?)\s*(?:🎵)?\s*(.+?)\s*-\s*(.+)$/);
         
         if (!match) {
-            // 형식이 안 맞으면 불일치로 처리
             mismatchLines.push(trimmedLine);
             return;
         }
@@ -410,16 +411,19 @@ function executeBatchTimeImport() {
 
         let found = false;
 
-        // 등록된 노래 목록에서 일치하는 곡 찾기
         rows.forEach(row => {
-            const rowTitle = row.querySelector('.reg-title').value.trim().toLowerCase();
-            const rowArtist = row.querySelector('.reg-artist').value.trim().toLowerCase();
+            const titleEl = row.querySelector('.reg-title') || row.querySelector('.unreg-title');
+            const artistEl = row.querySelector('.reg-artist') || row.querySelector('.unreg-artist');
+            
+            if (!titleEl || !artistEl) return;
+
+            const rowTitle = titleEl.value.trim().toLowerCase();
+            const rowArtist = artistEl.value.trim().toLowerCase();
 
             if (rowTitle === targetTitle && rowArtist === targetArtist) {
                 found = true;
                 const dtContainer = row.querySelector('.datetime-container');
                 
-                // 기존 첫 번째 빈 행이 있으면 거기에 넣고, 아니면 새로 추가
                 const firstSubRow = dtContainer.querySelector('.datetime-sub-row');
                 if (firstSubRow && !firstSubRow.querySelector('.sub-date').value && !firstSubRow.querySelector('.sub-time').value) {
                     firstSubRow.querySelector('.sub-date').value = commonDate;
@@ -437,7 +441,6 @@ function executeBatchTimeImport() {
         }
     });
 
-    // 결과 출력
     let resultHTML = `<span style="color: #10b981; font-weight: bold;">성공적으로 ${matchedCount}개의 노래에 시간이 추가되었습니다!</span>`;
     if (mismatchLines.length > 0) {
         resultHTML += `<br><span style="color: #ef4444; font-weight: bold;">⚠️ 불일치하거나 형식 오류인 항목 (${mismatchLines.length}개):</span>`;
@@ -510,7 +513,7 @@ function importSelectedSongsToRegistered(isReplace = false) {
             addRegisteredSongRow({
                 title: songData.title || '',
                 artist: songData.artist || '',
-                etc: songData.limit || '',
+                limit: songData.limit || '',
                 dateTimes: []
             });
         }
@@ -536,7 +539,7 @@ function importAllSongsToRegistered() {
         addRegisteredSongRow({
             title: songData.title || '',
             artist: songData.artist || '',
-            etc: songData.limit || '',
+            limit: songData.limit || '',
             dateTimes: []
         });
     });
@@ -544,7 +547,7 @@ function importAllSongsToRegistered() {
     closeSongListImportModal();
 }
 
-// 서버 저장 함수 (다중 날짜/시간 배열 구조 수집)
+// 서버 저장 함수
 async function saveSongStatsSettings() {
     const statusEl = document.getElementById('songstats-status');
     const password = document.getElementById('admin-password').value.trim();
@@ -557,7 +560,6 @@ async function saveSongStatsSettings() {
     statusEl.textContent = "저장 중...";
     statusEl.style.color = "#0077b6";
 
-    // 1. 다중 다시보기 소스 수집
     const vodSources = [];
     document.querySelectorAll('#vod-sources-container .vod-source-row').forEach(row => {
         const date = row.querySelector('.vod-src-date').value.trim();
@@ -567,12 +569,11 @@ async function saveSongStatsSettings() {
         }
     });
 
-    // 2. 등록된 노래 수집
     const registeredSongs = [];
     document.querySelectorAll('#registered-songs-container .reg-song-row').forEach(row => {
         const title = row.querySelector('.reg-title').value.trim();
         const artist = row.querySelector('.reg-artist').value.trim();
-        const etc = row.querySelector('.reg-etc').value.trim();
+        const limit = row.querySelector('.reg-limit').value.trim();
         
         const dateTimes = [];
         row.querySelectorAll('.datetime-sub-row').forEach(subRow => {
@@ -584,16 +585,15 @@ async function saveSongStatsSettings() {
         });
 
         if (title) {
-            registeredSongs.push({ title, artist, etc, dateTimes });
+            registeredSongs.push({ title, artist, limit, dateTimes });
         }
     });
 
-    // 3. 미등록된 노래 수집
     const unregisteredSongs = [];
     document.querySelectorAll('#unregistered-songs-container .unreg-song-row').forEach(row => {
         const title = row.querySelector('.unreg-title').value.trim();
         const artist = row.querySelector('.unreg-artist').value.trim();
-        const etc = row.querySelector('.unreg-etc').value.trim();
+        const limit = row.querySelector('.unreg-limit').value.trim();
         
         const dateTimes = [];
         row.querySelectorAll('.datetime-sub-row').forEach(subRow => {
@@ -605,7 +605,7 @@ async function saveSongStatsSettings() {
         });
 
         if (title) {
-            unregisteredSongs.push({ title, artist, etc, dateTimes });
+            unregisteredSongs.push({ title, artist, limit, dateTimes });
         }
     });
 
