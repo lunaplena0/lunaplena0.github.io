@@ -101,7 +101,7 @@ function addDateTimeRow(containerEl, item = {}) {
     containerEl.appendChild(row);
 }
 
-// 노래책에 등록된 노래 행 추가 (제목 + 가수 복합 비교 버전)
+// 노래책에 등록된 노래 행 추가 (요청하신 3가지 항목 조건 검증 적용)
 function addRegisteredSongRow(item = {}) {
     const container = document.getElementById('registered-songs-container');
     const row = document.createElement('div');
@@ -115,26 +115,27 @@ function addRegisteredSongRow(item = {}) {
     
     let mismatchWarning = "";
     if (title && globalSongList.length > 0) {
-        // 1순위: 제목과 가수가 모두 일치하는 곡 찾기
-        let matched = globalSongList.find(s => 
+        // 1. 노래제목과 가수가 모두 일치하는 곡이 원본에 존재하는지 확인 (없으면 존재하지 않는 제목)
+        const exactMatchExists = globalSongList.some(s => 
             (s.title || '').trim() === title.trim() && 
             (s.artist || '').trim() === artist.trim()
         );
-        
-        // 2순위: 정확히 일치하는 가수가 없으면 제목만이라도 일치하는 것 찾기
-        if (!matched) {
-            matched = globalSongList.find(s => (s.title || '').trim() === title.trim());
-        }
 
-        if (matched) {
-            const matchedArtist = (matched.artist || '').trim();
-            const matchedEtc = (matched.etc || matched.limit || '').trim();
-            
-            if (matchedArtist !== artist.trim() || matchedEtc !== etc.trim()) {
+        if (!exactMatchExists) {
+            mismatchWarning = `<span style="color: #f59e0b; font-size: 11px; font-weight: bold;">🔍 songlist에 존재하지 않는 제목입니다.</span>`;
+        } else {
+            // 2. 제목과 가수는 존재하지만, 제목/가수/제한(etc) 3가지 중 단 하나라도 정확히 일치하는 데이터 세트가 있는지 확인
+            const fullMatchExists = globalSongList.some(s => {
+                const sTitle = (s.title || '').trim();
+                const sArtist = (s.artist || '').trim();
+                const sEtc = (s.etc || s.limit || '').trim();
+                return sTitle === title.trim() && sArtist === artist.trim() && sEtc === etc.trim();
+            });
+
+            // 3가지 모두 일치하는 항목이 없다면 정보 불일치 경고 출력
+            if (!fullMatchExists) {
                 mismatchWarning = `<span style="color: #ef4444; font-size: 11px; font-weight: bold;">⚠️ songlist 정보와 일치하지 않음 (변경됨)</span>`;
             }
-        } else {
-            mismatchWarning = `<span style="color: #f59e0b; font-size: 11px; font-weight: bold;">🔍 songlist에 존재하지 않는 제목입니다.</span>`;
         }
     }
 
@@ -171,7 +172,7 @@ function addRegisteredSongRow(item = {}) {
     }
 }
 
-// 실시간 변경 비교 함수 (복합 매칭 적용)
+// 실시간 변경 비교 함수 (요청하신 조건 반영)
 function checkSongChanges(input) {
     const row = input.closest('.menu-item-row');
     const title = row.querySelector('.reg-title').value.trim();
@@ -184,26 +185,27 @@ function checkSongChanges(input) {
         return;
     }
 
-    let matched = globalSongList.find(s => 
+    const exactMatchExists = globalSongList.some(s => 
         (s.title || '').trim() === title && 
         (s.artist || '').trim() === artist
     );
-    
-    if (!matched) {
-        matched = globalSongList.find(s => (s.title || '').trim() === title);
+
+    if (!exactMatchExists) {
+        warningSlot.innerHTML = `<span style="color: #f59e0b; font-size: 11px; font-weight: bold;">🔍 songlist에 존재하지 않는 제목입니다.</span>`;
+        return;
     }
 
-    if (matched) {
-        const matchedArtist = (matched.artist || '').trim();
-        const matchedEtc = (matched.etc || matched.limit || '').trim();
-        
-        if (matchedArtist !== artist || matchedEtc !== etc) {
-            warningSlot.innerHTML = `<span style="color: #ef4444; font-size: 11px; font-weight: bold;">⚠️ songlist 정보와 일치하지 않음 (변경됨)</span>`;
-        } else {
-            warningSlot.innerHTML = "";
-        }
+    const fullMatchExists = globalSongList.some(s => {
+        const sTitle = (s.title || '').trim();
+        const sArtist = (s.artist || '').trim();
+        const sEtc = (s.etc || s.limit || '').trim();
+        return sTitle === title && sArtist === artist && sEtc === etc;
+    });
+
+    if (!fullMatchExists) {
+        warningSlot.innerHTML = `<span style="color: #ef4444; font-size: 11px; font-weight: bold;">⚠️ songlist 정보와 일치하지 않음 (변경됨)</span>`;
     } else {
-        warningSlot.innerHTML = `<span style="color: #f59e0b; font-size: 11px; font-weight: bold;">🔍 songlist에 존재하지 않는 제목입니다.</span>`;
+        warningSlot.innerHTML = "";
     }
 }
 
