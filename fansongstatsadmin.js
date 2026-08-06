@@ -73,7 +73,7 @@ async function loadSongStatsSettingsData() {
     }
 }
 
-// [추가] 다시보기 개별 상세 영역 접기/펼치기 토글 함수
+// 다시보기 개별 상세 영역 접기/펼치기 토글 함수
 function toggleVodDetail(btn) {
     const detailBox = btn.closest('.vod-source-row').querySelector('.vod-detail-box');
     if (detailBox.style.display === "none") {
@@ -87,7 +87,7 @@ function toggleVodDetail(btn) {
     }
 }
 
-// [추가] 다시보기 전체 일괄 접기/펼치기 함수
+// 다시보기 전체 일괄 접기/펼치기 함수 (상세 영역 제어)
 function toggleAllVodDetails(expand = true) {
     const container = document.getElementById('vod-sources-container');
     if (!container) return;
@@ -110,7 +110,7 @@ function toggleAllVodDetails(expand = true) {
     });
 }
 
-// 다시보기 날짜 및 주소 행 추가 함수 (접기/펼치기 구조 적용)
+// 다시보기 날짜 및 주소 행 추가 함수
 function addVodSourceRow(item = {}) {
     const container = document.getElementById('vod-sources-container');
     const row = document.createElement('div');
@@ -149,7 +149,7 @@ function addDateTimeRow(containerEl, item = {}) {
     containerEl.appendChild(row);
 }
 
-// 상세 영역 개별 접기/펼치기 토글 함수
+// 상세 영역 개별 접기/펼치기 토글 함수 (노래 행 내부의 날짜/시간 영역)
 function toggleSongDetail(btn) {
     const detailBox = btn.closest('.reg-song-row, .unreg-song-row').querySelector('.song-detail-box');
     if (detailBox.style.display === "none") {
@@ -163,25 +163,17 @@ function toggleSongDetail(btn) {
     }
 }
 
-// 특정 컨테이너 안의 모든 항목 일괄 접기/펼치기 함수
+// [수정됨] 특정 컨테이너 안의 모든 노래 목록 행 자체를 일괄 접기/펼치기 하는 함수
 function toggleAllSongDetails(containerId, expand = true) {
     const container = document.getElementById(containerId);
     if (!container) return;
     
     const rows = container.querySelectorAll('.reg-song-row, .unreg-song-row');
     rows.forEach(row => {
-        const detailBox = row.querySelector('.song-detail-box');
-        const btn = row.querySelector('button[onclick*="toggleSongDetail"]');
-        if (detailBox && btn) {
-            if (expand) {
-                detailBox.style.display = "block";
-                btn.textContent = "➖ 닫기";
-                btn.style.backgroundColor = "#64748b";
-            } else {
-                detailBox.style.display = "none";
-                btn.textContent = "✏️ 수정";
-                btn.style.backgroundColor = "#0284c7";
-            }
+        if (expand) {
+            row.style.display = "flex";
+        } else {
+            row.style.display = "none";
         }
     });
 }
