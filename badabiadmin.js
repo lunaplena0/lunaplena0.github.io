@@ -77,3 +77,10 @@ function showVodListSettings() {
     document.getElementById('panel-vodlist').style.display = 'block';
     loadVodListSettingsData();
 }
+
+function showSongStatsSettings() {
+    showDashboard();
+    document.getElementById('dashboard-view').style.display = 'none';
+    document.getElementById('panel-songstats').style.display = 'block';
+    loadSongStatsSettingsData();
+}
