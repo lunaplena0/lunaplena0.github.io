@@ -469,6 +469,10 @@
                         <div id="zeroRatioStat" class="stat-value">-</div>
                     </div>
                     <div class="stat-item">
+                        <span class="stat-label">✨ 미등록 후 부른 노래 비율 (전체 부른 곡 대비)</span>
+                        <div id="unregRatioStat" class="stat-value">-</div>
+                    </div>
+                    <div class="stat-item">
                         <span class="stat-label">🔥 최근 30일 이내 최다 부른 곡</span>
                         <div id="recentTopSongsStat" class="stat-value">-</div>
                     </div>
@@ -591,6 +595,7 @@
                 document.getElementById("guitarRatioStat").textContent = "기록 없음";
                 document.getElementById("onceRatioStat").textContent = "기록 없음";
                 document.getElementById("zeroRatioStat").textContent = "기록 없음";
+                document.getElementById("unregRatioStat").textContent = "기록 없음";
                 document.getElementById("recentTopSongsStat").textContent = "기록 없음";
                 return;
             }
@@ -687,7 +692,18 @@
             const zeroRatio = totalNonGuitarRegCount > 0 ? ((zeroPlayCount / totalNonGuitarRegCount) * 100).toFixed(1) : 0;
             document.getElementById("zeroRatioStat").textContent = `${zeroPlayCount}곡 / 기타 제외 등록된 곡(${totalNonGuitarRegCount}곡)의 ${zeroRatio}%`;
 
-            // 6. 최근 30일 이내 최다 부른 곡
+            // 6. 노래책에 등록되지 않았지만 부른 노래의 비율 (전체 부른 곡 기준)
+            const playedRegCount = registered.filter(s => s.dateTimes && s.dateTimes.length > 0).length;
+            const playedUnregCount = unregistered.filter(s => s.dateTimes && s.dateTimes.length > 0).length;
+            const totalPlayedCount = songs.length;
+            const unregPlayRatio = totalPlayedCount > 0 ? ((playedUnregCount / totalPlayedCount) * 100).toFixed(1) : 0;
+
+            document.getElementById("unregRatioStat").innerHTML = `
+                ${playedUnregCount}곡 / 전체 부른 곡(${totalPlayedCount}곡)의 <strong>${unregPlayRatio}%</strong><br>
+                <span style="font-size: 12px; color: #64748b;">- 등록 후 부른 곡: ${playedRegCount}곡 / 미등록 후 부른 곡: ${playedUnregCount}곡</span>
+            `;
+
+            // 7. 최근 30일 이내 최다 부른 곡
             const allDateTimes = [];
             songs.forEach(song => {
                 song.dateTimes.forEach(dt => {
