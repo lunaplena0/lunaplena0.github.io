@@ -121,7 +121,7 @@ function addVodSourceRow(item = {}, forcedIndex = null) {
 
     row.innerHTML = `
         <div style="display: flex; gap: 6px; align-items: center;">
-            <input type="text" placeholder="다시보기 날짜 (예: 2026-06-06)" class="vod-src-date" value="${date}" style="flex: 1; margin-bottom: 0; height: 38px; box-sizing: border-box;">
+            <input type="text" placeholder="다시보기 날짜 (예: 2026-06-06(1))" class="vod-src-date" value="${date}" style="flex: 1; margin-bottom: 0; height: 38px; box-sizing: border-box;">
             <input type="text" placeholder="다시보기 주소 (URL)" class="vod-src-url" value="${url}" style="flex: 2; margin-bottom: 0; height: 38px; box-sizing: border-box;">
             <button type="button" onclick="toggleVodDetail(this)" style="background-color: #0284c7; color: #fff; padding: 0 12px; height: 38px; font-size: 12px; border: none; border-radius: 4px; cursor: pointer; white-space: nowrap; margin-bottom: 0; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center;">✏️ 수정</button>
             <button type="button" class="delete-item-btn" onclick="this.closest('.menu-item-row').remove()" style="padding: 0 12px; height: 38px; margin-bottom: 0; white-space: nowrap; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center;">삭제</button>
@@ -140,7 +140,7 @@ function addDateTimeRow(containerEl, item = {}) {
     row.className = 'datetime-sub-row';
     row.style.cssText = "display: flex; gap: 6px; align-items: center; margin-top: 4px;";
     row.innerHTML = `
-        <input type="text" placeholder="부른 날짜 (예: 2026-06-06)" class="sub-date" value="${item.date || ''}" style="flex: 1; margin-bottom: 0; background: #fff;">
+        <input type="text" placeholder="부른 날짜 (예: 2026-06-06(1))" class="sub-date" value="${item.date || ''}" style="flex: 1; margin-bottom: 0; background: #fff;">
         <input type="text" placeholder="부른 시간 (예: 21:30)" class="sub-time" value="${item.time || ''}" style="flex: 1; margin-bottom: 0; background: #fff;">
         <button type="button" class="delete-item-btn" onclick="this.closest('.datetime-sub-row').remove()" style="padding: 6px 10px; font-size: 11px; margin-bottom: 0;">삭제</button>
     `;
@@ -358,7 +358,17 @@ function addUnregisteredSongRow(item = {}, forcedIndex = null) {
 
 // [신규] 여러 노래 시간 일괄 추가 모달창 열기 함수
 function openBatchTimeImportModal() {
-    document.getElementById('batch-common-date').value = new Date().toISOString().slice(0, 10);
+    // 날짜 기본값 설정 시 뒤에 붙은 (1) 등의 회차 번호는 제외하고 기본 날짜만 세팅
+    const rawDateInput = document.getElementById('vod-sources-container').querySelector('.vod-src-date');
+    let defaultDate = rawDateInput ? rawDateInput.value.trim() : "";
+    if (!defaultDate) {
+        defaultDate = new Date().toISOString().slice(0, 10);
+    } else {
+        // 회차 번호 (예: 2026-06-06(1) -> 2026-06-06) 추출 또는 그대로 사용
+        defaultDate = defaultDate.replace(/\(\d+\)$/, '').trim();
+    }
+
+    document.getElementById('batch-common-date').value = defaultDate;
     document.getElementById('batch-text-input').value = "";
     document.getElementById('batch-result-status').innerHTML = "";
     document.getElementById('batch-time-import-modal').classList.add('active');
@@ -368,13 +378,13 @@ function closeBatchTimeImportModal() {
     document.getElementById('batch-time-import-modal').classList.remove('active');
 }
 
-// [수정] 일괄 추가 텍스트 파싱 및 매칭 실행 함수 (등록된 노래 + 미등록된 노래 모두 탐색)
+// 일괄 추가 텍스트 파싱 및 매칭 실행 함수 ((1), (2) 등 회차 번호 포함 날짜 대응)
 function executeBatchTimeImport() {
-    const commonDate = document.getElementById('batch-common-date').value.trim();
+    const commonDateInput = document.getElementById('batch-common-date').value.trim();
     const rawText = document.getElementById('batch-text-input').value.trim();
     const statusEl = document.getElementById('batch-result-status');
 
-    if (!commonDate) {
+    if (!commonDateInput) {
         alert("공통으로 적용할 날짜를 입력해주세요.");
         return;
     }
@@ -393,6 +403,11 @@ function executeBatchTimeImport() {
     
     let matchedCount = 0;
     let mismatchLines = [];
+
+    // 입력된 날짜에서 순수 날짜 부분과 회차 번호((1), (2) 등) 분리 추출
+    const dateMatch = commonDateInput.match(/^(.+?)(\(\d+\))?$/);
+    const targetBaseDate = dateMatch ? dateMatch[1].trim() : commonDateInput;
+    const targetSessionNum = dateMatch && dateMatch[2] ? dateMatch[2] : "";
 
     lines.forEach(line => {
         const trimmedLine = line.trim();
@@ -424,12 +439,14 @@ function executeBatchTimeImport() {
                 found = true;
                 const dtContainer = row.querySelector('.datetime-container');
                 
+                // 기존 비어있는 행이 있는지 확인
                 const firstSubRow = dtContainer.querySelector('.datetime-sub-row');
                 if (firstSubRow && !firstSubRow.querySelector('.sub-date').value && !firstSubRow.querySelector('.sub-time').value) {
-                    firstSubRow.querySelector('.sub-date').value = commonDate;
+                    firstSubRow.querySelector('.sub-date').value = commonDateInput;
                     firstSubRow.querySelector('.sub-time').value = timeStr;
                 } else {
-                    addDateTimeRow(dtContainer, { date: commonDate, time: timeStr });
+                    // 비어있는 행이 없으면 새로운 하위 날짜/시간 행 추가 ((1) 포함된 전체 문자열 입력)
+                    addDateTimeRow(dtContainer, { date: commonDateInput, time: timeStr });
                 }
             }
         });
