@@ -42,7 +42,7 @@ async function loadSongStatsSettingsData() {
         }
 
         // 미등록된 노래 렌더링
-        unregContainer = document.getElementById('unregistered-songs-container');
+        const unregContainer = document.getElementById('unregistered-songs-container');
         unregContainer.innerHTML = "";
         const unregisteredList = data.unregisteredSongs || data.unregistered || [];
         if (unregisteredList.length > 0) {
@@ -220,4 +220,3 @@ async function saveSongStatsSettings() {
         statusEl.style.color = "#ef4444";
     }
 }
-```[cite: 1, 2, 3]
