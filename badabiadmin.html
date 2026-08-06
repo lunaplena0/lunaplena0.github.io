@@ -398,11 +398,10 @@
                     <h4>VOD리스트</h4>
                     <p>VOD 목록 관리 (fanvodlist)</p>
                 </div>
-                <!-- 대시보드 메뉴 그리드 내 추가 -->
-<div class="menu-card" onclick="showSongStatsSettings()">
-    <h4>노래통계</h4>
-    <p>노래 통계 데이터 관리 (fansongstats)</p>
-</div>
+                <div class="menu-card" onclick="showSongStatsSettings()">
+                    <h4>노래통계</h4>
+                    <p>노래 통계 데이터 관리 (fansongstats)</p>
+                </div>
             </div>
         </div>
 
@@ -432,7 +431,7 @@
             <div id="mainpage-status" class="status-msg"></div>
         </div>
 
-        <!-- 3. 시작페이지 수정 패널 (fanstartpageadmin.js 연동) -->
+        <!-- 3. 시작페이지 수정 패널 -->
         <div id="panel-intro" class="card" style="display: none;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid rgba(0, 119, 190, 0.2); padding-bottom: 10px;">
                 <h3 style="margin: 0; color: #03045e;">👤 시작페이지(소개) 수정</h3>
@@ -494,14 +493,13 @@
             <div id="crynote-status" class="status-msg"></div>
         </div>
 
-        <!-- 5. 월간일정 수정 패널 (fancalenaradmin.js 연동) -->
+        <!-- 5. 월간일정 수정 패널 -->
         <div id="panel-calendar" class="card" style="display: none;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid rgba(0, 119, 190, 0.2); padding-bottom: 10px;">
                 <h3 style="margin: 0; color: #03045e;">📅 월간일정 데이터 관리 (fancalenar)</h3>
                 <button onclick="showDashboard()" class="secondary-btn" style="padding: 6px 12px; font-size: 13px;">← 메뉴 목록으로</button>
             </div>
 
-            <!-- 캘린더 네비게이션 (스크립트가 찾는 ID 반영) -->
             <div class="calendar-nav">
                 <button type="button" class="month-picker-btn" onclick="toggleMonthDropdown()">
                     <span id="current-month-label">2026년 08월 📅</span> ▾
@@ -526,7 +524,6 @@
                 </div>
             </div>
 
-            <!-- 캘린더 그리드 상자 -->
             <div class="calendar-grid-box">
                 <div class="weekdays-header">
                     <div>일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div>토</div>
@@ -538,7 +535,7 @@
             <div id="calendar-status" class="status-msg"></div>
         </div>
 
-        <!-- 6. VOD리스트 수정 패널 (fanvodlist) -->
+        <!-- 6. VOD리스트 수정 패널 -->
         <div id="panel-vodlist" class="card" style="display: none;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid rgba(0, 119, 190, 0.2); padding-bottom: 10px;">
                 <h3 style="margin: 0; color: #03045e;">🎥 VOD리스트 데이터 관리 (fanvodlist)</h3>
@@ -555,6 +552,57 @@
 
             <button onclick="saveVodListSettings()" style="width: 100%; margin-top: 25px; background-color: #0077b6; padding: 14px; font-size: 16px;">VOD리스트 설정 반영하기</button>
             <div id="vodlist-status" class="status-msg"></div>
+        </div>
+
+        <!-- 7. 노래통계 수정 패널 -->
+        <div id="panel-songstats" class="card" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid rgba(0, 119, 190, 0.2); padding-bottom: 10px;">
+                <h3 style="margin: 0; color: #03045e;">🎵 노래통계 데이터 관리 (fansongstats)</h3>
+                <button onclick="showDashboard()" class="secondary-btn" style="padding: 6px 12px; font-size: 13px;">← 메뉴 목록으로</button>
+            </div>
+
+            <!-- 다중 다시보기 정보 관리 섹션 -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin: 10px 0 10px 0; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;">
+                <h4 style="color: #0077b6; margin: 0;">다시보기 정보 목록</h4>
+                <div style="display: flex; gap: 6px; align-items: center;">
+                    <button type="button" onclick="toggleAllVodDetails(true)" style="background: #475569; color: #fff; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 11px;">전체 펼치기</button>
+                    <button type="button" onclick="toggleAllVodDetails(false)" style="background: #64748b; color: #fff; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 11px;">전체 접기</button>
+                    <button type="button" onclick="addVodSourceRow()" style="background-color: #10b981; padding: 4px 10px; font-size: 12px;">+ 다시보기 추가</button>
+                </div>
+            </div>
+            <div id="vod-sources-container" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;"></div>
+
+            <!-- 1. 노래책에 등록된 노래 섹션 -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin: 20px 0 10px 0; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;">
+                <h4 style="color: #0077b6; margin: 0;">노래책에 등록된 노래</h4>
+                <div style="display: flex; gap: 6px; align-items: center;">
+                    <button type="button" onclick="toggleAllSongDetails('registered-songs-container', true)" style="background: #475569; color: #fff; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 11px;">전체 펼치기</button>
+                    <button type="button" onclick="toggleAllSongDetails('registered-songs-container', false)" style="background: #64748b; color: #fff; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 11px;">전체 접기</button>
+                    <button type="button" onclick="openSongListImportModal()" style="background-color: #0284c7; padding: 4px 10px; font-size: 12px;">📥 노래책에서 불러오기</button>
+                    <button type="button" onclick="addRegisteredSongRow()" style="background-color: #10b981; padding: 4px 10px; font-size: 12px;">+ 등록곡 추가</button>
+                </div>
+            </div>
+            
+            <!-- 등록된 노래 검색창 -->
+            <div style="margin-bottom: 10px;">
+                <input type="text" placeholder="🔍 등록된 노래 검색 (제목, 가수, 제한검색)" oninput="filterRegisteredSongs(this)" style="width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #cbd5e1; border-radius: 6px; margin-bottom: 0;">
+            </div>
+            <p style="color: #64748b; font-size: 12px; margin-bottom: 10px;">songlist 데이터와 비교하여 정보가 변경된 경우 경고가 표시됩니다.</p>
+            <div id="registered-songs-container" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;"></div>
+
+            <!-- 2. 노래책에 미등록된 노래 섹션 -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin: 20px 0 10px 0; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;">
+                <h4 style="color: #0077b6; margin: 0;">노래책에 미등록된 노래</h4>
+                <div style="display: flex; gap: 6px; align-items: center;">
+                    <button type="button" onclick="toggleAllSongDetails('unregistered-songs-container', true)" style="background: #475569; color: #fff; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 11px;">전체 펼치기</button>
+                    <button type="button" onclick="toggleAllSongDetails('unregistered-songs-container', false)" style="background: #64748b; color: #fff; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 11px;">전체 접기</button>
+                    <button type="button" onclick="addUnregisteredSongRow()" style="background-color: #10b981; padding: 4px 10px; font-size: 12px;">+ 미등록곡 추가</button>
+                </div>
+            </div>
+            <div id="unregistered-songs-container" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;"></div>
+
+            <button onclick="saveSongStatsSettings()" style="width: 100%; margin-top: 25px; background-color: #0077b6; padding: 14px; font-size: 16px;">노래통계 설정 반영하기</button>
+            <div id="songstats-status" class="status-msg"></div>
         </div>
     </div>
 
@@ -574,76 +622,33 @@
             </div>
         </div>
     </div>
-   <!-- 노래통계 수정 패널 안의 공통 정보 및 노래 섹션 부분을 아래 내용으로 교체 -->
-<div id="panel-songstats" class="card" style="display: none;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid rgba(0, 119, 190, 0.2); padding-bottom: 10px;">
-        <h3 style="margin: 0; color: #03045e;">🎵 노래통계 데이터 관리 (fansongstats)</h3>
-        <button onclick="showDashboard()" class="secondary-btn" style="padding: 6px 12px; font-size: 13px;">← 메뉴 목록으로</button>
-    </div>
 
-    <!-- 다중 다시보기 정보 관리 섹션 -->
-    <div style="display: flex; justify-content: space-between; align-items: center; margin: 10px 0 10px 0; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;">
-        <h4 style="color: #0077b6; margin: 0;">다시보기 정보 목록</h4>
-        <button type="button" onclick="addVodSourceRow()" style="background-color: #10b981; padding: 4px 10px; font-size: 12px;">+ 다시보기 추가</button>
-    </div>
-    <div id="vod-sources-container" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;"></div>
-
-
-    <!-- [추가] 등록된 노래 검색창 -->
-<div style="margin-bottom: 10px;">
-    <input type="text" placeholder="🔍 등록된 노래 검색 (제목, 가수, 제한검색)" oninput="filterRegisteredSongs(this)" style="width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #cbd5e1; border-radius: 6px;">
-</div>
-    
-    <!-- 1. 노래책에 등록된 노래 섹션 (songlist 자동 불러오기 포함) -->
-    <div style="display: flex; justify-content: space-between; align-items: center; margin: 20px 0 10px 0; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;">
-        <h4 style="color: #0077b6; margin: 0;">노래책에 등록된 노래</h4>
-        <div style="display: flex; gap: 6px;">
-            <button type="button" onclick="openSongListImportModal()" style="background-color: #0284c7; padding: 4px 10px; font-size: 12px;">📥 노래책에서 불러오기</button>
-            <button type="button" onclick="addRegisteredSongRow()" style="background-color: #10b981; padding: 4px 10px; font-size: 12px;">+ 등록곡 추가</button>
-        </div>
-    </div>
-    <p style="color: #64748b; font-size: 12px; margin-bottom: 10px;">songlist 데이터와 비교하여 정보가 변경된 경우 경고가 표시됩니다.</p>
-    <div id="registered-songs-container" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;"></div>
-
-    <!-- 2. 노래책에 미등록된 노래 섹션 -->
-    <div style="display: flex; justify-content: space-between; align-items: center; margin: 20px 0 10px 0; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;">
-        <h4 style="color: #0077b6; margin: 0;">노래책에 미등록된 노래</h4>
-        <button type="button" onclick="addUnregisteredSongRow()" style="background-color: #10b981; padding: 4px 10px; font-size: 12px;">+ 미등록곡 추가</button>
-    </div>
-    <div id="unregistered-songs-container" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;"></div>
-
-    <button onclick="saveSongStatsSettings()" style="width: 100%; margin-top: 25px; background-color: #0077b6; padding: 14px; font-size: 16px;">노래통계 설정 반영하기</button>
-    <div id="songstats-status" class="status-msg"></div>
-</div>
-
-<!-- [추가] 노래책 불러오기 선택 모달 창 부분 수정 -->
-<div id="songlist-import-modal" class="modal-backdrop" onclick="if(event.target.id === 'songlist-import-modal') closeSongListImportModal()">
-    <div class="modal-box" style="max-width: 650px;">
-        <div class="modal-header">
-            <span>노래책(songlist)에서 곡 선택하여 가져오기</span>
-            <button type="button" class="modal-close-btn" onclick="closeSongListImportModal()">×</button>
-        </div>
-        
-        <!-- 상단 옵션 및 전체 선택 버튼 -->
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <input type="checkbox" id="select-all-songs" onclick="toggleSelectAllSongs(this)" style="width: 16px; height: 16px; cursor: pointer;">
-                <label for="select-all-songs" style="font-size: 13px; color: #03045e; margin-bottom: 0; cursor: pointer;">전체 선택</label>
+    <!-- 노래책 불러오기 선택 모달 창 -->
+    <div id="songlist-import-modal" class="modal-backdrop" onclick="if(event.target.id === 'songlist-import-modal') closeSongListImportModal()">
+        <div class="modal-box" style="max-width: 650px;">
+            <div class="modal-header">
+                <span>노래책(songlist)에서 곡 선택하여 가져오기</span>
+                <button type="button" class="modal-close-btn" onclick="closeSongListImportModal()">×</button>
             </div>
-            <button type="button" onclick="importAllSongsToRegistered()" style="background-color: #10b981; padding: 4px 10px; font-size: 12px;">⚡ 전체 노래 한번에 가져오기</button>
-        </div>
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <input type="checkbox" id="select-all-songs" onclick="toggleSelectAllSongs(this)" style="width: 16px; height: 16px; cursor: pointer;">
+                    <label for="select-all-songs" style="font-size: 13px; color: #03045e; margin-bottom: 0; cursor: pointer;">전체 선택</label>
+                </div>
+                <button type="button" onclick="importAllSongsToRegistered()" style="background-color: #10b981; padding: 4px 10px; font-size: 12px;">⚡ 전체 노래 한번에 가져오기</button>
+            </div>
 
-        <div id="songlist-import-items" class="modal-content" style="max-height: 320px;">
-            <!-- 동적 체크박스 목록 -->
-        </div>
+            <div id="songlist-import-items" class="modal-content" style="max-height: 320px;">
+                <!-- 동적 체크박스 목록 -->
+            </div>
 
-        <!-- 하단 추가 방식 선택 (추가하기 vs 대체하기) -->
-        <div style="display: flex; gap: 10px; margin-top: 15px;">
-            <button type="button" onclick="importSelectedSongsToRegistered(false)" style="background-color: #0077b6; flex: 1; padding: 10px; font-size: 13px;">선택한 노래 추가하기</button>
-            <button type="button" onclick="importSelectedSongsToRegistered(true)" style="background-color: #ef4444; flex: 1; padding: 10px; font-size: 13px;">🔄 기존 목록 대체하기 (덮어쓰기)</button>
+            <div style="display: flex; gap: 10px; margin-top: 15px;">
+                <button type="button" onclick="importSelectedSongsToRegistered(false)" style="background-color: #0077b6; flex: 1; padding: 10px; font-size: 13px;">선택한 노래 추가하기</button>
+                <button type="button" onclick="importSelectedSongsToRegistered(true)" style="background-color: #ef4444; flex: 1; padding: 10px; font-size: 13px;">🔄 기존 목록 대체하기 (덮어쓰기)</button>
+            </div>
         </div>
     </div>
-</div>
 
     <!-- 스크립트 파일 로드 -->
     <script src="badabiadmin.js"></script>
