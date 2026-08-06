@@ -176,15 +176,21 @@ function toggleAllSongDetails(containerId, expand = true) {
     });
 }
 
-// 등록된 노래 검색 필터링 함수
+// [수정] 등록된 노래 및 미등록된 노래 통합 검색 필터링 함수
 function filterRegisteredSongs(queryInput) {
     const keyword = queryInput.value.trim().toLowerCase();
-    const rows = document.querySelectorAll('#registered-songs-container .reg-song-row');
     
-    rows.forEach(row => {
-        const title = row.querySelector('.reg-title').value.toLowerCase();
-        const artist = row.querySelector('.reg-artist').value.toLowerCase();
-        const limit = row.querySelector('.reg-limit').value.toLowerCase();
+    // 등록된 노래 목록과 미등록된 노래 목록을 모두 탐색
+    const allSongRows = document.querySelectorAll('#registered-songs-container .reg-song-row, #unregistered-songs-container .unreg-song-row');
+    
+    allSongRows.forEach(row => {
+        const titleEl = row.querySelector('.reg-title') || row.querySelector('.unreg-title');
+        const artistEl = row.querySelector('.reg-artist') || row.querySelector('.unreg-artist');
+        const limitEl = row.querySelector('.reg-limit') || row.querySelector('.unreg-limit');
+
+        const title = titleEl ? titleEl.value.toLowerCase() : "";
+        const artist = artistEl ? artistEl.value.toLowerCase() : "";
+        const limit = limitEl ? limitEl.value.toLowerCase() : "";
         
         if (!keyword || title.includes(keyword) || artist.includes(keyword) || limit.includes(keyword)) {
             row.style.display = "flex";
@@ -376,7 +382,7 @@ function closeBatchTimeImportModal() {
     document.getElementById('batch-time-import-modal').classList.remove('active');
 }
 
-// [수정] 일괄 추가 텍스트 파싱 및 중복(동일 날짜+시간) 방지 매칭 실행 함수
+// 일괄 추가 텍스트 파싱 및 중복(동일 날짜+시간) 방지 매칭 실행 함수
 function executeBatchTimeImport() {
     const commonDateInput = document.getElementById('batch-common-date').value.trim();
     const rawText = document.getElementById('batch-text-input').value.trim();
@@ -433,7 +439,6 @@ function executeBatchTimeImport() {
                 found = true;
                 const dtContainer = row.querySelector('.datetime-container');
                 
-                // 이미 동일한 날짜와 시간이 등록되어 있는지 확인 (중복 체크)
                 let isAlreadyExists = false;
                 const existingSubRows = dtContainer.querySelectorAll('.datetime-sub-row');
                 existingSubRows.forEach(subRow => {
@@ -446,12 +451,11 @@ function executeBatchTimeImport() {
 
                 if (isAlreadyExists) {
                     skippedCount++;
-                    return; // 중복이므로 추가하지 않고 건너뜀
+                    return;
                 }
 
                 matchedCount++;
                 
-                // 기존 비어있는 행이 있는지 확인 후 채우기, 없으면 새 행 추가
                 const firstSubRow = dtContainer.querySelector('.datetime-sub-row');
                 if (firstSubRow && !firstSubRow.querySelector('.sub-date').value && !firstSubRow.querySelector('.sub-time').value) {
                     firstSubRow.querySelector('.sub-date').value = commonDateInput;
