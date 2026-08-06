@@ -203,7 +203,7 @@
 
                 const data = await response.json();
                 
-                // 1. VOD 소스 맵핑 생성 (date를 키로 url 저장)
+                // 1. VOD 소스 맵핑 생성
                 vodMap = {};
                 if (data.vodSources) {
                     data.vodSources.forEach(vod => {
@@ -238,14 +238,21 @@
                 return;
             }
 
-            songs.forEach(song => {
+            // 너무 많은 항목(200~300개 등)이 한 번에 표시되지 않도록 최대 50개로 제한
+            const limitCount = 50;
+            const displaySongs = songs.slice(0, limitCount);
+
+            displaySongs.forEach(song => {
                 const card = document.createElement("div");
                 card.className = "song-card";
 
-                // 가사/제한 사항 배지
-                let limitBadge = song.limit ? `<span class="badge badge-limit">${song.limit}</span>` : "";
+                // limit이 "기타"인 경우 "기타 노래"로 표시
+                let limitBadge = "";
+                if (song.limit === "기타") {
+                    limitBadge = `<span class="badge badge-limit">기타 노래</span>`;
+                }
 
-                // 타임스탬프 버튼 생성
+                // 타임스탬프 버튼 생성 (괄호 및 회차 번호 제거 후 날짜만 표시)
                 let timestampsHTML = "";
                 if (song.dateTimes && song.dateTimes.length > 0) {
                     timestampsHTML = '<div class="timestamp-container">';
@@ -254,9 +261,12 @@
                         const totalSeconds = timeToSeconds(dt.time);
                         const finalLink = vodUrl !== "#" ? `${vodUrl}?change_second=${totalSeconds}` : "#";
 
+                        // 2026-04-20(1) 형태에서 괄호와 안의 숫자 제거 -> 2026-04-20
+                        const cleanDate = dt.date.replace(/\(.*?\)/g, "").trim();
+
                         timestampsHTML += `
                             <a href="${finalLink}" target="_blank" rel="noopener noreferrer" class="timestamp-btn">
-                                📅 ${dt.date} (${dt.time})
+                                📅 ${cleanDate}
                             </a>
                         `;
                     });
@@ -278,6 +288,16 @@
 
                 container.appendChild(card);
             });
+
+            // 전체 개수가 제한보다 많을 경우 안내 메시지 추가
+            if (songs.length > limitCount) {
+                const notice = document.createElement("p");
+                notice.className = "no-result";
+                notice.style.padding = "10px 0";
+                notice.style.fontSize = "13px";
+                notice.textContent = `전체 ${songs.length}개 중 상위 ${limitCount}개만 표시됩니다. 원하는 곡은 검색창을 이용해주세요.`;
+                container.appendChild(notice);
+            }
         }
 
         // 검색 필터링 기능
