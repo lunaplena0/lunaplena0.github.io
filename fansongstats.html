@@ -24,7 +24,7 @@
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
-            gap: 24px;
+            gap: 20px;
             flex: 1;
         }
 
@@ -34,7 +34,15 @@
             color: #0f172a;
             border-left: 5px solid #0077b6;
             padding-left: 10px;
-            margin: 0 0 10px 0;
+            margin: 0 0 5px 0;
+        }
+
+        /* 통계 요약 텍스트 바 */
+        .stats-summary {
+            font-size: 14px;
+            color: #64748b;
+            font-weight: 600;
+            margin-bottom: 4px;
         }
 
         /* 검색 및 필터 영역 */
@@ -166,7 +174,10 @@
 <body>
 
     <div class="main-container">
-        <h1 class="page-title">바다비 노래 통계</h1>
+        <div>
+            <h1 class="page-title">바다비 노래 통계</h1>
+            <div id="statsSummary" class="stats-summary">통계 계산 중...</div>
+        </div>
         
         <input type="text" id="searchInput" class="search-box" placeholder="노래 제목 또는 가수 검색..." oninput="filterSongs()">
 
@@ -181,6 +192,7 @@
 
         let allSongs = [];
         let vodMap = {};
+        let totalPlayCount = 0;
 
         // HH:MM:SS 형식을 초(seconds)로 변환하는 함수
         function timeToSeconds(timeStr) {
@@ -214,10 +226,19 @@
                 // 2. registeredSongs와 unregisteredSongs 합치기
                 const registered = data.registeredSongs || [];
                 const unregistered = data.unregisteredSongs || [];
-                allSongs = [...registered, ...unregistered];
+                const rawSongs = [...registered, ...unregistered];
+
+                // 3. 날짜 기록(dateTimes)이 아예 없는 곡들은 숨김 처리 필터링
+                allSongs = rawSongs.filter(song => song.dateTimes && song.dateTimes.length > 0);
+
+                // 4. 총 불린 횟수 계산 (모든 곡의 dateTimes 개수 합산)
+                totalPlayCount = allSongs.reduce((sum, song) => sum + song.dateTimes.length, 0);
+
+                // 상단 통계 요약 텍스트 업데이트
+                document.getElementById("statsSummary").textContent = `총 등록된 곡: ${allSongs.length}곡 | 누적 부른 횟수: 총 ${totalPlayCount}회`;
 
                 if (allSongs.length === 0) {
-                    container.innerHTML = '<p class="no-result">등록된 노래 데이터가 없습니다.</p>';
+                    container.innerHTML = '<p class="no-result">표시할 노래 데이터가 없습니다.</p>';
                     return;
                 }
 
@@ -238,7 +259,7 @@
                 return;
             }
 
-            // 너무 많은 항목(200~300개 등)이 한 번에 표시되지 않도록 최대 50개로 제한
+            // 너무 많은 항목이 한 번에 표시되지 않도록 최대 50개로 제한
             const limitCount = 50;
             const displaySongs = songs.slice(0, limitCount);
 
@@ -295,7 +316,7 @@
                 notice.className = "no-result";
                 notice.style.padding = "10px 0";
                 notice.style.fontSize = "13px";
-                notice.textContent = `전체 ${songs.length}개 중 상위 ${limitCount}개만 표시됩니다. 원하는 곡은 검색창을 이용해주세요.`;
+                notice.textContent = `검색된 전체 ${songs.length}개 중 상위 ${limitCount}개만 표시됩니다.`;
                 container.appendChild(notice);
             }
         }
