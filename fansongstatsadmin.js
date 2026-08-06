@@ -106,16 +106,34 @@ function toggleSongDetail(btn) {
     const detailBox = btn.closest('.reg-song-row, .unreg-song-row').querySelector('.song-detail-box');
     if (detailBox.style.display === "none") {
         detailBox.style.display = "block";
-        btn.textContent = "➖ 상세 닫기";
+        btn.textContent = "➖ 닫기";
         btn.style.backgroundColor = "#64748b";
     } else {
         detailBox.style.display = "none";
-        btn.textContent = "✏️ 수정/날짜관리";
+        btn.textContent = "✏️ 수정";
         btn.style.backgroundColor = "#0284c7";
     }
 }
 
-// 노래책에 등록된 노래 행 추가 (요약 보기 + 수정 버튼 분리)
+// 등록된 노래 검색 필터링 함수
+function filterRegisteredSongs(queryInput) {
+    const keyword = queryInput.value.trim().toLowerCase();
+    const rows = document.querySelectorAll('#registered-songs-container .reg-song-row');
+    
+    rows.forEach(row => {
+        const title = row.querySelector('.reg-title').value.toLowerCase();
+        const artist = row.querySelector('.reg-artist').value.toLowerCase();
+        const etc = row.querySelector('.reg-etc').value.toLowerCase();
+        
+        if (!keyword || title.includes(keyword) || artist.includes(keyword) || etc.includes(keyword)) {
+            row.style.display = "flex";
+        } else {
+            row.style.display = "none";
+        }
+    });
+}
+
+// 노래책에 등록된 노래 행 추가 (버튼 높이 일치 및 검색 대응)
 function addRegisteredSongRow(item = {}) {
     const container = document.getElementById('registered-songs-container');
     const row = document.createElement('div');
@@ -151,16 +169,16 @@ function addRegisteredSongRow(item = {}) {
     }
 
     row.innerHTML = `
-        <!-- 상단 요약 바 (노래제목, 가수, 제한/기타, 수정 버튼, 삭제 버튼) -->
+        <!-- 상단 요약 바 (입력창과 버튼들의 높이/패딩을 일치시킴) -->
         <div style="display: flex; gap: 6px; align-items: center;">
-            <input type="text" placeholder="노래제목" class="reg-title" value="${title}" style="flex: 2; margin-bottom: 0;" oninput="checkSongChanges(this)">
-            <input type="text" placeholder="가수" class="reg-artist" value="${artist}" style="flex: 1.5; margin-bottom: 0;" oninput="checkSongChanges(this)">
-            <input type="text" placeholder="제한 / 기타" class="reg-etc" value="${etc}" style="flex: 1; margin-bottom: 0;" oninput="checkSongChanges(this)">
-            <button type="button" onclick="toggleSongDetail(this)" style="background-color: #0284c7; color: #fff; padding: 8px 10px; font-size: 12px; border: none; border-radius: 4px; cursor: pointer; white-space: nowrap; margin-bottom: 0;">✏️ 수정/날짜관리</button>
-            <button type="button" class="delete-item-btn" onclick="this.closest('.menu-item-row').remove()" style="padding: 8px 10px; margin-bottom: 0; white-space: nowrap;">삭제</button>
+            <input type="text" placeholder="노래제목" class="reg-title" value="${title}" style="flex: 2; margin-bottom: 0; height: 38px; box-sizing: border-box;" oninput="checkSongChanges(this)">
+            <input type="text" placeholder="가수" class="reg-artist" value="${artist}" style="flex: 1.5; margin-bottom: 0; height: 38px; box-sizing: border-box;" oninput="checkSongChanges(this)">
+            <input type="text" placeholder="제한 / 기타" class="reg-etc" value="${etc}" style="flex: 1; margin-bottom: 0; height: 38px; box-sizing: border-box;" oninput="checkSongChanges(this)">
+            <button type="button" onclick="toggleSongDetail(this)" style="background-color: #0284c7; color: #fff; padding: 0 12px; height: 38px; font-size: 12px; border: none; border-radius: 4px; cursor: pointer; white-space: nowrap; margin-bottom: 0; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center;">✏️ 수정</button>
+            <button type="button" class="delete-item-btn" onclick="this.closest('.menu-item-row').remove()" style="padding: 0 12px; height: 38px; margin-bottom: 0; white-space: nowrap; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center;">삭제</button>
         </div>
         
-        <!-- 하단 상세 영역 (기본 숨김 처리) -->
+        <!-- 하단 상세 영역 -->
         <div class="song-detail-box" style="display: none; background: #f8fafc; padding: 10px; border-radius: 6px; border: 1px solid #e2e8f0; margin-top: 8px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
                 <span style="font-size: 12px; font-weight: bold; color: #0077b6;">부른 날짜 및 시간 목록</span>
@@ -223,7 +241,7 @@ function checkSongChanges(input) {
     }
 }
 
-// 노래책에 미등록된 노래 행 추가 (동일하게 요약 보기 + 수정 버튼 적용)
+// 노래책에 미등록된 노래 행 추가 (버튼 높이 일치)
 function addUnregisteredSongRow(item = {}) {
     const container = document.getElementById('unregistered-songs-container');
     const row = document.createElement('div');
@@ -237,11 +255,11 @@ function addUnregisteredSongRow(item = {}) {
 
     row.innerHTML = `
         <div style="display: flex; gap: 6px; align-items: center;">
-            <input type="text" placeholder="노래제목" class="unreg-title" value="${title}" style="flex: 2; margin-bottom: 0;">
-            <input type="text" placeholder="가수" class="unreg-artist" value="${artist}" style="flex: 1.5; margin-bottom: 0;">
-            <input type="text" placeholder="제한 / 기타" class="unreg-etc" value="${etc}" style="flex: 1; margin-bottom: 0;">
-            <button type="button" onclick="toggleSongDetail(this)" style="background-color: #0284c7; color: #fff; padding: 8px 10px; font-size: 12px; border: none; border-radius: 4px; cursor: pointer; white-space: nowrap; margin-bottom: 0;">✏️ 수정/날짜관리</button>
-            <button type="button" class="delete-item-btn" onclick="this.closest('.menu-item-row').remove()" style="padding: 8px 10px; margin-bottom: 0; white-space: nowrap;">삭제</button>
+            <input type="text" placeholder="노래제목" class="unreg-title" value="${title}" style="flex: 2; margin-bottom: 0; height: 38px; box-sizing: border-box;">
+            <input type="text" placeholder="가수" class="unreg-artist" value="${artist}" style="flex: 1.5; margin-bottom: 0; height: 38px; box-sizing: border-box;">
+            <input type="text" placeholder="제한 / 기타" class="unreg-etc" value="${etc}" style="flex: 1; margin-bottom: 0; height: 38px; box-sizing: border-box;">
+            <button type="button" onclick="toggleSongDetail(this)" style="background-color: #0284c7; color: #fff; padding: 0 12px; height: 38px; font-size: 12px; border: none; border-radius: 4px; cursor: pointer; white-space: nowrap; margin-bottom: 0; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center;">✏️ 수정</button>
+            <button type="button" class="delete-item-btn" onclick="this.closest('.menu-item-row').remove()" style="padding: 0 12px; height: 38px; margin-bottom: 0; white-space: nowrap; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center;">삭제</button>
         </div>
 
         <div class="song-detail-box" style="display: none; background: #f8fafc; padding: 10px; border-radius: 6px; border: 1px solid #e2e8f0; margin-top: 8px;">
