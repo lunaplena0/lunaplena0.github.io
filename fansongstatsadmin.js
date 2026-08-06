@@ -73,7 +73,7 @@ async function loadSongStatsSettingsData() {
     }
 }
 
-// 다시보기 개별 상세 영역 접기/펼치기 토글 함수
+// 다시보기 개별 상세 메모 영역 접기/펼치기 토글 함수
 function toggleVodDetail(btn) {
     const detailBox = btn.closest('.vod-source-row').querySelector('.vod-detail-box');
     if (detailBox.style.display === "none") {
@@ -87,30 +87,22 @@ function toggleVodDetail(btn) {
     }
 }
 
-// 다시보기 전체 일괄 접기/펼치기 함수
+// 다시보기 전체 일괄 접기/펼치기 함수 (목록 행 자체 제어)
 function toggleAllVodDetails(expand = true) {
     const container = document.getElementById('vod-sources-container');
     if (!container) return;
     
     const rows = container.querySelectorAll('.vod-source-row');
     rows.forEach(row => {
-        const detailBox = row.querySelector('.vod-detail-box');
-        const btn = row.querySelector('button[onclick*="toggleVodDetail"]');
-        if (detailBox && btn) {
-            if (expand) {
-                detailBox.style.display = "block";
-                btn.textContent = "➖ 닫기";
-                btn.style.backgroundColor = "#64748b";
-            } else {
-                detailBox.style.display = "none";
-                btn.textContent = "✏️ 수정";
-                btn.style.backgroundColor = "#0284c7";
-            }
+        if (expand) {
+            row.style.display = "flex";
+        } else {
+            row.style.display = "none";
         }
     });
 }
 
-// 다시보기 날짜 및 주소 행 추가 함수 (처음 5개 초과 시 숨김 처리)
+// 다시보기 날짜 및 주소 행 추가 함수 (처음 5개만 기본 표시)
 function addVodSourceRow(item = {}, forcedIndex = null) {
     const container = document.getElementById('vod-sources-container');
     const currentIndex = forcedIndex !== null ? forcedIndex : container.children.length;
@@ -120,7 +112,7 @@ function addVodSourceRow(item = {}, forcedIndex = null) {
     row.style.flexDirection = "column";
     row.style.alignItems = "stretch";
     
-    // 처음에 보이는 갯수를 5개로 제한 (index가 5 이상이면 숨김)
+    // 기본적으로 첫 5개(index 0~4)만 화면에 표시하고 나머지는 접기(숨김) 처리
     if (currentIndex >= 5) {
         row.style.display = "none";
     }
@@ -213,7 +205,6 @@ function addRegisteredSongRow(item = {}, forcedIndex = null) {
     row.style.flexDirection = "column";
     row.style.alignItems = "stretch";
     
-    // 기본적으로 첫 5개(index 0~4)만 화면에 표시하고 나머지는 접기(숨김) 처리
     if (currentIndex >= 5) {
         row.style.display = "none";
     }
@@ -326,7 +317,6 @@ function addUnregisteredSongRow(item = {}, forcedIndex = null) {
     row.style.flexDirection = "column";
     row.style.alignItems = "stretch";
 
-    // 기본적으로 첫 5개(index 0~4)만 화면에 표시하고 나머지는 접기(숨김) 처리
     if (currentIndex >= 5) {
         row.style.display = "none";
     }
