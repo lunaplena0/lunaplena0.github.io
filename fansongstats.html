@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>바다비 노래 통계</title>
+    <style>
+        body {
+            margin: 0;
+            width: 100vw;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-color: #f4f7f9;
+            overflow-x: hidden;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .main-container {
+            width: 100%;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 30px 16px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            flex: 1;
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: 800;
+            color: #0f172a;
+            border-left: 5px solid #0077b6;
+            padding-left: 10px;
+            margin: 0 0 10px 0;
+        }
+
+        /* 검색 및 필터 영역 */
+        .search-box {
+            width: 100%;
+            padding: 12px 16px;
+            font-size: 15px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            box-sizing: border-box;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .search-box:focus {
+            border-color: #0077b6;
+        }
+
+        /* 노래 목록 카드 스타일 */
+        .song-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .song-card {
+            background: #ffffff;
+            border-radius: 10px;
+            padding: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .song-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 119, 182, 0.1);
+        }
+
+        .song-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .song-title-area {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .song-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #1e293b;
+            margin: 0;
+        }
+
+        .song-artist {
+            font-size: 13px;
+            color: #64748b;
+            margin: 0;
+        }
+
+        .song-badges {
+            display: flex;
+            gap: 6px;
+        }
+
+        .badge {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 4px;
+            background-color: #f1f5f9;
+            color: #475569;
+        }
+
+        .badge-limit {
+            background-color: #e0e7ff;
+            color: #4f46e5;
+        }
+
+        /* 부른 기록(타임스탬프) 버튼 영역 */
+        .timestamp-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 4px;
+            padding-top: 10px;
+            border-top: 1px solid #f1f5f9;
+        }
+
+        .timestamp-btn {
+            background-color: #f8fafc;
+            border: 1px solid #cbd5e1;
+            color: #0077b6;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 6px;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .timestamp-btn:hover {
+            background-color: #0077b6;
+            color: #ffffff;
+            border-color: #0077b6;
+        }
+
+        .no-result {
+            text-align: center;
+            color: #64748b;
+            font-size: 15px;
+            padding: 40px 0;
+        }
+
+        @media (max-width: 500px) {
+            .main-container {
+                padding: 16px 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="main-container">
+        <h1 class="page-title">바다비 노래 통계</h1>
+        
+        <input type="text" id="searchInput" class="search-box" placeholder="노래 제목 또는 가수 검색..." oninput="filterSongs()">
+
+        <div id="songContainer" class="song-list">
+            <p class="no-result">데이터를 불러오는 중...</p>
+        </div>
+    </div>
+
+    <script>
+        const WORKER_URL = "https://badabi-api.dalkkumli054.workers.dev/";
+        const STATS_API_URL = WORKER_URL + "?type=fansongstats&t=";
+
+        let allSongs = [];
+        let vodMap = {};
+
+        // HH:MM:SS 형식을 초(seconds)로 변환하는 함수
+        function timeToSeconds(timeStr) {
+            if (!timeStr) return 0;
+            const parts = timeStr.split(":").map(Number);
+            if (parts.length === 3) {
+                return parts[0] * 3600 + parts[1] * 60 + parts[2];
+            } else if (parts.length === 2) {
+                return parts[0] * 60 + parts[1];
+            }
+            return 0;
+        }
+
+        async function loadSongStats() {
+            const container = document.getElementById("songContainer");
+
+            try {
+                const response = await fetch(STATS_API_URL + new Date().getTime());
+                if (!response.ok) throw new Error("데이터를 불러오지 못했습니다.");
+
+                const data = await response.json();
+                
+                // 1. VOD 소스 맵핑 생성 (date를 키로 url 저장)
+                vodMap = {};
+                if (data.vodSources) {
+                    data.vodSources.forEach(vod => {
+                        vodMap[vod.date] = vod.url;
+                    });
+                }
+
+                // 2. registeredSongs와 unregisteredSongs 합치기
+                const registered = data.registeredSongs || [];
+                const unregistered = data.unregisteredSongs || [];
+                allSongs = [...registered, ...unregistered];
+
+                if (allSongs.length === 0) {
+                    container.innerHTML = '<p class="no-result">등록된 노래 데이터가 없습니다.</p>';
+                    return;
+                }
+
+                renderSongs(allSongs);
+
+            } catch (err) {
+                console.error(err);
+                container.innerHTML = '<p class="no-result" style="color: #ef4444;">노래 통계 데이터를 불러오는데 실패했습니다.</p>';
+            }
+        }
+
+        function renderSongs(songs) {
+            const container = document.getElementById("songContainer");
+            container.innerHTML = "";
+
+            if (songs.length === 0) {
+                container.innerHTML = '<p class="no-result">검색 결과가 없습니다.</p>';
+                return;
+            }
+
+            songs.forEach(song => {
+                const card = document.createElement("div");
+                card.className = "song-card";
+
+                // 가사/제한 사항 배지
+                let limitBadge = song.limit ? `<span class="badge badge-limit">${song.limit}</span>` : "";
+
+                // 타임스탬프 버튼 생성
+                let timestampsHTML = "";
+                if (song.dateTimes && song.dateTimes.length > 0) {
+                    timestampsHTML = '<div class="timestamp-container">';
+                    song.dateTimes.forEach(dt => {
+                        const vodUrl = vodMap[dt.date] || "#";
+                        const totalSeconds = timeToSeconds(dt.time);
+                        const finalLink = vodUrl !== "#" ? `${vodUrl}?change_second=${totalSeconds}` : "#";
+
+                        timestampsHTML += `
+                            <a href="${finalLink}" target="_blank" rel="noopener noreferrer" class="timestamp-btn">
+                                📅 ${dt.date} (${dt.time})
+                            </a>
+                        `;
+                    });
+                    timestampsHTML += '</div>';
+                }
+
+                card.innerHTML = `
+                    <div class="song-header">
+                        <div class="song-title-area">
+                            <h3 class="song-title">${song.title}</h3>
+                            <p class="song-artist">${song.artist}</p>
+                        </div>
+                        <div class="song-badges">
+                            ${limitBadge}
+                        </div>
+                    </div>
+                    ${timestampsHTML}
+                `;
+
+                container.appendChild(card);
+            });
+        }
+
+        // 검색 필터링 기능
+        function filterSongs() {
+            const keyword = document.getElementById("searchInput").value.toLowerCase().trim();
+            const filtered = allSongs.filter(song => 
+                song.title.toLowerCase().includes(keyword) || 
+                song.artist.toLowerCase().includes(keyword)
+            );
+            renderSongs(filtered);
+        }
+
+        loadSongStats();
+    </script>
+</body>
+</html>
