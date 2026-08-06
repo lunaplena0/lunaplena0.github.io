@@ -575,7 +575,8 @@
             <!-- 1. 노래책에 등록된 노래 섹션 -->
             <div style="display: flex; justify-content: space-between; align-items: center; margin: 20px 0 10px 0; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;">
                 <h4 style="color: #0077b6; margin: 0;">노래책에 등록된 노래</h4>
-                <div style="display: flex; gap: 6px; align-items: center;">
+                <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+                    <button type="button" onclick="openBatchTimeImportModal()" style="background-color: #8b5cf6; padding: 4px 10px; font-size: 12px; color:#fff; border:none; border-radius:4px; cursor:pointer;">⏱️ 타임라인 일괄추가</button>
                     <button type="button" onclick="toggleAllSongDetails('registered-songs-container', true)" style="background: #475569; color: #fff; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 11px;">전체 펼치기</button>
                     <button type="button" onclick="toggleAllSongDetails('registered-songs-container', false)" style="background: #64748b; color: #fff; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 11px;">전체 접기</button>
                     <button type="button" onclick="openSongListImportModal()" style="background-color: #0284c7; padding: 4px 10px; font-size: 12px;">📥 노래책에서 불러오기</button>
@@ -646,6 +647,35 @@
             <div style="display: flex; gap: 10px; margin-top: 15px;">
                 <button type="button" onclick="importSelectedSongsToRegistered(false)" style="background-color: #0077b6; flex: 1; padding: 10px; font-size: 13px;">선택한 노래 추가하기</button>
                 <button type="button" onclick="importSelectedSongsToRegistered(true)" style="background-color: #ef4444; flex: 1; padding: 10px; font-size: 13px;">🔄 기존 목록 대체하기 (덮어쓰기)</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 타임라인 일괄 추가 모달 창 -->
+    <div id="batch-time-import-modal" class="modal-backdrop" onclick="if(event.target.id === 'batch-time-import-modal') closeBatchTimeImportModal()">
+        <div class="modal-box" style="max-width: 600px;">
+            <div class="modal-header">
+                <span>⏱️ 타임라인 일괄 추가</span>
+                <button type="button" class="modal-close-btn" onclick="closeBatchTimeImportModal()">×</button>
+            </div>
+            <div class="modal-content" style="max-height: 400px;">
+                <p style="font-size: 13px; color: #64748b; margin-top: 0;">공통 날짜를 입력하고, 타임라인 텍스트 목록을 통째로 붙여넣으세요.</p>
+                
+                <div style="margin-bottom: 12px;">
+                    <label style="font-size: 13px; font-weight: 700; color: #0077b6; margin-bottom: 4px;">공통 적용 날짜</label>
+                    <input type="text" id="batch-common-date" placeholder="예: 2026-08-06" style="margin-bottom: 0;">
+                </div>
+
+                <div style="margin-bottom: 12px;">
+                    <label style="font-size: 13px; font-weight: 700; color: #0077b6; margin-bottom: 4px;">타임라인 텍스트</label>
+                    <textarea id="batch-text-input" placeholder="00:06:49 🎵 Broken - 결&#10;00:12:52 🎵 Auburn - 데이먼스 이어" style="height: 150px; font-family: monospace; font-size: 12px; margin-bottom: 0;"></textarea>
+                </div>
+
+                <div id="batch-result-status" style="font-size: 13px; background: #f8fafc; padding: 10px; border-radius: 6px; border: 1px solid #cbd5e1; max-height: 150px; overflow-y: auto;"></div>
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 15px;">
+                <button type="button" onclick="executeBatchTimeImport()" style="background-color: #10b981; flex: 1; padding: 10px;">일괄 반영하기</button>
+                <button type="button" onclick="closeBatchTimeImportModal()" class="secondary-btn" style="flex: 1; padding: 10px;">닫기</button>
             </div>
         </div>
     </div>
