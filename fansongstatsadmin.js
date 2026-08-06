@@ -73,17 +73,65 @@ async function loadSongStatsSettingsData() {
     }
 }
 
-// 다시보기 날짜 및 주소 행 추가 함수
+// [추가] 다시보기 개별 상세 영역 접기/펼치기 토글 함수
+function toggleVodDetail(btn) {
+    const detailBox = btn.closest('.vod-source-row').querySelector('.vod-detail-box');
+    if (detailBox.style.display === "none") {
+        detailBox.style.display = "block";
+        btn.textContent = "➖ 닫기";
+        btn.style.backgroundColor = "#64748b";
+    } else {
+        detailBox.style.display = "none";
+        btn.textContent = "✏️ 수정";
+        btn.style.backgroundColor = "#0284c7";
+    }
+}
+
+// [추가] 다시보기 전체 일괄 접기/펼치기 함수
+function toggleAllVodDetails(expand = true) {
+    const container = document.getElementById('vod-sources-container');
+    if (!container) return;
+    
+    const rows = container.querySelectorAll('.vod-source-row');
+    rows.forEach(row => {
+        const detailBox = row.querySelector('.vod-detail-box');
+        const btn = row.querySelector('button[onclick*="toggleVodDetail"]');
+        if (detailBox && btn) {
+            if (expand) {
+                detailBox.style.display = "block";
+                btn.textContent = "➖ 닫기";
+                btn.style.backgroundColor = "#64748b";
+            } else {
+                detailBox.style.display = "none";
+                btn.textContent = "✏️ 수정";
+                btn.style.backgroundColor = "#0284c7";
+            }
+        }
+    });
+}
+
+// 다시보기 날짜 및 주소 행 추가 함수 (접기/펼치기 구조 적용)
 function addVodSourceRow(item = {}) {
     const container = document.getElementById('vod-sources-container');
     const row = document.createElement('div');
     row.className = 'menu-item-row vod-source-row';
+    row.style.flexDirection = "column";
+    row.style.alignItems = "stretch";
+
+    const date = item.date || '';
+    const url = item.url || '';
+
     row.innerHTML = `
-        <div style="flex: 1; display: flex; gap: 8px;">
-            <input type="text" placeholder="다시보기 날짜 (예: 2026-06-06)" class="vod-src-date" value="${item.date || ''}" style="flex: 1;">
-            <input type="text" placeholder="다시보기 주소 (URL)" class="vod-src-url" value="${item.url || ''}" style="flex: 2;">
+        <div style="display: flex; gap: 6px; align-items: center;">
+            <input type="text" placeholder="다시보기 날짜 (예: 2026-06-06)" class="vod-src-date" value="${date}" style="flex: 1; margin-bottom: 0; height: 38px; box-sizing: border-box;">
+            <input type="text" placeholder="다시보기 주소 (URL)" class="vod-src-url" value="${url}" style="flex: 2; margin-bottom: 0; height: 38px; box-sizing: border-box;">
+            <button type="button" onclick="toggleVodDetail(this)" style="background-color: #0284c7; color: #fff; padding: 0 12px; height: 38px; font-size: 12px; border: none; border-radius: 4px; cursor: pointer; white-space: nowrap; margin-bottom: 0; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center;">✏️ 수정</button>
+            <button type="button" class="delete-item-btn" onclick="this.closest('.menu-item-row').remove()" style="padding: 0 12px; height: 38px; margin-bottom: 0; white-space: nowrap; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center;">삭제</button>
         </div>
-        <button type="button" class="delete-item-btn" onclick="this.closest('.menu-item-row').remove()">삭제</button>
+        
+        <div class="vod-detail-box" style="display: none; background: #f8fafc; padding: 10px; border-radius: 6px; border: 1px solid #e2e8f0; margin-top: 8px;">
+            <span style="font-size: 12px; color: #64748b;">이 다시보기 항목에 대한 상세 메모나 부가 설정을 입력할 수 있습니다.</span>
+        </div>
     `;
     container.appendChild(row);
 }
@@ -101,7 +149,7 @@ function addDateTimeRow(containerEl, item = {}) {
     containerEl.appendChild(row);
 }
 
-// 상세 영역 접기/펼치기 토글 함수
+// 상세 영역 개별 접기/펼치기 토글 함수
 function toggleSongDetail(btn) {
     const detailBox = btn.closest('.reg-song-row, .unreg-song-row').querySelector('.song-detail-box');
     if (detailBox.style.display === "none") {
@@ -113,6 +161,29 @@ function toggleSongDetail(btn) {
         btn.textContent = "✏️ 수정";
         btn.style.backgroundColor = "#0284c7";
     }
+}
+
+// 특정 컨테이너 안의 모든 항목 일괄 접기/펼치기 함수
+function toggleAllSongDetails(containerId, expand = true) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    
+    const rows = container.querySelectorAll('.reg-song-row, .unreg-song-row');
+    rows.forEach(row => {
+        const detailBox = row.querySelector('.song-detail-box');
+        const btn = row.querySelector('button[onclick*="toggleSongDetail"]');
+        if (detailBox && btn) {
+            if (expand) {
+                detailBox.style.display = "block";
+                btn.textContent = "➖ 닫기";
+                btn.style.backgroundColor = "#64748b";
+            } else {
+                detailBox.style.display = "none";
+                btn.textContent = "✏️ 수정";
+                btn.style.backgroundColor = "#0284c7";
+            }
+        }
+    });
 }
 
 // 등록된 노래 검색 필터링 함수
@@ -133,7 +204,7 @@ function filterRegisteredSongs(queryInput) {
     });
 }
 
-// 노래책에 등록된 노래 행 추가 (버튼 높이 일치 및 검색 대응)
+// 노래책에 등록된 노래 행 추가
 function addRegisteredSongRow(item = {}) {
     const container = document.getElementById('registered-songs-container');
     const row = document.createElement('div');
@@ -169,7 +240,6 @@ function addRegisteredSongRow(item = {}) {
     }
 
     row.innerHTML = `
-        <!-- 상단 요약 바 (입력창과 버튼들의 높이/패딩을 일치시킴) -->
         <div style="display: flex; gap: 6px; align-items: center;">
             <input type="text" placeholder="노래제목" class="reg-title" value="${title}" style="flex: 2; margin-bottom: 0; height: 38px; box-sizing: border-box;" oninput="checkSongChanges(this)">
             <input type="text" placeholder="가수" class="reg-artist" value="${artist}" style="flex: 1.5; margin-bottom: 0; height: 38px; box-sizing: border-box;" oninput="checkSongChanges(this)">
@@ -178,7 +248,6 @@ function addRegisteredSongRow(item = {}) {
             <button type="button" class="delete-item-btn" onclick="this.closest('.menu-item-row').remove()" style="padding: 0 12px; height: 38px; margin-bottom: 0; white-space: nowrap; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center;">삭제</button>
         </div>
         
-        <!-- 하단 상세 영역 -->
         <div class="song-detail-box" style="display: none; background: #f8fafc; padding: 10px; border-radius: 6px; border: 1px solid #e2e8f0; margin-top: 8px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
                 <span style="font-size: 12px; font-weight: bold; color: #0077b6;">부른 날짜 및 시간 목록</span>
@@ -241,7 +310,7 @@ function checkSongChanges(input) {
     }
 }
 
-// 노래책에 미등록된 노래 행 추가 (버튼 높이 일치)
+// 노래책에 미등록된 노래 행 추가
 function addUnregisteredSongRow(item = {}) {
     const container = document.getElementById('unregistered-songs-container');
     const row = document.createElement('div');
