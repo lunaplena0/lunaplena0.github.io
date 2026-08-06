@@ -25,7 +25,7 @@
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
-            gap: 12px; /* 전체적인 컴포넌트 간격 축소 */
+            gap: 12px;
             flex: 1;
         }
 
@@ -38,18 +38,18 @@
         }
 
         .page-title {
-            font-size: 24px;
+            font-size: 28px; /* 제목 글씨 키움 */
             font-weight: 800;
             color: #0f172a;
-            border-left: 4px solid #0ea5e9;
-            padding-left: 12px;
+            border-left: 5px solid #0ea5e9;
+            padding-left: 14px;
             margin: 0 0 4px 0;
             letter-spacing: -0.5px;
         }
 
         /* 통계 요약 텍스트 바 */
         .stats-summary {
-            font-size: 13px;
+            font-size: 13.5px;
             color: #64748b;
             font-weight: 600;
             margin-bottom: 2px;
@@ -237,7 +237,7 @@
         .song-list {
             display: flex;
             flex-direction: column;
-            gap: 6px; /* 카드 사이 간격 축소 */
+            gap: 6px;
         }
 
         .song-card {
@@ -255,7 +255,7 @@
         }
 
         .song-summary-row {
-            padding: 12px 16px; /* 카드 내부 패딩 약간 축소 */
+            padding: 12px 16px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -355,7 +355,7 @@
             border-color: #0284c7;
         }
 
-        /* 페이지네이션 스타일 (여백 대폭 축소) */
+        /* 페이지네이션 스타일 */
         .pagination {
             display: flex;
             justify-content: center;
@@ -369,7 +369,7 @@
             background-color: #ffffff;
             border: 1px solid #cbd5e1;
             color: #0f172a;
-            width: 34px; /* 버튼 크기 슬림화 */
+            width: 34px;
             height: 34px;
             border-radius: 50%;
             font-size: 15px;
@@ -416,7 +416,7 @@
                 gap: 2px;
             }
             .page-title {
-                font-size: 20px;
+                font-size: 22px;
                 padding-left: 10px;
             }
             .stats-popup-btn {
@@ -459,6 +459,14 @@
                     <div class="stat-item">
                         <span class="stat-label">🎸 기타 노래 비율</span>
                         <div id="guitarRatioStat" class="stat-value">-</div>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">🎵 1회만 부른 곡 비율</span>
+                        <div id="onceRatioStat" class="stat-value">-</div>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">💤 등록 후 한 번도 안 부른 곡 비율</span>
+                        <div id="zeroRatioStat" class="stat-value">-</div>
                     </div>
                     <div class="stat-item">
                         <span class="stat-label">🔥 최근 30일 이내 최다 부른 곡</span>
@@ -559,7 +567,7 @@
 
                 document.getElementById("statsSummary").textContent = `총 부른 곡 (종류): ${allSongs.length}곡 | 누적 부른 횟수: 총 ${totalPlayCount}회`;
 
-                calculateDetailedStats(allSongs);
+                calculateDetailedStats(registered, unregistered, allSongs);
 
                 if (allSongs.length === 0) {
                     container.innerHTML = '<p class="no-result">표시할 노래 데이터가 없습니다.</p>';
@@ -576,16 +584,18 @@
             }
         }
 
-        function calculateDetailedStats(songs) {
+        function calculateDetailedStats(registered, unregistered, songs) {
             if (songs.length === 0) {
                 document.getElementById("topSongsStat").textContent = "기록 없음";
                 document.getElementById("topArtistStat").textContent = "기록 없음";
                 document.getElementById("guitarRatioStat").textContent = "기록 없음";
+                document.getElementById("onceRatioStat").textContent = "기록 없음";
+                document.getElementById("zeroRatioStat").textContent = "기록 없음";
                 document.getElementById("recentTopSongsStat").textContent = "기록 없음";
                 return;
             }
 
-            // 1. 가장 많이 부른 곡 TOP 3 (3위까지 무조건 노출, 동률 처리 및 이모티콘 적용)
+            // 1. 가장 많이 부른 곡 TOP 3
             let topSongsHtml = "";
             let uniqueRank = 0;
             let prevCount = -1;
@@ -603,9 +613,8 @@
             }
             document.getElementById("topSongsStat").innerHTML = topSongsHtml || "기록 없음";
 
-            // 2. 가장 많이 부른 가수 (가수 이름만 클릭용 버튼으로 제공)
+            // 2. 가장 많이 부른 가수
             const artistCounts = {};
-
             songs.forEach(song => {
                 const artist = song.artist || "알 수 없음";
                 const playCount = song.dateTimes.length;
@@ -637,9 +646,29 @@
                 if (song.limit === "기타") guitarCount++;
             });
             const guitarRatio = ((guitarCount / songs.length) * 100).toFixed(1);
-            document.getElementById("guitarRatioStat").textContent = `${guitarCount}곡 (${guitarRatio}%)`;
+            document.getElementById("guitarRatioStat").textContent = `${guitarCount}곡 중 부른 곡 기준 (${guitarRatio}%)`;
 
-            // 4. 최근 30일 이내 최다 부른 곡 (1곡만)
+            // 4. 1회만 부른 곡 비율 (전체 불렀던 곡 대비)
+            let onceCount = 0;
+            songs.forEach(song => {
+                if (song.dateTimes.length === 1) onceCount++;
+            });
+            const onceRatio = ((onceCount / songs.length) * 100).toFixed(1);
+            document.getElementById("onceRatioStat").textContent = `${onceCount}곡 / 전체 부른 곡의 ${onceRatio}%`;
+
+            // 5. 노래책에 등록되었으나 한 번도 안 불렀던 곡 비율
+            // registered 목록 중 dateTimes가 없거나 비어있는 곡들의 비율 계산
+            const totalRegisteredCount = registered.length;
+            let zeroPlayCount = 0;
+            registered.forEach(song => {
+                if (!song.dateTimes || song.dateTimes.length === 0) {
+                    zeroPlayCount++;
+                }
+            });
+            const zeroRatio = totalRegisteredCount > 0 ? ((zeroPlayCount / totalRegisteredCount) * 100).toFixed(1) : 0;
+            document.getElementById("zeroRatioStat").textContent = `${zeroPlayCount}곡 / 등록된 전체 ${totalRegisteredCount}곡 중 ${zeroRatio}%`;
+
+            // 6. 최근 30일 이내 최다 부른 곡
             const allDateTimes = [];
             songs.forEach(song => {
                 song.dateTimes.forEach(dt => {
