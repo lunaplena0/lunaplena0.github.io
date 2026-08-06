@@ -231,8 +231,30 @@
             height: 100%;
             background-color: #0ea5e9;
             border-radius: 4px;
-            transition: width 0.4s ease;
+            width: 0%;
+            transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1);
         }
+
+        /* 순차 애니메이션 등장을 위한 클래스 */
+        .stat-item {
+            opacity: 0;
+            transform: translateY(6px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        .modal-overlay.active .stat-item {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* 항목별 지연 시간 설정 */
+        .modal-overlay.active .stat-item:nth-child(1) { transition-delay: 0.05s; }
+        .modal-overlay.active .stat-row-group { opacity: 0; transform: translateY(6px); transition: opacity 0.3s ease, transform 0.3s ease; transition-delay: 0.1s; }
+        .modal-overlay.active .stat-row-group { opacity: 1; transform: translateY(0); }
+        .modal-overlay.active .stat-item:nth-child(3) { transition-delay: 0.15s; }
+        .modal-overlay.active .stat-item:nth-child(4) { transition-delay: 0.2s; }
+        .modal-overlay.active .stat-item:nth-child(5) { transition-delay: 0.25s; }
+        .modal-overlay.active .stat-item:nth-child(6) { transition-delay: 0.3s; }
 
         /* 클릭 가능한 텍스트 링크 스타일 (공통) */
         .stat-clickable-link {
@@ -490,7 +512,7 @@
                 <div id="statsSummary" class="stats-summary">통계 계산 중...</div>
             </div>
             <button class="stats-popup-btn" onclick="toggleModal(true)">
-                <span>📊 통계 정보</span>
+                <span>📊 상세 통계 정보</span>
             </button>
         </div>
 
@@ -498,7 +520,7 @@
         <div id="statsModal" class="modal-overlay" onclick="handleModalClick(event)">
             <div class="modal-box">
                 <div class="modal-header">
-                    <h3 class="modal-title">📊 통계 정보 요약</h3>
+                    <h3 class="modal-title">📊 상세 통계 정보 요약</h3>
                     <button class="modal-close-btn" onclick="toggleModal(false)">✕</button>
                 </div>
                 <div class="modal-body">
@@ -507,13 +529,13 @@
                         <div id="topSongsStat" class="stat-value">-</div>
                     </div>
                     <!-- 가장 많이 부른 가수와 최근 30일 이내 최다 부른 곡 가로 한 줄 배치 -->
-                    <div class="stat-row-group">
-                        <div class="stat-item">
+                    <div class="stat-row-group" style="opacity: 1; transform: none;">
+                        <div class="stat-item" style="opacity: 1; transform: none;">
                             <span class="stat-label">🎤 가장 많이 부른 가수</span>
                             <div id="topArtistStat" class="stat-value">-</div>
                         </div>
-                        <div class="stat-item">
-                            <span class="stat-label">🔥 최근 최다 부른 곡</span>
+                        <div class="stat-item" style="opacity: 1; transform: none;">
+                            <span class="stat-label">🔥 최근 30일 이내 최다 부른 곡</span>
                             <div id="recentTopSongsStat" class="stat-value">-</div>
                         </div>
                     </div>
@@ -526,18 +548,18 @@
                         <div id="onceRatioStat" class="stat-value">-</div>
                     </div>
                     <div class="stat-item">
-                        <span class="stat-label">💤 노래책에 등록 후 한 번도 안 부른 곡 비율 (기타 제외)</span>
+                        <span class="stat-label">💤 등록 후 한 번도 안 부른 곡 비율 (기타 제외)</span>
                         <div id="zeroRatioStat" class="stat-value">-</div>
                     </div>
                     <div class="stat-item">
-                        <span class="stat-label">✨ 노래책에 미등록 후 부른 노래 비율 (전체 노래 기준)</span>
+                        <span class="stat-label">✨ 미등록 후 부른 노래 비율 (전체 노래 기준)</span>
                         <div id="unregRatioStat" class="stat-value">-</div>
                     </div>
                 </div>
             </div>
         </div>
         
-        <input type="text" id="searchInput" class="search-box" placeholder="노래 제목 또는 가수, 기타노래 검색..." oninput="onSearchInput()">
+        <input type="text" id="searchInput" class="search-box" placeholder="노래 제목 또는 가수, 기타 검색..." oninput="onSearchInput()">
 
         <div id="songContainer" class="song-list">
             <p class="no-result">데이터를 불러오는 중...</p>
@@ -577,8 +599,19 @@
             const modal = document.getElementById("statsModal");
             if (open) {
                 modal.classList.add("active");
+                // 모달이 열릴 때 프로그레스 바 애니메이션이 자연스럽게 차오르도록 트리거
+                setTimeout(() => {
+                    document.querySelectorAll('.progress-bar-fill').forEach(bar => {
+                        const targetWidth = bar.getAttribute('data-target-width');
+                        if (targetWidth) bar.style.width = targetWidth;
+                    });
+                }, 50);
             } else {
                 modal.classList.remove("active");
+                // 닫힐 때 바 초기화
+                document.querySelectorAll('.progress-bar-fill').forEach(bar => {
+                    bar.style.width = '0%';
+                });
             }
         }
 
@@ -598,6 +631,26 @@
             onSearchInput();
             toggleModal(false);
             window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // 숫자 카운트업 애니메이션 함수
+        function animateNumber(elementId, endValue, duration = 800, suffix = "") {
+            const element = document.getElementById(elementId);
+            if (!element) return;
+            const startTime = performance.now();
+
+            function update(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const current = Math.floor(progress * endValue);
+                element.textContent = current.toLocaleString() + suffix;
+                if (progress < 1) {
+                    requestAnimationFrame(update);
+                } else {
+                    element.textContent = endValue.toLocaleString() + suffix;
+                }
+            }
+            requestAnimationFrame(update);
         }
 
         async function loadSongStats() {
@@ -626,7 +679,10 @@
 
                 totalPlayCount = allSongs.reduce((sum, song) => sum + song.dateTimes.length, 0);
 
-                document.getElementById("statsSummary").textContent = `총 부른 곡 : ${allSongs.length}곡 | 부른 횟수 : 약 ${totalPlayCount}회`;
+                // 상단 요약 카운트업 애니메이션 적용
+                document.getElementById("statsSummary").innerHTML = `총 부른 곡 (종류): <span id="animSongCount">0</span>곡 | 누적 부른 횟수: 총 <span id="animPlayCount">0</span>회`;
+                animateNumber("animSongCount", allSongs.length, 800);
+                animateNumber("animPlayCount", totalPlayCount, 1000);
 
                 calculateDetailedStats(registered, unregistered, allSongs);
 
@@ -787,7 +843,7 @@
 
             document.getElementById("guitarRatioStat").innerHTML = `
                 <div>전체 노래(${totalCountAll}곡) 중 <strong>${guitarTotalCount}곡 (${guitarOverallRatio}%)</strong></div>
-                <div class="progress-bar-container"><div class="progress-bar-fill" style="width: ${guitarOverallRatio}%;"></div></div>
+                <div class="progress-bar-container"><div class="progress-bar-fill" data-target-width="${guitarOverallRatio}%"></div></div>
                 <div style="font-size: 12px; color: #64748b; margin-top: 2px;">부른 기타 곡: ${playedGuitarCount}곡 / 안 부른 기타 곡: ${unplayedGuitarCount}곡</div>
             `;
 
@@ -800,7 +856,7 @@
             const onceRatio = nonGuitarPlayed.length > 0 ? parseFloat(((onceCount / nonGuitarPlayed.length) * 100).toFixed(1)) : 0;
             document.getElementById("onceRatioStat").innerHTML = `
                 <div>${onceCount}곡 / 기타 제외 부른 곡(${nonGuitarPlayed.length}곡) 중 <strong>${onceRatio}%</strong></div>
-                <div class="progress-bar-container"><div class="progress-bar-fill" style="width: ${onceRatio}%;"></div></div>
+                <div class="progress-bar-container"><div class="progress-bar-fill" data-target-width="${onceRatio}%"></div></div>
             `;
 
             // 6. 등록 후 한 번도 안 부른 곡 비율 (기타 제외, registered 기준)
@@ -815,7 +871,7 @@
             const zeroRatio = totalNonGuitarRegCount > 0 ? parseFloat(((zeroPlayCount / totalNonGuitarRegCount) * 100).toFixed(1)) : 0;
             document.getElementById("zeroRatioStat").innerHTML = `
                 <div>${zeroPlayCount}곡 / 기타 제외 등록된 곡(${totalNonGuitarRegCount}곡) 중 <strong>${zeroRatio}%</strong></div>
-                <div class="progress-bar-container"><div class="progress-bar-fill" style="width: ${zeroRatio}%;"></div></div>
+                <div class="progress-bar-container"><div class="progress-bar-fill" data-target-width="${zeroRatio}%"></div></div>
             `;
 
             // 7. 전체 노래(등록+미등록) 중 미등록 상태로 부른 노래의 비율
@@ -824,7 +880,7 @@
 
             document.getElementById("unregRatioStat").innerHTML = `
                 <div>${playedUnregCount}곡 / 전체 노래(${totalCountAll}곡) 중 <strong>${unregVsTotalRatio}%</strong></div>
-                <div class="progress-bar-container"><div class="progress-bar-fill" style="width: ${Math.min(unregVsTotalRatio, 100)}%;"></div></div>
+                <div class="progress-bar-container"><div class="progress-bar-fill" data-target-width="${Math.min(unregVsTotalRatio, 100)}%"></div></div>
             `;
         }
 
@@ -849,9 +905,13 @@
             const endIndex = startIndex + itemsPerPage;
             const displaySongs = filteredSongs.slice(startIndex, endIndex);
 
-            displaySongs.forEach(song => {
+            displaySongs.forEach((song, idx) => {
                 const card = document.createElement("div");
                 card.className = "song-card";
+                card.style.opacity = "0";
+                card.style.transform = "translateY(8px)";
+                card.style.transition = `opacity 0.3s ease ${idx * 0.04}s, transform 0.3s ease ${idx * 0.04}s, box-shadow 0.2s ease, border-color 0.2s ease`;
+
                 card.onclick = (e) => {
                     if (e.target.tagName === 'A' || e.target.closest('a')) return;
                     toggleSongCard(card);
@@ -900,6 +960,12 @@
                 `;
 
                 container.appendChild(card);
+                
+                // 나타나는 애니메이션 실행
+                requestAnimationFrame(() => {
+                    card.style.opacity = "1";
+                    card.style.transform = "translateY(0)";
+                });
             });
 
             document.getElementById("pageIndicator").textContent = `${currentPage} / ${totalPages}`;
