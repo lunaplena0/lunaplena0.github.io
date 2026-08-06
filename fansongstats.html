@@ -529,7 +529,6 @@
             cardElement.classList.toggle("expanded");
         }
 
-        // 팝업 내에서 특정 가수명을 클릭했을 때 검색창에 입력하고 모달 닫기
         function searchByArtist(artistName) {
             const searchInput = document.getElementById("searchInput");
             searchInput.value = artistName;
@@ -592,30 +591,25 @@
                 return;
             }
 
-            // 1. 가장 많이 부른 곡 TOP 3 (3위까지 무조건 노출, 동률 처리 및 이모티콘 적용)
+            // 1. 가장 많이 부른 곡 TOP 3 (고유한 3개의 등수 그룹까지 모든 동률 곡 포함 노출)
             let topSongsHtml = "";
-            let currentRank = 1;
-            let displayedCount = 0;
+            let uniqueRank = 0;
             let prevCount = -1;
-
             const medals = ["🥇", "🥈", "🥉"];
 
             for (let i = 0; i < songs.length; i++) {
                 const count = songs[i].dateTimes.length;
                 if (count !== prevCount) {
-                    currentRank = displayedCount + 1;
-                    if (currentRank > 3) break;
+                    uniqueRank++;
+                    if (uniqueRank > 3) break;
                     prevCount = count;
-                } else {
-                    if (currentRank > 3) break;
                 }
-                displayedCount++;
-                const medalIcon = medals[currentRank - 1] || `${currentRank}위`;
+                const medalIcon = medals[uniqueRank - 1] || `${uniqueRank}위`;
                 topSongsHtml += `<div>${medalIcon} ${songs[i].title} (${count}회)</div>`;
             }
             document.getElementById("topSongsStat").innerHTML = topSongsHtml || "기록 없음";
 
-            // 2. 가장 많이 부른 가수 및 그 가수가 부른 곡 목록 (보기 편하게 칩 형태로 구현)
+            // 2. 가장 많이 부른 가수 및 그 가수가 부른 곡 목록
             const artistCounts = {};
             const artistSongs = {};
 
