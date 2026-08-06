@@ -358,13 +358,11 @@ function addUnregisteredSongRow(item = {}, forcedIndex = null) {
 
 // [신규] 여러 노래 시간 일괄 추가 모달창 열기 함수
 function openBatchTimeImportModal() {
-    // 날짜 기본값 설정 시 뒤에 붙은 (1) 등의 회차 번호는 제외하고 기본 날짜만 세팅
     const rawDateInput = document.getElementById('vod-sources-container').querySelector('.vod-src-date');
     let defaultDate = rawDateInput ? rawDateInput.value.trim() : "";
     if (!defaultDate) {
         defaultDate = new Date().toISOString().slice(0, 10);
     } else {
-        // 회차 번호 (예: 2026-06-06(1) -> 2026-06-06) 추출 또는 그대로 사용
         defaultDate = defaultDate.replace(/\(\d+\)$/, '').trim();
     }
 
@@ -378,7 +376,7 @@ function closeBatchTimeImportModal() {
     document.getElementById('batch-time-import-modal').classList.remove('active');
 }
 
-// 일괄 추가 텍스트 파싱 및 매칭 실행 함수 ((1), (2) 등 회차 번호 포함 날짜 대응)
+// [수정] 일괄 추가 텍스트 파싱 및 중복(동일 날짜+시간) 방지 매칭 실행 함수
 function executeBatchTimeImport() {
     const commonDateInput = document.getElementById('batch-common-date').value.trim();
     const rawText = document.getElementById('batch-text-input').value.trim();
@@ -402,12 +400,8 @@ function executeBatchTimeImport() {
     ];
     
     let matchedCount = 0;
+    let skippedCount = 0;
     let mismatchLines = [];
-
-    // 입력된 날짜에서 순수 날짜 부분과 회차 번호((1), (2) 등) 분리 추출
-    const dateMatch = commonDateInput.match(/^(.+?)(\(\d+\))?$/);
-    const targetBaseDate = dateMatch ? dateMatch[1].trim() : commonDateInput;
-    const targetSessionNum = dateMatch && dateMatch[2] ? dateMatch[2] : "";
 
     lines.forEach(line => {
         const trimmedLine = line.trim();
@@ -439,26 +433,44 @@ function executeBatchTimeImport() {
                 found = true;
                 const dtContainer = row.querySelector('.datetime-container');
                 
-                // 기존 비어있는 행이 있는지 확인
+                // 이미 동일한 날짜와 시간이 등록되어 있는지 확인 (중복 체크)
+                let isAlreadyExists = false;
+                const existingSubRows = dtContainer.querySelectorAll('.datetime-sub-row');
+                existingSubRows.forEach(subRow => {
+                    const existingDate = subRow.querySelector('.sub-date').value.trim();
+                    const existingTime = subRow.querySelector('.sub-time').value.trim();
+                    if (existingDate === commonDateInput && existingTime === timeStr) {
+                        isAlreadyExists = true;
+                    }
+                });
+
+                if (isAlreadyExists) {
+                    skippedCount++;
+                    return; // 중복이므로 추가하지 않고 건너뜀
+                }
+
+                matchedCount++;
+                
+                // 기존 비어있는 행이 있는지 확인 후 채우기, 없으면 새 행 추가
                 const firstSubRow = dtContainer.querySelector('.datetime-sub-row');
                 if (firstSubRow && !firstSubRow.querySelector('.sub-date').value && !firstSubRow.querySelector('.sub-time').value) {
                     firstSubRow.querySelector('.sub-date').value = commonDateInput;
                     firstSubRow.querySelector('.sub-time').value = timeStr;
                 } else {
-                    // 비어있는 행이 없으면 새로운 하위 날짜/시간 행 추가 ((1) 포함된 전체 문자열 입력)
                     addDateTimeRow(dtContainer, { date: commonDateInput, time: timeStr });
                 }
             }
         });
 
-        if (found) {
-            matchedCount++;
-        } else {
+        if (!found) {
             mismatchLines.push(trimmedLine);
         }
     });
 
     let resultHTML = `<span style="color: #10b981; font-weight: bold;">성공적으로 ${matchedCount}개의 노래에 시간이 추가되었습니다!</span>`;
+    if (skippedCount > 0) {
+        resultHTML += `<br><span style="color: #3b82f6; font-weight: bold;">ℹ️ 이미 존재하는 동일한 날짜·시간이라 건너뛴 항목: ${skippedCount}개</span>`;
+    }
     if (mismatchLines.length > 0) {
         resultHTML += `<br><span style="color: #ef4444; font-weight: bold;">⚠️ 불일치하거나 형식 오류인 항목 (${mismatchLines.length}개):</span>`;
         mismatchLines.forEach(ml => {
