@@ -101,7 +101,21 @@ function addDateTimeRow(containerEl, item = {}) {
     containerEl.appendChild(row);
 }
 
-// 노래책에 등록된 노래 행 추가 (요청하신 3가지 항목 조건 검증 적용)
+// 상세 영역 접기/펼치기 토글 함수
+function toggleSongDetail(btn) {
+    const detailBox = btn.closest('.reg-song-row, .unreg-song-row').querySelector('.song-detail-box');
+    if (detailBox.style.display === "none") {
+        detailBox.style.display = "block";
+        btn.textContent = "➖ 상세 닫기";
+        btn.style.backgroundColor = "#64748b";
+    } else {
+        detailBox.style.display = "none";
+        btn.textContent = "✏️ 수정/날짜관리";
+        btn.style.backgroundColor = "#0284c7";
+    }
+}
+
+// 노래책에 등록된 노래 행 추가 (요약 보기 + 수정 버튼 분리)
 function addRegisteredSongRow(item = {}) {
     const container = document.getElementById('registered-songs-container');
     const row = document.createElement('div');
@@ -115,7 +129,6 @@ function addRegisteredSongRow(item = {}) {
     
     let mismatchWarning = "";
     if (title && globalSongList.length > 0) {
-        // 1. 노래제목과 가수가 모두 일치하는 곡이 원본에 존재하는지 확인 (없으면 존재하지 않는 제목)
         const exactMatchExists = globalSongList.some(s => 
             (s.title || '').trim() === title.trim() && 
             (s.artist || '').trim() === artist.trim()
@@ -124,7 +137,6 @@ function addRegisteredSongRow(item = {}) {
         if (!exactMatchExists) {
             mismatchWarning = `<span style="color: #f59e0b; font-size: 11px; font-weight: bold;">🔍 songlist에 존재하지 않는 제목입니다.</span>`;
         } else {
-            // 2. 제목과 가수는 존재하지만, 제목/가수/제한(etc) 3가지 중 단 하나라도 정확히 일치하는 데이터 세트가 있는지 확인
             const fullMatchExists = globalSongList.some(s => {
                 const sTitle = (s.title || '').trim();
                 const sArtist = (s.artist || '').trim();
@@ -132,7 +144,6 @@ function addRegisteredSongRow(item = {}) {
                 return sTitle === title.trim() && sArtist === artist.trim() && sEtc === etc.trim();
             });
 
-            // 3가지 모두 일치하는 항목이 없다면 정보 불일치 경고 출력
             if (!fullMatchExists) {
                 mismatchWarning = `<span style="color: #ef4444; font-size: 11px; font-weight: bold;">⚠️ songlist 정보와 일치하지 않음 (변경됨)</span>`;
             }
@@ -140,17 +151,20 @@ function addRegisteredSongRow(item = {}) {
     }
 
     row.innerHTML = `
-        <div style="display: flex; gap: 6px; margin-bottom: 6px;">
-            <input type="text" placeholder="노래제목" class="reg-title" value="${title}" style="flex: 1; margin-bottom: 0;" oninput="checkSongChanges(this)">
-            <input type="text" placeholder="가수" class="reg-artist" value="${artist}" style="flex: 1; margin-bottom: 0;" oninput="checkSongChanges(this)">
+        <!-- 상단 요약 바 (노래제목, 가수, 제한/기타, 수정 버튼, 삭제 버튼) -->
+        <div style="display: flex; gap: 6px; align-items: center;">
+            <input type="text" placeholder="노래제목" class="reg-title" value="${title}" style="flex: 2; margin-bottom: 0;" oninput="checkSongChanges(this)">
+            <input type="text" placeholder="가수" class="reg-artist" value="${artist}" style="flex: 1.5; margin-bottom: 0;" oninput="checkSongChanges(this)">
             <input type="text" placeholder="제한 / 기타" class="reg-etc" value="${etc}" style="flex: 1; margin-bottom: 0;" oninput="checkSongChanges(this)">
-            <button type="button" class="delete-item-btn" onclick="this.closest('.menu-item-row').remove()" style="padding: 8px 12px; margin-bottom: 0;">노래 삭제</button>
+            <button type="button" onclick="toggleSongDetail(this)" style="background-color: #0284c7; color: #fff; padding: 8px 10px; font-size: 12px; border: none; border-radius: 4px; cursor: pointer; white-space: nowrap; margin-bottom: 0;">✏️ 수정/날짜관리</button>
+            <button type="button" class="delete-item-btn" onclick="this.closest('.menu-item-row').remove()" style="padding: 8px 10px; margin-bottom: 0; white-space: nowrap;">삭제</button>
         </div>
         
-        <div style="background: #f1f5f9; padding: 8px; border-radius: 6px; border: 1px solid #e2e8f0;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+        <!-- 하단 상세 영역 (기본 숨김 처리) -->
+        <div class="song-detail-box" style="display: none; background: #f8fafc; padding: 10px; border-radius: 6px; border: 1px solid #e2e8f0; margin-top: 8px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
                 <span style="font-size: 12px; font-weight: bold; color: #0077b6;">부른 날짜 및 시간 목록</span>
-                <button type="button" onclick="addDateTimeRow(this.closest('div').nextElementSibling)" style="background-color: #10b981; padding: 2px 8px; font-size: 11px; margin-bottom: 0;">+ 날짜/시간 추가</button>
+                <button type="button" onclick="addDateTimeRow(this.closest('.song-detail-box').querySelector('.datetime-container'))" style="background-color: #10b981; padding: 3px 8px; font-size: 11px; margin-bottom: 0;">+ 날짜/시간 추가</button>
             </div>
             <div class="datetime-container" style="display: flex; flex-direction: column; gap: 4px;"></div>
         </div>
@@ -172,7 +186,7 @@ function addRegisteredSongRow(item = {}) {
     }
 }
 
-// 실시간 변경 비교 함수 (요청하신 조건 반영)
+// 실시간 변경 비교 함수
 function checkSongChanges(input) {
     const row = input.closest('.menu-item-row');
     const title = row.querySelector('.reg-title').value.trim();
@@ -209,7 +223,7 @@ function checkSongChanges(input) {
     }
 }
 
-// 노래책에 미등록된 노래 행 추가 (다중 날짜/시간 지원)
+// 노래책에 미등록된 노래 행 추가 (동일하게 요약 보기 + 수정 버튼 적용)
 function addUnregisteredSongRow(item = {}) {
     const container = document.getElementById('unregistered-songs-container');
     const row = document.createElement('div');
@@ -222,17 +236,18 @@ function addUnregisteredSongRow(item = {}) {
     const etc = item.etc || '';
 
     row.innerHTML = `
-        <div style="display: flex; gap: 6px; margin-bottom: 6px;">
-            <input type="text" placeholder="노래제목" class="unreg-title" value="${title}" style="flex: 1; margin-bottom: 0;">
-            <input type="text" placeholder="가수" class="unreg-artist" value="${artist}" style="flex: 1; margin-bottom: 0;">
+        <div style="display: flex; gap: 6px; align-items: center;">
+            <input type="text" placeholder="노래제목" class="unreg-title" value="${title}" style="flex: 2; margin-bottom: 0;">
+            <input type="text" placeholder="가수" class="unreg-artist" value="${artist}" style="flex: 1.5; margin-bottom: 0;">
             <input type="text" placeholder="제한 / 기타" class="unreg-etc" value="${etc}" style="flex: 1; margin-bottom: 0;">
-            <button type="button" class="delete-item-btn" onclick="this.closest('.menu-item-row').remove()" style="padding: 8px 12px; margin-bottom: 0;">노래 삭제</button>
+            <button type="button" onclick="toggleSongDetail(this)" style="background-color: #0284c7; color: #fff; padding: 8px 10px; font-size: 12px; border: none; border-radius: 4px; cursor: pointer; white-space: nowrap; margin-bottom: 0;">✏️ 수정/날짜관리</button>
+            <button type="button" class="delete-item-btn" onclick="this.closest('.menu-item-row').remove()" style="padding: 8px 10px; margin-bottom: 0; white-space: nowrap;">삭제</button>
         </div>
 
-        <div style="background: #f1f5f9; padding: 8px; border-radius: 6px; border: 1px solid #e2e8f0;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+        <div class="song-detail-box" style="display: none; background: #f8fafc; padding: 10px; border-radius: 6px; border: 1px solid #e2e8f0; margin-top: 8px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
                 <span style="font-size: 12px; font-weight: bold; color: #0077b6;">부른 날짜 및 시간 목록</span>
-                <button type="button" onclick="addDateTimeRow(this.closest('div').nextElementSibling)" style="background-color: #10b981; padding: 2px 8px; font-size: 11px; margin-bottom: 0;">+ 날짜/시간 추가</button>
+                <button type="button" onclick="addDateTimeRow(this.closest('.song-detail-box').querySelector('.datetime-container'))" style="background-color: #10b981; padding: 3px 8px; font-size: 11px; margin-bottom: 0;">+ 날짜/시간 추가</button>
             </div>
             <div class="datetime-container" style="display: flex; flex-direction: column; gap: 4px;"></div>
         </div>
