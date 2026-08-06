@@ -112,7 +112,6 @@ function addVodSourceRow(item = {}, forcedIndex = null) {
     row.style.flexDirection = "column";
     row.style.alignItems = "stretch";
     
-    // 기본적으로 첫 5개(index 0~4)만 화면에 표시하고 나머지는 접기(숨김) 처리
     if (currentIndex >= 5) {
         row.style.display = "none";
     }
@@ -211,7 +210,8 @@ function addRegisteredSongRow(item = {}, forcedIndex = null) {
     
     const title = item.title || '';
     const artist = item.artist || '';
-    const etc = item.etc || item.limit || '';
+    // [수정] limit만 가져오도록 변경
+    const etc = item.limit || '';
     
     let mismatchWarning = "";
     if (title && globalSongList.length > 0) {
@@ -226,8 +226,8 @@ function addRegisteredSongRow(item = {}, forcedIndex = null) {
             const fullMatchExists = globalSongList.some(s => {
                 const sTitle = (s.title || '').trim();
                 const sArtist = (s.artist || '').trim();
-                const sEtc = (s.etc || s.limit || '').trim();
-                return sTitle === title.trim() && sArtist === artist.trim() && sEtc === etc.trim();
+                const sLimit = (s.limit || '').trim();
+                return sTitle === title.trim() && sArtist === artist.trim() && sLimit === etc.trim();
             });
 
             if (!fullMatchExists) {
@@ -296,8 +296,8 @@ function checkSongChanges(input) {
     const fullMatchExists = globalSongList.some(s => {
         const sTitle = (s.title || '').trim();
         const sArtist = (s.artist || '').trim();
-        const sEtc = (s.etc || s.limit || '').trim();
-        return sTitle === title && sArtist === artist && sEtc === etc;
+        const sLimit = (s.limit || '').trim();
+        return sTitle === title && sArtist === artist && sLimit === etc;
     });
 
     if (!fullMatchExists) {
@@ -373,11 +373,12 @@ async function openSongListImportModal() {
         globalSongList.forEach((song, idx) => {
             const row = document.createElement('div');
             row.style.cssText = "display: flex; align-items: center; gap: 10px; padding: 8px; border-bottom: 1px solid #f1f5f9; background: #f8fafc; border-radius: 6px; margin-bottom: 6px;";
+            // [수정] 모달 리스트에서도 limit만 표시하도록 변경
             row.innerHTML = `
                 <input type="checkbox" class="song-import-checkbox" value="${idx}" style="width: 18px; height: 18px; cursor: pointer;">
                 <div style="flex: 1; font-size: 13px;">
                     <strong>${song.title || '제목 없음'}</strong> <span style="color: #64748b;">(${song.artist || '가수 미지정'})</span>
-                    ${(song.etc || song.limit) ? `<span style="color: #0284c7; margin-left: 6px; font-size: 12px;">[${song.etc || song.limit}]</span>` : ''}
+                    ${song.limit ? `<span style="color: #0284c7; margin-left: 6px; font-size: 12px;">[${song.limit}]</span>` : ''}
                 </div>
             `;
             container.appendChild(row);
@@ -419,7 +420,7 @@ function importSelectedSongsToRegistered(isReplace = false) {
             addRegisteredSongRow({
                 title: songData.title || '',
                 artist: songData.artist || '',
-                etc: songData.etc || songData.limit || '',
+                etc: songData.limit || '', // [수정] limit만 대입
                 dateTimes: []
             });
         }
@@ -445,7 +446,7 @@ function importAllSongsToRegistered() {
         addRegisteredSongRow({
             title: songData.title || '',
             artist: songData.artist || '',
-            etc: songData.etc || songData.limit || '',
+            etc: songData.limit || '', // [수정] limit만 대입
             dateTimes: []
         });
     });
