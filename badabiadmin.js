@@ -40,6 +40,7 @@ function showDashboard() {
     document.getElementById('panel-crynote').style.display = 'none';
     document.getElementById('panel-calendar').style.display = 'none';
     document.getElementById('panel-vodlist').style.display = 'none';
+    document.getElementById('panel-songstats').style.display = 'none';
     document.getElementById('dashboard-view').style.display = 'block';
 }
 
