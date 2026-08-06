@@ -235,7 +235,7 @@
             transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        /* 순차 애니메이션 등장을 위한 클래스 */
+        /* 모달 항목 등장 애니메이션 */
         .stat-item {
             opacity: 0;
             transform: translateY(6px);
@@ -247,10 +247,7 @@
             transform: translateY(0);
         }
 
-        /* 항목별 지연 시간 설정 */
         .modal-overlay.active .stat-item:nth-child(1) { transition-delay: 0.05s; }
-        .modal-overlay.active .stat-row-group { opacity: 0; transform: translateY(6px); transition: opacity 0.3s ease, transform 0.3s ease; transition-delay: 0.1s; }
-        .modal-overlay.active .stat-row-group { opacity: 1; transform: translateY(0); }
         .modal-overlay.active .stat-item:nth-child(3) { transition-delay: 0.15s; }
         .modal-overlay.active .stat-item:nth-child(4) { transition-delay: 0.2s; }
         .modal-overlay.active .stat-item:nth-child(5) { transition-delay: 0.25s; }
@@ -303,11 +300,22 @@
             box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
         }
 
-        /* 노래 목록 스타일 (한 줄 레이아웃) */
+        /* 노래 목록 스타일 (한 줄 레이아웃 및 순차 슬라이드 다운 애니메이션) */
         .song-list {
             display: flex;
             flex-direction: column;
             gap: 6px;
+        }
+
+        @keyframes slideDownFade {
+            0% {
+                opacity: 0;
+                transform: translateY(-12px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .song-card {
@@ -316,7 +324,9 @@
             border: 1px solid #e2e8f0;
             box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
             overflow: hidden;
-            transition: all 0.2s ease;
+            animation: slideDownFade 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            opacity: 0;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
         }
 
         .song-card:hover {
@@ -599,7 +609,6 @@
             const modal = document.getElementById("statsModal");
             if (open) {
                 modal.classList.add("active");
-                // 모달이 열릴 때 프로그레스 바 애니메이션이 자연스럽게 차오르도록 트리거
                 setTimeout(() => {
                     document.querySelectorAll('.progress-bar-fill').forEach(bar => {
                         const targetWidth = bar.getAttribute('data-target-width');
@@ -608,7 +617,6 @@
                 }, 50);
             } else {
                 modal.classList.remove("active");
-                // 닫힐 때 바 초기화
                 document.querySelectorAll('.progress-bar-fill').forEach(bar => {
                     bar.style.width = '0%';
                 });
@@ -633,7 +641,6 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        // 숫자 카운트업 애니메이션 함수
         function animateNumber(elementId, endValue, duration = 800, suffix = "") {
             const element = document.getElementById(elementId);
             if (!element) return;
@@ -679,7 +686,6 @@
 
                 totalPlayCount = allSongs.reduce((sum, song) => sum + song.dateTimes.length, 0);
 
-                // 상단 요약 카운트업 애니메이션 적용
                 document.getElementById("statsSummary").innerHTML = `총 부른 곡 (종류): <span id="animSongCount">0</span>곡 | 누적 부른 횟수: 총 <span id="animPlayCount">0</span>회`;
                 animateNumber("animSongCount", allSongs.length, 800);
                 animateNumber("animPlayCount", totalPlayCount, 1000);
@@ -713,7 +719,6 @@
                 return;
             }
 
-            // 1. 가장 많이 부른 곡 TOP 3 (공동 순위별로 묶어서 클릭 링크 형태로 생성)
             const countGroups = {};
             songs.forEach(song => {
                 const count = song.dateTimes.length;
@@ -747,7 +752,6 @@
             }
             document.getElementById("topSongsStat").innerHTML = topSongsHtml || "기록 없음";
 
-            // 2. 가장 많이 부른 가수
             const artistCounts = {};
             songs.forEach(song => {
                 const artist = song.artist || "알 수 없음";
@@ -774,7 +778,6 @@
                 document.getElementById("topArtistStat").textContent = "기록 없음";
             }
 
-            // 3. 최근 30일 이내 최다 부른 곡
             const allDateTimes = [];
             songs.forEach(song => {
                 song.dateTimes.forEach(dt => {
@@ -820,7 +823,6 @@
                 document.getElementById("recentTopSongsStat").textContent = "기록 없음";
             }
 
-            // 4. 전체 노래 기준 기타 노래 비율
             const allTotalSongs = [...registered, ...unregistered];
             const totalCountAll = allTotalSongs.length;
             
@@ -847,7 +849,6 @@
                 <div style="font-size: 12px; color: #64748b; margin-top: 2px;">부른 기타 곡: ${playedGuitarCount}곡 / 안 부른 기타 곡: ${unplayedGuitarCount}곡</div>
             `;
 
-            // 5. 1회만 부른 곡 비율 (기타 제외, 부른 곡들 중)
             const nonGuitarPlayed = songs.filter(s => s.limit !== "기타");
             let onceCount = 0;
             nonGuitarPlayed.forEach(song => {
@@ -859,7 +860,6 @@
                 <div class="progress-bar-container"><div class="progress-bar-fill" data-target-width="${onceRatio}%"></div></div>
             `;
 
-            // 6. 등록 후 한 번도 안 부른 곡 비율 (기타 제외, registered 기준)
             const nonGuitarRegistered = registered.filter(s => s.limit !== "기타");
             const totalNonGuitarRegCount = nonGuitarRegistered.length;
             let zeroPlayCount = 0;
@@ -874,13 +874,12 @@
                 <div class="progress-bar-container"><div class="progress-bar-fill" data-target-width="${zeroRatio}%"></div></div>
             `;
 
-            // 7. 전체 노래(등록+미등록) 중 미등록 상태로 부른 노래의 비율
             const playedUnregCount = unregistered.filter(s => s.dateTimes && s.dateTimes.length > 0).length;
             const unregVsTotalRatio = totalCountAll > 0 ? parseFloat(((playedUnregCount / totalCountAll) * 100).toFixed(1)) : 0;
 
             document.getElementById("unregRatioStat").innerHTML = `
                 <div>${playedUnregCount}곡 / 전체 노래(${totalCountAll}곡) 중 <strong>${unregVsTotalRatio}%</strong></div>
-                <div class="progress-bar-container"><div class="progress-bar-fill" data-target-width="${Math.min(unregVsTotalRatio, 100)}%"></div></div>
+                <div class="progress-bar-container"><div class="progress-bar-fill" data-target-width="${Math.min(unregVsTotalRatio, 100)}%;"></div></div>
             `;
         }
 
@@ -908,9 +907,8 @@
             displaySongs.forEach((song, idx) => {
                 const card = document.createElement("div");
                 card.className = "song-card";
-                card.style.opacity = "0";
-                card.style.transform = "translateY(8px)";
-                card.style.transition = `opacity 0.3s ease ${idx * 0.04}s, transform 0.3s ease ${idx * 0.04}s, box-shadow 0.2s ease, border-color 0.2s ease`;
+                // 카드별 순차 지연 시간(stagger) 적용
+                card.style.animationDelay = `${idx * 0.04}s`;
 
                 card.onclick = (e) => {
                     if (e.target.tagName === 'A' || e.target.closest('a')) return;
@@ -960,12 +958,6 @@
                 `;
 
                 container.appendChild(card);
-                
-                // 나타나는 애니메이션 실행
-                requestAnimationFrame(() => {
-                    card.style.opacity = "1";
-                    card.style.transform = "translateY(0)";
-                });
             });
 
             document.getElementById("pageIndicator").textContent = `${currentPage} / ${totalPages}`;
