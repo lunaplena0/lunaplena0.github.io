@@ -45,6 +45,74 @@
             margin-bottom: 4px;
         }
 
+        /* 통계 대시보드 카드 스타일 */
+        .stats-dashboard {
+            background: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+        }
+
+        .stats-toggle-btn {
+            width: 100%;
+            background: #f8fafc;
+            border: none;
+            padding: 12px 16px;
+            font-size: 14px;
+            font-weight: 700;
+            color: #0077b6;
+            text-align: left;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.2s;
+        }
+
+        .stats-toggle-btn:hover {
+            background: #f1f5f9;
+        }
+
+        .stats-content {
+            padding: 16px;
+            border-top: 1px solid #f1f5f9;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            font-size: 13px;
+            color: #334155;
+            background: #ffffff;
+        }
+
+        .stats-content.collapsed {
+            display: none;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px dashed #f1f5f9;
+            padding-bottom: 8px;
+        }
+
+        .stat-item:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .stat-label {
+            font-weight: 600;
+            color: #64748b;
+        }
+
+        .stat-value {
+            font-weight: 700;
+            color: #0f172a;
+            text-align: right;
+        }
+
         /* 검색 및 필터 영역 */
         .search-box {
             width: 100%;
@@ -112,6 +180,7 @@
         .song-badges {
             display: flex;
             gap: 6px;
+            align-items: center;
         }
 
         .badge {
@@ -126,6 +195,11 @@
         .badge-limit {
             background-color: #e0e7ff;
             color: #4f46e5;
+        }
+
+        .badge-count {
+            background-color: #e0f2fe;
+            color: #0369a1;
         }
 
         /* 부른 기록(타임스탬프) 버튼 영역 */
@@ -157,6 +231,49 @@
             border-color: #0077b6;
         }
 
+        /* 페이지네이션 스타일 */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 16px;
+            margin-top: 10px;
+            padding: 10px 0;
+        }
+
+        .page-btn {
+            background-color: #ffffff;
+            border: 1px solid #cbd5e1;
+            color: #0077b6;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .page-btn:hover:not(:disabled) {
+            background-color: #0077b6;
+            color: #ffffff;
+            border-color: #0077b6;
+        }
+
+        .page-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .page-indicator {
+            font-size: 14px;
+            font-weight: 700;
+            color: #334155;
+        }
+
         .no-result {
             text-align: center;
             color: #64748b;
@@ -178,11 +295,44 @@
             <h1 class="page-title">바다비 노래 통계</h1>
             <div id="statsSummary" class="stats-summary">통계 계산 중...</div>
         </div>
+
+        <!-- 접고 펼칠 수 있는 통계 대시보드 -->
+        <div class="stats-dashboard">
+            <button class="stats-toggle-btn" onclick="toggleStats()">
+                <span>📊 상세 통계 정보 요약</span>
+                <span id="toggleIcon">▲ 접기</span>
+            </button>
+            <div id="statsContent" class="stats-content">
+                <div class="stat-item">
+                    <span class="stat-label">👑 가장 많이 부른 곡 TOP 3</span>
+                    <span id="topSongsStat" class="stat-value">-</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">🎤 가장 많이 부른 가수</span>
+                    <span id="topArtistStat" class="stat-value">-</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">🎸 기타 노래 비율</span>
+                    <span id="guitarRatioStat" class="stat-value">-</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">🔥 최근 30일 이내 최다 부른 곡</span>
+                    <span id="recentTopSongsStat" class="stat-value">-</span>
+                </div>
+            </div>
+        </div>
         
-        <input type="text" id="searchInput" class="search-box" placeholder="노래 제목 또는 가수 검색..." oninput="filterSongs()">
+        <input type="text" id="searchInput" class="search-box" placeholder="노래 제목 또는 가수 검색..." oninput="onSearchInput()">
 
         <div id="songContainer" class="song-list">
             <p class="no-result">데이터를 불러오는 중...</p>
+        </div>
+
+        <!-- 페이지네이션 컨트롤 (< 1/10 >) -->
+        <div id="paginationContainer" class="pagination" style="display: none;">
+            <button id="prevBtn" class="page-btn" onclick="changePage(-1)">‹</button>
+            <span id="pageIndicator" class="page-indicator">1 / 1</span>
+            <button id="nextBtn" class="page-btn" onclick="changePage(1)">›</button>
         </div>
     </div>
 
@@ -191,8 +341,11 @@
         const STATS_API_URL = WORKER_URL + "?type=fansongstats&t=";
 
         let allSongs = [];
+        let filteredSongs = [];
         let vodMap = {};
         let totalPlayCount = 0;
+        let currentPage = 1;
+        const itemsPerPage = 10;
 
         // HH:MM:SS 형식을 초(seconds)로 변환하는 함수
         function timeToSeconds(timeStr) {
@@ -204,6 +357,19 @@
                 return parts[0] * 60 + parts[1];
             }
             return 0;
+        }
+
+        // 통계창 토글 기능
+        function toggleStats() {
+            const content = document.getElementById("statsContent");
+            const icon = document.getElementById("toggleIcon");
+            if (content.classList.contains("collapsed")) {
+                content.classList.remove("collapsed");
+                icon.textContent = "▲ 접기";
+            } else {
+                content.classList.add("collapsed");
+                icon.textContent = "▼ 펼치기";
+            }
         }
 
         async function loadSongStats() {
@@ -228,21 +394,30 @@
                 const unregistered = data.unregisteredSongs || [];
                 const rawSongs = [...registered, ...unregistered];
 
-                // 3. 날짜 기록(dateTimes)이 아예 없는 곡들은 숨김 처리 필터링
-                allSongs = rawSongs.filter(song => song.dateTimes && song.dateTimes.length > 0);
+                // 3. 날짜 기록(dateTimes)이 아예 없는 곡들은 숨김 처리
+                const validSongs = rawSongs.filter(song => song.dateTimes && song.dateTimes.length > 0);
 
-                // 4. 총 불린 횟수 계산 (모든 곡의 dateTimes 개수 합산)
+                // 4. 부른 횟수(플레이 횟수)를 기준으로 내림차순 정렬 (가장 많이 부른 순)
+                validSongs.sort((a, b) => b.dateTimes.length - a.dateTimes.length);
+                allSongs = validSongs;
+
+                // 5. 총 부른 횟수 계산
                 totalPlayCount = allSongs.reduce((sum, song) => sum + song.dateTimes.length, 0);
 
                 // 상단 통계 요약 텍스트 업데이트
-                document.getElementById("statsSummary").textContent = `총 등록된 곡: ${allSongs.length}곡 | 누적 부른 횟수: 총 ${totalPlayCount}회`;
+                document.getElementById("statsSummary").textContent = `총 부른 곡 (종류): ${allSongs.length}곡 | 누적 부른 횟수: 총 ${totalPlayCount}회`;
+
+                // 상세 통계 계산 및 반영
+                calculateDetailedStats(allSongs);
 
                 if (allSongs.length === 0) {
                     container.innerHTML = '<p class="no-result">표시할 노래 데이터가 없습니다.</p>';
                     return;
                 }
 
-                renderSongs(allSongs);
+                filteredSongs = [...allSongs];
+                currentPage = 1;
+                renderPage();
 
             } catch (err) {
                 console.error(err);
@@ -250,18 +425,97 @@
             }
         }
 
-        function renderSongs(songs) {
+        // 상세 통계 계산 함수
+        function calculateDetailedStats(songs) {
+            // 1. TOP 3 곡
+            const top3 = songs.slice(0, 3).map(s => `${s.title} (${s.dateTimes.length}회)`).join(", ");
+            document.getElementById("topSongsStat").textContent = top3 || "기록 없음";
+
+            // 2. 가장 많이 부른 가수 계산
+            const artistCounts = {};
+            songs.forEach(song => {
+                const artist = song.artist || "알 수 없음";
+                artistCounts[artist] = (artistCounts[artist] || 0) + song.dateTimes.length;
+            });
+            let topArtist = "-";
+            let maxCount = 0;
+            for (const [artist, count] of Object.entries(artistCounts)) {
+                if (count > maxCount) {
+                    maxCount = count;
+                    topArtist = `${artist} (총 ${count}회)`;
+                }
+            }
+            document.getElementById("topArtistStat").textContent = topArtist;
+
+            // 3. 기타 노래 비율 계산
+            let guitarCount = 0;
+            songs.forEach(song => {
+                if (song.limit === "기타") guitarCount++;
+            });
+            const guitarRatio = songs.length > 0 ? ((guitarCount / songs.length) * 100).toFixed(1) : 0;
+            document.getElementById("guitarRatioStat").textContent = `${guitarCount}곡 (${guitarRatio}%)`;
+
+            // 4. 최근 30일 이내 가장 많이 부른 노래 계산
+            // 현재 날짜 기준 30일 전 계산 (2026년 기준 시뮬레이션 지원을 위해 텍스트 비교)
+            const allDateTimes = [];
+            songs.forEach(song => {
+                song.dateTimes.forEach(dt => {
+                    const cleanDate = dt.date.replace(/\(.*?\)/g, "").trim();
+                    allDateTimes.push({ title: song.title, date: cleanDate });
+                });
+            });
+
+            // 가장 최근 날짜 찾기
+            if (allDateTimes.length > 0) {
+                allDateTimes.sort((a, b) => new Date(b.date) - new Date(a.date));
+                const latestDateStr = allDateTimes[0].date;
+                const latestDate = new Date(latestDateStr);
+                const thirtyDaysAgo = new Date(latestDate);
+                thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+                const recentSongCounts = {};
+                songs.forEach(song => {
+                    let recentPlays = 0;
+                    song.dateTimes.forEach(dt => {
+                        const cleanDate = dt.date.replace(/\(.*?\)/g, "").trim();
+                        const d = new Date(cleanDate);
+                        if (d >= thirtyDaysAgo && d <= latestDate) {
+                            recentPlays++;
+                        }
+                    });
+                    if (recentPlays > 0) {
+                        recentSongCounts[song.title] = recentPlays;
+                    }
+                });
+
+                const sortedRecent = Object.entries(recentSongCounts).sort((a, b) => b[1] - a[1]).slice(0, 3);
+                const recentText = sortedRecent.length > 0 ? sortedRecent.map(item => `${item[0]} (${item[1]}회)`).join(", ") : "최근 30일 기록 없음";
+                document.getElementById("recentTopSongsStat").textContent = recentText;
+            } else {
+                document.getElementById("recentTopSongsStat").textContent = "기록 없음";
+            }
+        }
+
+        function renderPage() {
             const container = document.getElementById("songContainer");
+            const paginationContainer = document.getElementById("paginationContainer");
             container.innerHTML = "";
 
-            if (songs.length === 0) {
+            if (filteredSongs.length === 0) {
                 container.innerHTML = '<p class="no-result">검색 결과가 없습니다.</p>';
+                paginationContainer.style.display = "none";
                 return;
             }
 
-            // 너무 많은 항목이 한 번에 표시되지 않도록 최대 50개로 제한
-            const limitCount = 50;
-            const displaySongs = songs.slice(0, limitCount);
+            paginationContainer.style.display = "flex";
+
+            const totalPages = Math.ceil(filteredSongs.length / itemsPerPage);
+            if (currentPage > totalPages) currentPage = totalPages;
+            if (currentPage < 1) currentPage = 1;
+
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            const displaySongs = filteredSongs.slice(startIndex, endIndex);
 
             displaySongs.forEach(song => {
                 const card = document.createElement("div");
@@ -273,7 +527,10 @@
                     limitBadge = `<span class="badge badge-limit">기타 노래</span>`;
                 }
 
-                // 타임스탬프 버튼 생성 (괄호 및 회차 번호 제거 후 날짜만 표시)
+                // 부른 횟수 뱃지
+                const countBadge = `<span class="badge badge-count">총 ${song.dateTimes.length}회 부름</span>`;
+
+                // 타임스탬프 버튼 생성
                 let timestampsHTML = "";
                 if (song.dateTimes && song.dateTimes.length > 0) {
                     timestampsHTML = '<div class="timestamp-container">';
@@ -282,7 +539,6 @@
                         const totalSeconds = timeToSeconds(dt.time);
                         const finalLink = vodUrl !== "#" ? `${vodUrl}?change_second=${totalSeconds}` : "#";
 
-                        // 2026-04-20(1) 형태에서 괄호와 안의 숫자 제거 -> 2026-04-20
                         const cleanDate = dt.date.replace(/\(.*?\)/g, "").trim();
 
                         timestampsHTML += `
@@ -301,6 +557,7 @@
                             <p class="song-artist">${song.artist}</p>
                         </div>
                         <div class="song-badges">
+                            ${countBadge}
                             ${limitBadge}
                         </div>
                     </div>
@@ -310,25 +567,28 @@
                 container.appendChild(card);
             });
 
-            // 전체 개수가 제한보다 많을 경우 안내 메시지 추가
-            if (songs.length > limitCount) {
-                const notice = document.createElement("p");
-                notice.className = "no-result";
-                notice.style.padding = "10px 0";
-                notice.style.fontSize = "13px";
-                notice.textContent = `검색된 전체 ${songs.length}개 중 상위 ${limitCount}개만 표시됩니다.`;
-                container.appendChild(notice);
-            }
+            // 페이지네이션 인디케이터 및 버튼 상태 업데이트
+            document.getElementById("pageIndicator").textContent = `${currentPage} / ${totalPages}`;
+            document.getElementById("prevBtn").disabled = currentPage === 1;
+            document.getElementById("nextBtn").disabled = currentPage === totalPages;
+        }
+
+        // 페이지 변경 함수
+        function changePage(direction) {
+            currentPage += direction;
+            renderPage();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         // 검색 필터링 기능
-        function filterSongs() {
+        function onSearchInput() {
             const keyword = document.getElementById("searchInput").value.toLowerCase().trim();
-            const filtered = allSongs.filter(song => 
+            filteredSongs = allSongs.filter(song => 
                 song.title.toLowerCase().includes(keyword) || 
                 song.artist.toLowerCase().includes(keyword)
             );
-            renderSongs(filtered);
+            currentPage = 1;
+            renderPage();
         }
 
         loadSongStats();
