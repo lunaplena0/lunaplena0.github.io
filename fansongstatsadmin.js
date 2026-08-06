@@ -26,11 +26,10 @@ async function loadSongStatsSettingsData() {
         
         const data = await response.json();
         
-        // 1. 다중 다시보기 소스 렌더링 (구조 호환성 지원)
+        // 1. 다중 다시보기 소스 렌더링
         const vodContainer = document.getElementById('vod-sources-container');
         vodContainer.innerHTML = "";
         let vodSources = data.vodSources || [];
-        // 기존 단일 필드 데이터가 존재할 경우 마이그레이션 흡수
         if (vodSources.length === 0 && (data.vodDate || data.vodUrl || data.date || data.url)) {
             vodSources.push({ date: data.vodDate || data.date || "", url: data.vodUrl || data.url || "" });
         }
@@ -178,7 +177,7 @@ function addUnregisteredSongRow(item = {}) {
     container.appendChild(row);
 }
 
-// --- [추가] 노래책(songlist) 불러오기 모달 제어 함수 ---
+// --- 노래책(songlist) 불러오기 모달 제어 함수 ---
 async function openSongListImportModal() {
     if (globalSongList.length === 0) {
         await fetchSongListForComparison();
@@ -186,6 +185,7 @@ async function openSongListImportModal() {
     
     const container = document.getElementById('songlist-import-items');
     container.innerHTML = "";
+    document.getElementById('select-all-songs').checked = false;
 
     if (globalSongList.length === 0) {
         container.innerHTML = `<p style="text-align: center; color: #64748b;">불러올 수 있는 songlist 데이터가 없습니다.</p>`;
@@ -211,12 +211,28 @@ function closeSongListImportModal() {
     document.getElementById('songlist-import-modal').classList.remove('active');
 }
 
-// 모달에서 선택한 노래들을 등록된 노래 목록으로 추가
-function importSelectedSongsToRegistered() {
+// 전체 선택 체크박스 토글 기능
+function toggleSelectAllSongs(masterCheckbox) {
+    const checkboxes = document.querySelectorAll('.song-import-checkbox');
+    checkboxes.forEach(cb => {
+        cb.checked = masterCheckbox.checked;
+    });
+}
+
+// 선택된 노래들을 가져오거나 대체하는 함수 (isReplace: true면 기존 목록 초기화 후 대체)
+function importSelectedSongsToRegistered(isReplace = false) {
     const checkboxes = document.querySelectorAll('.song-import-checkbox:checked');
     if (checkboxes.length === 0) {
-        alert("추가할 노래를 선택해주세요.");
+        alert("가져올 노래를 선택해주세요.");
         return;
+    }
+
+    const regContainer = document.getElementById('registered-songs-container');
+    if (isReplace) {
+        if (!confirm("기존에 등록된 노래 목록이 모두 지워지고 선택한 곡들로 대체됩니다. 진행하시겠습니까?")) {
+            return;
+        }
+        regContainer.innerHTML = ""; // 기존 목록 초기화
     }
 
     checkboxes.forEach(cb => {
@@ -230,6 +246,33 @@ function importSelectedSongsToRegistered() {
                 time: ''
             });
         }
+    });
+
+    closeSongListImportModal();
+}
+
+// 전체 노래를 한번에 가져오는 편의 기능 (대체 옵션 포함 혹은 추가)
+function importAllSongsToRegistered() {
+    if (globalSongList.length === 0) {
+        alert("불러올 노래가 없습니다.");
+        return;
+    }
+
+    const isReplace = confirm("노래책(songlist)의 모든 곡을 등록된 노래 목록에 추가합니다.\n\n[확인]: 기존 목록을 비우고 전체 대체\n[취소]: 기존 목록 아래에 이어서 추가");
+    
+    const regContainer = document.getElementById('registered-songs-container');
+    if (isReplace) {
+        regContainer.innerHTML = "";
+    }
+
+    globalSongList.forEach(songData => {
+        addRegisteredSongRow({
+            title: songData.title || '',
+            artist: songData.artist || '',
+            etc: songData.etc || songData.limit || '',
+            date: '',
+            time: ''
+        });
     });
 
     closeSongListImportModal();
