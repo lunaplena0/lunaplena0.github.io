@@ -34,9 +34,9 @@ async function loadSongStatsSettingsData() {
             vodSources.push({ date: data.vodDate || data.date || "", url: data.vodUrl || data.url || "" });
         }
         if (vodSources.length > 0) {
-            vodSources.forEach(item => addVodSourceRow(item));
+            vodSources.forEach((item, index) => addVodSourceRow(item, index));
         } else {
-            addVodSourceRow();
+            addVodSourceRow({}, 0);
         }
 
         // 2. 등록된 노래 렌더링
@@ -44,9 +44,9 @@ async function loadSongStatsSettingsData() {
         regContainer.innerHTML = "";
         const registeredList = data.registeredSongs || data.registered || [];
         if (registeredList.length > 0) {
-            registeredList.forEach(item => addRegisteredSongRow(item));
+            registeredList.forEach((item, index) => addRegisteredSongRow(item, index));
         } else {
-            addRegisteredSongRow();
+            addRegisteredSongRow({}, 0);
         }
 
         // 3. 미등록된 노래 렌더링
@@ -54,9 +54,9 @@ async function loadSongStatsSettingsData() {
         unregContainer.innerHTML = "";
         const unregisteredList = data.unregisteredSongs || data.unregistered || [];
         if (unregisteredList.length > 0) {
-            unregisteredList.forEach(item => addUnregisteredSongRow(item));
+            unregisteredList.forEach((item, index) => addUnregisteredSongRow(item, index));
         } else {
-            addUnregisteredSongRow();
+            addUnregisteredSongRow({}, 0);
         }
 
         statusEl.textContent = "데이터를 성공적으로 불러왔습니다.";
@@ -67,9 +67,9 @@ async function loadSongStatsSettingsData() {
         document.getElementById('vod-sources-container').innerHTML = "";
         document.getElementById('registered-songs-container').innerHTML = "";
         document.getElementById('unregistered-songs-container').innerHTML = "";
-        addVodSourceRow();
-        addRegisteredSongRow();
-        addUnregisteredSongRow();
+        addVodSourceRow({}, 0);
+        addRegisteredSongRow({}, 0);
+        addUnregisteredSongRow({}, 0);
     }
 }
 
@@ -87,7 +87,7 @@ function toggleVodDetail(btn) {
     }
 }
 
-// 다시보기 전체 일괄 접기/펼치기 함수 (상세 영역 제어)
+// 다시보기 전체 일괄 접기/펼치기 함수
 function toggleAllVodDetails(expand = true) {
     const container = document.getElementById('vod-sources-container');
     if (!container) return;
@@ -110,13 +110,20 @@ function toggleAllVodDetails(expand = true) {
     });
 }
 
-// 다시보기 날짜 및 주소 행 추가 함수
-function addVodSourceRow(item = {}) {
+// 다시보기 날짜 및 주소 행 추가 함수 (처음 5개 초과 시 숨김 처리)
+function addVodSourceRow(item = {}, forcedIndex = null) {
     const container = document.getElementById('vod-sources-container');
+    const currentIndex = forcedIndex !== null ? forcedIndex : container.children.length;
+    
     const row = document.createElement('div');
     row.className = 'menu-item-row vod-source-row';
     row.style.flexDirection = "column";
     row.style.alignItems = "stretch";
+    
+    // 처음에 보이는 갯수를 5개로 제한 (index가 5 이상이면 숨김)
+    if (currentIndex >= 5) {
+        row.style.display = "none";
+    }
 
     const date = item.date || '';
     const url = item.url || '';
@@ -149,7 +156,7 @@ function addDateTimeRow(containerEl, item = {}) {
     containerEl.appendChild(row);
 }
 
-// 상세 영역 개별 접기/펼치기 토글 함수 (노래 행 내부의 날짜/시간 영역)
+// 상세 영역 개별 접기/펼치기 토글 함수
 function toggleSongDetail(btn) {
     const detailBox = btn.closest('.reg-song-row, .unreg-song-row').querySelector('.song-detail-box');
     if (detailBox.style.display === "none") {
@@ -163,7 +170,7 @@ function toggleSongDetail(btn) {
     }
 }
 
-// [수정됨] 특정 컨테이너 안의 모든 노래 목록 행 자체를 일괄 접기/펼치기 하는 함수
+// 특정 컨테이너 안의 모든 노래 목록 행 자체를 일괄 접기/펼치기 하는 함수
 function toggleAllSongDetails(containerId, expand = true) {
     const container = document.getElementById(containerId);
     if (!container) return;
@@ -196,13 +203,20 @@ function filterRegisteredSongs(queryInput) {
     });
 }
 
-// 노래책에 등록된 노래 행 추가
-function addRegisteredSongRow(item = {}) {
+// 노래책에 등록된 노래 행 추가 (처음 5개만 기본 표시)
+function addRegisteredSongRow(item = {}, forcedIndex = null) {
     const container = document.getElementById('registered-songs-container');
+    const currentIndex = forcedIndex !== null ? forcedIndex : container.children.length;
+
     const row = document.createElement('div');
     row.className = 'menu-item-row reg-song-row';
     row.style.flexDirection = "column";
     row.style.alignItems = "stretch";
+    
+    // 기본적으로 첫 5개(index 0~4)만 화면에 표시하고 나머지는 접기(숨김) 처리
+    if (currentIndex >= 5) {
+        row.style.display = "none";
+    }
     
     const title = item.title || '';
     const artist = item.artist || '';
@@ -302,13 +316,20 @@ function checkSongChanges(input) {
     }
 }
 
-// 노래책에 미등록된 노래 행 추가
-function addUnregisteredSongRow(item = {}) {
+// 노래책에 미등록된 노래 행 추가 (처음 5개만 기본 표시)
+function addUnregisteredSongRow(item = {}, forcedIndex = null) {
     const container = document.getElementById('unregistered-songs-container');
+    const currentIndex = forcedIndex !== null ? forcedIndex : container.children.length;
+
     const row = document.createElement('div');
     row.className = 'menu-item-row unreg-song-row';
     row.style.flexDirection = "column";
     row.style.alignItems = "stretch";
+
+    // 기본적으로 첫 5개(index 0~4)만 화면에 표시하고 나머지는 접기(숨김) 처리
+    if (currentIndex >= 5) {
+        row.style.display = "none";
+    }
 
     const title = item.title || '';
     const artist = item.artist || '';
