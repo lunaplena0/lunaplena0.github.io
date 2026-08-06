@@ -210,7 +210,6 @@ function addRegisteredSongRow(item = {}, forcedIndex = null) {
     
     const title = item.title || '';
     const artist = item.artist || '';
-    // [수정] limit만 가져오도록 변경
     const etc = item.limit || '';
     
     let mismatchWarning = "";
@@ -357,6 +356,98 @@ function addUnregisteredSongRow(item = {}, forcedIndex = null) {
     }
 }
 
+// [신규] 여러 노래 시간 일괄 추가 모달창 열기 함수
+function openBatchTimeImportModal() {
+    document.getElementById('batch-common-date').value = new Date().toISOString().slice(0, 10); // 오늘 날짜 기본 세팅
+    document.getElementById('batch-text-input').value = "";
+    document.getElementById('batch-result-status').innerHTML = "";
+    document.getElementById('batch-time-import-modal').classList.add('active');
+}
+
+function closeBatchTimeImportModal() {
+    document.getElementById('batch-time-import-modal').classList.remove('active');
+}
+
+// [신규] 일괄 추가 텍스트 파싱 및 매칭 실행 함수
+function executeBatchTimeImport() {
+    const commonDate = document.getElementById('batch-common-date').value.trim();
+    const rawText = document.getElementById('batch-text-input').value.trim();
+    const statusEl = document.getElementById('batch-result-status');
+
+    if (!commonDate) {
+        alert("공통으로 적용할 날짜를 입력해주세요.");
+        return;
+    }
+    if (!rawText) {
+        alert("추가할 타임라인 텍스트를 입력해주세요.");
+        return;
+    }
+
+    const lines = rawText.split('\n');
+    const rows = document.querySelectorAll('#registered-songs-container .reg-song-row');
+    
+    let matchedCount = 0;
+    let mismatchLines = [];
+
+    // 입력된 텍스트 라인별 순회
+    lines.forEach(line => {
+        const trimmedLine = line.trim();
+        if (!trimmedLine) return;
+
+        // 정규식 매칭: [시간] 🎵 [제목] - [가수] 형태 파싱
+        // 예: 00:06:49 🎵 Broken - 결
+        const match = trimmedLine.match(/^(\d{2}:\d{2}(?::\d{2})?)\s*(?:🎵)?\s*(.+?)\s*-\s*(.+)$/);
+        
+        if (!match) {
+            // 형식이 안 맞으면 불일치로 처리
+            mismatchLines.push(trimmedLine);
+            return;
+        }
+
+        const timeStr = match[1];
+        const targetTitle = match[2].trim().toLowerCase();
+        const targetArtist = match[3].trim().toLowerCase();
+
+        let found = false;
+
+        // 등록된 노래 목록에서 일치하는 곡 찾기
+        rows.forEach(row => {
+            const rowTitle = row.querySelector('.reg-title').value.trim().toLowerCase();
+            const rowArtist = row.querySelector('.reg-artist').value.trim().toLowerCase();
+
+            if (rowTitle === targetTitle && rowArtist === targetArtist) {
+                found = true;
+                const dtContainer = row.querySelector('.datetime-container');
+                
+                // 기존 첫 번째 빈 행이 있으면 거기에 넣고, 아니면 새로 추가
+                const firstSubRow = dtContainer.querySelector('.datetime-sub-row');
+                if (firstSubRow && !firstSubRow.querySelector('.sub-date').value && !firstSubRow.querySelector('.sub-time').value) {
+                    firstSubRow.querySelector('.sub-date').value = commonDate;
+                    firstSubRow.querySelector('.sub-time').value = timeStr;
+                } else {
+                    addDateTimeRow(dtContainer, { date: commonDate, time: timeStr });
+                }
+            }
+        });
+
+        if (found) {
+            matchedCount++;
+        } else {
+            mismatchLines.push(trimmedLine);
+        }
+    });
+
+    // 결과 출력
+    let resultHTML = `<span style="color: #10b981; font-weight: bold;">성공적으로 ${matchedCount}개의 노래에 시간이 추가되었습니다!</span>`;
+    if (mismatchLines.length > 0) {
+        resultHTML += `<br><span style="color: #ef4444; font-weight: bold;">⚠️ 불일치하거나 형식 오류인 항목 (${mismatchLines.length}개):</span>`;
+        mismatchLines.forEach(ml => {
+            resultHTML += `<br><span style="color: #ef4444; font-size: 12px;">- ${ml} (불일치합니다)</span>`;
+        });
+    }
+    statusEl.innerHTML = resultHTML;
+}
+
 // 노래책(songlist) 불러오기 모달 제어 함수
 async function openSongListImportModal() {
     if (globalSongList.length === 0) {
@@ -373,7 +464,6 @@ async function openSongListImportModal() {
         globalSongList.forEach((song, idx) => {
             const row = document.createElement('div');
             row.style.cssText = "display: flex; align-items: center; gap: 10px; padding: 8px; border-bottom: 1px solid #f1f5f9; background: #f8fafc; border-radius: 6px; margin-bottom: 6px;";
-            // [수정] 모달 리스트에서도 limit만 표시하도록 변경
             row.innerHTML = `
                 <input type="checkbox" class="song-import-checkbox" value="${idx}" style="width: 18px; height: 18px; cursor: pointer;">
                 <div style="flex: 1; font-size: 13px;">
@@ -420,7 +510,7 @@ function importSelectedSongsToRegistered(isReplace = false) {
             addRegisteredSongRow({
                 title: songData.title || '',
                 artist: songData.artist || '',
-                etc: songData.limit || '', // [수정] limit만 대입
+                etc: songData.limit || '',
                 dateTimes: []
             });
         }
@@ -446,7 +536,7 @@ function importAllSongsToRegistered() {
         addRegisteredSongRow({
             title: songData.title || '',
             artist: songData.artist || '',
-            etc: songData.limit || '', // [수정] limit만 대입
+            etc: songData.limit || '',
             dateTimes: []
         });
     });
