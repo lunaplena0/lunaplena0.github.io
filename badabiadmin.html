@@ -398,10 +398,11 @@
                     <h4>VOD리스트</h4>
                     <p>VOD 목록 관리 (fanvodlist)</p>
                 </div>
-                <div class="menu-card" onclick="location.href='#'">
-                    <h4>노래통계</h4>
-                    <p>노래 통계 데이터 관리</p>
-                </div>
+                <!-- 대시보드 메뉴 그리드 내 추가 -->
+<div class="menu-card" onclick="showSongStatsSettings()">
+    <h4>노래통계</h4>
+    <p>노래 통계 데이터 관리 (fansongstats)</p>
+</div>
             </div>
         </div>
 
@@ -573,6 +574,43 @@
             </div>
         </div>
     </div>
+    <!-- VOD리스트 패널 아래쪽에 추가할 노래통계 수정 패널 -->
+<div id="panel-songstats" class="card" style="display: none;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid rgba(0, 119, 190, 0.2); padding-bottom: 10px;">
+        <h3 style="margin: 0; color: #03045e;">🎵 노래통계 데이터 관리 (fansongstats)</h3>
+        <button onclick="showDashboard()" class="secondary-btn" style="padding: 6px 12px; font-size: 13px;">← 메뉴 목록으로</button>
+    </div>
+
+    <!-- 공통 정보 (다시보기 날짜, 주소) -->
+    <div class="vod-row-inline" style="margin-bottom: 15px;">
+        <div>
+            <label>다시보기 날짜</label>
+            <input type="text" id="songstats-vod-date" placeholder="예: 2026-06-06">
+        </div>
+        <div>
+            <label>다시보기 주소 (URL)</label>
+            <input type="text" id="songstats-vod-url" placeholder="https://...">
+        </div>
+    </div>
+
+    <!-- 1. 노래책에 등록된 노래 섹션 -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin: 20px 0 10px 0; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;">
+        <h4 style="color: #0077b6; margin: 0;">노래책에 등록된 노래</h4>
+        <button type="button" onclick="addRegisteredSongRow()" style="background-color: #10b981; padding: 4px 10px; font-size: 12px;">+ 등록곡 추가</button>
+    </div>
+    <p style="color: #64748b; font-size: 12px; margin-bottom: 10px;">songlist 데이터와 비교하여 정보가 변경된 경우 경고가 표시됩니다.</p>
+    <div id="registered-songs-container" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;"></div>
+
+    <!-- 2. 노래책에 미등록된 노래 섹션 -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin: 20px 0 10px 0; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;">
+        <h4 style="color: #0077b6; margin: 0;">노래책에 미등록된 노래</h4>
+        <button type="button" onclick="addUnregisteredSongRow()" style="background-color: #10b981; padding: 4px 10px; font-size: 12px;">+ 미등록곡 추가</button>
+    </div>
+    <div id="unregistered-songs-container" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;"></div>
+
+    <button onclick="saveSongStatsSettings()" style="width: 100%; margin-top: 25px; background-color: #0077b6; padding: 14px; font-size: 16px;">노래통계 설정 반영하기</button>
+    <div id="songstats-status" class="status-msg"></div>
+</div>
 
     <!-- 스크립트 파일 로드 -->
     <script src="badabiadmin.js"></script>
@@ -581,6 +619,7 @@
     <script src="fancrynoteadmin.js"></script>
     <script src="fancalenaradmin.js"></script>
     <script src="fanvodlistadmin.js"></script>
+    <script src="fansongstatsadmin.js"></script>
     
     <!-- 푸터 영역 -->
     <footer style="text-align: center; padding: 20px 10px; color: #718096; font-size: 11px; border-top: 1px solid rgba(0, 119, 190, 0.12); margin-top: 20px; width: 100%; box-sizing: border-box;">
