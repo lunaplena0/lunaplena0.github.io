@@ -252,6 +252,16 @@
             transform: translateY(-1px);
         }
 
+        /* TOP 3 순위별 항목 라인업 스타일 */
+        .top-song-row {
+            display: flex;
+            align-items: baseline;
+            gap: 6px;
+            margin-top: 4px;
+            flex-wrap: wrap;
+            line-height: 1.6;
+        }
+
         /* 검색 및 필터 영역 */
         .search-box {
             width: 100%;
@@ -645,21 +655,33 @@
                 return;
             }
 
-            // 1. 가장 많이 부른 곡 TOP 3
-            let topSongsHtml = "";
-            let uniqueRank = 0;
-            let prevCount = -1;
-            const medals = ["🥇", "🥈", "🥉"];
+            // 1. 가장 많이 부른 곡 TOP 3 (공동 순위별로 묶어서 표시)
+            const countGroups = {};
+            songs.forEach(song => {
+                const count = song.dateTimes.length;
+                if (!countGroups[count]) countGroups[count] = [];
+                countGroups[count].push(song.title);
+            });
 
-            for (let i = 0; i < songs.length; i++) {
-                const count = songs[i].dateTimes.length;
-                if (count !== prevCount) {
-                    uniqueRank++;
-                    if (uniqueRank > 3) break;
-                    prevCount = count;
-                }
-                const medalIcon = medals[uniqueRank - 1] || `${uniqueRank}위`;
-                topSongsHtml += `<div>${medalIcon} ${songs[i].title} (${count}회)</div>`;
+            const sortedCounts = Object.keys(countGroups).map(Number).sort((a, b) => b - a);
+            const medals = ["🥇", "🥈", "🥉"];
+            let topSongsHtml = "";
+            let rankIndex = 0;
+
+            for (let i = 0; i < sortedCounts.length; i++) {
+                if (rankIndex >= 3) break;
+                const count = sortedCounts[i];
+                const titles = countGroups[count];
+                const medalIcon = medals[rankIndex] || `${rankIndex + 1}위`;
+                
+                const titlesJoined = titles.map(title => `<span class="stat-clickable-tag" style="margin: 2px 4px 2px 0;" onclick="searchByKeyword('${title}')">${title}</span>`).join(" / ");
+
+                topSongsHtml += `
+                    <div class="top-song-row">
+                        <span>${medalIcon} (${count}회)</span> ${titlesJoined}
+                    </div>
+                `;
+                rankIndex++;
             }
             document.getElementById("topSongsStat").innerHTML = topSongsHtml || "기록 없음";
 
