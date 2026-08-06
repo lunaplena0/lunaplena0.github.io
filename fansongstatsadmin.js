@@ -88,11 +88,26 @@ function addVodSourceRow(item = {}) {
     container.appendChild(row);
 }
 
-// 노래책에 등록된 노래 행 추가
+// --- 부른 날짜/시간 개별 항목 추가 서브 함수 ---
+function addDateTimeRow(containerEl, item = {}) {
+    const row = document.createElement('div');
+    row.className = 'datetime-sub-row';
+    row.style.cssText = "display: flex; gap: 6px; align-items: center; margin-top: 4px;";
+    row.innerHTML = `
+        <input type="text" placeholder="부른 날짜 (예: 2026-06-06)" class="sub-date" value="${item.date || ''}" style="flex: 1; margin-bottom: 0; background: #fff;">
+        <input type="text" placeholder="부른 시간 (예: 21:30)" class="sub-time" value="${item.time || ''}" style="flex: 1; margin-bottom: 0; background: #fff;">
+        <button type="button" class="delete-item-btn" onclick="this.closest('.datetime-sub-row').remove()" style="padding: 6px 10px; font-size: 11px; margin-bottom: 0;">삭제</button>
+    `;
+    containerEl.appendChild(row);
+}
+
+// 노래책에 등록된 노래 행 추가 (다중 부른 날짜/시간 지원)
 function addRegisteredSongRow(item = {}) {
     const container = document.getElementById('registered-songs-container');
     const row = document.createElement('div');
     row.className = 'menu-item-row reg-song-row';
+    row.style.flexDirection = "column";
+    row.style.alignItems = "stretch";
     
     const title = item.title || '';
     const artist = item.artist || '';
@@ -105,27 +120,44 @@ function addRegisteredSongRow(item = {}) {
             const matchedArtist = matched.artist || '';
             const matchedEtc = matched.etc || matched.limit || '';
             if (matchedArtist !== artist || matchedEtc !== etc) {
-                mismatchWarning = `<span style="color: #ef4444; font-size: 11px; font-weight: bold; margin-left: 5px;">⚠️ songlist 정보와 일치하지 않음 (변경됨)</span>`;
+                mismatchWarning = `<span style="color: #ef4444; font-size: 11px; font-weight: bold;">⚠️ songlist 정보와 일치하지 않음 (변경됨)</span>`;
             }
         }
     }
 
     row.innerHTML = `
-        <div style="flex: 1; display: flex; flex-direction: column; gap: 4px;">
-            <div style="display: flex; gap: 6px;">
-                <input type="text" placeholder="노래제목" class="reg-title" value="${title}" style="flex: 1;" oninput="checkSongChanges(this)">
-                <input type="text" placeholder="가수" class="reg-artist" value="${artist}" style="flex: 1;" oninput="checkSongChanges(this)">
-                <input type="text" placeholder="제한 / 기타" class="reg-etc" value="${etc}" style="flex: 1;" oninput="checkSongChanges(this)">
-            </div>
-            <div style="display: flex; gap: 6px;">
-                <input type="text" placeholder="부른 날짜 (예: 2026-06-06)" class="reg-date" value="${item.date || ''}" style="flex: 1;">
-                <input type="text" placeholder="부른 시간 (예: 21:30)" class="reg-time" value="${item.time || ''}" style="flex: 1;">
-            </div>
-            <div class="warning-slot">${mismatchWarning}</div>
+        <div style="display: flex; gap: 6px; margin-bottom: 6px;">
+            <input type="text" placeholder="노래제목" class="reg-title" value="${title}" style="flex: 1; margin-bottom: 0;" oninput="checkSongChanges(this)">
+            <input type="text" placeholder="가수" class="reg-artist" value="${artist}" style="flex: 1; margin-bottom: 0;" oninput="checkSongChanges(this)">
+            <input type="text" placeholder="제한 / 기타" class="reg-etc" value="${etc}" style="flex: 1; margin-bottom: 0;" oninput="checkSongChanges(this)">
+            <button type="button" class="delete-item-btn" onclick="this.closest('.menu-item-row').remove()" style="padding: 8px 12px; margin-bottom: 0;">노래 삭제</button>
         </div>
-        <button type="button" class="delete-item-btn" onclick="this.closest('.menu-item-row').remove()">삭제</button>
+        
+        <!-- 부른 날짜/시간 다중 입력 영역 -->
+        <div style="background: #f1f5f9; padding: 8px; border-radius: 6px; border: 1px solid #e2e8f0;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                <span style="font-size: 12px; font-weight: bold; color: #0077b6;">부른 날짜 및 시간 목록</span>
+                <button type="button" onclick="addDateTimeRow(this.closest('div').nextElementSibling)" style="background-color: #10b981; padding: 2px 8px; font-size: 11px; margin-bottom: 0;">+ 날짜/시간 추가</button>
+            </div>
+            <div class="datetime-container" style="display: flex; flex-direction: column; gap: 4px;"></div>
+        </div>
+
+        <div class="warning-slot" style="margin-top: 4px;">${mismatchWarning}</div>
     `;
+
     container.appendChild(row);
+
+    // 날짜/시간 데이터 주입 (과거 데이터 호환성 포함)
+    const dtContainer = row.querySelector('.datetime-container');
+    let dateTimes = item.dateTimes || [];
+    if (dateTimes.length === 0 && (item.date || item.time)) {
+        dateTimes.push({ date: item.date || '', time: item.time || '' });
+    }
+    if (dateTimes.length > 0) {
+        dateTimes.forEach(dt => addDateTimeRow(dtContainer, dt));
+    } else {
+        addDateTimeRow(dtContainer);
+    }
 }
 
 // 실시간 변경 비교 함수
@@ -146,35 +178,56 @@ function checkSongChanges(input) {
         const matchedArtist = matched.artist || '';
         const matchedEtc = matched.etc || matched.limit || '';
         if (matchedArtist !== artist || matchedEtc !== etc) {
-            warningSlot.innerHTML = `<span style="color: #ef4444; font-size: 11px; font-weight: bold; margin-left: 5px;">⚠️ songlist 정보와 일치하지 않음 (변경됨)</span>`;
+            warningSlot.innerHTML = `<span style="color: #ef4444; font-size: 11px; font-weight: bold;">⚠️ songlist 정보와 일치하지 않음 (변경됨)</span>`;
         } else {
             warningSlot.innerHTML = "";
         }
     } else {
-        warningSlot.innerHTML = `<span style="color: #f59e0b; font-size: 11px; font-weight: bold; margin-left: 5px;">🔍 songlist에 존재하지 않는 제목입니다.</span>`;
+        warningSlot.innerHTML = `<span style="color: #f59e0b; font-size: 11px; font-weight: bold;">🔍 songlist에 존재하지 않는 제목입니다.</span>`;
     }
 }
 
-// 노래책에 미등록된 노래 행 추가
+// 노래책에 미등록된 노래 행 추가 (미등록곡도 다중 날짜/시간 지원)
 function addUnregisteredSongRow(item = {}) {
     const container = document.getElementById('unregistered-songs-container');
     const row = document.createElement('div');
     row.className = 'menu-item-row unreg-song-row';
+    row.style.flexDirection = "column";
+    row.style.alignItems = "stretch";
+
+    const title = item.title || '';
+    const artist = item.artist || '';
+    const etc = item.etc || '';
+
     row.innerHTML = `
-        <div style="flex: 1; display: flex; flex-direction: column; gap: 4px;">
-            <div style="display: flex; gap: 6px;">
-                <input type="text" placeholder="노래제목" class="unreg-title" value="${item.title || ''}" style="flex: 1;">
-                <input type="text" placeholder="가수" class="unreg-artist" value="${item.artist || ''}" style="flex: 1;">
-                <input type="text" placeholder="제한 / 기타" class="unreg-etc" value="${item.etc || ''}" style="flex: 1;">
-            </div>
-            <div style="display: flex; gap: 6px;">
-                <input type="text" placeholder="부른 날짜 (예: 2026-06-06)" class="unreg-date" value="${item.date || ''}" style="flex: 1;">
-                <input type="text" placeholder="부른 시간 (예: 21:30)" class="unreg-time" value="${item.time || ''}" style="flex: 1;">
-            </div>
+        <div style="display: flex; gap: 6px; margin-bottom: 6px;">
+            <input type="text" placeholder="노래제목" class="unreg-title" value="${title}" style="flex: 1; margin-bottom: 0;">
+            <input type="text" placeholder="가수" class="unreg-artist" value="${artist}" style="flex: 1; margin-bottom: 0;">
+            <input type="text" placeholder="제한 / 기타" class="unreg-etc" value="${etc}" style="flex: 1; margin-bottom: 0;">
+            <button type="button" class="delete-item-btn" onclick="this.closest('.menu-item-row').remove()" style="padding: 8px 12px; margin-bottom: 0;">노래 삭제</button>
         </div>
-        <button type="button" class="delete-item-btn" onclick="this.closest('.menu-item-row').remove()">삭제</button>
+
+        <div style="background: #f1f5f9; padding: 8px; border-radius: 6px; border: 1px solid #e2e8f0;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                <span style="font-size: 12px; font-weight: bold; color: #0077b6;">부른 날짜 및 시간 목록</span>
+                <button type="button" onclick="addDateTimeRow(this.closest('div').nextElementSibling)" style="background-color: #10b981; padding: 2px 8px; font-size: 11px; margin-bottom: 0;">+ 날짜/시간 추가</button>
+            </div>
+            <div class="datetime-container" style="display: flex; flex-direction: column; gap: 4px;"></div>
+        </div>
     `;
+
     container.appendChild(row);
+
+    const dtContainer = row.querySelector('.datetime-container');
+    let dateTimes = item.dateTimes || [];
+    if (dateTimes.length === 0 && (item.date || item.time)) {
+        dateTimes.push({ date: item.date || '', time: item.time || '' });
+    }
+    if (dateTimes.length > 0) {
+        dateTimes.forEach(dt => addDateTimeRow(dtContainer, dt));
+    } else {
+        addDateTimeRow(dtContainer);
+    }
 }
 
 // --- 노래책(songlist) 불러오기 모달 제어 함수 ---
@@ -211,7 +264,6 @@ function closeSongListImportModal() {
     document.getElementById('songlist-import-modal').classList.remove('active');
 }
 
-// 전체 선택 체크박스 토글 기능
 function toggleSelectAllSongs(masterCheckbox) {
     const checkboxes = document.querySelectorAll('.song-import-checkbox');
     checkboxes.forEach(cb => {
@@ -219,7 +271,6 @@ function toggleSelectAllSongs(masterCheckbox) {
     });
 }
 
-// 선택된 노래들을 가져오거나 대체하는 함수 (isReplace: true면 기존 목록 초기화 후 대체)
 function importSelectedSongsToRegistered(isReplace = false) {
     const checkboxes = document.querySelectorAll('.song-import-checkbox:checked');
     if (checkboxes.length === 0) {
@@ -232,7 +283,7 @@ function importSelectedSongsToRegistered(isReplace = false) {
         if (!confirm("기존에 등록된 노래 목록이 모두 지워지고 선택한 곡들로 대체됩니다. 진행하시겠습니까?")) {
             return;
         }
-        regContainer.innerHTML = ""; // 기존 목록 초기화
+        regContainer.innerHTML = "";
     }
 
     checkboxes.forEach(cb => {
@@ -242,8 +293,7 @@ function importSelectedSongsToRegistered(isReplace = false) {
                 title: songData.title || '',
                 artist: songData.artist || '',
                 etc: songData.etc || songData.limit || '',
-                date: '',
-                time: ''
+                dateTimes: []
             });
         }
     });
@@ -251,7 +301,6 @@ function importSelectedSongsToRegistered(isReplace = false) {
     closeSongListImportModal();
 }
 
-// 전체 노래를 한번에 가져오는 편의 기능 (대체 옵션 포함 혹은 추가)
 function importAllSongsToRegistered() {
     if (globalSongList.length === 0) {
         alert("불러올 노래가 없습니다.");
@@ -270,15 +319,14 @@ function importAllSongsToRegistered() {
             title: songData.title || '',
             artist: songData.artist || '',
             etc: songData.etc || songData.limit || '',
-            date: '',
-            time: ''
+            dateTimes: []
         });
     });
 
     closeSongListImportModal();
 }
 
-// 서버 저장 함수
+// 서버 저장 함수 (다중 날짜/시간 배열 구조 수집)
 async function saveSongStatsSettings() {
     const statusEl = document.getElementById('songstats-status');
     const password = document.getElementById('admin-password').value.trim();
@@ -307,11 +355,18 @@ async function saveSongStatsSettings() {
         const title = row.querySelector('.reg-title').value.trim();
         const artist = row.querySelector('.reg-artist').value.trim();
         const etc = row.querySelector('.reg-etc').value.trim();
-        const date = row.querySelector('.reg-date').value.trim();
-        const time = row.querySelector('.reg-time').value.trim();
+        
+        const dateTimes = [];
+        row.querySelectorAll('.datetime-sub-row').forEach(subRow => {
+            const date = subRow.querySelector('.sub-date').value.trim();
+            const time = subRow.querySelector('.sub-time').value.trim();
+            if (date || time) {
+                dateTimes.push({ date, time });
+            }
+        });
 
         if (title) {
-            registeredSongs.push({ title, artist, etc, date, time });
+            registeredSongs.push({ title, artist, etc, dateTimes });
         }
     });
 
@@ -321,11 +376,18 @@ async function saveSongStatsSettings() {
         const title = row.querySelector('.unreg-title').value.trim();
         const artist = row.querySelector('.unreg-artist').value.trim();
         const etc = row.querySelector('.unreg-etc').value.trim();
-        const date = row.querySelector('.unreg-date').value.trim();
-        const time = row.querySelector('.unreg-time').value.trim();
+        
+        const dateTimes = [];
+        row.querySelectorAll('.datetime-sub-row').forEach(subRow => {
+            const date = subRow.querySelector('.sub-date').value.trim();
+            const time = subRow.querySelector('.sub-time').value.trim();
+            if (date || time) {
+                dateTimes.push({ date, time });
+            }
+        });
 
         if (title) {
-            unregisteredSongs.push({ title, artist, etc, date, time });
+            unregisteredSongs.push({ title, artist, etc, dateTimes });
         }
     });
 
