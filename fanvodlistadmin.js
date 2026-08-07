@@ -1,4 +1,4 @@
-// VOD 항목을 화면에 추가하는 함수 (텍스트 일괄 등록 지원 및 컴팩트 스타일)
+// VOD 항목을 화면에 추가하는 함수 (순서 완벽 맞춤 및 컴팩트 스타일)
 function addVodRow(vod = {}, isNew = false) {
     const container = document.getElementById('vodlist-rows-container');
     const row = document.createElement('div');
@@ -32,49 +32,58 @@ function addVodRow(vod = {}, isNew = false) {
             </div>
         </div>
 
-        <!-- [상세 편집 뷰] 깔끔하고 직관적인 필드 배치 -->
+        <!-- [상세 편집 뷰] 지정해주신 순서에 맞춘 컴팩트 UI -->
         <div class="vod-detail-view" style="display: ${(hasData && !isNew) ? 'none' : 'flex'}; flex-direction: column; gap: 6px;">
             <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; margin-bottom: 2px;">
-                <span style="font-size: 12px; font-weight: 700; color: #0077b6;">VOD 정보 입력 (순서: 날짜 | 제목 | 링크 | 썸네일 | 시간 | 구독 | 성인)</span>
-                <span style="font-size: 10px; color: #64748b;">아래 칸에 한 줄로 복사 붙여넣기 가능</span>
+                <span style="font-size: 12px; font-weight: 700; color: #0077b6;">VOD 정보 입력 (순서: 날짜 ➔ 제목 ➔ 링크 ➔ 썸네일 ➔ 시간 ➔ 구독 ➔ 성인)</span>
+                <span style="font-size: 10px; color: #64748b;">윗칸에 한 줄로 붙여넣기 가능</span>
             </div>
 
-            <!-- 한 줄 텍스트 일괄 붙여넣기 지원 인풋 -->
-            <div style="background: #f8fafc; padding: 6px; border-radius: 4px; border: 1px dashed #cbd5e1; margin-bottom: 2px;">
-                <input type="text" placeholder="예: 2026-08-07\t제목\t링크\t썸네일\t03:25:02\t아니요\t아니요" class="vod-bulk-paste" onpaste="handleVodBulkPaste(event, this)" style="width: 100%; padding: 4px 6px; font-size: 11px; background: #fff; border: 1px solid #cbd5e1; border-radius: 3px;" title="탭이나 공백으로 구분된 한 줄 데이터를 붙여넣으세요">
+            <!-- 한 줄 일괄 붙여넣기 지원 인풋 -->
+            <div style="background: #f8fafc; padding: 5px; border-radius: 4px; border: 1px dashed #cbd5e1; margin-bottom: 2px;">
+                <input type="text" placeholder="예: 2026-08-07 [탭] 제목 [탭] 링크 [탭] 썸네일 [탭] 03:25:02 [탭] 아니요 [탭] 아니요" class="vod-bulk-paste" onpaste="handleVodBulkPaste(event, this)" style="width: 100%; padding: 4px 6px; font-size: 11px; background: #fff; border: 1px solid #cbd5e1; border-radius: 3px;">
             </div>
 
+            <!-- 1. 날짜 / 2. 제목 -->
             <div class="vod-row-inline" style="display: flex; gap: 6px;">
-                <input type="text" placeholder="날짜 (예: 2026-08-07)" class="vod-date" value="${vod.date || ''}" oninput="updateSummaryTitle(this)" style="padding: 4px 6px; font-size: 12px; flex: 1;">
-                <input type="text" placeholder="컨텐츠 종류" class="vod-category" value="${vod.category || ''}" style="padding: 4px 6px; font-size: 12px; flex: 1;">
-                <input type="text" placeholder="총시간 (예: 03:25:02)" class="vod-duration" value="${vod.duration || ''}" style="padding: 4px 6px; font-size: 12px; flex: 1;">
+                <input type="text" placeholder="1. 날짜 (예: 2026-08-07)" class="vod-date" value="${vod.date || ''}" oninput="updateSummaryTitle(this)" style="padding: 4px 6px; font-size: 12px; flex: 1;">
+                <input type="text" placeholder="2. VOD 제목" class="vod-title" value="${vod.title || ''}" oninput="updateSummaryTitle(this)" style="padding: 4px 6px; font-size: 12px; flex: 2;">
             </div>
-            
-            <input type="text" placeholder="VOD 제목" class="vod-title" value="${vod.title || ''}" oninput="updateSummaryTitle(this)" style="padding: 4px 6px; font-size: 12px;">
-            
+
+            <!-- 3. 링크 / 4. 썸네일 -->
             <div class="vod-row-inline" style="display: flex; gap: 6px;">
-                <input type="text" placeholder="링크 (URL)" class="vod-link" value="${vod.link || ''}" style="padding: 4px 6px; font-size: 12px; flex: 1;">
-                <input type="text" placeholder="썸네일 이미지 주소 (URL)" class="vod-thumbnail" value="${vod.thumbnail || ''}" style="padding: 4px 6px; font-size: 12px; flex: 1;">
+                <input type="text" placeholder="3. VOD 주소 (링크)" class="vod-link" value="${vod.link || ''}" style="padding: 4px 6px; font-size: 12px; flex: 1;">
+                <input type="text" placeholder="4. 썸네일 주소" class="vod-thumbnail" value="${vod.thumbnail || ''}" style="padding: 4px 6px; font-size: 12px; flex: 1;">
             </div>
-            
-            <div class="vod-row-inline" style="display: flex; gap: 6px;">
+
+            <!-- 5. 시간 / 6. 구독여부 / 7. 성인인증여부 -->
+            <div class="vod-row-inline" style="display: flex; gap: 6px; align-items: flex-end;">
                 <div style="flex: 1;">
-                    <label style="font-size: 11px; margin-bottom: 2px; display: block;">구독플러스 여부</label>
-                    <select class="vod-sub-plus" style="padding: 3px; font-size: 11px; width: 100%;">
-                        <option value="N" ${vod.subPlus === 'N' || vod.subPlus === '아니요' ? 'selected' : ''}>일반 (N / 아니요)</option>
-                        <option value="Y" ${vod.subPlus === 'Y' || vod.subPlus === '예' ? 'selected' : ''}>구독플러스 (Y / 예)</option>
+                    <label style="font-size: 10px; margin-bottom: 2px; display: block; color: #475569;">5. 시간 (예: 03:25:02)</label>
+                    <input type="text" placeholder="시간" class="vod-duration" value="${vod.duration || ''}" style="padding: 4px 6px; font-size: 12px; width: 100%;">
+                </div>
+                <div style="flex: 1;">
+                    <label style="font-size: 10px; margin-bottom: 2px; display: block; color: #475569;">6. 구독여부</label>
+                    <select class="vod-sub-plus" style="padding: 4px; font-size: 11px; width: 100%;">
+                        <option value="N" ${vod.subPlus === 'N' || vod.subPlus === '아니요' ? 'selected' : ''}>아니요 (N)</option>
+                        <option value="Y" ${vod.subPlus === 'Y' || vod.subPlus === '예' ? 'selected' : ''}>예 (Y)</option>
                     </select>
                 </div>
                 <div style="flex: 1;">
-                    <label style="font-size: 11px; margin-bottom: 2px; display: block;">성인인증 필요 여부</label>
-                    <select class="vod-adult" style="padding: 3px; font-size: 11px; width: 100%;">
-                        <option value="N" ${vod.adult === 'N' || vod.adult === '아니요' ? 'selected' : ''}>전체이용가 (N / 아니요)</option>
-                        <option value="Y" ${vod.adult === 'Y' || vod.adult === '예' ? 'selected' : ''}>성인인증 (Y / 예)</option>
+                    <label style="font-size: 10px; margin-bottom: 2px; display: block; color: #475569;">7. 성인인증여부</label>
+                    <select class="vod-adult" style="padding: 4px; font-size: 11px; width: 100%;">
+                        <option value="N" ${vod.adult === 'N' || vod.adult === '아니요' ? 'selected' : ''}>아니요 (N)</option>
+                        <option value="Y" ${vod.adult === 'Y' || vod.adult === '예' ? 'selected' : ''}>예 (Y)</option>
                     </select>
                 </div>
             </div>
+
+            <!-- 추가 선택 정보 (컨텐츠 종류, 상세정보) -->
+            <div class="vod-row-inline" style="display: flex; gap: 6px;">
+                <input type="text" placeholder="컨텐츠 종류 (선택)" class="vod-category" value="${vod.category || ''}" style="padding: 4px 6px; font-size: 12px; flex: 1;">
+            </div>
             
-            <textarea placeholder="컨텐츠 상세정보 입력 (description)" class="vod-description" style="height: 40px; padding: 4px 6px; font-size: 12px; resize: vertical;">${vod.description || ''}</textarea>
+            <textarea placeholder="컨텐츠 상세정보 (description)" class="vod-description" style="height: 38px; padding: 4px 6px; font-size: 12px; resize: vertical;">${vod.description || ''}</textarea>
             
             <div style="display: flex; justify-content: flex-end; gap: 4px;">
                 <button type="button" onclick="completeVodEdit(this)" style="background-color: #10b981; padding: 4px 10px; font-size: 11px; border: none; border-radius: 4px; color: #fff; cursor: pointer;">편집 완료</button>
@@ -99,10 +108,7 @@ function handleVodBulkPaste(event, inputEl) {
     const pasteData = (event.clipboardData || window.clipboardData).getData('text');
     if (!pasteData) return;
 
-    // 탭(Tab) 또는 여러 개 이상의 공백/쉼표 등으로 구분된 데이터 파싱
     let parts = pasteData.split(/\t|,|\s{2,}/).map(item => item.trim()).filter(item => item !== "");
-    
-    // 만약 탭이나 공백 구분이 안 먹히고 공백 단위로 쪼개졌을 때를 대비한 처리 (URL 등이 포함되므로 주로 탭('\t') 기준 분할 선호)
     if (parts.length < 3) {
         parts = pasteData.split('\t').map(item => item.trim());
     }
@@ -131,9 +137,8 @@ function handleVodBulkPaste(event, inputEl) {
         else adultSelect.value = 'N';
     }
 
-    // 요약 뷰 실시간 반영
     updateSummaryTitle(inputEl);
-    inputEl.value = ""; // 붙여넣은 뒤 입력창 비우기
+    inputEl.value = ""; 
 }
 
 function toggleVodEdit(button) {
