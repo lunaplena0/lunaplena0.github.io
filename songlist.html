@@ -5,307 +5,261 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>바다비 노래책</title>
     <style>
-        /* 전체 페이지 기본 스타일 설정 */
         body {
             margin: 0;
             width: 100vw;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
-            background-color: #f4f7f9;
+            background-color: #f8fafc;
             overflow-x: hidden;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #1e293b;
         }
 
-        /* 메인 콘텐츠 영역을 감싸는 컨테이너 */
-        .ocean-profile-container {
-            position: relative;
+        .main-container {
             width: 100%;
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center; 
-            padding: 4px;
+            max-width: 840px;
+            margin: 0 auto;
+            padding: 20px;
             box-sizing: border-box;
-            background: transparent; 
-        }
-
-        /* 노래책 메인 카드 박스 (유리구상 디자인 적용) */
-        .profile-info-card {
-            position: relative;
-            z-index: 2;
-            background: rgba(255, 255, 255, 0.85); 
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(0, 119, 190, 0.15);
-            border-radius: 12px; 
-            padding: 15px;
-            box-shadow: 0 20px 45px rgba(0, 119, 190, 0.15);
-            max-width: 1000px;
-            width: 100%;
             display: flex;
             flex-direction: column;
-            gap: 20px;
-            color: #2b2d42; 
-            box-sizing: border-box;
+            gap: 16px;
+            flex: 1;
         }
 
-        /* 카드 상단 헤더 영역 (제목과 곡 개수 배치) */
-        .songbook-header {
+        /* 상단 헤더 영역 */
+        .header-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 2px solid rgba(0, 119, 190, 0.15);
-            padding-bottom: 8px;
+            gap: 12px;
         }
 
-        /* 노래책 타이틀 텍스트 스타일 */
-        .songbook-title {
-            font-size: 24px;
-            font-weight: 800;
-            color: #03045e;
-            margin: 0;
-        }
-
-        /* 노래 총 개수를 보여주는 뱃지 스타일 */
-        .song-count {
-            font-size: 15px;
-            font-weight: 600;
-            color: #0077b6;
-            background: rgba(0, 119, 190, 0.1);
-            padding: 4px 10px;
-            border-radius: 20px;
-        }
-
-        /* 공지사항 안내 박스 */
-        .notice-box {
-            background: rgba(0, 119, 190, 0.08);
-            border: 1px solid rgba(0, 119, 190, 0.2);
-            border-radius: 8px;
-            padding: 12px 14px;
-            font-size: 14px;
-            color: #03045e;
-            line-height: 1.6;
-            box-sizing: border-box;
-        }
-
-        /* 공지사항 제목 타이틀 */
-        .notice-title {
-            font-weight: 700;
-            margin-bottom: 8px;
+        .title-summary-box {
+            border-left: 5px solid #0ea5e9;
+            padding-left: 14px;
             display: flex;
-            align-items: center;
-            gap: 3px;
-            font-size: 14px;
-            border-bottom: 1px dashed rgba(0, 119, 190, 0.2);
-            padding-bottom: 6px;
+            flex-direction: column;
+            gap: 4px;
         }
 
-        /* 공지사항 본문 내용 */
-        .notice-content {
-            color: #334155;
+        .page-title {
+            font-size: 28px;
+            font-weight: 800;
+            color: #0f172a;
             margin: 0;
-            white-space: pre-line;
+            letter-spacing: -0.5px;
         }
 
-        /* 노래 검색 입력창 스타일 */
+        .stats-summary {
+            font-size: 13.5px;
+            color: #64748b;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        /* 검색 및 필터 영역 */
         .search-box {
             width: 100%;
-            padding: 10px 12px;
-            font-size: 12px;
-            border: 1px solid rgba(0, 119, 190, 0.25);
-            border-radius: 8px;
-            background: rgba(255, 255, 255, 0.9);
+            padding: 12px 16px;
+            font-size: 14px;
+            border: 1px solid #cbd5e1;
+            border-radius: 12px;
             box-sizing: border-box;
             outline: none;
-            color: #2b2d42;
-            transition: all 0.2s ease-in-out;
+            background-color: #ffffff;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+            transition: all 0.2s;
         }
 
-        /* 검색창 플레이스홀더 폰트 설정 */
-        .search-box::placeholder {
-            font-size: 12px;
-            color: #94a3b8;
-        }
-
-        /* 검색창 포커스 효과 */
         .search-box:focus {
-            border-color: #0077b6;
-            box-shadow: 0 0 10px rgba(0, 119, 190, 0.15);
+            border-color: #0ea5e9;
+            box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
         }
 
-        /* 장르 필터 태그 버튼들을 감싸는 컨테이너 */
         .filter-tags-container {
             display: flex;
             gap: 8px;
             flex-wrap: wrap;
-            margin-top: -10px;
         }
 
-        /* 개별 필터 버튼 스타일 */
         .filter-btn {
-            background-color: rgba(255, 255, 255, 0.9);
-            border: 1px solid rgba(0, 119, 190, 0.25);
-            color: #0077b6;
-            padding: 6px 12px;
-            font-size: 12px;
-            font-weight: 600;
+            background-color: #ffffff;
+            border: 1px solid #cbd5e1;
+            color: #0369a1;
+            padding: 8px 14px;
+            font-size: 13px;
+            font-weight: 700;
             border-radius: 20px;
             cursor: pointer;
             transition: all 0.2s ease;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
         }
 
-        /* 필터 버튼 호버 효과 */
         .filter-btn:hover {
-            background-color: rgba(0, 119, 190, 0.1);
+            background-color: #f8fafc;
+            border-color: #0ea5e9;
         }
 
-        /* 선택된(활성화된) 필터 버튼 스타일 */
         .filter-btn.active {
-            background-color: #0077b6;
+            background-color: #0ea5e9;
             color: white;
-            border-color: #0077b6;
+            border-color: #0ea5e9;
         }
 
-        /* 노래 목록 테이블을 감싸는 스크롤 영역 컨테이너 */
-        .song-table-container {
-            width: 100%;
-            max-height: 450px;
-            overflow-y: auto;
-            border-radius: 8px;
-            border: 1px solid rgba(0, 119, 190, 0.15);
-            background: rgba(255, 255, 255, 0.6);
+        /* 노래 목록 컨테이너 및 카드 스타일 */
+        .song-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
         }
 
-        /* 노래 목록 테이블 기본 설정 */
-        .song-table {
-            width: 100%;
-            border-collapse: collapse;
-            text-align: left;
-            font-size: 13px;
-            table-layout: fixed;
+        @keyframes slideDownFade {
+            0% {
+                opacity: 0;
+                transform: translateY(-12px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
-        /* 테이블 헤더 셀 (스크롤 시 고정) */
-        .song-table th {
-            background: #e6f0f8;
-            color: #03045e;
+        /* 아티스트 구분 헤더 행 */
+        .artist-group-header {
+            font-size: 15px;
             font-weight: 800;
-            padding: 8px 12px;
-            position: sticky;
-            top: 0;
-            z-index: 10;
+            color: #0369a1;
+            padding: 10px 4px 4px 4px;
+            margin-top: 8px;
+            border-bottom: 2px solid #e2e8f0;
         }
 
-        /* 테이블 데이터 셀 */
-        .song-table td {
-            padding: 3px 4px;
-            border-bottom: 1px solid rgba(0, 119, 190, 0.08);
-            color: #334155;
-            word-break: break-word;
-            vertical-align: middle;
+        .song-card {
+            background: #ffffff;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            animation: slideDownFade 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            opacity: 0;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            gap: 12px;
         }
 
-        /* 테이블 행 마우스 호버 효과 */
-        .song-table tr:hover {
-            background: transparent;
-            outline: 1px solid #bbe4fa;
-            outline-offset: -1.5px;
-            z-index: 5;
-            position: relative;
+        .song-card:hover {
+            border-color: #cbd5e1;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
         }
 
-        .song-table tr:has(td[colspan="2"]):hover {
-            outline: none;
-            background: rgba(0, 119, 190, 0.05);
+        .song-info-left {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            min-width: 0;
+            flex: 1;
         }
 
-        .song-table tr:last-child td {
-            border-bottom: none;
+        .song-title-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
         }
 
-        .loading-text {
+        .song-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 0;
+        }
+
+        .song-etc {
+            font-size: 12px;
+            color: #64748b;
+            margin: 0;
+        }
+
+        .song-badges {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .badge {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 6px;
+            background-color: #f1f5f9;
+            color: #475569;
+        }
+
+        .badge-genre {
+            background-color: #e0f2fe;
+            color: #0284c7;
+        }
+
+        .badge-limit {
+            background-color: #eef2ff;
+            color: #6366f1;
+        }
+
+        .no-result {
             text-align: center;
             color: #64748b;
-            font-style: italic;
+            font-size: 14px;
+            padding: 40px 0;
         }
 
-        /* 모바일 화면 대응 미디어 쿼리 */
-        @media (max-width: 768px) {
-            body {
-                overflow: auto;
-                height: auto;
+        @media (max-width: 500px) {
+            .main-container {
+                padding: 12px;
             }
-            .ocean-profile-container {
-                height: auto;
-                min-height: auto;
-                padding: 16px;
-            }
-            .profile-info-card {
-                height: auto;
-                max-height: none;
-                padding: 16px;
-                gap: 16px;
-            }
-            .song-table th:nth-child(1), .song-table td:nth-child(1) {
-                width: 60% !important;
-            }
-            .song-table th:nth-child(2), .song-table td:nth-child(2) {
-                width: 40% !important;
-            }
-            .song-table th, .song-table td {
-                padding: 8px 4px;
-                font-size: 11px;
+            .page-title {
+                font-size: 22px;
             }
         }
     </style>
 </head>
 <body>
 
-    <!-- 메인 컨텐츠 영역 -->
-    <div class="ocean-profile-container">
-        <!-- 노래책 페이지 카드 영역 -->
-        <div class="profile-info-card">
-            <!-- 헤더 타이틀 및 곡 개수 영역 -->
-            <div class="songbook-header">
-                <h1 class="songbook-title">🎤 바다비 노래책</h1>
-                <span id="song-count" class="song-count">0곡</span>
+    <div class="main-container">
+        <!-- 상단 헤더 영역 -->
+        <div class="header-row">
+            <div class="title-summary-box">
+                <h1 class="page-title">🎤 바다비 노래책</h1>
+                <div id="song-count" class="stats-summary">총 0곡</div>
             </div>
+        </div>
 
-            <!-- 공지사항 표시 박스 영역 -->
-            <div class="notice-box">
-                <div class="notice-title">📢 공지</div>
-                <p class="notice-content">로딩중입니다...</p>
-            </div>
+        <!-- 공지사항 표시 박스 영역 -->
+        <div style="background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 12px; padding: 14px; font-size: 13.5px; color: #1e293b; line-height: 1.6;">
+            <div style="font-weight: 700; margin-bottom: 6px; color: #0369a1; display: flex; align-items: center; gap: 4px;">📢 공지</div>
+            <p class="notice-content" style="margin: 0; white-space: pre-line; color: #334155;">로딩중입니다...</p>
+        </div>
 
-            <!-- 키워드 검색 입력창 -->
-            <input type="text" id="search-input" class="search-box" placeholder="🔍 노래 제목이나 가수를 검색한 뒤 엔터를 눌러주세요...">
+        <!-- 키워드 검색 입력창 -->
+        <input type="text" id="search-input" class="search-box" placeholder="🔍 노래 제목이나 가수, 장르를 검색하세요...">
 
-            <!-- 빠른 장르별 필터 토글 버튼 영역 -->
-            <div class="filter-tags-container">
-                <button class="filter-btn" data-filter="전체">전체</button>
-                <button class="filter-btn" data-filter="기타연주">기타연주</button>
-                <button class="filter-btn" data-filter="k팝">K팝</button>
-                <button class="filter-btn" data-filter="j팝">J팝</button>
-                <button class="filter-btn" data-filter="팝">팝</button>
-            </div>
+        <!-- 빠른 장르별 필터 토글 버튼 영역 -->
+        <div class="filter-tags-container">
+            <button class="filter-btn active" data-filter="전체">전체</button>
+            <button class="filter-btn" data-filter="기타연주">기타연주</button>
+            <button class="filter-btn" data-filter="k팝">K팝</button>
+            <button class="filter-btn" data-filter="j팝">J팝</button>
+            <button class="filter-btn" data-filter="팝">팝</button>
+        </div>
 
-            <!-- 노래 목록 출력 테이블 컨테이너 -->
-            <div class="song-table-container">
-                <table class="song-table">
-                    <thead>
-                        <tr>
-                            <th style="width: 70%;">곡 정보</th>
-                            <th style="width: 30%;">장르 및 기타</th>
-                        </tr>
-                    </thead>
-                    <tbody id="song-tbody">
-                        <tr>
-                            <td colspan="2" class="loading-text" style="padding: 30px;">로딩중입니다...</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+        <!-- 노래 목록 출력 컨테이너 -->
+        <div id="song-container" class="song-list">
+            <p class="no-result">로딩중입니다...</p>
         </div>
     </div>
 
@@ -355,7 +309,7 @@
             } catch (error) {
                 console.error('데이터 로드 실패:', error);
                 document.querySelector('.notice-content').innerText = "공지사항을 불러오지 못했습니다.";
-                document.getElementById('song-tbody').innerHTML = `<tr><td colspan="2" class="loading-text" style="padding: 30px; color: #ef4444;">데이터 로드 실패</td></tr>`;
+                document.getElementById('song-container').innerHTML = `<p class="no-result" style="color: #ef4444;">데이터 로드 실패</p>`;
             }
         }
 
@@ -367,25 +321,18 @@
                 document.querySelector('.notice-content').innerText = "공지사항이 없습니다.";
             }
 
-            document.getElementById('song-count').innerText = `${allSongs.length}곡`;
+            document.getElementById('song-count').innerText = `총 ${allSongs.length}곡`;
 
-            renderTable(allSongs);
+            filterAndRender();
 
             const searchInput = document.getElementById('search-input');
-
-            searchInput.onkeydown = (e) => {
-                if (e.key === 'Enter') {
-                    currentKeyword = e.target.value.toLowerCase().trim();
-                    filterAndRender();
-                }
+            searchInput.oninput = (e) => {
+                currentKeyword = e.target.value.toLowerCase().trim();
+                filterAndRender();
             };
 
             const filterButtons = document.querySelectorAll('.filter-btn');
             filterButtons.forEach(btn => {
-                if (btn.getAttribute('data-filter') === '전체') {
-                    btn.classList.add('active');
-                }
-
                 btn.onclick = () => {
                     filterButtons.forEach(b => b.classList.remove('active'));
                     btn.classList.add('active');
@@ -431,15 +378,15 @@
                 return true;
             });
 
-            renderTable(filtered);
+            renderList(filtered);
         }
 
-        function renderTable(songs) {
-            const tbody = document.getElementById('song-tbody');
-            tbody.innerHTML = "";
+        function renderList(songs) {
+            const container = document.getElementById('song-container');
+            container.innerHTML = "";
 
             if (songs.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="2" class="loading-text" style="padding: 30px;">검색된 노래가 없습니다.</td></tr>`;
+                container.innerHTML = `<p class="no-result">검색된 노래가 없습니다.</p>`;
                 return;
             }
 
@@ -456,80 +403,53 @@
             });
 
             let lastArtist = "";
+            let cardIdx = 0;
 
             sortedSongs.forEach(song => {
                 const currentArtist = song.artist || '아티스트 미상';
 
                 if (currentArtist !== lastArtist) {
                     lastArtist = currentArtist;
-                    const groupTr = document.createElement('tr');
-                    groupTr.innerHTML = `
-                        <td colspan="2" style="background: rgba(0, 119, 190, 0.05); border-top: 1px solid rgba(0, 119, 190, 0.1); border-bottom: 1px solid rgba(0, 119, 190, 0.1); font-weight: 700; color: #1e3a8a; padding: 6px 4px; font-size: 12.5px;">
-                            🎵 ${currentArtist}
-                        </td>
-                    `;
-                    tbody.appendChild(groupTr);
+                    const groupHeader = document.createElement('div');
+                    groupHeader.className = 'artist-group-header';
+                    groupHeader.innerHTML = `🎵 ${currentArtist}`;
+                    container.appendChild(groupHeader);
                 }
 
-                const tr = document.createElement('tr');
-                
-                let rawTitle = song.title || '제목없음';
-                let cleanTitle = rawTitle;
-                
+                const card = document.createElement('div');
+                card.className = 'song-card';
+                card.style.animationDelay = `${(cardIdx % 15) * 0.03}s`;
+                cardIdx++;
+
                 let limitVal = song.limit || '';
                 let limitBadgeHtml = "";
                 if (limitVal !== "") {
                     let cleanLimitVal = limitVal.replace(/[\[\]]/g, ''); 
-                    let badgeColor = "#0ea5e9";
-                    if (cleanLimitVal.includes("200")) {
-                        badgeColor = "#10b981";
-                    } else if (cleanLimitVal.includes("300")) {
-                        badgeColor = "#f97316";
-                    } else if (cleanLimitVal.includes("기타")) {
-                        badgeColor = "#8b5cf6";
-                    }
-                    limitBadgeHtml += `<span style="background-color: ${badgeColor}; color: white; padding: 2px 4px; border-radius: 4px; font-size: 11px; font-weight: 600; display: inline-block;">${cleanLimitVal}</span>`;
-                }
-
-                let maxLength;
-                if (window.innerWidth < 768) {
-                    maxLength = (limitVal !== "") ? 16 : 25;
-                } else {
-                    maxLength = 50;
-                }
-                
-                if (cleanTitle.length > maxLength) {
-                    cleanTitle = cleanTitle.substring(0, maxLength) + '...';
+                    let badgeColor = "#6366f1";
+                    if (cleanLimitVal.includes("200")) badgeColor = "#10b981";
+                    else if (cleanLimitVal.includes("300")) badgeColor = "#f97316";
+                    else if (cleanLimitVal.includes("기타")) badgeColor = "#8b5cf6";
+                    
+                    limitBadgeHtml = `<span class="badge" style="background-color: ${badgeColor}; color: white;">${cleanLimitVal}</span>`;
                 }
 
                 let etcVal = song.etc || '';
-                let etcHtml = '';
-                
-                const maxEtcLength = window.innerWidth < 768 ? 10 : 25;
-                
-                if (etcVal !== "") {
-                    let displayEtc = etcVal;
-                    if (displayEtc.length > maxEtcLength) {
-                        displayEtc = displayEtc.substring(0, maxEtcLength) + '...';
-                    }
-                    etcHtml = `<div style="color: #64748b; font-size: 11px; font-weight: 500; margin-top: 2px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden;" title="${etcVal}">${displayEtc}</div>`;
-                }
-                
-                tr.innerHTML = `
-                    <td>
-                        <div style="display: flex; align-items: center; gap: 4px; margin-bottom: 2px; flex-wrap: wrap; padding-left: 4px;">
+                let etcHtml = etcVal !== "" ? `<p class="song-etc">${etcVal}</p>` : "";
+                let genreVal = song.genre ? `<span class="badge badge-genre">${song.genre}</span>` : "";
+
+                card.innerHTML = `
+                    <div class="song-info-left">
+                        <div class="song-title-row">
                             ${limitBadgeHtml}
-                            <span style="font-weight: 700; color: #1e293b; font-size: 14px;">${cleanTitle}</span>
+                            <h3 class="song-title">${song.title || '제목없음'}</h3>
                         </div>
-                    </td>
-                    <td>
-                        <div style="display: flex; flex-direction: column; justify-content: center; min-height: 36px;">
-                            <span style="font-weight: 600; color: #0077b6; font-size: 13px; line-height: 1.2;">${song.genre || '-'}</span>
-                            ${etcHtml}
-                        </div>
-                    </td>
+                        ${etcHtml}
+                    </div>
+                    <div class="song-badges">
+                        ${genreVal}
+                    </div>
                 `;
-                tbody.appendChild(tr);
+                container.appendChild(card);
             });
         }
 
