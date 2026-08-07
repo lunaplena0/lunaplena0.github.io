@@ -159,6 +159,22 @@
             border-color: #0ea5e9;
         }
 
+        /* 아티스트 그룹 헤더 페이드인 애니메이션 */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fade-in {
+            animation: fadeInUp 0.35s ease forwards;
+        }
+
         /* 아티스트 그룹 헤더 */
         .artist-group-header {
             font-size: 14.5px;
@@ -167,6 +183,7 @@
             padding: 10px 4px 4px 4px;
             margin-top: 6px;
             border-bottom: 2px solid #e2e8f0;
+            opacity: 0;
         }
 
         .song-list {
@@ -183,6 +200,7 @@
             box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
             overflow: hidden;
             transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            opacity: 0;
         }
 
         .song-card:hover {
@@ -338,7 +356,7 @@
             pointer-events: auto;
         }
 
-        /* 노래 추천 팝업 상자 (좌우 패딩 축소) */
+        /* 노래 추천 팝업 상자 */
         .modal-box {
             background: #ffffff;
             width: 90%;
@@ -346,7 +364,7 @@
             height: 480px;
             border-radius: 16px;
             border: 1px solid #e2e8f0;
-            padding: 18px 16px; /* 좌우 패딩을 줄여서 여백 압축 */
+            padding: 18px 16px;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
             display: flex;
             flex-direction: column;
@@ -411,22 +429,22 @@
             color: #0f172a;
         }
 
-        /* 추천 리스트 전체 상자 (항목 간격을 더 좁힘) */
+        /* 추천 리스트 전체 상자 */
         .recommend-list {
             display: flex;
             flex-direction: column;
-            gap: 4px; /* 리스트 항목들 사이의 간격 추가 축소 */
+            gap: 4px;
             height: 300px;
             justify-content: space-between; 
             flex-shrink: 0;
         }
 
-        /* 개별 추천 상자 (좌우 패딩 축소 및 높이 조절) */
+        /* 개별 추천 상자 */
         .recommend-item {
             background: #f8fafc;
             border: 1px solid #e2e8f0;
             border-radius: 12px;
-            padding: 6px 10px; /* 좌우 여백 축소 */
+            padding: 6px 10px;
             height: 64px;
             box-sizing: border-box;
             display: flex;
@@ -793,9 +811,6 @@
                     };
                 });
 
-                totalPlayCount = allSongs.reduce((sum, song) => sum + song.dateTimes.length, 0);
-
-                // '총 부른 횟수' 표시 부분을 제거하고 총 노래 개수만 출력하도록 수정
                 document.getElementById("statsSummary").innerHTML = `총 노래 : <span id="animSongCount">0</span>곡`;
                 animateNumber("animSongCount", allSongs.length, 800);
 
@@ -903,19 +918,22 @@
 
             let lastArtist = displayedCount > 0 ? sortedSongs[displayedCount - 1].artist || '아티스트 미상' : "";
 
-            songsToAppend.forEach(song => {
+            songsToAppend.forEach((song, index) => {
                 const currentArtist = song.artist || '아티스트 미상';
+                const staggerDelay = (index * 0.03).toFixed(2); // 각 항목마다 순차적으로 순서대로 나타나는 타이밍 계산
 
                 if (currentArtist !== lastArtist) {
                     lastArtist = currentArtist;
                     const groupHeader = document.createElement('div');
-                    groupHeader.className = 'artist-group-header';
+                    groupHeader.className = 'artist-group-header animate-fade-in';
+                    groupHeader.style.animationDelay = `${staggerDelay}s`;
                     groupHeader.innerHTML = `🎵 ${currentArtist}`;
                     container.appendChild(groupHeader);
                 }
 
                 const card = document.createElement("div");
-                card.className = "song-card";
+                card.className = "song-card animate-fade-in";
+                card.style.animationDelay = `${staggerDelay}s`;
 
                 card.onclick = (e) => {
                     if (e.target.tagName === 'A' || e.target.closest('a')) return;
