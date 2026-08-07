@@ -636,13 +636,16 @@
             const endIndex = startIndex + itemsPerPage;
             const displaySongs = filteredSongs.slice(startIndex, endIndex);
 
-            // 아티스트 순으로 정렬 후 노래 제목 순 정렬
+            // 1차 기준: 가수 이름(가나다라순), 2차 기준: 노래 제목(가나다라순) 정렬
             displaySongs.sort((a, b) => {
-                const artistA = (a.artist || '아티스트 미상').toLowerCase();
-                const artistB = (b.artist || '아티스트 미상').toLowerCase();
-                if (artistA < artistB) return -1;
-                if (artistA > artistB) return 1;
-                return (a.title || '').localeCompare((b.title || ''), 'ko');
+                const artistA = (a.artist || '아티스트 미상').trim();
+                const artistB = (b.artist || '아티스트 미상').trim();
+                const artistCompare = artistA.localeCompare(artistB, 'ko');
+                if (artistCompare !== 0) return artistCompare;
+
+                const titleA = (a.title || '').trim();
+                const titleB = (b.title || '').trim();
+                return titleA.localeCompare(titleB, 'ko');
             });
 
             let lastArtist = "";
