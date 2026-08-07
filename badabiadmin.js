@@ -85,3 +85,28 @@ function showSongStatsSettings() {
     document.getElementById('panel-songstats').style.display = 'block';
     loadSongStatsSettingsData();
 }
+async function downloadDataBackup() {
+    const keysToBackup = [
+        "profile", "links", "songlist", "mainpage", "fanmainpages", 
+        "fanstartpage", "fancrynote", "fancalenar", "fanvodlist", "fansongstats"
+    ];
+    
+    let backupData = {};
+    
+    // 로컬 저장소에서 데이터 수집 (필요에 따라 fetch로 서버 데이터를 가져오도록 수정 가능)
+    keysToBackup.forEach(key => {
+        const data = localStorage.getItem(key);
+        backupData[key] = data ? JSON.parse(data) : null;
+    });
+
+    const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `backup_${new Date().toISOString().slice(0,10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
