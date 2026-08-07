@@ -587,7 +587,7 @@ function importAllSongsToRegistered() {
     closeSongListImportModal();
 }
 
-// [수정됨] 전체 등록된 노래 중 songlist와 비교하여 팝업 모달창으로 상세 리스트업해주는 함수
+// [수정됨] 양방향 대조 (리스트에 없는 songlist 원본 곡까지 탐지)
 async function checkAllSongMismatches() {
     if (globalSongList.length === 0) {
         await fetchSongListForComparison();
@@ -600,24 +600,24 @@ async function checkAllSongMismatches() {
 
     const rows = document.querySelectorAll('#registered-songs-container .reg-song-row');
     const matchedSongs = [];       // 완벽히 일치하는 곡
-    const missingInSongList = []; // songlist에 아예 없는 곡
+    const missingInSongList = []; // 내 리스트엔 있지만 songlist엔 없는 곡
     const infoChanged = [];       // 제목/가수는 같지만 limit 등이 변경된 곡
 
-    // 원본 songlist 데이터를 복사해서 사용 (검사하면서 하나씩 소모하기 위함)
+    // 원본 songlist 복사본 (대조하면서 소모함)
     let availableSongList = globalSongList.map(s => ({
         title: (s.title || '').trim(),
         artist: (s.artist || '').trim(),
         limit: (s.limit || '').trim()
     }));
 
-    // 1차 검사: 제목, 가수, limit까지 완벽하게 일치하는 경우 먼저 매칭해서 소모
+    // 1차 검사: 제목, 가수, limit까지 완벽히 일치하는 경우
     const remainingRows = [];
     rows.forEach((row) => {
         const title = row.querySelector('.reg-title').value.trim();
         const artist = row.querySelector('.reg-artist').value.trim();
         const limitVal = row.querySelector('.reg-limit').value.trim();
 
-        if (!title) return; // 제목이 비어있으면 패스
+        if (!title) return;
 
         const exactIdx = availableSongList.findIndex(s => 
             s.title === title && s.artist === artist && s.limit === limitVal
@@ -625,13 +625,13 @@ async function checkAllSongMismatches() {
 
         if (exactIdx !== -1) {
             matchedSongs.push({ title, artist, limit: limitVal });
-            availableSongList.splice(exactIdx, 1); // 매칭된 원본 데이터는 제거
+            availableSongList.splice(exactIdx, 1); // 짝지어진 원본 곡은 제거
         } else {
             remainingRows.push({ row, title, artist, limit: limitVal });
         }
     });
 
-    // 2차 검사: 완벽히 일치하진 않지만 제목과 가수가 일치하는 남은 항목들 검사
+    // 2차 검사: 제목과 가수는 같으나 limit 등이 일치하지 않는 경우
     remainingRows.forEach(item => {
         const { title, artist, limit: limitVal } = item;
 
@@ -640,49 +640,64 @@ async function checkAllSongMismatches() {
         );
 
         if (partialIdx !== -1) {
-            // 제목과 가수는 같으나 limit 등이 다른 경우
             const sLimit = availableSongList[partialIdx].limit;
             infoChanged.push({ title, artist, limit: limitVal, serverLimit: sLimit });
-            availableSongList.splice(partialIdx, 1); // 소모 처리
+            availableSongList.splice(partialIdx, 1);
         } else {
-            // songlist에 아예 없는 경우 (또는 이미 위에서 개수가 소모되어 부족한 경우)
-            // 단, 이미 matchedSongs나 infoChanged에서 처리되지 못한 진짜 없는 곡들만 남음
+            // 내 리스트엔 있지만 songlist에는 없는 곡
             missingInSongList.push({ title, artist, limit: limitVal });
         }
     });
 
-    const totalMismatchCount = missingInSongList.length + infoChanged.length;
+    // 3차 검사 후 남은 availableSongList = songlist(노래책)에는 있지만 내 리스트에는 없는 곡들!
+    const missingInMyList = availableSongList;
+
+    const totalMismatchCount = missingInSongList.length + infoChanged.length + missingInMyList.length;
     let modalBodyHTML = "";
 
     if (totalMismatchCount === 0) {
         modalBodyHTML += `
             <div style="text-align: center; padding: 20px; color: #10b981; font-weight: bold; font-size: 15px;">
-                ✨ 모든 등록된 노래 (${matchedSongs.length}곡)가 songlist와 모두 일치합니다!
+                ✨ 모든 등록된 노래 (${matchedSongs.length}곡)가 songlist와 완벽히 대조 및 일치합니다!
             </div>
         `;
     } else {
         modalBodyHTML += `
             <div style="margin-bottom: 12px; font-weight: bold; font-size: 14px;">
-                <span style="color: #10b981;">일치하는 곡 (${matchedSongs.length}곡)</span> / <span style="color: #ef4444;">일치하지 않는 곡 (${totalMismatchCount}곡)</span>
+                <span style="color: #10b981;">일치하는 곡 (${matchedSongs.length}곡)</span> / <span style="color: #ef4444;">불일치·누락 항목 (${totalMismatchCount}개)</span>
             </div>
         `;
 
+        // 1. 노래책에는 있지만 내 리스트에 없는 곡 (신규 추가 필요 항목)
+        if (missingInMyList.length > 0) {
+            modalBodyHTML += `
+                <div style="margin-bottom: 12px;">
+                    <strong style="color: #3b82f6; font-size: 13px;">📥 노래책에만 존재하고 내 리스트에 없는 곡 (${missingInMyList.length}곡)</strong>
+                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px; margin-top: 4px; max-height: 120px; overflow-y: auto;">
+                        ${missingInMyList.map(song => `<div style="font-size: 12px; padding: 3px 0; border-bottom: 1px solid #f1f5f9;">• <strong>${song.title}</strong> (${song.artist}) <span style="color: #0284c7;">[limit: ${song.limit || '없음'}]</span></div>`).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        // 2. 내 리스트에는 있지만 노래책에는 없는 곡
         if (missingInSongList.length > 0) {
             modalBodyHTML += `
                 <div style="margin-bottom: 12px;">
                     <strong style="color: #f59e0b; font-size: 13px;">🔍 songlist에 없는 곡 (${missingInSongList.length}곡)</strong>
-                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px; margin-top: 4px; max-height: 140px; overflow-y: auto;">
+                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px; margin-top: 4px; max-height: 120px; overflow-y: auto;">
                         ${missingInSongList.map(song => `<div style="font-size: 12px; padding: 3px 0; border-bottom: 1px solid #f1f5f9;">• <strong>${song.title}</strong> (${song.artist}) <span style="color: #0284c7;">[limit: ${song.limit || '없음'}]</span></div>`).join('')}
                     </div>
                 </div>
             `;
         }
 
+        // 3. 정보가 변경된 곡 (limit 불일치 등)
         if (infoChanged.length > 0) {
             modalBodyHTML += `
                 <div style="margin-bottom: 12px;">
                     <strong style="color: #ef4444; font-size: 13px;">⚠️ 정보(limit 등)가 일치하지 않는 곡 (${infoChanged.length}곡)</strong>
-                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px; margin-top: 4px; max-height: 140px; overflow-y: auto;">
+                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px; margin-top: 4px; max-height: 120px; overflow-y: auto;">
                         ${infoChanged.map(song => `<div style="font-size: 12px; padding: 3px 0; border-bottom: 1px solid #f1f5f9;">• <strong>${song.title}</strong> (${song.artist}) <br>&nbsp;&nbsp;→ 입력값: <span style="color: #ef4444;">${song.limit || '없음'}</span> / songlist값: <span style="color: #10b981;">${song.serverLimit || '없음'}</span></div>`).join('')}
                     </div>
                 </div>
@@ -690,7 +705,7 @@ async function checkAllSongMismatches() {
         }
     }
 
-    showCustomModal("songlist-compare-modal", "songlist 대조 결과", modalBodyHTML);
+    showCustomModal("songlist-compare-modal", "songlist 양방향 대조 결과", modalBodyHTML);
 }
 
 // 팝업 모달 생성 및 제어 헬퍼 함수
