@@ -72,17 +72,17 @@ const adminHtmlTemplate = `
             <h4 style="color: #0077b6; margin-top: 0;">페이지를 게시글에 적용하는 방법입니다</h4>
             
             <div style="margin: 20px 0; display: flex; align-items: center; justify-content: space-between; background: #fff; padding: 15px; border: 1px solid #cbd5e1; border-radius: 8px;">
-                <span style="font-weight: 600;">1. 메인페이지로 수정하는 방법</span>
+                <span style="font-weight: 600;">1-1. 메인페이지로 시작하는 방법</span>
                 <button onclick="copyGuideCode('mainpage')" style="background-color: #10b981; padding: 8px 14px; font-size: 13px;">클릭시 복사</button>
             </div>
             
             <div style="margin: 20px 0; display: flex; align-items: center; justify-content: space-between; background: #fff; padding: 15px; border: 1px solid #cbd5e1; border-radius: 8px;">
-                <span style="font-weight: 600;">2. 노래책만 사용할 경우</span>
+                <span style="font-weight: 600;">1-2. 노래책으로 시작 경우</span>
                 <button onclick="copyGuideCode('songlist')" style="background-color: #10b981; padding: 8px 14px; font-size: 13px;">클릭시 복사</button>
             </div>
             
             <p style="font-size: 14px; border-top: 1px solid #cbd5e1; padding-top: 15px; margin-top: 20px;">
-                각각 원하는 것을 클릭하여 복사 후,<br>
+                2. 각각 원하는 것을 클릭하여 복사 후,<br>
                 <b>게시글 &gt; 오른쪽에 있는 기본을 'HTML'로 변경</b> 후 입력되어 있는 글을 지우고 복사한 데이터를 넣은 후 게시해주세요.
             </p>
         </div>
