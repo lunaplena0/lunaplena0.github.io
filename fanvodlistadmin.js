@@ -1,4 +1,4 @@
-// VOD 항목을 화면에 추가하는 함수 (초기 로딩 시 5개만 표시, 새 추가 시 맨 위에 펼쳐진 상태로 생성)
+// VOD 항목을 화면에 추가하는 함수
 function addVodRow(vod = {}, isNew = false) {
     const container = document.getElementById('vodlist-rows-container');
     const row = document.createElement('div');
@@ -7,9 +7,19 @@ function addVodRow(vod = {}, isNew = false) {
     // 데이터가 이미 존재하고 제목/날짜가 있다면 기본적으로 요약(접힌) 상태로 표시
     const hasData = (vod.title || vod.date);
     
+    // 현재 추가되어 있는 총 행 개수 기준 체크
+    const currentCount = container.querySelectorAll('.vod-row').length;
+    
     // 초기 로딩 시 5개까지만 보이고 나머지는 숨김 처리 (단, 사용자가 새로 추가하는 항목은 모두 표시)
-    if (!isNew && container.children.length >= 5) {
+    let isCurrentlyExpanded = false;
+    const toggleBtn = document.getElementById('vod-expand-toggle-btn');
+    if (toggleBtn && toggleBtn.dataset.expanded === 'true') {
+        isCurrentlyExpanded = true;
+    }
+
+    if (!isNew && currentCount >= 5 && !isCurrentlyExpanded) {
         row.style.display = 'none';
+        row.classList.add('vod-hidden-item');
     }
     
     row.innerHTML = `
@@ -21,7 +31,7 @@ function addVodRow(vod = {}, isNew = false) {
             </div>
             <div style="display: flex; gap: 6px; flex-shrink: 0;">
                 <button type="button" onclick="toggleVodEdit(this)" style="background-color: #0284c7; padding: 6px 12px; font-size: 12px;">수정</button>
-                <button type="button" class="delete-item-btn" onclick="this.closest('.vod-row').remove()" style="padding: 6px 12px; font-size: 12px; margin-bottom:0;">삭제</button>
+                <button type="button" class="delete-item-btn" onclick="this.closest('.vod-row').remove(); updateVodToggleBtn();" style="padding: 6px 12px; font-size: 12px; margin-bottom:0;">삭제</button>
             </div>
         </div>
 
@@ -61,7 +71,7 @@ function addVodRow(vod = {}, isNew = false) {
             
             <div style="display: flex; justify-content: flex-end; gap: 6px;">
                 <button type="button" onclick="completeVodEdit(this)" style="background-color: #10b981; padding: 6px 14px; font-size: 12px;">편집 완료</button>
-                <button type="button" class="delete-item-btn" onclick="this.closest('.vod-row').remove()" style="padding: 6px 12px; font-size: 12px; margin-bottom:0;">삭제</button>
+                <button type="button" class="delete-item-btn" onclick="this.closest('.vod-row').remove(); updateVodToggleBtn();" style="padding: 6px 12px; font-size: 12px; margin-bottom:0;">삭제</button>
             </div>
         </div>
     `;
@@ -73,9 +83,11 @@ function addVodRow(vod = {}, isNew = false) {
     } else {
         container.appendChild(row);
     }
+    
+    updateVodToggleBtn();
 }
 
-// 일반 수정/접기 토글 함수 (기존 목록에 있는 항목 수정용)
+// 일반 수정/접기 토글 함수
 function toggleVodEdit(button) {
     const row = button.closest('.vod-row');
     const summaryView = row.querySelector('.vod-summary-view');
@@ -90,25 +102,92 @@ function toggleVodEdit(button) {
     }
 }
 
-// [새로 추가된 항목 전용] 편집 완료 버튼 클릭 시: 요약 뷰로 접히면서 리스트의 가장 맨 아래로 이동
+// 편집 완료 버튼 클릭 시: 요약 뷰로 접히면서 리스트의 가장 맨 아래로 이동
 function completeVodEdit(button) {
     const row = button.closest('.vod-row');
     const summaryView = row.querySelector('.vod-summary-view');
     const detailView = row.querySelector('.vod-detail-view');
     const container = row.parentNode;
 
-    // 요약 뷰로 전환 (접기)
     summaryView.style.display = 'flex';
     detailView.style.display = 'none';
 
-    // 컨테이너의 가장 맨 아래로 이동
     container.appendChild(row);
-
-    // 스크롤도 부드럽게 이동
     row.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    
+    // 만약 펼쳐진 상태였다면 새로 맨 아래로 간 항목도 보여야 하므로 상태 갱신
+    const toggleBtn = document.getElementById('vod-expand-toggle-btn');
+    if (toggleBtn && toggleBtn.dataset.expanded === 'true') {
+        row.style.display = '';
+        row.classList.remove('vod-hidden-item');
+    }
+    updateVodToggleBtn();
 }
 
-// 입력창에 타이핑할 때 요약 뷰의 제목/날짜 텍스트가 실시간으로 반영되도록 보조
+// 5개 초과 항목에 대한 펼치기/접기 버튼 생성 및 관리
+function updateVodToggleBtn() {
+    const container = document.getElementById('vodlist-rows-container');
+    if (!container) return;
+
+    let toggleBtnContainer = document.getElementById('vod-toggle-btn-container');
+    const allRows = container.querySelectorAll('.vod-row');
+    const totalRows = allRows.length;
+
+    if (totalRows > 5) {
+        if (!toggleBtnContainer) {
+            toggleBtnContainer = document.createElement('div');
+            toggleBtnContainer.id = 'vod-toggle-btn-container';
+            toggleBtnContainer.style.cssText = "text-align: center; margin-top: 15px;";
+            toggleBtnContainer.innerHTML = `
+                <button type="button" id="vod-expand-toggle-btn" data-expanded="false" onclick="toggleVodListExpand()" style="background-color: #e2e8f0; color: #334155; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; width: 100%;">
+                    ▼ 전체 목록 펼치기 (${totalRows - 5}개 더보기)
+                </button>
+            `;
+            // container 바로 아래(뒤)에 버튼 삽입
+            container.insertAdjacentElement('afterend', toggleBtnContainer);
+        } else {
+            const btn = document.getElementById('vod-expand-toggle-btn');
+            if (btn && btn.dataset.expanded !== 'true') {
+                btn.textContent = `▼ 전체 목록 펼치기 (${totalRows - 5}개 더보기)`;
+            }
+        }
+    } else {
+        if (toggleBtnContainer) {
+            toggleBtnContainer.remove();
+        }
+    }
+}
+
+// 목록 펼치기/접기 토글 실행 함수
+function toggleVodListExpand() {
+    const container = document.getElementById('vodlist-rows-container');
+    const btn = document.getElementById('vod-expand-toggle-btn');
+    const allRows = container.querySelectorAll('.vod-row');
+    
+    const isExpanded = btn.dataset.expanded === 'true';
+
+    allRows.forEach((row, index) => {
+        if (!isExpanded) {
+            row.style.display = '';
+            row.classList.remove('vod-hidden-item');
+        } else {
+            if (index >= 5) {
+                row.style.display = 'none';
+                row.classList.add('vod-hidden-item');
+            }
+        }
+    });
+
+    if (!isExpanded) {
+        btn.dataset.expanded = 'true';
+        btn.textContent = '▲ 접기';
+    } else {
+        btn.dataset.expanded = 'false';
+        btn.textContent = `▼ 전체 목록 펼치기 (${allRows.length - 5}개 더보기)`;
+    }
+}
+
+// 입력창 타이핑 시 요약 뷰 실시간 반영
 function updateSummaryTitle(input) {
     const row = input.closest('.vod-row');
     const dateVal = row.querySelector('.vod-date').value.trim();
@@ -135,6 +214,9 @@ async function loadVodListSettingsData() {
         const data = await response.json();
         const container = document.getElementById('vodlist-rows-container');
         container.innerHTML = "";
+        
+        const oldToggle = document.getElementById('vod-toggle-btn-container');
+        if (oldToggle) oldToggle.remove();
 
         let vodArray = [];
         if (Array.isArray(data)) {
