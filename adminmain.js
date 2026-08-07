@@ -51,9 +51,9 @@ const adminHtmlTemplate = `
                 <h4>📌 설정 가이드</h4>
                 <p>관리 페이지 사용 방법 안내</p>
             </div>
-            <div class="menu-card" style="cursor: default; opacity: 0.7;">
-                <h4>📌 임시 메뉴 2</h4>
-                <p>추후 확장 예정인 기능입니다</p>
+            <div class="menu-card" onclick="downloadAllBackupData()" style="cursor: pointer; background: #f0fdf4; border-color: #86efac;">
+                <h4 style="color: #16a34a;">💾 데이터 백업 다운로드</h4>
+                <p>모든 설정 파일(JSON) 백업받기</p>
             </div>
             <div class="menu-card" style="cursor: default; opacity: 0.7;">
                 <h4>📌 임시 메뉴 3</h4>
@@ -83,7 +83,7 @@ const adminHtmlTemplate = `
             
             <p style="font-size: 14px; border-top: 1px solid #cbd5e1; padding-top: 15px; margin-top: 20px;">
                 각각 원하는 것을 클릭하여 복사 후,<br>
-                <b>게시글 &gt; 오른쪽에 있는 '기본'을 'HTML'로 변경</b> 후 입력되어 있는 글을 지우고 복사한 데이터를 넣은 후 게시해주세요.
+                <b>게시글 &gt; 오른쪽에 있는 기본을 'HTML'로 변경</b> 후 입력되어 있는 글을 지우고 복사한 데이터를 넣은 후 게시해주세요.
             </p>
         </div>
     </div>
@@ -122,12 +122,8 @@ const adminHtmlTemplate = `
                 <p style="font-size: 12px; color: #475569; margin-top: 0; margin-bottom: 12px; line-height: 1.4;">
                     페이지 관련 공지(읽기 전용)
                 </p>
-                <!-- 수정이 불가능한 일반 div 박스로 변경하여 공지 내용이 깔끔하게 렌더링되도록 함 -->
-                <div id="mp-memo-notice-box" style="width: 100%; height: 320px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px; font-size: 13px; color: #0f172a; overflow-y: auto; white-space: pre-wrap; box-sizing: border-box; line-height: 1.5; text-align: center;">
-현재 등록된 URI 목록\n프로필 : profile.html\n주소모음 : link.html\n노래책 : songlist.html
-</div>
+                <div id="mp-memo-notice-box" style="width: 100%; height: 320px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px; font-size: 13px; color: #0f172a; overflow-y: auto; white-space: pre-wrap; box-sizing: border-box; line-height: 1.5; text-align: center;"></div>
             </div>
-
         </div>
 
         <button onclick="saveMainPageSettings()" style="width: 100%; margin-top: 25px; background-color: #0077b6; padding: 14px; font-size: 16px;">메인페이지 설정 반영하기</button>
@@ -285,6 +281,55 @@ const adminHtmlTemplate = `
         </div>
     </div>
 `;
+
+// 📌 데이터 백업 다운로드 기능 (profile, links, songlist, mainpage 일괄 다운)
+async function downloadAllBackupData() {
+    if (!confirm("현재 서버에 저장된 모든 데이터 파일(profile, links, songlist, mainpage)을 JSON 파일로 백업 다운로드하시겠습니까?")) {
+        return;
+    }
+
+    const targets = [
+        { type: 'profile', filename: 'profile_backup.json' },
+        { type: 'links', filename: 'links_backup.json' },
+        { type: 'songlist', filename: 'songlist_backup.json' },
+        { type: 'mainpage', filename: 'mainpage_backup.json' }
+    ];
+
+    let successCount = 0;
+    const timestamp = new Date().getTime();
+
+    for (const item of targets) {
+        try {
+            const res = await fetch(`${WORKER_URL}?type=${item.type}&t=${timestamp}`);
+            if (!res.ok) throw new Error("네트워크 응답 오류");
+            const data = await res.json();
+
+            const jsonStr = JSON.stringify(data, null, 2);
+            const blob = new Blob([jsonStr], { type: "application/json;charset=utf-8;" });
+            const url = URL.createObjectURL(blob);
+            
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = item.filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+
+            successCount++;
+            // 브라우저가 다중 다운로드를 차단하지 않도록 미세한 간격 주기
+            await new Promise(resolve => setTimeout(resolve, 300));
+        } catch (err) {
+            console.error(`⚠️ ${item.type} 백업 실패:`, err);
+        }
+    }
+
+    if (successCount > 0) {
+        alert(`총 ${successCount개의 파일 백업 다운로드가 완료되었습니다!}`);
+    } else {
+        alert("데이터 다운로드 중 오류가 발생했습니다. 브라우저 설정을 확인해주세요.");
+    }
+}
 
 // 📌 가이드 코드 복사 함수
 function copyGuideCode(type) {
