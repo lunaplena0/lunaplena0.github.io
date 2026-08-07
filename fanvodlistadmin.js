@@ -3,10 +3,8 @@ function addVodRow(vod = {}, isNew = false) {
     const container = document.getElementById('vodlist-rows-container');
     const row = document.createElement('div');
     row.className = 'vod-row';
-    // 각 행 사이의 간격(margin-bottom)을 6px로 좁게 설정
     row.style.cssText = "margin-bottom: 6px; border: 1px solid #e2e8f0; border-radius: 6px; padding: 6px 10px; background-color: #fff;";
     
-    // 데이터가 이미 존재하고 제목/날짜가 있다면 기본적으로 요약(접힌) 상태로 표시
     const hasData = (vod.title || vod.date);
     
     const currentCount = container.querySelectorAll('.vod-row').length;
@@ -66,7 +64,7 @@ function addVodRow(vod = {}, isNew = false) {
                     </select>
                 </div>
             </div>
-            <textarea placeholder="컨텐츠 상세정보 입력" class="vod-description" style="height: 45px; padding: 4px 6px; font-size: 12px; resize: vertical;"></textarea>
+            <textarea placeholder="컨텐츠 상세정보 입력" class="vod-description" style="height: 45px; padding: 4px 6px; font-size: 12px; resize: vertical;">${vod.description || ''}</textarea>
             
             <div style="display: flex; justify-content: flex-end; gap: 4px;">
                 <button type="button" onclick="completeVodEdit(this)" style="background-color: #10b981; padding: 4px 10px; font-size: 11px; border: none; border-radius: 4px; color: #fff; cursor: pointer;">편집 완료</button>
@@ -219,6 +217,8 @@ async function loadVodListSettingsData() {
             vodArray = data;
         } else if (data && Array.isArray(data.vods)) {
             vodArray = data.vods;
+        } else if (data && data.content && Array.isArray(data.content.vods)) {
+            vodArray = data.content.vods;
         } else if (data && Array.isArray(data.notes)) {
             vodArray = data.notes;
         }
