@@ -270,6 +270,35 @@
             line-height: 1.5;
         }
 
+        /* 공지사항 박스 */
+        .notice-box {
+            background: rgba(0, 119, 190, 0.08);
+            border: 1px solid rgba(0, 119, 190, 0.2);
+            border-radius: 12px;
+            padding: 12px 14px;
+            font-size: 14px;
+            color: #03045e;
+            line-height: 1.6;
+            box-sizing: border-box;
+        }
+
+        .notice-title {
+            font-weight: 700;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 14px;
+            border-bottom: 1px dashed rgba(0, 119, 190, 0.2);
+            padding-bottom: 6px;
+        }
+
+        .notice-content {
+            color: #334155;
+            margin: 0;
+            white-space: pre-line;
+        }
+
         /* 검색 및 필터 영역 */
         .search-box {
             width: 100%;
@@ -287,6 +316,36 @@
         .search-box:focus {
             border-color: #0ea5e9;
             box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
+        }
+
+        .filter-tags-container {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            background-color: #ffffff;
+            border: 1px solid #cbd5e1;
+            color: #0369a1;
+            padding: 8px 14px;
+            font-size: 13px;
+            font-weight: 700;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+        }
+
+        .filter-btn:hover {
+            background-color: #f8fafc;
+            border-color: #0ea5e9;
+        }
+
+        .filter-btn.active {
+            background-color: #0ea5e9;
+            color: white;
+            border-color: #0ea5e9;
         }
 
         /* 아티스트 그룹 헤더 */
@@ -517,7 +576,7 @@
         <!-- 상단 헤더 영역 -->
         <div class="header-row">
             <div class="title-summary-box">
-                <h1 class="page-title">바다비 노래책</h1>
+                <h1 class="page-title">🎤 바다비 노래책</h1>
                 <div id="statsSummary" class="stats-summary">통계 계산 중...</div>
             </div>
             <button class="stats-popup-btn" onclick="toggleModal(true)">
@@ -566,9 +625,26 @@
                 </div>
             </div>
         </div>
-        
-        <input type="text" id="searchInput" class="search-box" placeholder="노래 제목 또는 가수, 기타 노래 검색..." oninput="onSearchInput()">
 
+        <!-- 공지사항 표시 박스 영역 -->
+        <div class="notice-box">
+            <div class="notice-title">📢 공지</div>
+            <p class="notice-content">로딩중입니다...</p>
+        </div>
+        
+        <!-- 키워드 검색 입력창 -->
+        <input type="text" id="searchInput" class="search-box" placeholder="🔍 노래 제목이나 가수, 장르를 검색하세요..." oninput="onSearchInput()">
+
+        <!-- 빠른 장르별 필터 토글 버튼 영역 -->
+        <div class="filter-tags-container">
+            <button class="filter-btn active" data-filter="전체">전체</button>
+            <button class="filter-btn" data-filter="기타연주">기타연주</button>
+            <button class="filter-btn" data-filter="k팝">K팝</button>
+            <button class="filter-btn" data-filter="j팝">J팝</button>
+            <button class="filter-btn" data-filter="팝">팝</button>
+        </div>
+
+        <!-- 노래 목록 출력 컨테이너 -->
         <div id="songContainer" class="song-list">
             <p class="no-result">데이터를 불러오는 중...</p>
         </div>
@@ -583,6 +659,7 @@
 
     <script>
         const WORKER_URL = "https://badabi-api.dalkkumli054.workers.dev/";
+        const SONG_LIST_URL = WORKER_URL + "?type=songlist&t=";
         const STATS_API_URL = WORKER_URL + "?type=fansongstats&t=";
 
         let allSongs = [];
@@ -590,7 +667,8 @@
         let vodMap = {};
         let totalPlayCount = 0;
         let currentPage = 1;
-        const itemsPerPage = 10;
+        const itemsPerPage = 15;
+        let currentFilter = '전체';
 
         function timeToSeconds(timeStr) {
             if (!timeStr) return 0;
@@ -658,59 +736,95 @@
             requestAnimationFrame(update);
         }
 
-        async function loadSongStats() {
+        async function loadData() {
             const container = document.getElementById("songContainer");
 
             try {
-                const response = await fetch(STATS_API_URL + new Date().getTime());
-                if (!response.ok) throw new Error("데이터를 불러오지 못했습니다.");
-
-                const data = await response.json();
+                const timestamp = new Date().getTime();
                 
+                // 1. songlist와 fansongstats 데이터를 동시에 호출하여 가져옴
+                const [songListRes, statsRes] = await Promise.all([
+                    fetch(SONG_LIST_URL + timestamp),
+                    fetch(STATS_API_URL + timestamp)
+                ]);
+
+                if (!songListRes.ok || !statsRes.ok) throw new Error("데이터를 불러오지 못했습니다.");
+
+                const songListData = await songListRes.json();
+                const statsData = await statsRes.json();
+
+                // 공지사항 설정
+                const noticeText = songListData.notice || "";
+                if (noticeText && noticeText.trim() !== "") {
+                    let formattedNotice = noticeText.trim().replace(/<\/br>/gi, '\n');
+                    document.querySelector('.notice-content').innerText = formattedNotice;
+                } else {
+                    document.querySelector('.notice-content').innerText = "공지사항이 없습니다.";
+                }
+
+                // VOD 맵 구성
                 vodMap = {};
-                if (data.vodSources) {
-                    data.vodSources.forEach(vod => {
+                if (statsData.vodSources) {
+                    statsData.vodSources.forEach(vod => {
                         vodMap[vod.date] = vod.url;
                     });
                 }
 
-                const registered = data.registeredSongs || [];
-                const unregistered = data.unregisteredSongs || [];
-                const rawSongs = [...registered, ...unregistered];
-
-                const validSongs = rawSongs.filter(song => song.dateTimes && song.dateTimes.length > 0);
-                
-                // 아티스트별로 우선 정렬 후 노래 제목 순으로 정렬
-                validSongs.sort((a, b) => {
-                    const artistA = (a.artist || '아티스트 미상').toLowerCase();
-                    const artistB = (b.artist || '아티스트 미상').toLowerCase();
-                    if (artistA < artistB) return -1;
-                    if (artistA > artistB) return 1;
-                    return (a.title || '').localeCompare((b.title || ''), 'ko');
+                // fansongstats에 있는 노래 기록들을 타이틀 및 아티스트 기준으로 매핑하기 위해 딕셔너리 구성
+                const statsMap = {};
+                const combineSongsList = [...(statsData.registeredSongs || []), ...(statsData.unregisteredSongs || [])];
+                combineSongsList.forEach(statSong => {
+                    const key = `${(statSong.title || '').trim().toLowerCase()}_${(statSong.artist || '').trim().toLowerCase()}`;
+                    statsMap[key] = statSong.dateTimes || [];
                 });
 
-                allSongs = validSongs;
+                // 기본 노래 리스트는 songlist에서 가져오고, 기록(dateTimes)은 statsMap에서 매칭시킴
+                const rawSongs = songListData.songs || [];
+                
+                allSongs = rawSongs.map(song => {
+                    const key = `${(song.title || '').trim().toLowerCase()}_${(song.artist || '').trim().toLowerCase()}`;
+                    return {
+                        ...song,
+                        dateTimes: statsMap[key] || []
+                    };
+                });
+
                 totalPlayCount = allSongs.reduce((sum, song) => sum + song.dateTimes.length, 0);
 
-                document.getElementById("statsSummary").innerHTML = `총 부른 곡 : <span id="animSongCount">0</span>곡 | 부른 횟수 : 약 <span id="animPlayCount">0</span>회`;
+                document.getElementById("statsSummary").innerHTML = `총 노래 : <span id="animSongCount">0</span>곡 | 총 부른 횟수 : 약 <span id="animPlayCount">0</span>회`;
                 animateNumber("animSongCount", allSongs.length, 800);
                 animateNumber("animPlayCount", totalPlayCount, 1000);
 
-                calculateDetailedStats(registered, unregistered, allSongs);
+                calculateDetailedStats(statsData.registeredSongs || [], statsData.unregisteredSongs || [], combineSongsList);
 
                 if (allSongs.length === 0) {
                     container.innerHTML = '<p class="no-result">표시할 노래 데이터가 없습니다.</p>';
                     return;
                 }
 
+                // 초기 필터 버튼 이벤트 설정
+                setupFilterButtons();
+
                 filteredSongs = [...allSongs];
                 currentPage = 1;
-                renderPage();
+                filterAndRender();
 
             } catch (err) {
                 console.error(err);
-                container.innerHTML = '<p class="no-result" style="color: #ef4444;">노래 통계 데이터를 불러오는데 실패했습니다.</p>';
+                container.innerHTML = '<p class="no-result" style="color: #ef4444;">노래 데이터를 불러오는데 실패했습니다.</p>';
             }
+        }
+
+        function setupFilterButtons() {
+            const filterButtons = document.querySelectorAll('.filter-btn');
+            filterButtons.forEach(btn => {
+                btn.onclick = () => {
+                    filterButtons.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    currentFilter = btn.getAttribute('data-filter');
+                    filterAndRender();
+                };
+            });
         }
 
         function calculateDetailedStats(registered, unregistered, songs) {
@@ -727,7 +841,7 @@
 
             const countGroups = {};
             songs.forEach(song => {
-                const count = song.dateTimes.length;
+                const count = song.dateTimes ? song.dateTimes.length : 0;
                 if (!countGroups[count]) countGroups[count] = [];
                 countGroups[count].push(song.title);
             });
@@ -761,7 +875,7 @@
             const artistCounts = {};
             songs.forEach(song => {
                 const artist = song.artist || "알 수 없음";
-                const playCount = song.dateTimes.length;
+                const playCount = song.dateTimes ? song.dateTimes.length : 0;
                 artistCounts[artist] = (artistCounts[artist] || 0) + playCount;
             });
 
@@ -786,10 +900,12 @@
 
             const allDateTimes = [];
             songs.forEach(song => {
-                song.dateTimes.forEach(dt => {
-                    const cleanDate = dt.date.replace(/\(.*?\)/g, "").trim();
-                    allDateTimes.push({ title: song.title, date: cleanDate });
-                });
+                if (song.dateTimes) {
+                    song.dateTimes.forEach(dt => {
+                        const cleanDate = dt.date.replace(/\(.*?\)/g, "").trim();
+                        allDateTimes.push({ title: song.title, date: cleanDate });
+                    });
+                }
             });
 
             if (allDateTimes.length > 0) {
@@ -802,13 +918,15 @@
                 const recentSongCounts = {};
                 songs.forEach(song => {
                     let recentPlays = 0;
-                    song.dateTimes.forEach(dt => {
-                        const cleanDate = dt.date.replace(/\(.*?\)/g, "").trim();
-                        const d = new Date(cleanDate);
-                        if (d >= thirtyDaysAgo && d <= latestDate) {
-                            recentPlays++;
-                        }
-                    });
+                    if (song.dateTimes) {
+                        song.dateTimes.forEach(dt => {
+                            const cleanDate = dt.date.replace(/\(.*?\)/g, "").trim();
+                            const d = new Date(cleanDate);
+                            if (d >= thirtyDaysAgo && d <= latestDate) {
+                                recentPlays++;
+                            }
+                        });
+                    }
                     if (recentPlays > 0) {
                         recentSongCounts[song.title] = recentPlays;
                     }
@@ -858,7 +976,7 @@
             const nonGuitarPlayed = songs.filter(s => s.limit !== "기타");
             let onceCount = 0;
             nonGuitarPlayed.forEach(song => {
-                if (song.dateTimes.length === 1) onceCount++;
+                if (song.dateTimes && song.dateTimes.length === 1) onceCount++;
             });
             const onceRatio = nonGuitarPlayed.length > 0 ? parseFloat(((onceCount / nonGuitarPlayed.length) * 100).toFixed(1)) : 0;
             document.getElementById("onceRatioStat").innerHTML = `
@@ -889,6 +1007,48 @@
             `;
         }
 
+        function filterAndRender() {
+            const keyword = document.getElementById("searchInput").value.toLowerCase().trim();
+
+            filteredSongs = allSongs.filter(song => {
+                const title = song.title || '';
+                const artist = song.artist || '';
+                const genre = song.genre || '';
+                const limit = song.limit || '';
+                const etc = song.etc || '';
+
+                const matchesKeyword = 
+                    title.toLowerCase().includes(keyword) || 
+                    artist.toLowerCase().includes(keyword) ||
+                    genre.toLowerCase().includes(keyword) ||
+                    limit.toLowerCase().includes(keyword) ||
+                    etc.toLowerCase().includes(keyword);
+
+                if (!matchesKeyword) return false;
+
+                const g = genre.toLowerCase();
+                const l = limit.toLowerCase();
+
+                if (currentFilter === '전체') {
+                    return true;
+                } else if (currentFilter === '기타연주') {
+                    return l.includes('기타');
+                } else if (currentFilter === 'k팝') {
+                    return g.includes('k') || g.includes('가요');
+                } else if (currentFilter === 'j팝') {
+                    return g.includes('j') || g.includes('일단') || g.includes('일본');
+                } else if (currentFilter === '팝') {
+                    const hasPop = g.includes('팝') || g.includes('pop');
+                    const isKOrJ = g.includes('k') || g.includes('j') || g.includes('가요') || g.includes('일본');
+                    return hasPop && !isKOrJ;
+                }
+                return true;
+            });
+
+            currentPage = 1;
+            renderPage();
+        }
+
         function renderPage() {
             const container = document.getElementById("songContainer");
             const paginationContainer = document.getElementById("paginationContainer");
@@ -910,12 +1070,20 @@
             const endIndex = startIndex + itemsPerPage;
             const displaySongs = filteredSongs.slice(startIndex, endIndex);
 
+            // 아티스트 순으로 정렬 후 노래 제목 순 정렬
+            displaySongs.sort((a, b) => {
+                const artistA = (a.artist || '아티스트 미상').toLowerCase();
+                const artistB = (b.artist || '아티스트 미상').toLowerCase();
+                if (artistA < artistB) return -1;
+                if (artistA > artistB) return 1;
+                return (a.title || '').localeCompare((b.title || ''), 'ko');
+            });
+
             let lastArtist = "";
 
             displaySongs.forEach((song, idx) => {
                 const currentArtist = song.artist || '아티스트 미상';
 
-                // 아티스트별 구분 헤더 추가
                 if (currentArtist !== lastArtist) {
                     lastArtist = currentArtist;
                     const groupHeader = document.createElement('div');
@@ -926,19 +1094,27 @@
 
                 const card = document.createElement("div");
                 card.className = "song-card";
-                card.style.animationDelay = `${idx * 0.04}s`;
+                card.style.animationDelay = `${idx * 0.03}s`;
 
                 card.onclick = (e) => {
                     if (e.target.tagName === 'A' || e.target.closest('a')) return;
                     toggleSongCard(card);
                 };
 
+                let limitVal = song.limit || '';
                 let limitBadge = "";
-                if (song.limit === "기타") {
-                    limitBadge = `<span class="badge badge-limit">기타</span>`;
+                if (limitVal !== "") {
+                    let cleanLimitVal = limitVal.replace(/[\[\]]/g, ''); 
+                    let badgeColor = "#0ea5e9";
+                    if (cleanLimitVal.includes("200")) badgeColor = "#10b981";
+                    else if (cleanLimitVal.includes("300")) badgeColor = "#f97316";
+                    else if (cleanLimitVal.includes("기타")) badgeColor = "#8b5cf6";
+                    limitBadge = `<span class="badge badge-limit" style="background-color: ${badgeColor}; color: white;">${cleanLimitVal}</span>`;
                 }
 
-                const countBadge = `<span class="badge badge-count">${song.dateTimes.length}회</span>`;
+                const playCount = song.dateTimes ? song.dateTimes.length : 0;
+                const countBadge = `<span class="badge badge-count">${playCount}회</span>`;
+                const genreBadge = song.genre ? `<span class="badge" style="background-color: #e0f2fe; color: #0284c7;">${song.genre}</span>` : "";
 
                 let timestampsHTML = "";
                 if (song.dateTimes && song.dateTimes.length > 0) {
@@ -947,7 +1123,6 @@
                         const vodUrl = vodMap[dt.date] || "#";
                         const totalSeconds = timeToSeconds(dt.time);
                         const finalLink = vodUrl !== "#" ? `${vodUrl}?change_second=${totalSeconds}` : "#";
-
                         const cleanDate = dt.date.replace(/\(.*?\)/g, "").trim();
 
                         timestampsHTML += `
@@ -957,6 +1132,8 @@
                         `;
                     });
                     timestampsHTML += '</div>';
+                } else {
+                    timestampsHTML = '<div class="timestamp-container" style="padding: 10px 16px; font-size: 13px; color: #64748b;">부른 기록이 없습니다.</div>';
                 }
 
                 card.innerHTML = `
@@ -964,11 +1141,12 @@
                         <div class="song-info-left">
                             <h3 class="song-title">
                                 ${limitBadge}
-                                ${song.title}
+                                ${song.title || '제목없음'}
                             </h3>
-                            <span class="song-artist">${song.artist}</span>
+                            <span class="song-artist">${song.artist || ''}</span>
                         </div>
                         <div class="song-badges">
+                            ${genreBadge}
                             ${countBadge}
                         </div>
                     </div>
@@ -990,23 +1168,10 @@
         }
 
         function onSearchInput() {
-            const keyword = document.getElementById("searchInput").value.toLowerCase().trim();
-            filteredSongs = allSongs.filter(song => 
-                song.title.toLowerCase().includes(keyword) || 
-                song.artist.toLowerCase().includes(keyword) ||
-                (keyword === '기타' && song.limit === '기타')
-            );
-            currentPage = 1;
-            renderPage();
+            filterAndRender();
         }
 
-        loadSongStats();
+        loadData();
     </script>
-    <footer style="text-align: center; padding: 8px 10px; color: #b3cde0; font-size: 11px; border-top: 1px solid rgba(0, 229, 255, 0.12); margin-top: 10px; width: 100%; box-sizing: border-box;">
-        <p style="margin: 0; opacity: 0.8; line-height: 1.6; word-break: keep-all; overflow-wrap: break-word;">
-            <strong style="display: block; margin-bottom: 2px; color: #03045e; font-size: 12px;">바다비 비공식 팬 아카이브</strong>
-            <span style="display: inline-block;">비영리로 운영되며, 정보 갱신 시 데이터 반영에 차이가 있을 수 있습니다.</span>
-        </p>
-    </footer>
 </body>
 </html>
