@@ -102,19 +102,15 @@ function toggleAllVodDetails(expand = true) {
     });
 }
 
-// 다시보기 날짜 및 주소 행 추가 함수 (처음 5개만 기본 표시)
+// 다시보기 날짜 및 주소 행 추가 함수 (항상 맨 위에 생성)
 function addVodSourceRow(item = {}, forcedIndex = null) {
     const container = document.getElementById('vod-sources-container');
-    const currentIndex = forcedIndex !== null ? forcedIndex : container.children.length;
     
     const row = document.createElement('div');
     row.className = 'menu-item-row vod-source-row';
     row.style.flexDirection = "column";
     row.style.alignItems = "stretch";
-    
-    if (currentIndex >= 5) {
-        row.style.display = "none";
-    }
+    row.style.display = "flex"; // 새로 추가된 항목은 무조건 표시
 
     const date = item.date || '';
     const url = item.url || '';
@@ -131,7 +127,15 @@ function addVodSourceRow(item = {}, forcedIndex = null) {
             <span style="font-size: 12px; color: #64748b;">이 다시보기 항목에 대한 상세 메모나 부가 설정을 입력할 수 있습니다.</span>
         </div>
     `;
-    container.appendChild(row);
+
+    // 맨 처음에 삽입 (forcedIndex가 있을 때 즉 초기 로딩 때는 맨 아래로, 사용자가 누를 땐 맨 위로)
+    if (forcedIndex !== null) {
+        container.appendChild(row);
+        if (forcedIndex >= 5) row.style.display = "none";
+    } else {
+        container.insertBefore(row, container.firstChild); // 맨 위에 생성!
+        row.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
 }
 
 // 부른 날짜/시간 개별 항목 추가 서브 함수
@@ -199,19 +203,15 @@ function filterRegisteredSongs(queryInput) {
     });
 }
 
-// 노래책에 등록된 노래 행 추가 (처음 5개만 기본 표시)
+// 노래책에 등록된 노래 행 추가 (항상 맨 위에 생성 + 완료/아래로 보내기 버튼 추가 가능)
 function addRegisteredSongRow(item = {}, forcedIndex = null) {
     const container = document.getElementById('registered-songs-container');
-    const currentIndex = forcedIndex !== null ? forcedIndex : container.children.length;
 
     const row = document.createElement('div');
     row.className = 'menu-item-row reg-song-row';
     row.style.flexDirection = "column";
     row.style.alignItems = "stretch";
-    
-    if (currentIndex >= 5) {
-        row.style.display = "none";
-    }
+    row.style.display = "flex";
     
     const title = item.title || '';
     const artist = item.artist || '';
@@ -245,8 +245,9 @@ function addRegisteredSongRow(item = {}, forcedIndex = null) {
             <input type="text" placeholder="노래제목" class="reg-title" value="${title}" style="flex: 2; margin-bottom: 0; height: 38px; box-sizing: border-box;" oninput="checkSongChanges(this)">
             <input type="text" placeholder="가수" class="reg-artist" value="${artist}" style="flex: 1.5; margin-bottom: 0; height: 38px; box-sizing: border-box;" oninput="checkSongChanges(this)">
             <input type="text" placeholder="제한 (limit)" class="reg-limit" value="${limitVal}" style="flex: 1; margin-bottom: 0; height: 38px; box-sizing: border-box;" oninput="checkSongChanges(this)">
-            <button type="button" onclick="toggleSongDetail(this)" style="background-color: #0284c7; color: #fff; padding: 0 12px; height: 38px; font-size: 12px; border: none; border-radius: 4px; cursor: pointer; white-space: nowrap; margin-bottom: 0; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center;">✏️ 수정</button>
-            <button type="button" class="delete-item-btn" onclick="this.closest('.menu-item-row').remove()" style="padding: 0 12px; height: 38px; margin-bottom: 0; white-space: nowrap; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center;">삭제</button>
+            <button type="button" onclick="moveToBottomAndDone(this)" style="background-color: #10b981; color: #fff; padding: 0 10px; height: 38px; font-size: 11px; border: none; border-radius: 4px; cursor: pointer; white-space: nowrap; margin-bottom: 0; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center;">✅ 완료</button>
+            <button type="button" onclick="toggleSongDetail(this)" style="background-color: #0284c7; color: #fff; padding: 0 10px; height: 38px; font-size: 11px; border: none; border-radius: 4px; cursor: pointer; white-space: nowrap; margin-bottom: 0; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center;">✏️ 수정</button>
+            <button type="button" class="delete-item-btn" onclick="this.closest('.menu-item-row').remove()" style="padding: 0 10px; height: 38px; font-size: 11px; margin-bottom: 0; white-space: nowrap; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center;">삭제</button>
         </div>
         
         <div class="song-detail-box" style="display: none; background: #f8fafc; padding: 10px; border-radius: 6px; border: 1px solid #e2e8f0; margin-top: 8px; max-height: 200px; overflow-y: auto;">
@@ -260,7 +261,7 @@ function addRegisteredSongRow(item = {}, forcedIndex = null) {
         <div class="warning-slot" style="margin-top: 4px;">${mismatchWarning}</div>
     `;
 
-    container.appendChild(row);
+    container.appendChild(row); // 기본 추가
 
     const dtContainer = row.querySelector('.datetime-container');
     let dateTimes = item.dateTimes || [];
@@ -271,6 +272,14 @@ function addRegisteredSongRow(item = {}, forcedIndex = null) {
         dateTimes.forEach(dt => addDateTimeRow(dtContainer, dt));
     } else {
         addDateTimeRow(dtContainer);
+    }
+
+    if (forcedIndex !== null) {
+        if (forcedIndex >= 5) row.style.display = "none";
+    } else {
+        // 맨 위로 이동시키기
+        container.insertBefore(row, container.firstChild);
+        row.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 }
 
@@ -311,19 +320,15 @@ function checkSongChanges(input) {
     }
 }
 
-// 노래책에 미등록된 노래 행 추가 (처음 5개만 기본 표시)
+// 노래책에 미등록된 노래 행 추가 (항상 맨 위에 생성)
 function addUnregisteredSongRow(item = {}, forcedIndex = null) {
     const container = document.getElementById('unregistered-songs-container');
-    const currentIndex = forcedIndex !== null ? forcedIndex : container.children.length;
 
     const row = document.createElement('div');
     row.className = 'menu-item-row unreg-song-row';
     row.style.flexDirection = "column";
     row.style.alignItems = "stretch";
-
-    if (currentIndex >= 5) {
-        row.style.display = "none";
-    }
+    row.style.display = "flex";
 
     const title = item.title || '';
     const artist = item.artist || '';
@@ -334,8 +339,9 @@ function addUnregisteredSongRow(item = {}, forcedIndex = null) {
             <input type="text" placeholder="노래제목" class="unreg-title" value="${title}" style="flex: 2; margin-bottom: 0; height: 38px; box-sizing: border-box;">
             <input type="text" placeholder="가수" class="unreg-artist" value="${artist}" style="flex: 1.5; margin-bottom: 0; height: 38px; box-sizing: border-box;">
             <input type="text" placeholder="제한 (limit)" class="unreg-limit" value="${limitVal}" style="flex: 1; margin-bottom: 0; height: 38px; box-sizing: border-box;">
-            <button type="button" onclick="toggleSongDetail(this)" style="background-color: #0284c7; color: #fff; padding: 0 12px; height: 38px; font-size: 12px; border: none; border-radius: 4px; cursor: pointer; white-space: nowrap; margin-bottom: 0; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center;">✏️ 수정</button>
-            <button type="button" class="delete-item-btn" onclick="this.closest('.menu-item-row').remove()" style="padding: 0 12px; height: 38px; margin-bottom: 0; white-space: nowrap; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center;">삭제</button>
+            <button type="button" onclick="moveToBottomAndDone(this)" style="background-color: #10b981; color: #fff; padding: 0 10px; height: 38px; font-size: 11px; border: none; border-radius: 4px; cursor: pointer; white-space: nowrap; margin-bottom: 0; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center;">✅ 완료</button>
+            <button type="button" onclick="toggleSongDetail(this)" style="background-color: #0284c7; color: #fff; padding: 0 10px; height: 38px; font-size: 11px; border: none; border-radius: 4px; cursor: pointer; white-space: nowrap; margin-bottom: 0; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center;">✏️ 수정</button>
+            <button type="button" class="delete-item-btn" onclick="this.closest('.menu-item-row').remove()" style="padding: 0 10px; height: 38px; font-size: 11px; margin-bottom: 0; white-space: nowrap; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center;">삭제</button>
         </div>
 
         <div class="song-detail-box" style="display: none; background: #f8fafc; padding: 10px; border-radius: 6px; border: 1px solid #e2e8f0; margin-top: 8px; max-height: 200px; overflow-y: auto;">
@@ -358,6 +364,13 @@ function addUnregisteredSongRow(item = {}, forcedIndex = null) {
         dateTimes.forEach(dt => addDateTimeRow(dtContainer, dt));
     } else {
         addDateTimeRow(dtContainer);
+    }
+
+    if (forcedIndex !== null) {
+        if (forcedIndex >= 5) row.style.display = "none";
+    } else {
+        container.insertBefore(row, container.firstChild);
+        row.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 }
 
