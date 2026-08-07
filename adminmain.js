@@ -69,8 +69,26 @@ const adminHtmlTemplate = `
             <button onclick="showDashboard()" style="background-color: #64748b; padding: 6px 12px; font-size: 13px;">← 메뉴 목록으로</button>
         </div>
         <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 20px; color: #1e293b; line-height: 1.6;">
-            <h4 style="color: #0077b6; margin-top: 0;">관리 페이지 이용 안내</h4>
-            <p style="font-size: 14px; margin-bottom: 10px;">이곳에 직접 설정 방법을 작성하세요.</p>
+            <h4 style="color: #0077b6; margin-top: 0;">페이지를 게시글에 적용하는 방법입니다</h4>
+            
+            <h5 style="margin: 20px 0 10px 0;">1. 메인페이지로 수정하는 방법</h5>
+            <div style="background: #fff; padding: 10px; border: 1px solid #ddd; font-size: 12px; white-space: pre-wrap; margin-bottom: 5px;">
+&lt;div style="display: flex; justify-content: center; width: 100%;"&gt;
+&lt;iframe src="https://badabi.pages.dev/mainpages" frameborder="0" id="pandaFrame" style="width: 100%; height: 1000px;" allow="encrypted-media; accelerometer; gyroscope; picture-in-picture" scrolling="yes"&gt;&lt;/iframe&gt;
+&lt;/div&gt;
+            </div>
+            
+            <h5 style="margin: 20px 0 10px 0;">2. 노래책만 사용할 경우</h5>
+            <div style="background: #fff; padding: 10px; border: 1px solid #ddd; font-size: 12px; white-space: pre-wrap; margin-bottom: 15px;">
+&lt;div style="display: flex; justify-content: center; width: 100%;"&gt;
+&lt;iframe src="https://badabi.pages.dev/songlist" frameborder="0" id="pandaFrame" style="width: 100%; height: 1000px;" allow="encrypted-media; accelerometer; gyroscope; picture-in-picture" scrolling="yes"&gt;&lt;/iframe&gt;
+&lt;/div&gt;
+            </div>
+            
+            <p style="font-size: 14px; border-top: 1px solid #cbd5e1; padding-top: 15px;">
+                각각 원하는 것을 복사 후,<br>
+                <b>게시글 &gt; 오른쪽에 있는 기본을 'HTML'로 변경</b> 후 입력되어 있는 글을 지우고 복사한 데이터를 넣은 후 게시해주세요.
+            </p>
         </div>
     </div>
 
