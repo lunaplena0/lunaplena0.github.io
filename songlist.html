@@ -311,50 +311,6 @@
             border-color: #0284c7;
         }
 
-        /* 페이지네이션 스타일 */
-        .pagination {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 12px;
-            margin-top: 2px;
-            padding: 2px 0;
-        }
-
-        .page-btn {
-            background-color: #ffffff;
-            border: 1px solid #cbd5e1;
-            color: #0f172a;
-            width: 34px;
-            height: 34px;
-            border-radius: 50%;
-            font-size: 15px;
-            font-weight: 700;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
-            transition: all 0.2s;
-        }
-
-        .page-btn:hover:not(:disabled) {
-            background-color: #0ea5e9;
-            color: #ffffff;
-            border-color: #0ea5e9;
-        }
-
-        .page-btn:disabled {
-            opacity: 0.25;
-            cursor: not-allowed;
-        }
-
-        .page-indicator {
-            font-size: 13.5px;
-            font-weight: 700;
-            color: #475569;
-        }
-
         .no-result {
             text-align: center;
             color: #64748b;
@@ -418,13 +374,6 @@
         <div id="songContainer" class="song-list">
             <p class="no-result">데이터를 불러오는 중...</p>
         </div>
-
-        <!-- 페이지네이션 컨트롤 -->
-        <div id="paginationContainer" class="pagination" style="display: none;">
-            <button id="prevBtn" class="page-btn" onclick="changePage(-1)">‹</button>
-            <span id="pageIndicator" class="page-indicator">1 / 1</span>
-            <button id="nextBtn" class="page-btn" onclick="changePage(1)">›</button>
-        </div>
     </div>
 
     <script>
@@ -436,8 +385,6 @@
         let filteredSongs = [];
         let vodMap = {};
         let totalPlayCount = 0;
-        let currentPage = 1;
-        const itemsPerPage = 15;
         let currentFilter = '전체';
 
         function timeToSeconds(timeStr) {
@@ -552,8 +499,7 @@
                 setupFilterButtons();
 
                 filteredSongs = [...allSongs];
-                currentPage = 1;
-                filterAndRender();
+                renderList();
 
             } catch (err) {
                 console.error(err);
@@ -611,33 +557,20 @@
                 return true;
             });
 
-            currentPage = 1;
-            renderPage();
+            renderList();
         }
 
-        function renderPage() {
+        function renderList() {
             const container = document.getElementById("songContainer");
-            const paginationContainer = document.getElementById("paginationContainer");
             container.innerHTML = "";
 
             if (filteredSongs.length === 0) {
                 container.innerHTML = '<p class="no-result">검색 결과가 없습니다.</p>';
-                paginationContainer.style.display = "none";
                 return;
             }
 
-            paginationContainer.style.display = "flex";
-
-            const totalPages = Math.ceil(filteredSongs.length / itemsPerPage);
-            if (currentPage > totalPages) currentPage = totalPages;
-            if (currentPage < 1) currentPage = 1;
-
-            const startIndex = (currentPage - 1) * itemsPerPage;
-            const endIndex = startIndex + itemsPerPage;
-            const displaySongs = filteredSongs.slice(startIndex, endIndex);
-
-            // 1차 기준: 가수 이름(한국어 로케일 지정으로 한글 우선 가나다라순), 2차 기준: 노래 제목(가나다라순) 정렬
-            displaySongs.sort((a, b) => {
+            // 1차: 가수 이름 가나다라순, 2차: 노래 제목 가나다라순 전체 정렬
+            const sortedSongs = [...filteredSongs].sort((a, b) => {
                 const artistA = (a.artist || '아티스트 미상').trim();
                 const artistB = (b.artist || '아티스트 미상').trim();
                 const artistCompare = artistA.localeCompare(artistB, 'ko', { sensitivity: 'base' });
@@ -650,7 +583,7 @@
 
             let lastArtist = "";
 
-            displaySongs.forEach((song, idx) => {
+            sortedSongs.forEach((song, idx) => {
                 const currentArtist = song.artist || '아티스트 미상';
 
                 if (currentArtist !== lastArtist) {
@@ -663,7 +596,7 @@
 
                 const card = document.createElement("div");
                 card.className = "song-card";
-                card.style.animationDelay = `${idx * 0.03}s`;
+                card.style.animationDelay = `${(idx % 15) * 0.02}s`;
 
                 card.onclick = (e) => {
                     if (e.target.tagName === 'A' || e.target.closest('a')) return;
@@ -724,16 +657,6 @@
 
                 container.appendChild(card);
             });
-
-            document.getElementById("pageIndicator").textContent = `${currentPage} / ${totalPages}`;
-            document.getElementById("prevBtn").disabled = currentPage === 1;
-            document.getElementById("nextBtn").disabled = currentPage === totalPages;
-        }
-
-        function changePage(direction) {
-            currentPage += direction;
-            renderPage();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function onSearchInput() {
