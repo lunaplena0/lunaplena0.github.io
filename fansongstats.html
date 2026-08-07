@@ -320,7 +320,7 @@
 
         .song-card {
             background: #ffffff;
-            border-radius: 10px;
+            border-radius: 12px;
             border: 1px solid #e2e8f0;
             box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
             overflow: hidden;
@@ -341,13 +341,22 @@
             align-items: center;
             cursor: pointer;
             gap: 12px;
-            user-select: none;
+            overflow: hidden;
         }
 
         .song-info-left {
             display: flex;
-            align-items: baseline;
+            align-items: center;
             gap: 10px;
+            min-width: 0;
+            flex: 1;
+            user-select: text;
+        }
+
+        .song-title-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 6px;
             min-width: 0;
             flex: 1;
         }
@@ -372,11 +381,13 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            flex-shrink: 0;
+            max-width: 140px;
         }
 
         .song-badges {
             display: flex;
-            gap: 6px;
+            gap: 5px;
             align-items: center;
             flex-shrink: 0;
         }
@@ -384,13 +395,8 @@
         .badge {
             font-size: 11px;
             font-weight: 600;
-            padding: 4px 8px; /* 패딩 균일화 */
-            height: 24px; /* 높이 고정으로 다른 뱃지와 수직 정렬 일치 */
-            box-sizing: border-box;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 6px;
+            padding: 3px 7px;
+            border-radius: 8px;
             background-color: #f1f5f9;
             color: #475569;
             white-space: nowrap;
@@ -404,6 +410,7 @@
         .badge-limit {
             background-color: #eef2ff;
             color: #6366f1;
+            flex-shrink: 0;
         }
 
         /* 클릭 시 펼쳐지는 날짜 버튼 영역 */
@@ -428,13 +435,8 @@
             color: #0284c7;
             font-size: 12px;
             font-weight: 600;
-            padding: 0 10px; /* 좌우 패딩만 부여하고 높이 일치 */
-            height: 30px; /* 타임스탬프 버튼 높이 지정 */
-            box-sizing: border-box;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 6px;
+            padding: 3px 7px;
+            border-radius: 8px;
             text-decoration: none;
             cursor: pointer;
             transition: all 0.2s;
@@ -500,12 +502,14 @@
 
         @media (max-width: 500px) {
             .main-container {
-                padding: 12px 12px 12px 12px;
+                padding: 12px;
             }
-            .song-info-left {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 2px;
+            .song-summary-row {
+                padding: 10px 12px;
+                gap: 8px;
+            }
+            .song-artist {
+                max-width: 90px;
             }
             .page-title {
                 font-size: 22px;
@@ -955,10 +959,10 @@
                 card.innerHTML = `
                     <div class="song-summary-row">
                         <div class="song-info-left">
-                            <h3 class="song-title">
+                            <div class="song-title-wrapper">
                                 ${limitBadge}
-                                ${song.title}
-                            </h3>
+                                <h3 class="song-title">${song.title}</h3>
+                            </div>
                             <span class="song-artist">${song.artist}</span>
                         </div>
                         <div class="song-badges">
