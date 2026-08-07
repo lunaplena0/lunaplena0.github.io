@@ -73,7 +73,7 @@
             background-color: #ffffff;
             border: 1px solid #cbd5e1;
             color: #0369a1;
-            padding: 6px 10px; /* 내부 여백 축소 */
+            padding: 6px 10px;
             font-size: 13px;
             font-weight: 700;
             border-radius: 10px;
@@ -139,7 +139,7 @@
             background-color: #ffffff;
             border: 1px solid #cbd5e1;
             color: #0369a1;
-            padding: 5px 10px; /* 내부 여백 축소 */
+            padding: 5px 10px;
             font-size: 13px;
             font-weight: 700;
             border-radius: 10px;
@@ -299,7 +299,7 @@
             color: #0284c7;
             font-size: 12px;
             font-weight: 600;
-            padding: 3px 7px; /* 내부 여백 축소 */
+            padding: 3px 7px;
             border-radius: 8px;
             text-decoration: none;
             cursor: pointer;
@@ -503,7 +503,7 @@
         /* 모달 버튼 내부 여백 축소 */
         .modal-btn {
             flex: 1;
-            padding: 8px 12px; /* 내부 여백 축소 */
+            padding: 8px 12px;
             border-radius: 10px;
             font-size: 13px;
             font-weight: 700;
@@ -584,7 +584,7 @@
         <!-- 상단 헤더 영역 -->
         <div class="header-row">
             <div class="title-summary-box">
-                <h1 class="page-title">🎤 바다비 노래책</h1>
+                <h1 class="page-title">🎤 바다비 노래책 (버그 수정중)</h1>
                 <div id="statsSummary" class="stats-summary">통계 계산 중...</div>
             </div>
             <!-- 상단 버튼 그룹 (노래공지 버튼 + 노래 추천 버튼) -->
@@ -957,6 +957,10 @@
                 const playCount = song.dateTimes ? song.dateTimes.length : 0;
                 const countBadge = `<span class="badge badge-count">${playCount}회</span>`;
                 const genreBadge = song.genre ? `<span class="badge" style="background-color: #e0f2fe; color: #0284c7;">${song.genre}</span>` : "";
+                
+                // etc 데이터가 있을 경우 뱃지로 생성 (장르/태그보다 앞쪽에 오도록 배치)
+                let etcVal = song.etc || '';
+                let etcBadge = etcVal !== "" ? `<span class="badge" style="background-color: #f1f5f9; color: #475569; border: 1px solid #cbd5e1;">${etcVal}</span>` : "";
 
                 let timestampsHTML = "";
                 if (song.dateTimes && song.dateTimes.length > 0) {
@@ -988,6 +992,7 @@
                             <span class="song-artist">${song.artist || ''}</span>
                         </div>
                         <div class="song-badges">
+                            ${etcBadge}
                             ${genreBadge}
                             ${countBadge}
                         </div>
