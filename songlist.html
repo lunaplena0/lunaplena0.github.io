@@ -117,6 +117,60 @@
             transform: rotate(180deg);
         }
 
+        /* 전체 노래 목록 통째로 접고 펼치는 아코디언 박스 스타일 */
+        .songbook-accordion {
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+            box-sizing: border-box;
+        }
+
+        .songbook-accordion-header {
+            padding: 14px 18px;
+            font-weight: 700;
+            font-size: 15px;
+            color: #0369a1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+            background: #f8fafc;
+            transition: background 0.2s;
+        }
+
+        .songbook-accordion-header:hover {
+            background: #f1f5f9;
+        }
+
+        .songbook-accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s cubic-bezier(0.16, 1, 0.3, 1), padding 0.4s ease;
+            padding: 0 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        /* 펼쳐졌을 때 */
+        .songbook-accordion.expanded .songbook-accordion-content {
+            max-height: 10000px; /* 내부 컨텐츠가 모두 들어가도록 충분히 큰 값 */
+            padding: 12px 16px 16px 16px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .songbook-arrow {
+            transition: transform 0.3s ease;
+            font-size: 13px;
+        }
+
+        .songbook-accordion.expanded .songbook-arrow {
+            transform: rotate(180deg);
+        }
+
         /* 검색 및 필터 영역 */
         .search-box {
             width: 100%;
@@ -166,91 +220,27 @@
             border-color: #0ea5e9;
         }
 
-        /* 가수별 아코디언 그룹 스타일 (기본 접힌 상태) */
-        .artist-group-card {
-            background: #ffffff;
-            border-radius: 12px;
-            border: 1px solid #e2e8f0;
-            margin-top: 10px;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
-            overflow: hidden;
-            transition: border-color 0.2s ease, box-shadow 0.2s ease;
-        }
-
-        .artist-group-card:hover {
-            border-color: #cbd5e1;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
-        }
-
-        .artist-header-row {
-            padding: 14px 18px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            cursor: pointer;
-            background: #ffffff;
-            user-select: none;
-            transition: background 0.2s;
-        }
-
-        .artist-header-row:hover {
-            background: #f8fafc;
-        }
-
-        .artist-name {
-            font-size: 16px;
+        /* 아티스트 그룹 헤더 */
+        .artist-group-header {
+            font-size: 15px;
             font-weight: 800;
             color: #0369a1;
-            margin: 0;
-            display: flex;
-            align-items: center;
-            gap: 6px;
+            padding: 12px 4px 6px 4px;
+            margin-top: 10px;
+            border-bottom: 2px solid #e2e8f0;
         }
 
-        .artist-info-right {
-            display: flex;
-            align-items: center;
-            gap: 10px;
+        .artist-group-header:first-child {
+            margin-top: 0;
         }
 
-        .artist-song-count {
-            font-size: 12.5px;
-            font-weight: 600;
-            color: #64748b;
-            background: #f1f5f9;
-            padding: 3px 8px;
-            border-radius: 6px;
-        }
-
-        .artist-arrow {
-            font-size: 12px;
-            color: #64748b;
-            transition: transform 0.3s ease;
-        }
-
-        .artist-group-card.expanded .artist-arrow {
-            transform: rotate(180deg);
-        }
-
-        /* 가수 내부의 전체 노래 목록 컨테이너 (기본 접힘) */
-        .artist-songs-container {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.35s cubic-bezier(0.16, 1, 0.3, 1), padding 0.35s ease;
-            background-color: #fafbfc;
+        /* 노래 목록 스타일 */
+        .song-list {
             display: flex;
             flex-direction: column;
             gap: 6px;
-            padding: 0 14px;
         }
 
-        .artist-group-card.expanded .artist-songs-container {
-            max-height: 2000px;
-            padding: 10px 14px 14px 14px;
-            border-top: 1px solid #f1f5f9;
-        }
-
-        /* 개별 노래 카드 스타일 */
         .song-card {
             background: #ffffff;
             border-radius: 10px;
@@ -262,10 +252,11 @@
 
         .song-card:hover {
             border-color: #cbd5e1;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
         }
 
         .song-summary-row {
-            padding: 12px 14px;
+            padding: 12px 16px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -283,7 +274,7 @@
         }
 
         .song-title {
-            font-size: 14.5px;
+            font-size: 15px;
             font-weight: 700;
             color: #0f172a;
             margin: 0;
@@ -293,6 +284,15 @@
             display: flex;
             align-items: center;
             gap: 6px;
+        }
+
+        .song-artist {
+            font-size: 13px;
+            color: #64748b;
+            margin: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .song-badges {
@@ -321,9 +321,9 @@
             color: #6366f1;
         }
 
-        /* 날짜 버튼 영역 */
+        /* 클릭 시 펼쳐지는 날짜 버튼 영역 */
         .timestamp-container {
-            padding: 0 14px 12px 14px;
+            padding: 0 16px 12px 16px;
             display: flex;
             flex-wrap: wrap;
             gap: 6px;
@@ -366,6 +366,11 @@
         @media (max-width: 500px) {
             .main-container {
                 padding: 12px;
+            }
+            .song-info-left {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 2px;
             }
             .page-title {
                 font-size: 22px;
@@ -410,9 +415,18 @@
             <button class="filter-btn" data-filter="팝">팝</button>
         </div>
 
-        <!-- 가수별 아코디언 목록 컨테이너 -->
-        <div id="songContainer" class="song-list">
-            <p class="no-result">데이터를 불러오는 중...</p>
+        <!-- 전체 노래 목록을 통째로 접고 펼칠 수 있는 아코디언 박스 (기본 펼쳐진 상태 또는 접힌 상태) -->
+        <div class="songbook-accordion expanded" id="songbookAccordion">
+            <div class="songbook-accordion-header" onclick="toggleSongbookAccordion()">
+                <span>📚 전체 노래 목록 보기</span>
+                <span class="songbook-arrow">▼</span>
+            </div>
+            <div class="songbook-accordion-content">
+                <!-- 기존 가수별 그룹 및 노래 목록 출력 컨테이너 -->
+                <div id="songContainer" class="song-list">
+                    <p class="no-result">데이터를 불러오는 중...</p>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -443,8 +457,9 @@
             noticeBox.classList.toggle("expanded");
         }
 
-        function toggleArtistCard(cardElement) {
-            cardElement.classList.toggle("expanded");
+        function toggleSongbookAccordion() {
+            const accordion = document.getElementById("songbookAccordion");
+            accordion.classList.toggle("expanded");
         }
 
         function toggleSongCard(cardElement) {
@@ -624,104 +639,81 @@
                 return titleA.localeCompare(titleB, 'ko', { sensitivity: 'base' });
             });
 
-            // 가수별로 그룹 묶기
-            const artistGroups = {};
-            sortedSongs.forEach(song => {
-                const artist = song.artist || '아티스트 미상';
-                if (!artistGroups[artist]) {
-                    artistGroups[artist] = [];
+            let lastArtist = "";
+
+            sortedSongs.forEach((song, idx) => {
+                const currentArtist = song.artist || '아티스트 미상';
+
+                if (currentArtist !== lastArtist) {
+                    lastArtist = currentArtist;
+                    const groupHeader = document.createElement('div');
+                    groupHeader.className = 'artist-group-header';
+                    groupHeader.innerHTML = `🎵 ${currentArtist}`;
+                    container.appendChild(groupHeader);
                 }
-                artistGroups[artist].push(song);
-            });
 
-            // 가수 그룹별 카드 생성
-            Object.entries(artistGroups).forEach(([artist, songs]) => {
-                const groupCard = document.createElement("div");
-                groupCard.className = "artist-group-card";
+                const card = document.createElement("div");
+                card.className = "song-card";
+                card.style.animationDelay = `${(idx % 15) * 0.02}s`;
 
-                const headerRow = document.createElement("div");
-                headerRow.className = "artist-header-row";
-                headerRow.innerHTML = `
-                    <h3 class="artist-name">🎵 ${artist}</h3>
-                    <div class="artist-info-right">
-                        <span class="artist-song-count">${songs.length}곡</span>
-                        <span class="artist-arrow">▼</span>
-                    </div>
-                `;
-
-                headerRow.onclick = () => {
-                    toggleArtistCard(groupCard);
+                card.onclick = (e) => {
+                    if (e.target.tagName === 'A' || e.target.closest('a')) return;
+                    toggleSongCard(card);
                 };
 
-                const songsContainer = document.createElement("div");
-                songsContainer.className = "artist-songs-container";
+                let limitVal = song.limit || '';
+                let limitBadge = "";
+                if (limitVal !== "") {
+                    let cleanLimitVal = limitVal.replace(/[\[\]]/g, ''); 
+                    let badgeColor = "#0ea5e9";
+                    if (cleanLimitVal.includes("200")) badgeColor = "#10b981";
+                    else if (cleanLimitVal.includes("300")) badgeColor = "#f97316";
+                    else if (cleanLimitVal.includes("기타")) badgeColor = "#8b5cf6";
+                    limitBadge = `<span class="badge badge-limit" style="background-color: ${badgeColor}; color: white;">${cleanLimitVal}</span>`;
+                }
 
-                songs.forEach(song => {
-                    const card = document.createElement("div");
-                    card.className = "song-card";
+                const playCount = song.dateTimes ? song.dateTimes.length : 0;
+                const countBadge = `<span class="badge badge-count">${playCount}회</span>`;
+                const genreBadge = song.genre ? `<span class="badge" style="background-color: #e0f2fe; color: #0284c7;">${song.genre}</span>` : "";
 
-                    card.onclick = (e) => {
-                        if (e.target.tagName === 'A' || e.target.closest('a')) return;
-                        toggleSongCard(card);
-                    };
+                let timestampsHTML = "";
+                if (song.dateTimes && song.dateTimes.length > 0) {
+                    timestampsHTML = '<div class="timestamp-container">';
+                    song.dateTimes.forEach(dt => {
+                        const vodUrl = vodMap[dt.date] || "#";
+                        const totalSeconds = timeToSeconds(dt.time);
+                        const finalLink = vodUrl !== "#" ? `${vodUrl}?change_second=${totalSeconds}` : "#";
+                        const cleanDate = dt.date.replace(/\(.*?\)/g, "").trim();
 
-                    let limitVal = song.limit || '';
-                    let limitBadge = "";
-                    if (limitVal !== "") {
-                        let cleanLimitVal = limitVal.replace(/[\[\]]/g, ''); 
-                        let badgeColor = "#0ea5e9";
-                        if (cleanLimitVal.includes("200")) badgeColor = "#10b981";
-                        else if (cleanLimitVal.includes("300")) badgeColor = "#f97316";
-                        else if (cleanLimitVal.includes("기타")) badgeColor = "#8b5cf6";
-                        limitBadge = `<span class="badge badge-limit" style="background-color: ${badgeColor}; color: white;">${cleanLimitVal}</span>`;
-                    }
+                        timestampsHTML += `
+                            <a href="${finalLink}" target="_blank" rel="noopener noreferrer" class="timestamp-btn" onclick="event.stopPropagation();">
+                                📅 ${cleanDate}
+                            </a>
+                        `;
+                    });
+                    timestampsHTML += '</div>';
+                } else {
+                    timestampsHTML = '<div class="timestamp-container" style="padding: 10px 16px; font-size: 13px; color: #64748b;">부른 기록이 없습니다.</div>';
+                }
 
-                    const playCount = song.dateTimes ? song.dateTimes.length : 0;
-                    const countBadge = `<span class="badge badge-count">${playCount}회</span>`;
-                    const genreBadge = song.genre ? `<span class="badge" style="background-color: #e0f2fe; color: #0284c7;">${song.genre}</span>` : "";
-
-                    let timestampsHTML = "";
-                    if (song.dateTimes && song.dateTimes.length > 0) {
-                        timestampsHTML = '<div class="timestamp-container">';
-                        song.dateTimes.forEach(dt => {
-                            const vodUrl = vodMap[dt.date] || "#";
-                            const totalSeconds = timeToSeconds(dt.time);
-                            const finalLink = vodUrl !== "#" ? `${vodUrl}?change_second=${totalSeconds}` : "#";
-                            const cleanDate = dt.date.replace(/\(.*?\)/g, "").trim();
-
-                            timestampsHTML += `
-                                <a href="${finalLink}" target="_blank" rel="noopener noreferrer" class="timestamp-btn" onclick="event.stopPropagation();">
-                                    📅 ${cleanDate}
-                                </a>
-                            `;
-                        });
-                        timestampsHTML += '</div>';
-                    } else {
-                        timestampsHTML = '<div class="timestamp-container" style="padding: 10px 14px; font-size: 13px; color: #64748b;">부른 기록이 없습니다.</div>';
-                    }
-
-                    card.innerHTML = `
-                        <div class="song-summary-row">
-                            <div class="song-info-left">
-                                <h3 class="song-title">
-                                    ${limitBadge}
-                                    ${song.title || '제목없음'}
-                                </h3>
-                            </div>
-                            <div class="song-badges">
-                                ${genreBadge}
-                                ${countBadge}
-                            </div>
+                card.innerHTML = `
+                    <div class="song-summary-row">
+                        <div class="song-info-left">
+                            <h3 class="song-title">
+                                ${limitBadge}
+                                ${song.title || '제목없음'}
+                            </h3>
+                            <span class="song-artist">${song.artist || ''}</span>
                         </div>
-                        ${timestampsHTML}
-                    `;
+                        <div class="song-badges">
+                            ${genreBadge}
+                            ${countBadge}
+                        </div>
+                    </div>
+                    ${timestampsHTML}
+                `;
 
-                    songsContainer.appendChild(card);
-                });
-
-                groupCard.appendChild(headerRow);
-                groupCard.appendChild(songsContainer);
-                container.appendChild(groupCard);
+                container.appendChild(card);
             });
         }
 
