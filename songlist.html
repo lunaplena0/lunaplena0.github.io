@@ -458,18 +458,26 @@
                     });
                 }
 
-                // fansongstats에 있는 기록들을 타이틀+아티스트 기준으로 매핑
+                // registeredSongs 데이터를 바탕으로 title, artist, limit을 포함한 매핑 키 생성
                 const statsMap = {};
-                const combinedStatsList = [...(statsData.registeredSongs || []), ...(statsData.unregisteredSongs || [])];
-                combinedStatsList.forEach(statSong => {
-                    const key = `${(statSong.title || '').trim().toLowerCase()}_${(statSong.artist || '').trim().toLowerCase()}`;
+                const registeredList = statsData.registeredSongs || [];
+                registeredList.forEach(statSong => {
+                    const titleKey = (statSong.title || '').trim().toLowerCase();
+                    const artistKey = (statSong.artist || '').trim().toLowerCase();
+                    const limitKey = (statSong.limit || '').trim().toLowerCase();
+                    
+                    const key = `${titleKey}_${artistKey}_${limitKey}`;
                     statsMap[key] = statSong.dateTimes || [];
                 });
 
-                // 노래리스트 기준 배열 생성
+                // songlist 기준 배열 생성 시 동일하게 title, artist, limit을 조합해 매칭
                 const rawSongs = songListData.songs || [];
                 allSongs = rawSongs.map(song => {
-                    const key = `${(song.title || '').trim().toLowerCase()}_${(song.artist || '').trim().toLowerCase()}`;
+                    const titleKey = (song.title || '').trim().toLowerCase();
+                    const artistKey = (song.artist || '').trim().toLowerCase();
+                    const limitKey = (song.limit || '').trim().toLowerCase();
+                    
+                    const key = `${titleKey}_${artistKey}_${limitKey}`;
                     return {
                         ...song,
                         dateTimes: statsMap[key] || []
