@@ -1,5 +1,5 @@
-// VOD 항목을 화면에 추가하는 함수 (초기에는 접힌 형태로 로드)
-function addVodRow(vod = {}) {
+// VOD 항목을 화면에 추가하는 함수 (초기 로딩 시 5개만 표시, 새 추가 시 맨 위에 펼쳐진 상태로 생성)
+function addVodRow(vod = {}, isNew = false) {
     const container = document.getElementById('vodlist-rows-container');
     const row = document.createElement('div');
     row.className = 'vod-row';
@@ -7,9 +7,14 @@ function addVodRow(vod = {}) {
     // 데이터가 이미 존재하고 제목/날짜가 있다면 기본적으로 요약(접힌) 상태로 표시
     const hasData = (vod.title || vod.date);
     
+    // 초기 로딩 시 5개까지만 보이고 나머지는 숨김 처리 (단, 사용자가 새로 추가하는 항목은 모두 표시)
+    if (!isNew && container.children.length >= 5) {
+        row.style.display = 'none';
+    }
+    
     row.innerHTML = `
         <!-- [요약 뷰] 날짜와 제목만 간단히 표시 -->
-        <div class="vod-summary-view" style="display: ${hasData ? 'flex' : 'none'}; justify-content: space-between; align-items: center; gap: 10px;">
+        <div class="vod-summary-view" style="display: ${(hasData && !isNew) ? 'flex' : 'none'}; justify-content: space-between; align-items: center; gap: 10px;">
             <div style="font-size: 14px; font-weight: 600; color: #03045e; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1;">
                 <span style="color: #0284c7; margin-right: 8px;">[${vod.date || '날짜 미지정'}]</span> 
                 <span class="summary-title-text">${vod.title || '제목 없음'}</span>
@@ -21,7 +26,7 @@ function addVodRow(vod = {}) {
         </div>
 
         <!-- [상세 편집 뷰] 수정 버튼을 누르거나 새로 추가할 때 펼쳐지는 입력 폼 -->
-        <div class="vod-detail-view" style="display: ${hasData ? 'none' : 'flex'}; flex-direction: column; gap: 10px;">
+        <div class="vod-detail-view" style="display: ${(hasData && !isNew) ? 'none' : 'flex'}; flex-direction: column; gap: 10px;">
             <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px; margin-bottom: 4px;">
                 <span style="font-size: 13px; font-weight: 700; color: #0077b6;">VOD 상세 정보 편집</span>
                 <span style="font-size: 11px; color: #64748b;">작성을 마치면 아래 완료 버튼을 누르세요</span>
@@ -55,29 +60,52 @@ function addVodRow(vod = {}) {
             <textarea placeholder="컨텐츠 상세정보 입력" class="vod-description" style="height: 70px;">${vod.description || ''}</textarea>
             
             <div style="display: flex; justify-content: flex-end; gap: 6px;">
-                <button type="button" onclick="toggleVodEdit(this)" style="background-color: #10b981; padding: 6px 14px; font-size: 12px;">편집 완료 (접기)</button>
+                <button type="button" onclick="completeVodEdit(this)" style="background-color: #10b981; padding: 6px 14px; font-size: 12px;">편집 완료</button>
                 <button type="button" class="delete-item-btn" onclick="this.closest('.vod-row').remove()" style="padding: 6px 12px; font-size: 12px; margin-bottom:0;">삭제</button>
             </div>
         </div>
     `;
-    container.appendChild(row);
+
+    // 새로 추가하는 항목인 경우 맨 위에 삽입, 기존 로딩인 경우 아래로 순서대로 추가
+    if (isNew) {
+        container.insertBefore(row, container.firstChild);
+        row.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    } else {
+        container.appendChild(row);
+    }
 }
 
-// 수정/완료 버튼 클릭 시 요약 뷰와 상세 뷰를 전환하는 함수
+// 일반 수정/접기 토글 함수 (기존 목록에 있는 항목 수정용)
 function toggleVodEdit(button) {
     const row = button.closest('.vod-row');
     const summaryView = row.querySelector('.vod-summary-view');
     const detailView = row.querySelector('.vod-detail-view');
 
     if (summaryView.style.display === 'none') {
-        // 상세 뷰 -> 요약 뷰로 전환 (접기)
         summaryView.style.display = 'flex';
         detailView.style.display = 'none';
     } else {
-        // 요약 뷰 -> 상세 뷰로 전환 (펼치기)
         summaryView.style.display = 'none';
         detailView.style.display = 'flex';
     }
+}
+
+// [새로 추가된 항목 전용] 편집 완료 버튼 클릭 시: 요약 뷰로 접히면서 리스트의 가장 맨 아래로 이동
+function completeVodEdit(button) {
+    const row = button.closest('.vod-row');
+    const summaryView = row.querySelector('.vod-summary-view');
+    const detailView = row.querySelector('.vod-detail-view');
+    const container = row.parentNode;
+
+    // 요약 뷰로 전환 (접기)
+    summaryView.style.display = 'flex';
+    detailView.style.display = 'none';
+
+    // 컨테이너의 가장 맨 아래로 이동
+    container.appendChild(row);
+
+    // 스크롤도 부드럽게 이동
+    row.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
 // 입력창에 타이핑할 때 요약 뷰의 제목/날짜 텍스트가 실시간으로 반영되도록 보조
@@ -87,10 +115,12 @@ function updateSummaryTitle(input) {
     const titleVal = row.querySelector('.vod-title').value.trim();
     
     const summarySpan = row.querySelector('.vod-summary-view span:first-child');
-    summarySpan.innerHTML = `
-        <span style="color: #0284c7; margin-right: 8px;">[${dateVal || '날짜 미지정'}]</span> 
-        <span>${titleVal || '제목 없음'}</span>
-    `;
+    if (summarySpan) {
+        summarySpan.innerHTML = `
+            <span style="color: #0284c7; margin-right: 8px;">[${dateVal || '날짜 미지정'}]</span> 
+            <span>${titleVal || '제목 없음'}</span>
+        `;
+    }
 }
 
 async function loadVodListSettingsData() {
@@ -116,9 +146,9 @@ async function loadVodListSettingsData() {
         }
 
         if (vodArray.length > 0) {
-            vodArray.forEach(item => addVodRow(item));
+            vodArray.forEach(item => addVodRow(item, false));
         } else {
-            addVodRow();
+            addVodRow({}, true);
         }
 
         statusEl.textContent = "데이터를 성공적으로 불러왔습니다.";
@@ -127,7 +157,7 @@ async function loadVodListSettingsData() {
         statusEl.textContent = "데이터를 불러오지 못했습니다. (빈 양식 사용)";
         statusEl.style.color = "#ef4444";
         const container = document.getElementById('vodlist-rows-container');
-        if (container.children.length === 0) addVodRow();
+        if (container.children.length === 0) addVodRow({}, true);
     }
 }
 
