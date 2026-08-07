@@ -317,7 +317,6 @@ async function downloadAllBackupData() {
             URL.revokeObjectURL(url);
 
             successCount++;
-            // 브라우저가 다중 다운로드를 차단하지 않도록 미세한 간격 주기
             await new Promise(resolve => setTimeout(resolve, 300));
         } catch (err) {
             console.error(`⚠️ ${item.type} 백업 실패:`, err);
@@ -325,7 +324,7 @@ async function downloadAllBackupData() {
     }
 
     if (successCount > 0) {
-        alert(`총 ${successCount개의 파일 백업 다운로드가 완료되었습니다!}`);
+        alert(`총 ${successCount}개의 파일 백업 다운로드가 완료되었습니다!`);
     } else {
         alert("데이터 다운로드 중 오류가 발생했습니다. 브라우저 설정을 확인해주세요.");
     }
