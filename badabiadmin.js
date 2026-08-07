@@ -91,22 +91,27 @@ async function downloadDataBackup() {
         "fanstartpage", "fancrynote", "fancalenar", "fanvodlist", "fansongstats"
     ];
     
-    let backupData = {};
-    
-    // 로컬 저장소에서 데이터 수집 (필요에 따라 fetch로 서버 데이터를 가져오도록 수정 가능)
     keysToBackup.forEach(key => {
         const data = localStorage.getItem(key);
-        backupData[key] = data ? JSON.parse(data) : null;
+        // 데이터가 존재할 때만 개별 파일로 다운로드 시도 (원하신다면 data가 null이어도 빈 파일로 받도록 수정 가능)
+        if (data) {
+            let parsedData;
+            try {
+                parsedData = JSON.parse(data);
+            } catch (e) {
+                parsedData = data; // JSON 형식이 아니면 텍스트 그대로 처리
+            }
+            
+            const blob = new Blob([JSON.stringify(parsedData, null, 2)], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${key}.json`; // 각 이름별 파일명 (예: profile.json, songlist.json 등)
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
     });
-
-    const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `backup_${new Date().toISOString().slice(0,10)}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
 }
