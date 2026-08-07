@@ -83,7 +83,7 @@ const adminHtmlTemplate = `
             
             <p style="font-size: 14px; border-top: 1px solid #cbd5e1; padding-top: 15px; margin-top: 20px;">
                 2. 각각 원하는 것을 클릭하여 복사 후,<br>
-                <b>게시글 &gt; 오른쪽에 있는 기본을 'HTML'로 변경</b> 후 입력되어 있는 글을 지우고 복사한 데이터를 넣은 후 게시해주세요.
+                <b>게시글 &gt; 오른쪽에 있는 '기본'을 'HTML'로 변경</b> 후 입력되어 있는 글을 지우고 복사한 데이터를 넣은 후 게시해주세요.
             </p>
         </div>
     </div>
