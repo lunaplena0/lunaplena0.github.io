@@ -395,10 +395,11 @@
 
         let allSongs = [];
         let filteredSongs = [];
+        let sortedSongs = [];
         let vodMap = {};
         let totalPlayCount = 0;
         let currentFilter = '전체';
-        let displayCount = 10; // 처음 보여줄 개수 및 추가로 늘어날 개수 단위
+        let displayedCount = 0;
 
         function timeToSeconds(timeStr) {
             if (!timeStr) return 0;
@@ -506,10 +507,8 @@
                 }
 
                 setupFilterButtons();
-
-                filteredSongs = [...allSongs];
-                displayCount = 10; // 초기 표시 개수 10개 설정
-                renderList();
+                updateFilteredAndSorted();
+                renderInitial();
 
             } catch (err) {
                 console.error(err);
@@ -524,13 +523,13 @@
                     filterButtons.forEach(b => b.classList.remove('active'));
                     btn.classList.add('active');
                     currentFilter = btn.getAttribute('data-filter');
-                    displayCount = 10; // 필터 변경 시 다시 10개부터 시작
-                    filterAndRender();
+                    updateFilteredAndSorted();
+                    renderInitial();
                 };
             });
         }
 
-        function filterAndRender() {
+        function updateFilteredAndSorted() {
             const keyword = document.getElementById("searchInput").value.toLowerCase().trim();
 
             filteredSongs = allSongs.filter(song => {
@@ -568,21 +567,7 @@
                 return true;
             });
 
-            renderList();
-        }
-
-        function renderList() {
-            const container = document.getElementById("songContainer");
-            const loadMoreContainer = document.getElementById("loadMoreContainer");
-            container.innerHTML = "";
-            loadMoreContainer.innerHTML = "";
-
-            if (filteredSongs.length === 0) {
-                container.innerHTML = '<p class="no-result">검색 결과가 없습니다.</p>';
-                return;
-            }
-
-            const sortedSongs = [...filteredSongs].sort((a, b) => {
+            sortedSongs = [...filteredSongs].sort((a, b) => {
                 const artistA = (a.artist || '아티스트 미상').trim();
                 const artistB = (b.artist || '아티스트 미상').trim();
                 const artistCompare = artistA.localeCompare(artistB, 'ko', { sensitivity: 'base' });
@@ -592,12 +577,36 @@
                 const titleB = (b.title || '').trim();
                 return titleA.localeCompare(titleB, 'ko', { sensitivity: 'base' });
             });
+        }
 
-            // 현재 displayCount 만큼만 잘라서 보여줌
-            const songsToDisplay = sortedSongs.slice(0, displayCount);
-            let lastArtist = "";
+        function renderInitial() {
+            const container = document.getElementById("songContainer");
+            container.innerHTML = "";
+            displayedCount = 0;
 
-            songsToDisplay.forEach(song => {
+            if (sortedSongs.length === 0) {
+                container.innerHTML = '<p class="no-result">검색 결과가 없습니다.</p>';
+                document.getElementById("loadMoreContainer").innerHTML = "";
+                return;
+            }
+
+            appendMoreSongs();
+        }
+
+        function appendMoreSongs() {
+            // 현재 스크롤 위치 저장
+            const currentScrollY = window.scrollY;
+
+            const container = document.getElementById("songContainer");
+            const loadMoreContainer = document.getElementById("loadMoreContainer");
+            loadMoreContainer.innerHTML = "";
+
+            const nextCount = Math.min(displayedCount + 10, sortedSongs.length);
+            const songsToAppend = sortedSongs.slice(displayedCount, nextCount);
+
+            let lastArtist = displayedCount > 0 ? sortedSongs[displayedCount - 1].artist || '아티스트 미상' : "";
+
+            songsToAppend.forEach(song => {
                 const currentArtist = song.artist || '아티스트 미상';
 
                 if (currentArtist !== lastArtist) {
@@ -671,22 +680,25 @@
                 container.appendChild(card);
             });
 
-            // 전체 개수보다 더 보여줄 노래가 남아있다면 하단에 '더보기' 버튼 생성
-            if (displayCount < sortedSongs.length) {
+            displayedCount = nextCount;
+
+            if (displayedCount < sortedSongs.length) {
                 const loadMoreBtn = document.createElement("button");
                 loadMoreBtn.className = "load-more-btn";
-                loadMoreBtn.innerHTML = `▼ 노래 10개 더보기 (${displayCount}/${sortedSongs.length})`;
+                loadMoreBtn.innerHTML = `▼ 노래 10개 더보기 (${displayedCount}/${sortedSongs.length})`;
                 loadMoreBtn.onclick = () => {
-                    displayCount += 10;
-                    renderList();
+                    appendMoreSongs();
                 };
                 loadMoreContainer.appendChild(loadMoreBtn);
             }
+
+            // 추가된 직후 스크롤 위치를 원래 자리로 고정
+            window.scrollTo({ top: currentScrollY, behavior: 'instant' });
         }
 
         function onSearchInput() {
-            displayCount = 10; // 검색할 때도 첫 10개부터 시작
-            filterAndRender();
+            updateFilteredAndSorted();
+            renderInitial();
         }
 
         loadData();
