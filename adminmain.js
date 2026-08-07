@@ -83,7 +83,7 @@ const adminHtmlTemplate = `
             
             <p style="font-size: 14px; border-top: 1px solid #cbd5e1; padding-top: 15px; margin-top: 20px;">
                 각각 원하는 것을 클릭하여 복사 후,<br>
-                <b>게시글 &gt; 오른쪽에 있는 기본을 'HTML'로 변경</b> 후 입력되어 있는 글을 지우고 복사한 데이터를 넣은 후 게시해주세요.
+                <b>게시글 &gt; 오른쪽에 있는 '기본'을 'HTML'로 변경</b> 후 입력되어 있는 글을 지우고 복사한 데이터를 넣은 후 게시해주세요.
             </p>
         </div>
     </div>
@@ -122,8 +122,12 @@ const adminHtmlTemplate = `
                 <p style="font-size: 12px; color: #475569; margin-top: 0; margin-bottom: 12px; line-height: 1.4;">
                     페이지 관련 공지(읽기 전용)
                 </p>
-                <div id="mp-memo-notice-box" style="width: 100%; height: 320px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px; font-size: 13px; color: #0f172a; overflow-y: auto; white-space: pre-wrap; box-sizing: border-box; line-height: 1.5; text-align: center;"></div>
+                <!-- 수정이 불가능한 일반 div 박스로 변경하여 공지 내용이 깔끔하게 렌더링되도록 함 -->
+                <div id="mp-memo-notice-box" style="width: 100%; height: 320px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px; font-size: 13px; color: #0f172a; overflow-y: auto; white-space: pre-wrap; box-sizing: border-box; line-height: 1.5; text-align: center;">
+현재 등록된 URI 목록\n프로필 : profile.html\n주소모음 : link.html\n노래책 : songlist.html
+</div>
             </div>
+
         </div>
 
         <button onclick="saveMainPageSettings()" style="width: 100%; margin-top: 25px; background-color: #0077b6; padding: 14px; font-size: 16px;">메인페이지 설정 반영하기</button>
