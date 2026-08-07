@@ -860,3 +860,14 @@ async function saveSongStatsSettings() {
         statusEl.style.color = "#ef4444";
     }
 }
+// [신규] 입력 완료 시 해당 행을 리스트의 맨 아래로 보내주는 함수
+function moveToBottomAndDone(btn) {
+    const row = btn.closest('.menu-item-row');
+    const container = row.parentNode;
+
+    // 맨 아래로 이동
+    container.appendChild(row);
+
+    // 부드럽게 맨 아래로 스크롤 이동
+    row.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
