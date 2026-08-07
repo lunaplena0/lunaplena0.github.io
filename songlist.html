@@ -214,7 +214,6 @@
             overflow: hidden;
         }
 
-        /* [핵심 수정] 긴 텍스트 영역이 찌그러지거나 넘치지 않도록 설정 */
         .song-info-left {
             display: flex;
             align-items: center;
@@ -241,6 +240,13 @@
             overflow: hidden;
             text-overflow: ellipsis;
             user-select: text;
+            cursor: pointer;
+            transition: color 0.15s;
+        }
+
+        .song-title:hover {
+            color: #0ea5e9;
+            text-decoration: underline;
         }
 
         .song-artist {
@@ -338,6 +344,31 @@
             background-color: #f1f5f9;
             border-color: #0ea5e9;
             box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
+        }
+
+        /* 복사 완료 토스트 상태 메시지 스타일 */
+        .toast-message {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background-color: #0f172a;
+            color: #ffffff;
+            padding: 10px 18px;
+            font-size: 13.5px;
+            font-weight: 600;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            z-index: 2000;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            white-space: nowrap;
+        }
+
+        .toast-message.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
         }
 
         /* 모달 스타일 */
@@ -619,6 +650,9 @@
         <div id="loadMoreContainer"></div>
     </div>
 
+    <!-- 복사 완료 상태 메시지 토스트 -->
+    <div id="toastMessage" class="toast-message">노래가 복사되었습니다.</div>
+
     <!-- 노래 추천 팝업 모달 -->
     <div class="modal-overlay" id="recommendModal">
         <div class="modal-box">
@@ -659,6 +693,7 @@
         let totalPlayCount = 0;
         let currentFilter = '전체';
         let displayedCount = 0;
+        let toastTimer = null;
 
         function timeToSeconds(timeStr) {
             if (!timeStr) return 0;
@@ -673,6 +708,30 @@
 
         function toggleSongCard(cardElement) {
             cardElement.classList.toggle("expanded");
+        }
+
+        function showToast(title, artist) {
+            const toast = document.getElementById("toastMessage");
+            const displayText = artist ? `${title} - ${artist}` : title;
+            toast.textContent = `'${displayText}' 노래와 가수가 복사되었습니다.`;
+            
+            toast.classList.add("show");
+            
+            if (toastTimer) clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => {
+                toast.classList.remove("show");
+            }, 2000);
+        }
+
+        function copySongInfo(title, artist, event) {
+            event.stopPropagation(); // 카드 펼쳐짐 이벤트 방지
+            const textToCopy = artist ? `${title} - ${artist}` : title;
+
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                showToast(title, artist);
+            }).catch(err => {
+                console.error("클립보드 복사 실패:", err);
+            });
         }
 
         function openRecommendModal() {
@@ -976,12 +1035,15 @@
                     timestampsHTML = '<div class="timestamp-container" style="padding: 10px 16px; font-size: 13px; color: #64748b;">부른 기록이 없습니다.</div>';
                 }
 
+                const safeTitle = (song.title || '제목없음').replace(/'/g, "\\'");
+                const safeArtist = (song.artist || '').replace(/'/g, "\\'");
+
                 card.innerHTML = `
                     <div class="song-summary-row">
                         <div class="song-info-left">
                             <div class="song-title-wrapper">
                                 ${limitBadge}
-                                <h3 class="song-title">${song.title || '제목없음'}</h3>
+                                <h3 class="song-title" onclick="copySongInfo('${safeTitle}', '${safeArtist}', event)" title="클릭하여 복사하기">${song.title || '제목없음'}</h3>
                             </div>
                             <span class="song-artist">${song.artist || ''}</span>
                         </div>
