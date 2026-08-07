@@ -603,6 +603,15 @@ async function checkAllSongMismatches() {
     const missingInSongList = []; // songlist에 아예 없는 곡
     const infoChanged = [];       // 제목/가수는 같지만 limit 등이 변경된 곡
 
+    // 원본 songlist 데이터를 복사해서 사용 (검사하면서 하나씩 소모하기 위함)
+    let availableSongList = globalSongList.map(s => ({
+        title: (s.title || '').trim(),
+        artist: (s.artist || '').trim(),
+        limit: (s.limit || '').trim()
+    }));
+
+    // 1차 검사: 제목, 가수, limit까지 완벽하게 일치하는 경우 먼저 매칭해서 소모
+    const remainingRows = [];
     rows.forEach((row) => {
         const title = row.querySelector('.reg-title').value.trim();
         const artist = row.querySelector('.reg-artist').value.trim();
@@ -610,27 +619,35 @@ async function checkAllSongMismatches() {
 
         if (!title) return; // 제목이 비어있으면 패스
 
-        const exactMatchExists = globalSongList.some(s => 
-            (s.title || '').trim() === title && 
-            (s.artist || '').trim() === artist
+        const exactIdx = availableSongList.findIndex(s => 
+            s.title === title && s.artist === artist && s.limit === limitVal
         );
 
-        if (!exactMatchExists) {
-            missingInSongList.push({ title, artist, limit: limitVal });
+        if (exactIdx !== -1) {
+            matchedSongs.push({ title, artist, limit: limitVal });
+            availableSongList.splice(exactIdx, 1); // 매칭된 원본 데이터는 제거
         } else {
-            const matchedSongData = globalSongList.find(s => {
-                return (s.title || '').trim() === title && 
-                       (s.artist || '').trim() === artist;
-            });
+            remainingRows.push({ row, title, artist, limit: limitVal });
+        }
+    });
 
-            const sLimit = matchedSongData ? (matchedSongData.limit || '') : '';
-            const fullMatchExists = (sLimit.trim() === limitVal.trim());
+    // 2차 검사: 완벽히 일치하진 않지만 제목과 가수가 일치하는 남은 항목들 검사
+    remainingRows.forEach(item => {
+        const { title, artist, limit: limitVal } = item;
 
-            if (!fullMatchExists) {
-                infoChanged.push({ title, artist, limit: limitVal, serverLimit: sLimit });
-            } else {
-                matchedSongs.push({ title, artist, limit: limitVal });
-            }
+        const partialIdx = availableSongList.findIndex(s => 
+            s.title === title && s.artist === artist
+        );
+
+        if (partialIdx !== -1) {
+            // 제목과 가수는 같으나 limit 등이 다른 경우
+            const sLimit = availableSongList[partialIdx].limit;
+            infoChanged.push({ title, artist, limit: limitVal, serverLimit: sLimit });
+            availableSongList.splice(partialIdx, 1); // 소모 처리
+        } else {
+            // songlist에 아예 없는 경우 (또는 이미 위에서 개수가 소모되어 부족한 경우)
+            // 단, 이미 matchedSongs나 infoChanged에서 처리되지 못한 진짜 없는 곡들만 남음
+            missingInSongList.push({ title, artist, limit: limitVal });
         }
     });
 
