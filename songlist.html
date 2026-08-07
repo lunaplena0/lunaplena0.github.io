@@ -117,14 +117,8 @@
         }
 
         @keyframes slideDownFade {
-            0% {
-                opacity: 0;
-                transform: translateY(-12px);
-            }
-            100% {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            0% { opacity: 0; transform: translateY(-12px); }
+            100% { opacity: 1; transform: translateY(0); }
         }
 
         /* 아티스트 구분 헤더 행 */
@@ -137,6 +131,7 @@
             border-bottom: 2px solid #e2e8f0;
         }
 
+        /* 카드 기본 디자인 (클릭 가능하도록 수정) */
         .song-card {
             background: #ffffff;
             border-radius: 10px;
@@ -144,17 +139,25 @@
             box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
             padding: 12px 16px;
             display: flex;
-            justify-content: space-between;
-            align-items: center;
+            flex-direction: column; /* 헤더와 상세 내용을 위아래로 배치 */
             animation: slideDownFade 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
             opacity: 0;
             transition: border-color 0.2s ease, box-shadow 0.2s ease;
-            gap: 12px;
+            cursor: pointer; /* 클릭 가능한 요소임을 표시 */
         }
 
         .song-card:hover {
             border-color: #cbd5e1;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+        }
+
+        /* 카드 항상 보이는 상단 영역 */
+        .song-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            gap: 12px;
         }
 
         .song-info-left {
@@ -185,13 +188,14 @@
             margin: 0;
         }
 
-        .song-badges {
+        .song-badges-right {
             display: flex;
-            gap: 6px;
+            gap: 8px;
             align-items: center;
             flex-shrink: 0;
         }
 
+        /* 뱃지 디자인 */
         .badge {
             font-size: 11px;
             font-weight: 600;
@@ -200,15 +204,77 @@
             background-color: #f1f5f9;
             color: #475569;
         }
+        .badge-genre { background-color: #e0f2fe; color: #0284c7; }
 
-        .badge-genre {
-            background-color: #e0f2fe;
-            color: #0284c7;
+        /* 확장 화살표 아이콘 */
+        .chevron-icon {
+            color: #94a3b8;
+            font-size: 12px;
+            transition: transform 0.3s ease;
+            margin-left: 4px;
+        }
+        .song-card.expanded .chevron-icon {
+            transform: rotate(180deg);
         }
 
-        .badge-limit {
-            background-color: #eef2ff;
-            color: #6366f1;
+        /* 카드 클릭 시 나타나는 상세(날짜) 영역 */
+        .song-details {
+            display: none;
+            width: 100%;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px dashed #cbd5e1;
+            animation: fadeIn 0.3s ease;
+        }
+        .song-card.expanded .song-details {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 날짜 버튼 컨테이너 및 링크 디자인 */
+        .date-links-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .date-link {
+            background-color: #f1f5f9;
+            color: #0369a1;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 700;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            border: 1px solid #e2e8f0;
+            transition: all 0.2s ease;
+        }
+
+        .date-link:hover {
+            background-color: #e0f2fe;
+            border-color: #bae6fd;
+            transform: translateY(-2px);
+            box-shadow: 0 2px 4px rgba(2, 132, 199, 0.1);
+        }
+
+        .date-badge-nolink {
+            background-color: #f8fafc;
+            color: #64748b;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            border: 1px dashed #cbd5e1;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
         }
 
         .no-result {
@@ -219,12 +285,8 @@
         }
 
         @media (max-width: 500px) {
-            .main-container {
-                padding: 12px;
-            }
-            .page-title {
-                font-size: 22px;
-            }
+            .main-container { padding: 12px; }
+            .page-title { font-size: 22px; }
         }
     </style>
 </head>
@@ -381,6 +443,51 @@
             renderList(filtered);
         }
 
+        // 부른 날짜 및 링크 영역을 생성하는 헬퍼 함수
+        function generateDateLinksHtml(song) {
+            // JSON 데이터 구조에 맞춰 유연하게 날짜 데이터를 찾습니다.
+            let records = song.history || song.records || song.dates || song.urls || [];
+            
+            // 데이터가 단일 객체나 문자열일 경우 배열로 변환
+            if (!Array.isArray(records)) {
+                if (typeof records === 'object') {
+                    records = [records];
+                } else if (typeof records === 'string') {
+                    return `<div class="date-links-container"><span class="date-badge-nolink">📅 ${records}</span></div>`;
+                }
+            }
+
+            // 배열이 비어있지만 객체 최상단에 date와 url이 존재하는 경우 
+            if (records.length === 0 && (song.date || song.url || song.link)) {
+                records = [{ date: song.date || "날짜 미상", url: song.url || song.link }];
+            }
+
+            if (records.length === 0) {
+                return `<p style="font-size: 13.5px; color: #94a3b8; margin: 0; text-align: center;">기록된 날짜나 영상 링크가 없습니다.</p>`;
+            }
+
+            let html = '<div class="date-links-container">';
+            records.forEach(item => {
+                if (typeof item === 'object') {
+                    const dateStr = item.date || item.day || item.name || item.title || "날짜 미상";
+                    const linkUrl = item.url || item.link || item.href || item.video || "#";
+                    
+                    if (linkUrl !== "#" && linkUrl !== "") {
+                        // event.stopPropagation()을 통해 링크 클릭 시 카드가 닫히는 것을 방지
+                        html += `<a href="${linkUrl}" target="_blank" class="date-link" onclick="event.stopPropagation();">
+                            ▶ ${dateStr}
+                        </a>`;
+                    } else {
+                        html += `<span class="date-badge-nolink">📅 ${dateStr}</span>`;
+                    }
+                } else if (typeof item === 'string') {
+                    html += `<span class="date-badge-nolink">📅 ${item}</span>`;
+                }
+            });
+            html += '</div>';
+            return html;
+        }
+
         function renderList(songs) {
             const container = document.getElementById('song-container');
             container.innerHTML = "";
@@ -416,10 +523,16 @@
                     container.appendChild(groupHeader);
                 }
 
+                // 노래 카드 생성
                 const card = document.createElement('div');
                 card.className = 'song-card';
                 card.style.animationDelay = `${(cardIdx % 15) * 0.03}s`;
                 cardIdx++;
+
+                // 클릭 이벤트 (아코디언 토글)
+                card.onclick = function() {
+                    this.classList.toggle('expanded');
+                };
 
                 let limitVal = song.limit || '';
                 let limitBadgeHtml = "";
@@ -437,16 +550,27 @@
                 let etcHtml = etcVal !== "" ? `<p class="song-etc">${etcVal}</p>` : "";
                 let genreVal = song.genre ? `<span class="badge badge-genre">${song.genre}</span>` : "";
 
+                // 날짜 및 링크 HTML 생성
+                let detailsHtml = generateDateLinksHtml(song);
+
                 card.innerHTML = `
-                    <div class="song-info-left">
-                        <div class="song-title-row">
-                            ${limitBadgeHtml}
-                            <h3 class="song-title">${song.title || '제목없음'}</h3>
+                    <div class="song-card-header">
+                        <div class="song-info-left">
+                            <div class="song-title-row">
+                                ${limitBadgeHtml}
+                                <h3 class="song-title">${song.title || '제목없음'}</h3>
+                            </div>
+                            ${etcHtml}
                         </div>
-                        ${etcHtml}
+                        <div class="song-badges-right">
+                            ${genreVal}
+                            <span class="chevron-icon">▼</span>
+                        </div>
                     </div>
-                    <div class="song-badges">
-                        ${genreVal}
+                    
+                    <!-- 클릭 시 보여지는 상세 영역 (날짜 및 링크) -->
+                    <div class="song-details">
+                        ${detailsHtml}
                     </div>
                 `;
                 container.appendChild(card);
