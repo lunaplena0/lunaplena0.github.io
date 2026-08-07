@@ -590,7 +590,63 @@ function importAllSongsToRegistered() {
 
     closeSongListImportModal();
 }
+// 전체 등록된 노래 중 songlist와 일치하지 않는 항목들을 검사하여 요약해주는 함수
+function checkAllSongMismatches() {
+    const rows = document.querySelectorAll('#registered-songs-container .reg-song-row');
+    const missingInSongList = []; // songlist에 아예 없는 곡
+    const infoChanged = [];       // 제목/가수는 같지만 limit 등이 변경된 곡
 
+    if (globalSongList.length === 0) {
+        alert("비교할 songlist 데이터가 없습니다. 먼저 데이터를 불러주세요.");
+        return;
+    }
+
+    rows.forEach((row, index) => {
+        const title = row.querySelector('.reg-title').value.trim();
+        const artist = row.querySelector('.reg-artist').value.trim();
+        const limitVal = row.querySelector('.reg-limit').value.trim();
+
+        if (!title) return; // 제목이 비어있으면 패스
+
+        const exactMatchExists = globalSongList.some(s => 
+            (s.title || '').trim() === title && 
+            (s.artist || '').trim() === artist
+        );
+
+        if (!exactMatchExists) {
+            missingInSongList.push(`${title} - ${artist}`);
+        } else {
+            const fullMatchExists = globalSongList.some(s => {
+                return (s.title || '').trim() === title && 
+                       (s.artist || '').trim() === artist && 
+                       (s.limit || '').trim() === limitVal;
+            });
+
+            if (!fullMatchExists) {
+                infoChanged.push(`${title} - ${artist} (정보 변경됨)`);
+            }
+        }
+    });
+
+    // 결과를 보여줄 상단 상태 요소나 별도의 영역에 렌더링
+    const statusEl = document.getElementById('songstats-status');
+    let reportHTML = "";
+
+    if (missingInSongList.length === 0 && infoChanged.length === 0) {
+        reportHTML = `<span style="color: #10b981; font-weight: bold;">✨ 모든 등록된 노래가 songlist와 완벽하게 일치합니다!</span>`;
+    } else {
+        reportHTML = `<span style="color: #ef4444; font-weight: bold;">⚠️ 총 ${missingInSongList.length + infoChanged.length}개의 불일치 항목이 발견되었습니다.</span><br>`;
+        
+        if (missingInSongList.length > 0) {
+            reportHTML += `<div style="margin-top: 4px; font-size: 12px; color: #f59e0b;"><strong>[songlist에 없는 곡]</strong><br>- ${missingInSongList.join('<br>- ')}</div>`;
+        }
+        if (infoChanged.length > 0) {
+            reportHTML += `<div style="margin-top: 4px; font-size: 12px; color: #ef4444;"><strong>[정보가 변경된 곡]</strong><br>- ${infoChanged.join('<br>- ')}</div>`;
+        }
+    }
+
+    statusEl.innerHTML = reportHTML;
+}
 // 서버 저장 함수
 async function saveSongStatsSettings() {
     const statusEl = document.getElementById('songstats-status');
