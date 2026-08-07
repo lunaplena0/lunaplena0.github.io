@@ -85,33 +85,57 @@ function showSongStatsSettings() {
     document.getElementById('panel-songstats').style.display = 'block';
     loadSongStatsSettingsData();
 }
+// 📌 데이터 백업 다운로드 기능 (10개 파일 일괄 다운로드)
 async function downloadDataBackup() {
-    const keysToBackup = [
-        "profile", "links", "songlist", "mainpage", "fanmainpages", 
-        "fanstartpage", "fancrynote", "fancalenar", "fanvodlist", "fansongstats"
+    if (!confirm("현재 서버에 저장된 모든 데이터 파일들을 JSON 파일로 백업 다운로드하시겠습니까?")) {
+        return;
+    }
+
+    const targets = [
+        { type: 'profile', filename: 'profile_backup.json' },
+        { type: 'links', filename: 'links_backup.json' },
+        { type: 'songlist', filename: 'songlist_backup.json' },
+        { type: 'mainpage', filename: 'mainpage_backup.json' },
+        { type: 'fanmainpages', filename: 'fanmainpages_backup.json' },
+        { type: 'fanstartpage', filename: 'fanstartpage_backup.json' },
+        { type: 'fancrynote', filename: 'fancrynote_backup.json' },
+        { type: 'fancalenar', filename: 'fancalenar_backup.json' },
+        { type: 'fanvodlist', filename: 'fanvodlist_backup.json' },
+        { type: 'fansongstats', filename: 'fansongstats_backup.json' }
     ];
-    
-    keysToBackup.forEach(key => {
-        const data = localStorage.getItem(key);
-        // 데이터가 존재할 때만 개별 파일로 다운로드 시도 (원하신다면 data가 null이어도 빈 파일로 받도록 수정 가능)
-        if (data) {
-            let parsedData;
-            try {
-                parsedData = JSON.parse(data);
-            } catch (e) {
-                parsedData = data; // JSON 형식이 아니면 텍스트 그대로 처리
-            }
-            
-            const blob = new Blob([JSON.stringify(parsedData, null, 2)], { type: "application/json" });
+
+    let successCount = 0;
+    const timestamp = new Date().getTime();
+
+    for (const item of targets) {
+        try {
+            const res = await fetch(`${WORKER_URL}?type=${item.type}&t=${timestamp}`);
+            if (!res.ok) throw new Error("네트워크 응답 오류");
+            const data = await res.json();
+
+            const jsonStr = JSON.stringify(data, null, 2);
+            const blob = new Blob([jsonStr], { type: "application/json;charset=utf-8;" });
             const url = URL.createObjectURL(blob);
             
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `${key}.json`; // 각 이름별 파일명 (예: profile.json, songlist.json 등)
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = item.filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
             URL.revokeObjectURL(url);
+
+            successCount++;
+            // 브라우저가 다중 다운로드를 안정적으로 처리할 수 있도록 짧은 딜레이 부여
+            await new Promise(resolve => setTimeout(resolve, 300));
+        } catch (err) {
+            console.error(`⚠️ ${item.type} 백업 실패:`, err);
         }
-    });
+    }
+
+    if (successCount > 0) {
+        alert(`총 ${successCount}개의 파일 백업 다운로드가 완료되었습니다!`);
+    } else {
+        alert("데이터 다운로드 중 오류가 발생했습니다. 브라우저 설정을 확인해주세요.");
+    }
 }
