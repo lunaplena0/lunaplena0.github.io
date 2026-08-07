@@ -1,4 +1,4 @@
-// VOD 항목을 화면에 추가하는 함수 (간격 대폭 축소 버전)
+// VOD 항목을 화면에 추가하는 함수 (텍스트 일괄 등록 지원 및 컴팩트 스타일)
 function addVodRow(vod = {}, isNew = false) {
     const container = document.getElementById('vodlist-rows-container');
     const row = document.createElement('div');
@@ -32,39 +32,49 @@ function addVodRow(vod = {}, isNew = false) {
             </div>
         </div>
 
-        <!-- [상세 편집 뷰] 수정 버튼을 누르거나 새로 추가할 때 펼쳐지는 입력 폼 -->
+        <!-- [상세 편집 뷰] 깔끔하고 직관적인 필드 배치 -->
         <div class="vod-detail-view" style="display: ${(hasData && !isNew) ? 'none' : 'flex'}; flex-direction: column; gap: 6px;">
             <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; margin-bottom: 2px;">
-                <span style="font-size: 12px; font-weight: 700; color: #0077b6;">VOD 상세 정보 편집</span>
-                <span style="font-size: 10px; color: #64748b;">작성을 마치면 편집 완료를 누르세요</span>
+                <span style="font-size: 12px; font-weight: 700; color: #0077b6;">VOD 정보 입력 (순서: 날짜 | 제목 | 링크 | 썸네일 | 시간 | 구독 | 성인)</span>
+                <span style="font-size: 10px; color: #64748b;">아래 칸에 한 줄로 복사 붙여넣기 가능</span>
             </div>
+
+            <!-- 한 줄 텍스트 일괄 붙여넣기 지원 인풋 -->
+            <div style="background: #f8fafc; padding: 6px; border-radius: 4px; border: 1px dashed #cbd5e1; margin-bottom: 2px;">
+                <input type="text" placeholder="예: 2026-08-07\t제목\t링크\t썸네일\t03:25:02\t아니요\t아니요" class="vod-bulk-paste" onpaste="handleVodBulkPaste(event, this)" style="width: 100%; padding: 4px 6px; font-size: 11px; background: #fff; border: 1px solid #cbd5e1; border-radius: 3px;" title="탭이나 공백으로 구분된 한 줄 데이터를 붙여넣으세요">
+            </div>
+
             <div class="vod-row-inline" style="display: flex; gap: 6px;">
-                <input type="text" placeholder="날짜 (예: 2026-06-06)" class="vod-date" value="${vod.date || ''}" oninput="updateSummaryTitle(this)" style="padding: 4px 6px; font-size: 12px;">
-                <input type="text" placeholder="컨텐츠 종류" class="vod-category" value="${vod.category || ''}" style="padding: 4px 6px; font-size: 12px;">
-                <input type="text" placeholder="총시간 (예: 03:15:20)" class="vod-duration" value="${vod.duration || ''}" style="padding: 4px 6px; font-size: 12px;">
+                <input type="text" placeholder="날짜 (예: 2026-08-07)" class="vod-date" value="${vod.date || ''}" oninput="updateSummaryTitle(this)" style="padding: 4px 6px; font-size: 12px; flex: 1;">
+                <input type="text" placeholder="컨텐츠 종류" class="vod-category" value="${vod.category || ''}" style="padding: 4px 6px; font-size: 12px; flex: 1;">
+                <input type="text" placeholder="총시간 (예: 03:25:02)" class="vod-duration" value="${vod.duration || ''}" style="padding: 4px 6px; font-size: 12px; flex: 1;">
             </div>
+            
             <input type="text" placeholder="VOD 제목" class="vod-title" value="${vod.title || ''}" oninput="updateSummaryTitle(this)" style="padding: 4px 6px; font-size: 12px;">
+            
             <div class="vod-row-inline" style="display: flex; gap: 6px;">
-                <input type="text" placeholder="링크 (URL)" class="vod-link" value="${vod.link || ''}" style="padding: 4px 6px; font-size: 12px;">
-                <input type="text" placeholder="썸네일 이미지 주소 (URL)" class="vod-thumbnail" value="${vod.thumbnail || ''}" style="padding: 4px 6px; font-size: 12px;">
+                <input type="text" placeholder="링크 (URL)" class="vod-link" value="${vod.link || ''}" style="padding: 4px 6px; font-size: 12px; flex: 1;">
+                <input type="text" placeholder="썸네일 이미지 주소 (URL)" class="vod-thumbnail" value="${vod.thumbnail || ''}" style="padding: 4px 6px; font-size: 12px; flex: 1;">
             </div>
+            
             <div class="vod-row-inline" style="display: flex; gap: 6px;">
                 <div style="flex: 1;">
                     <label style="font-size: 11px; margin-bottom: 2px; display: block;">구독플러스 여부</label>
                     <select class="vod-sub-plus" style="padding: 3px; font-size: 11px; width: 100%;">
-                        <option value="N" ${vod.subPlus === 'N' ? 'selected' : ''}>일반 (N)</option>
-                        <option value="Y" ${vod.subPlus === 'Y' ? 'selected' : ''}>구독플러스 (Y)</option>
+                        <option value="N" ${vod.subPlus === 'N' || vod.subPlus === '아니요' ? 'selected' : ''}>일반 (N / 아니요)</option>
+                        <option value="Y" ${vod.subPlus === 'Y' || vod.subPlus === '예' ? 'selected' : ''}>구독플러스 (Y / 예)</option>
                     </select>
                 </div>
                 <div style="flex: 1;">
                     <label style="font-size: 11px; margin-bottom: 2px; display: block;">성인인증 필요 여부</label>
                     <select class="vod-adult" style="padding: 3px; font-size: 11px; width: 100%;">
-                        <option value="N" ${vod.adult === 'N' ? 'selected' : ''}>전체이용가 (N)</option>
-                        <option value="Y" ${vod.adult === 'Y' ? 'selected' : ''}>성인인증 (Y)</option>
+                        <option value="N" ${vod.adult === 'N' || vod.adult === '아니요' ? 'selected' : ''}>전체이용가 (N / 아니요)</option>
+                        <option value="Y" ${vod.adult === 'Y' || vod.adult === '예' ? 'selected' : ''}>성인인증 (Y / 예)</option>
                     </select>
                 </div>
             </div>
-            <textarea placeholder="컨텐츠 상세정보 입력" class="vod-description" style="height: 45px; padding: 4px 6px; font-size: 12px; resize: vertical;">${vod.description || ''}</textarea>
+            
+            <textarea placeholder="컨텐츠 상세정보 입력 (description)" class="vod-description" style="height: 40px; padding: 4px 6px; font-size: 12px; resize: vertical;">${vod.description || ''}</textarea>
             
             <div style="display: flex; justify-content: flex-end; gap: 4px;">
                 <button type="button" onclick="completeVodEdit(this)" style="background-color: #10b981; padding: 4px 10px; font-size: 11px; border: none; border-radius: 4px; color: #fff; cursor: pointer;">편집 완료</button>
@@ -83,7 +93,49 @@ function addVodRow(vod = {}, isNew = false) {
     updateVodToggleBtn();
 }
 
-// 일반 수정/접기 토글 함수
+// 텍스트를 통째로 복사 붙여넣기 했을 때 지정 순서대로 자동 매핑해주는 함수
+function handleVodBulkPaste(event, inputEl) {
+    event.preventDefault();
+    const pasteData = (event.clipboardData || window.clipboardData).getData('text');
+    if (!pasteData) return;
+
+    // 탭(Tab) 또는 여러 개 이상의 공백/쉼표 등으로 구분된 데이터 파싱
+    let parts = pasteData.split(/\t|,|\s{2,}/).map(item => item.trim()).filter(item => item !== "");
+    
+    // 만약 탭이나 공백 구분이 안 먹히고 공백 단위로 쪼개졌을 때를 대비한 처리 (URL 등이 포함되므로 주로 탭('\t') 기준 분할 선호)
+    if (parts.length < 3) {
+        parts = pasteData.split('\t').map(item => item.trim());
+    }
+
+    const row = inputEl.closest('.vod-row');
+    if (!row) return;
+
+    // 순서: 1. 날짜, 2. 제목, 3. 링크, 4. 썸네일, 5. 시간, 6. 구독여부, 7. 성인인증여부
+    if (parts[0]) row.querySelector('.vod-date').value = parts[0];
+    if (parts[1]) row.querySelector('.vod-title').value = parts[1];
+    if (parts[2]) row.querySelector('.vod-link').value = parts[2];
+    if (parts[3]) row.querySelector('.vod-thumbnail').value = parts[3];
+    if (parts[4]) row.querySelector('.vod-duration').value = parts[4];
+    
+    if (parts[5]) {
+        const subSelect = row.querySelector('.vod-sub-plus');
+        const val = parts[5].toUpperCase();
+        if (val === 'Y' || val === '예' || val === '구독플러스') subSelect.value = 'Y';
+        else subSelect.value = 'N';
+    }
+    
+    if (parts[6]) {
+        const adultSelect = row.querySelector('.vod-adult');
+        const val = parts[6].toUpperCase();
+        if (val === 'Y' || val === '예' || val === '성인인증') adultSelect.value = 'Y';
+        else adultSelect.value = 'N';
+    }
+
+    // 요약 뷰 실시간 반영
+    updateSummaryTitle(inputEl);
+    inputEl.value = ""; // 붙여넣은 뒤 입력창 비우기
+}
+
 function toggleVodEdit(button) {
     const row = button.closest('.vod-row');
     const summaryView = row.querySelector('.vod-summary-view');
@@ -98,7 +150,6 @@ function toggleVodEdit(button) {
     }
 }
 
-// 편집 완료 버튼 클릭 시: 요약 뷰로 접히면서 리스트의 가장 맨 아래로 이동
 function completeVodEdit(button) {
     const row = button.closest('.vod-row');
     const summaryView = row.querySelector('.vod-summary-view');
@@ -119,7 +170,6 @@ function completeVodEdit(button) {
     updateVodToggleBtn();
 }
 
-// 5개 초과 항목에 대한 펼치기/접기 버튼 생성 및 관리
 function updateVodToggleBtn() {
     const container = document.getElementById('vodlist-rows-container');
     if (!container) return;
@@ -152,7 +202,6 @@ function updateVodToggleBtn() {
     }
 }
 
-// 목록 펼치기/접기 토글 실행 함수
 function toggleVodListExpand() {
     const container = document.getElementById('vodlist-rows-container');
     const btn = document.getElementById('vod-expand-toggle-btn');
@@ -181,7 +230,6 @@ function toggleVodListExpand() {
     }
 }
 
-// 입력창 타이핑 시 요약 뷰 실시간 반영
 function updateSummaryTitle(input) {
     const row = input.closest('.vod-row');
     const dateVal = row.querySelector('.vod-date').value.trim();
