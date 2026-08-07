@@ -72,7 +72,7 @@ const adminHtmlTemplate = `
             <h4 style="color: #0077b6; margin-top: 0;">페이지를 게시글에 적용하는 방법입니다</h4>
             
             <div style="margin: 20px 0; display: flex; align-items: center; justify-content: space-between; background: #fff; padding: 15px; border: 1px solid #cbd5e1; border-radius: 8px;">
-                <span style="font-weight: 600;">1-1. 메인페이지로 시작하는 방법</span>
+                <span style="font-weight: 600;">1-1. 메인페이지로 시작하는 경우</span>
                 <button onclick="copyGuideCode('mainpage')" style="background-color: #10b981; padding: 8px 14px; font-size: 13px;">클릭시 복사</button>
             </div>
             
