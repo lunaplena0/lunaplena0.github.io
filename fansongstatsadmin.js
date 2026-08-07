@@ -102,7 +102,7 @@ function toggleAllVodDetails(expand = true) {
     });
 }
 
-// 다시보기 날짜 및 주소 행 추가 함수 (항상 맨 위에 생성)
+// 다시보기 날짜 및 주소 행 추가 함수 (항상 맨 위에 생성 + 완료 버튼 추가)
 function addVodSourceRow(item = {}, forcedIndex = null) {
     const container = document.getElementById('vod-sources-container');
     
@@ -110,7 +110,7 @@ function addVodSourceRow(item = {}, forcedIndex = null) {
     row.className = 'menu-item-row vod-source-row';
     row.style.flexDirection = "column";
     row.style.alignItems = "stretch";
-    row.style.display = "flex"; // 새로 추가된 항목은 무조건 표시
+    row.style.display = "flex";
 
     const date = item.date || '';
     const url = item.url || '';
@@ -119,8 +119,9 @@ function addVodSourceRow(item = {}, forcedIndex = null) {
         <div style="display: flex; gap: 6px; align-items: center;">
             <input type="text" placeholder="다시보기 날짜 (예: 2026-06-06(1))" class="vod-src-date" value="${date}" style="flex: 1; margin-bottom: 0; height: 38px; box-sizing: border-box;">
             <input type="text" placeholder="다시보기 주소 (URL)" class="vod-src-url" value="${url}" style="flex: 2; margin-bottom: 0; height: 38px; box-sizing: border-box;">
-            <button type="button" onclick="toggleVodDetail(this)" style="background-color: #0284c7; color: #fff; padding: 0 12px; height: 38px; font-size: 12px; border: none; border-radius: 4px; cursor: pointer; white-space: nowrap; margin-bottom: 0; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center;">✏️ 수정</button>
-            <button type="button" class="delete-item-btn" onclick="this.closest('.menu-item-row').remove()" style="padding: 0 12px; height: 38px; margin-bottom: 0; white-space: nowrap; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center;">삭제</button>
+            <button type="button" onclick="moveToBottomAndDone(this)" style="background-color: #10b981; color: #fff; padding: 0 10px; height: 38px; font-size: 11px; border: none; border-radius: 4px; cursor: pointer; white-space: nowrap; margin-bottom: 0; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center;">✅ 완료</button>
+            <button type="button" onclick="toggleVodDetail(this)" style="background-color: #0284c7; color: #fff; padding: 0 10px; height: 38px; font-size: 11px; border: none; border-radius: 4px; cursor: pointer; white-space: nowrap; margin-bottom: 0; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center;">✏️ 수정</button>
+            <button type="button" class="delete-item-btn" onclick="this.closest('.menu-item-row').remove()" style="padding: 0 10px; height: 38px; font-size: 11px; margin-bottom: 0; white-space: nowrap; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center;">삭제</button>
         </div>
         
         <div class="vod-detail-box" style="display: none; background: #f8fafc; padding: 10px; border-radius: 6px; border: 1px solid #e2e8f0; margin-top: 8px;">
@@ -128,7 +129,7 @@ function addVodSourceRow(item = {}, forcedIndex = null) {
         </div>
     `;
 
-    // 맨 처음에 삽입 (forcedIndex가 있을 때 즉 초기 로딩 때는 맨 아래로, 사용자가 누를 땐 맨 위로)
+    // 초기 로딩 시에는 그대로 쌓고, 사용자가 직접 누를 땐 맨 위에 생성
     if (forcedIndex !== null) {
         container.appendChild(row);
         if (forcedIndex >= 5) row.style.display = "none";
