@@ -598,10 +598,25 @@ async function checkAllSongMismatches() {
         return;
     }
 
-    const rows = document.querySelectorAll('#registered-songs-container .reg-song-row');
-    const matchedSongs = [];       // 완벽히 일치하는 곡
+    // 1. 등록된 노래와 미등록된 노래 목록의 행들을 각각 가져오기
+    const regRows = document.querySelectorAll('#registered-songs-container .reg-song-row');
+    const unregRows = document.querySelectorAll('#unregistered-songs-container .unreg-song-row');
+
+    const matchedSongs = [];       // 완벽히 일치하는 곡 (등록 리스트 기준)
     const missingInSongList = []; // 내 리스트엔 있지만 songlist엔 없는 곡
     const infoChanged = [];       // 제목/가수는 같지만 limit 등이 변경된 곡
+    const duplicateInBoth = [];   // 등록 리스트와 미등록 리스트 양쪽에 모두 존재하는 곡
+
+    // 2. 미등록 리스트에 있는 곡들의 고유 키(제목+가수+limit) 세트 만들기
+    const unregSongKeys = new Set();
+    unregRows.forEach(row => {
+        const title = (row.querySelector('.unreg-title')?.value || '').trim();
+        const artist = (row.querySelector('.unreg-artist')?.value || '').trim();
+        const limitVal = (row.querySelector('.unreg-limit')?.value || '').trim();
+        if (title) {
+            unregSongKeys.add(`${title}_${artist}_${limitVal}`);
+        }
+    });
 
     // 원본 songlist 복사본 (대조하면서 소모함)
     let availableSongList = globalSongList.map(s => ({
@@ -610,14 +625,19 @@ async function checkAllSongMismatches() {
         limit: (s.limit || '').trim()
     }));
 
-    // 1차 검사: 제목, 가수, limit까지 완벽히 일치하는 경우
+    // 3. 등록된 노래 목록 검사 (1차: 완벽 일치 / 2차: 정보 변경 / 3차: songlist 누락)
     const remainingRows = [];
-    rows.forEach((row) => {
+    regRows.forEach((row) => {
         const title = row.querySelector('.reg-title').value.trim();
         const artist = row.querySelector('.reg-artist').value.trim();
         const limitVal = row.querySelector('.reg-limit').value.trim();
 
         if (!title) return;
+
+        // 양쪽 리스트에 모두 존재하는지 중복 체크
+        if (unregSongKeys.has(`${title}_${artist}_${limitVal}`)) {
+            duplicateInBoth.push({ title, artist, limit: limitVal });
+        }
 
         const exactIdx = availableSongList.findIndex(s => 
             s.title === title && s.artist === artist && s.limit === limitVal
@@ -625,13 +645,12 @@ async function checkAllSongMismatches() {
 
         if (exactIdx !== -1) {
             matchedSongs.push({ title, artist, limit: limitVal });
-            availableSongList.splice(exactIdx, 1); // 짝지어진 원본 곡은 제거
+            availableSongList.splice(exactIdx, 1);
         } else {
             remainingRows.push({ row, title, artist, limit: limitVal });
         }
     });
 
-    // 2차 검사: 제목과 가수는 같으나 limit 등이 일치하지 않는 경우
     remainingRows.forEach(item => {
         const { title, artist, limit: limitVal } = item;
 
@@ -644,31 +663,41 @@ async function checkAllSongMismatches() {
             infoChanged.push({ title, artist, limit: limitVal, serverLimit: sLimit });
             availableSongList.splice(partialIdx, 1);
         } else {
-            // 내 리스트엔 있지만 songlist에는 없는 곡
             missingInSongList.push({ title, artist, limit: limitVal });
         }
     });
 
-    // 3차 검사 후 남은 availableSongList = songlist(노래책)에는 있지만 내 리스트에는 없는 곡들!
-    const missingInMyList = availableSongList;
+    const missingInMyList = availableSongList; // songlist엔 있지만 내 리스트엔 없는 곡
 
-    const totalMismatchCount = missingInSongList.length + infoChanged.length + missingInMyList.length;
+    const totalIssueCount = missingInSongList.length + infoChanged.length + missingInMyList.length + duplicateInBoth.length;
     let modalBodyHTML = "";
 
-    if (totalMismatchCount === 0) {
+    if (totalIssueCount === 0) {
         modalBodyHTML += `
             <div style="text-align: center; padding: 20px; color: #10b981; font-weight: bold; font-size: 15px;">
-                ✨ 모든 등록된 노래 (${matchedSongs.length}곡)가 songlist와 완벽히 대조 및 일치합니다!
+                ✨ 모든 등록된 노래 (${matchedSongs.length}곡)가 songlist와 완벽히 대조 및 일치하며, 리스트 간 중복도 없습니다!
             </div>
         `;
     } else {
         modalBodyHTML += `
             <div style="margin-bottom: 12px; font-weight: bold; font-size: 14px;">
-                <span style="color: #10b981;">일치하는 곡 (${matchedSongs.length}곡)</span> / <span style="color: #ef4444;">불일치·누락 항목 (${totalMismatchCount}개)</span>
+                <span style="color: #10b981;">일치하는 곡 (${matchedSongs.length}곡)</span> / <span style="color: #ef4444;">주의·불일치 항목 (${totalIssueCount}개)</span>
             </div>
         `;
 
-        // 1. 노래책에는 있지만 내 리스트에 없는 곡 (신규 추가 필요 항목)
+        // 0. 양쪽 리스트(등록 및 미등록)에 모두 존재하는 중복 곡
+        if (duplicateInBoth.length > 0) {
+            modalBodyHTML += `
+                <div style="margin-bottom: 12px;">
+                    <strong style="color: #8b5cf6; font-size: 13px;">🔁 두 리스트(등록·미등록)에 동일한 노래가 있습니다 (${duplicateInBoth.length}곡)</strong>
+                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px; margin-top: 4px; max-height: 120px; overflow-y: auto;">
+                        ${duplicateInBoth.map(song => `<div style="font-size: 12px; padding: 3px 0; border-bottom: 1px solid #f1f5f9;">• <strong>${song.title}</strong> (${song.artist}) <span style="color: #0284c7;">[limit: ${song.limit || '없음'}]</span></div>`).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        // 1. 노래책에는 있지만 내 리스트에 없는 곡
         if (missingInMyList.length > 0) {
             modalBodyHTML += `
                 <div style="margin-bottom: 12px;">
@@ -680,7 +709,7 @@ async function checkAllSongMismatches() {
             `;
         }
 
-        // 2. 내 리스트에는 있지만 노래책에는 없는 곡
+        // 2. 내 리스트엔 있지만 노래책엔 없는 곡
         if (missingInSongList.length > 0) {
             modalBodyHTML += `
                 <div style="margin-bottom: 12px;">
@@ -692,7 +721,7 @@ async function checkAllSongMismatches() {
             `;
         }
 
-        // 3. 정보가 변경된 곡 (limit 불일치 등)
+        // 3. 정보가 변경된 곡
         if (infoChanged.length > 0) {
             modalBodyHTML += `
                 <div style="margin-bottom: 12px;">
@@ -705,7 +734,7 @@ async function checkAllSongMismatches() {
         }
     }
 
-    showCustomModal("songlist-compare-modal", "songlist 양방향 대조 결과", modalBodyHTML);
+    showCustomModal("songlist-compare-modal", "songlist 종합 대조 결과", modalBodyHTML);
 }
 
 // 팝업 모달 생성 및 제어 헬퍼 함수
