@@ -60,6 +60,29 @@
             margin: 0;
         }
 
+        /* 노래 추천 버튼 스타일 */
+        .recommend-btn {
+            background-color: #0ea5e9;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            font-size: 14px;
+            font-weight: 700;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+            box-shadow: 0 2px 6px rgba(14, 165, 233, 0.3);
+            white-space: nowrap;
+        }
+
+        .recommend-btn:hover {
+            background-color: #0284c7;
+        }
+
+        .recommend-btn:active {
+            transform: scale(0.97);
+        }
+
         /* 공지사항 접기/펼치기 아코디언 스타일 */
         .notice-box {
             background: rgba(0, 119, 190, 0.08);
@@ -320,6 +343,143 @@
             border-color: #0ea5e9;
         }
 
+        /* 팝업 모달 스타일 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-box {
+            background: #ffffff;
+            width: 90%;
+            max-width: 460px;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            box-sizing: border-box;
+            transform: translateY(10px);
+            transition: transform 0.2s ease;
+        }
+
+        .modal-overlay.active .modal-box {
+            transform: translateY(0);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 800;
+            color: #0f172a;
+            margin: 0;
+        }
+
+        .modal-close-btn {
+            background: none;
+            border: none;
+            font-size: 18px;
+            color: #64748b;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+
+        .modal-close-btn:hover {
+            background: #f1f5f9;
+            color: #0f172a;
+        }
+
+        .recommend-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .recommend-item {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 12px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .recommend-song-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 0;
+        }
+
+        .recommend-song-artist {
+            font-size: 13px;
+            color: #64748b;
+            margin: 0;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 4px;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .modal-btn-refresh {
+            background-color: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            color: #0369a1;
+        }
+
+        .modal-btn-refresh:hover {
+            background-color: #e2e8f0;
+        }
+
+        .modal-btn-close {
+            background-color: #0ea5e9;
+            border: 1px solid #0ea5e9;
+            color: white;
+        }
+
+        .modal-btn-close:hover {
+            background-color: #0284c7;
+        }
+
         .no-result {
             text-align: center;
             color: #64748b;
@@ -354,6 +514,8 @@
                 <h1 class="page-title">🎤 바다비 노래책</h1>
                 <div id="statsSummary" class="stats-summary">통계 계산 중...</div>
             </div>
+            <!-- 노래 추천 버튼 -->
+            <button class="recommend-btn" onclick="openRecommendModal()">✨ 노래 추천</button>
         </div>
 
         <!-- 공지사항 박스 -->
@@ -388,6 +550,23 @@
         <div id="loadMoreContainer"></div>
     </div>
 
+    <!-- 노래 추천 팝업 모달 -->
+    <div class="modal-overlay" id="recommendModal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modalTitleText">💡 오늘의 추천 곡</h3>
+                <button class="modal-close-btn" onclick="closeRecommendModal()">✕</button>
+            </div>
+            <div class="recommend-list" id="recommendListContainer">
+                <!-- 추천 곡 4개가 들어갈 자리 -->
+            </div>
+            <div class="modal-actions">
+                <button class="modal-btn modal-btn-refresh" onclick="generateRecommendations()">🔄 다른 추천 보기</button>
+                <button class="modal-btn modal-btn-close" onclick="closeRecommendModal()">확인</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         const WORKER_URL = "https://badabi-api.dalkkumli054.workers.dev/";
         const SONG_LIST_URL = WORKER_URL + "?type=songlist&t=";
@@ -419,6 +598,63 @@
 
         function toggleSongCard(cardElement) {
             cardElement.classList.toggle("expanded");
+        }
+
+        function openRecommendModal() {
+            generateRecommendations();
+            document.getElementById("recommendModal").classList.add("active");
+        }
+
+        function closeRecommendModal() {
+            document.getElementById("recommendModal").classList.remove("active");
+        }
+
+        function generateRecommendations() {
+            const container = document.getElementById("recommendListContainer");
+            const titleEl = document.getElementById("modalTitleText");
+            container.innerHTML = "";
+
+            if (!allSongs || allSongs.length === 0) {
+                container.innerHTML = '<p class="no-result">추천할 노래 데이터가 없습니다.</p>';
+                return;
+            }
+
+            // 1순위: 한 번도 안 불렀던 노래 (playCount === 0)
+            let targetPool = allSongs.filter(song => (!song.dateTimes || song.dateTimes.length === 0));
+            let poolTypeMsg = "✨ 한번도 안 부른 노래 추천";
+
+            // 2순위: 만약 안 불렀던 노래가 없다면 1번만 불렀던 노래 (playCount === 1)
+            if (targetPool.length === 0) {
+                targetPool = allSongs.filter(song => (song.dateTimes && song.dateTimes.length === 1));
+                poolTypeMsg = "💡 1번만 불렀던 노래 추천";
+            }
+
+            // 만약 둘 다 없다면 전체 목록에서 무작위 추출
+            if (targetPool.length === 0) {
+                targetPool = [...allSongs];
+                poolTypeMsg = "🎵 랜덤 추천 곡";
+            }
+
+            titleEl.textContent = poolTypeMsg;
+
+            // 랜덤하게 4개 선택
+            const shuffled = [...targetPool].sort(() => 0.5 - Math.random());
+            const selectedSongs = shuffled.slice(0, 4);
+
+            selectedSongs.forEach(song => {
+                const item = document.createElement("div");
+                item.className = "recommend-item";
+                
+                let limitVal = song.limit ? song.limit.replace(/[\[\]]/g, '') : '';
+                let limitText = limitVal ? `[${limitVal}] ` : "";
+                const playCount = song.dateTimes ? song.dateTimes.length : 0;
+
+                item.innerHTML = `
+                    <h4 class="recommend-song-title">${limitText}${song.title || '제목없음'}</h4>
+                    <p class="recommend-song-artist">${song.artist || '아티스트 미상'} | 부른 횟수: ${playCount}회</p>
+                `;
+                container.appendChild(item);
+            });
         }
 
         function animateNumber(elementId, endValue, duration = 800, suffix = "") {
@@ -594,7 +830,6 @@
         }
 
         function appendMoreSongs() {
-            // 현재 스크롤 위치 저장
             const currentScrollY = window.scrollY;
 
             const container = document.getElementById("songContainer");
@@ -692,7 +927,6 @@
                 loadMoreContainer.appendChild(loadMoreBtn);
             }
 
-            // 추가된 직후 스크롤 위치를 원래 자리로 고정
             window.scrollTo({ top: currentScrollY, behavior: 'instant' });
         }
 
