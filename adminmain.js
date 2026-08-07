@@ -122,7 +122,9 @@ const adminHtmlTemplate = `
                 <p style="font-size: 12px; color: #475569; margin-top: 0; margin-bottom: 12px; line-height: 1.4;">
                     페이지 관련 공지(읽기 전용)
                 </p>
-                <div id="mp-memo-notice-box" style="width: 100%; height: 320px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px; font-size: 13px; color: #0f172a; overflow-y: auto; white-space: pre-wrap; box-sizing: border-box; line-height: 1.5; text-align: center;"></div>
+                <div id="mp-memo-notice-box" style="width: 100%; height: 320px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px; font-size: 13px; color: #0f172a; overflow-y: auto; white-space: pre-wrap; box-sizing: border-box; line-height: 1.5; text-align: center;">
+현재 등록된 URI 목록\n프로필 : profile.html\n주소모음 : link.html\n노래책 : songlist.html
+</div>
             </div>
         </div>
 
