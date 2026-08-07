@@ -381,7 +381,7 @@ function closeBatchTimeImportModal() {
     document.getElementById('batch-time-import-modal').classList.remove('active');
 }
 
-// [수정] 일괄 추가 텍스트 파싱 (🎸 이모티콘 시 limit='기타' 매칭) 및 중복 방지 실행 함수
+// [수정] 일괄 추가 텍스트 파싱 및 중복 방지 실행 함수
 function executeBatchTimeImport() {
     const commonDateInput = document.getElementById('batch-common-date').value.trim();
     const rawText = document.getElementById('batch-text-input').value.trim();
@@ -398,7 +398,6 @@ function executeBatchTimeImport() {
 
     const lines = rawText.split('\n');
     
-    // 등록된 노래와 미등록된 노래 목록을 모두 수집
     const rows = [
         ...document.querySelectorAll('#registered-songs-container .reg-song-row'),
         ...document.querySelectorAll('#unregistered-songs-container .unreg-song-row')
@@ -412,7 +411,6 @@ function executeBatchTimeImport() {
         const trimmedLine = line.trim();
         if (!trimmedLine) return;
 
-        // 🎸 이모티콘 포함 여부 확인 후 파싱 정규식 적용
         const hasGuitarIcon = trimmedLine.includes('🎸');
         const cleanLine = trimmedLine.replace('🎸', '').trim();
 
@@ -440,9 +438,7 @@ function executeBatchTimeImport() {
             const rowArtist = artistEl.value.trim().toLowerCase();
             const rowLimit = limitEl ? limitEl.value.trim().toLowerCase() : "";
 
-            // 기본 제목과 가수 일치 여부 확인
             if (rowTitle === targetTitle && rowArtist === targetArtist) {
-                // 🎸 이모티콘이 있으면 limit이 '기타'인 항목만 매칭, 없으면 limit이 '기타'가 아닌 항목만 매칭
                 const isGuitarMatch = hasGuitarIcon ? (rowLimit === '기타') : (rowLimit !== '기타');
 
                 if (isGuitarMatch) {
@@ -590,18 +586,24 @@ function importAllSongsToRegistered() {
 
     closeSongListImportModal();
 }
-// 전체 등록된 노래 중 songlist와 일치하지 않는 항목들을 검사하여 요약해주는 함수
-function checkAllSongMismatches() {
-    const rows = document.querySelectorAll('#registered-songs-container .reg-song-row');
-    const missingInSongList = []; // songlist에 아예 없는 곡
-    const infoChanged = [];       // 제목/가수는 같지만 limit 등이 변경된 곡
+
+// [수정됨] 전체 등록된 노래 중 songlist와 비교하여 팝업 모달창으로 상세 리스트업해주는 함수
+async function checkAllSongMismatches() {
+    if (globalSongList.length === 0) {
+        await fetchSongListForComparison();
+    }
 
     if (globalSongList.length === 0) {
-        alert("비교할 songlist 데이터가 없습니다. 먼저 데이터를 불러주세요.");
+        alert("비교할 songlist 데이터를 불러오지 못했습니다. 네트워크 연결을 확인해주세요.");
         return;
     }
 
-    rows.forEach((row, index) => {
+    const rows = document.querySelectorAll('#registered-songs-container .reg-song-row');
+    const matchedSongs = [];       // 완벽히 일치하는 곡
+    const missingInSongList = []; // songlist에 아예 없는 곡
+    const infoChanged = [];       // 제목/가수는 같지만 limit 등이 변경된 곡
+
+    rows.forEach((row) => {
         const title = row.querySelector('.reg-title').value.trim();
         const artist = row.querySelector('.reg-artist').value.trim();
         const limitVal = row.querySelector('.reg-limit').value.trim();
@@ -614,39 +616,91 @@ function checkAllSongMismatches() {
         );
 
         if (!exactMatchExists) {
-            missingInSongList.push(`${title} - ${artist}`);
+            missingInSongList.push({ title, artist, limit: limitVal });
         } else {
-            const fullMatchExists = globalSongList.some(s => {
+            const matchedSongData = globalSongList.find(s => {
                 return (s.title || '').trim() === title && 
-                       (s.artist || '').trim() === artist && 
-                       (s.limit || '').trim() === limitVal;
+                       (s.artist || '').trim() === artist;
             });
 
+            const sLimit = matchedSongData ? (matchedSongData.limit || '') : '';
+            const fullMatchExists = (sLimit.trim() === limitVal.trim());
+
             if (!fullMatchExists) {
-                infoChanged.push(`${title} - ${artist} (정보 변경됨)`);
+                infoChanged.push({ title, artist, limit: limitVal, serverLimit: sLimit });
+            } else {
+                matchedSongs.push({ title, artist, limit: limitVal });
             }
         }
     });
 
-    // 결과를 보여줄 상단 상태 요소나 별도의 영역에 렌더링
-    const statusEl = document.getElementById('songstats-status');
-    let reportHTML = "";
+    const totalMismatchCount = missingInSongList.length + infoChanged.length;
+    let modalBodyHTML = "";
 
-    if (missingInSongList.length === 0 && infoChanged.length === 0) {
-        reportHTML = `<span style="color: #10b981; font-weight: bold;">✨ 모든 등록된 노래가 songlist와 완벽하게 일치합니다!</span>`;
+    if (totalMismatchCount === 0) {
+        modalBodyHTML += `
+            <div style="text-align: center; padding: 20px; color: #10b981; font-weight: bold; font-size: 15px;">
+                ✨ 모든 등록된 노래 (${matchedSongs.length}곡)가 songlist와 모두 일치합니다!
+            </div>
+        `;
     } else {
-        reportHTML = `<span style="color: #ef4444; font-weight: bold;">⚠️ 총 ${missingInSongList.length + infoChanged.length}개의 불일치 항목이 발견되었습니다.</span><br>`;
-        
+        modalBodyHTML += `
+            <div style="margin-bottom: 12px; font-weight: bold; font-size: 14px;">
+                <span style="color: #10b981;">일치하는 곡 (${matchedSongs.length}곡)</span> / <span style="color: #ef4444;">일치하지 않는 곡 (${totalMismatchCount}곡)</span>
+            </div>
+        `;
+
         if (missingInSongList.length > 0) {
-            reportHTML += `<div style="margin-top: 4px; font-size: 12px; color: #f59e0b;"><strong>[songlist에 없는 곡]</strong><br>- ${missingInSongList.join('<br>- ')}</div>`;
+            modalBodyHTML += `
+                <div style="margin-bottom: 12px;">
+                    <strong style="color: #f59e0b; font-size: 13px;">🔍 songlist에 없는 곡 (${missingInSongList.length}곡)</strong>
+                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px; margin-top: 4px; max-height: 140px; overflow-y: auto;">
+                        ${missingInSongList.map(song => `<div style="font-size: 12px; padding: 3px 0; border-bottom: 1px solid #f1f5f9;">• <strong>${song.title}</strong> (${song.artist}) <span style="color: #0284c7;">[limit: ${song.limit || '없음'}]</span></div>`).join('')}
+                    </div>
+                </div>
+            `;
         }
+
         if (infoChanged.length > 0) {
-            reportHTML += `<div style="margin-top: 4px; font-size: 12px; color: #ef4444;"><strong>[정보가 변경된 곡]</strong><br>- ${infoChanged.join('<br>- ')}</div>`;
+            modalBodyHTML += `
+                <div style="margin-bottom: 12px;">
+                    <strong style="color: #ef4444; font-size: 13px;">⚠️ 정보(limit 등)가 일치하지 않는 곡 (${infoChanged.length}곡)</strong>
+                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px; margin-top: 4px; max-height: 140px; overflow-y: auto;">
+                        ${infoChanged.map(song => `<div style="font-size: 12px; padding: 3px 0; border-bottom: 1px solid #f1f5f9;">• <strong>${song.title}</strong> (${song.artist}) <br>&nbsp;&nbsp;→ 입력값: <span style="color: #ef4444;">${song.limit || '없음'}</span> / songlist값: <span style="color: #10b981;">${song.serverLimit || '없음'}</span></div>`).join('')}
+                    </div>
+                </div>
+            `;
         }
     }
 
-    statusEl.innerHTML = reportHTML;
+    showCustomModal("songlist-compare-modal", "songlist 대조 결과", modalBodyHTML);
 }
+
+// 팝업 모달 생성 및 제어 헬퍼 함수
+function showCustomModal(modalId, title, contentHTML) {
+    let modal = document.getElementById(modalId);
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = modalId;
+        modal.style.cssText = "display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; justify-content: center; align-items: center;";
+        modal.innerHTML = `
+            <div style="background: #fff; width: 480px; max-width: 90%; border-radius: 8px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: flex; flex-direction: column; max-height: 80vh;">
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px; margin-bottom: 12px;">
+                    <h3 id="${modalId}-title" style="margin: 0; font-size: 16px; color: #1e293b;"></h3>
+                    <button type="button" onclick="document.getElementById('${modalId}').style.display='none'" style="background: none; border: none; font-size: 18px; cursor: pointer; color: #64748b;">✕</button>
+                </div>
+                <div id="${modalId}-body" style="overflow-y: auto; flex: 1; margin-bottom: 15px;"></div>
+                <button type="button" onclick="document.getElementById('${modalId}').style.display='none'" style="background-color: #0284c7; color: #fff; border: none; padding: 8px; border-radius: 4px; cursor: pointer; font-weight: bold;">확인</button>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    }
+
+    document.getElementById(`${modalId}-title`).textContent = title;
+    document.getElementById(`${modalId}-body`).innerHTML = contentHTML;
+    modal.style.display = "flex";
+}
+
 // 서버 저장 함수
 async function saveSongStatsSettings() {
     const statusEl = document.getElementById('songstats-status');
