@@ -444,6 +444,23 @@
             gap: 5px;
         }
 
+        /* 필터 조건에 부합하는 날짜 버튼의 은은한 강조 스타일 */
+        .timestamp-btn.highlighted-date {
+            background-color: #f0fdf4;
+            border-color: #86efac;
+            color: #15803d;
+        }
+
+        .timestamp-btn.highlighted-date:hover {
+            background-color: #15803d;
+            color: #ffffff;
+            border-color: #15803d;
+        }
+
+        .timestamp-btn.highlighted-date:hover .timestamp-icon-svg {
+            stroke: #ffffff;
+        }
+
         .timestamp-btn:hover {
             background-color: #0284c7;
             color: #ffffff;
@@ -744,6 +761,13 @@
             overflow: hidden;
             text-overflow: ellipsis;
             flex: 1;
+            cursor: pointer;
+            transition: color 0.15s;
+        }
+
+        .recommend-song-title:hover {
+            color: #0ea5e9;
+            text-decoration: underline;
         }
 
         .recommend-song-artist {
@@ -1071,14 +1095,24 @@
             }
             return 0;
         }
-
-        function parseDateString(dateStr) {
-            if (!dateStr) return null;
-            const cleanStr = dateStr.replace(/\(.*?\)/g, "").trim().replace(/\./g, '-');
-            const d = new Date(cleanStr);
-            return isNaN(d.getTime()) ? null : d;
-        }
-
+function parseDateString(dateStr) {
+    if (!dateStr) return null;
+    let cleanStr = dateStr.replace(/\(.*?\)/g, "").trim().replace(/\./g, '-');
+    
+    // "YYYY-MM-DD" 또는 "MM-DD" 형태 분해
+    const parts = cleanStr.split('-');
+    if (parts.length === 3) {
+        // 연-월-일이 모두 있는 경우 (예: 2026-07-10) -> 타임존 오차 없이 로컬 날짜로 생성
+        return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+    } else if (parts.length === 2) {
+        // 월-일만 있는 경우 현재 연도를 붙여서 로컬 날짜로 생성
+        const currentYear = new Date().getFullYear();
+        return new Date(currentYear, parseInt(parts[0], 10) - 1, parseInt(parts[1], 10));
+    }
+    
+    const d = new Date(cleanStr);
+    return isNaN(d.getTime()) ? null : d;
+}
         function toggleSongCard(cardElement) {
             cardElement.classList.toggle("expanded");
         }
@@ -1101,7 +1135,7 @@
         }
 
         function copySongInfo(title, artist, event) {
-            event.stopPropagation();
+            if (event) event.stopPropagation();
             const textToCopy = artist ? `${title} - ${artist}` : title;
 
             navigator.clipboard.writeText(textToCopy).then(() => {
@@ -1158,6 +1192,7 @@
                         btn.classList.remove('selected');
                     }
                 });
+                showToastMessage("0곡을 선택한 상태에서는 최근 부른 기간을 선택할 수 없습니다.");
             }
 
             updateFilterButtonState();
@@ -1254,14 +1289,20 @@
                     let badgeColor = "#0ea5e9";
                     if (limitVal.includes("200")) badgeColor = "#10b981";
                     else if (limitVal.includes("300")) badgeColor = "#f97316";
-                    else if (limitVal.includes("기타")) badgeColor = "#8b5cf6";
+                    else if (limitVal.includes("기타")) {
+                        badgeColor = "#8b5cf6";
+                        limitVal = "기타 연주";
+                    }
                     limitBadgeHTML = `<span class="badge badge-limit" style="background-color: ${badgeColor}; color: white;">${limitVal}</span>`;
                 }
+
+                const safeTitle = (song.title || '제목없음').replace(/'/g, "\\'");
+                const safeArtist = (song.artist || '').replace(/'/g, "\\'");
 
                 item.innerHTML = `
                     <div class="recommend-title-row">
                         ${limitBadgeHTML}
-                        <h4 class="recommend-song-title">${song.title || '제목없음'}</h4>
+                        <h4 class="recommend-song-title" onclick="copySongInfo('${safeTitle}', '${safeArtist}', event)" title="클릭하여 복사하기">${song.title || '제목없음'}</h4>
                     </div>
                     <p class="recommend-song-artist">${song.artist || '아티스트 미상'}</p>
                 `;
@@ -1412,21 +1453,44 @@
 
                 if (!matchesGenre) return false;
 
-                const playCount = song.dateTimes ? song.dateTimes.length : 0;
-                if (currentCountFilter === '0') {
-                    if (playCount !== 0) return false;
-                } else if (currentCountFilter === '1') {
-                    if (playCount !== 1) return false;
-                } else if (currentCountFilter === '2') {
-                    if (playCount !== 2) return false;
-                } else if (currentCountFilter === '3') {
-                    if (playCount < 3) return false;
-                }
+                const dateTimes = song.dateTimes || [];
+                let targetPlayCount = 0;
 
                 if (currentRecentFilter !== '전체') {
                     const daysLimit = parseInt(currentRecentFilter, 10);
-                    const dateTimes = song.dateTimes || [];
-                    
+                    for (let dt of dateTimes) {
+                        const songDate = parseDateString(dt.date);
+                        if (songDate) {
+                            // 시간 오차를 없애기 위해 시/분/초를 00:00:00으로 맞추고 일수 차이 계산
+                            const nowDateOnly = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                            const songDateOnly = new Date(songDate.getFullYear(), songDate.getMonth(), songDate.getDate());
+                            
+                            const diffTime = nowDateOnly.getTime() - songDateOnly.getTime();
+                            const diffDays = diffTime / (1000 * 3600 * 24);
+                            
+                            if (diffDays >= 0 && diffDays <= daysLimit) {
+                                targetPlayCount++;
+                            }
+                        }
+                    }
+                } else {
+                    targetPlayCount = dateTimes.length;
+                }
+
+                const playCountToCheck = currentRecentFilter !== '전체' ? targetPlayCount : (song.dateTimes ? song.dateTimes.length : 0);
+
+                if (currentCountFilter === '0') {
+                    if (playCountToCheck !== 0) return false;
+                } else if (currentCountFilter === '1') {
+                    if (playCountToCheck !== 1) return false;
+                } else if (currentCountFilter === '2') {
+                    if (playCountToCheck !== 2) return false;
+                } else if (currentCountFilter === '3') {
+                    if (playCountToCheck < 3) return false;
+                }
+
+                if (currentRecentFilter !== '전체' && currentCountFilter === '전체') {
+                    const daysLimit = parseInt(currentRecentFilter, 10);
                     let hasRecentPlay = false;
                     for (let dt of dateTimes) {
                         const songDate = parseDateString(dt.date);
@@ -1482,6 +1546,7 @@
             const songsToAppend = sortedSongs.slice(displayedCount, nextCount);
 
             let lastArtist = displayedCount > 0 ? sortedSongs[displayedCount - 1].artist || '아티스트 미상' : "";
+            const now = new Date();
 
             songsToAppend.forEach((song, index) => {
                 const currentArtist = song.artist || '아티스트 미상';
@@ -1518,7 +1583,10 @@
                     let badgeColor = "#0ea5e9";
                     if (cleanLimitVal.includes("200")) badgeColor = "#10b981";
                     else if (cleanLimitVal.includes("300")) badgeColor = "#f97316";
-                    else if (cleanLimitVal.includes("기타")) badgeColor = "#8b5cf6";
+                    else if (cleanLimitVal.includes("기타")) {
+                        badgeColor = "#8b5cf6";
+                        cleanLimitVal = "기타 연주";
+                    }
                     limitBadge = `<span class="badge badge-limit" style="background-color: ${badgeColor}; color: white;">${cleanLimitVal}</span>`;
                 }
 
@@ -1538,8 +1606,28 @@
                         const finalLink = vodUrl !== "#" ? `${vodUrl}?change_second=${totalSeconds}` : "#";
                         const cleanDate = dt.date.replace(/\(.*?\)/g, "").trim();
 
+                        // 현재 적용된 '최근 부른 기간' 조건에 부합하는 날짜인지 판별
+                        let isHighlighted = false;
+                        if (currentRecentFilter !== '전체') {
+                            const daysLimit = parseInt(currentRecentFilter, 10);
+                            const songDate = parseDateString(dt.date);
+                            if (songDate) {
+                                const nowDateOnly = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                                const songDateOnly = new Date(songDate.getFullYear(), songDate.getMonth(), songDate.getDate());
+                                
+                                const diffTime = nowDateOnly.getTime() - songDateOnly.getTime();
+                                const diffDays = diffTime / (1000 * 3600 * 24);
+                                
+                                if (diffDays >= 0 && diffDays <= daysLimit) {
+                                    isHighlighted = true;
+                                }
+                            }
+                        }
+
+                        const btnClass = isHighlighted ? "timestamp-btn highlighted-date" : "timestamp-btn";
+
                         timestampsHTML += `
-                            <a href="${finalLink}" target="_blank" rel="noopener noreferrer" class="timestamp-btn" onclick="event.stopPropagation();">
+                            <a href="${finalLink}" target="_blank" rel="noopener noreferrer" class="${btnClass}" onclick="event.stopPropagation();">
                                 ${cleanDate}
                                 <svg class="timestamp-icon-svg" viewBox="0 0 24 24">
                                     <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
