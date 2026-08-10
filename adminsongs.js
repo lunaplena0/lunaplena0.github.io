@@ -5,17 +5,25 @@ function initSongsPanel() {
     renderTable();
 }
 
-// 기존 saveSonglist 함수를 수정하여 두 데이터를 모두 저장하도록 변경
+// 팬송 통계 데이터와 노래책 데이터를 함께 저장하는 함수
 async function saveSonglist() {
     // 1. 공지사항 저장
     songData.notice = document.getElementById("notice-input").value;
     
-    // 2. 노래책 데이터 저장 (기존)
+    // 2. 노래책 데이터 저장
     await saveDataToWorker("songlist", songData, "status");
     
-    // 3. fansongstats 데이터도 함께 저장
-    // (이 때 status 엘리먼트를 재사용하거나 별도의 status를 사용하세요)
-    await saveDataToWorker("fansongstats", fansongStatsData, "status");
+    // 3. fansongstats 데이터 저장 (vodSources는 절대 건드리지 않고 기존 데이터를 보존합니다)
+    if (typeof fansongStatsData !== 'undefined') {
+        // 만약 fansongStatsData에 vodSources가 없다면 빈 배열 유지, 있다면 기존 vodSources를 안전하게 유지
+        const payloadToSave = {
+            vodSources: fansongStatsData.vodSources || [], // vodSources 보호
+            registeredSongs: fansongStatsData.registeredSongs || [],
+            unregisteredSongs: fansongStatsData.unregisteredSongs || []
+        };
+        
+        await saveDataToWorker("fansongstats", payloadToSave, "status");
+    }
     
     alert("노래책과 통계 데이터가 모두 저장되었습니다.");
 }
