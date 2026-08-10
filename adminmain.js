@@ -15,7 +15,7 @@ let mainpageData = {
     menuItems: []
 };
 
-// 📌 전역 변수 추가 (여기서 선언해야 함수들에서 에러 없이 사용 가능합니다)
+// 📌 전역 변수 추가
 let fansongStatsData = { unregisteredSongs: [], registeredSongs: [] };
 
 // 🔒 로그인 성공 시 동적으로 주입할 관리자 UI 전체 HTML 템플릿
@@ -265,6 +265,28 @@ const adminHtmlTemplate = `
         <div id="status" class="status-msg"></div>
     </div>
 
+    <!-- 곡 수정 모달 -->
+    <div id="edit-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000;">
+        <div class="modal-content" style="background: white; padding: 20px; border-radius: 8px; width: 400px; max-width: 90%;">
+            <h3 id="modal-title" style="margin-top: 0; color: #03045e;">곡 정보 수정</h3>
+            <input type="hidden" id="edit-index">
+            <label style="font-size: 13px;">노래 제목</label>
+            <input type="text" id="modal-title-input" placeholder="제목">
+            <label style="font-size: 13px;">가수</label>
+            <input type="text" id="modal-artist-input" placeholder="가수">
+            <label style="font-size: 13px;">장르</label>
+            <input type="text" id="modal-genre-input" placeholder="KPOP, JPOP, POP, 기타연주">
+            <label style="font-size: 13px;">제한 / 조건</label>
+            <input type="text" id="modal-limit-input" placeholder="200개, 300개, 기타">
+            <label style="font-size: 13px;">기타 정보</label>
+            <input type="text" id="modal-etc-input" placeholder="특이사항">
+            <div style="display: flex; gap: 10px; margin-top: 15px;">
+                <button onclick="closeEditModal()" style="background-color: #64748b; flex: 1; padding: 8px;">취소</button>
+                <button onclick="saveModalSong()" style="background-color: #0077b6; flex: 1; padding: 8px;">저장</button>
+            </div>
+        </div>
+    </div>
+
     <!-- 불렀던 곡 등록 팝업(모달) -->
     <div id="sung-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000;">
         <div class="modal-content" style="background: white; padding: 20px; border-radius: 8px; width: 450px; max-width: 90%; max-height: 80vh; overflow-y: auto;">
@@ -492,7 +514,6 @@ async function verifyAndLoad() {
             fetch(WORKER_URL + "?type=fansongstats&t=" + timestamp)
         ]);
 
-        // 📌 fansongstats 데이터 로드 (전역 변수에 반영)
         if (statsRes.ok) {
             const data = await statsRes.json() || {};
             fansongStatsData = {
@@ -598,11 +619,9 @@ async function saveDataToWorker(fileType, contentObj, statusElementId) {
     }
 }
 
-// 📌 노래책 변경사항 반영 시 fansongstats도 함께 저장하도록 수정
 async function saveSonglist() {
     songData.notice = document.getElementById("notice-input").value;
     
-    // songlist와 fansongstats를 동시에 워커로 전송
     await saveDataToWorker("songlist", songData, "status");
     await saveDataToWorker("fansongstats", fansongStatsData, "status");
 }
@@ -611,7 +630,152 @@ function escapeHtml(str) {
     return (str || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
 }
 
-// 불렀던 곡 등록 모달 열기 (미등록 곡 리스트 렌더링)
+// 📌 누락되었던 노래책 관련 기능 함수들 추가
+function initSongsPanel() {
+    document.getElementById("notice-input").value = songData.notice || "";
+    renderTable();
+}
+
+function renderTable() {
+    if (!Array.isArray(songData.songs)) songData.songs = [];
+    const badge = document.getElementById("song-count-badge");
+    if (badge) badge.textContent = songData.songs.length;
+    const searchInput = document.getElementById("search-input");
+    const keyword = searchInput ? searchInput.value.toLowerCase().trim() : "";
+    const tbody = document.getElementById("song-table-body");
+    if (!tbody) return;
+    tbody.innerHTML = "";
+
+    songData.songs.forEach((song, originalIndex) => {
+        const title = (song.title || "").toLowerCase();
+        const artist = (song.artist || "").toLowerCase();
+        const genre = (song.genre || "").toLowerCase();
+
+        if (keyword && !title.includes(keyword) && !artist.includes(keyword) && !genre.includes(keyword)) return;
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+            <td style="color: #64748b; font-weight: bold;">#${originalIndex + 1}</td>
+            <td style="font-weight: 600; color: #0f172a;">${escapeHtml(song.title || '제목 없음')}</td>
+            <td>${escapeHtml(song.artist || '-')}</td>
+            <td>${escapeHtml(song.genre || '-')}</td>
+            <td style="font-size: 12px; color: #475569;">${escapeHtml(song.limit || song.etc ? (song.limit + ' ' + song.etc).trim() : '-')}</td>
+            <td style="text-align: center;">
+                <button class="edit-btn" onclick="openEditModal(${originalIndex})">수정</button>
+                <button class="delete-btn" onclick="deleteSong(${originalIndex})">삭제</button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+function downloadCsvFile() {
+    if (!Array.isArray(songData.songs) || songData.songs.length === 0) { alert("내보낼 데이터가 없습니다."); return; }
+    let csvRows = ['"\uFEFF제목","가수","장르","제한","기타"'];
+    songData.songs.forEach(song => {
+        csvRows.push(`"${(song.title||"").replace(/"/g,'""')}","${(song.artist||"").replace(/"/g,'""')}","${(song.genre||"").replace(/"/g,'""')}","${(song.limit||"").replace(/"/g,'""')}","${(song.etc||"").replace(/"/g,'""')}"`);
+    });
+    const blob = new Blob([csvRows.join("\n")], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `badabi_songlist_${new Date().toISOString().slice(0,10)}.csv`;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+}
+
+function openEditModal(index) {
+    document.getElementById("edit-index").value = index;
+    if (index === -1) {
+        document.getElementById("modal-title").textContent = "새 노래 추가";
+        ["modal-title-input","modal-artist-input","modal-genre-input","modal-limit-input","modal-etc-input"].forEach(id => document.getElementById(id).value = "");
+    } else {
+        document.getElementById("modal-title").textContent = `#${index + 1} 곡 정보 수정`;
+        const song = songData.songs[index];
+        document.getElementById("modal-title-input").value = song.title || "";
+        document.getElementById("modal-artist-input").value = song.artist || "";
+        document.getElementById("modal-genre-input").value = song.genre || "";
+        document.getElementById("modal-limit-input").value = song.limit || "";
+        document.getElementById("modal-etc-input").value = song.etc || "";
+    }
+    document.getElementById("edit-modal").style.display = "flex";
+}
+
+function closeEditModal() {
+    document.getElementById("edit-modal").style.display = "none";
+}
+
+function saveModalSong() {
+    const index = parseInt(document.getElementById("edit-index").value);
+    const newSong = {
+        title: document.getElementById("modal-title-input").value.trim(),
+        artist: document.getElementById("modal-artist-input").value.trim(),
+        genre: document.getElementById("modal-genre-input").value.trim(),
+        limit: document.getElementById("modal-limit-input").value.trim(),
+        etc: document.getElementById("modal-etc-input").value.trim()
+    };
+
+    if (!newSong.title) { alert("노래 제목을 입력해주세요."); return; }
+
+    if (index === -1) {
+        songData.songs.push(newSong);
+    } else {
+        songData.songs[index] = newSong;
+    }
+
+    closeEditModal();
+    renderTable();
+}
+
+function deleteSong(index) {
+    if (confirm(`정말 #${index + 1} 곡을 삭제하시겠습니까?`)) {
+        songData.songs.splice(index, 1);
+        renderTable();
+    }
+}
+
+function toggleBatchBox() {
+    const body = document.getElementById("batch-body-content");
+    const icon = document.getElementById("batch-toggle-icon");
+    if (!body) return;
+    if (body.style.display === "block") {
+        body.style.display = "none";
+        icon.textContent = "▼";
+    } else {
+        body.style.display = "block";
+        icon.textContent = "▲";
+    }
+}
+
+function importBatchSongs() {
+    const text = document.getElementById("batch-input").value.trim();
+    if (!text) { alert("붙여넣은 내용이 없습니다."); return; }
+
+    const lines = text.split("\n");
+    let addedCount = 0;
+
+    lines.forEach(line => {
+        const cols = line.split("\t");
+        if (cols.length >= 1 && cols[0].trim()) {
+            songData.songs.push({
+                title: cols[0] ? cols[0].trim() : "",
+                artist: cols[1] ? cols[1].trim() : "",
+                genre: cols[2] ? cols[2].trim() : "",
+                limit: cols[3] ? cols[3].trim() : "",
+                etc: cols[4] ? cols[4].trim() : ""
+            });
+            addedCount++;
+        }
+    });
+
+    if (addedCount > 0) {
+        alert(`${addedCount}곡이 성공적으로 추가되었습니다! (하단의 최종 반영 버튼을 눌러주세요)`);
+        document.getElementById("batch-input").value = "";
+        renderTable();
+    } else {
+        alert("가져올 수 있는 유효한 데이터가 없습니다. 구글 시트에서 올바르게 복사했는지 확인해주세요.");
+    }
+}
+
+// 📌 불렀던 곡 등록 모달 열기 및 등록 처리
 function openSungModal() {
     const modal = document.getElementById("sung-modal");
     const container = document.getElementById("sung-modal-input");
@@ -649,13 +813,13 @@ function closeSungModal() {
 function registerUnregisteredSong(index) {
     const songToMove = fansongStatsData.unregisteredSongs[index];
 
-    // 1. songData.songs에 추가 (노래책 반영)
+    // 1. songData.songs에 추가 (etc에 "불렀던 곡 등록" 문자열을 넣지 않고 빈 값으로 처리)
     songData.songs.push({
         title: songToMove.title,
         artist: songToMove.artist || "",
         genre: "", 
         limit: songToMove.limit || "",
-        etc: "불렀던 곡 등록"
+        etc: "" // 👈 이 부분을 빈 문자열로 변경
     });
 
     // 2. fansongStatsData.registeredSongs로 이동
