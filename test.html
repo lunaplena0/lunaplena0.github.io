@@ -191,17 +191,23 @@
             flex: 1;
         }
 
+        /* 장르 필터 버튼 높이를 34px로 고정하여 상세필터 버튼과 일치시킴 */
         .filter-btn {
             background-color: #ffffff;
             border: 1px solid #cbd5e1;
             color: #0369a1;
-            padding: 5px 10px;
+            height: 34px;
+            padding: 0 12px;
             font-size: 13px;
             font-weight: 700;
             border-radius: 10px;
             cursor: pointer;
             transition: all 0.2s ease;
             box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+            box-sizing: border-box;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .filter-btn:hover {
@@ -216,13 +222,13 @@
             border-color: #0ea5e9;
         }
 
-        /* 통합 필터 아이콘 버튼 */
+        /* 통합 필터 아이콘 버튼 (높이 34px로 맞춤) */
         .sub-filter-btn {
             background-color: #ffffff;
             border: 1px solid #cbd5e1;
             color: #0369a1;
             width: 35px;
-            height: 33px;
+            height: 34px;
             border-radius: 10px;
             cursor: pointer;
             transition: all 0.2s ease;
@@ -563,7 +569,7 @@
             transition: transform 0.2s ease;
         }
 
-        /* 통합 필터 모달 전용 박스 스타일 (모바일에서도 2단 유지) */
+        /* 통합 필터 모달 전용 박스 스타일 */
         .filter-modal-box {
             background: #ffffff;
             width: 92%;
@@ -630,7 +636,7 @@
             color: #0f172a;
         }
 
-        /* 필터 2단 그리드 컨테이너 (모바일 포함 항상 2단 유지) */
+        /* 필터 2단 그리드 컨테이너 */
         .filter-grid-container {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -930,7 +936,7 @@
     <!-- 복사 완료 상태 메시지 토스트 -->
     <div id="toastMessage" class="toast-message">노래가 복사되었습니다.</div>
 
-    <!-- 통합 필터 팝업 모달 (모바일 2단 그리드 유지) -->
+    <!-- 통합 필터 팝업 모달 -->
     <div class="modal-overlay" id="filterModal">
         <div class="filter-modal-box">
             <div class="modal-header">
@@ -1077,10 +1083,9 @@
             cardElement.classList.toggle("expanded");
         }
 
-        function showToast(title, artist) {
+        function showToastMessage(customText) {
             const toast = document.getElementById("toastMessage");
-            const displayText = artist ? `${title} - ${artist}` : title;
-            toast.textContent = `'${displayText}' 노래와 가수가 복사되었습니다.`;
+            toast.textContent = customText;
             
             toast.classList.add("show");
             
@@ -1088,6 +1093,11 @@
             toastTimer = setTimeout(() => {
                 toast.classList.remove("show");
             }, 2000);
+        }
+
+        function showToast(title, artist) {
+            const displayText = artist ? `${title} - ${artist}` : title;
+            showToastMessage(`'${displayText}' 노래와 가수가 복사되었습니다.`);
         }
 
         function copySongInfo(title, artist, event) {
@@ -1138,12 +1148,29 @@
                 }
             });
 
+            if (countType === '0' && currentRecentFilter !== '전체') {
+                currentRecentFilter = '전체';
+                const recentOptionBtns = document.querySelectorAll('.recent-option-btn');
+                recentOptionBtns.forEach(btn => {
+                    if (btn.getAttribute('data-days') === '전체') {
+                        btn.classList.add('selected');
+                    } else {
+                        btn.classList.remove('selected');
+                    }
+                });
+            }
+
             updateFilterButtonState();
             updateFilteredAndSorted();
             renderInitial();
         }
 
         function selectRecentFilter(daysType) {
+            if (currentCountFilter === '0' && daysType !== '전체') {
+                showToastMessage("0곡을 선택한 상태에서는 최근 부른 기간을 선택할 수 없습니다.");
+                return;
+            }
+
             currentRecentFilter = daysType;
             
             const optionBtns = document.querySelectorAll('.recent-option-btn');
@@ -1367,7 +1394,6 @@
 
                 if (!matchesKeyword) return false;
 
-                // 장르/특성 필터 적용
                 const g = genre.toLowerCase();
                 const l = limit.toLowerCase();
 
@@ -1386,7 +1412,6 @@
 
                 if (!matchesGenre) return false;
 
-                // 부른 횟수 필터 적용 (0회, 1회, 2회, 3회 이상)
                 const playCount = song.dateTimes ? song.dateTimes.length : 0;
                 if (currentCountFilter === '0') {
                     if (playCount !== 0) return false;
@@ -1398,7 +1423,6 @@
                     if (playCount < 3) return false;
                 }
 
-                // 최근 부른 기간 필터 적용
                 if (currentRecentFilter !== '전체') {
                     const daysLimit = parseInt(currentRecentFilter, 10);
                     const dateTimes = song.dateTimes || [];
