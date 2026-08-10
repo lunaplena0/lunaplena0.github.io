@@ -20,7 +20,7 @@ const adminHtmlTemplate = `
     <!-- 대시보드 메뉴 -->
     <div id="dashboard-section" class="card">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-            <h3 style="margin: 0; color: #03045e;">🛠️ 관리 메뉴 선택</h3>
+            <h3 style="margin: 0; color: #03045e;">🛠️ 관리 메뉴 선택(수정중..)</h3>
             <button onclick="location.reload()" style="background-color: #64748b; padding: 6px 12px; font-size: 13px;">로그아웃</button>
         </div>
         <p style="color: #64748b; font-size: 14px;">수정할 항목을 선택해주세요.</p>
