@@ -15,8 +15,12 @@ let mainpageData = {
     menuItems: []
 };
 
-// 📌 전역 변수 추가
 let fansongStatsData = { unregisteredSongs: [], registeredSongs: [] };
+
+// 📌 [여기!] escapeHtml 함수를 위로 끌어올려 줍니다.
+function escapeHtml(str) {
+    return (str || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+}
 
 // 🔒 로그인 성공 시 동적으로 주입할 관리자 UI 전체 HTML 템플릿
 const adminHtmlTemplate = `
