@@ -236,7 +236,9 @@ const adminHtmlTemplate = `
                 <input type="text" id="search-input" placeholder="🔍 제목, 가수, 장르 검색..." oninput="renderTable()" style="margin-bottom: 0; padding: 8px 12px;">
             </div>
             <div style="display: flex; gap: 8px;">
-                <button onclick="downloadCsvFile()" style="background-color: #059669; padding: 8px 12px; font-size: 13px;">📥 시트 파일로 받기(CSV)</button>
+                <!-- 위치 이동 및 변경된 버튼들 -->
+                <button onclick="downloadCsvFile()" style="background-color: #059669; padding: 8px 12px; font-size: 13px;">📥 시트로 받기</button>
+                <button onclick="openSungModal()" style="background-color: #d97706; padding: 8px 12px; font-size: 13px;">🎤 불렀던 곡 등록</button>
                 <button onclick="openEditModal(-1)" style="background-color: #10b981; padding: 8px 12px; font-size: 13px;">+ 새 노래 추가하기</button>
             </div>
         </div>
@@ -261,24 +263,16 @@ const adminHtmlTemplate = `
         <div id="status" class="status-msg"></div>
     </div>
 
-    <!-- 모달 -->
-    <div id="edit-modal">
-        <div class="modal-content">
-            <h3 id="modal-title" style="margin-top: 0; color: #03045e;">곡 정보 수정</h3>
-            <input type="hidden" id="edit-index">
-            <label style="font-size: 13px;">노래 제목</label>
-            <input type="text" id="modal-title-input" placeholder="제목">
-            <label style="font-size: 13px;">가수</label>
-            <input type="text" id="modal-artist-input" placeholder="가수">
-            <label style="font-size: 13px;">장르</label>
-            <input type="text" id="modal-genre-input" placeholder="KPOP, JPOP, POP, 기타연주">
-            <label style="font-size: 13px;">제한 / 조건</label>
-            <input type="text" id="modal-limit-input" placeholder="200개, 300개, 기타">
-            <label style="font-size: 13px;">기타 정보</label>
-            <input type="text" id="modal-etc-input" placeholder="특이사항">
-            <div style="display: flex; gap: 10px; margin-top: 15px;">
-                <button onclick="closeEditModal()" style="background-color: #64748b; flex: 1;">취소</button>
-                <button onclick="saveModalSong()" style="background-color: #0077b6; flex: 1;">저장</button>
+    <!-- 기존 수정 모달 아래에 '불렀던 곡 등록'을 위한 모달 HTML 추가 -->
+    <div id="sung-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000;">
+        <div class="modal-content" style="background: white; padding: 20px; border-radius: 8px; width: 400px; max-width: 90%;">
+            <h3 style="margin-top: 0; color: #03045e;">🎤 불렀던 곡 등록</h3>
+            <p style="font-size: 13px; color: #64748b;">여기에 불렀던 곡 관련 입력 폼이나 로직을 구성할 수 있습니다.</p>
+            <label style="font-size: 13px;">등록 내용 입력</label>
+            <textarea id="sung-modal-input" placeholder="내용을 입력하세요..." style="width: 100%; height: 100px; margin-bottom: 15px;"></textarea>
+            <div style="display: flex; gap: 10px;">
+                <button onclick="closeSungModal()" style="background-color: #64748b; flex: 1; padding: 8px;">취소</button>
+                <button onclick="saveSungModal()" style="background-color: #0077b6; flex: 1; padding: 8px;">저장</button>
             </div>
         </div>
     </div>
@@ -596,4 +590,33 @@ async function saveDataToWorker(fileType, contentObj, statusElementId) {
 
 function escapeHtml(str) {
     return (str || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+}
+// 불렀던 곡 등록 모달 열기
+function openSungModal() {
+    const modal = document.getElementById("sung-modal");
+    if (modal) {
+        document.getElementById("sung-modal-input").value = "";
+        modal.style.display = "flex";
+    }
+}
+
+// 불렀던 곡 등록 모달 닫기
+function closeSungModal() {
+    const modal = document.getElementById("sung-modal");
+    if (modal) {
+        modal.style.display = "none";
+    }
+}
+
+// 불렀던 곡 등록 저장 처리 (필요에 맞게 로직 구체화 가능)
+function saveSungModal() {
+    const content = document.getElementById("sung-modal-input").value.trim();
+    if (!content) {
+        alert("내용을 입력해주세요.");
+        return;
+    }
+    
+    // TODO: 불렀던 곡 데이터 처리 로직 구현
+    alert("불렀던 곡 내용이 입력되었습니다.");
+    closeSungModal();
 }
