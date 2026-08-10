@@ -15,6 +15,9 @@ let mainpageData = {
     menuItems: []
 };
 
+// 📌 전역 변수 추가 (여기서 선언해야 함수들에서 에러 없이 사용 가능합니다)
+let fansongStatsData = { unregisteredSongs: [], registeredSongs: [] };
+
 // 🔒 로그인 성공 시 동적으로 주입할 관리자 UI 전체 HTML 템플릿
 const adminHtmlTemplate = `
     <!-- 대시보드 메뉴 -->
@@ -236,7 +239,6 @@ const adminHtmlTemplate = `
                 <input type="text" id="search-input" placeholder="🔍 제목, 가수, 장르 검색..." oninput="renderTable()" style="margin-bottom: 0; padding: 8px 12px;">
             </div>
             <div style="display: flex; gap: 8px;">
-                <!-- 위치 이동 및 변경된 버튼들 -->
                 <button onclick="downloadCsvFile()" style="background-color: #059669; padding: 8px 12px; font-size: 13px;">📥 시트로 받기</button>
                 <button onclick="openSungModal()" style="background-color: #d97706; padding: 8px 12px; font-size: 13px;">🎤 불렀던 곡 등록</button>
                 <button onclick="openEditModal(-1)" style="background-color: #10b981; padding: 8px 12px; font-size: 13px;">+ 새 노래 추가하기</button>
@@ -263,22 +265,20 @@ const adminHtmlTemplate = `
         <div id="status" class="status-msg"></div>
     </div>
 
-    <!-- 기존 수정 모달 아래에 '불렀던 곡 등록'을 위한 모달 HTML 추가 -->
+    <!-- 불렀던 곡 등록 팝업(모달) -->
     <div id="sung-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000;">
-        <div class="modal-content" style="background: white; padding: 20px; border-radius: 8px; width: 400px; max-width: 90%;">
-            <h3 style="margin-top: 0; color: #03045e;">🎤 불렀던 곡 등록</h3>
-            <p style="font-size: 13px; color: #64748b;">여기에 불렀던 곡 관련 입력 폼이나 로직을 구성할 수 있습니다.</p>
-            <label style="font-size: 13px;">등록 내용 입력</label>
-            <textarea id="sung-modal-input" placeholder="내용을 입력하세요..." style="width: 100%; height: 100px; margin-bottom: 15px;"></textarea>
+        <div class="modal-content" style="background: white; padding: 20px; border-radius: 8px; width: 450px; max-width: 90%; max-height: 80vh; overflow-y: auto;">
+            <h3 style="margin-top: 0; color: #03045e;">🎤 불렀던 곡 목록 (미등록 곡)</h3>
+            <p style="font-size: 13px; color: #64748b;">노래책에 등록되지 않은 곡들입니다. 등록 버튼을 누르면 노래책에 추가되고 이동됩니다.</p>
+            <div id="sung-modal-input" style="max-height: 300px; overflow-y: auto; margin-bottom: 15px; border: 1px solid #cbd5e1; padding: 10px; border-radius: 6px; background: #f8fafc;"></div>
             <div style="display: flex; gap: 10px;">
-                <button onclick="closeSungModal()" style="background-color: #64748b; flex: 1; padding: 8px;">취소</button>
-                <button onclick="saveSungModal()" style="background-color: #0077b6; flex: 1; padding: 8px;">저장</button>
+                <button onclick="closeSungModal()" style="background-color: #64748b; flex: 1; padding: 8px;">닫기</button>
             </div>
         </div>
     </div>
 `;
 
-// 📌 데이터 백업 다운로드 기능 (profile, links, songlist, mainpage 일괄 다운)
+// 📌 데이터 백업 다운로드 기능
 async function downloadAllBackupData() {
     if (!confirm("현재 서버에 저장된 모든 데이터 파일(profile, links, songlist, mainpage)을 JSON 파일로 백업 다운로드하시겠습니까?")) {
         return;
@@ -485,18 +485,21 @@ async function verifyAndLoad() {
 
         const timestamp = new Date().getTime();
         const [songRes, profileRes, linksRes, mainpageRes, statsRes] = await Promise.all([
-    fetch(WORKER_URL + "?type=songlist&t=" + timestamp),
-    fetch(WORKER_URL + "?type=profile&t=" + timestamp),
-    fetch(WORKER_URL + "?type=links&t=" + timestamp),
-    fetch(WORKER_URL + "?type=mainpage&t=" + timestamp),
-    fetch(WORKER_URL + "?type=fansongstats&t=" + timestamp) // 추가
-]);
+            fetch(WORKER_URL + "?type=songlist&t=" + timestamp),
+            fetch(WORKER_URL + "?type=profile&t=" + timestamp),
+            fetch(WORKER_URL + "?type=links&t=" + timestamp),
+            fetch(WORKER_URL + "?type=mainpage&t=" + timestamp),
+            fetch(WORKER_URL + "?type=fansongstats&t=" + timestamp)
+        ]);
 
-// statsRes 데이터 저장 변수 선언 필요
-let fansongStatsData = { unregisteredSongs: [] };
-if (statsRes.ok) {
-    fansongStatsData = await statsRes.json();
-}
+        // 📌 fansongstats 데이터 로드 (전역 변수에 반영)
+        if (statsRes.ok) {
+            const data = await statsRes.json() || {};
+            fansongStatsData = {
+                unregisteredSongs: Array.isArray(data.unregisteredSongs) ? data.unregisteredSongs : [],
+                registeredSongs: Array.isArray(data.registeredSongs) ? data.registeredSongs : []
+            };
+        }
 
         if (songRes.ok) {
             const data = await songRes.json();
@@ -595,27 +598,52 @@ async function saveDataToWorker(fileType, contentObj, statusElementId) {
     }
 }
 
+// 📌 노래책 변경사항 반영 시 fansongstats도 함께 저장하도록 수정
+async function saveSonglist() {
+    songData.notice = document.getElementById("notice-input").value;
+    
+    // songlist와 fansongstats를 동시에 워커로 전송
+    await saveDataToWorker("songlist", songData, "status");
+    await saveDataToWorker("fansongstats", fansongStatsData, "status");
+}
+
 function escapeHtml(str) {
     return (str || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
 }
-// 불렀던 곡 등록 모달 열기
+
+// 불렀던 곡 등록 모달 열기 (미등록 곡 리스트 렌더링)
 function openSungModal() {
     const modal = document.getElementById("sung-modal");
-    const container = document.getElementById("sung-modal-input"); // 여기에 리스트를 렌더링하도록 변경
+    const container = document.getElementById("sung-modal-input");
     
-    // 미등록 곡 리스트를 리스트 형식(<ul>)으로 생성
-    let html = '<ul style="list-style: none; padding: 0;">';
+    if (!fansongStatsData.unregisteredSongs || fansongStatsData.unregisteredSongs.length === 0) {
+        container.innerHTML = `<div style="text-align: center; color: #64748b; padding: 20px;">미등록된 곡이 없습니다.</div>`;
+        modal.style.display = "flex";
+        return;
+    }
+
+    let html = '<ul style="list-style: none; padding: 0; margin: 0;">';
     fansongStatsData.unregisteredSongs.forEach((song, index) => {
         html += `
-            <li style="padding: 8px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between;">
-                ${song.title} (${song.artist})
-                <button onclick="registerUnregisteredSong(${index})">등록</button>
+            <li style="padding: 10px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; background: #fff; margin-bottom: 6px; border-radius: 4px;">
+                <div>
+                    <strong style="color: #0f172a;">${escapeHtml(song.title)}</strong> 
+                    <span style="color: #64748b; font-size: 12px;">(${escapeHtml(song.artist || '가수 미상')})</span>
+                </div>
+                <button onclick="registerUnregisteredSong(${index})" style="background-color: #10b981; padding: 6px 12px; font-size: 12px; margin-bottom: 0;">등록하기</button>
             </li>`;
     });
     html += '</ul>';
     
-    container.innerHTML = html; // textarea 대신 div에 삽입
+    container.innerHTML = html;
     modal.style.display = "flex";
+}
+
+function closeSungModal() {
+    const modal = document.getElementById("sung-modal");
+    if (modal) {
+        modal.style.display = "none";
+    }
 }
 
 function registerUnregisteredSong(index) {
@@ -624,8 +652,8 @@ function registerUnregisteredSong(index) {
     // 1. songData.songs에 추가 (노래책 반영)
     songData.songs.push({
         title: songToMove.title,
-        artist: songToMove.artist,
-        genre: "", // 입력받거나 비워둠
+        artist: songToMove.artist || "",
+        genre: "", 
         limit: songToMove.limit || "",
         etc: "불렀던 곡 등록"
     });
@@ -635,10 +663,9 @@ function registerUnregisteredSong(index) {
         fansongStatsData.registeredSongs = [];
     }
     
-    // dateTimes 정보를 유지하면서 등록된 리스트로 이동
     fansongStatsData.registeredSongs.push({
         title: songToMove.title,
-        artist: songToMove.artist,
+        artist: songToMove.artist || "",
         limit: songToMove.limit || "",
         dateTimes: songToMove.dateTimes || []
     });
@@ -646,7 +673,9 @@ function registerUnregisteredSong(index) {
     // 3. unregisteredSongs에서 삭제
     fansongStatsData.unregisteredSongs.splice(index, 1);
 
-    alert("노래책에 등록되었으며, 등록된 곡 리스트로 이동되었습니다!");
-    closeSungModal();
-    renderTable(); // 노래책 화면 갱신
+    alert("노래책에 등록되었으며, 등록된 곡 리스트로 이동되었습니다! (하단의 '페이지에 변경사항 반영하기'를 눌러 저장해주세요)");
+    
+    // 모달 리스트 새로고침 및 메인 테이블 갱신
+    openSungModal();
+    renderTable(); 
 }
