@@ -516,7 +516,9 @@ async function verifyAndLoad() {
 
         if (statsRes.ok) {
             const data = await statsRes.json() || {};
+            // 💡 vodSources를 안전하게 불러오도록 수정
             fansongStatsData = {
+                vodSources: Array.isArray(data.vodSources) ? data.vodSources : [],
                 unregisteredSongs: Array.isArray(data.unregisteredSongs) ? data.unregisteredSongs : [],
                 registeredSongs: Array.isArray(data.registeredSongs) ? data.registeredSongs : []
             };
@@ -623,13 +625,16 @@ async function saveSonglist() {
     songData.notice = document.getElementById("notice-input").value;
     
     await saveDataToWorker("songlist", songData, "status");
-    await saveDataToWorker("fansongstats", fansongStatsData, "status");
-}
+    
+    // 💡 저장할 때 vodSources가 빠지지 않도록 구조를 명확히 지정
+    const statsPayload = {
+        vodSources: Array.isArray(fansongStatsData.vodSources) ? fansongStatsData.vodSources : [],
+        registeredSongs: Array.isArray(fansongStatsData.registeredSongs) ? fansongStatsData.registeredSongs : [],
+        unregisteredSongs: Array.isArray(fansongStatsData.unregisteredSongs) ? fansongStatsData.unregisteredSongs : []
+    };
 
-function escapeHtml(str) {
-    return (str || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    await saveDataToWorker("fansongstats", statsPayload, "status");
 }
-
 // 📌 누락되었던 노래책 관련 기능 함수들 추가
 function initSongsPanel() {
     document.getElementById("notice-input").value = songData.notice || "";
