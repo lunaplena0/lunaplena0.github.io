@@ -5,9 +5,19 @@ function initSongsPanel() {
     renderTable();
 }
 
-function saveSonglist() {
+// 기존 saveSonglist 함수를 수정하여 두 데이터를 모두 저장하도록 변경
+async function saveSonglist() {
+    // 1. 공지사항 저장
     songData.notice = document.getElementById("notice-input").value;
-    saveDataToWorker("songlist", songData, "status");
+    
+    // 2. 노래책 데이터 저장 (기존)
+    await saveDataToWorker("songlist", songData, "status");
+    
+    // 3. fansongstats 데이터도 함께 저장
+    // (이 때 status 엘리먼트를 재사용하거나 별도의 status를 사용하세요)
+    await saveDataToWorker("fansongstats", fansongStatsData, "status");
+    
+    alert("노래책과 통계 데이터가 모두 저장되었습니다.");
 }
 
 function renderTable() {
