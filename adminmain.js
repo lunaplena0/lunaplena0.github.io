@@ -484,12 +484,19 @@ async function verifyAndLoad() {
         }
 
         const timestamp = new Date().getTime();
-        const [songRes, profileRes, linksRes, mainpageRes] = await Promise.all([
-            fetch(WORKER_URL + "?type=songlist&t=" + timestamp),
-            fetch(WORKER_URL + "?type=profile&t=" + timestamp),
-            fetch(WORKER_URL + "?type=links&t=" + timestamp),
-            fetch(WORKER_URL + "?type=mainpage&t=" + timestamp)
-        ]);
+        const [songRes, profileRes, linksRes, mainpageRes, statsRes] = await Promise.all([
+    fetch(WORKER_URL + "?type=songlist&t=" + timestamp),
+    fetch(WORKER_URL + "?type=profile&t=" + timestamp),
+    fetch(WORKER_URL + "?type=links&t=" + timestamp),
+    fetch(WORKER_URL + "?type=mainpage&t=" + timestamp),
+    fetch(WORKER_URL + "?type=fansongstats&t=" + timestamp) // 추가
+]);
+
+// statsRes 데이터 저장 변수 선언 필요
+let fansongStatsData = { unregisteredSongs: [] };
+if (statsRes.ok) {
+    fansongStatsData = await statsRes.json();
+}
 
         if (songRes.ok) {
             const data = await songRes.json();
@@ -594,29 +601,52 @@ function escapeHtml(str) {
 // 불렀던 곡 등록 모달 열기
 function openSungModal() {
     const modal = document.getElementById("sung-modal");
-    if (modal) {
-        document.getElementById("sung-modal-input").value = "";
-        modal.style.display = "flex";
-    }
+    const container = document.getElementById("sung-modal-input"); // 여기에 리스트를 렌더링하도록 변경
+    
+    // 미등록 곡 리스트를 리스트 형식(<ul>)으로 생성
+    let html = '<ul style="list-style: none; padding: 0;">';
+    fansongStatsData.unregisteredSongs.forEach((song, index) => {
+        html += `
+            <li style="padding: 8px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between;">
+                ${song.title} (${song.artist})
+                <button onclick="registerUnregisteredSong(${index})">등록</button>
+            </li>`;
+    });
+    html += '</ul>';
+    
+    container.innerHTML = html; // textarea 대신 div에 삽입
+    modal.style.display = "flex";
 }
 
-// 불렀던 곡 등록 모달 닫기
-function closeSungModal() {
-    const modal = document.getElementById("sung-modal");
-    if (modal) {
-        modal.style.display = "none";
-    }
-}
+function registerUnregisteredSong(index) {
+    const songToMove = fansongStatsData.unregisteredSongs[index];
 
-// 불렀던 곡 등록 저장 처리 (필요에 맞게 로직 구체화 가능)
-function saveSungModal() {
-    const content = document.getElementById("sung-modal-input").value.trim();
-    if (!content) {
-        alert("내용을 입력해주세요.");
-        return;
+    // 1. songData.songs에 추가 (노래책 반영)
+    songData.songs.push({
+        title: songToMove.title,
+        artist: songToMove.artist,
+        genre: "", // 입력받거나 비워둠
+        limit: songToMove.limit || "",
+        etc: "불렀던 곡 등록"
+    });
+
+    // 2. fansongStatsData.registeredSongs로 이동
+    if (!Array.isArray(fansongStatsData.registeredSongs)) {
+        fansongStatsData.registeredSongs = [];
     }
     
-    // TODO: 불렀던 곡 데이터 처리 로직 구현
-    alert("불렀던 곡 내용이 입력되었습니다.");
+    // dateTimes 정보를 유지하면서 등록된 리스트로 이동
+    fansongStatsData.registeredSongs.push({
+        title: songToMove.title,
+        artist: songToMove.artist,
+        limit: songToMove.limit || "",
+        dateTimes: songToMove.dateTimes || []
+    });
+
+    // 3. unregisteredSongs에서 삭제
+    fansongStatsData.unregisteredSongs.splice(index, 1);
+
+    alert("노래책에 등록되었으며, 등록된 곡 리스트로 이동되었습니다!");
     closeSungModal();
+    renderTable(); // 노래책 화면 갱신
 }
