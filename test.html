@@ -19,18 +19,18 @@
         }
 
         .main-container {
-    width: 100%;
-    max-width: 800px; /* 기존 960px에서 원하시는 크기로 축소 */
-    margin: 0 auto;
-    padding: 16px 24px 20px 24px;
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    height: 100%;
-    max-height: 100dvh;
-    overflow: hidden;
-}
+            width: 100%;
+            max-width: 760px; /* 노래 목록 및 전체 UI의 좌우 폭을 줄임 */
+            margin: 0 auto;
+            padding: 16px 24px 20px 24px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            height: 100%;
+            max-height: 100dvh;
+            overflow: hidden;
+        }
 
         .header-row {
             display: flex;
@@ -285,7 +285,7 @@
             display: none;
         }
 
-        /* 초성 인덱스 사이드바 (좌우 너비를 넓혀서 터치/클릭 편의성 향상) */
+        /* 초성 인덱스 사이드바 (좌우 너비를 넓힘) */
         @media (min-width: 1200px) {
             .quick-index-sidebar {
                 display: flex;
@@ -293,7 +293,7 @@
                 position: fixed;
                 top: 50%;
                 transform: translateY(-50%);
-                right: max(16px, calc((100vw - 960px) / 2 - 68px));
+                right: max(16px, calc((100vw - 760px) / 2 - 68px));
                 background: #ffffff;
                 border: 1px solid #e2e8f0;
                 border-radius: 10px;
@@ -309,7 +309,7 @@
                 color: #64748b;
                 font-size: 10px;
                 font-weight: 700;
-                width: 32px; /* 좌우 너비 확대 */
+                width: 32px;
                 height: 20px;
                 border-radius: 4px;
                 cursor: pointer;
@@ -324,9 +324,8 @@
                 color: #ffffff;
             }
 
-            /* 그룹 간 구분선 스타일 */
             .quick-index-divider {
-                width: 22px; /* 구분선 길이도 버튼 너비에 맞춰 조정 */
+                width: 22px;
                 height: 1px;
                 background-color: #cbd5e1;
                 margin: 2px auto;
@@ -1112,7 +1111,6 @@
             let hasNumber = numberList.some(item => availableIndices.has(item));
             let hasKorean = koreanList.some(item => availableIndices.has(item));
 
-            // 1. 숫자 그룹 렌더링
             numberList.forEach(indexChar => {
                 if (availableIndices.has(indexChar)) {
                     const btn = document.createElement('button');
@@ -1123,14 +1121,12 @@
                 }
             });
 
-            // 숫자 끝난 뒤 구분선
             if (hasNumber && (hasKorean || etcList.some(item => availableIndices.has(item)))) {
                 const divider1 = document.createElement('div');
                 divider1.className = 'quick-index-divider';
                 sidebar.appendChild(divider1);
             }
 
-            // 2. 한글 초성 그룹 렌더링
             koreanList.forEach(indexChar => {
                 if (availableIndices.has(indexChar)) {
                     const btn = document.createElement('button');
@@ -1141,14 +1137,12 @@
                 }
             });
 
-            // 한글 초성 끝난 뒤 구분선
             if (hasKorean && etcList.some(item => availableIndices.has(item))) {
                 const divider2 = document.createElement('div');
                 divider2.className = 'quick-index-divider';
                 sidebar.appendChild(divider2);
             }
 
-            // 3. 영문/기타 그룹 렌더링
             etcList.forEach(indexChar => {
                 if (availableIndices.has(indexChar)) {
                     const btn = document.createElement('button');
@@ -1209,6 +1203,12 @@
                 const safeTitle = (song.title || '').replace(/'/g, "\\'");
                 const safeArtist = (song.artist || '').replace(/'/g, "\\'");
 
+                // 태그(장르, 기타연주 등) 생성
+                let badgesHTML = '';
+                if (song.genre) badgesHTML += `<span class="badge">${song.genre}</span>`;
+                if (song.limit) badgesHTML += `<span class="badge">${song.limit}</span>`;
+                badgesHTML += `<span class="badge badge-count">${playCount}회</span>`;
+
                 let timestampsHTML = '';
                 if (song.dateTimes && song.dateTimes.length > 0) {
                     timestampsHTML = '<div class="timestamp-container">';
@@ -1231,7 +1231,7 @@
                             <span class="song-artist">${song.artist || ''}</span>
                         </div>
                         <div class="song-badges">
-                            <span class="badge badge-count">${playCount}회</span>
+                            ${badgesHTML}
                         </div>
                     </div>
                     ${timestampsHTML}
