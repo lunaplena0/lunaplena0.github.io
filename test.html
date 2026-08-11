@@ -1608,24 +1608,24 @@
             sidebar.innerHTML = '';
 
             const availableIndices = new Set();
-            sortedSongs.forEach(song => {
-                const artist = song.artist || '아티스트 미상';
-                const initial = getInitialConsonant(artist);
-                availableIndices.add(initial);
-            });
+sortedSongs.forEach(song => {
+    const artist = song.artist || '아티스트 미상';
+    const initial = getInitialConsonant(artist);
+    availableIndices.add(initial);
+});
 
-            const orderList = ['ㄱ','ㄴ','ㄷ','ㄹ','ㅁ','ㅂ','ㅅ','ㅇ','ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ', 'A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z', '0-9', '#'];
+// 보여줄 인덱스 순서 정의 (ㄱ~ㅎ, A~Z, 숫자 등)
+const orderList = ['ㄱ','ㄴ','ㄷ','ㄹ','ㅁ','ㅂ','ㅅ','ㅇ','ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ', 'A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z', '0-9', '#'];
 
-            orderList.forEach(indexChar => {
-                if (availableIndices.has(indexChar)) {
-                    const btn = document.createElement('button');
-                    btn.className = 'quick-index-btn';
-                    btn.textContent = indexChar;
-                    btn.onclick = () => scrollToArtistGroup(indexChar);
-                    sidebar.appendChild(btn);
-                }
-            });
-        }
+orderList.forEach(indexChar => {
+    if (availableIndices.has(indexChar)) {
+        const btn = document.createElement('button');
+        btn.className = 'quick-index-btn';
+        btn.textContent = indexChar;
+        btn.onclick = () => scrollToArtistGroup(indexChar);
+        sidebar.appendChild(btn);
+    }
+});
 
         // 해당 그룹 위치로 스크롤 이동
         function scrollToArtistGroup(targetInitial) {
