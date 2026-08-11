@@ -725,7 +725,7 @@ function saveModalSong() {
     if (!newSong.title) { alert("노래 제목을 입력해주세요."); return; }
 
     if (index === -1) {
-        songData.songs.push(newSong);
+        songData.songs.unshift(newSong);
     } else {
         songData.songs[index] = newSong;
     }
@@ -761,10 +761,12 @@ function importBatchSongs() {
     const lines = text.split("\n");
     let addedCount = 0;
 
-    lines.forEach(line => {
+    // 역순으로 순회하거나 unshift를 사용하여 상단에 차례대로 쌓이게 처리
+    for (let i = lines.length - 1; i >= 0; i--) {
+        const line = lines[i];
         const cols = line.split("\t");
         if (cols.length >= 1 && cols[0].trim()) {
-            songData.songs.push({
+            songData.songs.unshift({
                 title: cols[0] ? cols[0].trim() : "",
                 artist: cols[1] ? cols[1].trim() : "",
                 genre: cols[2] ? cols[2].trim() : "",
@@ -773,7 +775,7 @@ function importBatchSongs() {
             });
             addedCount++;
         }
-    });
+    }
 
     if (addedCount > 0) {
         alert(`${addedCount}곡이 성공적으로 추가되었습니다! (하단의 최종 반영 버튼을 눌러주세요)`);
@@ -822,21 +824,21 @@ function closeSungModal() {
 function registerUnregisteredSong(index) {
     const songToMove = fansongStatsData.unregisteredSongs[index];
 
-    // 1. songData.songs에 추가 (genre와 etc를 songToMove에서 가져오도록 지정)
-    songData.songs.push({
+    // 1. songData.songs의 맨 위에 추가
+    songData.songs.unshift({
         title: songToMove.title,
         artist: songToMove.artist || "",
         genre: songToMove.genre || "", 
         limit: songToMove.limit || "",
-        etc: songToMove.etc || "" 
+        etc: songToMove.etc || ""
     });
 
-    // 2. fansongStatsData.registeredSongs로 이동
+    // 2. fansongStatsData.registeredSongs의 맨 위에 추가
     if (!Array.isArray(fansongStatsData.registeredSongs)) {
         fansongStatsData.registeredSongs = [];
     }
     
-    fansongStatsData.registeredSongs.push({
+    fansongStatsData.registeredSongs.unshift({
         title: songToMove.title,
         artist: songToMove.artist || "",
         limit: songToMove.limit || "",
@@ -846,9 +848,8 @@ function registerUnregisteredSong(index) {
     // 3. unregisteredSongs에서 삭제
     fansongStatsData.unregisteredSongs.splice(index, 1);
 
-    alert("노래책에 등록되었으며, 등록된 곡 리스트로 이동되었습니다! (하단의 '페이지에 변경사항 반영하기'를 눌러 저장해주세요)");
+    alert("노래책에 등록되었으며, 등록된 곡 리스트의 상단으로 이동되었습니다! (하단의 '페이지에 변경사항 반영하기'를 눌러 저장해주세요)");
     
-    // 모달 리스트 새로고침 및 메인 테이블 갱신
     openSungModal();
     renderTable(); 
 }
