@@ -217,6 +217,8 @@ function addRegisteredSongRow(item = {}, forcedIndex = null) {
     const title = item.title || '';
     const artist = item.artist || '';
     const limitVal = item.limit || '';
+    const genreVal = item.genre || ''; // genre 값
+    const etcVal = item.etc || '';     // etc 값
     
     let mismatchWarning = "";
     if (title && globalSongList.length > 0) {
@@ -251,15 +253,26 @@ function addRegisteredSongRow(item = {}, forcedIndex = null) {
             <button type="button" class="delete-item-btn" onclick="this.closest('.menu-item-row').remove()" style="padding: 0 10px; height: 38px; font-size: 11px; margin-bottom: 0; white-space: nowrap; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center;">삭제</button>
         </div>
         
-        <div class="song-detail-box" style="display: none; background: #f8fafc; padding: 10px; border-radius: 6px; border: 1px solid #e2e8f0; margin-top: 8px; max-height: 200px; overflow-y: auto;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+        <div class="song-detail-box" style="display: none; background: #f8fafc; padding: 10px; border-radius: 6px; border: 1px solid #e2e8f0; margin-top: 8px; max-height: 250px; overflow-y: auto;">
+            <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+                <div style="flex: 1;">
+                    <label style="font-size: 11px; color: #0077b6; margin-bottom: 3px;">장르 (genre)</label>
+                    <input type="text" placeholder="장르 입력" class="reg-genre" value="${genreVal}" style="margin-bottom: 0; background: #fff; font-size: 12px; padding: 8px;">
+                </div>
+                <div style="flex: 1;">
+                    <label style="font-size: 11px; color: #0077b6; margin-bottom: 3px;">기타 (etc)</label>
+                    <input type="text" placeholder="기타 정보 입력" class="reg-etc" value="${etcVal}" style="margin-bottom: 0; background: #fff; font-size: 12px; padding: 8px;">
+                </div>
+            </div>
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; border-top: 1px solid #e2e8f0; padding-top: 8px;">
                 <span style="font-size: 12px; font-weight: bold; color: #0077b6;">부른 날짜 및 시간 목록</span>
                 <button type="button" onclick="addDateTimeRow(this.closest('.song-detail-box').querySelector('.datetime-container'))" style="background-color: #10b981; padding: 3px 8px; font-size: 11px; margin-bottom: 0;">+ 날짜/시간 추가</button>
             </div>
             <div class="datetime-container" style="display: flex; flex-direction: column; gap: 4px;"></div>
         </div>
 
-        <div class="warning-slot" style="margin-top: 4px;">${mismatchWarning}</div>
+        <div class="warning-slot" style="margin-top: 4px;"></div>
     `;
 
     container.appendChild(row); // 기본 추가
@@ -521,11 +534,18 @@ async function openSongListImportModal() {
         globalSongList.forEach((song, idx) => {
             const row = document.createElement('div');
             row.style.cssText = "display: flex; align-items: center; gap: 10px; padding: 8px; border-bottom: 1px solid #f1f5f9; background: #f8fafc; border-radius: 6px; margin-bottom: 6px;";
+            
+            // genre와 etc 정보 포맷팅
+            let metaInfo = [];
+            if (song.limit) metaInfo.push(`[제한: ${song.limit}]`);
+            if (song.genre) metaInfo.push(`[장르: ${song.genre}]`);
+            if (song.etc) metaInfo.push(`[기타: ${song.etc}]`);
+
             row.innerHTML = `
                 <input type="checkbox" class="song-import-checkbox" value="${idx}" style="width: 18px; height: 18px; cursor: pointer;">
                 <div style="flex: 1; font-size: 13px;">
                     <strong>${song.title || '제목 없음'}</strong> <span style="color: #64748b;">(${song.artist || '가수 미지정'})</span>
-                    ${song.limit ? `<span style="color: #0284c7; margin-left: 6px; font-size: 12px;">[${song.limit}]</span>` : ''}
+                    <span style="color: #0284c7; margin-left: 6px; font-size: 12px;">${metaInfo.join(' ')}</span>
                 </div>
             `;
             container.appendChild(row);
@@ -533,17 +553,6 @@ async function openSongListImportModal() {
     }
 
     document.getElementById('songlist-import-modal').classList.add('active');
-}
-
-function closeSongListImportModal() {
-    document.getElementById('songlist-import-modal').classList.remove('active');
-}
-
-function toggleSelectAllSongs(masterCheckbox) {
-    const checkboxes = document.querySelectorAll('.song-import-checkbox');
-    checkboxes.forEach(cb => {
-        cb.checked = masterCheckbox.checked;
-    });
 }
 
 function importSelectedSongsToRegistered(isReplace = false) {
@@ -568,6 +577,8 @@ function importSelectedSongsToRegistered(isReplace = false) {
                 title: songData.title || '',
                 artist: songData.artist || '',
                 limit: songData.limit || '',
+                genre: songData.genre || '', // genre 추가
+                etc: songData.etc || '',       // etc 추가
                 dateTimes: []
             });
         }
@@ -594,6 +605,8 @@ function importAllSongsToRegistered() {
             title: songData.title || '',
             artist: songData.artist || '',
             limit: songData.limit || '',
+            genre: songData.genre || '', // genre 추가
+            etc: songData.etc || '',       // etc 추가
             dateTimes: []
         });
     });
@@ -803,6 +816,8 @@ async function saveSongStatsSettings() {
         const title = row.querySelector('.reg-title').value.trim();
         const artist = row.querySelector('.reg-artist').value.trim();
         const limit = row.querySelector('.reg-limit').value.trim();
+        const genre = row.querySelector('.reg-genre') ? row.querySelector('.reg-genre').value.trim() : ""; // genre 수집
+        const etc = row.querySelector('.reg-etc') ? row.querySelector('.reg-etc').value.trim() : "";         // etc 수집
         
         const dateTimes = [];
         row.querySelectorAll('.datetime-sub-row').forEach(subRow => {
@@ -814,7 +829,7 @@ async function saveSongStatsSettings() {
         });
 
         if (title) {
-            registeredSongs.push({ title, artist, limit, dateTimes });
+            registeredSongs.push({ title, artist, limit, genre, etc, dateTimes });
         }
     });
 
