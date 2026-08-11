@@ -594,8 +594,6 @@ async function verifyAndLoad() {
 }
 
 async function saveDataToWorker(fileType, contentObj, statusElementId) {
-    const password = document.getElementById("admin-password").value;
-    
     showToast("페이지에 반영 중...");
 
     try {
@@ -603,7 +601,7 @@ async function saveDataToWorker(fileType, contentObj, statusElementId) {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-                password: password,
+                password: document.getElementById("admin-password").value,
                 fileType: fileType,
                 content: contentObj
             })
@@ -638,7 +636,7 @@ function initSongsPanel() {
     renderTable();
 }
 
-// 📌 렌더링 함수: 최신 곡이 맨 위로 오도록 역순 출력
+// 📌 렌더링 함수: unshift로 배열 앞쪽에 추가되므로 그대로 순차 출력
 function renderTable() {
     if (!Array.isArray(songData.songs)) songData.songs = [];
     const badge = document.getElementById("song-count-badge");
@@ -650,11 +648,7 @@ function renderTable() {
     if (!tbody) return;
     tbody.innerHTML = "";
 
-    const displaySongs = [...songData.songs].reverse();
-
-    displaySongs.forEach((song, reverseIndex) => {
-        const originalIndex = songData.songs.length - 1 - reverseIndex;
-
+    songData.songs.forEach((song, index) => {
         const title = (song.title || "").toLowerCase();
         const artist = (song.artist || "").toLowerCase();
         const genre = (song.genre || "").toLowerCase();
@@ -663,14 +657,14 @@ function renderTable() {
 
         const tr = document.createElement("tr");
         tr.innerHTML = `
-            <td style="color: #64748b; font-weight: bold;">#${originalIndex + 1}</td>
+            <td style="color: #64748b; font-weight: bold;">#${index + 1}</td>
             <td style="font-weight: 600; color: #0f172a;">${escapeHtml(song.title || '제목 없음')}</td>
             <td>${escapeHtml(song.artist || '-')}</td>
             <td>${escapeHtml(song.genre || '-')}</td>
             <td style="font-size: 12px; color: #475569;">${escapeHtml(song.limit || song.etc ? (song.limit + ' ' + song.etc).trim() : '-')}</td>
             <td style="text-align: center;">
-                <button class="edit-btn" onclick="openEditModal(${originalIndex})">수정</button>
-                <button class="delete-btn" onclick="deleteSong(${originalIndex})">삭제</button>
+                <button class="edit-btn" onclick="openEditModal(${index})">수정</button>
+                <button class="delete-btn" onclick="deleteSong(${index})">삭제</button>
             </td>
         `;
         tbody.appendChild(tr);
@@ -711,7 +705,7 @@ function closeEditModal() {
     document.getElementById("edit-modal").style.display = "none";
 }
 
-// 📌 새 노래 추가/수정 (새 노래는 push로 추가하여 상단에 노출되도록 처리)
+// 📌 새 노래 추가/수정 (신규 추가는 unshift로 맨 앞에 배치되어 상단에 표시됨)
 function saveModalSong() {
     const index = parseInt(document.getElementById("edit-index").value);
     const newSong = {
@@ -725,7 +719,7 @@ function saveModalSong() {
     if (!newSong.title) { alert("노래 제목을 입력해주세요."); return; }
 
     if (index === -1) {
-        songData.songs.push(newSong); // 👈 맨 뒤에 추가하여 화면 맨 위에 보임
+        songData.songs.unshift(newSong); // 👈 맨 앞에 추가하여 최신 곡이 위로 오도록 설정
     } else {
         songData.songs[index] = newSong;
     }
@@ -759,24 +753,26 @@ function importBatchSongs() {
     if (!text) { alert("붙여넣은 내용이 없습니다."); return; }
 
     const lines = text.split("\n");
-    let addedCount = 0;
+    let addedSongs = [];
 
     lines.forEach(line => {
         const cols = line.split("\t");
         if (cols.length >= 1 && cols[0].trim()) {
-            songData.songs.push({
+            addedSongs.push({
                 title: cols[0] ? cols[0].trim() : "",
                 artist: cols[1] ? cols[1].trim() : "",
                 genre: cols[2] ? cols[2].trim() : "",
                 limit: cols[3] ? cols[3].trim() : "",
                 etc: cols[4] ? cols[4].trim() : ""
             });
-            addedCount++;
         }
     });
 
-    if (addedCount > 0) {
-        showToast(`${addedCount}곡이 추가되었습니다!`);
+    if (addedSongs.length > 0) {
+        // 일괄 추가된 곡들도 최신 항목이 맨 위에 오도록 역순 배치 후 맨 앞에 삽입
+        songData.songs = [...addedSongs.reverse(), ...songData.songs];
+        
+        showToast(`${addedSongs.length}곡이 추가되었습니다!`);
         document.getElementById("batch-input").value = "";
         renderTable();
     } else {
@@ -821,7 +817,7 @@ function closeSungModal() {
 function registerUnregisteredSong(index) {
     const songToMove = fansongStatsData.unregisteredSongs[index];
 
-    songData.songs.push({
+    songData.songs.unshift({
         title: songToMove.title,
         artist: songToMove.artist || "",
         genre: songToMove.genre || "", 
@@ -848,16 +844,17 @@ function registerUnregisteredSong(index) {
     renderTable(); 
 }
 
-// 📌 토스트 중복 방지 코드가 완벽히 적용된 showToast 함수
+// 📌 토스트 중복 생성 완전 차단 함수
 function showToast(message) {
     let container = document.getElementById("toast-container");
     if (!container) {
         container = document.createElement("div");
         container.id = "toast-container";
+        container.style.cssText = "position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px;";
         document.body.appendChild(container);
     }
 
-    // 동일한 메시지가 이미 떠 있으면 새로 만들지 않고 리턴
+    // 화면에 동일한 텍스트의 토스트가 존재하면 새로 만들지 않음
     const existingToasts = container.querySelectorAll(".toast-message");
     for (let t of existingToasts) {
         if (t.textContent === message) {
@@ -868,14 +865,16 @@ function showToast(message) {
     const toast = document.createElement("div");
     toast.className = "toast-message";
     toast.textContent = message;
+    toast.style.cssText = "background: #1e293b; color: #fff; padding: 12px 20px; border-radius: 6px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); opacity: 0; transition: opacity 0.3s ease; font-size: 14px;";
+    
     container.appendChild(toast);
 
     setTimeout(() => {
-        toast.classList.add("show");
+        toast.style.opacity = "1";
     }, 10);
 
     setTimeout(() => {
-        toast.classList.remove("show");
+        toast.style.opacity = "0";
         setTimeout(() => {
             toast.remove();
         }, 300);
