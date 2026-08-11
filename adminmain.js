@@ -598,9 +598,9 @@ async function verifyAndLoad() {
 
 async function saveDataToWorker(fileType, contentObj, statusElementId) {
     const password = document.getElementById("admin-password").value;
-    const statusEl = document.getElementById(statusElementId);
-    statusEl.style.color = "#0077b6";
-    statusEl.textContent = "페이지에 반영 중...";
+    
+    // 💡 반영 시작할 때 토스트 메시지 표시
+    showToast("페이지에 반영 중...");
 
     try {
         const response = await fetch(WORKER_URL, {
@@ -614,14 +614,14 @@ async function saveDataToWorker(fileType, contentObj, statusElementId) {
         });
         const result = await response.json();
         if (response.ok) {
-            statusEl.style.color = "#10b981";
-            statusEl.textContent = "성공적으로 업데이트되었습니다! (1~2분 뒤 반영)";
+            // 💡 성공 시 토스트 메시지 표시
+            showToast("성공적으로 업데이트되었습니다! (1~2분 뒤 반영)");
         } else {
             throw new Error(result.error || "비밀번호 오류");
         }
     } catch (error) {
-        statusEl.style.color = "#ef4444";
-        statusEl.textContent = "실패: " + error.message;
+        // 💡 실패 시 토스트 메시지 표시
+        showToast("실패: " + error.message);
     }
 }
 
