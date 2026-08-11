@@ -850,8 +850,37 @@ function registerUnregisteredSong(index) {
     // 3. unregisteredSongs에서 삭제
     fansongStatsData.unregisteredSongs.splice(index, 1);
 
-    alert("노래책에 등록되었으며, 등록된 곡 리스트의 상단으로 이동되었습니다! (하단의 '페이지에 변경사항 반영하기'를 눌러 저장해주세요)");
+    // 💡 alert 대신 우측 하단 토스트 메시지 호출
+    showToast("노래책에 등록되었습니다! (하단의 '페이지에 변경사항 반영하기'를 눌러주세요)");
     
     openSungModal();
     renderTable(); 
 }
+
+function showToast(message) {
+    let container = document.getElementById("toast-container");
+    if (!container) {
+        container = document.createElement("div");
+        container.id = "toast-container";
+        document.body.appendChild(container);
+    }
+
+    const toast = document.createElement("div");
+    toast.className = "toast-message";
+    toast.textContent = message;
+    container.appendChild(toast);
+
+    // 나타나는 효과
+    setTimeout(() => {
+        toast.classList.add("show");
+    }, 10);
+
+    // 3초 후 사라지는 효과
+    setTimeout(() => {
+        toast.classList.remove("show");
+        setTimeout(() => {
+            toast.remove();
+        }, 300);
+    }, 3000);
+}
+
