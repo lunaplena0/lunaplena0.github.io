@@ -269,7 +269,7 @@
         @keyframes fadeInUp {
             from {
                 opacity: 0;
-                transform: translateY(12px);
+                transform: translateY(10px);
             }
             to {
                 opacity: 1;
@@ -277,8 +277,9 @@
             }
         }
 
+        /* 500개 목록 전체에 부드럽고 가볍게 적용되는 페이드인 애니메이션 */
         .animate-fade-in {
-            animation: fadeInUp 0.2s ease-in forwards;
+            animation: fadeInUp 0.25s ease-out forwards;
         }
 
         .artist-group-header {
@@ -288,7 +289,6 @@
             padding: 10px 4px 4px 4px;
             margin-top: 6px;
             border-bottom: 2px solid #e2e8f0;
-            opacity: 0;
             display: flex;
             align-items: center;
             gap: 6px;
@@ -319,7 +319,6 @@
             box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
             overflow: hidden;
             transition: border-color 0.2s ease, box-shadow 0.2s ease;
-            opacity: 0;
         }
 
         .song-card:hover {
@@ -480,28 +479,6 @@
             stroke-linejoin: round;
             fill: none;
             transition: stroke 0.2s;
-        }
-
-        .load-more-btn {
-            width: 100%;
-            padding: 14px;
-            margin-top: 10px;
-            background-color: #ffffff;
-            border: 1px solid #cbd5e1;
-            border-radius: 12px;
-            font-size: 14.5px;
-            font-weight: 700;
-            color: #0369a1;
-            cursor: pointer;
-            text-align: center;
-            transition: all 0.2s;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
-        }
-
-        .load-more-btn:hover {
-            background-color: #f1f5f9;
-            border-color: #0ea5e9;
-            box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
         }
 
         /* 복사 완료 토스트 상태 메시지 스타일 */
@@ -949,12 +926,9 @@
         </div>
 
         <!-- 노래 목록 컨테이너 -->
-        <div id="songContainer" class="song-list">
+        <div id="songContainer" class="song-list animate-fade-in">
             <p class="no-result">데이터를 불러오는 중...</p>
         </div>
-
-        <!-- 하단 더보기 버튼 컨테이너 -->
-        <div id="loadMoreContainer"></div>
     </div>
 
     <!-- 복사 완료 상태 메시지 토스트 -->
@@ -1082,7 +1056,6 @@
         let currentFilter = '전체';
         let currentCountFilter = '전체'; 
         let currentRecentFilter = '전체'; 
-        let displayedCount = 0;
         let toastTimer = null;
 
         function timeToSeconds(timeStr) {
@@ -1196,7 +1169,7 @@
 
             updateFilterButtonState();
             updateFilteredAndSorted();
-            renderInitial();
+            renderAllSongs();
         }
 
         function selectRecentFilter(daysType) {
@@ -1218,7 +1191,7 @@
 
             updateFilterButtonState();
             updateFilteredAndSorted();
-            renderInitial();
+            renderAllSongs();
         }
 
         function updateFilterButtonState() {
@@ -1393,7 +1366,7 @@
 
                 setupFilterButtons();
                 updateFilteredAndSorted();
-                renderInitial();
+                renderAllSongs();
 
             } catch (err) {
                 console.error(err);
@@ -1409,7 +1382,7 @@
                     btn.classList.add('active');
                     currentFilter = btn.getAttribute('data-filter');
                     updateFilteredAndSorted();
-                    renderInitial();
+                    renderAllSongs();
                 };
             });
         }
@@ -1519,43 +1492,28 @@
             });
         }
 
-        function renderInitial() {
+        function renderAllSongs() {
             const container = document.getElementById("songContainer");
             container.innerHTML = "";
-            displayedCount = 0;
 
             if (sortedSongs.length === 0) {
                 container.innerHTML = '<p class="no-result">검색 결과가 없습니다.</p>';
-                document.getElementById("loadMoreContainer").innerHTML = "";
                 return;
             }
 
-            appendMoreSongs();
-        }
-
-        function appendMoreSongs() {
-            const currentScrollY = window.scrollY;
-
-            const container = document.getElementById("songContainer");
-            const loadMoreContainer = document.getElementById("loadMoreContainer");
-            loadMoreContainer.innerHTML = "";
-
-            // 20개 단위에서 100개 단위로 변경
-            const nextCount = Math.min(displayedCount + 100, sortedSongs.length);
-            const songsToAppend = sortedSongs.slice(displayedCount, nextCount);
-
-            let lastArtist = displayedCount > 0 ? sortedSongs[displayedCount - 1].artist || '아티스트 미상' : "";
+            let lastArtist = "";
             const now = new Date();
 
-            songsToAppend.forEach((song, index) => {
+            // 문서 조각(DocumentFragment)을 사용해 500개 이상의 요소를 한번에 DOM에 삽입하여 버벅임 최소화
+            const fragment = document.createDocumentFragment();
+
+            sortedSongs.forEach((song) => {
                 const currentArtist = song.artist || '아티스트 미상';
-                const staggerDelay = (index * 0.03).toFixed(2);
 
                 if (currentArtist !== lastArtist) {
                     lastArtist = currentArtist;
                     const groupHeader = document.createElement('div');
-                    groupHeader.className = 'artist-group-header animate-fade-in';
-                    groupHeader.style.animationDelay = `${staggerDelay}s`;
+                    groupHeader.className = 'artist-group-header';
                     groupHeader.innerHTML = `
                         <svg class="artist-header-svg" viewBox="0 0 24 24">
                             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
@@ -1563,12 +1521,11 @@
                         </svg>
                         ${currentArtist}
                     `;
-                    container.appendChild(groupHeader);
+                    fragment.appendChild(groupHeader);
                 }
 
                 const card = document.createElement("div");
-                card.className = "song-card animate-fade-in";
-                card.style.animationDelay = `${staggerDelay}s`;
+                card.className = "song-card";
 
                 card.onclick = (e) => {
                     if (e.target.tagName === 'A' || e.target.closest('a')) return;
@@ -1661,33 +1618,20 @@
                     ${timestampsHTML}
                 `;
 
-                container.appendChild(card);
+                fragment.appendChild(card);
             });
 
-            displayedCount = nextCount;
-
-            if (displayedCount < sortedSongs.length) {
-                const loadMoreBtn = document.createElement("button");
-                loadMoreBtn.className = "load-more-btn";
-                // 텍스트도 100개 단위에 맞게 수정
-                loadMoreBtn.innerHTML = `▼ 노래 100개 더보기 (${displayedCount}/${sortedSongs.length})`;
-                loadMoreBtn.onclick = () => {
-                    appendMoreSongs();
-                };
-                loadMoreContainer.appendChild(loadMoreBtn);
-            }
-
-            window.scrollTo({ top: currentScrollY, behavior: 'instant' });
+            container.appendChild(fragment);
         }
 
         function onSearchInput() {
             updateFilteredAndSorted();
-            renderInitial();
+            renderAllSongs();
         }
 
         function triggerSearch() {
             updateFilteredAndSorted();
-            renderInitial();
+            renderAllSongs();
         }
 
         loadData();
