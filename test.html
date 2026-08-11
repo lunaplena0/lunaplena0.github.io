@@ -482,28 +482,6 @@
             transition: stroke 0.2s;
         }
 
-        .load-more-btn {
-            width: 100%;
-            padding: 14px;
-            margin-top: 10px;
-            background-color: #ffffff;
-            border: 1px solid #cbd5e1;
-            border-radius: 12px;
-            font-size: 14.5px;
-            font-weight: 700;
-            color: #0369a1;
-            cursor: pointer;
-            text-align: center;
-            transition: all 0.2s;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
-        }
-
-        .load-more-btn:hover {
-            background-color: #f1f5f9;
-            border-color: #0ea5e9;
-            box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
-        }
-
         /* 복사 완료 토스트 상태 메시지 스타일 */
         .toast-message {
             position: fixed;
@@ -952,9 +930,6 @@
         <div id="songContainer" class="song-list">
             <p class="no-result">데이터를 불러오는 중...</p>
         </div>
-
-        <!-- 하단 더보기 버튼 컨테이너 -->
-        <div id="loadMoreContainer"></div>
     </div>
 
     <!-- 복사 완료 상태 메시지 토스트 -->
@@ -1082,7 +1057,6 @@
         let currentFilter = '전체';
         let currentCountFilter = '전체'; 
         let currentRecentFilter = '전체'; 
-        let displayedCount = 0;
         let toastTimer = null;
 
         function timeToSeconds(timeStr) {
@@ -1095,24 +1069,23 @@
             }
             return 0;
         }
-function parseDateString(dateStr) {
-    if (!dateStr) return null;
-    let cleanStr = dateStr.replace(/\(.*?\)/g, "").trim().replace(/\./g, '-');
-    
-    // "YYYY-MM-DD" 또는 "MM-DD" 형태 분해
-    const parts = cleanStr.split('-');
-    if (parts.length === 3) {
-        // 연-월-일이 모두 있는 경우 (예: 2026-07-10) -> 타임존 오차 없이 로컬 날짜로 생성
-        return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
-    } else if (parts.length === 2) {
-        // 월-일만 있는 경우 현재 연도를 붙여서 로컬 날짜로 생성
-        const currentYear = new Date().getFullYear();
-        return new Date(currentYear, parseInt(parts[0], 10) - 1, parseInt(parts[1], 10));
-    }
-    
-    const d = new Date(cleanStr);
-    return isNaN(d.getTime()) ? null : d;
-}
+
+        function parseDateString(dateStr) {
+            if (!dateStr) return null;
+            let cleanStr = dateStr.replace(/\(.*?\)/g, "").trim().replace(/\./g, '-');
+            
+            const parts = cleanStr.split('-');
+            if (parts.length === 3) {
+                return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+            } else if (parts.length === 2) {
+                const currentYear = new Date().getFullYear();
+                return new Date(currentYear, parseInt(parts[0], 10) - 1, parseInt(parts[1], 10));
+            }
+            
+            const d = new Date(cleanStr);
+            return isNaN(d.getTime()) ? null : d;
+        }
+
         function toggleSongCard(cardElement) {
             cardElement.classList.toggle("expanded");
         }
@@ -1197,7 +1170,7 @@ function parseDateString(dateStr) {
 
             updateFilterButtonState();
             updateFilteredAndSorted();
-            renderInitial();
+            renderAllSongs();
         }
 
         function selectRecentFilter(daysType) {
@@ -1219,7 +1192,7 @@ function parseDateString(dateStr) {
 
             updateFilterButtonState();
             updateFilteredAndSorted();
-            renderInitial();
+            renderAllSongs();
         }
 
         function updateFilterButtonState() {
@@ -1394,7 +1367,7 @@ function parseDateString(dateStr) {
 
                 setupFilterButtons();
                 updateFilteredAndSorted();
-                renderInitial();
+                renderAllSongs();
 
             } catch (err) {
                 console.error(err);
@@ -1410,7 +1383,7 @@ function parseDateString(dateStr) {
                     btn.classList.add('active');
                     currentFilter = btn.getAttribute('data-filter');
                     updateFilteredAndSorted();
-                    renderInitial();
+                    renderAllSongs();
                 };
             });
         }
@@ -1461,7 +1434,6 @@ function parseDateString(dateStr) {
                     for (let dt of dateTimes) {
                         const songDate = parseDateString(dt.date);
                         if (songDate) {
-                            // 시간 오차를 없애기 위해 시/분/초를 00:00:00으로 맞추고 일수 차이 계산
                             const nowDateOnly = new Date(now.getFullYear(), now.getMonth(), now.getDate());
                             const songDateOnly = new Date(songDate.getFullYear(), songDate.getMonth(), songDate.getDate());
                             
@@ -1521,34 +1493,19 @@ function parseDateString(dateStr) {
             });
         }
 
-        function renderInitial() {
+        function renderAllSongs() {
             const container = document.getElementById("songContainer");
             container.innerHTML = "";
-            displayedCount = 0;
 
             if (sortedSongs.length === 0) {
                 container.innerHTML = '<p class="no-result">검색 결과가 없습니다.</p>';
-                document.getElementById("loadMoreContainer").innerHTML = "";
                 return;
             }
 
-            appendMoreSongs();
-        }
-
-        function appendMoreSongs() {
-            const currentScrollY = window.scrollY;
-
-            const container = document.getElementById("songContainer");
-            const loadMoreContainer = document.getElementById("loadMoreContainer");
-            loadMoreContainer.innerHTML = "";
-
-            const nextCount = Math.min(displayedCount + 20, sortedSongs.length);
-            const songsToAppend = sortedSongs.slice(displayedCount, nextCount);
-
-            let lastArtist = displayedCount > 0 ? sortedSongs[displayedCount - 1].artist || '아티스트 미상' : "";
+            let lastArtist = "";
             const now = new Date();
 
-            songsToAppend.forEach((song, index) => {
+            sortedSongs.forEach((song, index) => {
                 const currentArtist = song.artist || '아티스트 미상';
                 const staggerDelay = (index * 0.03).toFixed(2);
 
@@ -1606,7 +1563,6 @@ function parseDateString(dateStr) {
                         const finalLink = vodUrl !== "#" ? `${vodUrl}?change_second=${totalSeconds}` : "#";
                         const cleanDate = dt.date.replace(/\(.*?\)/g, "").trim();
 
-                        // 현재 적용된 '최근 부른 기간' 조건에 부합하는 날짜인지 판별
                         let isHighlighted = false;
                         if (currentRecentFilter !== '전체') {
                             const daysLimit = parseInt(currentRecentFilter, 10);
@@ -1665,30 +1621,16 @@ function parseDateString(dateStr) {
 
                 container.appendChild(card);
             });
-
-            displayedCount = nextCount;
-
-            if (displayedCount < sortedSongs.length) {
-                const loadMoreBtn = document.createElement("button");
-                loadMoreBtn.className = "load-more-btn";
-                loadMoreBtn.innerHTML = `▼ 노래 20개 더보기 (${displayedCount}/${sortedSongs.length})`;
-                loadMoreBtn.onclick = () => {
-                    appendMoreSongs();
-                };
-                loadMoreContainer.appendChild(loadMoreBtn);
-            }
-
-            window.scrollTo({ top: currentScrollY, behavior: 'instant' });
         }
 
         function onSearchInput() {
             updateFilteredAndSorted();
-            renderInitial();
+            renderAllSongs();
         }
 
         function triggerSearch() {
             updateFilteredAndSorted();
-            renderInitial();
+            renderAllSongs();
         }
 
         loadData();
