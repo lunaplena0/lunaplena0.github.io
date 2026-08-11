@@ -822,13 +822,13 @@ function closeSungModal() {
 function registerUnregisteredSong(index) {
     const songToMove = fansongStatsData.unregisteredSongs[index];
 
-    // 1. songData.songs에 추가 (etc에 "불렀던 곡 등록" 문자열을 넣지 않고 빈 값으로 처리)
+    // 1. songData.songs에 추가 (genre와 etc를 songToMove에서 가져오도록 지정)
     songData.songs.push({
         title: songToMove.title,
         artist: songToMove.artist || "",
-        genre: "", 
+        genre: songToMove.genre || "", 
         limit: songToMove.limit || "",
-        etc: "" // 👈 이 부분을 빈 문자열로 변경
+        etc: songToMove.etc || "" 
     });
 
     // 2. fansongStatsData.registeredSongs로 이동
