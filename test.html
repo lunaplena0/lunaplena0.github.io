@@ -20,9 +20,9 @@
 
         .main-container {
             width: 100%;
-            max-width: 840px;
+            max-width: 960px; /* 넓이 확장 */
             margin: 0 auto;
-            padding: 14px 20px 16px 20px;
+            padding: 16px 24px 20px 24px;
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
@@ -109,17 +109,6 @@
 
         .header-action-btn:active {
             transform: scale(0.97);
-        }
-
-        .btn-icon-svg {
-            width: 15px;
-            height: 15px;
-            stroke: #0369a1;
-            stroke-width: 2.2;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-            fill: none;
-            transition: stroke 0.2s;
         }
 
         .search-container {
@@ -279,9 +268,9 @@
             overflow-x: hidden;
             display: flex;
             flex-direction: column;
-            gap: 6px;
-            padding-bottom: 40px;
-            padding-right: 4px;
+            gap: 8px;
+            padding-bottom: 60px; /* 스크롤 높이/여백 확장 */
+            padding-right: 6px;
         }
 
         .song-list-scroll-wrapper::-webkit-scrollbar {
@@ -303,7 +292,7 @@
                 position: fixed;
                 top: 50%;
                 transform: translateY(-50%);
-                right: max(20px, calc((100vw - 840px) / 2 - 60px));
+                right: max(20px, calc((100vw - 960px) / 2 - 60px));
                 background: #ffffff;
                 border: 1px solid #e2e8f0;
                 border-radius: 12px;
@@ -441,7 +430,7 @@
             overflow: hidden;
             text-overflow: ellipsis;
             flex-shrink: 0;
-            max-width: 140px;
+            max-width: 160px;
         }
 
         .song-badges {
@@ -464,12 +453,6 @@
         .badge-count {
             background-color: #e0f2fe;
             color: #0284c7;
-        }
-
-        .badge-limit {
-            background-color: #eef2ff;
-            color: #6366f1;
-            flex-shrink: 0;
         }
 
         .timestamp-container {
@@ -501,23 +484,6 @@
             display: inline-flex;
             align-items: center;
             gap: 5px;
-        }
-
-        .timestamp-btn.highlighted-date {
-            background-color: #f0fdf4;
-            border-color: #86efac;
-            color: #15803d;
-        }
-
-        .timestamp-icon-svg {
-            width: 13px;
-            height: 13px;
-            stroke: #0284c7;
-            stroke-width: 2.2;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-            fill: none;
-            transition: stroke 0.2s;
         }
 
         .toast-message {
@@ -1072,7 +1038,6 @@
                 const artist = song.artist || '';
                 const genre = song.genre || '';
                 const limit = song.limit || '';
-                const etc = song.etc || '';
 
                 const matchesKeyword = title.toLowerCase().includes(keyword) || artist.toLowerCase().includes(keyword) || genre.toLowerCase().includes(keyword);
                 if (!matchesKeyword) return false;
@@ -1182,7 +1147,7 @@
             let lastArtist = "";
             const fragment = document.createDocumentFragment();
 
-            sortedSongs.forEach((song, index) => {
+            sortedSongs.forEach((song) => {
                 const currentArtist = song.artist || '아티스트 미상';
                 if (currentArtist !== lastArtist) {
                     lastArtist = currentArtist;
