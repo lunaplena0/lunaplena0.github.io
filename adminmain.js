@@ -655,7 +655,9 @@ function renderTable() {
     if (!tbody) return;
     tbody.innerHTML = "";
 
-    songData.songs.forEach((song, originalIndex) => {
+    [...songData.songs].reverse().forEach((song, reverseIndex) => {
+        const originalIndex = songData.songs.length - 1 - reverseIndex;
+
         const title = (song.title || "").toLowerCase();
         const artist = (song.artist || "").toLowerCase();
         const genre = (song.genre || "").toLowerCase();
