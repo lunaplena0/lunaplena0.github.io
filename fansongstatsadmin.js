@@ -442,8 +442,8 @@ function executeBatchTimeImport() {
     ];
     
     let matchedCount = 0;
-    let skippedCount = 0;
-    let mismatchLines = [];
+    let skippedItems = [];    // 중복으로 건너뛴 상세 내역 배열
+    let mismatchLines = [];   // 불일치하거나 형식이 안 맞는 상세 내역 배열
 
     lines.forEach(line => {
         const trimmedLine = line.trim();
@@ -455,7 +455,7 @@ function executeBatchTimeImport() {
         const match = cleanLine.match(/^(\d{2}:\d{2}(?::\d{2})?)\s*(?:🎵)?\s*(.+?)\s*-\s*(.+)$/);
         
         if (!match) {
-            mismatchLines.push(trimmedLine);
+            mismatchLines.push({ text: trimmedLine, reason: "형식 오류 또는 매칭 실패" });
             return;
         }
 
@@ -494,7 +494,8 @@ function executeBatchTimeImport() {
                     });
 
                     if (isAlreadyExists) {
-                        skippedCount++;
+                        // 중복된 곡명과 시간 기록
+                        skippedItems.push({ title: match[2].trim(), artist: match[3].trim(), time: timeStr, date: commonDateInput });
                         return;
                     }
 
@@ -512,20 +513,28 @@ function executeBatchTimeImport() {
         });
 
         if (!found) {
-            mismatchLines.push(trimmedLine);
+            mismatchLines.push({ text: trimmedLine, reason: "목록에 등록되지 않았거나 정보 불일치" });
         }
     });
 
     let resultHTML = `<span style="color: #10b981; font-weight: bold;">성공적으로 ${matchedCount}개의 노래에 시간이 추가되었습니다!</span>`;
-    if (skippedCount > 0) {
-        resultHTML += `<br><span style="color: #3b82f6; font-weight: bold;">ℹ️ 이미 존재하는 동일한 날짜·시간이라 건너뛴 항목: ${skippedCount}개</span>`;
-    }
-    if (mismatchLines.length > 0) {
-        resultHTML += `<br><span style="color: #ef4444; font-weight: bold;">⚠️ 불일치하거나 형식 오류인 항목 (${mismatchLines.length}개):</span>`;
-        mismatchLines.forEach(ml => {
-            resultHTML += `<br><span style="color: #ef4444; font-size: 12px;">- ${ml} (불일치합니다)</span>`;
+    
+    // 중복으로 건너뛴 항목 상세 안내
+    if (skippedItems.length > 0) {
+        resultHTML += `<br><br><span style="color: #3b82f6; font-weight: bold;">ℹ️ 이미 존재하는 동일한 날짜·시간이라 건너뛴 항목 (${skippedItems.length개}):</span>`;
+        skippedItems.forEach(item => {
+            resultHTML += `<br><span style="color: #1e293b; font-size: 12px;">- [${item.date} ${item.time}] <strong>${item.title}</strong> (${item.artist})</span>`;
         });
     }
+
+    // 불일치 또는 형식 오류 항목 상세 안내
+    if (mismatchLines.length > 0) {
+        resultHTML += `<br><br><span style="color: #ef4444; font-weight: bold;">⚠️ 반영되지 못한 불일치/오류 항목 (${mismatchLines.length}개):</span>`;
+        mismatchLines.forEach(ml => {
+            resultHTML += `<br><span style="color: #ef4444; font-size: 12px;">- ${ml.text} <span style="color: #64748b;">(${ml.reason})</span></span>`;
+        });
+    }
+
     statusEl.innerHTML = resultHTML;
 }
 
