@@ -714,28 +714,35 @@ function closeEditModal() {
 }
 
 // 📌 unshift를 사용하여 맨 위에 새 노래를 추가하는 saveModalSong 함수
-function saveModalSong() {
-    const index = parseInt(document.getElementById("edit-index").value);
-    const newSong = {
-        title: document.getElementById("modal-title-input").value.trim(),
-        artist: document.getElementById("modal-artist-input").value.trim(),
-        genre: document.getElementById("modal-genre-input").value.trim(),
-        limit: document.getElementById("modal-limit-input").value.trim(),
-        etc: document.getElementById("modal-etc-input").value.trim()
-    };
+function registerUnregisteredSong(index) {
+    const songToMove = fansongStatsData.unregisteredSongs[index];
 
-    if (!newSong.title) { alert("노래 제목을 입력해주세요."); return; }
+    songData.songs.push({ // 👈 맨 뒤에 추가
+        title: songToMove.title,
+        artist: songToMove.artist || "",
+        genre: songToMove.genre || "", 
+        limit: songToMove.limit || "",
+        etc: songToMove.etc || ""
+    });
 
-    if (index === -1) {
-        songData.songs.unshift(newSong);
-    } else {
-        songData.songs[index] = newSong;
+    if (!Array.isArray(fansongStatsData.registeredSongs)) {
+        fansongStatsData.registeredSongs = [];
     }
+    
+    fansongStatsData.registeredSongs.push({ // 👈 맨 뒤에 추가
+        title: songToMove.title,
+        artist: songToMove.artist || "",
+        limit: songToMove.limit || "",
+        dateTimes: songToMove.dateTimes || []
+    });
 
-    closeEditModal();
-    renderTable();
+    fansongStatsData.unregisteredSongs.splice(index, 1);
+
+    showToast("노래책 상단에 등록되었습니다!");
+    
+    openSungModal();
+    renderTable(); 
 }
-
 function deleteSong(index) {
     if (confirm(`정말 #${index + 1} 곡을 삭제하시겠습니까?`)) {
         songData.songs.splice(index, 1);
