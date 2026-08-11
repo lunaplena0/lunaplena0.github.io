@@ -859,15 +859,25 @@ function showToast(message) {
         document.body.appendChild(container);
     }
 
+    // 💡 이미 같은 내용의 토스트가 화면에 표시 중이라면 중복 생성하지 않고 리턴합니다.
+    const existingToasts = container.querySelectorAll(".toast-message");
+    for (let t of existingToasts) {
+        if (t.textContent === message) {
+            return; 
+        }
+    }
+
     const toast = document.createElement("div");
     toast.className = "toast-message";
     toast.textContent = message;
     container.appendChild(toast);
 
+    // 나타나는 효과
     setTimeout(() => {
         toast.classList.add("show");
     }, 10);
 
+    // 3초 후 사라지는 효과
     setTimeout(() => {
         toast.classList.remove("show");
         setTimeout(() => {
