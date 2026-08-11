@@ -8,11 +8,11 @@
         body {
             margin: 0;
             width: 100vw;
-            height: 100vh; /* 화면 전체 높이 고정 */
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
             background-color: #f8fafc;
-            overflow: hidden; /* body 전체 스크롤 방지 */
+            overflow-x: hidden;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             color: #1e293b;
         }
@@ -26,8 +26,7 @@
             display: flex;
             flex-direction: column;
             gap: 12px;
-            height: 100%; /* 전체 높이 채우기 */
-            overflow: hidden; /* 내부 요소들이 각자 제어하도록 설정 */
+            flex: 1;
         }
 
         /* 상단 헤더 영역 */
@@ -36,7 +35,6 @@
             justify-content: space-between;
             align-items: center;
             gap: 12px;
-            flex-shrink: 0;
         }
 
         .title-summary-box {
@@ -126,7 +124,6 @@
         .search-container {
             position: relative;
             width: 100%;
-            flex-shrink: 0;
         }
 
         .search-icon-wrapper {
@@ -185,7 +182,6 @@
             justify-content: space-between;
             align-items: center;
             gap: 8px;
-            flex-shrink: 0;
         }
 
         .filter-tags-container {
@@ -271,7 +267,7 @@
         @keyframes fadeInUp {
             from {
                 opacity: 0;
-                transform: translateY(12px);
+                transform: translateY(10px);
             }
             to {
                 opacity: 1;
@@ -279,19 +275,10 @@
             }
         }
 
+        /* 순차적 페이드인 애니메이션 클래스 */
         .animate-fade-in {
-            animation: fadeInUp 0.2s ease-in forwards;
-        }
-
-        /* 노래 목록 스크롤 영역 설정 */
-        .scrollable-content {
-            flex: 1;
-            overflow-y: auto; /* 이 영역만 스크롤되도록 설정 */
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            min-height: 0; /* flex 내부 스크롤 시 필수 속성 */
-            padding-right: 4px; /* 스크롤바와 간격 확보 */
+            opacity: 0;
+            animation: fadeInUp 0.35s ease-out forwards;
         }
 
         .artist-group-header {
@@ -301,10 +288,11 @@
             padding: 10px 4px 4px 4px;
             margin-top: 6px;
             border-bottom: 2px solid #e2e8f0;
-            opacity: 0;
             display: flex;
             align-items: center;
             gap: 6px;
+            opacity: 0;
+            animation: fadeInUp 0.35s ease-out forwards;
         }
 
         .artist-header-svg {
@@ -332,7 +320,6 @@
             box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
             overflow: hidden;
             transition: border-color 0.2s ease, box-shadow 0.2s ease;
-            opacity: 0;
         }
 
         .song-card:hover {
@@ -492,28 +479,6 @@
             stroke-linejoin: round;
             fill: none;
             transition: stroke 0.2s;
-        }
-
-        .load-more-btn {
-            width: 100%;
-            padding: 14px;
-            margin-top: 10px;
-            background-color: #ffffff;
-            border: 1px solid #cbd5e1;
-            border-radius: 12px;
-            font-size: 14.5px;
-            font-weight: 700;
-            color: #0369a1;
-            cursor: pointer;
-            text-align: center;
-            transition: all 0.2s;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
-        }
-
-        .load-more-btn:hover {
-            background-color: #f1f5f9;
-            border-color: #0ea5e9;
-            box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
         }
 
         /* 복사 완료 토스트 상태 메시지 스타일 */
@@ -958,12 +923,9 @@
             </button>
         </div>
 
-        <!-- 스크롤 가능한 노래 목록 및 하단 더보기 컨테이너 영역 -->
-        <div class="scrollable-content" id="scrollableContent">
-            <div id="songContainer" class="song-list">
-                <p class="no-result">데이터를 불러오는 중...</p>
-            </div>
-            <div id="loadMoreContainer"></div>
+        <!-- 노래 목록 컨테이너 -->
+        <div id="songContainer" class="song-list">
+            <p class="no-result">데이터를 불러오는 중...</p>
         </div>
     </div>
 
@@ -989,6 +951,7 @@
             </div>
             
             <div class="filter-grid-container">
+                <!-- 부른 횟수 섹션 -->
                 <div class="filter-section">
                     <h4 class="filter-section-title">
                         <svg class="btn-icon-svg" viewBox="0 0 24 24" style="width: 14px; height: 14px;">
@@ -1007,6 +970,7 @@
                     </div>
                 </div>
 
+                <!-- 최근 부른 기간 섹션 -->
                 <div class="filter-section">
                     <h4 class="filter-section-title">
                         <svg class="btn-icon-svg" viewBox="0 0 24 24" style="width: 14px; height: 14px;">
@@ -1090,7 +1054,6 @@
         let currentFilter = '전체';
         let currentCountFilter = '전체'; 
         let currentRecentFilter = '전체'; 
-        let displayedCount = 0;
         let toastTimer = null;
 
         function timeToSeconds(timeStr) {
@@ -1204,7 +1167,7 @@
 
             updateFilterButtonState();
             updateFilteredAndSorted();
-            renderInitial();
+            renderAllSongs();
         }
 
         function selectRecentFilter(daysType) {
@@ -1226,7 +1189,7 @@
 
             updateFilterButtonState();
             updateFilteredAndSorted();
-            renderInitial();
+            renderAllSongs();
         }
 
         function updateFilterButtonState() {
@@ -1401,7 +1364,7 @@
 
                 setupFilterButtons();
                 updateFilteredAndSorted();
-                renderInitial();
+                renderAllSongs();
 
             } catch (err) {
                 console.error(err);
@@ -1417,7 +1380,7 @@
                     btn.classList.add('active');
                     currentFilter = btn.getAttribute('data-filter');
                     updateFilteredAndSorted();
-                    renderInitial();
+                    renderAllSongs();
                 };
             });
         }
@@ -1527,43 +1490,27 @@
             });
         }
 
-        function renderInitial() {
+        function renderAllSongs() {
             const container = document.getElementById("songContainer");
             container.innerHTML = "";
-            displayedCount = 0;
-            
-            // 검색어나 필터 변경 시 목록 스크롤을 맨 위로 초기화
-            const scrollableArea = document.getElementById("scrollableContent");
-            if (scrollableArea) scrollableArea.scrollTop = 0;
 
             if (sortedSongs.length === 0) {
                 container.innerHTML = '<p class="no-result">검색 결과가 없습니다.</p>';
-                document.getElementById("loadMoreContainer").innerHTML = "";
                 return;
             }
 
-            appendMoreSongs();
-        }
-
-        function appendMoreSongs() {
-            const container = document.getElementById("songContainer");
-            const loadMoreContainer = document.getElementById("loadMoreContainer");
-            loadMoreContainer.innerHTML = "";
-
-            const nextCount = Math.min(displayedCount + 100, sortedSongs.length);
-            const songsToAppend = sortedSongs.slice(displayedCount, nextCount);
-
-            let lastArtist = displayedCount > 0 ? sortedSongs[displayedCount - 1].artist || '아티스트 미상' : "";
+            let lastArtist = "";
             const now = new Date();
+            const fragment = document.createDocumentFragment();
 
-            songsToAppend.forEach((song, index) => {
+            sortedSongs.forEach((song, index) => {
                 const currentArtist = song.artist || '아티스트 미상';
-                const staggerDelay = (index * 0.03).toFixed(2);
+                const staggerDelay = Math.min(index * 0.003, 0.8).toFixed(3);
 
                 if (currentArtist !== lastArtist) {
                     lastArtist = currentArtist;
                     const groupHeader = document.createElement('div');
-                    groupHeader.className = 'artist-group-header animate-fade-in';
+                    groupHeader.className = 'artist-group-header';
                     groupHeader.style.animationDelay = `${staggerDelay}s`;
                     groupHeader.innerHTML = `
                         <svg class="artist-header-svg" viewBox="0 0 24 24">
@@ -1572,7 +1519,7 @@
                         </svg>
                         ${currentArtist}
                     `;
-                    container.appendChild(groupHeader);
+                    fragment.appendChild(groupHeader);
                 }
 
                 const card = document.createElement("div");
@@ -1670,30 +1617,20 @@
                     ${timestampsHTML}
                 `;
 
-                container.appendChild(card);
+                fragment.appendChild(card);
             });
 
-            displayedCount = nextCount;
-
-            if (displayedCount < sortedSongs.length) {
-                const loadMoreBtn = document.createElement("button");
-                loadMoreBtn.className = "load-more-btn";
-                loadMoreBtn.innerHTML = `▼ 노래 100개 더보기 (${displayedCount}/${sortedSongs.length})`;
-                loadMoreBtn.onclick = () => {
-                    appendMoreSongs();
-                };
-                loadMoreContainer.appendChild(loadMoreBtn);
-            }
+            container.appendChild(fragment);
         }
 
         function onSearchInput() {
             updateFilteredAndSorted();
-            renderInitial();
+            renderAllSongs();
         }
 
         function triggerSearch() {
             updateFilteredAndSorted();
-            renderInitial();
+            renderAllSongs();
         }
 
         loadData();
