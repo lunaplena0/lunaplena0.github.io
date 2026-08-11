@@ -652,6 +652,7 @@ function renderTable() {
     if (!tbody) return;
     tbody.innerHTML = "";
 
+    // 💡 push로 쌓인 데이터를 화면 맨 위부터 보여주기 위해 역순으로 출력합니다.
     const displaySongs = [...songData.songs].reverse();
 
     displaySongs.forEach((song, reverseIndex) => {
