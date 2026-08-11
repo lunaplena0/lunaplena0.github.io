@@ -285,7 +285,7 @@
             display: none;
         }
 
-        /* 초성 인덱스 사이드바 높이와 넓이 확장 */
+        /* 초성 인덱스 사이드바 (한 화면에 다 보이도록 최적화 및 구분선 추가) */
         @media (min-width: 1200px) {
             .quick-index-sidebar {
                 display: flex;
@@ -293,35 +293,25 @@
                 position: fixed;
                 top: 50%;
                 transform: translateY(-50%);
-                right: max(16px, calc((100vw - 960px) / 2 - 75px));
+                right: max(16px, calc((100vw - 960px) / 2 - 64px));
                 background: #ffffff;
                 border: 1px solid #e2e8f0;
-                border-radius: 14px;
-                padding: 10px 6px;
-                box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+                border-radius: 12px;
+                padding: 6px 4px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
                 z-index: 100;
-                gap: 4px;
-                max-height: 90vh; /* 높이 대폭 확장 */
-                overflow-y: auto;
-            }
-            
-            .quick-index-sidebar::-webkit-scrollbar {
-                width: 4px;
-            }
-            .quick-index-sidebar::-webkit-scrollbar-thumb {
-                background-color: #cbd5e1;
-                border-radius: 4px;
+                gap: 2px;
             }
 
             .quick-index-btn {
                 background: none;
                 border: none;
                 color: #64748b;
-                font-size: 12.5px; /* 글자 크기 살짝 확대 */
+                font-size: 11px;
                 font-weight: 700;
-                width: 32px; /* 넓이 확장 */
-                height: 32px; /* 높이 확장 */
-                border-radius: 8px;
+                width: 26px;
+                height: 26px;
+                border-radius: 6px;
                 cursor: pointer;
                 display: flex;
                 align-items: center;
@@ -332,6 +322,14 @@
             .quick-index-btn:hover {
                 background-color: #0ea5e9;
                 color: #ffffff;
+            }
+
+            /* 그룹 간 구분선 스타일 */
+            .quick-index-divider {
+                width: 16px;
+                height: 1px;
+                background-color: #cbd5e1;
+                margin: 4px auto;
             }
         }
 
@@ -1107,9 +1105,51 @@
                 availableIndices.add(getInitialConsonant(song.artist || '아티스트 미상'));
             });
 
-            const orderList = ['0-9', 'ㄱ','ㄴ','ㄷ','ㄹ','ㅁ','ㅂ','ㅅ','ㅇ','ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ', 'A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z', '#'];
+            const numberList = ['0-9'];
+            const koreanList = ['ㄱ','ㄴ','ㄷ','ㄹ','ㅁ','ㅂ','ㅅ','ㅇ','ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
+            const etcList = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z', '#'];
 
-            orderList.forEach(indexChar => {
+            let hasNumber = numberList.some(item => availableIndices.has(item));
+            let hasKorean = koreanList.some(item => availableIndices.has(item));
+
+            // 1. 숫자 그룹 렌더링
+            numberList.forEach(indexChar => {
+                if (availableIndices.has(indexChar)) {
+                    const btn = document.createElement('button');
+                    btn.className = 'quick-index-btn';
+                    btn.textContent = indexChar;
+                    btn.onclick = () => scrollToArtistGroup(indexChar);
+                    sidebar.appendChild(btn);
+                }
+            });
+
+            // 숫자 끝난 뒤 구분선
+            if (hasNumber && (hasKorean || etcList.some(item => availableIndices.has(item)))) {
+                const divider1 = document.createElement('div');
+                divider1.className = 'quick-index-divider';
+                sidebar.appendChild(divider1);
+            }
+
+            // 2. 한글 초성 그룹 렌더링
+            koreanList.forEach(indexChar => {
+                if (availableIndices.has(indexChar)) {
+                    const btn = document.createElement('button');
+                    btn.className = 'quick-index-btn';
+                    btn.textContent = indexChar;
+                    btn.onclick = () => scrollToArtistGroup(indexChar);
+                    sidebar.appendChild(btn);
+                }
+            });
+
+            // 한글 초성 끝난 뒤 구분선
+            if (hasKorean && etcList.some(item => availableIndices.has(item))) {
+                const divider2 = document.createElement('div');
+                divider2.className = 'quick-index-divider';
+                sidebar.appendChild(divider2);
+            }
+
+            // 3. 영문/기타 그룹 렌더링
+            etcList.forEach(indexChar => {
                 if (availableIndices.has(indexChar)) {
                     const btn = document.createElement('button');
                     btn.className = 'quick-index-btn';
