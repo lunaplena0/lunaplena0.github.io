@@ -267,20 +267,19 @@
         }
 
         @keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(12px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
+            from {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
 
-.animate-fade-in {
-    /* ease-in으로 설정하면 처음엔 느렸다가 뒤로 갈수록 속도가 빨라집니다 */
-    animation: fadeInUp 0.2s ease-in forwards;
-}
+        .animate-fade-in {
+            animation: fadeInUp 0.2s ease-in forwards;
+        }
 
         .artist-group-header {
             font-size: 14.5px;
@@ -481,6 +480,28 @@
             stroke-linejoin: round;
             fill: none;
             transition: stroke 0.2s;
+        }
+
+        .load-more-btn {
+            width: 100%;
+            padding: 14px;
+            margin-top: 10px;
+            background-color: #ffffff;
+            border: 1px solid #cbd5e1;
+            border-radius: 12px;
+            font-size: 14.5px;
+            font-weight: 700;
+            color: #0369a1;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+        }
+
+        .load-more-btn:hover {
+            background-color: #f1f5f9;
+            border-color: #0ea5e9;
+            box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
         }
 
         /* 복사 완료 토스트 상태 메시지 스타일 */
@@ -931,6 +952,9 @@
         <div id="songContainer" class="song-list">
             <p class="no-result">데이터를 불러오는 중...</p>
         </div>
+
+        <!-- 하단 더보기 버튼 컨테이너 -->
+        <div id="loadMoreContainer"></div>
     </div>
 
     <!-- 복사 완료 상태 메시지 토스트 -->
@@ -1058,6 +1082,7 @@
         let currentFilter = '전체';
         let currentCountFilter = '전체'; 
         let currentRecentFilter = '전체'; 
+        let displayedCount = 0;
         let toastTimer = null;
 
         function timeToSeconds(timeStr) {
@@ -1171,7 +1196,7 @@
 
             updateFilterButtonState();
             updateFilteredAndSorted();
-            renderAllSongs();
+            renderInitial();
         }
 
         function selectRecentFilter(daysType) {
@@ -1193,7 +1218,7 @@
 
             updateFilterButtonState();
             updateFilteredAndSorted();
-            renderAllSongs();
+            renderInitial();
         }
 
         function updateFilterButtonState() {
@@ -1368,7 +1393,7 @@
 
                 setupFilterButtons();
                 updateFilteredAndSorted();
-                renderAllSongs();
+                renderInitial();
 
             } catch (err) {
                 console.error(err);
@@ -1384,7 +1409,7 @@
                     btn.classList.add('active');
                     currentFilter = btn.getAttribute('data-filter');
                     updateFilteredAndSorted();
-                    renderAllSongs();
+                    renderInitial();
                 };
             });
         }
@@ -1494,19 +1519,35 @@
             });
         }
 
-        function renderAllSongs() {
+        function renderInitial() {
             const container = document.getElementById("songContainer");
             container.innerHTML = "";
+            displayedCount = 0;
 
             if (sortedSongs.length === 0) {
                 container.innerHTML = '<p class="no-result">검색 결과가 없습니다.</p>';
+                document.getElementById("loadMoreContainer").innerHTML = "";
                 return;
             }
 
-            let lastArtist = "";
+            appendMoreSongs();
+        }
+
+        function appendMoreSongs() {
+            const currentScrollY = window.scrollY;
+
+            const container = document.getElementById("songContainer");
+            const loadMoreContainer = document.getElementById("loadMoreContainer");
+            loadMoreContainer.innerHTML = "";
+
+            // 20개 단위에서 200개 단위로 변경
+            const nextCount = Math.min(displayedCount + 200, sortedSongs.length);
+            const songsToAppend = sortedSongs.slice(displayedCount, nextCount);
+
+            let lastArtist = displayedCount > 0 ? sortedSongs[displayedCount - 1].artist || '아티스트 미상' : "";
             const now = new Date();
 
-            sortedSongs.forEach((song, index) => {
+            songsToAppend.forEach((song, index) => {
                 const currentArtist = song.artist || '아티스트 미상';
                 const staggerDelay = (index * 0.03).toFixed(2);
 
@@ -1622,16 +1663,31 @@
 
                 container.appendChild(card);
             });
+
+            displayedCount = nextCount;
+
+            if (displayedCount < sortedSongs.length) {
+                const loadMoreBtn = document.createElement("button");
+                loadMoreBtn.className = "load-more-btn";
+                // 텍스트도 200개 단위에 맞게 수정
+                loadMoreBtn.innerHTML = `▼ 노래 200개 더보기 (${displayedCount}/${sortedSongs.length})`;
+                loadMoreBtn.onclick = () => {
+                    appendMoreSongs();
+                };
+                loadMoreContainer.appendChild(loadMoreBtn);
+            }
+
+            window.scrollTo({ top: currentScrollY, behavior: 'instant' });
         }
 
         function onSearchInput() {
             updateFilteredAndSorted();
-            renderAllSongs();
+            renderInitial();
         }
 
         function triggerSearch() {
             updateFilteredAndSorted();
-            renderAllSongs();
+            renderInitial();
         }
 
         loadData();
