@@ -593,7 +593,6 @@ async function verifyAndLoad() {
     }
 }
 
-// 📌 토스트 메시지만 띄우도록 수정된 saveDataToWorker 함수
 async function saveDataToWorker(fileType, contentObj, statusElementId) {
     const password = document.getElementById("admin-password").value;
     
@@ -620,7 +619,6 @@ async function saveDataToWorker(fileType, contentObj, statusElementId) {
     }
 }
 
-// 📌 alert이 제거된 saveSonglist 함수
 async function saveSonglist() {
     songData.notice = document.getElementById("notice-input").value;
     
@@ -640,7 +638,7 @@ function initSongsPanel() {
     renderTable();
 }
 
-// 📌 최신 곡이 맨 위로 오도록 역순 출력하는 renderTable 함수
+// 📌 렌더링 함수: 최신 곡이 맨 위로 오도록 역순 출력
 function renderTable() {
     if (!Array.isArray(songData.songs)) songData.songs = [];
     const badge = document.getElementById("song-count-badge");
@@ -652,7 +650,6 @@ function renderTable() {
     if (!tbody) return;
     tbody.innerHTML = "";
 
-    // 💡 push로 쌓인 데이터를 화면 맨 위부터 보여주기 위해 역순으로 출력합니다.
     const displaySongs = [...songData.songs].reverse();
 
     displaySongs.forEach((song, reverseIndex) => {
@@ -714,36 +711,29 @@ function closeEditModal() {
     document.getElementById("edit-modal").style.display = "none";
 }
 
-// 📌 unshift를 사용하여 맨 위에 새 노래를 추가하는 saveModalSong 함수
-function registerUnregisteredSong(index) {
-    const songToMove = fansongStatsData.unregisteredSongs[index];
+// 📌 새 노래 추가/수정 (새 노래는 push로 추가하여 상단에 노출되도록 처리)
+function saveModalSong() {
+    const index = parseInt(document.getElementById("edit-index").value);
+    const newSong = {
+        title: document.getElementById("modal-title-input").value.trim(),
+        artist: document.getElementById("modal-artist-input").value.trim(),
+        genre: document.getElementById("modal-genre-input").value.trim(),
+        limit: document.getElementById("modal-limit-input").value.trim(),
+        etc: document.getElementById("modal-etc-input").value.trim()
+    };
 
-    songData.songs.push({ // 👈 맨 뒤에 추가
-        title: songToMove.title,
-        artist: songToMove.artist || "",
-        genre: songToMove.genre || "", 
-        limit: songToMove.limit || "",
-        etc: songToMove.etc || ""
-    });
+    if (!newSong.title) { alert("노래 제목을 입력해주세요."); return; }
 
-    if (!Array.isArray(fansongStatsData.registeredSongs)) {
-        fansongStatsData.registeredSongs = [];
+    if (index === -1) {
+        songData.songs.push(newSong); // 👈 맨 뒤에 추가하여 화면 맨 위에 보임
+    } else {
+        songData.songs[index] = newSong;
     }
-    
-    fansongStatsData.registeredSongs.push({ // 👈 맨 뒤에 추가
-        title: songToMove.title,
-        artist: songToMove.artist || "",
-        limit: songToMove.limit || "",
-        dateTimes: songToMove.dateTimes || []
-    });
 
-    fansongStatsData.unregisteredSongs.splice(index, 1);
-
-    showToast("노래책 상단에 등록되었습니다!");
-    
-    openSungModal();
-    renderTable(); 
+    closeEditModal();
+    renderTable();
 }
+
 function deleteSong(index) {
     if (confirm(`정말 #${index + 1} 곡을 삭제하시겠습니까?`)) {
         songData.songs.splice(index, 1);
@@ -771,11 +761,10 @@ function importBatchSongs() {
     const lines = text.split("\n");
     let addedCount = 0;
 
-    for (let i = lines.length - 1; i >= 0; i--) {
-        const line = lines[i];
+    lines.forEach(line => {
         const cols = line.split("\t");
         if (cols.length >= 1 && cols[0].trim()) {
-            songData.songs.unshift({
+            songData.songs.push({
                 title: cols[0] ? cols[0].trim() : "",
                 artist: cols[1] ? cols[1].trim() : "",
                 genre: cols[2] ? cols[2].trim() : "",
@@ -784,10 +773,10 @@ function importBatchSongs() {
             });
             addedCount++;
         }
-    }
+    });
 
     if (addedCount > 0) {
-        showToast(`${addedCount}곡이 상단에 추가되었습니다!`);
+        showToast(`${addedCount}곡이 추가되었습니다!`);
         document.getElementById("batch-input").value = "";
         renderTable();
     } else {
@@ -832,7 +821,7 @@ function closeSungModal() {
 function registerUnregisteredSong(index) {
     const songToMove = fansongStatsData.unregisteredSongs[index];
 
-    songData.songs.unshift({
+    songData.songs.push({
         title: songToMove.title,
         artist: songToMove.artist || "",
         genre: songToMove.genre || "", 
@@ -844,7 +833,7 @@ function registerUnregisteredSong(index) {
         fansongStatsData.registeredSongs = [];
     }
     
-    fansongStatsData.registeredSongs.unshift({
+    fansongStatsData.registeredSongs.push({
         title: songToMove.title,
         artist: songToMove.artist || "",
         limit: songToMove.limit || "",
@@ -859,6 +848,7 @@ function registerUnregisteredSong(index) {
     renderTable(); 
 }
 
+// 📌 토스트 중복 방지 코드가 완벽히 적용된 showToast 함수
 function showToast(message) {
     let container = document.getElementById("toast-container");
     if (!container) {
@@ -867,7 +857,7 @@ function showToast(message) {
         document.body.appendChild(container);
     }
 
-    // 💡 이미 같은 내용의 토스트가 화면에 표시 중이라면 중복 생성하지 않고 리턴합니다.
+    // 동일한 메시지가 이미 떠 있으면 새로 만들지 않고 리턴
     const existingToasts = container.querySelectorAll(".toast-message");
     for (let t of existingToasts) {
         if (t.textContent === message) {
@@ -880,12 +870,10 @@ function showToast(message) {
     toast.textContent = message;
     container.appendChild(toast);
 
-    // 나타나는 효과
     setTimeout(() => {
         toast.classList.add("show");
     }, 10);
 
-    // 3초 후 사라지는 효과
     setTimeout(() => {
         toast.classList.remove("show");
         setTimeout(() => {
