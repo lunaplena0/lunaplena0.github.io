@@ -649,13 +649,18 @@ function renderTable() {
     if (!Array.isArray(songData.songs)) songData.songs = [];
     const badge = document.getElementById("song-count-badge");
     if (badge) badge.textContent = songData.songs.length;
+    
     const searchInput = document.getElementById("search-input");
     const keyword = searchInput ? searchInput.value.toLowerCase().trim() : "";
     const tbody = document.getElementById("song-table-body");
     if (!tbody) return;
     tbody.innerHTML = "";
 
-    [...songData.songs].reverse().forEach((song, reverseIndex) => {
+    // 💡 최신 곡이 맨 위로 보이게 하기 위해 원본 배열을 복사 후 뒤집어서 출력합니다.
+    const displaySongs = [...songData.songs].reverse();
+
+    displaySongs.forEach((song, reverseIndex) => {
+        // 원래 배열에서의 실제 인덱스를 계산 (수정/삭제 기능을 위해 필요)
         const originalIndex = songData.songs.length - 1 - reverseIndex;
 
         const title = (song.title || "").toLowerCase();
