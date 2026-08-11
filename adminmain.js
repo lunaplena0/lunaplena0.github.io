@@ -599,7 +599,7 @@ async function verifyAndLoad() {
 async function saveDataToWorker(fileType, contentObj, statusElementId) {
     const password = document.getElementById("admin-password").value;
     
-    // 💡 반영 시작할 때 토스트 메시지 표시
+    // 우측 하단 토스트 메시지 표시
     showToast("페이지에 반영 중...");
 
     try {
@@ -614,13 +614,13 @@ async function saveDataToWorker(fileType, contentObj, statusElementId) {
         });
         const result = await response.json();
         if (response.ok) {
-            // 💡 성공 시 토스트 메시지 표시
+            // 성공 시 토스트 메시지만 표시 (상단 텍스트 변경 로직 아예 제거)
             showToast("성공적으로 업데이트되었습니다! (1~2분 뒤 반영)");
         } else {
             throw new Error(result.error || "비밀번호 오류");
         }
     } catch (error) {
-        // 💡 실패 시 토스트 메시지 표시
+        // 실패 시 토스트 메시지만 표시
         showToast("실패: " + error.message);
     }
 }
