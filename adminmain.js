@@ -15,9 +15,9 @@ let mainpageData = {
     menuItems: []
 };
 
-let fansongStatsData = { unregisteredSongs: [], registeredSongs: [] };
+let fansongStatsData = { unregisteredSongs: [], registeredSongs: [], vodSources: [] };
 
-// 📌 [여기!] escapeHtml 함수를 위로 끌어올려 줍니다.
+// 📌 escapeHtml 함수
 function escapeHtml(str) {
     return (str || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
 }
@@ -346,9 +346,9 @@ async function downloadAllBackupData() {
     }
 
     if (successCount > 0) {
-        alert(`총 ${successCount}개의 파일 백업 다운로드가 완료되었습니다!`);
+        showToast(`총 ${successCount}개의 파일 백업 다운로드가 완료되었습니다!`);
     } else {
-        alert("데이터 다운로드 중 오류가 발생했습니다. 브라우저 설정을 확인해주세요.");
+        showToast("데이터 다운로드 중 오류가 발생했습니다.");
     }
 }
 
@@ -362,9 +362,9 @@ function copyGuideCode(type) {
     }
 
     navigator.clipboard.writeText(code).then(() => {
-        alert("코드가 클립보드에 복사되었습니다!");
+        showToast("코드가 클립보드에 복사되었습니다!");
     }).catch(err => {
-        alert("복사 실패: " + err);
+        showToast("복사 실패: " + err);
     });
 }
 
@@ -411,7 +411,6 @@ function initMainPagePanel(retryCount = 0) {
     const logoTextInput = document.getElementById("mp-logo-text");
     const mainContentInput = document.getElementById("mp-main-content");
     const memoNoticeBox = document.getElementById("mp-memo-notice-box");
-    const container = document.getElementById("mp-menu-rows-container");
 
     if (navBgInput) navBgInput.value = mainpageData.navBgColor || "";
     if (logoTextInput) logoTextInput.value = mainpageData.logoText || "";
@@ -520,7 +519,6 @@ async function verifyAndLoad() {
 
         if (statsRes.ok) {
             const data = await statsRes.json() || {};
-            // 💡 vodSources를 안전하게 불러오도록 수정
             fansongStatsData = {
                 vodSources: Array.isArray(data.vodSources) ? data.vodSources : [],
                 unregisteredSongs: Array.isArray(data.unregisteredSongs) ? data.unregisteredSongs : [],
@@ -564,7 +562,6 @@ async function verifyAndLoad() {
         }
         if (mainpageRes.ok) {
             const data = await mainpageRes.json() || {};
-            
             mainpageData = {
                 navBgColor: data.navBgColor || "rgba(3, 4, 94, 0.9)",
                 logoText: data.logoText || "BABABI FAN ARCHIVE",
@@ -597,9 +594,6 @@ async function verifyAndLoad() {
 }
 
 async function saveDataToWorker(fileType, contentObj, statusElementId) {
-    const password = document.getElementById("admin-password").value;
-    
-    // 우측 하단 토스트 메시지 표시
     showToast("페이지에 반영 중...");
 
     try {
@@ -607,20 +601,18 @@ async function saveDataToWorker(fileType, contentObj, statusElementId) {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-                password: password,
+                password: document.getElementById("admin-password").value,
                 fileType: fileType,
                 content: contentObj
             })
         });
         const result = await response.json();
         if (response.ok) {
-            // 성공 시 토스트 메시지만 표시 (상단 텍스트 변경 로직 아예 제거)
             showToast("성공적으로 업데이트되었습니다! (1~2분 뒤 반영)");
         } else {
             throw new Error(result.error || "비밀번호 오류");
         }
     } catch (error) {
-        // 실패 시 토스트 메시지만 표시
         showToast("실패: " + error.message);
     }
 }
@@ -630,7 +622,6 @@ async function saveSonglist() {
     
     await saveDataToWorker("songlist", songData, "status");
     
-    // 💡 저장할 때 vodSources가 빠지지 않도록 구조를 명확히 지정
     const statsPayload = {
         vodSources: Array.isArray(fansongStatsData.vodSources) ? fansongStatsData.vodSources : [],
         registeredSongs: Array.isArray(fansongStatsData.registeredSongs) ? fansongStatsData.registeredSongs : [],
@@ -639,12 +630,13 @@ async function saveSonglist() {
 
     await saveDataToWorker("fansongstats", statsPayload, "status");
 }
-// 📌 누락되었던 노래책 관련 기능 함수들 추가
+
 function initSongsPanel() {
     document.getElementById("notice-input").value = songData.notice || "";
     renderTable();
 }
 
+// 📌 렌더링 함수: 신규 곡이 항상 맨 위에 오도록 unshift 처리된 배열을 순서대로 출력
 function renderTable() {
     if (!Array.isArray(songData.songs)) songData.songs = [];
     const badge = document.getElementById("song-count-badge");
@@ -656,13 +648,7 @@ function renderTable() {
     if (!tbody) return;
     tbody.innerHTML = "";
 
-    // 💡 최신 곡이 맨 위로 보이게 하기 위해 원본 배열을 복사 후 뒤집어서 출력합니다.
-    const displaySongs = [...songData.songs].reverse();
-
-    displaySongs.forEach((song, reverseIndex) => {
-        // 원래 배열에서의 실제 인덱스를 계산 (수정/삭제 기능을 위해 필요)
-        const originalIndex = songData.songs.length - 1 - reverseIndex;
-
+    songData.songs.forEach((song, index) => {
         const title = (song.title || "").toLowerCase();
         const artist = (song.artist || "").toLowerCase();
         const genre = (song.genre || "").toLowerCase();
@@ -671,14 +657,14 @@ function renderTable() {
 
         const tr = document.createElement("tr");
         tr.innerHTML = `
-            <td style="color: #64748b; font-weight: bold;">#${originalIndex + 1}</td>
+            <td style="color: #64748b; font-weight: bold;">#${index + 1}</td>
             <td style="font-weight: 600; color: #0f172a;">${escapeHtml(song.title || '제목 없음')}</td>
             <td>${escapeHtml(song.artist || '-')}</td>
             <td>${escapeHtml(song.genre || '-')}</td>
             <td style="font-size: 12px; color: #475569;">${escapeHtml(song.limit || song.etc ? (song.limit + ' ' + song.etc).trim() : '-')}</td>
             <td style="text-align: center;">
-                <button class="edit-btn" onclick="openEditModal(${originalIndex})">수정</button>
-                <button class="delete-btn" onclick="deleteSong(${originalIndex})">삭제</button>
+                <button class="edit-btn" onclick="openEditModal(${index})">수정</button>
+                <button class="delete-btn" onclick="deleteSong(${index})">삭제</button>
             </td>
         `;
         tbody.appendChild(tr);
@@ -719,6 +705,7 @@ function closeEditModal() {
     document.getElementById("edit-modal").style.display = "none";
 }
 
+// 📌 새 노래 추가/수정 (신규 추가는 무조건 unshift로 맨 앞에 배치)
 function saveModalSong() {
     const index = parseInt(document.getElementById("edit-index").value);
     const newSong = {
@@ -732,7 +719,7 @@ function saveModalSong() {
     if (!newSong.title) { alert("노래 제목을 입력해주세요."); return; }
 
     if (index === -1) {
-        songData.songs.unshift(newSong);
+        songData.songs.unshift(newSong); // 👈 맨 앞에 추가
     } else {
         songData.songs[index] = newSong;
     }
@@ -766,34 +753,32 @@ function importBatchSongs() {
     if (!text) { alert("붙여넣은 내용이 없습니다."); return; }
 
     const lines = text.split("\n");
-    let addedCount = 0;
+    let addedSongs = [];
 
-    // 역순으로 순회하거나 unshift를 사용하여 상단에 차례대로 쌓이게 처리
-    for (let i = lines.length - 1; i >= 0; i--) {
-        const line = lines[i];
+    lines.forEach(line => {
         const cols = line.split("\t");
         if (cols.length >= 1 && cols[0].trim()) {
-            songData.songs.unshift({
+            addedSongs.push({
                 title: cols[0] ? cols[0].trim() : "",
                 artist: cols[1] ? cols[1].trim() : "",
                 genre: cols[2] ? cols[2].trim() : "",
                 limit: cols[3] ? cols[3].trim() : "",
                 etc: cols[4] ? cols[4].trim() : ""
             });
-            addedCount++;
         }
-    }
+    });
 
-    if (addedCount > 0) {
-        alert(`${addedCount}곡이 성공적으로 추가되었습니다! (하단의 최종 반영 버튼을 눌러주세요)`);
+    if (addedSongs.length > 0) {
+        songData.songs = [...addedSongs.reverse(), ...songData.songs];
+        
+        showToast(`${addedSongs.length}곡이 추가되었습니다!`);
         document.getElementById("batch-input").value = "";
         renderTable();
     } else {
-        alert("가져올 수 있는 유효한 데이터가 없습니다. 구글 시트에서 올바르게 복사했는지 확인해주세요.");
+        alert("가져올 수 있는 유효한 데이터가 없습니다.");
     }
 }
 
-// 📌 불렀던 곡 등록 모달 열기 및 등록 처리
 function openSungModal() {
     const modal = document.getElementById("sung-modal");
     const container = document.getElementById("sung-modal-input");
@@ -831,7 +816,6 @@ function closeSungModal() {
 function registerUnregisteredSong(index) {
     const songToMove = fansongStatsData.unregisteredSongs[index];
 
-    // 1. songData.songs의 맨 위에 추가
     songData.songs.unshift({
         title: songToMove.title,
         artist: songToMove.artist || "",
@@ -840,7 +824,6 @@ function registerUnregisteredSong(index) {
         etc: songToMove.etc || ""
     });
 
-    // 2. fansongStatsData.registeredSongs의 맨 위에 추가
     if (!Array.isArray(fansongStatsData.registeredSongs)) {
         fansongStatsData.registeredSongs = [];
     }
@@ -852,40 +835,47 @@ function registerUnregisteredSong(index) {
         dateTimes: songToMove.dateTimes || []
     });
 
-    // 3. unregisteredSongs에서 삭제
     fansongStatsData.unregisteredSongs.splice(index, 1);
 
-    // 💡 alert 대신 우측 하단 토스트 메시지 호출
-    showToast("노래책에 등록되었습니다! (하단의 '페이지에 변경사항 반영하기'를 눌러주세요)");
+    showToast("노래책 상단에 등록되었습니다!");
     
     openSungModal();
     renderTable(); 
 }
 
+// 📌 토스트 중복 출력 원천 차단 함수
 function showToast(message) {
     let container = document.getElementById("toast-container");
     if (!container) {
         container = document.createElement("div");
         container.id = "toast-container";
+        container.style.cssText = "position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px;";
         document.body.appendChild(container);
+    }
+
+    // 이미 같은 메시지의 토스트가 떠 있다면 새로 만들지 않음
+    const existingToasts = container.querySelectorAll(".toast-message");
+    for (let t of existingToasts) {
+        if (t.textContent === message) {
+            return; 
+        }
     }
 
     const toast = document.createElement("div");
     toast.className = "toast-message";
     toast.textContent = message;
+    toast.style.cssText = "background: #1e293b; color: #fff; padding: 12px 20px; border-radius: 6px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); opacity: 0; transition: opacity 0.3s ease; font-size: 14px;";
+    
     container.appendChild(toast);
 
-    // 나타나는 효과
     setTimeout(() => {
-        toast.classList.add("show");
+        toast.style.opacity = "1";
     }, 10);
 
-    // 3초 후 사라지는 효과
     setTimeout(() => {
-        toast.classList.remove("show");
+        toast.style.opacity = "0";
         setTimeout(() => {
             toast.remove();
         }, 300);
     }, 3000);
 }
-
