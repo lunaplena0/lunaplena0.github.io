@@ -829,14 +829,34 @@
                     }
                 });
 
-                const sortedRecent = Object.entries(recentSongCounts).sort((a, b) => b[1] - a[1]);
-                if (sortedRecent.length > 0) {
-                    const [topRecentTitle, topRecentCount] = sortedRecent[0];
-                    document.getElementById("recentTopSongsStat").innerHTML = `
-                        <span class="stat-clickable-link" onclick="searchByKeyword('${topRecentTitle}')">
-                            🎵 ${topRecentTitle} (${topRecentCount}회)
-                        </span>
-                    `;
+                const recentCountGroups = {};
+                for (const [title, count] of Object.entries(recentSongCounts)) {
+                    if (!recentCountGroups[count]) recentCountGroups[count] = [];
+                    recentCountGroups[count].push(title);
+                }
+
+                const sortedRecentCounts = Object.keys(recentCountGroups).map(Number).sort((a, b) => b - a);
+
+                if (sortedRecentCounts.length > 0) {
+                    const maxRecentCount = sortedRecentCounts[0];
+                    const topRecentTitles = recentCountGroups[maxRecentCount];
+
+                    if (topRecentTitles.length === 1) {
+                        document.getElementById("recentTopSongsStat").innerHTML = `
+                            <span class="stat-clickable-link" onclick="searchByKeyword('${topRecentTitles[0]}')">
+                                🎵 ${topRecentTitles[0]} (${maxRecentCount}회)
+                            </span>
+                        `;
+                    } else {
+                        const titlesLinks = topRecentTitles.map(title => `
+                            <span class="stat-clickable-link" onclick="searchByKeyword('${title}')">
+                                ${title}
+                            </span>
+                        `).join(" / ");
+                        document.getElementById("recentTopSongsStat").innerHTML = `
+                            <div>🎵 ${titlesLinks} (각 ${maxRecentCount}회, 총 ${topRecentTitles.length}곡)</div>
+                        `;
+                    }
                 } else {
                     document.getElementById("recentTopSongsStat").textContent = "최근 30일 기록 없음";
                 }
