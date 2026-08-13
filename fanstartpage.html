@@ -17,49 +17,50 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
-        /* 메인 콘텐츠 영역 (3분활 레이아웃: 좌측 2열, 우측 1열) */
+        /* 메인 콘텐츠 영역: 좌우 2열 구조 (왼쪽: 이미지 및 하단 상자, 오른쪽: 프로필 정보 및 타임라인) */
         .ocean-profile-container {
             position: relative;
             width: 100%;
-            max-width: 1250px;
+            max-width: 1200px;
             flex: 1;
             margin: 0 auto;
-            display: grid;
-            grid-template-columns: 520px 1fr;
-            gap: 25px;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center; 
+            gap: 20px; 
             padding: 20px;
             box-sizing: border-box;
-            background: transparent;
-            align-items: start;
+            background: transparent; 
         }
 
-        /* 왼쪽 열 컨테이너 (위(이미지), 아래(빈 상자 2개) 비율 4:1) */
+        /* 왼쪽 열 영역 (이미지와 하단 빈 상자들을 세로로 배치) */
         .profile-left-column {
             display: flex;
             flex-direction: column;
             gap: 15px;
-            width: 100%;
+            flex-shrink: 0;
+            margin-right: -120px; /* 기존 이미지 오버랩 스타일 유지 */
+            z-index: 3;
         }
 
-        /* 왼쪽 위: 이미지 영역 (4 비율) */
+        /* 왼쪽 위: 기존 이미지 영역 스타일 그대로 적용 */
         .profile-main-gif {
             position: relative;
-            width: 100%;
-            height: 480px;
+            width: 600px; 
+            height: 480px; /* 4:1 비율 중 4에 해당하는 높이 조정 */
             background-size: contain;
             background-position: center;
             background-repeat: no-repeat;
             
             /* 마스크 효과 */
             -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 15%, rgba(0,0,0,1) 85%, rgba(0,0,0,0) 100%),
-                                linear-gradient(to right, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 15%, rgba(0,0,0,1) 85%, rgba(0,0,0,0) 100%);
+                                linear-gradient(to right, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 15%, rgba(0,0,0,1) 60%, rgba(0,0,0,0) 100%);
             -webkit-mask-composite: intersect;
             mask-image: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 15%, rgba(0,0,0,1) 85%, rgba(0,0,0,0) 100%),
-                        linear-gradient(to right, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 15%, rgba(0,0,0,1) 85%, rgba(0,0,0,0) 100%);
+                        linear-gradient(to right, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 15%, rgba(0,0,0,1) 60%, rgba(0,0,0,0) 100%);
             mask-composite: intersect;
 
             filter: drop-shadow(0 0 35px rgba(0, 119, 190, 0.5));
-            z-index: 3;
 
             /* 애니메이션 설정 */
             opacity: 0;
@@ -73,12 +74,13 @@
             transform: scale(1);
         }
 
-        /* 왼쪽 아래: 비어있는 상자 2개를 나란히 배치할 컨테이너 (1 비율) */
+        /* 왼쪽 아래: 비어있는 상자 2개를 나란히 배치 (높이를 타임라인 하단 라인과 일치하도록 120px로 설정) */
         .profile-sub-boxes {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            width: 100%;
+            gap: 15px;
+            width: 600px;
+            box-sizing: border-box;
         }
 
         .empty-sub-box {
@@ -86,25 +88,27 @@
             backdrop-filter: blur(10px);
             border: 1px solid rgba(0, 119, 190, 0.2);
             border-radius: 12px;
-            height: 105px;
+            height: 120px;
             box-shadow: 0 4px 15px rgba(0, 119, 190, 0.08);
             box-sizing: border-box;
         }
 
-        /* 오른쪽 프로필 카드 및 타임라인 영역 */
+        /* 오른쪽 프로필 카드 영역 */
         .profile-info-card {
             position: relative;
             z-index: 1;
             background: transparent; 
             border: none; 
             box-shadow: none; 
+            max-width: 600px;
             width: 100%;
             display: flex;
             flex-direction: column;
             gap: 15px;
             color: #2b2d42; 
             box-sizing: border-box;
-            padding: 10px 0;
+            padding: 20px;
+            padding-left: 140px; /* 오버랩된 이미지 영역만큼 여백 확보 */
 
             /* 애니메이션 설정 */
             opacity: 0;
@@ -122,9 +126,9 @@
         .profile-header-top {
             display: flex;
             flex-direction: column;
-            align-items: flex-start;
+            align-items: center;
             width: 100%;
-            text-align: left;
+            text-align: center;
         }
 
         .profile-name {
@@ -145,7 +149,7 @@
             padding: 0;
             border: none;
             font-weight: 600;
-            text-align: left;
+            text-align: center;
             text-shadow: 0 0 10px rgba(255, 255, 255, 1), 0 0 15px rgba(255, 255, 255, 0.9);
         }
 
@@ -186,13 +190,13 @@
             box-shadow: 0 6px 16px rgba(0, 119, 190, 0.15);
         }
 
-        /* 타임라인 영역 스타일 (높이 확장) */
+        /* 타임라인 영역 스타일 (하단 라인이 왼쪽 아래 상자와 수평을 이루도록 높이 245px 유지) */
         .timeline-container {
             background: rgba(255, 255, 255, 1);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(0, 119, 190, 0.2);
             border-radius: 12px;
-            padding: 15px 18px;
+            padding: 12px 18px;
             box-shadow: 0 4px 15px rgba(0, 119, 190, 0.08);
             box-sizing: border-box;
             width: 100%;
@@ -200,10 +204,10 @@
             display: flex;
             flex-direction: column;
             
-            /* 높이가 흔들리지 않도록 고정 (우측 공간에 맞게 확장) */
-            height: 355px; 
-            min-height: 355px;
-            max-height: 355px;
+            /* 높이가 흔들리지 않도록 고정 */
+            height: 245px; 
+            min-height: 245px;
+            max-height: 245px;
         }
 
         .timeline-header-wrap {
@@ -341,19 +345,25 @@
         /* 모바일 반응형 */
         @media (max-width: 768px) {
             .ocean-profile-container {
-                grid-template-columns: 1fr;
+                flex-direction: column;
                 padding: 8px;
-                gap: 15px;
+                gap: 10px;
+            }
+            .profile-left-column {
+                margin-right: 0;
+                width: 100%;
+                align-items: center;
             }
             .profile-main-gif {
-                height: 300px;
+                width: 200px;
+                height: 200px;
             }
-            .profile-header-top {
-                align-items: center;
-                text-align: center;
+            .profile-sub-boxes {
+                width: 100%;
             }
-            .profile-catchphrase {
-                text-align: center;
+            .profile-info-card {
+                padding: 10px;
+                padding-left: 10px;
             }
             .timeline-container {
                 height: 245px;
@@ -366,7 +376,7 @@
 <body>
 
     <div class="ocean-profile-container">
-        <!-- 왼쪽 열: 위쪽 이미지 (4 비율) + 아래쪽 빈 상자 2개 (1 비율) -->
+        <!-- 왼쪽 열: 위쪽 이미지 (넓은 공간) + 아래쪽 빈 상자 2개 (좁은 공간, 타임라인 하단에 맞춤) -->
         <div class="profile-left-column">
             <div class="profile-main-gif" id="profile-gif"></div>
             <div class="profile-sub-boxes">
