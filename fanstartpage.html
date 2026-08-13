@@ -45,16 +45,15 @@
             z-index: 3;
         }
 
-        /* 이미지 영역 (상자 위치는 고정하되, 내부 크기와 배경 표현을 키움) */
+        /* 이미지 영역 */
         .profile-main-gif {
             position: relative;
             width: 600px; 
             height: 340px; 
-            background-size: cover; /* 이미지가 영역을 더 꽉 채우도록 변경 */
-            background-position: center; /* 중심을 기준으로 확대 */
+            background-size: cover; 
+            background-position: center; 
             background-repeat: no-repeat;
             
-            /* 테두리 부드러운 페이드아웃 마스크 */
             -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 15%, rgba(0,0,0,1) 60%, rgba(0,0,0,0.5) 85%, rgba(0,0,0,0) 100%),
                                 linear-gradient(to right, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 15%, rgba(0,0,0,1) 65%, rgba(0,0,0,0.5) 88%, rgba(0,0,0,0) 100%);
             -webkit-mask-composite: intersect;
@@ -64,13 +63,11 @@
 
             filter: drop-shadow(0 0 35px rgba(0, 119, 190, 0.5));
 
-            /* 애니메이션 설정 */
             opacity: 0;
             transform: scale(1);
             transition: opacity 0.8s ease, transform 0.8s ease;
         }
 
-        /* 이미지 로딩 완료 시 표시되는 클래스 */
         .profile-main-gif.loaded {
             opacity: 1;
             transform: scale(1);
@@ -140,7 +137,7 @@
             text-overflow: ellipsis;
         }
 
-        /* 오른쪽 영역 (카드 영역) - 총높이 600px 고정 및 상하 공간 배분 */
+        /* 오른쪽 영역 (카드 영역) - 상단 요소를 아래로 내리기 위해 justify-content를 flex-start로 변경하고 간격 조정 */
         .profile-info-card {
             position: relative;
             z-index: 1;
@@ -151,7 +148,8 @@
             width: 100%;
             display: flex;
             flex-direction: column;
-            justify-content: space-between; 
+            justify-content: flex-start; /* 위쪽 정렬로 변경하여 내부 요소를 아래로 배치 가능하게 함 */
+            gap: 25px; /* 헤더 그룹과 타임라인 사이의 간격 */
             box-sizing: border-box;
             padding: 0;
 
@@ -159,13 +157,11 @@
             min-height: 600px;
             max-height: 600px;
 
-            /* 애니메이션 설정 */
             opacity: 0;
             transform: translateY(15px);
             transition: opacity 0.8s ease, transform 0.8s ease;
         }
 
-        /* 텍스트 로딩 완료 시 표시되는 클래스 */
         .profile-info-card.loaded {
             opacity: 1;
             transform: translateY(0);
@@ -175,9 +171,9 @@
             display: flex;
             flex-direction: column;
             gap: 15px;
+            padding-top: 45px; /* 빨간색 영역(이름/캐치프레이즈)을 하늘색 영역 위치만큼 아래로 내림 */
         }
 
-        /* 프로필 텍스트 스타일들 */
         .profile-header-top {
             display: flex;
             flex-direction: column;
@@ -427,6 +423,10 @@
                 min-height: unset;
                 max-height: unset;
                 padding: 10px;
+                gap: 15px;
+            }
+            .profile-header-group {
+                padding-top: 10px;
             }
             .timeline-container {
                 height: 245px;
@@ -439,7 +439,7 @@
 <body>
 
     <div class="ocean-profile-container">
-        <!-- 왼쪽 영역 (이미지 영역 + 하단 초록색 상자 2개 영역) -->
+        <!-- 왼쪽 영역 -->
         <div class="profile-left-wrap">
             <div class="profile-main-gif" id="profile-gif"></div>
             <div class="profile-sub-boxes">
@@ -458,7 +458,7 @@
             </div>
         </div>
 
-        <!-- 오른쪽 영역 (카드 영역: 이름, 캐치프레이즈, 링크, 타임라인) -->
+        <!-- 오른쪽 영역 -->
         <div class="profile-info-card" id="profile-card">
             <div class="profile-header-group">
                 <div class="profile-header-top">
