@@ -17,43 +17,49 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
-        /* 메인 콘텐츠 영역 */
+        /* 메인 콘텐츠 영역 (3분활 레이아웃: 좌측 2열, 우측 1열) */
         .ocean-profile-container {
             position: relative;
             width: 100%;
-            max-width: 1200px;
+            max-width: 1250px;
             flex: 1;
             margin: 0 auto;
-            display: flex;
-            align-items: center;
-            justify-content: center; 
-            gap: 20px; 
+            display: grid;
+            grid-template-columns: 520px 1fr;
+            gap: 25px;
             padding: 20px;
             box-sizing: border-box;
-            background: transparent; 
+            background: transparent;
+            align-items: start;
         }
 
-        /* 왼쪽 이미지 영역 기본 스타일 (로딩 전 투명) */
+        /* 왼쪽 열 컨테이너 (위(이미지), 아래(빈 상자 2개) 비율 4:1) */
+        .profile-left-column {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 100%;
+        }
+
+        /* 왼쪽 위: 이미지 영역 (4 비율) */
         .profile-main-gif {
             position: relative;
-            width: 600px; 
-            height: 600px;
+            width: 100%;
+            height: 480px;
             background-size: contain;
             background-position: center;
             background-repeat: no-repeat;
             
             /* 마스크 효과 */
             -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 15%, rgba(0,0,0,1) 85%, rgba(0,0,0,0) 100%),
-                                linear-gradient(to right, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 15%, rgba(0,0,0,1) 60%, rgba(0,0,0,0) 100%);
+                                linear-gradient(to right, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 15%, rgba(0,0,0,1) 85%, rgba(0,0,0,0) 100%);
             -webkit-mask-composite: intersect;
             mask-image: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 15%, rgba(0,0,0,1) 85%, rgba(0,0,0,0) 100%),
-                        linear-gradient(to right, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 15%, rgba(0,0,0,1) 60%, rgba(0,0,0,0) 100%);
+                        linear-gradient(to right, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 15%, rgba(0,0,0,1) 85%, rgba(0,0,0,0) 100%);
             mask-composite: intersect;
 
             filter: drop-shadow(0 0 35px rgba(0, 119, 190, 0.5));
             z-index: 3;
-            flex-shrink: 0;
-            margin-right: -120px;
 
             /* 애니메이션 설정 */
             opacity: 0;
@@ -67,21 +73,38 @@
             transform: scale(1);
         }
 
-        /* 오른쪽 프로필 카드 영역 */
+        /* 왼쪽 아래: 비어있는 상자 2개를 나란히 배치할 컨테이너 (1 비율) */
+        .profile-sub-boxes {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            width: 100%;
+        }
+
+        .empty-sub-box {
+            background: rgba(255, 255, 255, 1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 119, 190, 0.2);
+            border-radius: 12px;
+            height: 105px;
+            box-shadow: 0 4px 15px rgba(0, 119, 190, 0.08);
+            box-sizing: border-box;
+        }
+
+        /* 오른쪽 프로필 카드 및 타임라인 영역 */
         .profile-info-card {
             position: relative;
             z-index: 1;
             background: transparent; 
             border: none; 
             box-shadow: none; 
-            max-width: 600px;
             width: 100%;
             display: flex;
             flex-direction: column;
             gap: 15px;
             color: #2b2d42; 
             box-sizing: border-box;
-            padding: 20px;
+            padding: 10px 0;
 
             /* 애니메이션 설정 */
             opacity: 0;
@@ -99,9 +122,9 @@
         .profile-header-top {
             display: flex;
             flex-direction: column;
-            align-items: center;
+            align-items: flex-start;
             width: 100%;
-            text-align: center;
+            text-align: left;
         }
 
         .profile-name {
@@ -122,7 +145,7 @@
             padding: 0;
             border: none;
             font-weight: 600;
-            text-align: center;
+            text-align: left;
             text-shadow: 0 0 10px rgba(255, 255, 255, 1), 0 0 15px rgba(255, 255, 255, 0.9);
         }
 
@@ -163,77 +186,13 @@
             box-shadow: 0 6px 16px rgba(0, 119, 190, 0.15);
         }
 
-        /* 하단 공지 및 VOD 섹션 스타일 */
-        .profile-widgets-container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            width: 100%;
-            box-sizing: border-box;
-        }
-
-        .widget-box {
-            background: rgba(255, 255, 255, 1);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(0, 119, 190, 0.2);
-            border-radius: 12px;
-            padding: 12px 15px;
-            box-shadow: 0 4px 15px rgba(0, 119, 190, 0.08);
-            box-sizing: border-box;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            text-shadow: none;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            text-decoration: none;
-            color: inherit;
-            
-            height: 75px;
-            min-height: 75px;
-            max-height: 75px;
-            overflow: hidden;
-        }
-
-        .widget-box:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0, 119, 190, 0.15);
-        }
-
-        .widget-title {
-            font-size: 13px;
-            font-weight: 800;
-            color: #0077b6;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            margin: 0;
-        }
-
-        .widget-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
-        .widget-item {
-            font-size: 12px;
-            color: #334155;
-            line-height: 1.3;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-       /* 타임라인 영역 스타일 (항상 5개 크기 고정) */
+        /* 타임라인 영역 스타일 (높이 확장) */
         .timeline-container {
             background: rgba(255, 255, 255, 1);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(0, 119, 190, 0.2);
             border-radius: 12px;
-            padding: 12px 18px; /* 패딩을 약간 슬림하게 조정 */
+            padding: 15px 18px;
             box-shadow: 0 4px 15px rgba(0, 119, 190, 0.08);
             box-sizing: border-box;
             width: 100%;
@@ -241,17 +200,17 @@
             display: flex;
             flex-direction: column;
             
-            /* 높이가 흔들리지 않도록 고정 */
-            height: 245px; 
-            min-height: 245px;
-            max-height: 245px;
+            /* 높이가 흔들리지 않도록 고정 (우측 공간에 맞게 확장) */
+            height: 355px; 
+            min-height: 355px;
+            max-height: 355px;
         }
 
         .timeline-header-wrap {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 10px; /* 여백 축소 */
+            margin-bottom: 10px;
             flex-shrink: 0;
         }
 
@@ -271,7 +230,6 @@
             gap: 5px;
         }
 
-        /* 타임라인 페이지 범위 카운터 (예: 1-5 / 12) */
         .timeline-counter {
             font-size: 11.5px;
             font-weight: 700;
@@ -281,7 +239,6 @@
             border-radius: 4px;
         }
 
-        /* 상하 화살표 컨트롤러 버튼들 */
         .timeline-nav-btns {
             display: flex;
             gap: 4px;
@@ -320,13 +277,12 @@
             position: relative;
             display: flex;
             flex-direction: column;
-            gap: 6px; /* 아이템 간격 축소 */
+            gap: 6px;
             flex: 1;
-            overflow: hidden; /* 넘치는 내용 숨김 방지 */
-            justify-content: space-between; /* 5개가 공간을 균등하게 채우도록 배치 */
+            overflow: hidden;
+            justify-content: space-between;
         }
 
-        /* 왼쪽 타임라인 세로줄 */
         .timeline-list::before {
             content: '';
             position: absolute;
@@ -339,7 +295,7 @@
 
         .timeline-item {
             position: relative;
-            font-size: 12px; /* 글자 크기 미세 조정 */
+            font-size: 12px;
             color: #1e293b;
             display: none; 
             flex-direction: column; 
@@ -347,7 +303,6 @@
             padding-left: 14px;
         }
 
-        /* 타임라인 점(마커) */
         .timeline-item::before {
             content: '';
             position: absolute;
@@ -365,7 +320,6 @@
             display: flex; 
         }
 
-        /* 1번째 줄: 날짜 영역 */
         .timeline-date {
             font-weight: 700;
             color: #0077b6;
@@ -374,38 +328,37 @@
             line-height: 1.1;
         }
 
-        /* 2번째 줄: 내용 영역 */
         .timeline-text {
             word-break: break-all;
             line-height: 1.3;
             color: #334155;
             display: -webkit-box;
-            -webkit-line-clamp: 1; /* 내용이 길어져도 1줄로 제한하여 높이 고정 유지 */
+            -webkit-line-clamp: 1;
             -webkit-box-orient: vertical;
             overflow: hidden;
         }
+
         /* 모바일 반응형 */
         @media (max-width: 768px) {
             .ocean-profile-container {
-                flex-direction: column;
+                grid-template-columns: 1fr;
                 padding: 8px;
-                gap: 10px;
+                gap: 15px;
             }
             .profile-main-gif {
-                width: 200px;
-                height: 200px;
-                margin-right: 0;
+                height: 300px;
             }
-            .profile-info-card {
-                padding: 10px;
+            .profile-header-top {
+                align-items: center;
+                text-align: center;
             }
-            .profile-widgets-container {
-                grid-template-columns: 1fr;
+            .profile-catchphrase {
+                text-align: center;
             }
-            .widget-box {
-                height: auto;
-                min-height: unset;
-                max-height: unset;
+            .timeline-container {
+                height: 245px;
+                min-height: 245px;
+                max-height: 245px;
             }
         }
     </style>
@@ -413,38 +366,28 @@
 <body>
 
     <div class="ocean-profile-container">
-        <!-- 왼쪽 이미지 영역 -->
-        <div class="profile-main-gif" id="profile-gif"></div>
+        <!-- 왼쪽 열: 위쪽 이미지 (4 비율) + 아래쪽 빈 상자 2개 (1 비율) -->
+        <div class="profile-left-column">
+            <div class="profile-main-gif" id="profile-gif"></div>
+            <div class="profile-sub-boxes">
+                <div class="empty-sub-box"></div>
+                <div class="empty-sub-box"></div>
+            </div>
+        </div>
 
-        <!-- 오른쪽 프로필 카드 -->
+        <!-- 오른쪽 프로필 카드 및 타임라인 영역 -->
         <div class="profile-info-card" id="profile-card">
             <div class="profile-header-top">
                 <div class="profile-name" id="view-name">로딩 중...</div>
                 <div class="profile-catchphrase" id="view-catchphrase"></div>
             </div>
             
-            <!-- 프로필 메시지 바로 아래 관련 링크 상자 영역 -->
+            <!-- 관련 링크 상자 영역 -->
             <div class="profile-links-container" id="profile-links-container">
                 <!-- 동적으로 링크 상자들이 생성됩니다 -->
             </div>
 
-            <!-- 하단 최근 공지 / 최근 VOD 리스트 영역 -->
-            <div class="profile-widgets-container">
-                <a href="#" id="widget-notice-link" class="widget-box" target="_blank">
-                    <h4 class="widget-title">📢 공지</h4>
-                    <ul class="widget-list" id="widget-notice-list">
-                        <li class="widget-item">등록된 공지가 없습니다.</li>
-                    </ul>
-                </a>
-                <a href="#" id="widget-vod-link" class="widget-box" target="_blank">
-                    <h4 class="widget-title">🎬 VOD</h4>
-                    <ul class="widget-list" id="widget-vod-list">
-                        <li class="widget-item">등록된 VOD가 없습니다.</li>
-                    </ul>
-                </a>
-            </div>
-
-            <!-- 공지·VOD 아래에 위치하는 타임라인 영역 (5개 단위 화살표 네비게이션) -->
+            <!-- 타임라인 영역 -->
             <div class="timeline-container">
                 <div class="timeline-header-wrap">
                     <div class="timeline-title-area">
@@ -468,8 +411,8 @@
 
     <script>
         const WORKER_URL = "https://badabi-api.dalkkumli054.workers.dev";
-        let currentPage = 0; // 현재 페이지 인덱스 (0페이지 = 1~5번째 항목)
-        const pageSize = 5;  // 한 번에 보여줄 개수 5개
+        let currentPage = 0; 
+        const pageSize = 5;  
         let allTimelineData = [];
 
         function preloadImage(url) {
@@ -503,14 +446,12 @@
             const totalCount = allTimelineData.length;
             const maxPage = Math.ceil(totalCount / pageSize) - 1;
 
-            // 페이지 범위 안전장치
             if (currentPage < 0) currentPage = 0;
             if (currentPage > maxPage) currentPage = maxPage;
 
             const startIndex = currentPage * pageSize;
             const endIndex = Math.min(startIndex + pageSize, totalCount);
 
-            // 5개 단위로 리스트 생성
             timelineListEl.innerHTML = allTimelineData.map((item, index) => {
                 const isShow = (index >= startIndex && index < endIndex) ? "show" : "";
                 return `
@@ -521,15 +462,11 @@
                 `;
             }).join('');
 
-            // 카운터 텍스트 업데이트 (예: 1-5 / 12)
             counterEl.textContent = `${startIndex + 1}-${endIndex} / ${totalCount}`;
-
-            // 화살표 활성화/비활성화 상태 업데이트
             prevBtn.disabled = (currentPage === 0);
             nextBtn.disabled = (currentPage >= maxPage);
         }
 
-        // 화살표 클릭 시 이전(-1 페이지)/다음(+1 페이지) 5개 단위로 이동하는 함수
         function moveTimelinePage(direction) {
             currentPage += direction;
             renderTimeline();
@@ -543,11 +480,9 @@
                 
                 const data = await response.json();
 
-                // 1. 기본 프로필 정보 바인딩
                 document.getElementById("view-name").textContent = data.name || "바다비。";
                 document.getElementById("view-catchphrase").innerHTML = (data.message || "").replace(/\n/g, '<br>');
 
-                // 1-1. 관련 링크 상자들 바인딩
                 const linksContainer = document.getElementById("profile-links-container");
                 if (Array.isArray(data.links) && data.links.length > 0) {
                     linksContainer.innerHTML = data.links.map(link => `
@@ -559,35 +494,12 @@
                     linksContainer.innerHTML = "";
                 }
 
-                // 2. 최근 공지 리스트 바인딩
-                if (data.notice) {
-                    const noticeEl = document.getElementById("widget-notice-link");
-                    const noticeListEl = document.getElementById("widget-notice-list");
-                    noticeEl.href = data.notice;
-                    
-                    const notices = Array.isArray(data.noticeList) ? data.noticeList : [data.noticeTitle || "공지사항 바로가기"];
-                    noticeListEl.innerHTML = notices.map(item => `<li class="widget-item">· ${item}</li>`).join('');
-                }
-
-                // 3. 최근 VOD 리스트 바인딩
-                if (data.vod) {
-                    const vodEl = document.getElementById("widget-vod-link");
-                    const vodListEl = document.getElementById("widget-vod-list");
-                    vodEl.href = data.vod;
-                    
-                    const vods = Array.isArray(data.vodList) ? data.vodList : [data.vodTitle || "VOD 영상 바로가기"];
-                    vodListEl.innerHTML = vods.map(item => `<li class="widget-item">· ${item}</li>`).join('');
-                }
-
-                // 4. 타임라인 데이터 저장 및 초기화
                 allTimelineData = data.timeline || [];
                 currentPage = 0;
                 renderTimeline();
 
-                // 5. 카드 등장 애니메이션 활성화
                 document.getElementById("profile-card").classList.add('loaded');
 
-                // 6. 이미지 프리로딩 및 배경 지정
                 if (data.image) {
                     await preloadImage(data.image); 
                     const gifEl = document.getElementById("profile-gif");
