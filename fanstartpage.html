@@ -35,7 +35,7 @@
             background: transparent; 
         }
 
-        /* 왼쪽 영역 (이미지 + 하단 상자 2개) */
+        /* 왼쪽 영역 (이미지 + 하단 초록색 상자 2개) */
         .profile-left-wrap {
             display: flex;
             flex-direction: column;
@@ -45,15 +45,16 @@
             z-index: 3;
         }
 
-        /* 이미지 영역 */
+        /* 이미지 영역 (상자 위치는 고정하되, 내부 크기와 배경 표현을 키움) */
         .profile-main-gif {
             position: relative;
             width: 600px; 
             height: 340px; 
-            background-size: cover; 
-            background-position: center; 
+            background-size: cover; /* 이미지가 영역을 더 꽉 채우도록 변경 */
+            background-position: center; /* 중심을 기준으로 확대 */
             background-repeat: no-repeat;
             
+            /* 테두리 부드러운 페이드아웃 마스크 */
             -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 15%, rgba(0,0,0,1) 60%, rgba(0,0,0,0.5) 85%, rgba(0,0,0,0) 100%),
                                 linear-gradient(to right, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 15%, rgba(0,0,0,1) 65%, rgba(0,0,0,0.5) 88%, rgba(0,0,0,0) 100%);
             -webkit-mask-composite: intersect;
@@ -63,11 +64,13 @@
 
             filter: drop-shadow(0 0 35px rgba(0, 119, 190, 0.5));
 
+            /* 애니메이션 설정 */
             opacity: 0;
             transform: scale(1);
             transition: opacity 0.8s ease, transform 0.8s ease;
         }
 
+        /* 이미지 로딩 완료 시 표시되는 클래스 */
         .profile-main-gif.loaded {
             opacity: 1;
             transform: scale(1);
@@ -137,7 +140,7 @@
             text-overflow: ellipsis;
         }
 
-        /* 오른쪽 영역 (카드 영역) */
+        /* 오른쪽 영역 (카드 영역) - 총높이 600px 고정 및 상하 공간 배분 */
         .profile-info-card {
             position: relative;
             z-index: 1;
@@ -148,8 +151,7 @@
             width: 100%;
             display: flex;
             flex-direction: column;
-            justify-content: flex-start; 
-            gap: 15px; 
+            justify-content: space-between; 
             box-sizing: border-box;
             padding: 0;
 
@@ -157,11 +159,13 @@
             min-height: 600px;
             max-height: 600px;
 
+            /* 애니메이션 설정 */
             opacity: 0;
             transform: translateY(15px);
             transition: opacity 0.8s ease, transform 0.8s ease;
         }
 
+        /* 텍스트 로딩 완료 시 표시되는 클래스 */
         .profile-info-card.loaded {
             opacity: 1;
             transform: translateY(0);
@@ -170,11 +174,10 @@
         .profile-header-group {
             display: flex;
             flex-direction: column;
-            gap: 12px;
-            /* 위쪽 여백을 더 늘려서 오른쪽 내용을 아래로 내림 */
-            padding-top: 65px; 
+            gap: 15px;
         }
 
+        /* 프로필 텍스트 스타일들 */
         .profile-header-top {
             display: flex;
             flex-direction: column;
@@ -263,7 +266,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
             flex-shrink: 0;
         }
 
@@ -424,10 +427,6 @@
                 min-height: unset;
                 max-height: unset;
                 padding: 10px;
-                gap: 15px;
-            }
-            .profile-header-group {
-                padding-top: 10px;
             }
             .timeline-container {
                 height: 245px;
@@ -440,7 +439,7 @@
 <body>
 
     <div class="ocean-profile-container">
-        <!-- 왼쪽 영역 -->
+        <!-- 왼쪽 영역 (이미지 영역 + 하단 초록색 상자 2개 영역) -->
         <div class="profile-left-wrap">
             <div class="profile-main-gif" id="profile-gif"></div>
             <div class="profile-sub-boxes">
@@ -459,7 +458,7 @@
             </div>
         </div>
 
-        <!-- 오른쪽 영역 -->
+        <!-- 오른쪽 영역 (카드 영역: 이름, 캐치프레이즈, 링크, 타임라인) -->
         <div class="profile-info-card" id="profile-card">
             <div class="profile-header-group">
                 <div class="profile-header-top">
@@ -467,7 +466,7 @@
                     <div class="profile-catchphrase" id="view-catchphrase"></div>
                 </div>
                 
-                <!-- 관련 링크 박스 컨테이너 (2열 배치) -->
+                <!-- 관련 링크 상자 영역 (2열 배치) -->
                 <div class="profile-links-container" id="profile-links-container">
                     <!-- 동적으로 링크 상자들이 생성됩니다 -->
                 </div>
