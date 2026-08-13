@@ -20,7 +20,7 @@
             padding: 20px 0;
         }
 
-        /* 메인 콘텐츠 영역 (오른쪽 노란색 영역과 왼쪽 빨간/분홍/초록 영역을 나란히 배치) */
+        /* 메인 콘텐츠 영역 (좌우 전체 틀 중앙 정렬) */
         .ocean-profile-container {
             position: relative;
             width: 100%;
@@ -35,7 +35,7 @@
             background: transparent; 
         }
 
-        /* 왼쪽 영역: 빨간색 이미지(분홍색 페이드 확장 영역 포함) + 하단 초록색 상자들을 감싸는 래퍼 */
+        /* 왼쪽 영역 (빨간색 이미지 + 하단 초록색 상자 2개) */
         .profile-left-wrap {
             display: flex;
             flex-direction: column;
@@ -45,21 +45,21 @@
             z-index: 3;
         }
 
-        /* 빨간색 이미지 컨테이너 (분홍색 영역만큼 아래와 우측으로 확장되며 배경에 부드럽게 융화) */
+        /* 빨간색 이미지 영역 (분홍색 다이어그램 구조: 아래와 우측으로 확장되어 부드럽게 페이드아웃) */
         .profile-main-gif {
             position: relative;
             width: 600px; 
-            height: 340px; /* 기존 빨간색 영역 크기 유지 */
+            height: 340px; 
             background-size: contain;
             background-position: top center;
             background-repeat: no-repeat;
             
-            /* 분홍색 영역 다이어그램 구조 반영: 하단과 우측으로 이미지가 확장되면서 자연스럽게 페이드아웃(흐려짐) 처리 */
-            -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 12%, rgba(0,0,0,1) 50%, rgba(0,0,0,0.7) 75%, rgba(0,0,0,0) 100%),
-                                linear-gradient(to right, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 12%, rgba(0,0,0,1) 60%, rgba(0,0,0,0.6) 82%, rgba(0,0,0,0) 100%);
+            /* 하단과 우측으로 이미지가 자연스럽게 흘러넘치며 배경에 융화되도록 마스크 적용 */
+            -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 15%, rgba(0,0,0,1) 60%, rgba(0,0,0,0.5) 85%, rgba(0,0,0,0) 100%),
+                                linear-gradient(to right, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 15%, rgba(0,0,0,1) 65%, rgba(0,0,0,0.5) 88%, rgba(0,0,0,0) 100%);
             -webkit-mask-composite: intersect;
-            mask-image: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 12%, rgba(0,0,0,1) 50%, rgba(0,0,0,0.7) 75%, rgba(0,0,0,0) 100%),
-                        linear-gradient(to right, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 12%, rgba(0,0,0,1) 60%, rgba(0,0,0,0.6) 82%, rgba(0,0,0,0) 100%);
+            mask-image: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 15%, rgba(0,0,0,1) 60%, rgba(0,0,0,0.5) 85%, rgba(0,0,0,0) 100%),
+                        linear-gradient(to right, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 15%, rgba(0,0,0,1) 65%, rgba(0,0,0,0.5) 88%, rgba(0,0,0,0) 100%);
             mask-composite: intersect;
 
             filter: drop-shadow(0 0 35px rgba(0, 119, 190, 0.5));
@@ -76,7 +76,7 @@
             transform: scale(1);
         }
 
-        /* 하단 초록색 상자 2개 영역 (공지 및 VOD) -> 오른쪽 타임라인 카드와 정확히 하단 라인이 맞아떨어지도록 높이 설정 */
+        /* 하단 초록색 상자 2개 영역 (공지 및 VOD) -> 오른쪽 타임라인 카드와 높이를 정확히 일치시킴 */
         .profile-sub-boxes {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -101,7 +101,6 @@
             text-decoration: none;
             color: inherit;
             
-            /* 타임라인 카드 높이(245px)와 완벽히 일치시켜 하단 라인을 맞춤 */
             height: 245px;
             min-height: 245px;
             max-height: 245px;
@@ -141,7 +140,7 @@
             text-overflow: ellipsis;
         }
 
-        /* 오른쪽 영역: 노란색 설명 영역 (프로필 정보 및 타임라인 카드) */
+        /* 오른쪽 영역 (노란색 설명 카드 영역) */
         .profile-info-card {
             position: relative;
             z-index: 1;
@@ -237,7 +236,7 @@
             box-shadow: 0 6px 16px rgba(0, 119, 190, 0.15);
         }
 
-        /* 타임라인 영역 스타일 (항상 5개 크기 고정, 하단선 기준점) */
+        /* 타임라인 영역 스타일 (높이 245px 고정으로 하단 라인 기준점 역할) */
         .timeline-container {
             background: rgba(255, 255, 255, 1);
             backdrop-filter: blur(10px);
@@ -251,7 +250,6 @@
             display: flex;
             flex-direction: column;
             
-            /* 높이 고정 */
             height: 245px; 
             min-height: 245px;
             max-height: 245px;
@@ -435,7 +433,7 @@
 <body>
 
     <div class="ocean-profile-container">
-        <!-- 왼쪽 영역: 빨간색 이미지(분홍색 페이드 확장 영역 적용) + 하단 초록색 상자 2개 -->
+        <!-- 왼쪽 영역 (빨간색 이미지 영역 + 하단 초록색 상자 2개 영역) -->
         <div class="profile-left-wrap">
             <div class="profile-main-gif" id="profile-gif"></div>
             <div class="profile-sub-boxes">
@@ -454,7 +452,7 @@
             </div>
         </div>
 
-        <!-- 오른쪽 영역: 노란색 카드 (프로필 정보, 링크, 타임라인) -->
+        <!-- 오른쪽 영역 (노란색 카드 영역: 이름, 캐치프레이즈, 링크, 타임라인) -->
         <div class="profile-info-card" id="profile-card">
             <div class="profile-header-top">
                 <div class="profile-name" id="view-name">로딩 중...</div>
@@ -602,7 +600,7 @@
                 if (data.image) {
                     await preloadImage(data.image); 
                     const gifEl = document.getElementById("profile-gif");
-                    gifEl.style.backgroundImage = `url('${data.image}')*/`;
+                    gifEl.style.backgroundImage = `url('${data.image}')`;
                     gifEl.classList.add('loaded');
                 }
 
