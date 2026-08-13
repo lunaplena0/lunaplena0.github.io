@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>바다비 시작페이지</title>
     <style>
-        /* 전체 페이지 기본 설정 (세로 중앙 정렬 적용) */
+        /* 전체 페이지 기본 설정 (세로 중앙 정렬) */
         body {
             margin: 0;
             width: 100vw;
@@ -20,7 +20,7 @@
             padding: 20px 0;
         }
 
-        /* 메인 콘텐츠 영역 */
+        /* 메인 콘텐츠 영역 (오른쪽 노란색 영역과 왼쪽 빨간/분홍/초록 영역을 나란히 배치) */
         .ocean-profile-container {
             position: relative;
             width: 100%;
@@ -35,31 +35,31 @@
             background: transparent; 
         }
 
-        /* 왼쪽 이미지 및 하단 서브 상자들을 감싸는 영역 */
+        /* 왼쪽 영역: 빨간색 이미지(핑크색 페이드 확장 영역 포함) + 하단 초록색 상자들 */
         .profile-left-wrap {
             display: flex;
             flex-direction: column;
             gap: 15px;
             flex-shrink: 0;
-            margin-right: -120px;
+            width: 600px;
             z-index: 3;
         }
 
-        /* 왼쪽 이미지 영역 기본 스타일 */
+        /* 빨간색 이미지 컨테이너 (분홍색 영역만큼 아래로 확장되어 더 많이 보이고, 끝이 흐려짐) */
         .profile-main-gif {
             position: relative;
             width: 600px; 
-            height: 340px; 
+            height: 430px; /* 빨간색 영역(340px) + 분홍색 확장 영역(~90px) */
             background-size: contain;
-            background-position: center;
+            background-position: top center;
             background-repeat: no-repeat;
             
-            /* 마스크 효과 */
-            -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 15%, rgba(0,0,0,1) 85%, rgba(0,0,0,0) 100%),
-                                linear-gradient(to right, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 15%, rgba(0,0,0,1) 60%, rgba(0,0,0,0) 100%);
+            /* 분홍색 다이어그램처럼 아래쪽과 우측으로 이미지가 더 노출되면서 자연스럽게 페이드아웃(흐려짐) 처리 */
+            -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 10%, rgba(0,0,0,1) 65%, rgba(0,0,0,0) 100%),
+                                linear-gradient(to right, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 10%, rgba(0,0,0,1) 75%, rgba(0,0,0,0) 100%);
             -webkit-mask-composite: intersect;
-            mask-image: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 15%, rgba(0,0,0,1) 85%, rgba(0,0,0,0) 100%),
-                        linear-gradient(to right, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 15%, rgba(0,0,0,1) 60%, rgba(0,0,0,0) 100%);
+            mask-image: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 10%, rgba(0,0,0,1) 65%, rgba(0,0,0,0) 100%),
+                        linear-gradient(to right, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 10%, rgba(0,0,0,1) 75%, rgba(0,0,0,0) 100%);
             mask-composite: intersect;
 
             filter: drop-shadow(0 0 35px rgba(0, 119, 190, 0.5));
@@ -76,7 +76,7 @@
             transform: scale(1);
         }
 
-        /* 왼쪽 이미지 바로 아래 공지·VOD 위젯 상자 2개 영역 */
+        /* 하단 초록색 상자 2개 영역 (공지 및 VOD) */
         .profile-sub-boxes {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -140,7 +140,7 @@
             text-overflow: ellipsis;
         }
 
-        /* 오른쪽 프로필 카드 영역 */
+        /* 오른쪽 영역: 노란색 설명 영역 (프로필 정보 및 타임라인 카드) */
         .profile-info-card {
             position: relative;
             z-index: 1;
@@ -155,7 +155,6 @@
             color: #2b2d42; 
             box-sizing: border-box;
             padding: 20px;
-            padding-left: 140px;
 
             /* 애니메이션 설정 */
             opacity: 0;
@@ -423,7 +422,6 @@
             }
             .profile-info-card {
                 padding: 10px;
-                padding-left: 10px;
             }
             .timeline-container {
                 height: 245px;
@@ -436,7 +434,7 @@
 <body>
 
     <div class="ocean-profile-container">
-        <!-- 왼쪽 이미지 및 하단 공지·VOD 위젯 영역 -->
+        <!-- 왼쪽 영역: 빨간색 이미지(분홍색 확장 및 페이드아웃 적용) + 하단 초록색 상자 2개 -->
         <div class="profile-left-wrap">
             <div class="profile-main-gif" id="profile-gif"></div>
             <div class="profile-sub-boxes">
@@ -455,7 +453,7 @@
             </div>
         </div>
 
-        <!-- 오른쪽 프로필 카드 및 타임라인 영역 -->
+        <!-- 오른쪽 영역: 노란색 카드 (프로필 정보, 링크, 타임라인) -->
         <div class="profile-info-card" id="profile-card">
             <div class="profile-header-top">
                 <div class="profile-name" id="view-name">로딩 중...</div>
