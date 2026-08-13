@@ -477,27 +477,22 @@
 
         // 날짜 문자열(YYYY-MM-DD)을 기반으로 하루 동안 고정된 랜덤 인덱스를 추출하는 함수
         function getDailyRandomIndex(max) {
-    const today = new Date();
-    let seed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate(); // const -> let 변경
-    const x = Math.sin(seed++) * 10000;
-    return Math.floor((x - Math.floor(x)) * max);
-}
-
-        // 배열에서 하루 동안 고정된 N개의 아이템을 랜덤 추출하는 함수
-        function getDailyRandomItems(arr, count) {
-            if (!Array.isArray(arr) || arr.length === 0) return [];
-            const shuffled = [...arr];
             const today = new Date();
             let seed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate();
-            
-            // 피셔-예이트 샤플(Fisher-Yates Shuffle)에 날짜 시드 적용
-            for (let i = shuffled.length - 1; i > 0; i--) {
-                seed = (seed * 9301 + 49297) % 233280;
-                const rnd = seed / 233280;
-                const j = Math.floor(rnd * (i + 1));
-                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            const x = Math.sin(seed++) * 10000;
+            return Math.floor((x - Math.floor(x)) * max);
+        }
+
+        // HH:MM:SS 형식을 초(second)로 변환하는 함수
+        function timeToSeconds(timeStr) {
+            if (!timeStr) return 0;
+            const parts = timeStr.split(':').map(Number);
+            if (parts.length === 3) {
+                return parts[0] * 3600 + parts[1] * 60 + parts[2];
+            } else if (parts.length === 2) {
+                return parts[0] * 60 + parts[1];
             }
-            return shuffled.slice(0, count);
+            return 0;
         }
 
         function renderTimeline() {
@@ -593,10 +588,9 @@
                     }
                 }
 
-                // 3. 오늘의 노래 추천 처리 (fansongstats)
+                // 3. 오늘의 노래 추천 처리 (fansongstats - 하루 1개)
                 if (songRes && songRes.ok) {
                     const songData = await songRes.json();
-                    // registeredSongs와 unregisteredSongs 합치기
                     const allSongs = [
                         ...(songData.registeredSongs || []),
                         ...(songData.unregisteredSongs || [])
@@ -605,26 +599,27 @@
                     const vodSources = songData.vodSources || [];
 
                     if (allSongs.length > 0) {
-                        // 하루에 2~3개 무작위 선택 (여기서는 2개 선택)
-                        const randomSongs = getDailyRandomItems(allSongs, 2);
+                        const randomIndex = getDailyRandomIndex(allSongs.length);
+                        const selectedSong = allSongs[randomIndex];
                         
                         const vodEl = document.getElementById("widget-vod-link");
                         const vodListEl = document.getElementById("widget-vod-list");
 
-                        // 첫 번째 추천 곡의 날짜를 기반으로 vodSources에서 일치하는 링크 찾기
                         let targetUrl = "#";
-                        if (randomSongs[0] && randomSongs[0].dateTimes && randomSongs[0].dateTimes.length > 0) {
-                            const songDate = randomSongs[0].dateTimes[0].date;
-                            const matchedSource = vodSources.find(src => src.date === songDate);
-                            if (matchedSource) {
-                                targetUrl = matchedSource.url;
+                        if (selectedSong && selectedSong.dateTimes && selectedSong.dateTimes.length > 0) {
+                            const songDateTime = selectedSong.dateTimes[0];
+                            // 날짜 매칭 (예: "2026-05-01(2)" 또는 "2026-04-28" 중 앞부분 날짜 기준 매칭을 위해 포함 여부 확인)
+                            const matchedSource = vodSources.find(src => songDateTime.date.includes(src.date) || src.date.includes(songDateTime.date.split('(')[0]));
+                            
+                            if (matchedSource && matchedSource.url) {
+                                const totalSeconds = timeToSeconds(songDateTime.time);
+                                // 요청하신 구조: 주소?change_second=변환한초
+                                targetUrl = `${matchedSource.url}?change_second=${totalSeconds}`;
                             }
                         }
                         vodEl.href = targetUrl;
 
-                        vodListEl.innerHTML = randomSongs.map(song => 
-                            `<li class="widget-item">· ${song.title} (${song.artist})</li>`
-                        ).join('');
+                        vodListEl.innerHTML = `<li class="widget-item">· ${selectedSong.title} (${selectedSong.artist})</li>`;
                     }
                 }
 
