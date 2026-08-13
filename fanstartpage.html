@@ -35,7 +35,7 @@
             background: transparent; 
         }
 
-        /* 왼쪽 영역 (빨간색 이미지 + 하단 초록색 상자 2개) */
+        /* 왼쪽 영역 (이미지 + 하단 초록색 상자 2개) */
         .profile-left-wrap {
             display: flex;
             flex-direction: column;
@@ -45,16 +45,16 @@
             z-index: 3;
         }
 
-        /* 빨간색 이미지 영역 (분홍색 다이어그램 구조: 아래와 우측으로 확장되어 부드럽게 페이드아웃) */
+        /* 이미지 영역 (상자 위치는 고정하되, 내부 크기와 배경 표현을 키움) */
         .profile-main-gif {
             position: relative;
             width: 600px; 
             height: 340px; 
-            background-size: contain;
-            background-position: top center;
+            background-size: cover; /* 이미지가 영역을 더 꽉 채우도록 변경 */
+            background-position: center; /* 중심을 기준으로 확대 */
             background-repeat: no-repeat;
             
-            /* 하단과 우측으로 이미지가 자연스럽게 흘러넘치며 배경에 융화되도록 마스크 적용 */
+            /* 테두리 부드러운 페이드아웃 마스크 */
             -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 15%, rgba(0,0,0,1) 60%, rgba(0,0,0,0.5) 85%, rgba(0,0,0,0) 100%),
                                 linear-gradient(to right, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 15%, rgba(0,0,0,1) 65%, rgba(0,0,0,0.5) 88%, rgba(0,0,0,0) 100%);
             -webkit-mask-composite: intersect;
@@ -76,7 +76,7 @@
             transform: scale(1);
         }
 
-        /* 하단 초록색 상자 2개 영역 (공지 및 VOD) -> 오른쪽 타임라인 카드와 높이를 정확히 일치시킴 */
+        /* 하단 상자 2개 영역 (공지 및 VOD) */
         .profile-sub-boxes {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -140,7 +140,7 @@
             text-overflow: ellipsis;
         }
 
-        /* 오른쪽 영역 (노란색 카드 영역) - 총높이 600px 고정 및 상하 공간 배분 */
+        /* 오른쪽 영역 (카드 영역) - 총높이 600px 고정 및 상하 공간 배분 */
         .profile-info-card {
             position: relative;
             z-index: 1;
@@ -208,7 +208,7 @@
             text-shadow: 0 0 10px rgba(255, 255, 255, 1), 0 0 15px rgba(255, 255, 255, 0.9);
         }
 
-        /* 관련 링크 박스 컨테이너 (2열 구조로 변경) */
+        /* 관련 링크 박스 컨테이너 (2열 구조) */
         .profile-links-container {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -243,7 +243,7 @@
             box-shadow: 0 6px 16px rgba(0, 119, 190, 0.15);
         }
 
-        /* 타임라인 영역 스타일 (높이 245px 고정으로 왼쪽 박스들과 완벽히 수평 일치) */
+        /* 타임라인 영역 스타일 */
         .timeline-container {
             background: rgba(255, 255, 255, 1);
             backdrop-filter: blur(10px);
@@ -286,7 +286,6 @@
             gap: 5px;
         }
 
-        /* 타임라인 페이지 범위 카운터 */
         .timeline-counter {
             font-size: 11.5px;
             font-weight: 700;
@@ -296,7 +295,6 @@
             border-radius: 4px;
         }
 
-        /* 상하 화살표 컨트롤러 버튼들 */
         .timeline-nav-btns {
             display: flex;
             gap: 4px;
@@ -341,7 +339,6 @@
             justify-content: space-between;
         }
 
-        /* 왼쪽 타임라인 세로줄 */
         .timeline-list::before {
             content: '';
             position: absolute;
@@ -362,7 +359,6 @@
             padding-left: 14px;
         }
 
-        /* 타임라인 점(마커) */
         .timeline-item::before {
             content: '';
             position: absolute;
@@ -443,7 +439,7 @@
 <body>
 
     <div class="ocean-profile-container">
-        <!-- 왼쪽 영역 (빨간색 이미지 영역 + 하단 초록색 상자 2개 영역) -->
+        <!-- 왼쪽 영역 (이미지 영역 + 하단 초록색 상자 2개 영역) -->
         <div class="profile-left-wrap">
             <div class="profile-main-gif" id="profile-gif"></div>
             <div class="profile-sub-boxes">
@@ -462,7 +458,7 @@
             </div>
         </div>
 
-        <!-- 오른쪽 영역 (노란색 카드 영역: 이름, 캐치프레이즈, 링크, 타임라인) -->
+        <!-- 오른쪽 영역 (카드 영역: 이름, 캐치프레이즈, 링크, 타임라인) -->
         <div class="profile-info-card" id="profile-card">
             <div class="profile-header-group">
                 <div class="profile-header-top">
@@ -583,7 +579,6 @@
                     linksContainer.innerHTML = "";
                 }
 
-                // 최근 공지 리스트 바인딩
                 if (data.notice) {
                     const noticeEl = document.getElementById("widget-notice-link");
                     const noticeListEl = document.getElementById("widget-notice-list");
@@ -593,7 +588,6 @@
                     noticeListEl.innerHTML = notices.map(item => `<li class="widget-item">· ${item}</li>`).join('');
                 }
 
-                // 최근 VOD 리스트 바인딩
                 if (data.vod) {
                     const vodEl = document.getElementById("widget-vod-link");
                     const vodListEl = document.getElementById("widget-vod-list");
