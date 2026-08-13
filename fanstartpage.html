@@ -17,7 +17,7 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
-        /* 메인 콘텐츠 영역: 좌우 2열 구조 (왼쪽: 이미지 및 하단 상자, 오른쪽: 프로필 정보 및 타임라인) */
+        /* 메인 콘텐츠 영역 */
         .ocean-profile-container {
             position: relative;
             width: 100%;
@@ -33,21 +33,21 @@
             background: transparent; 
         }
 
-        /* 왼쪽 열 영역 (이미지와 하단 빈 상자들을 세로로 배치) */
-        .profile-left-column {
+        /* 왼쪽 이미지 및 하단 서브 상자들을 감싸는 영역 */
+        .profile-left-wrap {
             display: flex;
             flex-direction: column;
             gap: 15px;
             flex-shrink: 0;
-            margin-right: -120px; /* 기존 이미지 오버랩 스타일 유지 */
+            margin-right: -120px;
             z-index: 3;
         }
 
-        /* 왼쪽 위: 기존 이미지 영역 스타일 그대로 적용 */
+        /* 왼쪽 이미지 영역 기본 스타일 (기존과 동일) */
         .profile-main-gif {
             position: relative;
             width: 600px; 
-            height: 480px; /* 4:1 비율 중 4에 해당하는 높이 조정 */
+            height: 600px;
             background-size: contain;
             background-position: center;
             background-repeat: no-repeat;
@@ -74,7 +74,7 @@
             transform: scale(1);
         }
 
-        /* 왼쪽 아래: 비어있는 상자 2개를 나란히 배치 (높이를 타임라인 하단 라인과 일치하도록 120px로 설정) */
+        /* 왼쪽 이미지 바로 아래 빈 상자 2개 영역 (타임라인 하단 라인과 수평이 되도록 높이 120px 설정) */
         .profile-sub-boxes {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -108,7 +108,7 @@
             color: #2b2d42; 
             box-sizing: border-box;
             padding: 20px;
-            padding-left: 140px; /* 오버랩된 이미지 영역만큼 여백 확보 */
+            padding-left: 140px;
 
             /* 애니메이션 설정 */
             opacity: 0;
@@ -190,7 +190,7 @@
             box-shadow: 0 6px 16px rgba(0, 119, 190, 0.15);
         }
 
-        /* 타임라인 영역 스타일 (하단 라인이 왼쪽 아래 상자와 수평을 이루도록 높이 245px 유지) */
+        /* 타임라인 영역 스타일 (항상 5개 크기 고정) */
         .timeline-container {
             background: rgba(255, 255, 255, 1);
             backdrop-filter: blur(10px);
@@ -234,6 +234,7 @@
             gap: 5px;
         }
 
+        /* 타임라인 페이지 범위 카운터 */
         .timeline-counter {
             font-size: 11.5px;
             font-weight: 700;
@@ -243,6 +244,7 @@
             border-radius: 4px;
         }
 
+        /* 상하 화살표 컨트롤러 버튼들 */
         .timeline-nav-btns {
             display: flex;
             gap: 4px;
@@ -287,6 +289,7 @@
             justify-content: space-between;
         }
 
+        /* 왼쪽 타임라인 세로줄 */
         .timeline-list::before {
             content: '';
             position: absolute;
@@ -307,6 +310,7 @@
             padding-left: 14px;
         }
 
+        /* 타임라인 점(마커) */
         .timeline-item::before {
             content: '';
             position: absolute;
@@ -349,7 +353,7 @@
                 padding: 8px;
                 gap: 10px;
             }
-            .profile-left-column {
+            .profile-left-wrap {
                 margin-right: 0;
                 width: 100%;
                 align-items: center;
@@ -365,19 +369,14 @@
                 padding: 10px;
                 padding-left: 10px;
             }
-            .timeline-container {
-                height: 245px;
-                min-height: 245px;
-                max-height: 245px;
-            }
         }
     </style>
 </head>
 <body>
 
     <div class="ocean-profile-container">
-        <!-- 왼쪽 열: 위쪽 이미지 (넓은 공간) + 아래쪽 빈 상자 2개 (좁은 공간, 타임라인 하단에 맞춤) -->
-        <div class="profile-left-column">
+        <!-- 왼쪽 이미지 및 하단 서브 상자 영역 -->
+        <div class="profile-left-wrap">
             <div class="profile-main-gif" id="profile-gif"></div>
             <div class="profile-sub-boxes">
                 <div class="empty-sub-box"></div>
@@ -385,7 +384,7 @@
             </div>
         </div>
 
-        <!-- 오른쪽 프로필 카드 및 타임라인 영역 -->
+        <!-- 오른쪽 프로필 카드 (공지·VOD 상자가 제거된 이전 구조 기반) -->
         <div class="profile-info-card" id="profile-card">
             <div class="profile-header-top">
                 <div class="profile-name" id="view-name">로딩 중...</div>
@@ -397,7 +396,7 @@
                 <!-- 동적으로 링크 상자들이 생성됩니다 -->
             </div>
 
-            <!-- 타임라인 영역 -->
+            <!-- 타임라인 영역 (우측 하단 끝선과 왼쪽 아래 상자 하단 끝선이 수평을 이룸) -->
             <div class="timeline-container">
                 <div class="timeline-header-wrap">
                     <div class="timeline-title-area">
