@@ -35,7 +35,7 @@
             background: transparent; 
         }
 
-        /* 왼쪽 영역: 빨간색 이미지(핑크색 페이드 확장 영역 포함) + 하단 초록색 상자들 */
+        /* 왼쪽 영역: 빨간색 이미지(분홍색 페이드 확장 영역 포함) + 하단 초록색 상자들을 감싸는 래퍼 */
         .profile-left-wrap {
             display: flex;
             flex-direction: column;
@@ -45,21 +45,21 @@
             z-index: 3;
         }
 
-        /* 빨간색 이미지 컨테이너 (분홍색 영역만큼 아래로 확장되어 더 많이 보이고, 끝이 흐려짐) */
+        /* 빨간색 이미지 컨테이너 (분홍색 영역만큼 아래와 우측으로 확장되며 배경에 부드럽게 융화) */
         .profile-main-gif {
             position: relative;
             width: 600px; 
-            height: 430px; /* 빨간색 영역(340px) + 분홍색 확장 영역(~90px) */
+            height: 340px; /* 기존 빨간색 영역 크기 유지 */
             background-size: contain;
             background-position: top center;
             background-repeat: no-repeat;
             
-            /* 분홍색 다이어그램처럼 아래쪽과 우측으로 이미지가 더 노출되면서 자연스럽게 페이드아웃(흐려짐) 처리 */
-            -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 10%, rgba(0,0,0,1) 65%, rgba(0,0,0,0) 100%),
-                                linear-gradient(to right, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 10%, rgba(0,0,0,1) 75%, rgba(0,0,0,0) 100%);
+            /* 분홍색 영역 다이어그램 구조 반영: 하단과 우측으로 이미지가 확장되면서 자연스럽게 페이드아웃(흐려짐) 처리 */
+            -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 12%, rgba(0,0,0,1) 50%, rgba(0,0,0,0.7) 75%, rgba(0,0,0,0) 100%),
+                                linear-gradient(to right, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 12%, rgba(0,0,0,1) 60%, rgba(0,0,0,0.6) 82%, rgba(0,0,0,0) 100%);
             -webkit-mask-composite: intersect;
-            mask-image: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 10%, rgba(0,0,0,1) 65%, rgba(0,0,0,0) 100%),
-                        linear-gradient(to right, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 10%, rgba(0,0,0,1) 75%, rgba(0,0,0,0) 100%);
+            mask-image: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 12%, rgba(0,0,0,1) 50%, rgba(0,0,0,0.7) 75%, rgba(0,0,0,0) 100%),
+                        linear-gradient(to right, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 12%, rgba(0,0,0,1) 60%, rgba(0,0,0,0.6) 82%, rgba(0,0,0,0) 100%);
             mask-composite: intersect;
 
             filter: drop-shadow(0 0 35px rgba(0, 119, 190, 0.5));
@@ -76,7 +76,7 @@
             transform: scale(1);
         }
 
-        /* 하단 초록색 상자 2개 영역 (공지 및 VOD) */
+        /* 하단 초록색 상자 2개 영역 (공지 및 VOD) -> 오른쪽 타임라인 카드와 정확히 하단 라인이 맞아떨어지도록 높이 설정 */
         .profile-sub-boxes {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -101,9 +101,10 @@
             text-decoration: none;
             color: inherit;
             
-            height: 75px;
-            min-height: 75px;
-            max-height: 75px;
+            /* 타임라인 카드 높이(245px)와 완벽히 일치시켜 하단 라인을 맞춤 */
+            height: 245px;
+            min-height: 245px;
+            max-height: 245px;
             overflow: hidden;
         }
 
@@ -236,7 +237,7 @@
             box-shadow: 0 6px 16px rgba(0, 119, 190, 0.15);
         }
 
-        /* 타임라인 영역 스타일 (항상 5개 크기 고정) */
+        /* 타임라인 영역 스타일 (항상 5개 크기 고정, 하단선 기준점) */
         .timeline-container {
             background: rgba(255, 255, 255, 1);
             backdrop-filter: blur(10px);
@@ -250,7 +251,7 @@
             display: flex;
             flex-direction: column;
             
-            /* 높이가 흔들리지 않도록 고정 */
+            /* 높이 고정 */
             height: 245px; 
             min-height: 245px;
             max-height: 245px;
@@ -434,7 +435,7 @@
 <body>
 
     <div class="ocean-profile-container">
-        <!-- 왼쪽 영역: 빨간색 이미지(분홍색 확장 및 페이드아웃 적용) + 하단 초록색 상자 2개 -->
+        <!-- 왼쪽 영역: 빨간색 이미지(분홍색 페이드 확장 영역 적용) + 하단 초록색 상자 2개 -->
         <div class="profile-left-wrap">
             <div class="profile-main-gif" id="profile-gif"></div>
             <div class="profile-sub-boxes">
@@ -601,7 +602,7 @@
                 if (data.image) {
                     await preloadImage(data.image); 
                     const gifEl = document.getElementById("profile-gif");
-                    gifEl.style.backgroundImage = `url('${data.image}')`;
+                    gifEl.style.backgroundImage = `url('${data.image}')*/`;
                     gifEl.classList.add('loaded');
                 }
 
