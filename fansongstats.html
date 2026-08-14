@@ -246,6 +246,7 @@
             margin-top: 4px;
             font-size: 12px;
             color: #64748b;
+            flex-wrap: wrap;
         }
 
         .legend-item {
@@ -620,13 +621,10 @@
                         <span class="stat-label">🎸✨ 전체 노래 기준 비율 비교</span>
                         <div id="combinedStatContent" class="stat-value">-</div>
                     </div>
+                    <!-- 1회 부른 곡 및 0회 부른 곡 통합 비교 항목 -->
                     <div class="stat-item">
-                        <span class="stat-label">🎵 1회만 부른 곡 비율 (기타 제외 등록된 곡 기준)</span>
-                        <div id="onceRatioStat" class="stat-value">-</div>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-label">💤 노래책 등록 후 한 번도 안 부른 곡 비율 (기타 제외)</span>
-                        <div id="zeroRatioStat" class="stat-value">-</div>
+                        <span class="stat-label">🎵💤 기타 제외 등록곡 부른 횟수 분포 (0회 / 1회 / 2회 이상)</span>
+                        <div id="distributionStatContent" class="stat-value">-</div>
                     </div>
                 </div>
             </div>
@@ -784,8 +782,7 @@
                 document.getElementById("recentRegTopStat").textContent = "기록 없음";
                 document.getElementById("recentUnregTopStat").textContent = "기록 없음";
                 document.getElementById("combinedStatContent").textContent = "기록 없음";
-                document.getElementById("onceRatioStat").textContent = "기록 없음";
-                document.getElementById("zeroRatioStat").textContent = "기록 없음";
+                document.getElementById("distributionStatContent").textContent = "기록 없음";
                 return;
             }
 
@@ -920,7 +917,7 @@
                 document.getElementById("recentUnregTopStat").textContent = "기록 없음";
             }
 
-            // 통합 멀티 컬러 그래프 렌더링
+            // 통합 멀티 컬러 그래프 렌더링 (전체 노래 기준)
             const allTotalSongs = [...registered, ...unregistered];
             const totalCountAll = allTotalSongs.length;
 
@@ -946,31 +943,37 @@
                 </div>
             `;
 
-            // 기타 제외 등록된 곡 기준 1회만 부른 곡 비율 계산
+            // 기타 제외 등록된 곡 기준 (0회 / 1회 / 2회 이상) 통합 멀티 컬러 그래프 계산
             const nonGuitarRegistered = registered.filter(s => s.limit !== "기타");
             const totalNonGuitarRegCount = nonGuitarRegistered.length;
-            let onceCount = 0;
-            nonGuitarRegistered.forEach(song => {
-                if (song.dateTimes && song.dateTimes.length === 1) {
-                    onceCount++;
-                }
-            });
-            const onceRatio = totalNonGuitarRegCount > 0 ? parseFloat(((onceCount / totalNonGuitarRegCount) * 100).toFixed(1)) : 0;
-            document.getElementById("onceRatioStat").innerHTML = `
-                <div>${onceCount}곡 | 기타 제외 등록된 곡(${totalNonGuitarRegCount}곡) 중 <strong>${onceRatio}%</strong></div>
-                <div class="progress-bar-container"><div class="progress-bar-fill" data-target-width="${onceRatio}%"></div></div>
-            `;
 
             let zeroPlayCount = 0;
+            let onceCount = 0;
+            let multiPlayCount = 0;
+
             nonGuitarRegistered.forEach(song => {
-                if (!song.dateTimes || song.dateTimes.length === 0) {
-                    zeroPlayCount++;
-                }
+                const len = song.dateTimes ? song.dateTimes.length : 0;
+                if (len === 0) zeroPlayCount++;
+                else if (len === 1) onceCount++;
+                else multiPlayCount++;
             });
-            const zeroRatio = totalNonGuitarRegCount > 0 ? parseFloat(((zeroPlayCount / totalNonGuitarRegCount) * 100).toFixed(1)) : 0;
-            document.getElementById("zeroRatioStat").innerHTML = `
-                <div>${zeroPlayCount}곡 | 기타 제외 등록된 곡(${totalNonGuitarRegCount}곡) 중 <strong>${zeroRatio}%</strong></div>
-                <div class="progress-bar-container"><div class="progress-bar-fill" data-target-width="${zeroRatio}%"></div></div>
+
+            const zeroRatio = totalNonGuitarRegCount > 0 ? ((zeroPlayCount / totalNonGuitarRegCount) * 100) : 0;
+            const onceRatio = totalNonGuitarRegCount > 0 ? ((onceCount / totalNonGuitarRegCount) * 100) : 0;
+            const multiRatio = totalNonGuitarRegCount > 0 ? ((multiPlayCount / totalNonGuitarRegCount) * 100) : 0;
+
+            document.getElementById("distributionStatContent").innerHTML = `
+                <div>기타 제외 등록곡(${totalNonGuitarRegCount}곡) 중 <strong>0회 ${zeroPlayCount}곡 (${zeroRatio.toFixed(1)}%)</strong> / <strong>1회 ${onceCount}곡 (${onceRatio.toFixed(1)}%)</strong> / <strong>2회 이상 ${multiPlayCount}곡 (${multiRatio.toFixed(1)}%)</strong></div>
+                <div class="multi-progress-container">
+                    <div class="multi-bar-segment" data-target-width="${zeroRatio.toFixed(1)}%" style="background-color: #94a3b8;" title="0회 (미부름)"></div>
+                    <div class="multi-bar-segment" data-target-width="${onceRatio.toFixed(1)}%" style="background-color: #0ea5e9;" title="1회 부름"></div>
+                    <div class="multi-bar-segment" data-target-width="${multiRatio.toFixed(1)}%" style="background-color: #10b981;" title="2회 이상 부름"></div>
+                </div>
+                <div class="legend-row">
+                    <div class="legend-item"><span class="legend-dot" style="background-color: #94a3b8;"></span>0회 (${zeroPlayCount}곡, ${zeroRatio.toFixed(1)}%)</div>
+                    <div class="legend-item"><span class="legend-dot" style="background-color: #0ea5e9;"></span>1회 (${onceCount}곡, ${onceRatio.toFixed(1)}%)</div>
+                    <div class="legend-item"><span class="legend-dot" style="background-color: #10b981;"></span>2회 이상 (${multiPlayCount}곡, ${multiRatio.toFixed(1)}%)</div>
+                </div>
             `;
         }
 
