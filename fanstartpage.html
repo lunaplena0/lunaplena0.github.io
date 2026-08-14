@@ -634,18 +634,18 @@
                     const vodSources = songData.vodSources || [];
 
                     if (allSongs.length > 0) {
-                        const randomIndex = getDailyRandomIndex(allSongs.length);
-                        const selectedSong = allSongs[randomIndex];
+                        // 오늘 하루 고정된 노래 선택
+                        const randomSongIndex = getDailyRandomIndex(allSongs.length);
+                        const selectedSong = allSongs[randomSongIndex];
                         
                         const vodEl = document.getElementById("widget-vod-link");
                         const vodListEl = document.getElementById("widget-vod-list");
 
                         let targetUrl = "#";
                         if (selectedSong && selectedSong.dateTimes && selectedSong.dateTimes.length > 0) {
-                            // 날짜가 여러 개인 경우, 그중 하나를 하루 단위(또는 랜덤)로 선택하거나 첫 번째 것을 사용
-                            // (여기서는 날짜 목록 중에서도 당일 고정 랜덤 인덱스를 사용해 매번 다른 날짜로 연결되도록 처리할 수 있습니다)
-                            const dateIndex = getDailyRandomIndex(selectedSong.dateTimes.length);
-                            const songDateTime = selectedSong.dateTimes[dateIndex];
+                            // 날짜가 여러 개인 경우, 그중 하나를 '오늘 날짜' 기준으로 고정 랜덤 선택
+                            const randomDateIndex = getDailyRandomIndex(selectedSong.dateTimes.length);
+                            const songDateTime = selectedSong.dateTimes[randomDateIndex];
                             
                             const matchedSource = vodSources.find(src => songDateTime.date.includes(src.date) || src.date.includes(songDateTime.date.split('(')[0]));
                             
