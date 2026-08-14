@@ -261,6 +261,24 @@
             display: inline-block;
         }
 
+        /* 미니 프로그레스 바 스타일 */
+        .progress-bar-container {
+            width: 100%;
+            height: 8px;
+            background-color: #f1f5f9;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 4px;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background-color: #0ea5e9;
+            border-radius: 4px;
+            width: 0%;
+            transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
         /* 모달 항목 등장 애니메이션 */
         .stat-item {
             opacity: 0;
@@ -603,7 +621,7 @@
                         <div id="combinedStatContent" class="stat-value">-</div>
                     </div>
                     <div class="stat-item">
-                        <span class="stat-label">🎵 1회만 부른 곡 비율 (기타 노래 제외)</span>
+                        <span class="stat-label">🎵 1회만 부른 곡 비율 (기타 제외 등록된 곡 기준)</span>
                         <div id="onceRatioStat" class="stat-value">-</div>
                     </div>
                     <div class="stat-item">
@@ -928,19 +946,21 @@
                 </div>
             `;
 
-            const nonGuitarPlayed = songs.filter(s => s.limit !== "기타");
+            // 기타 제외 등록된 곡 기준 1회만 부른 곡 비율 계산
+            const nonGuitarRegistered = registered.filter(s => s.limit !== "기타");
+            const totalNonGuitarRegCount = nonGuitarRegistered.length;
             let onceCount = 0;
-            nonGuitarPlayed.forEach(song => {
-                if (song.dateTimes.length === 1) onceCount++;
+            nonGuitarRegistered.forEach(song => {
+                if (song.dateTimes && song.dateTimes.length === 1) {
+                    onceCount++;
+                }
             });
-            const onceRatio = nonGuitarPlayed.length > 0 ? parseFloat(((onceCount / nonGuitarPlayed.length) * 100).toFixed(1)) : 0;
+            const onceRatio = totalNonGuitarRegCount > 0 ? parseFloat(((onceCount / totalNonGuitarRegCount) * 100).toFixed(1)) : 0;
             document.getElementById("onceRatioStat").innerHTML = `
-                <div>${onceCount}곡 | 기타 제외 부른 곡(${nonGuitarPlayed.length}곡) 중 <strong>${onceRatio}%</strong></div>
+                <div>${onceCount}곡 | 기타 제외 등록된 곡(${totalNonGuitarRegCount}곡) 중 <strong>${onceRatio}%</strong></div>
                 <div class="progress-bar-container"><div class="progress-bar-fill" data-target-width="${onceRatio}%"></div></div>
             `;
 
-            const nonGuitarRegistered = registered.filter(s => s.limit !== "기타");
-            const totalNonGuitarRegCount = nonGuitarRegistered.length;
             let zeroPlayCount = 0;
             nonGuitarRegistered.forEach(song => {
                 if (!song.dateTimes || song.dateTimes.length === 0) {
