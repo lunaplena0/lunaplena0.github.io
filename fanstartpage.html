@@ -373,7 +373,7 @@
         .timeline-date {
             font-weight: 700;
             color: #0077b6;
-            font-size: 11px; /* 날짜 글자 크기 유지 */
+            font-size: 11px;
             letter-spacing: -0.3px;
             line-height: 1.1;
         }
@@ -382,7 +382,7 @@
             word-break: break-all;
             line-height: 1.25;
             color: #334155;
-            font-size: 11px; /* 설명 글자 크기 축소 */
+            font-size: 11px;
             display: -webkit-box;
             -webkit-line-clamp: 1;
             -webkit-box-orient: vertical;
@@ -504,6 +504,16 @@
             return 0;
         }
 
+        // 날짜 문자열(YYYY-MM-DD)을 기반으로 매일 모든 사용자에게 동일한 인덱스를 반환하는 해시 함수
+        function getDailyIndex(dateStr, maxNum) {
+            let hash = 0;
+            for (let i = 0; i < dateStr.length; i++) {
+                hash = (hash << 5) - hash + dateStr.charCodeAt(i);
+                hash |= 0;
+            }
+            return Math.abs(hash) % maxNum;
+        }
+
         function renderTimeline() {
             const timelineListEl = document.getElementById("timeline-list");
             const counterEl = document.getElementById("timeline-counter");
@@ -582,20 +592,15 @@
                     linksContainer.innerHTML = "";
                 }
 
+                // 오늘의 추천 VOD 처리 (날짜 기반 고정 인덱스 적용 - 모든 사용자에게 동일)
                 if (vodRes && vodRes.ok) {
                     const vodData = await vodRes.json();
                     const allVods = vodData.vods || [];
                     const vods = allVods.filter(vod => timeToSeconds(vod.duration || "0:00:00") >= 1800);
 
                     if (vods.length > 0) {
-                        const sessionKey = "badabi_session_vod_" + todayKey;
-                        let selectedVod = JSON.parse(sessionStorage.getItem(sessionKey));
-
-                        if (!selectedVod) {
-                            const randomIndex = Math.floor(Math.random() * vods.length);
-                            selectedVod = vods[randomIndex];
-                            sessionStorage.setItem(sessionKey, JSON.stringify(selectedVod));
-                        }
+                        const vodIndex = getDailyIndex(todayKey + "_vod", vods.length);
+                        const selectedVod = vods[vodIndex];
 
                         document.getElementById("widget-notice-link").href = selectedVod.link;
                         document.getElementById("widget-notice-list").innerHTML = `<li class="widget-item">· ${selectedVod.title}</li>`;
@@ -604,6 +609,7 @@
                     }
                 }
                 
+                // 오늘의 노래 추천 처리 (날짜 기반 고정 인덱스 적용 - 모든 사용자에게 동일)
                 if (songRes && songRes.ok) {
                     const songData = await songRes.json();
                     const allSongs = [
@@ -613,32 +619,20 @@
                     const vodSources = songData.vodSources || [];
 
                     if (allSongs.length > 0) {
-                        const sessionKey = "badabi_session_song_" + todayKey;
-                        let sessionSongData = JSON.parse(sessionStorage.getItem(sessionKey));
+                        const songIndex = getDailyIndex(todayKey + "_song", allSongs.length);
+                        const selectedSong = allSongs[songIndex];
 
-                        let selectedSong, targetUrl;
-
-                        if (!sessionSongData) {
-                            const randomSongIndex = Math.floor(Math.random() * allSongs.length);
-                            selectedSong = allSongs[randomSongIndex];
-
-                            targetUrl = "#";
-                            if (selectedSong && selectedSong.dateTimes && selectedSong.dateTimes.length > 0) {
-                                const randomDateIndex = Math.floor(Math.random() * selectedSong.dateTimes.length);
-                                const songDateTime = selectedSong.dateTimes[randomDateIndex];
-                                
-                                const matchedSource = vodSources.find(src => songDateTime.date.includes(src.date) || src.date.includes(songDateTime.date.split('(')[0]));
-                                
-                                if (matchedSource && matchedSource.url) {
-                                    const totalSeconds = timeToSeconds(songDateTime.time);
-                                    targetUrl = `${matchedSource.url}?change_second=${totalSeconds}`;
-                                }
+                        let targetUrl = "#";
+                        if (selectedSong && selectedSong.dateTimes && selectedSong.dateTimes.length > 0) {
+                            const dateIndex = getDailyIndex(todayKey + "_song_date", selectedSong.dateTimes.length);
+                            const songDateTime = selectedSong.dateTimes[dateIndex];
+                            
+                            const matchedSource = vodSources.find(src => songDateTime.date.includes(src.date) || src.date.includes(songDateTime.date.split('(')[0]));
+                            
+                            if (matchedSource && matchedSource.url) {
+                                const totalSeconds = timeToSeconds(songDateTime.time);
+                                targetUrl = `${matchedSource.url}?change_second=${totalSeconds}`;
                             }
-                            sessionSongData = { selectedSong, targetUrl };
-                            sessionStorage.setItem(sessionKey, JSON.stringify(sessionSongData));
-                        } else {
-                            selectedSong = sessionSongData.selectedSong;
-                            targetUrl = sessionSongData.targetUrl;
                         }
                         
                         const vodEl = document.getElementById("widget-vod-link");
