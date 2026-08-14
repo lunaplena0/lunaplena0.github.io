@@ -312,12 +312,6 @@
             flex-shrink: 0;
         }
 
-        .badge-unregistered {
-            background-color: #fef3c7;
-            color: #d97706;
-            flex-shrink: 0;
-        }
-
         .timestamp-container {
             padding: 0 16px 12px 16px;
             display: flex;
@@ -806,7 +800,7 @@
                 unregistered = (statsData.unregisteredSongs || []).map(song => ({
                     title: song.title || '미등록 곡',
                     artist: song.artist || '알 수 없음',
-                    limit: song.limit || '미분류',
+                    limit: song.limit || '기타', // 미등록 곡의 limit 기본값을 '기타'로 처리
                     genre: song.genre || '미분류',
                     dateTimes: song.dateTimes || [],
                     isUnregistered: true
@@ -1112,21 +1106,16 @@
                 };
 
                 let limitBadge = "";
-                if (song.isUnregistered) {
-                    limitBadge = `<span class="badge badge-unregistered">미등록 곡</span>`;
+                let limitVal = song.limit || '';
+                let cleanLimitVal = limitVal.replace(/[\[\]]/g, '').trim();
+
+                if (cleanLimitVal === "기타" || cleanLimitVal === "" || song.isUnregistered) {
+                    limitBadge = `<span class="badge badge-limit" style="background-color: #64748b; color: white;">기타</span>`;
                 } else {
-                    let limitVal = song.limit || '';
-                    if (limitVal !== "") {
-                        let cleanLimitVal = limitVal.replace(/[\[\]]/g, '').trim(); 
-                        if (cleanLimitVal === "기타") {
-                            limitBadge = `<span class="badge badge-limit" style="background-color: #64748b; color: white;">기타</span>`;
-                        } else {
-                            let badgeColor = "#0ea5e9";
-                            if (cleanLimitVal.includes("200")) badgeColor = "#10b981";
-                            else if (cleanLimitVal.includes("300")) badgeColor = "#f97316";
-                            limitBadge = `<span class="badge badge-limit" style="background-color: ${badgeColor}; color: white;">${cleanLimitVal}</span>`;
-                        }
-                    }
+                    let badgeColor = "#0ea5e9";
+                    if (cleanLimitVal.includes("200")) badgeColor = "#10b981";
+                    else if (cleanLimitVal.includes("300")) badgeColor = "#f97316";
+                    limitBadge = `<span class="badge badge-limit" style="background-color: ${badgeColor}; color: white;">${cleanLimitVal}</span>`;
                 }
 
                 const playCount = song.dateTimes ? song.dateTimes.length : 0;
