@@ -8,11 +8,12 @@
         body {
             margin: 0;
             width: 100vw;
-            min-height: 100vh;
+            height: 100vh;
+            height: 100dvh;
             display: flex;
             flex-direction: column;
             background-color: #f8fafc;
-            overflow-x: hidden;
+            overflow: hidden;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             color: #1e293b;
         }
@@ -21,23 +22,24 @@
             width: 100%;
             max-width: 840px;
             margin: 0 auto;
-            padding: 14px 20px 16px 20px;
+            padding: 14px 16px 16px 16px;
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
             gap: 12px;
-            flex: 1;
+            height: 100%;
+            max-height: 100dvh;
+            overflow: hidden;
         }
 
-        /* 상단 헤더 영역 (제목과 상세 통계 버튼 항상 가로 배치) */
         .header-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
             gap: 12px;
+            flex-shrink: 0;
         }
 
-        /* 제목과 요약 정보를 감싸는 영역 (파란색 세로 선 적용) */
         .title-summary-box {
             border-left: 5px solid #0ea5e9;
             padding-left: 14px;
@@ -47,14 +49,27 @@
         }
 
         .page-title {
-            font-size: 28px;
+            font-size: 21px;
             font-weight: 800;
             color: #0f172a;
             margin: 0;
             letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        /* 통계 요약 텍스트 바 */
+        .page-title-svg {
+            width: 24px;
+            height: 24px;
+            stroke: #0ea5e9;
+            stroke-width: 2.2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            fill: none;
+            flex-shrink: 0;
+        }
+
         .stats-summary {
             font-size: 13.5px;
             color: #64748b;
@@ -62,8 +77,14 @@
             margin: 0;
         }
 
-        /* 상세 통계 팝업 트리거 버튼 (songlist의 header-action-btn 스타일과 동일하게 맞춤) */
-        .stats-popup-btn {
+        .header-btn-group {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .header-action-btn {
             background-color: #ffffff;
             border: 1px solid #cbd5e1;
             color: #0369a1;
@@ -72,266 +93,72 @@
             font-weight: 700;
             border-radius: 10px;
             cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+            white-space: nowrap;
             display: flex;
             align-items: center;
-            gap: 6px;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
-            transition: all 0.2s ease;
-            white-space: nowrap;
-            flex-shrink: 0;
+            gap: 5px;
         }
 
-        .stats-popup-btn:hover {
+        .header-action-btn:hover {
             background-color: #f8fafc;
             border-color: #0ea5e9;
             box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
         }
 
-        .stats-popup-btn:active {
+        .header-action-btn:active {
             transform: scale(0.97);
         }
 
-        /* 모달 팝업 오버레이 */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: rgba(15, 23, 42, 0.5);
-            backdrop-filter: blur(2px);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.2s ease;
+        .btn-icon-svg {
+            width: 15px;
+            height: 15px;
+            stroke: #0369a1;
+            stroke-width: 2.2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            fill: none;
+            transition: stroke 0.2s;
         }
 
-        .modal-overlay.active {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        /* 모달 팝업 박스 */
-        .modal-box {
-            background: #ffffff;
-            width: 90%;
-            max-width: 520px;
-            max-height: 85vh;
-            border-radius: 16px;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            transform: scale(0.95);
-            transition: transform 0.2s ease;
-            border: 1px solid #e2e8f0;
-        }
-
-        .modal-overlay.active .modal-box {
-            transform: scale(1);
-        }
-
-        .modal-header {
-            padding: 16px 20px;
-            border-bottom: 1px solid #f1f5f9;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: #f8fafc;
+        .search-container {
+            position: relative;
+            width: 100%;
             flex-shrink: 0;
         }
 
-        .modal-title {
-            font-size: 16px;
-            font-weight: 700;
-            color: #0f172a;
-            margin: 0;
-        }
-
-        .modal-close-btn {
+        .search-icon-wrapper {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            align-items: center;
+            cursor: pointer;
             background: none;
             border: none;
-            font-size: 18px;
-            font-weight: 700;
-            color: #64748b;
-            cursor: pointer;
-            padding: 4px 8px;
-            border-radius: 6px;
-            transition: background 0.2s;
+            padding: 4px;
         }
 
-        .modal-close-btn:hover {
-            background: #e2e8f0;
-            color: #0f172a;
+        .search-icon-svg {
+            width: 18px;
+            height: 18px;
+            stroke: #64748b;
+            stroke-width: 2.2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            fill: none;
+            transition: stroke 0.2s;
         }
 
-        .modal-body {
-            padding: 16px 20px 20px 20px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
+        .search-icon-wrapper:hover .search-icon-svg {
+            stroke: #0ea5e9;
         }
 
-        .stat-item {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            border-bottom: 1px solid #f1f5f9;
-            padding-bottom: 10px;
-            font-size: 13px;
-        }
-
-        .stat-item:first-child {
-            padding-bottom: 10px;
-        }
-
-        .stat-item:last-child {
-            border-bottom: none;
-            padding-bottom: 0;
-        }
-
-        /* 두 항목을 가로 한 줄로 묶어주는 컨테이너 */
-        .stat-row-group {
-            display: flex;
-            gap: 12px;
-            border-bottom: 1px solid #f1f5f9;
-            padding-bottom: 10px;
-        }
-
-        .stat-row-group .stat-item {
-            flex: 1;
-            border-bottom: none;
-            padding-bottom: 0;
-            min-width: 0;
-        }
-
-        .stat-label {
-            font-weight: 700;
-            color: #0369a1;
-            font-size: 13.5px;
-        }
-
-        .stat-value {
-            font-weight: 600;
-            color: #1e293b;
-            line-height: 1.5;
-            word-break: break-all;
-        }
-
-        /* 복합 멀티 프로그레스 바 스타일 */
-        .multi-progress-container {
-            width: 100%;
-            height: 10px;
-            background-color: #f1f5f9;
-            border-radius: 5px;
-            overflow: hidden;
-            margin-top: 6px;
-            display: flex;
-        }
-
-        .multi-bar-segment {
-            height: 100%;
-            width: 0%;
-            transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        /* 범례 스타일 */
-        .legend-row {
-            display: flex;
-            gap: 14px;
-            margin-top: 4px;
-            font-size: 12px;
-            color: #64748b;
-            flex-wrap: wrap;
-        }
-
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .legend-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            display: inline-block;
-        }
-
-        /* 미니 프로그레스 바 스타일 */
-        .progress-bar-container {
-            width: 100%;
-            height: 8px;
-            background-color: #f1f5f9;
-            border-radius: 4px;
-            overflow: hidden;
-            margin-top: 4px;
-        }
-
-        .progress-bar-fill {
-            height: 100%;
-            background-color: #0ea5e9;
-            border-radius: 4px;
-            width: 0%;
-            transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        /* 모달 항목 등장 애니메이션 */
-        .stat-item {
-            opacity: 0;
-            transform: translateY(6px);
-            transition: opacity 0.3s ease, transform 0.3s ease;
-        }
-
-        .modal-overlay.active .stat-item {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        .modal-overlay.active .stat-item:nth-child(1) { transition-delay: 0.05s; }
-        .modal-overlay.active .stat-item:nth-child(2) { transition-delay: 0.1s; }
-        .modal-overlay.active .stat-item:nth-child(3) { transition-delay: 0.15s; }
-        .modal-overlay.active .stat-item:nth-child(4) { transition-delay: 0.2s; }
-        .modal-overlay.active .stat-item:nth-child(5) { transition-delay: 0.25s; }
-        .modal-overlay.active .stat-item:nth-child(6) { transition-delay: 0.3s; }
-        .modal-overlay.active .stat-item:nth-child(7) { transition-delay: 0.35s; }
-
-        /* 클릭 가능한 텍스트 링크 스타일 (공통) */
-        .stat-clickable-link {
-            color: #1e293b;
-            font-weight: 700;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            margin-top: 2px;
-            transition: all 0.2s;
-            text-decoration: none;
-        }
-
-        .stat-clickable-link:hover {
-            color: #0284c7;
-            text-decoration: underline;
-        }
-
-        /* TOP 3 순위별 일반 텍스트 라인업 스타일 */
-        .top-song-row {
-            display: flex;
-            align-items: baseline;
-            gap: 6px;
-            margin-top: 2px;
-            flex-wrap: wrap;
-            line-height: 1.5;
-        }
-
-        /* 검색 및 필터 영역 */
         .search-box {
             width: 100%;
-            padding: 12px 16px;
+            padding: 12px 42px 12px 16px;
             font-size: 14px;
             border: 1px solid #cbd5e1;
             border-radius: 12px;
@@ -347,22 +174,121 @@
             box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
         }
 
-        /* 노래 목록 스타일 (한 줄 레이아웃 및 순차 슬라이드 다운 애니메이션) */
+        .filter-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .filter-tags-container {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            flex: 1;
+        }
+
+        .filter-btn {
+            background-color: #ffffff;
+            border: 1px solid #cbd5e1;
+            color: #0369a1;
+            height: 34px;
+            padding: 0 12px;
+            font-size: 13px;
+            font-weight: 700;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+            box-sizing: border-box;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .filter-btn:hover {
+            background-color: #f8fafc;
+            border-color: #0ea5e9;
+            box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
+        }
+
+        .filter-btn.active {
+            background-color: #0ea5e9;
+            color: white;
+            border-color: #0ea5e9;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-fade-in {
+            opacity: 0;
+            animation: fadeInUp 0.35s ease-out forwards;
+        }
+
+        .song-list-scroll-wrapper {
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding-bottom: 60px;
+            position: relative;
+            box-sizing: border-box;
+            scrollbar-gutter: stable both-edges;
+        }
+
+        .song-list-scroll-wrapper::-webkit-scrollbar {
+            width: 8px;
+        }
+        .song-list-scroll-wrapper::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .song-list-scroll-wrapper::-webkit-scrollbar-thumb {
+            background-color: rgba(203, 213, 225, 0.9);
+            border-radius: 4px;
+            min-height: 40px;
+        }
+        .song-list-scroll-wrapper::-webkit-scrollbar-thumb:hover {
+            background-color: rgba(148, 163, 184, 1);
+        }
+
+        .artist-group-header {
+            font-size: 14.5px;
+            font-weight: 800;
+            color: #0369a1;
+            padding: 10px 4px 4px 4px;
+            margin-top: 6px;
+            border-bottom: 2px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            opacity: 0;
+            animation: fadeInUp 0.35s ease-out forwards;
+        }
+
+        .artist-header-svg {
+            width: 15px;
+            height: 15px;
+            stroke: #0369a1;
+            stroke-width: 2.2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            fill: none;
+            flex-shrink: 0;
+        }
+
         .song-list {
             display: flex;
             flex-direction: column;
             gap: 6px;
-        }
-
-        @keyframes slideDownFade {
-            0% {
-                opacity: 0;
-                transform: translateY(-12px);
-            }
-            100% {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .song-card {
@@ -371,9 +297,9 @@
             border: 1px solid #e2e8f0;
             box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
             overflow: hidden;
-            animation: slideDownFade 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-            opacity: 0;
             transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .song-card:hover {
@@ -386,8 +312,8 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            cursor: pointer;
             gap: 12px;
+            cursor: pointer;
             overflow: hidden;
         }
 
@@ -397,7 +323,6 @@
             gap: 10px;
             min-width: 0;
             flex: 1;
-            user-select: text;
         }
 
         .song-title-wrapper {
@@ -416,9 +341,6 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            display: flex;
-            align-items: center;
-            gap: 6px;
         }
 
         .song-artist {
@@ -429,7 +351,7 @@
             overflow: hidden;
             text-overflow: ellipsis;
             flex-shrink: 0;
-            max-width: 140px;
+            max-width: 160px;
         }
 
         .song-badges {
@@ -460,7 +382,6 @@
             flex-shrink: 0;
         }
 
-        /* 클릭 시 펼쳐지는 날짜 버튼 영역 */
         .timestamp-container {
             padding: 0 16px 12px 16px;
             display: flex;
@@ -482,12 +403,14 @@
             color: #0284c7;
             font-size: 12px;
             font-weight: 600;
-            padding: 3px 7px;
+            padding: 4px 8px;
             border-radius: 8px;
             text-decoration: none;
             cursor: pointer;
             transition: all 0.2s;
-            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
         }
 
         .timestamp-btn:hover {
@@ -496,48 +419,139 @@
             border-color: #0284c7;
         }
 
-        /* 페이지네이션 스타일 */
-        .pagination {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 12px;
-            margin-top: 2px;
-            padding: 2px 0;
+        .timestamp-btn:hover .timestamp-icon-svg {
+            stroke: #ffffff;
         }
 
-        .page-btn {
-            background-color: #ffffff;
-            border: 1px solid #cbd5e1;
-            color: #0f172a;
-            width: 34px;
-            height: 34px;
-            border-radius: 50%;
-            font-size: 15px;
-            font-weight: 700;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
-            transition: all 0.2s;
+        .timestamp-icon-svg {
+            width: 13px;
+            height: 13px;
+            stroke: #0284c7;
+            stroke-width: 2.2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            fill: none;
+            transition: stroke 0.2s;
         }
 
-        .page-btn:hover:not(:disabled) {
-            background-color: #0ea5e9;
+        .toast-message {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background-color: #0f172a;
             color: #ffffff;
-            border-color: #0ea5e9;
-        }
-
-        .page-btn:disabled {
-            opacity: 0.25;
-            cursor: not-allowed;
-        }
-
-        .page-indicator {
+            padding: 10px 18px;
             font-size: 13.5px;
+            font-weight: 600;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+            z-index: 2000;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            white-space: nowrap;
+        }
+
+        .toast-message.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(15, 23, 42, 0.5);
+            backdrop-filter: blur(4px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-box {
+            background: #ffffff;
+            border-radius: 16px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 440px;
+            padding: 20px;
+            box-sizing: border-box;
+            transform: translateY(10px);
+            transition: transform 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .modal-overlay.active .modal-box {
+            transform: translateY(0);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 8px;
+        }
+
+        .modal-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 16px;
+            font-weight: 800;
+            color: #0f172a;
+            margin: 0;
+        }
+
+        .modal-close-btn {
+            background: none;
+            border: none;
+            font-size: 16px;
+            color: #64748b;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 8px;
+        }
+
+        .modal-close-btn:hover { background: #f1f5f9; color: #0f172a; }
+
+        .stats-detail-content {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .stat-item-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 14px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #334155;
+        }
+
+        .stat-value-highlight {
+            color: #0284c7;
             font-weight: 700;
-            color: #475569;
         }
 
         .no-result {
@@ -546,492 +560,270 @@
             font-size: 14px;
             padding: 40px 0;
         }
-
-        @media (max-width: 500px) {
-            .main-container {
-                padding: 12px;
-            }
-            .song-summary-row {
-                padding: 10px 12px;
-                gap: 8px;
-            }
-            .song-artist {
-                max-width: 90px;
-            }
-            .page-title {
-                font-size: 22px;
-            }
-            .title-summary-box {
-                padding-left: 10px;
-            }
-            .stats-popup-btn {
-                padding: 6px 10px;
-                font-size: 13px;
-            }
-            .stat-row-group {
-                flex-direction: column;
-                gap: 12px;
-            }
-        }
     </style>
 </head>
 <body>
 
     <div class="main-container">
-        <!-- 상단 헤더 영역 (제목 & 요약 정보 박스, 상세 통계 버튼 가로 배치) -->
         <div class="header-row">
             <div class="title-summary-box">
-                <h1 class="page-title">바다비 노래 통계</h1>
-                <div id="statsSummary" class="stats-summary">통계 계산 중...</div>
+                <h1 class="page-title">
+                    <svg class="page-title-svg" viewBox="0 0 24 24">
+                        <path d="M18 20V10"></path>
+                        <path d="M12 20V4"></path>
+                        <path d="M6 20v-6"></path>
+                    </svg>
+                    바다비 노래 통계
+                </h1>
+                <div id="statsSummary" class="stats-summary">통계 데이터 계산 중...</div>
             </div>
-            <button class="stats-popup-btn" onclick="toggleModal(true)">
-                <span>📊 노래 통계</span>
-            </button>
-        </div>
-
-        <!-- 상세 통계 팝업 모달 -->
-        <div id="statsModal" class="modal-overlay" onclick="handleModalClick(event)">
-            <div class="modal-box">
-                <div class="modal-header">
-                    <h3 class="modal-title">📊 바다비 노래 통계 요약</h3>
-                    <button class="modal-close-btn" onclick="toggleModal(false)">✕</button>
-                </div>
-                <div class="modal-body">
-                    <div class="stat-item">
-                        <span class="stat-label">👑 가장 많이 부른 곡 TOP 3</span>
-                        <div id="topSongsStat" class="stat-value">-</div>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-label">🎤 가장 많이 부른 가수</span>
-                        <div id="topArtistStat" class="stat-value">-</div>
-                    </div>
-                    <!-- 최근 30일 최다 부른 곡 (등록 / 미등록 분리) -->
-                    <div class="stat-row-group" style="opacity: 1; transform: none;">
-                        <div class="stat-item" style="opacity: 1; transform: none;">
-                            <span class="stat-label">🔥 최근 30일 최다 (등록)</span>
-                            <div id="recentRegTopStat" class="stat-value">-</div>
-                        </div>
-                        <div class="stat-item" style="opacity: 1; transform: none;">
-                            <span class="stat-label">✨ 최근 30일 최다 (미등록)</span>
-                            <div id="recentUnregTopStat" class="stat-value">-</div>
-                        </div>
-                    </div>
-                    <!-- 전체 노래 기준 통합 비교 항목 (하나의 그래프에 색상으로 표시) -->
-                    <div class="stat-item">
-                        <span class="stat-label">🎸✨ 전체 노래 기준 비율 비교</span>
-                        <div id="combinedStatContent" class="stat-value">-</div>
-                    </div>
-                    <!-- 1회 부른 곡 및 0회 부른 곡 통합 비교 항목 -->
-                    <div class="stat-item">
-                        <span class="stat-label">🎵💤 기타 제외 등록곡 부른 횟수 분포 (0회 / 1회 / 2회 이상)</span>
-                        <div id="distributionStatContent" class="stat-value">-</div>
-                    </div>
-                </div>
+            <div class="header-btn-group">
+                <button class="header-action-btn" onclick="openStatsModal()">
+                    <svg class="btn-icon-svg" viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="16" x2="12" y2="12"></line>
+                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                    </svg>
+                    상세 통계
+                </button>
             </div>
         </div>
         
-        <input type="text" id="searchInput" class="search-box" placeholder="노래 제목 또는 가수, 기타 노래 검색..." oninput="onSearchInput()">
-
-        <div id="songContainer" class="song-list">
-            <p class="no-result">데이터를 불러오는 중...</p>
+        <div class="search-container">
+            <input type="text" id="searchInput" class="search-box" placeholder="노래 제목이나 가수 검색..." oninput="onSearchInput()">
+            <button class="search-icon-wrapper" onclick="triggerSearch()">
+                <svg class="search-icon-svg" viewBox="0 0 24 24">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+            </button>
         </div>
 
-        <!-- 페이지네이션 컨트롤 -->
-        <div id="paginationContainer" class="pagination" style="display: none;">
-            <button id="prevBtn" class="page-btn" onclick="changePage(-1)">‹</button>
-            <span id="pageIndicator" class="page-indicator">1 / 1</span>
-            <button id="nextBtn" class="page-btn" onclick="changePage(1)">›</button>
+        <div class="filter-row">
+            <div class="filter-tags-container">
+                <button class="filter-btn active" data-filter="전체">전체</button>
+                <button class="filter-btn" data-filter="불러본곡">불러본 곡</button>
+                <button class="filter-btn" data-filter="안불러본곡">안 불러본 곡</button>
+            </div>
+        </div>
+
+        <div class="song-list-scroll-wrapper">
+            <div id="songContainer" class="song-list">
+                <p class="no-result">데이터를 불러오는 중...</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="toastMessage" class="toast-message">클립보드에 복사되었습니다.</div>
+
+    <!-- 상세 통계 모달 -->
+    <div class="modal-overlay" id="statsModal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3 class="modal-title">
+                    <svg class="btn-icon-svg" viewBox="0 0 24 24" style="width: 18px; height: 18px;">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="16" x2="12" y2="12"></line>
+                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                    </svg>
+                    전체 통계 요약
+                </h3>
+                <button class="modal-close-btn" onclick="closeStatsModal()">✕</button>
+            </div>
+            <div class="stats-detail-content" id="statsDetailContent">
+                <div class="stat-item-row"><span>등록된 전체 곡 수</span><span class="stat-value-highlight" id="modalTotalSongs">0곡</span></div>
+                <div class="stat-item-row"><span>1회 이상 부른 곡 수</span><span class="stat-value-highlight" id="modalSungSongs">0곡</span></div>
+                <div class="stat-item-row"><span>한 번도 안 부른 곡 수</span><span class="stat-value-highlight" id="modalUnsungSongs">0곡</span></div>
+                <div class="stat-item-row"><span>누적 총 가창 횟수</span><span class="stat-value-highlight" id="modalTotalPlayCount">0회</span></div>
+            </div>
         </div>
     </div>
 
     <script>
         const WORKER_URL = "https://badabi-api.dalkkumli054.workers.dev/";
+        const SONG_LIST_URL = WORKER_URL + "?type=songlist&t=";
         const STATS_API_URL = WORKER_URL + "?type=fansongstats&t=";
 
         let allSongs = [];
         let filteredSongs = [];
+        let sortedSongs = [];
         let vodMap = {};
-        let totalPlayCount = 0;
-        let currentPage = 1;
-        const itemsPerPage = 10;
+        let currentFilter = '전체';
+        let toastTimer = null;
 
         function timeToSeconds(timeStr) {
             if (!timeStr) return 0;
             const parts = timeStr.split(":").map(Number);
-            if (parts.length === 3) {
-                return parts[0] * 3600 + parts[1] * 60 + parts[2];
-            } else if (parts.length === 2) {
-                return parts[0] * 60 + parts[1];
-            }
+            if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
+            else if (parts.length === 2) return parts[0] * 60 + parts[1];
             return 0;
         }
 
-        function toggleModal(open) {
-            const modal = document.getElementById("statsModal");
-            if (open) {
-                modal.classList.add("active");
-                setTimeout(() => {
-                    document.querySelectorAll('.multi-bar-segment').forEach(bar => {
-                        const targetWidth = bar.getAttribute('data-target-width');
-                        if (targetWidth) bar.style.width = targetWidth;
-                    });
-                    document.querySelectorAll('.progress-bar-fill').forEach(bar => {
-                        const targetWidth = bar.getAttribute('data-target-width');
-                        if (targetWidth) bar.style.width = targetWidth;
-                    });
-                }, 50);
-            } else {
-                modal.classList.remove("active");
-                document.querySelectorAll('.multi-bar-segment').forEach(bar => {
-                    bar.style.width = '0%';
-                });
-                document.querySelectorAll('.progress-bar-fill').forEach(bar => {
-                    bar.style.width = '0%';
-                });
-            }
+        function toggleSongCard(cardElement) { cardElement.classList.toggle("expanded"); }
+
+        function showToastMessage(customText) {
+            const toast = document.getElementById("toastMessage");
+            toast.textContent = customText;
+            toast.classList.add("show");
+            if (toastTimer) clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => { toast.classList.remove("show"); }, 2000);
         }
 
-        function handleModalClick(e) {
-            if (e.target.id === "statsModal") {
-                toggleModal(false);
-            }
-        }
+        function openStatsModal() { document.getElementById("statsModal").classList.add("active"); }
+        function closeStatsModal() { document.getElementById("statsModal").classList.remove("active"); }
 
-        function toggleSongCard(cardElement) {
-            cardElement.classList.toggle("expanded");
-        }
-
-        function searchByKeyword(keyword) {
-            const searchInput = document.getElementById("searchInput");
-            searchInput.value = keyword;
-            onSearchInput();
-            toggleModal(false);
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        function animateNumber(elementId, endValue, duration = 800, suffix = "") {
-            const element = document.getElementById(elementId);
-            if (!element) return;
-            const startTime = performance.now();
-
-            function update(currentTime) {
-                const elapsed = currentTime - startTime;
-                const progress = Math.min(elapsed / duration, 1);
-                const current = Math.floor(progress * endValue);
-                element.textContent = current.toLocaleString() + suffix;
-                if (progress < 1) {
-                    requestAnimationFrame(update);
-                } else {
-                    element.textContent = endValue.toLocaleString() + suffix;
-                }
-            }
-            requestAnimationFrame(update);
-        }
-
-        async function loadSongStats() {
+        async function loadData() {
             const container = document.getElementById("songContainer");
-
             try {
-                const response = await fetch(STATS_API_URL + new Date().getTime());
-                if (!response.ok) throw new Error("데이터를 불러오지 못했습니다.");
+                const timestamp = new Date().getTime();
+                const [songListRes, statsRes] = await Promise.all([
+                    fetch(SONG_LIST_URL + timestamp),
+                    fetch(STATS_API_URL + timestamp)
+                ]);
+                if (!songListRes.ok || !statsRes.ok) throw new Error();
+                const songListData = await songListRes.json();
+                const statsData = await statsRes.json();
 
-                const data = await response.json();
-                
                 vodMap = {};
-                if (data.vodSources) {
-                    data.vodSources.forEach(vod => {
-                        vodMap[vod.date] = vod.url;
-                    });
-                }
+                statsData.vodSources?.forEach(vod => { vodMap[vod.date] = vod.url; });
 
-                const registered = data.registeredSongs || [];
-                const unregistered = data.unregisteredSongs || [];
-                const rawSongs = [...registered, ...unregistered];
-
-                const validSongs = rawSongs.filter(song => song.dateTimes && song.dateTimes.length > 0);
-                validSongs.sort((a, b) => b.dateTimes.length - a.dateTimes.length);
-                allSongs = validSongs;
-
-                totalPlayCount = allSongs.reduce((sum, song) => sum + song.dateTimes.length, 0);
-
-                document.getElementById("statsSummary").innerHTML = `총 부른 곡 : <span id="animSongCount">0</span>곡 | 부른 횟수 : 약 <span id="animPlayCount">0</span>회`;
-                animateNumber("animSongCount", allSongs.length, 800);
-                animateNumber("animPlayCount", totalPlayCount, 1000);
-
-                calculateDetailedStats(registered, unregistered, allSongs);
-
-                if (allSongs.length === 0) {
-                    container.innerHTML = '<p class="no-result">표시할 노래 데이터가 없습니다.</p>';
-                    return;
-                }
-
-                filteredSongs = [...allSongs];
-                currentPage = 1;
-                renderPage();
-
-            } catch (err) {
-                console.error(err);
-                container.innerHTML = '<p class="no-result" style="color: #ef4444;">노래 통계 데이터를 불러오는데 실패했습니다.</p>';
-            }
-        }
-
-        function calculateDetailedStats(registered, unregistered, songs) {
-            if (songs.length === 0) {
-                document.getElementById("topSongsStat").textContent = "기록 없음";
-                document.getElementById("topArtistStat").textContent = "기록 없음";
-                document.getElementById("recentRegTopStat").textContent = "기록 없음";
-                document.getElementById("recentUnregTopStat").textContent = "기록 없음";
-                document.getElementById("combinedStatContent").textContent = "기록 없음";
-                document.getElementById("distributionStatContent").textContent = "기록 없음";
-                return;
-            }
-
-            const countGroups = {};
-            songs.forEach(song => {
-                const count = song.dateTimes.length;
-                if (!countGroups[count]) countGroups[count] = [];
-                countGroups[count].push(song.title);
-            });
-
-            const sortedCounts = Object.keys(countGroups).map(Number).sort((a, b) => b - a);
-            const medals = ["🥇", "🥈", "🥉"];
-            let topSongsHtml = "";
-            let rankIndex = 0;
-
-            for (let i = 0; i < sortedCounts.length; i++) {
-                if (rankIndex >= 3) break;
-                const count = sortedCounts[i];
-                const titles = countGroups[count];
-                const medalIcon = medals[rankIndex] || `${rankIndex + 1}위`;
-                
-                const titlesLinks = titles.map(title => `
-                    <span class="stat-clickable-link" onclick="searchByKeyword('${title}')">
-                        ${title}
-                    </span>
-                `).join(" / ");
-
-                topSongsHtml += `
-                    <div class="top-song-row">
-                        <span>${medalIcon} (${count}회)</span> ${titlesLinks}
-                    </div>
-                `;
-                rankIndex++;
-            }
-            document.getElementById("topSongsStat").innerHTML = topSongsHtml || "기록 없음";
-
-            const artistCounts = {};
-            songs.forEach(song => {
-                const artist = song.artist || "알 수 없음";
-                const playCount = song.dateTimes.length;
-                artistCounts[artist] = (artistCounts[artist] || 0) + playCount;
-            });
-
-            let topArtist = "";
-            let maxArtistCount = -1;
-            for (const [artist, count] of Object.entries(artistCounts)) {
-                if (count > maxArtistCount) {
-                    maxArtistCount = count;
-                    topArtist = artist;
-                }
-            }
-
-            if (topArtist) {
-                document.getElementById("topArtistStat").innerHTML = `
-                    <span class="stat-clickable-link" onclick="searchByKeyword('${topArtist}')">
-                        🎤 ${topArtist} (총 ${maxArtistCount}회)
-                    </span>
-                `;
-            } else {
-                document.getElementById("topArtistStat").textContent = "기록 없음";
-            }
-
-            const allDateTimes = [];
-            songs.forEach(song => {
-                song.dateTimes.forEach(dt => {
-                    const cleanDate = dt.date.replace(/\(.*?\)/g, "").trim();
-                    allDateTimes.push({ title: song.title, date: cleanDate });
+                const statsMap = {};
+                let totalPlayCountSum = 0;
+                statsData.registeredSongs?.forEach(statSong => {
+                    const key = `${(statSong.title || '').trim().toLowerCase()}_${(statSong.artist || '').trim().toLowerCase()}_${(statSong.limit || '').trim().toLowerCase()}`;
+                    statsMap[key] = statSong.dateTimes || [];
+                    totalPlayCountSum += (statSong.dateTimes || []).length;
                 });
-            });
 
-            if (allDateTimes.length > 0) {
-                allDateTimes.sort((a, b) => new Date(b.date) - new Date(a.date));
-                const latestDateStr = allDateTimes[0].date;
-                const latestDate = new Date(latestDateStr);
-                const thirtyDaysAgo = new Date(latestDate);
-                thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+                allSongs = (songListData.songs || []).map(song => {
+                    const key = `${(song.title || '').trim().toLowerCase()}_${(song.artist || '').trim().toLowerCase()}_${(song.limit || '').trim().toLowerCase()}`;
+                    return { ...song, dateTimes: statsMap[key] || [] };
+                });
 
-                function renderRecentTop(targetSongs, elementId) {
-                    const recentSongCounts = {};
-                    targetSongs.forEach(song => {
-                        let recentPlays = 0;
-                        song.dateTimes.forEach(dt => {
-                            const cleanDate = dt.date.replace(/\(.*?\)/g, "").trim();
-                            const d = new Date(cleanDate);
-                            if (d >= thirtyDaysAgo && d <= latestDate) {
-                                recentPlays++;
-                            }
-                        });
-                        if (recentPlays > 0) {
-                            recentSongCounts[song.title] = recentPlays;
-                        }
-                    });
+                const sungCount = allSongs.filter(s => s.dateTimes && s.dateTimes.length > 0).length;
+                const unsungCount = allSongs.length - sungCount;
 
-                    const recentCountGroups = {};
-                    for (const [title, count] of Object.entries(recentSongCounts)) {
-                        if (!recentCountGroups[count]) recentCountGroups[count] = [];
-                        recentCountGroups[count].push(title);
-                    }
+                document.getElementById("statsSummary").textContent = `총 ${allSongs.length}곡 중 ${sungCount}곡 가창 완료`;
+                
+                // 모달 데이터 채우기
+                document.getElementById("modalTotalSongs").textContent = `${allSongs.length}곡`;
+                document.getElementById("modalSungSongs").textContent = `${sungCount}곡`;
+                document.getElementById("modalUnsungSongs").textContent = `${unsungCount}곡`;
+                document.getElementById("modalTotalPlayCount").textContent = `${totalPlayCountSum}회`;
 
-                    const sortedRecentCounts = Object.keys(recentCountGroups).map(Number).sort((a, b) => b - a);
-
-                    if (sortedRecentCounts.length > 0) {
-                        const maxRecentCount = sortedRecentCounts[0];
-                        const topRecentTitles = recentCountGroups[maxRecentCount];
-
-                        if (topRecentTitles.length === 1) {
-                            document.getElementById(elementId).innerHTML = `
-                                <span class="stat-clickable-link" onclick="searchByKeyword('${topRecentTitles[0]}')">
-                                    🎵 ${topRecentTitles[0]} (${maxRecentCount}회)
-                                </span>
-                            `;
-                        } else {
-                            const titlesLinks = topRecentTitles.map(title => `
-                                <span class="stat-clickable-link" onclick="searchByKeyword('${title}')">
-                                    ${title}
-                                </span>
-                            `).join(" / ");
-                            document.getElementById(elementId).innerHTML = `
-                                <div>🎵 ${titlesLinks} (각 ${maxRecentCount}회)</div>
-                            `;
-                        }
-                    } else {
-                        document.getElementById(elementId).textContent = "기록 없음";
-                    }
-                }
-
-                renderRecentTop(registered, "recentRegTopStat");
-                renderRecentTop(unregistered, "recentUnregTopStat");
-
-            } else {
-                document.getElementById("recentRegTopStat").textContent = "기록 없음";
-                document.getElementById("recentUnregTopStat").textContent = "기록 없음";
+                setupFilterButtons();
+                updateFilteredAndSorted();
+                renderAllSongs();
+            } catch (err) {
+                container.innerHTML = '<p class="no-result" style="color: #ef4444;">데이터 로드 실패</p>';
             }
-
-            // 통합 멀티 컬러 그래프 렌더링 (전체 노래 기준)
-            const allTotalSongs = [...registered, ...unregistered];
-            const totalCountAll = allTotalSongs.length;
-
-            let totalGuitarSongs = [];
-            allTotalSongs.forEach(s => {
-                if (s.limit === "기타") totalGuitarSongs.push(s);
-            });
-            const guitarCount = totalGuitarSongs.length;
-            const guitarRatio = totalCountAll > 0 ? ((guitarCount / totalCountAll) * 100) : 0;
-
-            const playedUnregCount = unregistered.filter(s => s.dateTimes && s.dateTimes.length > 0).length;
-            const unregRatio = totalCountAll > 0 ? ((playedUnregCount / totalCountAll) * 100) : 0;
-
-            document.getElementById("combinedStatContent").innerHTML = `
-                <div>전체 노래(${totalCountAll}곡) 중 <strong>기타 노래 ${guitarCount}곡 (${guitarRatio.toFixed(1)}%)</strong> / <strong>불린 미등록 ${playedUnregCount}곡 (${unregRatio.toFixed(1)}%)</strong></div>
-                <div class="multi-progress-container">
-                    <div class="multi-bar-segment" data-target-width="${guitarRatio.toFixed(1)}%" style="background-color: #6366f1;" title="기타 노래"></div>
-                    <div class="multi-bar-segment" data-target-width="${unregRatio.toFixed(1)}%" style="background-color: #f97316;" title="미등록 노래"></div>
-                </div>
-                <div class="legend-row">
-                    <div class="legend-item"><span class="legend-dot" style="background-color: #6366f1;"></span>기타 노래 (${guitarCount}곡, ${guitarRatio.toFixed(1)}%)</div>
-                    <div class="legend-item"><span class="legend-dot" style="background-color: #f97316;"></span>불린 미등록 (${playedUnregCount}곡, ${unregRatio.toFixed(1)}%)</div>
-                </div>
-            `;
-
-            // 기타 제외 등록된 곡 기준 (0회 / 1회 / 2회 이상) 통합 멀티 컬러 그래프 계산
-            const nonGuitarRegistered = registered.filter(s => s.limit !== "기타");
-            const totalNonGuitarRegCount = nonGuitarRegistered.length;
-
-            let zeroPlayCount = 0;
-            let onceCount = 0;
-            let multiPlayCount = 0;
-
-            nonGuitarRegistered.forEach(song => {
-                const len = song.dateTimes ? song.dateTimes.length : 0;
-                if (len === 0) zeroPlayCount++;
-                else if (len === 1) onceCount++;
-                else multiPlayCount++;
-            });
-
-            const zeroRatio = totalNonGuitarRegCount > 0 ? ((zeroPlayCount / totalNonGuitarRegCount) * 100) : 0;
-            const onceRatio = totalNonGuitarRegCount > 0 ? ((onceCount / totalNonGuitarRegCount) * 100) : 0;
-            const multiRatio = totalNonGuitarRegCount > 0 ? ((multiPlayCount / totalNonGuitarRegCount) * 100) : 0;
-
-            document.getElementById("distributionStatContent").innerHTML = `
-                <div>기타 제외 등록곡(${totalNonGuitarRegCount}곡) 중 <strong>0회 ${zeroPlayCount}곡 (${zeroRatio.toFixed(1)}%)</strong> / <strong>1회 ${onceCount}곡 (${onceRatio.toFixed(1)}%)</strong> / <strong>2회 이상 ${multiPlayCount}곡 (${multiRatio.toFixed(1)}%)</strong></div>
-                <div class="multi-progress-container">
-                    <div class="multi-bar-segment" data-target-width="${zeroRatio.toFixed(1)}%" style="background-color: #94a3b8;" title="0회 (미부름)"></div>
-                    <div class="multi-bar-segment" data-target-width="${onceRatio.toFixed(1)}%" style="background-color: #0ea5e9;" title="1회 부름"></div>
-                    <div class="multi-bar-segment" data-target-width="${multiRatio.toFixed(1)}%" style="background-color: #10b981;" title="2회 이상 부름"></div>
-                </div>
-                <div class="legend-row">
-                    <div class="legend-item"><span class="legend-dot" style="background-color: #94a3b8;"></span>0회 (${zeroPlayCount}곡, ${zeroRatio.toFixed(1)}%)</div>
-                    <div class="legend-item"><span class="legend-dot" style="background-color: #0ea5e9;"></span>1회 (${onceCount}곡, ${onceRatio.toFixed(1)}%)</div>
-                    <div class="legend-item"><span class="legend-dot" style="background-color: #10b981;"></span>2회 이상 (${multiPlayCount}곡, ${multiRatio.toFixed(1)}%)</div>
-                </div>
-            `;
         }
 
-        function renderPage() {
+        function setupFilterButtons() {
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.onclick = () => {
+                    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    currentFilter = btn.getAttribute('data-filter');
+                    updateFilteredAndSorted();
+                    renderAllSongs();
+                };
+            });
+        }
+
+        function updateFilteredAndSorted() {
+            const keyword = document.getElementById("searchInput").value.toLowerCase().trim();
+
+            filteredSongs = allSongs.filter(song => {
+                const title = song.title || '';
+                const artist = song.artist || '';
+                const matchesKeyword = title.toLowerCase().includes(keyword) || artist.toLowerCase().includes(keyword);
+                if (!matchesKeyword) return false;
+
+                const playCount = song.dateTimes ? song.dateTimes.length : 0;
+                if (currentFilter === '불러본곡' && playCount === 0) return false;
+                if (currentFilter === '안불러본곡' && playCount > 0) return false;
+
+                return true;
+            });
+
+            sortedSongs = [...filteredSongs].sort((a, b) => {
+                const artistA = (a.artist || '아티스트 미상').trim();
+                const artistB = (b.artist || '아티스트 미상').trim();
+                const artistCompare = artistA.localeCompare(artistB, 'ko', { sensitivity: 'base' });
+                if (artistCompare !== 0) return artistCompare;
+                return (a.title || '').trim().localeCompare((b.title || '').trim(), 'ko', { sensitivity: 'base' });
+            });
+        }
+
+        function renderAllSongs() {
             const container = document.getElementById("songContainer");
-            const paginationContainer = document.getElementById("paginationContainer");
             container.innerHTML = "";
 
-            if (filteredSongs.length === 0) {
+            if (sortedSongs.length === 0) {
                 container.innerHTML = '<p class="no-result">검색 결과가 없습니다.</p>';
-                paginationContainer.style.display = "none";
                 return;
             }
 
-            paginationContainer.style.display = "flex";
+            let lastArtist = "";
+            const fragment = document.createDocumentFragment();
 
-            const totalPages = Math.ceil(filteredSongs.length / itemsPerPage);
-            if (currentPage > totalPages) currentPage = totalPages;
-            if (currentPage < 1) currentPage = 1;
+            sortedSongs.forEach((song) => {
+                const currentArtist = song.artist || '아티스트 미상';
+                if (currentArtist !== lastArtist) {
+                    lastArtist = currentArtist;
+                    const groupHeader = document.createElement('div');
+                    groupHeader.className = 'artist-group-header';
+                    groupHeader.innerHTML = `<svg class="artist-header-svg" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>${currentArtist}`;
+                    fragment.appendChild(groupHeader);
+                }
 
-            const startIndex = (currentPage - 1) * itemsPerPage;
-            const endIndex = startIndex + itemsPerPage;
-            const displaySongs = filteredSongs.slice(startIndex, endIndex);
-
-            displaySongs.forEach((song, idx) => {
                 const card = document.createElement("div");
-                card.className = "song-card";
-                card.style.animationDelay = `${idx * 0.04}s`;
-
+                card.className = "song-card animate-fade-in";
                 card.onclick = (e) => {
                     if (e.target.tagName === 'A' || e.target.closest('a')) return;
                     toggleSongCard(card);
                 };
 
+                let limitVal = song.limit || '';
                 let limitBadge = "";
-                if (song.limit === "기타") {
-                    limitBadge = `<span class="badge badge-limit">기타</span>`;
+                if (limitVal !== "") {
+                    let cleanLimitVal = limitVal.replace(/[\[\]]/g, ''); 
+                    let badgeColor = "#0ea5e9";
+                    if (cleanLimitVal.includes("200")) badgeColor = "#10b981";
+                    else if (cleanLimitVal.includes("300")) badgeColor = "#f97316";
+                    else if (cleanLimitVal.includes("기타")) {
+                        badgeColor = "#8b5cf6";
+                        cleanLimitVal = "기타 연주";
+                    }
+                    limitBadge = `<span class="badge badge-limit" style="background-color: ${badgeColor}; color: white;">${cleanLimitVal}</span>`;
                 }
 
-                const countBadge = `<span class="badge badge-count">${song.dateTimes.length}회</span>`;
+                const playCount = song.dateTimes ? song.dateTimes.length : 0;
+                const countBadge = `<span class="badge badge-count">${playCount}회</span>`;
 
-                let timestampsHTML = "";
+                let timestampsHTML = '';
                 if (song.dateTimes && song.dateTimes.length > 0) {
                     timestampsHTML = '<div class="timestamp-container">';
                     song.dateTimes.forEach(dt => {
                         const vodUrl = vodMap[dt.date] || "#";
-                        const totalSeconds = timeToSeconds(dt.time);
-                        const finalLink = vodUrl !== "#" ? `${vodUrl}?change_second=${totalSeconds}` : "#";
-
+                        const finalLink = vodUrl !== "#" ? `${vodUrl}?change_second=${timeToSeconds(dt.time)}` : "#";
                         const cleanDate = dt.date.replace(/\(.*?\)/g, "").trim();
 
                         timestampsHTML += `
-                            <a href="${finalLink}" target="_blank" rel="noopener noreferrer" class="timestamp-btn">
-                                📅 ${cleanDate}
+                            <a href="${finalLink}" target="_blank" rel="noopener noreferrer" class="timestamp-btn" onclick="event.stopPropagation();">
+                                ${cleanDate}
+                                <svg class="timestamp-icon-svg" viewBox="0 0 24 24">
+                                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                                    <polyline points="15 3 21 3 21 9"></polyline>
+                                    <line x1="10" y1="14" x2="21" y2="3"></line>
+                                </svg>
                             </a>
                         `;
                     });
                     timestampsHTML += '</div>';
+                } else {
+                    timestampsHTML = '<div class="timestamp-container" style="padding: 10px 16px; font-size: 13px; color: #64748b;">부른 기록이 없습니다.</div>';
                 }
 
                 card.innerHTML = `
@@ -1039,9 +831,9 @@
                         <div class="song-info-left">
                             <div class="song-title-wrapper">
                                 ${limitBadge}
-                                <h3 class="song-title">${song.title}</h3>
+                                <h3 class="song-title">${song.title || '제목없음'}</h3>
                             </div>
-                            <span class="song-artist">${song.artist}</span>
+                            <span class="song-artist">${song.artist || ''}</span>
                         </div>
                         <div class="song-badges">
                             ${countBadge}
@@ -1049,39 +841,16 @@
                     </div>
                     ${timestampsHTML}
                 `;
-
-                container.appendChild(card);
+                fragment.appendChild(card);
             });
 
-            document.getElementById("pageIndicator").textContent = `${currentPage} / ${totalPages}`;
-            document.getElementById("prevBtn").disabled = currentPage === 1;
-            document.getElementById("nextBtn").disabled = currentPage === totalPages;
+            container.appendChild(fragment);
         }
 
-        function changePage(direction) {
-            currentPage += direction;
-            renderPage();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
+        function onSearchInput() { updateFilteredAndSorted(); renderAllSongs(); }
+        function triggerSearch() { updateFilteredAndSorted(); renderAllSongs(); }
 
-        function onSearchInput() {
-            const keyword = document.getElementById("searchInput").value.toLowerCase().trim();
-            filteredSongs = allSongs.filter(song => 
-                song.title.toLowerCase().includes(keyword) || 
-                song.artist.toLowerCase().includes(keyword) ||
-                (keyword === '기타' && song.limit === '기타')
-            );
-            currentPage = 1;
-            renderPage();
-        }
-
-        loadSongStats();
+        loadData();
     </script>
-    <footer style="text-align: center; padding: 8px 10px; color: #b3cde0; font-size: 11px; border-top: 1px solid rgba(0, 229, 255, 0.12); margin-top: 10px; width: 100%; box-sizing: border-box;">
-        <p style="margin: 0; opacity: 0.8; line-height: 1.6; word-break: keep-all; overflow-wrap: break-word;">
-            <strong style="display: block; margin-bottom: 2px; color: #03045e; font-size: 12px;">바다비 비공식 팬 아카이브</strong>
-            <span style="display: inline-block;">비영리로 운영되며, 정보 갱신 시 데이터 반영에 차이가 있을 수 있습니다.</span>
-        </p>
-    </footer>
 </body>
 </html>
