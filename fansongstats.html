@@ -312,6 +312,12 @@
             flex-shrink: 0;
         }
 
+        .badge-unregistered {
+            background-color: #fef3c7;
+            color: #d97706;
+            flex-shrink: 0;
+        }
+
         .timestamp-container {
             padding: 0 16px 12px 16px;
             display: flex;
@@ -570,7 +576,6 @@
             transition: width 0.4s ease;
         }
 
-        /* 범례 가로 배치 스타일 */
         .legend-row {
             display: flex;
             flex-wrap: wrap;
@@ -681,7 +686,6 @@
                     </span>
                     <div id="topArtistStat" class="stat-value">-</div>
                 </div>
-                <!-- 최근 30일 최다곡 (등록 / 미등록 분리) -->
                 <div class="stat-row-group">
                     <div class="stat-item">
                         <span class="stat-label" id="recentRegLabel">
@@ -704,7 +708,6 @@
                         <div id="recentUnregTopStat" class="stat-value">-</div>
                     </div>
                 </div>
-                <!-- 전체 노래 기준 장르 비율 항목 -->
                 <div class="stat-item">
                     <span class="stat-label" id="combinedStatLabel">
                         <svg class="stat-label-svg" viewBox="0 0 24 24">
@@ -716,7 +719,6 @@
                     </span>
                     <div id="combinedStatContent" class="stat-value">-</div>
                 </div>
-                <!-- 1회 부른 곡 및 0회 부른 곡 통합 비교 항목 -->
                 <div class="stat-item">
                     <span class="stat-label" id="distLabel">
                         <svg class="stat-label-svg" viewBox="0 0 24 24">
@@ -798,7 +800,7 @@
 
                 registered = (songListData.songs || []).map(song => {
                     const key = `${(song.title || '').trim().toLowerCase()}_${(song.artist || '').trim().toLowerCase()}_${(song.limit || '').trim().toLowerCase()}`;
-                    return { ...song, dateTimes: statsMap[key] || [] };
+                    return { ...song, dateTimes: statsMap[key] || [], isUnregistered: false };
                 });
 
                 unregistered = (statsData.unregisteredSongs || []).map(song => ({
@@ -806,7 +808,8 @@
                     artist: song.artist || '알 수 없음',
                     limit: '',
                     genre: song.genre || '미분류',
-                    dateTimes: song.dateTimes || []
+                    dateTimes: song.dateTimes || [],
+                    isUnregistered: true
                 }));
 
                 allSongs = [...registered, ...unregistered];
@@ -1069,7 +1072,7 @@
         function updateFilteredAndSorted() {
             const keyword = document.getElementById("searchInput").value.toLowerCase().trim();
 
-            filteredSongs = registered.filter(song => {
+            filteredSongs = allSongs.filter(song => {
                 const title = song.title || '';
                 const artist = song.artist || '';
                 return title.toLowerCase().includes(keyword) || artist.toLowerCase().includes(keyword);
@@ -1105,18 +1108,22 @@
                     toggleSongCard(card);
                 };
 
-                let limitVal = song.limit || '';
                 let limitBadge = "";
-                if (limitVal !== "") {
-                    let cleanLimitVal = limitVal.replace(/[\[\]]/g, ''); 
-                    let badgeColor = "#0ea5e9";
-                    if (cleanLimitVal.includes("200")) badgeColor = "#10b981";
-                    else if (cleanLimitVal.includes("300")) badgeColor = "#f97316";
-                    else if (cleanLimitVal.includes("기타")) {
-                        badgeColor = "#8b5cf6";
-                        cleanLimitVal = "기타 연주";
+                if (song.isUnregistered) {
+                    limitBadge = `<span class="badge badge-unregistered">미등록 곡</span>`;
+                } else {
+                    let limitVal = song.limit || '';
+                    if (limitVal !== "") {
+                        let cleanLimitVal = limitVal.replace(/[\[\]]/g, ''); 
+                        let badgeColor = "#0ea5e9";
+                        if (cleanLimitVal.includes("200")) badgeColor = "#10b981";
+                        else if (cleanLimitVal.includes("300")) badgeColor = "#f97316";
+                        else if (cleanLimitVal.includes("기타")) {
+                            badgeColor = "#8b5cf6";
+                            cleanLimitVal = "기타 연주";
+                        }
+                        limitBadge = `<span class="badge badge-limit" style="background-color: ${badgeColor}; color: white;">${cleanLimitVal}</span>`;
                     }
-                    limitBadge = `<span class="badge badge-limit" style="background-color: ${badgeColor}; color: white;">${cleanLimitVal}</span>`;
                 }
 
                 const playCount = song.dateTimes ? song.dateTimes.length : 0;
