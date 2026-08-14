@@ -567,6 +567,13 @@
                     return d && typeof d === 'string' && d.trim() !== '' && d.trim() !== '-';
                 });
 
+                // 데이터 내 휴방/미정 제목에 🌊 자동 추가 처리
+                allEvents.forEach(event => {
+                    if (event.title && (event.title.includes('휴방') || event.title.includes('미정')) && !event.title.startsWith('🌊')) {
+                        event.title = '🌊 ' + event.title;
+                    }
+                });
+
                 updateDropdownOptions();
                 renderCalendar();
                 containerEl.classList.add('loaded');
@@ -620,7 +627,7 @@
                             date: dateString,
                             time: "",
                             type: "미정",
-                            title: "미정",
+                            title: "🌊 미정",
                             category: "-",
                             url: "-"
                         }];
@@ -629,7 +636,7 @@
                             date: dateString,
                             time: "",
                             type: "휴방",
-                            title: "휴방",
+                            title: "🌊 휴방",
                             category: "-",
                             url: "-"
                         }];
@@ -691,7 +698,7 @@
                         date: dateString,
                         time: "",
                         type: "미정",
-                        title: "미정",
+                        title: "🌊 미정",
                         category: "-",
                         url: "-"
                     }];
@@ -700,7 +707,7 @@
                         date: dateString,
                         time: "",
                         type: "휴방",
-                        title: "휴방",
+                        title: "🌊 휴방",
                         category: "-",
                         url: "-"
                     }];
