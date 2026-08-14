@@ -213,6 +213,7 @@
             overflow: hidden;
             cursor: pointer;
             transition: background-color 0.15s ease;
+            position: relative;
         }
 
         .calendar-cell:hover {
@@ -222,6 +223,18 @@
         .calendar-cell.other-month {
             background: #fafbfc;
             opacity: 0.5;
+        }
+
+        /* 오늘 날짜 강조 스타일 */
+        .calendar-cell.today-cell {
+            background: #f0f9ff;
+            border: 2px solid #0077b6 !important;
+            z-index: 2;
+        }
+
+        .calendar-cell.today-cell .cell-date-num {
+            color: #0077b6;
+            font-weight: 900;
         }
 
         .cell-date-num {
@@ -541,7 +554,6 @@
             const prevBtn = document.getElementById("prev-month-btn");
 
             if (maxAvailableYM !== null) {
-                // 데이터가 존재하는 최대 월보다 크거나 같으면 다음 달 버튼 비활성화
                 if (currentYM >= maxAvailableYM) {
                     nextBtn.disabled = true;
                 } else {
@@ -550,7 +562,6 @@
             }
 
             if (minAvailableYM !== null) {
-                // 데이터가 존재하는 최소 월보다 작거나 같으면 이전 달 버튼 비활성화
                 if (currentYM <= minAvailableYM) {
                     prevBtn.disabled = true;
                 } else {
@@ -753,8 +764,12 @@
                     `;
                 });
 
+                // 오늘 날짜 여부 확인 클래스 추가
+                const isToday = currentCellDate.getTime() === today.getTime();
+                const todayClass = isToday ? " today-cell" : "";
+
                 cellsHtml += `
-                    <div class="calendar-cell" onclick="openDateModal('${dateString}')">
+                    <div class="calendar-cell${todayClass}" onclick="openDateModal('${dateString}')">
                         <div class="cell-date-num">${day}</div>
                         <div class="cell-schedules">
                             ${schedulesHtml}
