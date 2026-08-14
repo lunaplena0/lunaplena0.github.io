@@ -706,7 +706,7 @@
                     </span>
                     <div id="topArtistStat" class="stat-value">-</div>
                 </div>
-                <!-- 최근 30일 최다 부른 곡 (등록 / 미등록 분리) -->
+                <!-- 최근 30일 최다곡 (등록 / 미등록 분리) -->
                 <div class="stat-row-group">
                     <div class="stat-item">
                         <span class="stat-label">
@@ -714,7 +714,7 @@
                                 <path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path>
                                 <path d="M22 12A10 10 0 0 0 12 2v10z"></path>
                             </svg>
-                            최근 30일 최다 (등록)
+                            최근 30일 최다곡 (등록)
                         </span>
                         <div id="recentRegTopStat" class="stat-value">-</div>
                     </div>
@@ -724,7 +724,7 @@
                                 <path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path>
                                 <path d="M22 12A10 10 0 0 0 12 2v10z"></path>
                             </svg>
-                            최근 30일 최다 (미등록)
+                            최근 30일 최다곡 (미등록)
                         </span>
                         <div id="recentUnregTopStat" class="stat-value">-</div>
                     </div>
@@ -964,22 +964,15 @@
                         const maxRecentCount = sortedRecentCounts[0];
                         const topRecentTitles = recentCountGroups[maxRecentCount];
 
-                        if (topRecentTitles.length === 1) {
-                            document.getElementById(elementId).innerHTML = `
-                                <span class="stat-clickable-link" onclick="searchByKeyword('${topRecentTitles[0]}')">
-                                    ${topRecentTitles[0]} (${maxRecentCount}회)
-                                </span>
-                            `;
-                        } else {
-                            const titlesLinks = topRecentTitles.map(title => `
-                                <span class="stat-clickable-link" onclick="searchByKeyword('${title}')">
-                                    ${title}
-                                </span>
-                            `).join(" / ");
-                            document.getElementById(elementId).innerHTML = `
-                                <div>${titlesLinks} (각 ${maxRecentCount}회)</div>
-                            `;
-                        }
+                        const titlesLinks = topRecentTitles.map(title => `
+                            <span class="stat-clickable-link" onclick="searchByKeyword('${title}')">
+                                ${title}
+                            </span>
+                        `).join(" / ");
+
+                        document.getElementById(elementId).innerHTML = `
+                            <div>${titlesLinks} (각 ${maxRecentCount}회)</div>
+                        `;
                     } else {
                         document.getElementById(elementId).textContent = "기록 없음";
                     }
