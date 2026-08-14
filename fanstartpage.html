@@ -14,7 +14,8 @@
             flex-direction: column;
             background-color: #f4f7f9;
             overflow-x: hidden;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            -webkit-font-smoothing: antialiased;
         }
 
         /* 메인 콘텐츠 영역 */
@@ -491,14 +492,6 @@
             });
         }
 
-        // 오늘 날짜(YYYYMMDD) 기반으로 하루 동안 고정된 인덱스 반환 (새로고침해도 안 바뀜)
-        function getDailyRandomIndex(max) {
-            const today = new Date();
-            const seed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate();
-            const x = Math.sin(seed) * 10000;
-            return Math.floor((x - Math.floor(x)) * max);
-        }
-
         function timeToSeconds(timeStr) {
             if (!timeStr) return 0;
             const parts = timeStr.split(':').map(Number);
@@ -508,27 +501,6 @@
                 return parts[0] * 60 + parts[1];
             }
             return 0;
-        }
-
-        function getFilteredItems(storageKey, allItems, getKeyFn) {
-            let history = JSON.parse(localStorage.getItem(storageKey) || "{}");
-            const now = new Date().getTime();
-            const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
-
-            Object.keys(history).forEach(key => {
-                if (now - history[key] > thirtyDaysMs) {
-                    delete history[key];
-                }
-            });
-
-            const availableItems = allItems.filter(item => !history[getKeyFn(item)]);
-
-            if (availableItems.length === 0) {
-                localStorage.removeItem(storageKey);
-                return { available: allItems, history: {} };
-            }
-
-            return { available: availableItems, history };
         }
 
         function renderTimeline() {
@@ -561,7 +533,7 @@
 
             timelineListEl.innerHTML = allTimelineData.map((item, index) => {
                 if (index >= startIndex && index < endIndex) {
-                    const relativeIndex = (index - startIndex) + 1; // 1부터 5까지
+                    const relativeIndex = (index - startIndex) + 1;
                     return `
                         <li class="timeline-item show-${relativeIndex}">
                             <span class="timeline-date">${item.time || ''}</span>
@@ -584,7 +556,7 @@
 
         async function loadProfile() {
             try {
-                // 캐시 문제 방지를 위해 API 호출 시 고정 날짜 키 사용 (오늘 하루 동안은 동일한 데이터 요청 보장)
+                // 캐시 문제 우회를 위한 타임스탬프 (오늘 하루 동일하게 유지되도록 날짜 기반 활용)
                 const todayKey = new Date().toISOString().split('T')[0];
                 
                 const [profileRes, vodRes, songRes] = await Promise.all([
@@ -610,22 +582,20 @@
                     linksContainer.innerHTML = "";
                 }
 
-                // 오늘의 추천 VOD 처리
+                // 오늘의 추천 VOD 처리 (sessionStorage 사용으로 브라우저 닫기 전까지 새로고침해도 안 바뀜)
                 if (vodRes && vodRes.ok) {
                     const vodData = await vodRes.json();
                     const allVods = vodData.vods || [];
                     const vods = allVods.filter(vod => timeToSeconds(vod.duration || "0:00:00") >= 1800);
 
                     if (vods.length > 0) {
-                        const storageKey = "badabi_vod_history";
-                        let { available, history } = getFilteredItems(storageKey, vods, v => v.link);
+                        const sessionKey = "badabi_session_vod_" + todayKey;
+                        let selectedVod = JSON.parse(sessionStorage.getItem(sessionKey));
 
-                        const randomIndex = getDailyRandomIndex(available.length);
-                        const selectedVod = available[randomIndex];
-
-                        if (!history[selectedVod.link]) {
-                            history[selectedVod.link] = new Date().getTime();
-                            localStorage.setItem(storageKey, JSON.stringify(history));
+                        if (!selectedVod) {
+                            const randomIndex = Math.floor(Math.random() * vods.length);
+                            selectedVod = vods[randomIndex];
+                            sessionStorage.setItem(sessionKey, JSON.stringify(selectedVod));
                         }
 
                         document.getElementById("widget-notice-link").href = selectedVod.link;
@@ -635,7 +605,7 @@
                     }
                 }
                 
-                // 오늘의 노래 추천 처리
+                // 오늘의 노래 추천 처리 (sessionStorage 사용)
                 if (songRes && songRes.ok) {
                     const songData = await songRes.json();
                     const allSongs = [
@@ -645,33 +615,37 @@
                     const vodSources = songData.vodSources || [];
 
                     if (allSongs.length > 0) {
-                        const storageKey = "badabi_song_history";
-                        let { available, history } = getFilteredItems(storageKey, allSongs, s => s.title + s.artist);
+                        const sessionKey = "badabi_session_song_" + todayKey;
+                        let sessionSongData = JSON.parse(sessionStorage.getItem(sessionKey));
 
-                        const randomSongIndex = getDailyRandomIndex(available.length);
-                        const selectedSong = available[randomSongIndex];
-                        const songUniqueKey = selectedSong.title + selectedSong.artist;
+                        let selectedSong, targetUrl;
 
-                        if (!history[songUniqueKey]) {
-                            history[songUniqueKey] = new Date().getTime();
-                            localStorage.setItem(storageKey, JSON.stringify(history));
+                        if (!sessionSongData) {
+                            const randomSongIndex = Math.floor(Math.random() * allSongs.length);
+                            selectedSong = allSongs[randomSongIndex];
+
+                            targetUrl = "#";
+                            if (selectedSong && selectedSong.dateTimes && selectedSong.dateTimes.length > 0) {
+                                const randomDateIndex = Math.floor(Math.random() * selectedSong.dateTimes.length);
+                                const songDateTime = selectedSong.dateTimes[randomDateIndex];
+                                
+                                const matchedSource = vodSources.find(src => songDateTime.date.includes(src.date) || src.date.includes(songDateTime.date.split('(')[0]));
+                                
+                                if (matchedSource && matchedSource.url) {
+                                    const totalSeconds = timeToSeconds(songDateTime.time);
+                                    targetUrl = `${matchedSource.url}?change_second=${totalSeconds}`;
+                                }
+                            }
+                            sessionSongData = { selectedSong, targetUrl };
+                            sessionStorage.setItem(sessionKey, JSON.stringify(sessionSongData));
+                        } else {
+                            selectedSong = sessionSongData.selectedSong;
+                            targetUrl = sessionSongData.targetUrl;
                         }
                         
                         const vodEl = document.getElementById("widget-vod-link");
                         const vodListEl = document.getElementById("widget-vod-list");
 
-                        let targetUrl = "#";
-                        if (selectedSong && selectedSong.dateTimes && selectedSong.dateTimes.length > 0) {
-                            const randomDateIndex = getDailyRandomIndex(selectedSong.dateTimes.length);
-                            const songDateTime = selectedSong.dateTimes[randomDateIndex];
-                            
-                            const matchedSource = vodSources.find(src => songDateTime.date.includes(src.date) || src.date.includes(songDateTime.date.split('(')[0]));
-                            
-                            if (matchedSource && matchedSource.url) {
-                                const totalSeconds = timeToSeconds(songDateTime.time);
-                                targetUrl = `${matchedSource.url}?change_second=${totalSeconds}`;
-                            }
-                        }
                         vodEl.href = targetUrl;
                         vodListEl.innerHTML = `<li class="widget-item">· ${selectedSong.title} (${selectedSong.artist})</li>`;
                     }
