@@ -709,7 +709,7 @@
                 <!-- 최근 30일 최다곡 (등록 / 미등록 분리) -->
                 <div class="stat-row-group">
                     <div class="stat-item">
-                        <span class="stat-label">
+                        <span class="stat-label" id="recentRegLabel">
                             <svg class="stat-label-svg" viewBox="0 0 24 24">
                                 <path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path>
                                 <path d="M22 12A10 10 0 0 0 12 2v10z"></path>
@@ -719,7 +719,7 @@
                         <div id="recentRegTopStat" class="stat-value">-</div>
                     </div>
                     <div class="stat-item">
-                        <span class="stat-label">
+                        <span class="stat-label" id="recentUnregLabel">
                             <svg class="stat-label-svg" viewBox="0 0 24 24">
                                 <path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path>
                                 <path d="M22 12A10 10 0 0 0 12 2v10z"></path>
@@ -936,7 +936,7 @@
                 const thirtyDaysAgo = new Date(latestDate);
                 thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-                function renderRecentTop(targetSongs, elementId) {
+                function renderRecentTop(targetSongs, labelId, elementId, baseLabelText) {
                     const recentSongCounts = {};
                     targetSongs.forEach(song => {
                         let recentPlays = 0;
@@ -959,10 +959,21 @@
                     }
 
                     const sortedRecentCounts = Object.keys(recentCountGroups).map(Number).sort((a, b) => b - a);
-
+                    const labelElem = document.getElementById(labelId);
+                    
                     if (sortedRecentCounts.length > 0) {
                         const maxRecentCount = sortedRecentCounts[0];
                         const topRecentTitles = recentCountGroups[maxRecentCount];
+
+                        if (labelElem) {
+                            labelElem.innerHTML = `
+                                <svg class="stat-label-svg" viewBox="0 0 24 24">
+                                    <path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path>
+                                    <path d="M22 12A10 10 0 0 0 12 2v10z"></path>
+                                </svg>
+                                ${baseLabelText} (각 ${maxRecentCount}회)
+                            `;
+                        }
 
                         const titlesLinks = topRecentTitles.map(title => `
                             <span class="stat-clickable-link" onclick="searchByKeyword('${title}')">
@@ -971,15 +982,24 @@
                         `).join(" / ");
 
                         document.getElementById(elementId).innerHTML = `
-                            <div>${titlesLinks} (각 ${maxRecentCount}회)</div>
+                            <div>${titlesLinks}</div>
                         `;
                     } else {
+                        if (labelElem) {
+                            labelElem.innerHTML = `
+                                <svg class="stat-label-svg" viewBox="0 0 24 24">
+                                    <path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path>
+                                    <path d="M22 12A10 10 0 0 0 12 2v10z"></path>
+                                </svg>
+                                ${baseLabelText}
+                            `;
+                        }
                         document.getElementById(elementId).textContent = "기록 없음";
                     }
                 }
 
-                renderRecentTop(registered, "recentRegTopStat");
-                renderRecentTop(unregistered, "recentUnregTopStat");
+                renderRecentTop(registered, "recentRegLabel", "recentRegTopStat", "최근 30일 최다곡 (등록)");
+                renderRecentTop(unregistered, "recentUnregLabel", "recentUnregTopStat", "최근 30일 최다곡 (미등록)");
             } else {
                 document.getElementById("recentRegTopStat").textContent = "기록 없음";
                 document.getElementById("recentUnregTopStat").textContent = "기록 없음";
