@@ -122,6 +122,55 @@
             transition: stroke 0.2s;
         }
 
+        /* 통계 프로그레스 바 영역 */
+        .stats-dashboard-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 12px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            box-sizing: border-box;
+            flex-shrink: 0;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 10px;
+            background-color: #f1f5f9;
+            border-radius: 5px;
+            display: flex;
+            overflow: hidden;
+            gap: 2px;
+        }
+
+        .progress-segment {
+            height: 100%;
+            transition: width 0.4s ease;
+        }
+
+        .stats-legend-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            font-weight: 600;
+            color: #64748b;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .legend-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
         .search-container {
             position: relative;
             width: 100%;
@@ -434,30 +483,7 @@
             transition: stroke 0.2s;
         }
 
-        .toast-message {
-            position: fixed;
-            bottom: 24px;
-            left: 50%;
-            transform: translateX(-50%) translateY(20px);
-            background-color: #0f172a;
-            color: #ffffff;
-            padding: 10px 18px;
-            font-size: 13.5px;
-            font-weight: 600;
-            border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-            z-index: 2000;
-            opacity: 0;
-            pointer-events: none;
-            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-            white-space: nowrap;
-        }
-
-        .toast-message.show {
-            opacity: 1;
-            transform: translateX(-50%) translateY(0);
-        }
-
+        /* 모달 디자인 */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -494,6 +520,8 @@
             display: flex;
             flex-direction: column;
             gap: 16px;
+            max-height: 85vh;
+            overflow-y: auto;
         }
 
         .modal-overlay.active .modal-box {
@@ -589,6 +617,18 @@
             </div>
         </div>
         
+        <!-- 기존 통계 시각화 프로그레스 바 카드 -->
+        <div class="stats-dashboard-card">
+            <div class="progress-bar-container" id="progressBarContainer">
+                <div class="progress-segment" id="progSung" style="background-color: #0ea5e9; width: 0%;" title="불러본 곡"></div>
+                <div class="progress-segment" id="progUnsung" style="background-color: #cbd5e1; width: 0%;" title="안 불러본 곡"></div>
+            </div>
+            <div class="stats-legend-row">
+                <div class="legend-item"><div class="legend-dot" style="background-color: #0ea5e9;"></div><span id="legendSungText">불러본 곡: 0곡 (0%)</span></div>
+                <div class="legend-item"><div class="legend-dot" style="background-color: #cbd5e1;"></div><span id="legendUnsungText">안 불러본 곡: 0곡 (0%)</span></div>
+            </div>
+        </div>
+
         <div class="search-container">
             <input type="text" id="searchInput" class="search-box" placeholder="노래 제목이나 가수 검색..." oninput="onSearchInput()">
             <button class="search-icon-wrapper" onclick="triggerSearch()">
@@ -614,9 +654,7 @@
         </div>
     </div>
 
-    <div id="toastMessage" class="toast-message">클립보드에 복사되었습니다.</div>
-
-    <!-- 상세 통계 모달 -->
+    <!-- 기존 상세 통계 모달 (전체 지표 요약) -->
     <div class="modal-overlay" id="statsModal">
         <div class="modal-box">
             <div class="modal-header">
@@ -635,6 +673,7 @@
                 <div class="stat-item-row"><span>1회 이상 부른 곡 수</span><span class="stat-value-highlight" id="modalSungSongs">0곡</span></div>
                 <div class="stat-item-row"><span>한 번도 안 부른 곡 수</span><span class="stat-value-highlight" id="modalUnsungSongs">0곡</span></div>
                 <div class="stat-item-row"><span>누적 총 가창 횟수</span><span class="stat-value-highlight" id="modalTotalPlayCount">0회</span></div>
+                <div class="stat-item-row"><span>최근 30일간 부른 곡 수</span><span class="stat-value-highlight" id="modalRecentSongs">0곡</span></div>
             </div>
         </div>
     </div>
@@ -649,7 +688,6 @@
         let sortedSongs = [];
         let vodMap = {};
         let currentFilter = '전체';
-        let toastTimer = null;
 
         function timeToSeconds(timeStr) {
             if (!timeStr) return 0;
@@ -660,14 +698,6 @@
         }
 
         function toggleSongCard(cardElement) { cardElement.classList.toggle("expanded"); }
-
-        function showToastMessage(customText) {
-            const toast = document.getElementById("toastMessage");
-            toast.textContent = customText;
-            toast.classList.add("show");
-            if (toastTimer) clearTimeout(toastTimer);
-            toastTimer = setTimeout(() => { toast.classList.remove("show"); }, 2000);
-        }
 
         function openStatsModal() { document.getElementById("statsModal").classList.add("active"); }
         function closeStatsModal() { document.getElementById("statsModal").classList.remove("active"); }
@@ -700,16 +730,43 @@
                     return { ...song, dateTimes: statsMap[key] || [] };
                 });
 
+                const totalSongsCount = allSongs.length;
                 const sungCount = allSongs.filter(s => s.dateTimes && s.dateTimes.length > 0).length;
-                const unsungCount = allSongs.length - sungCount;
+                const unsungCount = totalSongsCount - sungCount;
 
-                document.getElementById("statsSummary").textContent = `총 ${allSongs.length}곡 중 ${sungCount}곡 가창 완료`;
+                // 최근 30일 이내 부른 곡 계산 로직
+                const now = new Date();
+                const thirtyDaysAgo = new Date();
+                thirtyDaysAgo.setDate(now.getDate() - 30);
                 
-                // 모달 데이터 채우기
-                document.getElementById("modalTotalSongs").textContent = `${allSongs.length}곡`;
+                let recentSongSet = new Set();
+                allSongs.forEach(song => {
+                    song.dateTimes?.forEach(dt => {
+                        const parsedDate = parseDateString(dt.date);
+                        if (parsedDate && parsedDate >= thirtyDaysAgo) {
+                            recentSongSet.add(`${song.title}_${song.artist}`);
+                        }
+                    });
+                });
+
+                // 상단 헤더 요약 텍스트
+                document.getElementById("statsSummary").textContent = `총 ${totalSongsCount}곡 중 ${sungCount}곡 가창 완료`;
+                
+                // 프로그레스 바 반영
+                const sungPercent = totalSongsCount > 0 ? ((sungCount / totalSongsCount) * 100).toFixed(1) : 0;
+                const unsungPercent = totalSongsCount > 0 ? ((unsungCount / totalSongsCount) * 100).toFixed(1) : 0;
+
+                document.getElementById("progSung").style.width = `${sungPercent}%`;
+                document.getElementById("progUnsung").style.width = `${unsungPercent}%`;
+                document.getElementById("legendSungText").textContent = `불러본 곡: ${sungCount}곡 (${sungPercent}%)`;
+                document.getElementById("legendUnsungText").textContent = `안 불러본 곡: ${unsungCount}곡 (${unsungPercent}%)`;
+
+                // 모달 상세 통계 데이터 채우기
+                document.getElementById("modalTotalSongs").textContent = `${totalSongsCount}곡`;
                 document.getElementById("modalSungSongs").textContent = `${sungCount}곡`;
                 document.getElementById("modalUnsungSongs").textContent = `${unsungCount}곡`;
                 document.getElementById("modalTotalPlayCount").textContent = `${totalPlayCountSum}회`;
+                document.getElementById("modalRecentSongs").textContent = `${recentSongSet.size}곡`;
 
                 setupFilterButtons();
                 updateFilteredAndSorted();
@@ -717,6 +774,15 @@
             } catch (err) {
                 container.innerHTML = '<p class="no-result" style="color: #ef4444;">데이터 로드 실패</p>';
             }
+        }
+
+        function parseDateString(dateStr) {
+            if (!dateStr) return null;
+            const match = dateStr.match(/(\d{4})[./-](\d{1,2})[./-](\d{1,2})/);
+            if (match) {
+                return new Date(parseInt(match[1]), parseInt(match[2]) - 1, parseInt(match[3]));
+            }
+            return null;
         }
 
         function setupFilterButtons() {
