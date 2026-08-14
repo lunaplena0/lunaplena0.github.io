@@ -49,7 +49,17 @@
             font-size: 25px;
             font-weight: 800;
             opacity: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
             animation: fadeUpIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .page-title svg {
+            width: 24px;
+            height: 24px;
+            fill: #0077b6;
         }
 
         /* 통계 요약 카드 스타일 */
@@ -57,20 +67,30 @@
             background: #ffffff;
             border: 1px solid rgba(0, 119, 190, 0.2);
             border-radius: 10px;
-            padding: 8px 16px;
+            padding: 12px 16px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
             display: flex;
             flex-direction: column;
-            gap: 0px;
+            gap: 4px;
             text-align: center;
             opacity: 0;
             animation: fadeUpIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
         .stats-title {
-            font-size: 12px;
+            font-size: 13px;
             font-weight: 600;
             color: #64748b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .stats-title svg {
+            width: 16px;
+            height: 16px;
+            fill: #64748b;
         }
 
         .stats-value {
@@ -134,14 +154,15 @@
             color: #03045e;
         }
 
-        /* 화살표 아이콘 애니메이션 */
-        .month-heading::after {
-            content: '▼';
-            font-size: 11px;
+        /* SVG 화살표 아이콘 애니메이션 */
+        .month-heading .arrow-icon {
+            width: 12px;
+            height: 12px;
+            fill: #0077b6;
             transition: transform 0.3s ease;
         }
 
-        .month-group.collapsed .month-heading::after {
+        .month-group.collapsed .month-heading .arrow-icon {
             transform: rotate(-90deg);
         }
 
@@ -161,7 +182,7 @@
             display: none;
         }
 
-        /* 💡 세련되게 개선된 '더보기' 버튼 스타일 */
+        /* '더보기' 버튼 스타일 */
         .load-more-btn {
             width: 100%;
             padding: 14px 20px;
@@ -189,13 +210,14 @@
             box-shadow: 0 4px 10px rgba(0, 119, 190, 0.08);
         }
 
-        .load-more-btn::after {
-            content: '▼';
-            font-size: 10px;
+        .load-more-btn svg {
+            width: 10px;
+            height: 10px;
+            fill: #0077b6;
             transition: transform 0.2s ease;
         }
 
-        .load-more-btn:hover::after {
+        .load-more-btn:hover svg {
             transform: translateY(2px);
         }
 
@@ -265,8 +287,20 @@
             font-size: 13px;
             color: #64748b;
             display: flex;
-            gap: 12px;
+            gap: 16px;
             font-weight: 500;
+        }
+
+        .crynote-meta span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .crynote-meta svg {
+            width: 13px;
+            height: 13px;
+            fill: #64748b;
         }
 
         .crynote-desc {
@@ -299,7 +333,10 @@
     <div class="ocean-profile-container">
         <div class="profile-info-card">
             
-            <h2 class="page-title">💧 바다비 눈물 노트</h2>
+            <h2 class="page-title">
+                <svg viewBox="0 0 24 24"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+                바다비 눈물 노트
+            </h2>
 
             <!-- 통계가 표시될 영역 -->
             <div id="stats-container"></div>
@@ -375,7 +412,10 @@
 
                 statsContainer.innerHTML = `
                     <div class="stats-card" style="animation-delay: 0.05s;">
-                        <span class="stats-title">📊 울음 빈도 통계 (2026.04.20 ~ 기준)</span>
+                        <span class="stats-title">
+                            <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>
+                            울음 빈도 통계 (2026.04.20 ~ 기준)
+                        </span>
                         <span class="stats-value">${avgText}</span>
                     </div>
                 `;
@@ -437,7 +477,10 @@
                         monthHeading.className = "month-heading";
                         
                         const count = groupedData[year][month].length;
-                        monthHeading.innerHTML = `<span>${parseInt(month, 10)}월</span> <span style="font-size: 13px; font-weight: 500; opacity: 0.8;">(${count}개의 노트)</span>`;
+                        monthHeading.innerHTML = `
+                            <span>${parseInt(month, 10)}월 <span style="font-size: 13px; font-weight: 500; opacity: 0.8;">(${count}개의 노트)</span></span>
+                            <svg class="arrow-icon" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>
+                        `;
                         
                         monthHeading.addEventListener("click", () => {
                             monthGroup.classList.toggle("collapsed");
@@ -468,8 +511,14 @@
                             
                             a.innerHTML = `
                                 <div class="crynote-meta">
-                                    <span>📅 ${item.date || "날짜 없음"}</span>
-                                    <span>⏱️ ${item.time || "시간 없음"}</span>
+                                    <span>
+                                        <svg viewBox="0 0 24 24"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11z"/></svg>
+                                        ${item.date || "날짜 없음"}
+                                    </span>
+                                    <span>
+                                        <svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
+                                        ${item.time || "시간 없음"}
+                                    </span>
                                 </div>
                                 <p class="crynote-desc">${item.description || "내용 없음"}</p>
                             `;
@@ -489,7 +538,10 @@
                 if (hiddenMonthGroups.length > 0) {
                     const loadMoreBtn = document.createElement("button");
                     loadMoreBtn.className = "load-more-btn";
-                    loadMoreBtn.innerHTML = `이전 월 ${hiddenMonthGroups.length}개 더보기`;
+                    loadMoreBtn.innerHTML = `
+                        이전 월 ${hiddenMonthGroups.length}개 더보기
+                        <svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>
+                    `;
                     
                     loadMoreBtn.addEventListener("click", () => {
                         hiddenMonthGroups.forEach(group => {
