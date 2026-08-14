@@ -46,9 +46,32 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
+            gap: 8px;
             margin-bottom: 8px;
             position: relative;
+        }
+
+        /* 좌우 화살표 버튼 스타일 */
+        .month-arrow-btn {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(0, 119, 190, 0.25);
+            color: #03045e;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 10px rgba(0, 119, 190, 0.05);
+        }
+
+        .month-arrow-btn:hover {
+            background: #0077b6;
+            color: #ffffff;
+            border-color: #0077b6;
+            transform: translateY(-1px);
         }
 
         .month-picker-btn {
@@ -60,6 +83,7 @@
             cursor: pointer;
             font-weight: 800;
             font-size: 15px;
+            height: 32px;
             transition: all 0.2s ease;
             box-shadow: 0 4px 10px rgba(0, 119, 190, 0.05);
             display: inline-flex;
@@ -86,7 +110,7 @@
         /* 드롭다운 셀렉트 박스 컨테이너 */
         .month-dropdown-box {
             position: absolute;
-            top: 36px;
+            top: 40px;
             background: #ffffff;
             border: 1px solid rgba(0, 119, 190, 0.2);
             border-radius: 10px;
@@ -430,9 +454,17 @@
     <div class="ocean-calendar-container" id="calendar-container">
         <!-- 월 선택 컨트롤러 및 드롭다운 영역 -->
         <div class="calendar-nav">
+            <button class="month-arrow-btn" onclick="changeMonth(-1)" title="이전 달">
+                <svg class="svg-icon" viewBox="0 0 24 24"><path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z"/></svg>
+            </button>
+
             <button class="month-picker-btn" id="current-month-label" onclick="toggleMonthDropdown()">
                 YYYY년 MM월 
                 <svg class="svg-icon" viewBox="0 0 24 24"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/></svg>
+            </button>
+
+            <button class="month-arrow-btn" onclick="changeMonth(1)" title="다음 달">
+                <svg class="svg-icon" viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>
             </button>
             
             <div class="month-dropdown-box" id="month-dropdown">
@@ -486,6 +518,14 @@
     <script>
         let allEvents = [];
         let currentDate = new Date();
+
+        // 이전 달 / 다음 달 이동 함수
+        function changeMonth(direction) {
+            currentDate.setMonth(currentDate.getMonth() + direction);
+            renderCalendar();
+            // 드롭다운이 열려있다면 닫아주기
+            document.getElementById("month-dropdown").classList.remove('active');
+        }
 
         function updateDropdownOptions() {
             const selectYearEl = document.getElementById("select-year");
