@@ -192,7 +192,7 @@
             display: flex;
             flex-direction: column;
             gap: 8px;
-            padding-bottom: 60px;
+            padding-bottom: 20px;
             position: relative;
             box-sizing: border-box;
             scrollbar-gutter: stable both-edges;
@@ -362,45 +362,6 @@
             stroke-linejoin: round;
             fill: none;
             transition: stroke 0.2s;
-        }
-
-        /* 페이지네이션 스타일 */
-        .pagination-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 6px;
-            padding: 10px 0;
-            flex-shrink: 0;
-        }
-
-        .pagination-btn {
-            background-color: #ffffff;
-            border: 1px solid #cbd5e1;
-            color: #334155;
-            padding: 6px 12px;
-            font-size: 13px;
-            font-weight: 600;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .pagination-btn:hover:not(:disabled) {
-            background-color: #f1f5f9;
-            border-color: #94a3b8;
-        }
-
-        .pagination-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .pagination-info {
-            font-size: 13px;
-            font-weight: 600;
-            color: #64748b;
-            padding: 0 8px;
         }
 
         /* 상세 통계 모달 디자인 */
@@ -663,12 +624,6 @@
                 <p class="no-result">데이터를 불러오는 중...</p>
             </div>
         </div>
-
-        <div id="paginationContainer" class="pagination-container" style="display: none;">
-            <button id="prevBtn" class="pagination-btn" onclick="changePage(-1)">이전</button>
-            <span id="pageInfo" class="pagination-info">1 / 1</span>
-            <button id="nextBtn" class="pagination-btn" onclick="changePage(1)">다음</button>
-        </div>
     </div>
 
     <!-- 상세 통계 팝업 모달 -->
@@ -767,8 +722,6 @@
         let registered = [];
         let unregistered = [];
         let vodMap = {};
-        let currentPage = 1;
-        const itemsPerPage = 30;
 
         function timeToSeconds(timeStr) {
             if (!timeStr) return 0;
@@ -799,8 +752,7 @@
             document.getElementById("searchInput").value = keyword;
             toggleModal(false);
             updateFilteredAndSorted();
-            currentPage = 1;
-            renderPage();
+            renderList();
         }
 
         async function loadData() {
@@ -845,7 +797,7 @@
 
                 calculateStats(registered, unregistered);
                 updateFilteredAndSorted();
-                renderPage();
+                renderList();
             } catch (err) {
                 container.innerHTML = '<p class="no-result" style="color: #ef4444;">데이터 로드 실패</p>';
             }
@@ -1109,34 +1061,18 @@
             });
         }
 
-        function renderPage() {
+        function renderList() {
             const container = document.getElementById("songContainer");
-            const paginationContainer = document.getElementById("paginationContainer");
             container.innerHTML = "";
 
             if (filteredSongs.length === 0) {
                 container.innerHTML = '<p class="no-result">검색 결과가 없습니다.</p>';
-                paginationContainer.style.display = "none";
                 return;
             }
 
-            paginationContainer.style.display = "flex";
-
-            const totalPages = Math.ceil(filteredSongs.length / itemsPerPage);
-            if (currentPage > totalPages) currentPage = totalPages;
-            if (currentPage < 1) currentPage = 1;
-
-            const startIndex = (currentPage - 1) * itemsPerPage;
-            const endIndex = startIndex + itemsPerPage;
-            const displaySongs = filteredSongs.slice(startIndex, endIndex);
-
-            document.getElementById("pageInfo").textContent = `${currentPage} / ${totalPages}`;
-            document.getElementById("prevBtn").disabled = currentPage === 1;
-            document.getElementById("nextBtn").disabled = currentPage === totalPages;
-
             const fragment = document.createDocumentFragment();
 
-            displaySongs.forEach((song, idx) => {
+            filteredSongs.forEach((song, idx) => {
                 const card = document.createElement("div");
                 card.className = "song-card animate-fade-in";
                 card.style.animationDelay = `${idx * 0.02}s`;
@@ -1183,7 +1119,7 @@
                     });
                     timestampsHTML += '</div>';
                 } else {
-                    timestampsHTML = '<div class="timestamp-title-space-fix timestamp-container" style="padding: 10px 16px; font-size: 13px; color: #64748b;">부른 기록이 없습니다.</div>';
+                    timestampsHTML = '<div class="timestamp-container" style="padding: 10px 16px; font-size: 13px; color: #64748b;">부른 기록이 없습니다.</div>';
                 }
 
                 card.innerHTML = `
@@ -1207,23 +1143,14 @@
             container.appendChild(fragment);
         }
 
-        function changePage(direction) {
-            currentPage += direction;
-            renderPage();
-            const scrollWrapper = document.querySelector('.song-list-scroll-wrapper');
-            if (scrollWrapper) scrollWrapper.scrollTop = 1;
-        }
-
         function onSearchInput() { 
             updateFilteredAndSorted(); 
-            currentPage = 1;
-            renderPage(); 
+            renderList(); 
         }
 
         function triggerSearch() { 
             updateFilteredAndSorted(); 
-            currentPage = 1;
-            renderPage(); 
+            renderList(); 
         }
 
         loadData();
