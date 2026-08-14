@@ -83,14 +83,6 @@
             vertical-align: middle;
         }
 
-        .svg-icon-large {
-            width: 20px;
-            height: 20px;
-            fill: currentColor;
-            flex-shrink: 0;
-            vertical-align: middle;
-        }
-
         /* 드롭다운 셀렉트 박스 컨테이너 */
         .month-dropdown-box {
             position: absolute;
@@ -623,14 +615,25 @@
                 currentCellDate.setHours(0, 0, 0, 0);
 
                 if (currentCellDate >= cutoffDate && currentCellDate <= today && daySchedules.length === 0) {
-                    daySchedules = [{
-                        date: dateString,
-                        time: "",
-                        type: "휴방",
-                        title: "휴방",
-                        category: "-",
-                        url: "-"
-                    }];
+                    if (currentCellDate.getTime() === today.getTime()) {
+                        daySchedules = [{
+                            date: dateString,
+                            time: "",
+                            type: "미정",
+                            title: "미정",
+                            category: "-",
+                            url: "-"
+                        }];
+                    } else {
+                        daySchedules = [{
+                            date: dateString,
+                            time: "",
+                            type: "휴방",
+                            title: "휴방",
+                            category: "-",
+                            url: "-"
+                        }];
+                    }
                 }
 
                 let schedulesHtml = "";
@@ -683,14 +686,25 @@
             targetDate.setHours(0, 0, 0, 0);
 
             if (targetDate >= cutoffDate && targetDate <= today && daySchedules.length === 0) {
-                daySchedules = [{
-                    date: dateString,
-                    time: "",
-                    type: "휴방",
-                    title: "휴방",
-                    category: "-",
-                    url: "-"
-                }];
+                if (targetDate.getTime() === today.getTime()) {
+                    daySchedules = [{
+                        date: dateString,
+                        time: "",
+                        type: "미정",
+                        title: "미정",
+                        category: "-",
+                        url: "-"
+                    }];
+                } else {
+                    daySchedules = [{
+                        date: dateString,
+                        time: "",
+                        type: "휴방",
+                        title: "휴방",
+                        category: "-",
+                        url: "-"
+                    }];
+                }
             }
 
             if (daySchedules.length === 0) {
