@@ -520,6 +520,28 @@
             return 0;
         }
 
+        // 30일이 지난 기록을 지우고, 남은 아이템들을 필터링해주는 헬퍼 함수
+        function getFilteredItems(storageKey, allItems, getKeyFn) {
+            let history = JSON.parse(localStorage.getItem(storageKey) || "{}");
+            const now = new Date().getTime();
+            const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
+
+            Object.keys(history).forEach(key => {
+                if (now - history[key] > thirtyDaysMs) {
+                    delete history[key];
+                }
+            });
+
+            const availableItems = allItems.filter(item => !history[getKeyFn(item)]);
+
+            if (availableItems.length === 0) {
+                localStorage.removeItem(storageKey);
+                return { available: allItems, history: {} };
+            }
+
+            return { available: availableItems, history };
+        }
+
         function renderTimeline() {
             const timelineListEl = document.getElementById("timeline-list");
             const counterEl = document.getElementById("timeline-counter");
@@ -572,7 +594,7 @@
             try {
                 const timestamp = new Date().getTime();
                 
-                // 1. 기존 시작페이지 데이터 및 새 API 데이터(VOD 목록, 노래 통계) 동시 페치
+                // 1. 기본 프로필 데이터 및 새 API 데이터(VOD 목록, 노래 통계) 동시 페치
                 const [profileRes, vodRes, songRes] = await Promise.all([
                     fetch(`${WORKER_URL}?type=fanstartpage&t=${timestamp}`),
                     fetch(`${WORKER_URL}?type=fanvodlist&t=${timestamp}`).catch(() => null),
@@ -598,20 +620,27 @@
                     linksContainer.innerHTML = "";
                 }
 
-                // 2. 오늘의 추천 VOD 처리 (fanvodlist)
+                // 2. 오늘의 추천 VOD 처리 (fanvodlist) - 30분 이상 필터링 + 30일 중복 방지
                 if (vodRes && vodRes.ok) {
                     const vodData = await vodRes.json();
                     const allVods = vodData.vods || [];
 
-                    // 30분(1800초) 이상인 VOD만 필터링
                     const vods = allVods.filter(vod => {
                         const totalSeconds = timeToSeconds(vod.duration || "0:00:00");
                         return totalSeconds >= 1800; // 30분 = 1800초
                     });
 
                     if (vods.length > 0) {
-                        const randomIndex = getDailyRandomIndex(vods.length);
-                        const selectedVod = vods[randomIndex];
+                        const storageKey = "badabi_vod_history";
+                        let { available, history } = getFilteredItems(storageKey, vods, v => v.link);
+
+                        const randomIndex = getDailyRandomIndex(available.length);
+                        const selectedVod = available[randomIndex];
+
+                        if (!history[selectedVod.link]) {
+                            history[selectedVod.link] = new Date().getTime();
+                            localStorage.setItem(storageKey, JSON.stringify(history));
+                        }
 
                         const noticeEl = document.getElementById("widget-notice-link");
                         const noticeListEl = document.getElementById("widget-notice-list");
@@ -623,7 +652,7 @@
                     }
                 }
                 
-                // 3. 오늘의 노래 추천 처리 (fansongstats - 하루 1개)
+                // 3. 오늘의 노래 추천 처리 (fansongstats) - 30일 중복 방지 + 여러 날짜 고정 랜덤 선택
                 if (songRes && songRes.ok) {
                     const songData = await songRes.json();
                     const allSongs = [
@@ -634,16 +663,23 @@
                     const vodSources = songData.vodSources || [];
 
                     if (allSongs.length > 0) {
-                        // 오늘 하루 고정된 노래 선택
-                        const randomSongIndex = getDailyRandomIndex(allSongs.length);
-                        const selectedSong = allSongs[randomSongIndex];
+                        const storageKey = "badabi_song_history";
+                        let { available, history } = getFilteredItems(storageKey, allSongs, s => s.title + s.artist);
+
+                        const randomSongIndex = getDailyRandomIndex(available.length);
+                        const selectedSong = available[randomSongIndex];
+                        const songUniqueKey = selectedSong.title + selectedSong.artist;
+
+                        if (!history[songUniqueKey]) {
+                            history[songUniqueKey] = new Date().getTime();
+                            localStorage.setItem(storageKey, JSON.stringify(history));
+                        }
                         
                         const vodEl = document.getElementById("widget-vod-link");
                         const vodListEl = document.getElementById("widget-vod-list");
 
                         let targetUrl = "#";
                         if (selectedSong && selectedSong.dateTimes && selectedSong.dateTimes.length > 0) {
-                            // 날짜가 여러 개인 경우, 그중 하나를 '오늘 날짜' 기준으로 고정 랜덤 선택
                             const randomDateIndex = getDailyRandomIndex(selectedSong.dateTimes.length);
                             const songDateTime = selectedSong.dateTimes[randomDateIndex];
                             
