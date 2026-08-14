@@ -797,14 +797,20 @@
                     return { ...song, dateTimes: statsMap[key] || [], isUnregistered: false };
                 });
 
-                unregistered = (statsData.unregisteredSongs || []).map(song => ({
-                    title: song.title || '미등록 곡',
-                    artist: song.artist || '알 수 없음',
-                    limit: song.limit || '',
-                    genre: song.genre || '미분류',
-                    dateTimes: song.dateTimes || [],
-                    isUnregistered: true
-                }));
+                unregistered = (statsData.unregisteredSongs || []).map(song => {
+                    let cleanedGenre = (song.genre || '미분류').trim();
+                    if (cleanedGenre.toLowerCase() === 'kpop') {
+                        cleanedGenre = '미분류';
+                    }
+                    return {
+                        title: song.title || '미등록 곡',
+                        artist: song.artist || '알 수 없음',
+                        limit: song.limit || '',
+                        genre: cleanedGenre,
+                        dateTimes: song.dateTimes || [],
+                        isUnregistered: true
+                    };
+                });
 
                 allSongs = [...registered, ...unregistered];
 
@@ -995,7 +1001,10 @@
             const genreColors = ["#6366f1", "#0ea5e9", "#10b981", "#f97316", "#8b5cf6", "#eab308"];
             
             allTotalSongs.forEach(s => {
-                const genre = s.genre ? s.genre.trim() : "미분류";
+                let genre = s.genre ? s.genre.trim() : "미분류";
+                if (genre.toLowerCase() === 'kpop') {
+                    genre = '미분류';
+                }
                 genreCounts[genre] = (genreCounts[genre] || 0) + 1;
             });
 
@@ -1061,7 +1070,7 @@
                 <div class="legend-row">
                     <div class="legend-item"><span class="legend-dot" style="background-color: #94a3b8;"></span>0회 (${zeroPlayCount}곡, ${zeroRatio.toFixed(1)}%)</div>
                     <div class="legend-item"><span class="legend-dot" style="background-color: #0ea5e9;"></span>1회 (${onceCount}곡, ${onceRatio.toFixed(1)}%)</div>
-                    <div class="legend-item"><span class="legend-dot" style="background-color: #0ea5e9;"></span>2회 이상 (${multiPlayCount}곡, ${multiRatio.toFixed(1)}%)</div>
+                    <div class="legend-item"><span class="legend-dot" style="background-color: #10b981;"></span>2회 이상 (${multiPlayCount}곡, ${multiRatio.toFixed(1)}%)</div>
                 </div>
             `;
         }
