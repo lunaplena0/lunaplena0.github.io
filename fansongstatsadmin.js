@@ -237,7 +237,38 @@
             background-color: #0ea5e9;
             border-radius: 4px;
             width: 0%;
-            transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+            transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.3s ease;
+        }
+
+        /* 전체 기준 공통 비율 통합 박스 내부 탭 버튼 */
+        .combined-tabs {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 6px;
+        }
+
+        .combined-tab-btn {
+            background-color: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            color: #475569;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .combined-tab-btn.active-guitar {
+            background-color: #6366f1;
+            color: #ffffff;
+            border-color: #6366f1;
+        }
+
+        .combined-tab-btn.active-unreg {
+            background-color: #f97316;
+            color: #ffffff;
+            border-color: #f97316;
         }
 
         /* 모달 항목 등장 애니메이션 */
@@ -576,9 +607,16 @@
                             <div id="recentUnregTopStat" class="stat-value">-</div>
                         </div>
                     </div>
+                    <!-- 전체 노래 기준 통합 비교 항목 (기타 노래 비율 & 미등록 노래 비율) -->
                     <div class="stat-item">
-                        <span class="stat-label">🎸 기타 노래 비율</span>
-                        <div id="guitarRatioStat" class="stat-value">-</div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
+                            <span class="stat-label" id="combinedStatLabel">🎸 전체 노래 기준 비율</span>
+                            <div class="combined-tabs">
+                                <button class="combined-tab-btn active-guitar" id="tabGuitarBtn" onclick="switchCombinedStat('guitar')">기타 노래</button>
+                                <button class="combined-tab-btn" id="tabUnregBtn" onclick="switchCombinedStat('unreg')">미등록 노래</button>
+                            </div>
+                        </div>
+                        <div id="combinedStatContent" class="stat-value">-</div>
                     </div>
                     <div class="stat-item">
                         <span class="stat-label">🎵 1회만 부른 곡 비율 (기타 노래 제외)</span>
@@ -587,10 +625,6 @@
                     <div class="stat-item">
                         <span class="stat-label">💤 노래책 등록 후 한 번도 안 부른 곡 비율 (기타 제외)</span>
                         <div id="zeroRatioStat" class="stat-value">-</div>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-label">✨ 전체 노래중에서 노래책에 미등록한 노래 비율</span>
-                        <div id="unregRatioStat" class="stat-value">-</div>
                     </div>
                 </div>
             </div>
@@ -620,6 +654,9 @@
         let totalPlayCount = 0;
         let currentPage = 1;
         const itemsPerPage = 10;
+
+        // 전역으로 통계 데이터 저장 (탭 전환용)
+        let cachedStatsData = null;
 
         function timeToSeconds(timeStr) {
             if (!timeStr) return 0;
@@ -717,6 +754,7 @@
                 animateNumber("animSongCount", allSongs.length, 800);
                 animateNumber("animPlayCount", totalPlayCount, 1000);
 
+                cachedStatsData = { registered, unregistered, songs: allSongs };
                 calculateDetailedStats(registered, unregistered, allSongs);
 
                 if (allSongs.length === 0) {
@@ -734,16 +772,81 @@
             }
         }
 
+        let currentCombinedTab = 'guitar';
+
+        function switchCombinedStat(type) {
+            currentCombinedTab = type;
+            const btnGuitar = document.getElementById("tabGuitarBtn");
+            const btnUnreg = document.getElementById("tabUnregBtn");
+
+            if (type === 'guitar') {
+                btnGuitar.className = "combined-tab-btn active-guitar";
+                btnUnreg.className = "combined-tab-btn";
+            } else {
+                btnGuitar.className = "combined-tab-btn";
+                btnUnreg.className = "combined-tab-btn active-unreg";
+            }
+
+            if (cachedStatsData) {
+                renderCombinedStatContent(cachedStatsData.registered, cachedStatsData.unregistered);
+            }
+        }
+
+        function renderCombinedStatContent(registered, unregistered) {
+            const allTotalSongs = [...registered, ...unregistered];
+            const totalCountAll = allTotalSongs.length;
+            const contentEl = document.getElementById("combinedStatContent");
+
+            if (currentCombinedTab === 'guitar') {
+                let totalGuitarSongs = [];
+                allTotalSongs.forEach(s => {
+                    if (s.limit === "기타") totalGuitarSongs.push(s);
+                });
+                const guitarTotalCount = totalGuitarSongs.length;
+                const guitarOverallRatio = totalCountAll > 0 ? parseFloat(((guitarTotalCount / totalCountAll) * 100).toFixed(1)) : 0;
+
+                let playedGuitarCount = 0;
+                let unplayedGuitarCount = 0;
+                totalGuitarSongs.forEach(s => {
+                    if (s.dateTimes && s.dateTimes.length > 0) {
+                        playedGuitarCount++;
+                    } else {
+                        unplayedGuitarCount++;
+                    }
+                });
+
+                contentEl.innerHTML = `
+                    <div>전체 노래(${totalCountAll}곡) 중 <strong>${guitarTotalCount}곡 (${guitarOverallRatio}%)</strong></div>
+                    <div class="progress-bar-container"><div class="progress-bar-fill" id="combinedBar" data-target-width="${guitarOverallRatio}%" style="background-color: #6366f1;"></div></div>
+                    <div style="font-size: 12px; color: #64748b; margin-top: 2px;">부른 기타 곡: ${playedGuitarCount}곡 | 안 부른 기타 곡: ${unplayedGuitarCount}곡</div>
+                `;
+            } else {
+                const playedUnregCount = unregistered.filter(s => s.dateTimes && s.dateTimes.length > 0).length;
+                const unregVsTotalRatio = totalCountAll > 0 ? parseFloat(((playedUnregCount / totalCountAll) * 100).toFixed(1)) : 0;
+
+                contentEl.innerHTML = `
+                    <div>전체 노래(${totalCountAll}곡) 중 불린 미등록 곡 <strong>${playedUnregCount}곡 (${unregVsTotalRatio}%)</strong></div>
+                    <div class="progress-bar-container"><div class="progress-bar-fill" id="combinedBar" data-target-width="${Math.min(unregVsTotalRatio, 100)}%;" style="background-color: #f97316;"></div></div>
+                    <div style="font-size: 12px; color: #64748b; margin-top: 2px;">노래책 미등록 곡 중 한 번 이상 부른 곡 기준</div>
+                `;
+            }
+
+            // 프로그레스바 즉시 애니메이션 적용
+            setTimeout(() => {
+                const bar = document.getElementById("combinedBar");
+                if (bar) bar.style.width = bar.getAttribute('data-target-width');
+            }, 20);
+        }
+
         function calculateDetailedStats(registered, unregistered, songs) {
             if (songs.length === 0) {
                 document.getElementById("topSongsStat").textContent = "기록 없음";
                 document.getElementById("topArtistStat").textContent = "기록 없음";
                 document.getElementById("recentRegTopStat").textContent = "기록 없음";
                 document.getElementById("recentUnregTopStat").textContent = "기록 없음";
-                document.getElementById("guitarRatioStat").textContent = "기록 없음";
+                document.getElementById("combinedStatContent").textContent = "기록 없음";
                 document.getElementById("onceRatioStat").textContent = "기록 없음";
                 document.getElementById("zeroRatioStat").textContent = "기록 없음";
-                document.getElementById("unregRatioStat").textContent = "기록 없음";
                 return;
             }
 
@@ -821,7 +924,6 @@
                 const thirtyDaysAgo = new Date(latestDate);
                 thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-                // 헬퍼 함수: 특정 그룹(등록/미등록)에서 최근 30일 최다 부른 곡 계산 렌더링
                 function renderRecentTop(targetSongs, elementId) {
                     const recentSongCounts = {};
                     targetSongs.forEach(song => {
@@ -879,31 +981,8 @@
                 document.getElementById("recentUnregTopStat").textContent = "기록 없음";
             }
 
-            const allTotalSongs = [...registered, ...unregistered];
-            const totalCountAll = allTotalSongs.length;
-            
-            let totalGuitarSongs = [];
-            allTotalSongs.forEach(s => {
-                if (s.limit === "기타") totalGuitarSongs.push(s);
-            });
-            const guitarTotalCount = totalGuitarSongs.length;
-            const guitarOverallRatio = totalCountAll > 0 ? parseFloat(((guitarTotalCount / totalCountAll) * 100).toFixed(1)) : 0;
-
-            let playedGuitarCount = 0;
-            let unplayedGuitarCount = 0;
-            totalGuitarSongs.forEach(s => {
-                if (s.dateTimes && s.dateTimes.length > 0) {
-                    playedGuitarCount++;
-                } else {
-                    unplayedGuitarCount++;
-                }
-            });
-
-            document.getElementById("guitarRatioStat").innerHTML = `
-                <div>전체 노래(${totalCountAll}곡) 중 <strong>${guitarTotalCount}곡 (${guitarOverallRatio}%)</strong></div>
-                <div class="progress-bar-container"><div class="progress-bar-fill" data-target-width="${guitarOverallRatio}%"></div></div>
-                <div style="font-size: 12px; color: #64748b; margin-top: 2px;">부른 기타 곡: ${playedGuitarCount}곡 | 안 부른 기타 곡: ${unplayedGuitarCount}곡</div>
-            `;
+            // 통합 비율 첫 렌더링 호출
+            renderCombinedStatContent(registered, unregistered);
 
             const nonGuitarPlayed = songs.filter(s => s.limit !== "기타");
             let onceCount = 0;
@@ -928,14 +1007,6 @@
             document.getElementById("zeroRatioStat").innerHTML = `
                 <div>${zeroPlayCount}곡 | 기타 제외 등록된 곡(${totalNonGuitarRegCount}곡) 중 <strong>${zeroRatio}%</strong></div>
                 <div class="progress-bar-container"><div class="progress-bar-fill" data-target-width="${zeroRatio}%"></div></div>
-            `;
-
-            const playedUnregCount = unregistered.filter(s => s.dateTimes && s.dateTimes.length > 0).length;
-            const unregVsTotalRatio = totalCountAll > 0 ? parseFloat(((playedUnregCount / totalCountAll) * 100).toFixed(1)) : 0;
-
-            document.getElementById("unregRatioStat").innerHTML = `
-                <div>${playedUnregCount}곡 | 전체 노래(${totalCountAll}곡) 중 <strong>${unregVsTotalRatio}%</strong></div>
-                <div class="progress-bar-container"><div class="progress-bar-fill" data-target-width="${Math.min(unregVsTotalRatio, 100)}%;"></div></div>
             `;
         }
 
