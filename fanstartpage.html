@@ -61,7 +61,6 @@
             transition: opacity 0.8s ease, transform 0.8s ease;
         }
 
-        /* 이미지 로딩 완료 시 표시되는 클래스 */
         .profile-main-gif.loaded {
             opacity: 1;
             transform: scale(1);
@@ -84,19 +83,16 @@
             box-sizing: border-box;
             padding: 20px;
 
-            /* 애니메이션 설정 */
             opacity: 0;
             transform: translateY(15px);
             transition: opacity 0.8s ease, transform 0.8s ease;
         }
 
-        /* 텍스트 로딩 완료 시 표시되는 클래스 */
         .profile-info-card.loaded {
             opacity: 1;
             transform: translateY(0);
         }
 
-        /* 프로필 텍스트 스타일들 */
         .profile-header-top {
             display: flex;
             flex-direction: column;
@@ -127,7 +123,6 @@
             text-shadow: 0 0 10px rgba(255, 255, 255, 1), 0 0 15px rgba(255, 255, 255, 0.9);
         }
 
-        /* 관련 링크 박스 컨테이너 */
         .profile-links-container {
             display: flex;
             gap: 10px;
@@ -164,7 +159,6 @@
             box-shadow: 0 6px 16px rgba(0, 119, 190, 0.15);
         }
 
-        /* 하단 위젯 섹션 스타일 */
         .profile-widgets-container {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -184,7 +178,6 @@
             display: flex;
             flex-direction: column;
             gap: 6px;
-            text-shadow: none;
             transition: transform 0.2s ease, box-shadow 0.2s ease;
             text-decoration: none;
             color: inherit;
@@ -235,7 +228,7 @@
             text-overflow: ellipsis;
         }
 
-       /* 타임라인 영역 스타일 */
+        /* 타임라인 영역 스타일 (정밀 정렬 보장) */
         .timeline-container {
             background: rgba(255, 255, 255, 1);
             backdrop-filter: blur(10px);
@@ -245,7 +238,6 @@
             box-shadow: 0 4px 15px rgba(0, 119, 190, 0.08);
             box-sizing: border-box;
             width: 100%;
-            text-shadow: none;
             display: flex;
             flex-direction: column;
             
@@ -327,55 +319,54 @@
 
         .timeline-list {
             list-style: none;
-            /* 여유 공간 확보를 위해 왼쪽 패딩 24px 설정 */
-            padding: 0 0 0 24px; 
+            padding: 0;
             margin: 0;
             position: relative;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
             flex: 1;
             overflow: hidden;
-            justify-content: space-between;
         }
 
+        /* 세로 선 위치 고정 */
         .timeline-list::before {
             content: '';
             position: absolute;
-            /* 세로 선 위치를 왼쪽에서 10px 위치로 고정 */
             left: 10px; 
-            top: 2px;
-            bottom: 2px;
+            top: 4px;
+            bottom: 4px;
             width: 2px;
             background-color: rgba(0, 119, 190, 0.2);
         }
 
         .timeline-item {
-            position: relative;
-            font-size: 12px;
-            color: #1e293b;
+            position: absolute;
+            left: 0;
+            right: 0;
+            padding-left: 24px; /* 선과 점이 들어갈 왼쪽 여백 */
+            box-sizing: border-box;
             display: none; 
             flex-direction: column; 
             gap: 2px;
-            padding-left: 0; 
         }
 
+        /* 각 항목이 보여질 때 높이와 위치를 정확히 배분하여 간격 틀어짐 원천 차단 */
+        .timeline-item.show-1 { display: flex; top: 2px; }
+        .timeline-item.show-2 { display: flex; top: 35px; }
+        .timeline-item.show-3 { display: flex; top: 68px; }
+        .timeline-item.show-4 { display: flex; top: 101px; }
+        .timeline-item.show-5 { display: flex; top: 134px; }
+
+        /* 동그란 점 위치 정밀 고정 */
         .timeline-item::before {
             content: '';
             position: absolute;
-            /* 부모 패딩(24px) - 14px = 정확히 10px 지점(세로 선 위치)에 위치함 */
-            left: -14px; 
-            top: 3px;
-            width: 7px;
-            height: 7px;
+            left: 7px; /* 세로선(10px) 중앙에 점 중앙(7px + 1.5px = 8.5px)이 오도록 맞춤 */
+            top: 2px;
+            width: 6px;
+            height: 6px;
             background-color: #0077b6;
             border-radius: 50%;
             border: 2px solid #ffffff;
             box-shadow: 0 0 0 1px rgba(0, 119, 190, 0.3);
-        }
-
-        .timeline-item.show {
-            display: flex; 
         }
 
         .timeline-date {
@@ -436,10 +427,7 @@
                 <div class="profile-catchphrase" id="view-catchphrase"></div>
             </div>
             
-            <!-- 프로필 메시지 바로 아래 관련 링크 상자 영역 -->
-            <div class="profile-links-container" id="profile-links-container">
-                <!-- 동적으로 링크 상자들이 생성됩니다 -->
-            </div>
+            <div class="profile-links-container" id="profile-links-container"></div>
 
             <!-- 하단 오늘의 추천 VOD / 오늘의 노래 추천 위젯 영역 -->
             <div class="profile-widgets-container">
@@ -479,7 +467,7 @@
                     </div>
                 </div>
                 <ul class="timeline-list" id="timeline-list">
-                    <li class="timeline-item show">
+                    <li class="timeline-item show-1">
                         <span class="timeline-date">-</span>
                         <span class="timeline-text">기록이 없습니다.</span>
                     </li>
@@ -503,15 +491,14 @@
             });
         }
 
-        // 날짜 문자열(YYYY-MM-DD)을 기반으로 하루 동안 고정된 랜덤 인덱스를 추출하는 함수
+        // 오늘 날짜(YYYYMMDD) 기반으로 하루 동안 고정된 인덱스 반환 (새로고침해도 안 바뀜)
         function getDailyRandomIndex(max) {
             const today = new Date();
-            let seed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate();
-            const x = Math.sin(seed++) * 10000;
+            const seed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate();
+            const x = Math.sin(seed) * 10000;
             return Math.floor((x - Math.floor(x)) * max);
         }
 
-        // HH:MM:SS 형식을 초(second)로 변환하는 함수
         function timeToSeconds(timeStr) {
             if (!timeStr) return 0;
             const parts = timeStr.split(':').map(Number);
@@ -523,7 +510,6 @@
             return 0;
         }
 
-        // 30일이 지난 기록을 지우고, 남은 아이템들을 필터링해주는 헬퍼 함수
         function getFilteredItems(storageKey, allItems, getKeyFn) {
             let history = JSON.parse(localStorage.getItem(storageKey) || "{}");
             const now = new Date().getTime();
@@ -553,7 +539,7 @@
 
             if (!Array.isArray(allTimelineData) || allTimelineData.length === 0) {
                 timelineListEl.innerHTML = `
-                    <li class="timeline-item show">
+                    <li class="timeline-item show-1">
                         <span class="timeline-date">-</span>
                         <span class="timeline-text">기록이 없습니다.</span>
                     </li>
@@ -574,13 +560,16 @@
             const endIndex = Math.min(startIndex + pageSize, totalCount);
 
             timelineListEl.innerHTML = allTimelineData.map((item, index) => {
-                const isShow = (index >= startIndex && index < endIndex) ? "show" : "";
-                return `
-                    <li class="timeline-item ${isShow}">
-                        <span class="timeline-date">${item.time || ''}</span>
-                        <span class="timeline-text">${item.text || ''}</span>
-                    </li>
-                `;
+                if (index >= startIndex && index < endIndex) {
+                    const relativeIndex = (index - startIndex) + 1; // 1부터 5까지
+                    return `
+                        <li class="timeline-item show-${relativeIndex}">
+                            <span class="timeline-date">${item.time || ''}</span>
+                            <span class="timeline-text">${item.text || ''}</span>
+                        </li>
+                    `;
+                }
+                return '';
             }).join('');
 
             counterEl.textContent = `${startIndex + 1}-${endIndex} / ${totalCount}`;
@@ -595,23 +584,21 @@
 
         async function loadProfile() {
             try {
-                const timestamp = new Date().getTime();
+                // 캐시 문제 방지를 위해 API 호출 시 고정 날짜 키 사용 (오늘 하루 동안은 동일한 데이터 요청 보장)
+                const todayKey = new Date().toISOString().split('T')[0];
                 
-                // 1. 기본 프로필 데이터 및 새 API 데이터(VOD 목록, 노래 통계) 동시 페치
                 const [profileRes, vodRes, songRes] = await Promise.all([
-                    fetch(`${WORKER_URL}?type=fanstartpage&t=${timestamp}`),
-                    fetch(`${WORKER_URL}?type=fanvodlist&t=${timestamp}`).catch(() => null),
-                    fetch(`${WORKER_URL}?type=fansongstats&t=${timestamp}`).catch(() => null)
+                    fetch(`${WORKER_URL}?type=fanstartpage&day=${todayKey}`),
+                    fetch(`${WORKER_URL}?type=fanvodlist&day=${todayKey}`).catch(() => null),
+                    fetch(`${WORKER_URL}?type=fansongstats&day=${todayKey}`).catch(() => null)
                 ]);
 
                 if (!profileRes.ok) throw new Error("기본 프로필 데이터를 불러오지 못했습니다.");
                 const data = await profileRes.json();
 
-                // 기본 프로필 바인딩
                 document.getElementById("view-name").textContent = data.name || "바다비。";
                 document.getElementById("view-catchphrase").innerHTML = (data.message || "").replace(/\n/g, '<br>');
 
-                // 링크 바인딩
                 const linksContainer = document.getElementById("profile-links-container");
                 if (Array.isArray(data.links) && data.links.length > 0) {
                     linksContainer.innerHTML = data.links.map(link => `
@@ -623,15 +610,11 @@
                     linksContainer.innerHTML = "";
                 }
 
-                // 2. 오늘의 추천 VOD 처리 (fanvodlist) - 30분 이상 필터링 + 30일 중복 방지
+                // 오늘의 추천 VOD 처리
                 if (vodRes && vodRes.ok) {
                     const vodData = await vodRes.json();
                     const allVods = vodData.vods || [];
-
-                    const vods = allVods.filter(vod => {
-                        const totalSeconds = timeToSeconds(vod.duration || "0:00:00");
-                        return totalSeconds >= 1800; // 30분 = 1800초
-                    });
+                    const vods = allVods.filter(vod => timeToSeconds(vod.duration || "0:00:00") >= 1800);
 
                     if (vods.length > 0) {
                         const storageKey = "badabi_vod_history";
@@ -645,24 +628,20 @@
                             localStorage.setItem(storageKey, JSON.stringify(history));
                         }
 
-                        const noticeEl = document.getElementById("widget-notice-link");
-                        const noticeListEl = document.getElementById("widget-notice-list");
-                        noticeEl.href = selectedVod.link;
-                        noticeListEl.innerHTML = `<li class="widget-item">· ${selectedVod.title}</li>`;
+                        document.getElementById("widget-notice-link").href = selectedVod.link;
+                        document.getElementById("widget-notice-list").innerHTML = `<li class="widget-item">· ${selectedVod.title}</li>`;
                     } else {
-                        const noticeListEl = document.getElementById("widget-notice-list");
-                        noticeListEl.innerHTML = `<li class="widget-item">· 30분 이상인 VOD가 없습니다.</li>`;
+                        document.getElementById("widget-notice-list").innerHTML = `<li class="widget-item">· 30분 이상인 VOD가 없습니다.</li>`;
                     }
                 }
                 
-                // 3. 오늘의 노래 추천 처리 (fansongstats) - 30일 중복 방지 + 여러 날짜 고정 랜덤 선택
+                // 오늘의 노래 추천 처리
                 if (songRes && songRes.ok) {
                     const songData = await songRes.json();
                     const allSongs = [
                         ...(songData.registeredSongs || []),
                         ...(songData.unregisteredSongs || [])
                     ];
-                    
                     const vodSources = songData.vodSources || [];
 
                     if (allSongs.length > 0) {
@@ -694,20 +673,16 @@
                             }
                         }
                         vodEl.href = targetUrl;
-
                         vodListEl.innerHTML = `<li class="widget-item">· ${selectedSong.title} (${selectedSong.artist})</li>`;
                     }
                 }
 
-                // 4. 타임라인 데이터 초기화
                 allTimelineData = data.timeline || [];
                 currentPage = 0;
                 renderTimeline();
 
-                // 5. 카드 애니메이션 활성화
                 document.getElementById("profile-card").classList.add('loaded');
 
-                // 6. 이미지 프리로딩
                 if (data.image) {
                     await preloadImage(data.image); 
                     const gifEl = document.getElementById("profile-gif");
