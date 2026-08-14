@@ -729,15 +729,15 @@
                         <div id="recentUnregTopStat" class="stat-value">-</div>
                     </div>
                 </div>
-                <!-- 전체 노래 기준 통합 비교 항목 (Genre 대체) -->
+                <!-- 전체 노래 기준 장르 비율 항목 -->
                 <div class="stat-item">
-                    <span class="stat-label">
+                    <span class="stat-label" id="combinedStatLabel">
                         <svg class="stat-label-svg" viewBox="0 0 24 24">
                             <path d="M18 20V10"></path>
                             <path d="M12 20V4"></path>
                             <path d="M6 20v-6"></path>
                         </svg>
-                        전체 노래 기준 장르(Genre) 비율 비교
+                        전체 노래 기준 장르 비율 (총 0곡)
                     </span>
                     <div id="combinedStatContent" class="stat-value">-</div>
                 </div>
@@ -1009,7 +1009,16 @@
             const allTotalSongs = [...registered, ...unregistered];
             const totalCountAll = allTotalSongs.length;
 
-            // Genre 기준 통계 산출 (소스 내 genre 필드 활용, 없으면 '미분류' 처리)
+            // Genre 기준 통계 산출 (총 곡수 동적 표시 반영)
+            document.getElementById("combinedStatLabel").innerHTML = `
+                <svg class="stat-label-svg" viewBox="0 0 24 24">
+                    <path d="M18 20V10"></path>
+                    <path d="M12 20V4"></path>
+                    <path d="M6 20v-6"></path>
+                </svg>
+                전체 노래 기준 장르 비율 (총 ${totalCountAll}곡)
+            `;
+
             const genreCounts = {};
             const genreColors = ["#6366f1", "#0ea5e9", "#10b981", "#f97316", "#8b5cf6", "#eab308"];
             
@@ -1018,7 +1027,6 @@
                 genreCounts[genre] = (genreCounts[genre] || 0) + 1;
             });
 
-            // 비율 바 세그먼트 생성 및 범례 구성
             let multiBarHtml = '';
             let legendHtml = '';
             let colorIndex = 0;
