@@ -798,10 +798,7 @@
                 });
 
                 unregistered = (statsData.unregisteredSongs || []).map(song => {
-                    let cleanedGenre = (song.genre || '미분류').trim();
-                    if (cleanedGenre.toLowerCase() === 'kpop') {
-                        cleanedGenre = '미분류';
-                    }
+                    const cleanedGenre = (song.genre || '미분류').trim();
                     return {
                         title: song.title || '미등록 곡',
                         artist: song.artist || '알 수 없음',
@@ -1001,10 +998,7 @@
             const genreColors = ["#6366f1", "#0ea5e9", "#10b981", "#f97316", "#8b5cf6", "#eab308"];
             
             allTotalSongs.forEach(s => {
-                let genre = s.genre ? s.genre.trim() : "미분류";
-                if (genre.toLowerCase() === 'kpop') {
-                    genre = '미분류';
-                }
+                const genre = s.genre ? s.genre.trim() : "미분류";
                 genreCounts[genre] = (genreCounts[genre] || 0) + 1;
             });
 
@@ -1118,13 +1112,15 @@
                 let limitVal = song.limit || '';
                 let cleanLimitVal = limitVal.replace(/[\[\]]/g, '').trim();
 
-                if (cleanLimitVal === "기타") {
-                    limitBadge = `<span class="badge badge-limit" style="background-color: #64748b; color: white;">기타</span>`;
-                } else if (cleanLimitVal !== "") {
-                    let badgeColor = "#0ea5e9";
-                    if (cleanLimitVal.includes("200")) badgeColor = "#10b981";
-                    else if (cleanLimitVal.includes("300")) badgeColor = "#f97316";
-                    limitBadge = `<span class="badge badge-limit" style="background-color: ${badgeColor}; color: white;">${cleanLimitVal}</span>`;
+                if (cleanLimitVal.toLowerCase() !== 'kpop') {
+                    if (cleanLimitVal === "기타") {
+                        limitBadge = `<span class="badge badge-limit" style="background-color: #64748b; color: white;">기타</span>`;
+                    } else if (cleanLimitVal !== "") {
+                        let badgeColor = "#0ea5e9";
+                        if (cleanLimitVal.includes("200")) badgeColor = "#10b981";
+                        else if (cleanLimitVal.includes("300")) badgeColor = "#f97316";
+                        limitBadge = `<span class="badge badge-limit" style="background-color: ${badgeColor}; color: white;">${cleanLimitVal}</span>`;
+                    }
                 }
 
                 const playCount = song.dateTimes ? song.dateTimes.length : 0;
