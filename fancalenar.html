@@ -67,11 +67,21 @@
             box-shadow: 0 4px 10px rgba(0, 119, 190, 0.05);
         }
 
-        .month-arrow-btn:hover {
+        .month-arrow-btn:hover:not(:disabled) {
             background: #0077b6;
             color: #ffffff;
             border-color: #0077b6;
             transform: translateY(-1px);
+        }
+
+        /* 비활성화된 화살표 버튼 스타일 */
+        .month-arrow-btn:disabled {
+            background: #e2e8f0;
+            border-color: #cbd5e1;
+            color: #94a3b8;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
         }
 
         .month-picker-btn {
@@ -454,7 +464,7 @@
     <div class="ocean-calendar-container" id="calendar-container">
         <!-- 월 선택 컨트롤러 및 드롭다운 영역 -->
         <div class="calendar-nav">
-            <button class="month-arrow-btn" onclick="changeMonth(-1)" title="이전 달">
+            <button class="month-arrow-btn" id="prev-month-btn" onclick="changeMonth(-1)" title="이전 달">
                 <svg class="svg-icon" viewBox="0 0 24 24"><path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z"/></svg>
             </button>
 
@@ -463,7 +473,7 @@
                 <svg class="svg-icon" viewBox="0 0 24 24"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/></svg>
             </button>
 
-            <button class="month-arrow-btn" onclick="changeMonth(1)" title="다음 달">
+            <button class="month-arrow-btn" id="next-month-btn" onclick="changeMonth(1)" title="다음 달">
                 <svg class="svg-icon" viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>
             </button>
             
@@ -518,12 +528,50 @@
     <script>
         let allEvents = [];
         let currentDate = new Date();
+        let minAvailableYM = null;
+        let maxAvailableYM = null;
+
+        // 화살표 버튼 활성화/비활성화 상태 업데이트 함수
+        function updateArrowButtonState() {
+            const currentYear = currentDate.getFullYear();
+            const currentMonth = currentDate.getMonth() + 1;
+            const currentYM = currentYear * 12 + currentMonth;
+
+            const nextBtn = document.getElementById("next-month-btn");
+            const prevBtn = document.getElementById("prev-month-btn");
+
+            if (maxAvailableYM !== null) {
+                // 데이터가 존재하는 최대 월보다 크거나 같으면 다음 달 버튼 비활성화
+                if (currentYM >= maxAvailableYM) {
+                    nextBtn.disabled = true;
+                } else {
+                    nextBtn.disabled = false;
+                }
+            }
+
+            if (minAvailableYM !== null) {
+                // 데이터가 존재하는 최소 월보다 작거나 같으면 이전 달 버튼 비활성화
+                if (currentYM <= minAvailableYM) {
+                    prevBtn.disabled = true;
+                } else {
+                    prevBtn.disabled = false;
+                }
+            }
+        }
 
         // 이전 달 / 다음 달 이동 함수
         function changeMonth(direction) {
-            currentDate.setMonth(currentDate.getMonth() + direction);
+            const currentYear = currentDate.getFullYear();
+            const currentMonth = currentDate.getMonth() + 1;
+            const targetDate = new Date(currentYear, currentMonth - 1 + direction, 1);
+            const targetYM = targetDate.getFullYear() * 12 + (targetDate.getMonth() + 1);
+
+            if (direction > 0 && maxAvailableYM !== null && targetYM > maxAvailableYM) return;
+            if (direction < 0 && minAvailableYM !== null && targetYM < minAvailableYM) return;
+
+            currentDate = targetDate;
             renderCalendar();
-            // 드롭다운이 열려있다면 닫아주기
+            updateArrowButtonState();
             document.getElementById("month-dropdown").classList.remove('active');
         }
 
@@ -533,19 +581,28 @@
 
             const availableYM = new Set();
             const availableYears = new Set();
+            let minYM = Infinity;
+            let maxYM = -Infinity;
 
             allEvents.forEach(event => {
                 const d = event.date;
                 if (d && typeof d === 'string' && d.trim() !== '' && d.trim() !== '-') {
                     const parts = d.split('-');
                     if (parts.length >= 2) {
-                        const y = parts[0];
-                        const m = String(parseInt(parts[1], 10));
+                        const y = parseInt(parts[0], 10);
+                        const m = parseInt(parts[1], 10);
                         availableYM.add(`${y}-${m}`);
-                        availableYears.add(parseInt(y, 10));
+                        availableYears.add(y);
+                        
+                        const val = y * 12 + m;
+                        if (val < minYM) minYM = val;
+                        if (val > maxYM) maxYM = val;
                     }
                 }
             });
+
+            if (minYM !== Infinity) minAvailableYM = minYM;
+            if (maxYM !== -Infinity) maxAvailableYM = maxYM;
 
             let yearOptionsHtml = "";
             const sortedYears = Array.from(availableYears).sort((a, b) => a - b);
@@ -616,6 +673,7 @@
 
                 updateDropdownOptions();
                 renderCalendar();
+                updateArrowButtonState();
                 containerEl.classList.add('loaded');
 
             } catch (error) {
@@ -832,6 +890,7 @@
             currentDate.setMonth(selectedMonth - 1);
             
             renderCalendar();
+            updateArrowButtonState();
             document.getElementById("month-dropdown").classList.remove('active');
         }
 
