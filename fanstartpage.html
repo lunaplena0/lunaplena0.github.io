@@ -601,7 +601,14 @@
                 // 2. 오늘의 추천 VOD 처리 (fanvodlist)
                 if (vodRes && vodRes.ok) {
                     const vodData = await vodRes.json();
-                    const vods = vodData.vods || [];
+                    const allVods = vodData.vods || [];
+
+                    // 30분(1800초) 이상인 VOD만 필터링
+                    const vods = allVods.filter(vod => {
+                        const totalSeconds = timeToSeconds(vod.duration || "0:00:00");
+                        return totalSeconds >= 1800; // 30분 = 1800초
+                    });
+
                     if (vods.length > 0) {
                         const randomIndex = getDailyRandomIndex(vods.length);
                         const selectedVod = vods[randomIndex];
@@ -610,9 +617,12 @@
                         const noticeListEl = document.getElementById("widget-notice-list");
                         noticeEl.href = selectedVod.link;
                         noticeListEl.innerHTML = `<li class="widget-item">· ${selectedVod.title}</li>`;
+                    } else {
+                        const noticeListEl = document.getElementById("widget-notice-list");
+                        noticeListEl.innerHTML = `<li class="widget-item">· 30분 이상인 VOD가 없습니다.</li>`;
                     }
                 }
-
+                
                 // 3. 오늘의 노래 추천 처리 (fansongstats - 하루 1개)
                 if (songRes && songRes.ok) {
                     const songData = await songRes.json();
