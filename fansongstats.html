@@ -743,13 +743,13 @@
                 </div>
                 <!-- 1회 부른 곡 및 0회 부른 곡 통합 비교 항목 -->
                 <div class="stat-item">
-                    <span class="stat-label">
+                    <span class="stat-label" id="distLabel">
                         <svg class="stat-label-svg" viewBox="0 0 24 24">
                             <path d="M9 18V5l12-2v13"></path>
                             <circle cx="6" cy="18" r="3"></circle>
                             <circle cx="18" cy="16" r="3"></circle>
                         </svg>
-                        기타 제외 등록곡 부른 횟수 분포 (0회 / 1회 / 2회 이상)
+                        기타 제외 등록곡 부른 횟수 분포 (총 0곡)
                     </span>
                     <div id="distributionStatContent" class="stat-value">-</div>
                 </div>
@@ -852,7 +852,7 @@
 
         function calculateStats(registered, unregistered) {
             const songPlayCounts = {};
-            songs = [...registered, ...unregistered];
+            const songs = [...registered, ...unregistered];
             
             songs.forEach(song => {
                 const title = song.title;
@@ -1042,6 +1042,16 @@
                 else if (len === 1) onceCount++;
                 else multiPlayCount++;
             });
+
+            // 업데이트된 레이블 및 분포 계산
+            document.getElementById("distLabel").innerHTML = `
+                <svg class="stat-label-svg" viewBox="0 0 24 24">
+                    <path d="M9 18V5l12-2v13"></path>
+                    <circle cx="6" cy="18" r="3"></circle>
+                    <circle cx="18" cy="16" r="3"></circle>
+                </svg>
+                기타 제외 등록곡 부른 횟수 분포 (총 ${totalNonGuitarRegCount}곡)
+            `;
 
             const zeroRatio = totalNonGuitarRegCount > 0 ? ((zeroPlayCount / totalNonGuitarRegCount) * 100) : 0;
             const onceRatio = totalNonGuitarRegCount > 0 ? ((onceCount / totalNonGuitarRegCount) * 100) : 0;
