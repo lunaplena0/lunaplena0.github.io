@@ -729,7 +729,7 @@
                         <div id="recentUnregTopStat" class="stat-value">-</div>
                     </div>
                 </div>
-                <!-- 전체 노래 기준 통합 비교 항목 -->
+                <!-- 전체 노래 기준 통합 비교 항목 (Genre 대체) -->
                 <div class="stat-item">
                     <span class="stat-label">
                         <svg class="stat-label-svg" viewBox="0 0 24 24">
@@ -737,7 +737,7 @@
                             <path d="M12 20V4"></path>
                             <path d="M6 20v-6"></path>
                         </svg>
-                        전체 노래 기준 비율 비교
+                        전체 노래 기준 장르(Genre) 비율 비교
                     </span>
                     <div id="combinedStatContent" class="stat-value">-</div>
                 </div>
@@ -833,6 +833,7 @@
                     title: song.title || '미등록 곡',
                     artist: song.artist || '알 수 없음',
                     limit: '',
+                    genre: song.genre || '미분류',
                     dateTimes: song.dateTimes || []
                 }));
 
@@ -1008,24 +1009,36 @@
             const allTotalSongs = [...registered, ...unregistered];
             const totalCountAll = allTotalSongs.length;
 
-            let totalGuitarSongs = [];
+            // Genre 기준 통계 산출 (소스 내 genre 필드 활용, 없으면 '미분류' 처리)
+            const genreCounts = {};
+            const genreColors = ["#6366f1", "#0ea5e9", "#10b981", "#f97316", "#8b5cf6", "#eab308"];
+            
             allTotalSongs.forEach(s => {
-                if (s.limit === "기타") totalGuitarSongs.push(s);
+                const genre = s.genre ? s.genre.trim() : "미분류";
+                genreCounts[genre] = (genreCounts[genre] || 0) + 1;
             });
-            const guitarCount = totalGuitarSongs.length;
-            const guitarRatio = totalCountAll > 0 ? ((guitarCount / totalCountAll) * 100) : 0;
 
-            const playedUnregCount = unregistered.filter(s => s.dateTimes && s.dateTimes.length > 0).length;
-            const unregRatio = totalCountAll > 0 ? ((playedUnregCount / totalCountAll) * 100) : 0;
+            // 비율 바 세그먼트 생성 및 범례 구성
+            let multiBarHtml = '';
+            let legendHtml = '';
+            let colorIndex = 0;
+
+            for (const [genre, count] of Object.entries(genreCounts)) {
+                const ratio = totalCountAll > 0 ? ((count / totalCountAll) * 100) : 0;
+                const color = genreColors[colorIndex % genreColors.length];
+                
+                multiBarHtml += `<div class="multi-bar-segment" style="width: ${ratio.toFixed(1)}%; background-color: ${color};" title="${genre}"></div>`;
+                legendHtml += `<div class="legend-item"><span class="legend-dot" style="background-color: ${color};"></span>${genre} (${count}곡, ${ratio.toFixed(1)}%)</div>`;
+                
+                colorIndex++;
+            }
 
             document.getElementById("combinedStatContent").innerHTML = `
                 <div class="multi-progress-container">
-                    <div class="multi-bar-segment" style="width: ${guitarRatio.toFixed(1)}%; background-color: #6366f1;" title="기타 노래"></div>
-                    <div class="multi-bar-segment" style="width: ${unregRatio.toFixed(1)}%; background-color: #f97316;" title="미등록 노래"></div>
+                    ${multiBarHtml}
                 </div>
                 <div class="legend-row">
-                    <div class="legend-item"><span class="legend-dot" style="background-color: #6366f1;"></span>기타 노래 (${guitarCount}곡, ${guitarRatio.toFixed(1)}%)</div>
-                    <div class="legend-item"><span class="legend-dot" style="background-color: #f97316;"></span>불린 미등록 (${playedUnregCount}곡, ${unregRatio.toFixed(1)}%)</div>
+                    ${legendHtml}
                 </div>
             `;
 
@@ -1043,7 +1056,6 @@
                 else multiPlayCount++;
             });
 
-            // 업데이트된 레이블 및 분포 계산
             document.getElementById("distLabel").innerHTML = `
                 <svg class="stat-label-svg" viewBox="0 0 24 24">
                     <path d="M9 18V5l12-2v13"></path>
