@@ -74,6 +74,23 @@
             transform: translateY(-1px);
         }
 
+        /* SVG 아이콘 스타일 공통 */
+        .svg-icon {
+            width: 16px;
+            height: 16px;
+            fill: currentColor;
+            flex-shrink: 0;
+            vertical-align: middle;
+        }
+
+        .svg-icon-large {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+            flex-shrink: 0;
+            vertical-align: middle;
+        }
+
         /* 드롭다운 셀렉트 박스 컨테이너 */
         .month-dropdown-box {
             position: absolute;
@@ -358,12 +375,18 @@
             font-size: 13px;
             color: #475569;
             font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
         .detail-item-category {
             font-size: 13px;
             color: #0284c7;
             font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
         .no-select-msg {
@@ -415,7 +438,10 @@
     <div class="ocean-calendar-container" id="calendar-container">
         <!-- 월 선택 컨트롤러 및 드롭다운 영역 -->
         <div class="calendar-nav">
-            <button class="month-picker-btn" id="current-month-label" onclick="toggleMonthDropdown()">YYYY년 MM월 📅</button>
+            <button class="month-picker-btn" id="current-month-label" onclick="toggleMonthDropdown()">
+                YYYY년 MM월 
+                <svg class="svg-icon" viewBox="0 0 24 24"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/></svg>
+            </button>
             
             <div class="month-dropdown-box" id="month-dropdown">
                 <select id="select-year"></select>
@@ -564,7 +590,7 @@
             const year = currentDate.getFullYear();
             const month = currentDate.getMonth();
 
-            document.getElementById("current-month-label").textContent = `${year}년 ${String(month + 1).padStart(2, '0')}월 📅`;
+            document.getElementById("current-month-label").innerHTML = `${year}년 ${String(month + 1).padStart(2, '0')}월 <svg class="svg-icon" viewBox="0 0 24 24"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/></svg>`;
 
             const gridEl = document.getElementById("days-grid");
             gridEl.innerHTML = "";
@@ -601,7 +627,7 @@
                         date: dateString,
                         time: "",
                         type: "휴방",
-                        title: "🌊 휴방",
+                        title: "휴방",
                         category: "-",
                         url: "-"
                     }];
@@ -661,7 +687,7 @@
                     date: dateString,
                     time: "",
                     type: "휴방",
-                    title: "🌊 휴방",
+                    title: "휴방",
                     category: "-",
                     url: "-"
                 }];
@@ -688,8 +714,16 @@
                 html += `
                     <div class="${clickableClass}" ${clickAction}>
                         <div class="detail-item-title">${title}</div>
-                        <div class="detail-item-time-type">🕒 시간: ${time} &nbsp;|&nbsp; 📌 분류: ${type}</div>
-                        <div class="detail-item-category">🏷️ 카테고리: ${category}</div>
+                        <div class="detail-item-time-type">
+                            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
+                            시간: ${time} &nbsp;|&nbsp; 
+                            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M17.63 5.84C17.27 5.33 16.67 5 16 5H5c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h11c.67 0 1.27-.33 1.63-.84L22 12l-4.37-6.16z"/></svg>
+                            분류: ${type}
+                        </div>
+                        <div class="detail-item-category">
+                            <svg class="svg-icon" viewBox="0 0 21.45 21.45"><path d="M21.41 11.41l-10-10C11.05 1.05 10.55 0.8 10 0.8H2C0.9 0.8 0 1.7 0 2.8v8c0 .55.22 1.05.59 1.41l10 10c.38.38.88.59 1.41.59.53 0 1.04-.21 1.41-.59l8-8c.38-.38.59-.88.59-1.41 0-.53-.21-1.04-.59-1.41zM5.5 7C4.67 7 4 6.33 4 5.5S4.67 4 5.5 4 7 4.67 7 5.5 6.33 7 5.5 7z"/></svg>
+                            카테고리: ${category}
+                        </div>
                     </div>
                 `;
             });
@@ -750,7 +784,7 @@
 
         loadCalendarData();
     </script>
-<footer style="text-align: center; padding: 10px 10px; color: #b3cde0; font-size: 11px; border-top: 1px solid rgba(0, 229, 255, 0.12); margin-top: 20px; width: 100%; box-sizing: border-box;">
+    <footer style="text-align: center; padding: 10px 10px; color: #b3cde0; font-size: 11px; border-top: 1px solid rgba(0, 229, 255, 0.12); margin-top: 20px; width: 100%; box-sizing: border-box;">
         <p style="margin: 0; opacity: 0.8; line-height: 1.6; word-break: keep-all; overflow-wrap: break-word;">
             <strong style="display: block; margin-bottom: 5px; color: #03045e; font-size: 12px;">바다비 비공식 팬 아카이브</strong>
             <span style="display: inline-block;">비영리로 운영되며, 정보 갱신 시 데이터 반영에 차이가 있을 수 있습니다.</span>
