@@ -629,10 +629,11 @@
                 <div class="stat-item-row"><span>한 번도 안 부른 곡 수</span><span class="stat-value-highlight" id="modalUnsungSongs">0곡 (0.0%)</span></div>
                 <div class="stat-item-row"><span>누적 총 가창 횟수</span><span class="stat-value-highlight" id="modalTotalPlayCount">0회</span></div>
                 
-                <div class="stat-section-title" style="margin-top: 4px;">👑 노래 순위 및 최근 통계</div>
-                <div class="stat-item-row"><span>최근 30일간 부른 곡 수</span><span class="stat-value-highlight" id="modalRecentSongs">0곡</span></div>
+                <div class="stat-section-title" style="margin-top: 4px;">👑 노래 순위 및 통계</div>
+                <div class="stat-item-row"><span>최다 부른 곡 Top 3 🎤</span><span class="stat-value-highlight" id="modalTopSongSummary">-</span></div>
+                <div class="stat-item-row"><span>최다 부른 가수 1명 👑</span><span class="stat-value-highlight" id="modalTopArtistSummary">-</span></div>
                 
-                <div style="display: flex; flex-direction: column; gap: 4px;">
+                <div style="display: flex; flex-direction: column; gap: 4px; margin-top: 4px;">
                     <span style="font-size: 13px; font-weight: 700; color: #64748b;">🔥 최근 30일 최다 부른 곡 Top 5</span>
                     <div class="ranking-list-box" id="modalTopSongsList">
                         <span style="color: #64748b; font-size: 13px;">데이터 계산 중...</span>
@@ -713,6 +714,36 @@
                 document.getElementById("legendSungText").textContent = `불러본 곡: ${sungCount}곡 (${sungPercent}%)`;
                 document.getElementById("legendUnsungText").textContent = `안 불러본 곡: ${unsungCount}곡 (${unsungPercent}%)`;
 
+                // 전체 누적 부른 횟수 기준 노래 Top 3 집계
+                const allSongPlayCounts = allSongs.map(song => {
+                    const artist = song.artist || '아티스트 미상';
+                    const count = song.dateTimes ? song.dateTimes.length : 0;
+                    return { title: `${song.title} (${artist})`, count };
+                }).sort((a, b) => b.count - a.count);
+
+                const top3Songs = allSongPlayCounts.slice(0, 3);
+                if (top3Songs.length > 0 && top3Songs[0].count > 0) {
+                    document.getElementById("modalTopSongSummary").textContent = top3Songs.map((s, i) => `${i+1위} ${s.title} (${s.count}회)`).join(', ');
+                } else {
+                    document.getElementById("modalTopSongSummary").textContent = "기록 없음";
+                }
+
+                // 최다 부른 가수 1명 집계 (전체 누적 가창 횟수 기준)
+                let overallArtistPlayCountMap = {};
+                allSongs.forEach(song => {
+                    const artist = song.artist || '아티스트 미상';
+                    const playCount = song.dateTimes ? song.dateTimes.length : 0;
+                    if (playCount > 0) {
+                        overallArtistPlayCountMap[artist] = (overallArtistPlayCountMap[artist] || 0) + playCount;
+                    }
+                });
+                const sortedOverallArtists = Object.entries(overallArtistPlayCountMap).sort((a, b) => b[1] - a[1]);
+                if (sortedOverallArtists.length > 0) {
+                    document.getElementById("modalTopArtistSummary").textContent = `${sortedOverallArtists[0][0]} (${sortedOverallArtists[0][1]}회)`;
+                } else {
+                    document.getElementById("modalTopArtistSummary").textContent = "기록 없음";
+                }
+
                 // 최근 30일 이내 부른 곡 분석 및 순위 집계
                 const now = new Date();
                 const thirtyDaysAgo = new Date();
@@ -753,7 +784,6 @@
                 document.getElementById("modalSungSongs").textContent = `${sungCount}곡 (${sungPercent}%)`;
                 document.getElementById("modalUnsungSongs").textContent = `${unsungCount}곡 (${unsungPercent}%)`;
                 document.getElementById("modalTotalPlayCount").textContent = `${totalPlayCountSum}회`;
-                document.getElementById("modalRecentSongs").textContent = `${Object.keys(recentSongMap).length}곡`;
 
                 const topSongsContainer = document.getElementById("modalTopSongsList");
                 if (sortedTopSongs.length > 0) {
