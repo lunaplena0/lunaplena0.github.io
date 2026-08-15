@@ -350,12 +350,6 @@ function renderWidgetSearchPool() {
 }
 
 function addSongToWidget(song) {
-    const exists = widgetSelectedSongs.some(item => item.title === song.title && item.artist === song.artist);
-    if (exists) {
-        showToast("이미 위젯 목록에 추가된 곡입니다.");
-        return;
-    }
-
     widgetSelectedSongs.push({ ...song, checked: false });
     renderWidgetSelectedList();
     autoSaveWidgetSongs();
