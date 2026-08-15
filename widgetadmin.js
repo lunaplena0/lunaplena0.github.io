@@ -26,21 +26,18 @@ function getLimitBadgeHTML(limit) {
     return `<span style="background-color: ${badgeColor}; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 500; margin-right: 6px; display: inline-block; vertical-align: middle;">${escapeHtml(limitVal)}</span>`;
 }
 
-// 🔒 관리자 UI 템플릿 (배경색 및 불투명도 설정 영역 추가)
+// 🔒 관리자 UI 템플릿
 const adminHtmlTemplate = `
-    <!-- 대시보드 메뉴 -->
     <div id="dashboard-section" class="card">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
             <h3 style="margin: 0; color: #03045e;">🛠️ 관리자 대시보드</h3>
             <button onclick="location.reload()" style="background-color: #64748b; padding: 6px 12px; font-size: 13px;">로그아웃</button>
         </div>
-        
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px;">
             <div class="menu-card" onclick="window.open('https://lunaplena0.github.io/admin.html', '_blank')">
                 <h4 style="font-size: 16px;">관리페이지로 이동</h4>
                 <p style="font-size: 12px;">전체 관리 페이지 새 창으로 열기</p>
             </div>
-            
             <div class="menu-card" onclick="showPanel('widget-songs')">
                 <h4 style="font-size: 16px;">노래위젯 관리 및 설정</h4>
                 <p style="font-size: 12px;">위젯 목록 및 배경색/투명도 설정</p>
@@ -48,387 +45,153 @@ const adminHtmlTemplate = `
         </div>
     </div>
 
-    <!-- 🎵 노래 위젯 관리 패널 -->
     <div id="panel-widget-songs" class="card" style="display: none;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
             <h3 style="margin: 0; color: #03045e;">🎛️ 노래 위젯 관리 및 설정</h3>
             <button onclick="showDashboard()" style="background-color: #64748b; padding: 6px 12px; font-size: 13px;">← 메뉴 목록으로</button>
         </div>
 
-        <!-- 🎨 위젯 배경색 및 불투명도 설정 영역 -->
-        <div style="background: #e0f2fe; border: 1px solid #bae6fd; border-radius: 8px; padding: 12px 15px; margin-bottom: 20px; display: flex; flex-direction: column; gap: 10px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-                <div>
-                    <strong>🎨 위젯 배경색 및 불투명도 설정</strong>
-                    <p style="margin: 2px 0 0 0; font-size: 12px; color: #0369a1;">방송 화면(OBS 등)에 맞게 위젯 배경 색상과 투명도를 조절합니다.</p>
-                </div>
-                <button type="button" onclick="setTransparentBg()" style="background-color: #64748b; padding: 6px 10px; font-size: 12px; margin-bottom: 0;">완전 투명하게</button>
+        <div style="background: #e0f2fe; border: 1px solid #bae6fd; border-radius: 8px; padding: 12px 15px; margin-bottom: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <strong>🎨 위젯 배경색 및 불투명도 설정</strong>
+                <button type="button" onclick="setTransparentBg()" style="background-color: #64748b; padding: 6px 10px; font-size: 12px;">완전 투명하게</button>
             </div>
-
-            <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap; background: rgba(255,255,255,0.6); padding: 8px 12px; border-radius: 6px;">
-                <div style="display: flex; align-items: center; gap: 6px;">
-                    <span style="font-size: 12px; font-weight: 600;">색상:</span>
-                    <input type="color" id="widget-bg-color-picker" onchange="updateBgColorFromPicker(this.value)" style="width: 32px; height: 30px; border: none; cursor: pointer; background: none;">
-                    <input type="text" id="widget-bg-color-input" placeholder="#ffffff 또는 transparent" oninput="updateBgColorFromInput(this.value)" style="margin-bottom: 0; width: 140px; padding: 4px; font-size: 12px;">
-                </div>
-                <div style="display: flex; align-items: center; gap: 6px; flex: 1; min-width: 200px;">
-                    <span style="font-size: 12px; font-weight: 600;">불투명도:</span>
-                    <input type="range" id="widget-bg-opacity-slider" min="0" max="100" value="100" oninput="updateBgOpacity(this.value)" style="flex: 1; cursor: pointer;">
-                    <span id="widget-bg-opacity-text" style="font-size: 12px; font-weight: 600; width: 35px; text-align: right;">100%</span>
-                </div>
+            <div style="display: flex; align-items: center; gap: 15px; background: rgba(255,255,255,0.6); padding: 8px 12px; border-radius: 6px;">
+                <div>색상: <input type="color" id="widget-bg-color-picker" onchange="updateBgColorFromPicker(this.value)" style="width: 32px; height: 30px; border: none; cursor: pointer; background: none;"> <input type="text" id="widget-bg-color-input" oninput="updateBgColorFromInput(this.value)" style="width: 100px; padding: 4px; font-size: 12px;"></div>
+                <div>불투명도: <input type="range" id="widget-bg-opacity-slider" min="0" max="100" value="100" oninput="updateBgOpacity(this.value)"> <span id="widget-bg-opacity-text">100%</span></div>
             </div>
         </div>
 
-        <!-- 탭 전환 버튼 -->
         <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-            <button type="button" id="tab-btn-search" onclick="switchWidgetTab('search')" style="background-color: #0284c7; padding: 6px 14px; font-size: 13px; margin-bottom: 0;">🔍 검색해서 추가</button>
-            <button type="button" id="tab-btn-manual" onclick="switchWidgetTab('manual')" style="background-color: #64748b; padding: 6px 14px; font-size: 13px; margin-bottom: 0;">✏️ 수동 입력 추가</button>
+            <button type="button" id="tab-btn-search" onclick="switchWidgetTab('search')" style="background-color: #0284c7; padding: 6px 14px; font-size: 13px;">🔍 검색해서 추가</button>
+            <button type="button" id="tab-btn-manual" onclick="switchWidgetTab('manual')" style="background-color: #64748b; padding: 6px 14px; font-size: 13px;">✏️ 수동 입력 추가</button>
         </div>
 
         <div style="display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap;">
-            
-            <!-- 왼쪽: 검색 / 수동입력 -->
             <div style="flex: 1; min-width: 300px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 15px;">
-                
-                <!-- 검색 탭 -->
                 <div id="sub-panel-search">
-                    <h4 style="color: #0077b6; margin-top: 0;">🔍 노래 검색</h4>
                     <input type="text" id="widget-song-search" placeholder="제목 또는 가수 검색..." oninput="renderWidgetSearchPool()" style="margin-bottom: 10px;">
-                    <div id="widget-search-results" style="height: 200px; max-height: 200px; overflow-y: auto; border: 1px solid #cbd5e1; background: #fff; border-radius: 6px; padding: 8px;">
-                        <div style="padding: 10px; color: #64748b; text-align: center; font-size: 13px;">검색어를 입력해주세요.</div>
-                    </div>
+                    <div id="widget-search-results" style="height: 200px; overflow-y: auto; border: 1px solid #cbd5e1; background: #fff; padding: 8px;"></div>
                 </div>
-
-                <!-- 수동 입력 탭 -->
                 <div id="sub-panel-manual" style="display: none;">
-                    <h4 style="color: #0077b6; margin-top: 0;">✏️ 수동 노래 추가</h4>
-                    <div style="display: flex; flex-direction: column; gap: 10px; font-size: 13px;">
-                        <div>
-                            <label style="display: block; font-weight: 600; margin-bottom: 3px;">노래 제목 *</label>
-                            <input type="text" id="manual-title" placeholder="예: 그때가 좋았어" style="margin-bottom: 0; padding: 6px;">
-                        </div>
-                        <div>
-                            <label style="display: block; font-weight: 600; margin-bottom: 3px;">아티스트 (가수)</label>
-                            <input type="text" id="manual-artist" placeholder="예: 케이시 (선택사항)" style="margin-bottom: 0; padding: 6px;">
-                        </div>
-                        <div>
-                            <label style="display: block; font-weight: 600; margin-bottom: 3px;">Limit 태그</label>
-                            <input type="text" id="manual-limit" placeholder="예: [200], [300], 기타 (선택사항)" style="margin-bottom: 0; padding: 6px;">
-                        </div>
-                        <button type="button" onclick="addManualSongToWidget()" style="background-color: #0284c7; padding: 8px; font-size: 13px; margin-top: 5px; margin-bottom: 0; width: 100%;">수동으로 위젯에 추가</button>
-                    </div>
+                    <input type="text" id="manual-title" placeholder="노래 제목 *" style="margin-bottom: 10px; padding: 6px;">
+                    <input type="text" id="manual-artist" placeholder="아티스트" style="margin-bottom: 10px; padding: 6px;">
+                    <input type="text" id="manual-limit" placeholder="Limit 태그" style="margin-bottom: 10px; padding: 6px;">
+                    <button type="button" onclick="addManualSongToWidget()" style="background-color: #0284c7; width: 100%; padding: 8px;">추가</button>
                 </div>
-
             </div>
-
-            <!-- 오른쪽: 선택된 위젯 목록 -->
             <div style="flex: 1; min-width: 300px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 15px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                    <h4 style="color: #0077b6; margin: 0;">📋 선택된 위젯 목록 (<span id="widget-selected-count">0</span>곡)</h4>
-                    <button type="button" onclick="clearWidgetSongs()" style="background-color: #ef4444; padding: 4px 8px; font-size: 11px; margin-bottom: 0;">전체 삭제</button>
+                    <h4 style="margin: 0;">📋 선택된 목록 (<span id="widget-selected-count">0</span>곡)</h4>
+                    <button type="button" onclick="clearWidgetSongs()" style="background-color: #ef4444; padding: 4px 8px; font-size: 11px;">전체 삭제</button>
                 </div>
-                
-                <div id="widget-selected-list" style="height: 270px; max-height: 270px; overflow-y: auto; border: 1px solid #cbd5e1; background: #fff; border-radius: 6px; padding: 8px;">
-                    <div style="padding: 10px; color: #64748b; text-align: center; font-size: 13px;">선택된 곡이 없습니다.</div>
-                </div>
+                <div id="widget-selected-list" style="height: 270px; overflow-y: auto; border: 1px solid #cbd5e1; background: #fff; padding: 8px;"></div>
             </div>
-
         </div>
-        <div id="widget-status" class="status-msg"></div>
+        <div id="widget-status" class="status-msg" style="margin-top: 10px; font-weight: bold; color: #10b981;"></div>
     </div>
 `;
 
-// 📌 로그인 및 데이터 불러오기
+// 📌 핵심 기능 함수들
 async function verifyAndLoad() {
     const password = document.getElementById("admin-password").value;
-    const statusEl = document.getElementById("login-status");
-    if (!password) { 
-        statusEl.style.color = "#ef4444"; 
-        statusEl.textContent = "비밀번호를 입력해주세요."; 
-        return; 
-    }
-
-    statusEl.style.color = "#0077b6";
-    statusEl.textContent = "비밀번호 확인 및 데이터 로드 중...";
-
     try {
         const authResponse = await fetch(WORKER_URL, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ password: password, action: "verify", fileType: "verify" })
         });
-
-        if (!authResponse.ok) {
-            const errResult = await authResponse.json();
-            throw new Error(errResult.error || "비밀번호가 틀렸습니다.");
-        }
-
-        const timestamp = new Date().getTime();
+        if (!authResponse.ok) throw new Error("비밀번호 오류");
         
-        // 1. 원본 songlist 불러오기
-        const songRes = await fetch(WORKER_URL + "?type=songlist&t=" + timestamp);
-        if (songRes.ok) {
-            const data = await songRes.json();
-            songData = { notice: data.notice || "", songs: Array.isArray(data.songs) ? data.songs : [] };
-        }
-
-        // 2. 서버에서 위젯 전용 목록 불러오기
-        const widgetRes = await fetch(WORKER_URL + "?type=widget&t=" + timestamp);
-        if (widgetRes.ok) {
-            const widgetData = await widgetRes.json();
-            widgetSelectedSongs = Array.isArray(widgetData.songs) ? widgetData.songs : [];
-            widgetBgColor = widgetData.bgColor || "transparent"; 
-            widgetBgOpacity = (widgetData.bgOpacity !== undefined) ? widgetData.bgOpacity : 100;
-        }
+        const timestamp = new Date().getTime();
+        const [songRes, widgetRes] = await Promise.all([
+            fetch(WORKER_URL + "?type=songlist&t=" + timestamp),
+            fetch(WORKER_URL + "?type=widget&t=" + timestamp)
+        ]);
+        
+        songData = await songRes.json();
+        const widgetData = await widgetRes.json();
+        widgetSelectedSongs = widgetData.songs || [];
+        widgetBgColor = widgetData.bgColor || "transparent";
+        widgetBgOpacity = widgetData.bgOpacity ?? 100;
         
         document.getElementById("login-section").style.display = "none";
         document.getElementById("admin-app-container").innerHTML = adminHtmlTemplate;
         showDashboard();
-        
-    } catch (error) {
-        statusEl.style.color = "#ef4444";
-        statusEl.textContent = "로그인 실패: " + error.message;
+    } catch (e) {
+        alert("로그인 실패: " + e.message);
     }
 }
 
 function showDashboard() {
-    const dashboard = document.getElementById("dashboard-section");
-    const panelWidgetSongs = document.getElementById("panel-widget-songs");
-    if (dashboard) dashboard.style.display = "block";
-    if (panelWidgetSongs) panelWidgetSongs.style.display = "none";
+    document.getElementById("dashboard-section").style.display = "block";
+    document.getElementById("panel-widget-songs").style.display = "none";
 }
 
 function showPanel(type) {
-    const dashboard = document.getElementById("dashboard-section");
-    const panelWidgetSongs = document.getElementById("panel-widget-songs");
-    
-    if (dashboard) dashboard.style.display = "none";
-    if (panelWidgetSongs) panelWidgetSongs.style.display = "none";
-
+    document.getElementById("dashboard-section").style.display = "none";
     if (type === 'widget-songs') {
-        if (panelWidgetSongs) panelWidgetSongs.style.display = "block";
+        document.getElementById("panel-widget-songs").style.display = "block";
         initWidgetSongsPanel();
     }
 }
 
 function initWidgetSongsPanel() {
     switchWidgetTab('search');
-    const searchInput = document.getElementById("widget-song-search");
-    if (searchInput) searchInput.value = "";
-    
-    // 배경색 및 불투명도 UI 반영
-    const bgInput = document.getElementById("widget-bg-color-input");
-    const bgPicker = document.getElementById("widget-bg-color-picker");
-    const opacitySlider = document.getElementById("widget-bg-opacity-slider");
-    const opacityText = document.getElementById("widget-bg-opacity-text");
-
-    if (bgInput) bgInput.value = widgetBgColor;
-    if (bgPicker && widgetBgColor.startsWith('#')) bgPicker.value = widgetBgColor;
-    if (opacitySlider) opacitySlider.value = widgetBgOpacity;
-    if (opacityText) opacityText.textContent = widgetBgOpacity + "%";
-
+    document.getElementById("widget-bg-color-input").value = widgetBgColor;
+    document.getElementById("widget-bg-opacity-slider").value = widgetBgOpacity;
+    document.getElementById("widget-bg-opacity-text").textContent = widgetBgOpacity + "%";
     renderWidgetSearchPool();
     renderWidgetSelectedList();
 }
 
-// 🎨 배경색 및 투명도 변경 핸들러
-function updateBgColorFromPicker(color) {
-    const bgInput = document.getElementById("widget-bg-color-input");
-    if (bgInput) bgInput.value = color;
-    widgetBgColor = color;
-    autoSaveWidgetSongs();
-}
-
-function updateBgColorFromInput(color) {
-    widgetBgColor = color.trim() || "transparent";
-    const bgPicker = document.getElementById("widget-bg-color-picker");
-    if (bgPicker && widgetBgColor.startsWith('#')) {
-        bgPicker.value = widgetBgColor;
-    }
-    autoSaveWidgetSongs();
-}
-
-let opacitySaveTimer = null; // 타이머 변수
-
-function updateBgOpacity(opacity) {
-    widgetBgOpacity = parseInt(opacity, 10);
-    const opacityText = document.getElementById("widget-bg-opacity-text");
-    if (opacityText) opacityText.textContent = widgetBgOpacity + "%";
-
-    // ⏱️ 슬라이더를 드래그하는 동안에는 저장을 연기하고, 멈춘 지 0.5초 뒤에 한 번만 저장합니다.
-    if (opacitySaveTimer) clearTimeout(opacitySaveTimer);
-    opacitySaveTimer = setTimeout(() => {
-        autoSaveWidgetSongs();
-    }, 500);
-}
-
-function setTransparentBg() {
-    widgetBgColor = "transparent";
-    widgetBgOpacity = 0;
-    const bgInput = document.getElementById("widget-bg-color-input");
-    const opacitySlider = document.getElementById("widget-bg-opacity-slider");
-    const opacityText = document.getElementById("widget-bg-opacity-text");
-
-    if (bgInput) bgInput.value = "transparent";
-    if (opacitySlider) opacitySlider.value = 0;
-    if (opacityText) opacityText.textContent = "0%";
-
-    autoSaveWidgetSongs();
-    showToast("위젯 배경이 투명으로 설정되었습니다.");
-}
-
-// 탭 전환 기능
-function switchWidgetTab(mode) {
-    const searchSubPanel = document.getElementById("sub-panel-search");
-    const manualSubPanel = document.getElementById("sub-panel-manual");
-    const searchBtn = document.getElementById("tab-btn-search");
-    const manualBtn = document.getElementById("tab-btn-manual");
-
-    if (!searchSubPanel || !manualSubPanel) return;
-
-    if (mode === 'search') {
-        searchSubPanel.style.display = "block";
-        manualSubPanel.style.display = "none";
-        if (searchBtn) searchBtn.style.backgroundColor = "#0284c7";
-        if (manualBtn) manualBtn.style.backgroundColor = "#64748b";
-    } else {
-        searchSubPanel.style.display = "none";
-        manualSubPanel.style.display = "block";
-        if (searchBtn) searchBtn.style.backgroundColor = "#64748b";
-        if (manualBtn) manualBtn.style.backgroundColor = "#0284c7";
-    }
-}
-
-// 검색 풀 렌더링
-function renderWidgetSearchPool() {
-    const searchInput = document.getElementById("widget-song-search");
-    const keyword = searchInput ? searchInput.value.toLowerCase().trim() : "";
-    const resultContainer = document.getElementById("widget-search-results");
-    
-    if (!resultContainer) return;
-    resultContainer.innerHTML = "";
-
-    if (!songData.songs || songData.songs.length === 0) {
-        resultContainer.innerHTML = `<div style="padding: 10px; color: #64748b; text-align: center; font-size: 13px;">등록된 노래가 없습니다.</div>`;
-        return;
-    }
-
-    if (!keyword) {
-        resultContainer.innerHTML = `<div style="padding: 10px; color: #64748b; text-align: center; font-size: 13px;">검색어를 입력해주세요.</div>`;
-        return;
-    }
-
-    const filteredSongs = songData.songs.filter(song => {
-        const title = (song.title || "").toLowerCase();
-        const artist = (song.artist || "").toLowerCase();
-        return title.includes(keyword) || artist.includes(keyword);
-    });
-
-    if (filteredSongs.length === 0) {
-        resultContainer.innerHTML = `<div style="padding: 10px; color: #64748b; text-align: center; font-size: 13px;">검색 결과가 없습니다.</div>`;
-        return;
-    }
-
-    filteredSongs.forEach((song) => {
-        const div = document.createElement("div");
-        div.style.cssText = "display: flex; justify-content: space-between; align-items: center; padding: 8px; border-bottom: 1px solid #e2e8f0; font-size: 13px;";
-        
-        const badgeHTML = getLimitBadgeHTML(song.limit);
-
-        div.innerHTML = `
-            <div style="display: flex; align-items: center; overflow: hidden; flex: 1; margin-right: 10px;">
-                ${badgeHTML}
-                <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                    <strong>${escapeHtml(song.title)}</strong> 
-                    <span style="color: #64748b;">(${escapeHtml(song.artist || '가수 미상')})</span>
-                </div>
-            </div>
-            <button type="button" onclick='addSongToWidget(${JSON.stringify(song)})' style="background-color: #10b981; padding: 4px 8px; font-size: 12px; margin-bottom: 0; white-space: nowrap;">선택</button>
-        `;
-        resultContainer.appendChild(div);
+function autoSaveWidgetSongs() {
+    fetch(WORKER_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            password: document.getElementById("admin-password").value,
+            fileType: "widget",
+            content: { songs: widgetSelectedSongs, bgColor: widgetBgColor, bgOpacity: widgetBgOpacity }
+        })
+    }).then(() => {
+        const statusEl = document.getElementById("widget-status");
+        statusEl.textContent = "✅ 변경사항이 실시간으로 저장되었습니다.";
+        setTimeout(() => { statusEl.textContent = ""; }, 2000);
     });
 }
 
 function addSongToWidget(song) {
+    // 중복 체크 로직 제거됨 (이제 중복 추가 가능)
     widgetSelectedSongs.push({ ...song, checked: false });
     renderWidgetSelectedList();
     autoSaveWidgetSongs();
-    showToast(`'${song.title}' 곡이 추가되었습니다.`);
-}
-
-function addManualSongToWidget() {
-    const titleInput = document.getElementById("manual-title");
-    const artistInput = document.getElementById("manual-artist");
-    const limitInput = document.getElementById("manual-limit");
-
-    const title = titleInput ? titleInput.value.trim() : "";
-    const artist = artistInput ? artistInput.value.trim() : "";
-    const limit = limitInput ? limitInput.value.trim() : "";
-
-    if (!title) {
-        alert("노래 제목을 입력해주세요.");
-        if (titleInput) titleInput.focus();
-        return;
-    }
-
-    const newSong = {
-        title: title,
-        artist: artist,
-        genre: "",
-        limit: limit,
-        etc: "",
-        checked: false
-    };
-
-    widgetSelectedSongs.push(newSong);
-    renderWidgetSelectedList();
-    autoSaveWidgetSongs();
-
-    if (titleInput) titleInput.value = "";
-    if (artistInput) artistInput.value = "";
-    if (limitInput) limitInput.value = "";
-
-    showToast(`'${title}' 곡이 수동 추가되었습니다.`);
+    showToast(`'${song.title}' 추가됨`);
 }
 
 function renderWidgetSelectedList() {
     const container = document.getElementById("widget-selected-list");
     const countBadge = document.getElementById("widget-selected-count");
-    if (!container) return;
-
     container.innerHTML = "";
-    if (countBadge) countBadge.textContent = widgetSelectedSongs.length;
-
-    if (widgetSelectedSongs.length === 0) {
-        container.innerHTML = `<div style="padding: 10px; color: #64748b; text-align: center; font-size: 13px;">선택된 곡이 없습니다.</div>`;
-        return;
-    }
-
+    countBadge.textContent = widgetSelectedSongs.length;
+    
     widgetSelectedSongs.forEach((song, index) => {
         const div = document.createElement("div");
-        div.style.cssText = "display: flex; justify-content: space-between; align-items: center; padding: 8px; border-bottom: 1px solid #e2e8f0; font-size: 13px; background: #fff; margin-bottom: 4px; border-radius: 4px;";
-        
-        const badgeHTML = getLimitBadgeHTML(song.limit);
-
+        div.style.cssText = "display: flex; justify-content: space-between; align-items: center; padding: 6px; border-bottom: 1px solid #eee;";
         div.innerHTML = `
-            <div style="display: flex; align-items: center; gap: 6px; flex: 1; overflow: hidden; margin-right: 10px;">
-                <input type="checkbox" style="margin-bottom: 0;" ${song.checked ? 'checked' : ''} onchange="toggleWidgetSongCheck(${index}, this.checked)">
-                ${badgeHTML}
-                <span style="text-overflow: ellipsis; overflow: hidden; white-space: nowrap;" title="${escapeHtml(song.title)}">
-                    <strong>${escapeHtml(song.title)}</strong> <span style="color: #64748b; font-size: 11px;">(${escapeHtml(song.artist || '-')})</span>
-                </span>
+            <div style="flex: 1; overflow: hidden; white-space: nowrap;">
+                <input type="checkbox" ${song.checked ? 'checked' : ''} onchange="toggleWidgetSongCheck(${index}, this.checked)">
+                ${getLimitBadgeHTML(song.limit)} <strong>${escapeHtml(song.title)}</strong>
             </div>
-            <button type="button" onclick="removeSongFromWidget(${index})" style="background-color: #ef4444; padding: 4px 8px; font-size: 12px; margin-bottom: 0; white-space: nowrap;">삭제</button>
+            <button onclick="removeSongFromWidget(${index})" style="background: #ef4444; color: #fff; border:none; padding: 2px 6px;">삭제</button>
         `;
         container.appendChild(div);
     });
 }
 
 function toggleWidgetSongCheck(index, isChecked) {
-    if (widgetSelectedSongs[index]) {
-        widgetSelectedSongs[index].checked = isChecked;
-        autoSaveWidgetSongs();
-    }
+    widgetSelectedSongs[index].checked = isChecked;
+    autoSaveWidgetSongs();
 }
 
 function removeSongFromWidget(index) {
@@ -438,108 +201,21 @@ function removeSongFromWidget(index) {
 }
 
 function clearWidgetSongs() {
-    if (widgetSelectedSongs.length === 0) return;
-    if (confirm("위젯 목록에 있는 모든 곡을 삭제하시겠습니까?")) {
+    if (confirm("전체 삭제하시겠습니까?")) {
         widgetSelectedSongs = [];
         renderWidgetSelectedList();
         autoSaveWidgetSongs();
-        showToast("위젯 목록이 초기화되었습니다.");
     }
 }
 
-// 📌 서버 저장 (songs, bgColor, bgOpacity 함께 저장)
-async function autoSaveWidgetSongs() {
-    try {
-        // 서버에 보낼 데이터를 최신 상태로 재확인
-        const payload = {
-            password: document.getElementById("admin-password").value,
-            fileType: "widget", 
-            content: { 
-                songs: widgetSelectedSongs, // 현재 메모리의 위젯 목록
-                bgColor: widgetBgColor,
-                bgOpacity: widgetBgOpacity
-            }
-        };
-
-        const response = await fetch(WORKER_URL, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload)
-        });
-
-        if (!response.ok) {
-            const result = await response.json();
-            throw new Error(result.error || "저장 실패");
-        }
-        
-        // 성공 시 위젯 상태 메시지 업데이트
-        const statusEl = document.getElementById("widget-status");
-        if (statusEl) {
-            statusEl.textContent = "✅ 변경사항이 실시간으로 저장되었습니다.";
-            setTimeout(() => { statusEl.textContent = ""; }, 2000);
-        }
-
-    } catch (error) {
-        showToast("저장 오류: " + error.message);
-    }
+function switchWidgetTab(mode) {
+    document.getElementById("sub-panel-search").style.display = mode === 'search' ? 'block' : 'none';
+    document.getElementById("sub-panel-manual").style.display = mode === 'manual' ? 'block' : 'none';
 }
 
-// 📌 삭제나 체크 변경 시 비동기 로직이 꼬이지 않게 보완
-function toggleWidgetSongCheck(index, isChecked) {
-    if (widgetSelectedSongs[index]) {
-        widgetSelectedSongs[index].checked = isChecked;
-        
-        // 1. 화면 즉시 갱신
-        renderWidgetSelectedList();
-        // 2. 서버에 비동기 저장
-        autoSaveWidgetSongs();
-    }
-}
+function updateBgColorFromInput(val) { widgetBgColor = val; autoSaveWidgetSongs(); }
+function updateBgOpacity(val) { widgetBgOpacity = val; document.getElementById("widget-bg-opacity-text").textContent = val + "%"; autoSaveWidgetSongs(); }
 
-function removeSongFromWidget(index) {
-    widgetSelectedSongs.splice(index, 1);
-    
-    // 1. 화면 즉시 갱신
-    renderWidgetSelectedList();
-    // 2. 서버에 비동기 저장
-    autoSaveWidgetSongs();
-}
-
-function addSongToWidget(song) {
-    // 중복 체크 로직 추가
-    const exists = widgetSelectedSongs.some(item => item.title === song.title && item.artist === song.artist);
-    if (exists) {
-        showToast("이미 위젯 목록에 추가된 곡입니다.");
-        return;
-    }
-
-    widgetSelectedSongs.push({ ...song, checked: false });
-    
-    // 1. 화면 갱신
-    renderWidgetSelectedList();
-    // 2. 서버 저장
-    autoSaveWidgetSongs();
-    showToast(`'${song.title}' 곡이 추가되었습니다.`);
-}
-
-function showToast(message) {
-    let container = document.getElementById("toast-container");
-    if (!container) {
-        container = document.createElement("div");
-        container.id = "toast-container";
-        container.style.cssText = "position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px;";
-        document.body.appendChild(container);
-    }
-
-    const toast = document.createElement("div");
-    toast.className = "toast-message";
-    toast.textContent = message;
-    toast.style.cssText = "background: #1e293b; color: #fff; padding: 12px 20px; border-radius: 6px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); opacity: 0; transition: opacity 0.3s ease; font-size: 14px;";
-    
-    container.appendChild(toast);
-    setTimeout(() => { toast.style.opacity = "1"; }, 10);
-    setTimeout(() => {
-        toast.style.opacity = "0";
-        setTimeout(() => { toast.remove(); }, 300);
-    }, 3000);
+function showToast(msg) {
+    console.log(msg); // 필요시 alert 또는 UI 구현
 }
