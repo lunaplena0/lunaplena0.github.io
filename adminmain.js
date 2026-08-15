@@ -53,7 +53,14 @@ const adminHtmlTemplate = `
 
         <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 25px 0 20px 0;">
         
-        <!-- 📌 설정 가이드 위쪽 밑줄 추가 -->
+        <!-- 🎶 노래위젯 설정 메뉴가 두 밑줄 사이로 이동 -->
+        <div class="menu-grid" style="grid-template-columns: 1fr; margin-bottom: 20px;">
+            <div class="menu-card" onclick="showPanel('songwidget')" style="cursor: pointer; background: #fdf4f8; border-color: #f472b6;">
+                <h4 style="color: #db2777;">🎶 노래위젯 설정</h4>
+                <p>실시간 노래 위젯 및 플레이어 관리</p>
+            </div>
+        </div>
+
         <hr style="border: 0; border-top: 1px solid #cbd5e1; margin: 0 0 20px 0;">
 
         <div class="menu-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
@@ -65,10 +72,9 @@ const adminHtmlTemplate = `
                 <h4 style="color: #16a34a;">💾 데이터 백업 다운로드</h4>
                 <p>모든 설정 파일(JSON) 백업받기</p>
             </div>
-            <!-- 🎶 노래위젯 설정 메뉴 추가 -->
-            <div class="menu-card" onclick="showPanel('songwidget')" style="cursor: pointer; background: #fdf4f8; border-color: #f472b6;">
-                <h4 style="color: #db2777;">🎶 노래위젯 설정</h4>
-                <p>실시간 노래 위젯 및 플레이어 관리</p>
+            <div class="menu-card" style="cursor: default; opacity: 0.7;">
+                <h4>📌 임시 메뉴 2</h4>
+                <p>추후 확장 예정인 기능입니다</p>
             </div>
             <div class="menu-card" style="cursor: default; opacity: 0.7;">
                 <h4>📌 임시 메뉴 3</h4>
@@ -103,7 +109,7 @@ const adminHtmlTemplate = `
         </div>
     </div>
 
-    <!-- 🎶 노래위젯 설정 패널 추가 -->
+    <!-- 🎶 노래위젯 설정 패널 -->
     <div id="panel-songwidget" class="card" style="display: none;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
             <h3 style="margin: 0; color: #db2777;">🎶 노래위젯 설정</h3>
