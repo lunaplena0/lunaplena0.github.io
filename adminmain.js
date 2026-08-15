@@ -49,24 +49,11 @@ const adminHtmlTemplate = `
                 <h4>🏠 메인페이지 수정</h4>
                 <p>메인 화면 설정 및 공통 구성 변경</p>
             </div>
-            <!-- 🎶 노래위젯 설정 및 빈 버튼 2개를 같은 그리에 포함 -->
-            <div class="menu-card" onclick="showPanel('songwidget')" style="cursor: pointer; background: #fdf4f8; border-color: #f472b6;">
-                <h4 style="color: #db2777;">🎶 노래위젯 설정</h4>
-                <p>실시간 노래 위젯 및 플레이어 관리</p>
-            </div>
-            <div class="menu-card" style="cursor: default; opacity: 0.7;">
-                <h4>📌 빈 버튼 1</h4>
-                <p>추후 확장 예정인 기능입니다</p>
-            </div>
-            <div class="menu-card" style="cursor: default; opacity: 0.7;">
-                <h4>📌 빈 버튼 2</h4>
-                <p>추후 확장 예정인 기능입니다</p>
-            </div>
         </div>
 
         <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 25px 0 20px 0;">
 
-        <div class="menu-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
+        <div class="menu-grid" style="grid-template-columns: repeat(3, 1fr);">
             <div class="menu-card" onclick="showPanel('guide')" style="cursor: pointer;">
                 <h4>📌 설정 가이드</h4>
                 <p>관리 페이지 사용 방법 안내</p>
@@ -76,7 +63,7 @@ const adminHtmlTemplate = `
                 <p>모든 설정 파일(JSON) 백업받기</p>
             </div>
             <div class="menu-card" style="cursor: default; opacity: 0.7;">
-                <h4>📌 임시 메뉴 1</h4>
+                <h4>📌 임시 메뉴 3</h4>
                 <p>추후 확장 예정인 기능입니다</p>
             </div>
         </div>
@@ -105,17 +92,6 @@ const adminHtmlTemplate = `
                 2. 각각 원하는 것을 클릭하여 복사 후,<br>
                 <b>게시글 &gt; 오른쪽에 있는 '기본'을 'HTML'로 변경</b> 후 입력되어 있는 글을 지우고 복사한 데이터를 넣은 후 게시해주세요.
             </p>
-        </div>
-    </div>
-
-    <!-- 🎶 노래위젯 설정 패널 -->
-    <div id="panel-songwidget" class="card" style="display: none;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h3 style="margin: 0; color: #db2777;">🎶 노래위젯 설정</h3>
-            <button onclick="showDashboard()" style="background-color: #64748b; padding: 6px 12px; font-size: 13px;">← 메뉴 목록으로</button>
-        </div>
-        <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 20px; color: #1e293b;">
-            <p>실시간 노래 위젯 및 플레이어 관련 설정을 관리하는 공간입니다.</p>
         </div>
     </div>
 
@@ -399,7 +375,6 @@ function showDashboard() {
     document.getElementById("panel-links").style.display = "none";
     document.getElementById("panel-songs").style.display = "none";
     document.getElementById("panel-guide").style.display = "none";
-    document.getElementById("panel-songwidget").style.display = "none";
 }
 
 function showPanel(type) {
@@ -409,7 +384,6 @@ function showPanel(type) {
     document.getElementById("panel-links").style.display = "none";
     document.getElementById("panel-songs").style.display = "none";
     document.getElementById("panel-guide").style.display = "none";
-    document.getElementById("panel-songwidget").style.display = "none";
 
     if (type === 'mainpage') {
         document.getElementById("panel-mainpage").style.display = "block";
@@ -429,8 +403,6 @@ function showPanel(type) {
         if (typeof initSongsPanel === 'function') initSongsPanel();
     } else if (type === 'guide') {
         document.getElementById("panel-guide").style.display = "block";
-    } else if (type === 'songwidget') {
-        document.getElementById("panel-songwidget").style.display = "block";
     }
 }
 
@@ -664,6 +636,7 @@ function initSongsPanel() {
     renderTable();
 }
 
+// 📌 렌더링 함수: 신규 곡이 항상 맨 위에 오도록 unshift 처리된 배열을 순서대로 출력
 function renderTable() {
     if (!Array.isArray(songData.songs)) songData.songs = [];
     const badge = document.getElementById("song-count-badge");
@@ -732,6 +705,7 @@ function closeEditModal() {
     document.getElementById("edit-modal").style.display = "none";
 }
 
+// 📌 새 노래 추가/수정 (신규 추가는 무조건 unshift로 맨 앞에 배치)
 function saveModalSong() {
     const index = parseInt(document.getElementById("edit-index").value);
     const newSong = {
@@ -745,7 +719,7 @@ function saveModalSong() {
     if (!newSong.title) { alert("노래 제목을 입력해주세요."); return; }
 
     if (index === -1) {
-        songData.songs.unshift(newSong);
+        songData.songs.unshift(newSong); // 👈 맨 앞에 추가
     } else {
         songData.songs[index] = newSong;
     }
@@ -869,6 +843,7 @@ function registerUnregisteredSong(index) {
     renderTable(); 
 }
 
+// 📌 토스트 중복 출력 원천 차단 함수
 function showToast(message) {
     let container = document.getElementById("toast-container");
     if (!container) {
@@ -878,6 +853,7 @@ function showToast(message) {
         document.body.appendChild(container);
     }
 
+    // 이미 같은 메시지의 토스트가 떠 있다면 새로 만들지 않음
     const existingToasts = container.querySelectorAll(".toast-message");
     for (let t of existingToasts) {
         if (t.textContent === message) {
