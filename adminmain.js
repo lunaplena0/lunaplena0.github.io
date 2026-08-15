@@ -53,7 +53,7 @@ const adminHtmlTemplate = `
 
         <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 25px 0 20px 0;">
         
-        <!-- 🎶 노래위젯 설정 메뉴 (다른 카드들과 동일한 menu-grid 구조 적용) -->
+        <!-- 🎶 노래위젯 설정 메뉴 (다른 카드들과 동일한 menu-grid 및 크기 구조 적용) -->
         <div class="menu-grid" style="margin-bottom: 20px;">
             <div class="menu-card" onclick="showPanel('songwidget')" style="cursor: pointer; background: #fdf4f8; border-color: #f472b6;">
                 <h4 style="color: #db2777;">🎶 노래위젯 설정</h4>
@@ -73,11 +73,7 @@ const adminHtmlTemplate = `
                 <p>모든 설정 파일(JSON) 백업받기</p>
             </div>
             <div class="menu-card" style="cursor: default; opacity: 0.7;">
-                <h4>📌 임시 메뉴 2</h4>
-                <p>추후 확장 예정인 기능입니다</p>
-            </div>
-            <div class="menu-card" style="cursor: default; opacity: 0.7;">
-                <h4>📌 임시 메뉴 3</h4>
+                <h4>📌 임시 메뉴 1</h4>
                 <p>추후 확장 예정인 기능입니다</p>
             </div>
         </div>
