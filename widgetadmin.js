@@ -3,6 +3,7 @@ const WORKER_URL = "https://badabi-api.dalkkumli054.workers.dev/";
 let songData = { notice: "", songs: [] };
 let widgetSelectedSongs = []; // 위젯 전용 선택 목록 데이터
 let widgetBgColor = "transparent"; // 위젯 배경색 설정 값
+let widgetBgOpacity = 100; // 위젯 배경 불투명도 (0 ~ 100)
 
 // 📌 escapeHtml 함수
 function escapeHtml(str) {
@@ -25,7 +26,7 @@ function getLimitBadgeHTML(limit) {
     return `<span style="background-color: ${badgeColor}; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 500; margin-right: 6px; display: inline-block; vertical-align: middle;">${escapeHtml(limitVal)}</span>`;
 }
 
-// 🔒 관리자 UI 템플릿 (배경색 설정 영역 추가)
+// 🔒 관리자 UI 템플릿 (배경색 및 불투명도 설정 영역 추가)
 const adminHtmlTemplate = `
     <!-- 대시보드 메뉴 -->
     <div id="dashboard-section" class="card">
@@ -42,7 +43,7 @@ const adminHtmlTemplate = `
             
             <div class="menu-card" onclick="showPanel('widget-songs')">
                 <h4 style="font-size: 16px;">노래위젯 관리 및 설정</h4>
-                <p style="font-size: 12px;">위젯 목록 및 배경색 설정</p>
+                <p style="font-size: 12px;">위젯 목록 및 배경색/투명도 설정</p>
             </div>
         </div>
     </div>
@@ -54,16 +55,27 @@ const adminHtmlTemplate = `
             <button onclick="showDashboard()" style="background-color: #64748b; padding: 6px 12px; font-size: 13px;">← 메뉴 목록으로</button>
         </div>
 
-        <!-- 🎨 위젯 배경색 설정 영역 -->
-        <div style="background: #e0f2fe; border: 1px solid #bae6fd; border-radius: 8px; padding: 12px 15px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
-            <div>
-                <strong>🎨 위젯 배경색 설정</strong>
-                <p style="margin: 2px 0 0 0; font-size: 12px; color: #0369a1;">방송 화면(OBS 등)에 맞게 위젯 배경을 설정합니다.</p>
+        <!-- 🎨 위젯 배경색 및 불투명도 설정 영역 -->
+        <div style="background: #e0f2fe; border: 1px solid #bae6fd; border-radius: 8px; padding: 12px 15px; margin-bottom: 20px; display: flex; flex-direction: column; gap: 10px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                <div>
+                    <strong>🎨 위젯 배경색 및 불투명도 설정</strong>
+                    <p style="margin: 2px 0 0 0; font-size: 12px; color: #0369a1;">방송 화면(OBS 등)에 맞게 위젯 배경 색상과 투명도를 조절합니다.</p>
+                </div>
+                <button type="button" onclick="setTransparentBg()" style="background-color: #64748b; padding: 6px 10px; font-size: 12px; margin-bottom: 0;">완전 투명하게</button>
             </div>
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <input type="color" id="widget-bg-color-picker" onchange="updateBgColorFromPicker(this.value)" style="width: 35px; height: 32px; border: none; cursor: pointer; background: none;">
-                <input type="text" id="widget-bg-color-input" placeholder="transparent 또는 색상코드" oninput="updateBgColorFromInput(this.value)" style="margin-bottom: 0; width: 180px; padding: 5px; font-size: 13px;">
-                <button type="button" onclick="setTransparentBg()" style="background-color: #64748b; padding: 6px 10px; font-size: 12px; margin-bottom: 0;">투명하게</button>
+
+            <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap; background: rgba(255,255,255,0.6); padding: 8px 12px; border-radius: 6px;">
+                <div style="display: flex; align-items: center; gap: 6px;">
+                    <span style="font-size: 12px; font-weight: 600;">색상:</span>
+                    <input type="color" id="widget-bg-color-picker" onchange="updateBgColorFromPicker(this.value)" style="width: 32px; height: 30px; border: none; cursor: pointer; background: none;">
+                    <input type="text" id="widget-bg-color-input" placeholder="#ffffff 또는 transparent" oninput="updateBgColorFromInput(this.value)" style="margin-bottom: 0; width: 140px; padding: 4px; font-size: 12px;">
+                </div>
+                <div style="display: flex; align-items: center; gap: 6px; flex: 1; min-width: 200px;">
+                    <span style="font-size: 12px; font-weight: 600;">불투명도:</span>
+                    <input type="range" id="widget-bg-opacity-slider" min="0" max="100" value="100" oninput="updateBgOpacity(this.value)" style="flex: 1; cursor: pointer;">
+                    <span id="widget-bg-opacity-text" style="font-size: 12px; font-weight: 600; width: 35px; text-align: right;">100%</span>
+                </div>
             </div>
         </div>
 
@@ -165,7 +177,8 @@ async function verifyAndLoad() {
         if (widgetRes.ok) {
             const widgetData = await widgetRes.json();
             widgetSelectedSongs = Array.isArray(widgetData.songs) ? widgetData.songs : [];
-            widgetBgColor = widgetData.bgColor || "transparent"; // 배경색 불러오기
+            widgetBgColor = widgetData.bgColor || "transparent"; 
+            widgetBgOpacity = (widgetData.bgOpacity !== undefined) ? widgetData.bgOpacity : 100;
         }
         
         document.getElementById("login-section").style.display = "none";
@@ -203,17 +216,22 @@ function initWidgetSongsPanel() {
     const searchInput = document.getElementById("widget-song-search");
     if (searchInput) searchInput.value = "";
     
-    // 배경색 UI 반영
+    // 배경색 및 불투명도 UI 반영
     const bgInput = document.getElementById("widget-bg-color-input");
     const bgPicker = document.getElementById("widget-bg-color-picker");
+    const opacitySlider = document.getElementById("widget-bg-opacity-slider");
+    const opacityText = document.getElementById("widget-bg-opacity-text");
+
     if (bgInput) bgInput.value = widgetBgColor;
     if (bgPicker && widgetBgColor.startsWith('#')) bgPicker.value = widgetBgColor;
+    if (opacitySlider) opacitySlider.value = widgetBgOpacity;
+    if (opacityText) opacityText.textContent = widgetBgOpacity + "%";
 
     renderWidgetSearchPool();
     renderWidgetSelectedList();
 }
 
-// 🎨 배경색 변경 핸들러
+// 🎨 배경색 및 투명도 변경 핸들러
 function updateBgColorFromPicker(color) {
     const bgInput = document.getElementById("widget-bg-color-input");
     if (bgInput) bgInput.value = color;
@@ -230,10 +248,24 @@ function updateBgColorFromInput(color) {
     autoSaveWidgetSongs();
 }
 
+function updateBgOpacity(opacity) {
+    widgetBgOpacity = parseInt(opacity, 10);
+    const opacityText = document.getElementById("widget-bg-opacity-text");
+    if (opacityText) opacityText.textContent = widgetBgOpacity + "%";
+    autoSaveWidgetSongs();
+}
+
 function setTransparentBg() {
     widgetBgColor = "transparent";
+    widgetBgOpacity = 0;
     const bgInput = document.getElementById("widget-bg-color-input");
+    const opacitySlider = document.getElementById("widget-bg-opacity-slider");
+    const opacityText = document.getElementById("widget-bg-opacity-text");
+
     if (bgInput) bgInput.value = "transparent";
+    if (opacitySlider) opacitySlider.value = 0;
+    if (opacityText) opacityText.textContent = "0%";
+
     autoSaveWidgetSongs();
     showToast("위젯 배경이 투명으로 설정되었습니다.");
 }
@@ -414,7 +446,7 @@ function clearWidgetSongs() {
     }
 }
 
-// 📌 서버 저장 (songs 목록과 배경색인 bgColor를 함께 저장)
+// 📌 서버 저장 (songs, bgColor, bgOpacity 함께 저장)
 async function autoSaveWidgetSongs() {
     try {
         const response = await fetch(WORKER_URL, {
@@ -425,7 +457,8 @@ async function autoSaveWidgetSongs() {
                 fileType: "widget", 
                 content: { 
                     songs: widgetSelectedSongs,
-                    bgColor: widgetBgColor 
+                    bgColor: widgetBgColor,
+                    bgOpacity: widgetBgOpacity
                 }
             })
         });
