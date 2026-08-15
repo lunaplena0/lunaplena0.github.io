@@ -2,6 +2,7 @@ const WORKER_URL = "https://badabi-api.dalkkumli054.workers.dev/";
 
 let songData = { notice: "", songs: [] };
 let widgetSelectedSongs = []; // 위젯 전용 선택 목록 데이터
+let widgetBgColor = "transparent"; // 위젯 배경색 설정 값
 
 // 📌 escapeHtml 함수
 function escapeHtml(str) {
@@ -24,7 +25,7 @@ function getLimitBadgeHTML(limit) {
     return `<span style="background-color: ${badgeColor}; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 500; margin-right: 6px; display: inline-block; vertical-align: middle;">${escapeHtml(limitVal)}</span>`;
 }
 
-// 🔒 2개 버튼으로 구성된 관리자 UI 템플릿 (제목, 가수, limit만 입력하는 수동 폼)
+// 🔒 관리자 UI 템플릿 (배경색 설정 영역 추가)
 const adminHtmlTemplate = `
     <!-- 대시보드 메뉴 -->
     <div id="dashboard-section" class="card">
@@ -34,30 +35,37 @@ const adminHtmlTemplate = `
         </div>
         
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px;">
-            <!-- 버튼 1: 관리페이지로 이동 -->
             <div class="menu-card" onclick="window.open('https://lunaplena0.github.io/admin.html', '_blank')">
                 <h4 style="font-size: 16px;">관리페이지로 이동</h4>
                 <p style="font-size: 12px;">전체 관리 페이지 새 창으로 열기</p>
             </div>
             
-            <!-- 버튼 2: 노래위젯 관리 및 설정 -->
             <div class="menu-card" onclick="showPanel('widget-songs')">
                 <h4 style="font-size: 16px;">노래위젯 관리 및 설정</h4>
-                <p style="font-size: 12px;">songlist 읽어와서 위젯 목록 구성</p>
+                <p style="font-size: 12px;">위젯 목록 및 배경색 설정</p>
             </div>
         </div>
     </div>
 
-    <!-- 🎵 노래 위젯 목록 구성 패널 -->
+    <!-- 🎵 노래 위젯 관리 패널 -->
     <div id="panel-widget-songs" class="card" style="display: none;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h3 style="margin: 0; color: #03045e;">🎛️ 노래 위젯 목록 구성</h3>
+            <h3 style="margin: 0; color: #03045e;">🎛️ 노래 위젯 관리 및 설정</h3>
             <button onclick="showDashboard()" style="background-color: #64748b; padding: 6px 12px; font-size: 13px;">← 메뉴 목록으로</button>
         </div>
 
-        <p style="color: #64748b; font-size: 14px; margin-bottom: 15px;">
-            노래를 검색하여 추가하거나, 직접 정보를 입력해 추가할 수 있습니다. 변경사항은 <strong>자동으로 즉시 저장</strong>됩니다.
-        </p>
+        <!-- 🎨 위젯 배경색 설정 영역 -->
+        <div style="background: #e0f2fe; border: 1px solid #bae6fd; border-radius: 8px; padding: 12px 15px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+            <div>
+                <strong>🎨 위젯 배경색 설정</strong>
+                <p style="margin: 2px 0 0 0; font-size: 12px; color: #0369a1;">방송 화면(OBS 등)에 맞게 위젯 배경을 설정합니다.</p>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <input type="color" id="widget-bg-color-picker" onchange="updateBgColorFromPicker(this.value)" style="width: 35px; height: 32px; border: none; cursor: pointer; background: none;">
+                <input type="text" id="widget-bg-color-input" placeholder="transparent 또는 색상코드" oninput="updateBgColorFromInput(this.value)" style="margin-bottom: 0; width: 180px; padding: 5px; font-size: 13px;">
+                <button type="button" onclick="setTransparentBg()" style="background-color: #64748b; padding: 6px 10px; font-size: 12px; margin-bottom: 0;">투명하게</button>
+            </div>
+        </div>
 
         <!-- 탭 전환 버튼 -->
         <div style="display: flex; gap: 10px; margin-bottom: 15px;">
@@ -67,10 +75,10 @@ const adminHtmlTemplate = `
 
         <div style="display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap;">
             
-            <!-- 왼쪽 영역: 검색 탭 또는 수동 입력 탭 -->
+            <!-- 왼쪽: 검색 / 수동입력 -->
             <div style="flex: 1; min-width: 300px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 15px;">
                 
-                <!-- [검색 탭 내용] -->
+                <!-- 검색 탭 -->
                 <div id="sub-panel-search">
                     <h4 style="color: #0077b6; margin-top: 0;">🔍 노래 검색</h4>
                     <input type="text" id="widget-song-search" placeholder="제목 또는 가수 검색..." oninput="renderWidgetSearchPool()" style="margin-bottom: 10px;">
@@ -79,7 +87,7 @@ const adminHtmlTemplate = `
                     </div>
                 </div>
 
-                <!-- [수동 입력 탭 내용 - 제목, 가수, limit만 구성] -->
+                <!-- 수동 입력 탭 -->
                 <div id="sub-panel-manual" style="display: none;">
                     <h4 style="color: #0077b6; margin-top: 0;">✏️ 수동 노래 추가</h4>
                     <div style="display: flex; flex-direction: column; gap: 10px; font-size: 13px;">
@@ -101,14 +109,13 @@ const adminHtmlTemplate = `
 
             </div>
 
-            <!-- 오른쪽: 선택된 위젯 목록 영역 -->
+            <!-- 오른쪽: 선택된 위젯 목록 -->
             <div style="flex: 1; min-width: 300px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 15px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                     <h4 style="color: #0077b6; margin: 0;">📋 선택된 위젯 목록 (<span id="widget-selected-count">0</span>곡)</h4>
                     <button type="button" onclick="clearWidgetSongs()" style="background-color: #ef4444; padding: 4px 8px; font-size: 11px; margin-bottom: 0;">전체 삭제</button>
                 </div>
                 
-                <!-- 높이가 고정된 선택 목록 창 -->
                 <div id="widget-selected-list" style="height: 270px; max-height: 270px; overflow-y: auto; border: 1px solid #cbd5e1; background: #fff; border-radius: 6px; padding: 8px;">
                     <div style="padding: 10px; color: #64748b; text-align: center; font-size: 13px;">선택된 곡이 없습니다.</div>
                 </div>
@@ -158,6 +165,7 @@ async function verifyAndLoad() {
         if (widgetRes.ok) {
             const widgetData = await widgetRes.json();
             widgetSelectedSongs = Array.isArray(widgetData.songs) ? widgetData.songs : [];
+            widgetBgColor = widgetData.bgColor || "transparent"; // 배경색 불러오기
         }
         
         document.getElementById("login-section").style.display = "none";
@@ -194,11 +202,43 @@ function initWidgetSongsPanel() {
     switchWidgetTab('search');
     const searchInput = document.getElementById("widget-song-search");
     if (searchInput) searchInput.value = "";
+    
+    // 배경색 UI 반영
+    const bgInput = document.getElementById("widget-bg-color-input");
+    const bgPicker = document.getElementById("widget-bg-color-picker");
+    if (bgInput) bgInput.value = widgetBgColor;
+    if (bgPicker && widgetBgColor.startsWith('#')) bgPicker.value = widgetBgColor;
+
     renderWidgetSearchPool();
     renderWidgetSelectedList();
 }
 
-// 📌 탭 전환 기능 (검색 추가 vs 수동 입력 추가)
+// 🎨 배경색 변경 핸들러
+function updateBgColorFromPicker(color) {
+    const bgInput = document.getElementById("widget-bg-color-input");
+    if (bgInput) bgInput.value = color;
+    widgetBgColor = color;
+    autoSaveWidgetSongs();
+}
+
+function updateBgColorFromInput(color) {
+    widgetBgColor = color.trim() || "transparent";
+    const bgPicker = document.getElementById("widget-bg-color-picker");
+    if (bgPicker && widgetBgColor.startsWith('#')) {
+        bgPicker.value = widgetBgColor;
+    }
+    autoSaveWidgetSongs();
+}
+
+function setTransparentBg() {
+    widgetBgColor = "transparent";
+    const bgInput = document.getElementById("widget-bg-color-input");
+    if (bgInput) bgInput.value = "transparent";
+    autoSaveWidgetSongs();
+    showToast("위젯 배경이 투명으로 설정되었습니다.");
+}
+
+// 탭 전환 기능
 function switchWidgetTab(mode) {
     const searchSubPanel = document.getElementById("sub-panel-search");
     const manualSubPanel = document.getElementById("sub-panel-manual");
@@ -220,7 +260,7 @@ function switchWidgetTab(mode) {
     }
 }
 
-// 1. 검색 풀 렌더링 (배지 적용)
+// 검색 풀 렌더링
 function renderWidgetSearchPool() {
     const searchInput = document.getElementById("widget-song-search");
     const keyword = searchInput ? searchInput.value.toLowerCase().trim() : "";
@@ -270,7 +310,6 @@ function renderWidgetSearchPool() {
     });
 }
 
-// 2. 검색된 곡을 위젯 목록에 추가 후 자동 저장
 function addSongToWidget(song) {
     const exists = widgetSelectedSongs.some(item => item.title === song.title && item.artist === song.artist);
     if (exists) {
@@ -281,10 +320,9 @@ function addSongToWidget(song) {
     widgetSelectedSongs.push({ ...song, checked: false });
     renderWidgetSelectedList();
     autoSaveWidgetSongs();
-    showToast(`'${song.title}' 곡이 위젯 목록에 추가되었습니다.`);
+    showToast(`'${song.title}' 곡이 추가되었습니다.`);
 }
 
-// 2-1. 수동 입력된 곡을 위젯 목록에 추가 (제목만 필수, 나머지는 빈칸 허용)
 function addManualSongToWidget() {
     const titleInput = document.getElementById("manual-title");
     const artistInput = document.getElementById("manual-artist");
@@ -313,7 +351,6 @@ function addManualSongToWidget() {
     renderWidgetSelectedList();
     autoSaveWidgetSongs();
 
-    // 입력 필드 초기화
     if (titleInput) titleInput.value = "";
     if (artistInput) artistInput.value = "";
     if (limitInput) limitInput.value = "";
@@ -321,7 +358,6 @@ function addManualSongToWidget() {
     showToast(`'${title}' 곡이 수동 추가되었습니다.`);
 }
 
-// 3. 선택된 위젯 목록 렌더링 (배지 적용)
 function renderWidgetSelectedList() {
     const container = document.getElementById("widget-selected-list");
     const countBadge = document.getElementById("widget-selected-count");
@@ -355,7 +391,6 @@ function renderWidgetSelectedList() {
     });
 }
 
-// 4. 체크 상태 변경 핸들러 및 자동 저장
 function toggleWidgetSongCheck(index, isChecked) {
     if (widgetSelectedSongs[index]) {
         widgetSelectedSongs[index].checked = isChecked;
@@ -363,14 +398,12 @@ function toggleWidgetSongCheck(index, isChecked) {
     }
 }
 
-// 5. 위젯 목록에서 특정 항목 제거 및 자동 저장
 function removeSongFromWidget(index) {
     widgetSelectedSongs.splice(index, 1);
     renderWidgetSelectedList();
     autoSaveWidgetSongs();
 }
 
-// 6. 위젯 목록 전체 삭제 및 자동 저장
 function clearWidgetSongs() {
     if (widgetSelectedSongs.length === 0) return;
     if (confirm("위젯 목록에 있는 모든 곡을 삭제하시겠습니까?")) {
@@ -381,7 +414,7 @@ function clearWidgetSongs() {
     }
 }
 
-// 7. 백엔드 JSON 자동 저장 함수
+// 📌 서버 저장 (songs 목록과 배경색인 bgColor를 함께 저장)
 async function autoSaveWidgetSongs() {
     try {
         const response = await fetch(WORKER_URL, {
@@ -390,7 +423,10 @@ async function autoSaveWidgetSongs() {
             body: JSON.stringify({
                 password: document.getElementById("admin-password").value,
                 fileType: "widget", 
-                content: { songs: widgetSelectedSongs }
+                content: { 
+                    songs: widgetSelectedSongs,
+                    bgColor: widgetBgColor 
+                }
             })
         });
         if (!response.ok) {
