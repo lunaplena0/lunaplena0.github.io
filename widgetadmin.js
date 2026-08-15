@@ -8,6 +8,22 @@ function escapeHtml(str) {
     return (str || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
 }
 
+// 📌 limit 배지 생성 헬퍼 함수
+function getLimitBadgeHTML(limit) {
+    let limitVal = limit ? limit.replace(/[\[\]]/g, '').trim() : '';
+    if (limitVal === "") return "";
+
+    let badgeColor = "#0ea5e9";
+    if (limitVal.includes("200")) badgeColor = "#10b981";
+    else if (limitVal.includes("300")) badgeColor = "#f97316";
+    else if (limitVal.includes("기타")) {
+        badgeColor = "#8b5cf6";
+        limitVal = "기타 연주";
+    }
+    
+    return `<span style="background-color: ${badgeColor}; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 500; margin-right: 6px; display: inline-block; vertical-align: middle;">${escapeHtml(limitVal)}</span>`;
+}
+
 // 🔒 2개 버튼으로 구성된 관리자 UI 템플릿
 const adminHtmlTemplate = `
     <!-- 대시보드 메뉴 -->
@@ -40,7 +56,7 @@ const adminHtmlTemplate = `
         </div>
 
         <p style="color: #64748b; font-size: 14px; margin-bottom: 15px;">
-            songlist 데이터를 읽어와서 검색 후 위젯에 표시할 목록을 구성합니다. (여기서 삭제해도 원본 songlist는 안전합니다.)
+            songlist 데이터를 읽어와서 검색 후 위젯 목록을 구성합니다. 변경사항은 <strong>자동으로 즉시 저장</strong>됩니다.
         </p>
 
         <div style="display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap;">
@@ -64,11 +80,9 @@ const adminHtmlTemplate = `
                 </div>
                 
                 <!-- 높이가 고정된 선택 목록 창 -->
-                <div id="widget-selected-list" style="height: 250px; max-height: 250px; overflow-y: auto; border: 1px solid #cbd5e1; background: #fff; border-radius: 6px; padding: 8px; margin-bottom: 15px;">
+                <div id="widget-selected-list" style="height: 305px; max-height: 305px; overflow-y: auto; border: 1px solid #cbd5e1; background: #fff; border-radius: 6px; padding: 8px;">
                     <div style="padding: 10px; color: #64748b; text-align: center; font-size: 13px;">선택된 곡이 없습니다.</div>
                 </div>
-
-                <button onclick="saveWidgetSongs()" style="width: 100%; background-color: #0077b6; padding: 12px; font-size: 15px;">위젯 데이터 저장하기</button>
             </div>
 
         </div>
@@ -76,7 +90,7 @@ const adminHtmlTemplate = `
     </div>
 `;
 
-// 📌 로그인 및 데이터 불러오기 (songlist 읽어오기 포함)
+// 📌 로그인 및 데이터 불러오기
 async function verifyAndLoad() {
     const password = document.getElementById("admin-password").value;
     const statusEl = document.getElementById("login-status");
@@ -87,7 +101,7 @@ async function verifyAndLoad() {
     }
 
     statusEl.style.color = "#0077b6";
-    statusEl.textContent = "비밀번호 확인 및 songlist 로드 중...";
+    statusEl.textContent = "비밀번호 확인 및 데이터 로드 중...";
 
     try {
         const authResponse = await fetch(WORKER_URL, {
@@ -102,11 +116,19 @@ async function verifyAndLoad() {
         }
 
         const timestamp = new Date().getTime();
+        
+        // 1. 원본 songlist 불러오기
         const songRes = await fetch(WORKER_URL + "?type=songlist&t=" + timestamp);
-
         if (songRes.ok) {
             const data = await songRes.json();
             songData = { notice: data.notice || "", songs: Array.isArray(data.songs) ? data.songs : [] };
+        }
+
+        // 2. 기존 위젯 전용 목록 불러오기
+        const widgetRes = await fetch(WORKER_URL + "?type=widget_songs&t=" + timestamp);
+        if (widgetRes.ok) {
+            const widgetData = await widgetRes.json();
+            widgetSelectedSongs = Array.isArray(widgetData.songs) ? widgetData.songs : [];
         }
         
         document.getElementById("login-section").style.display = "none";
@@ -146,7 +168,7 @@ function initWidgetSongsPanel() {
     renderWidgetSelectedList();
 }
 
-// 1. 검색 풀 렌더링 (songlist 기반 - 실시간 반영)
+// 1. 검색 풀 렌더링 (배지 적용)
 function renderWidgetSearchPool() {
     const searchInput = document.getElementById("widget-song-search");
     const keyword = searchInput ? searchInput.value.toLowerCase().trim() : "";
@@ -179,18 +201,24 @@ function renderWidgetSearchPool() {
     filteredSongs.forEach((song) => {
         const div = document.createElement("div");
         div.style.cssText = "display: flex; justify-content: space-between; align-items: center; padding: 8px; border-bottom: 1px solid #e2e8f0; font-size: 13px;";
+        
+        const badgeHTML = getLimitBadgeHTML(song.limit);
+
         div.innerHTML = `
-            <div>
-                <strong>${escapeHtml(song.title)}</strong> 
-                <span style="color: #64748b;">(${escapeHtml(song.artist || '가수 미상')})</span>
+            <div style="display: flex; align-items: center; overflow: hidden; flex: 1; margin-right: 10px;">
+                ${badgeHTML}
+                <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                    <strong>${escapeHtml(song.title)}</strong> 
+                    <span style="color: #64748b;">(${escapeHtml(song.artist || '가수 미상')})</span>
+                </div>
             </div>
-            <button type="button" onclick='addSongToWidget(${JSON.stringify(song)})' style="background-color: #10b981; padding: 4px 8px; font-size: 12px; margin-bottom: 0;">선택</button>
+            <button type="button" onclick='addSongToWidget(${JSON.stringify(song)})' style="background-color: #10b981; padding: 4px 8px; font-size: 12px; margin-bottom: 0; white-space: nowrap;">선택</button>
         `;
         resultContainer.appendChild(div);
     });
 }
 
-// 2. 검색된 곡을 위젯 목록에 추가 (즉시 반영)
+// 2. 검색된 곡을 위젯 목록에 추가 후 자동 저장
 function addSongToWidget(song) {
     const exists = widgetSelectedSongs.some(item => item.title === song.title && item.artist === song.artist);
     if (exists) {
@@ -200,9 +228,10 @@ function addSongToWidget(song) {
 
     widgetSelectedSongs.push({ ...song, checked: false });
     renderWidgetSelectedList();
+    autoSaveWidgetSongs();
 }
 
-// 3. 선택된 위젯 목록 렌더링
+// 3. 선택된 위젯 목록 렌더링 (배지 적용)
 function renderWidgetSelectedList() {
     const container = document.getElementById("widget-selected-list");
     const countBadge = document.getElementById("widget-selected-count");
@@ -219,9 +248,13 @@ function renderWidgetSelectedList() {
     widgetSelectedSongs.forEach((song, index) => {
         const div = document.createElement("div");
         div.style.cssText = "display: flex; justify-content: space-between; align-items: center; padding: 8px; border-bottom: 1px solid #e2e8f0; font-size: 13px; background: #fff; margin-bottom: 4px; border-radius: 4px;";
+        
+        const badgeHTML = getLimitBadgeHTML(song.limit);
+
         div.innerHTML = `
-            <div style="display: flex; align-items: center; gap: 8px; flex: 1; overflow: hidden;">
+            <div style="display: flex; align-items: center; gap: 6px; flex: 1; overflow: hidden; margin-right: 10px;">
                 <input type="checkbox" style="margin-bottom: 0;" ${song.checked ? 'checked' : ''} onchange="toggleWidgetSongCheck(${index}, this.checked)">
+                ${badgeHTML}
                 <span style="text-overflow: ellipsis; overflow: hidden; white-space: nowrap;" title="${escapeHtml(song.title)}">
                     <strong>${escapeHtml(song.title)}</strong> <span style="color: #64748b; font-size: 11px;">(${escapeHtml(song.artist || '-')})</span>
                 </span>
@@ -232,33 +265,34 @@ function renderWidgetSelectedList() {
     });
 }
 
-// 4. 체크 상태 변경 핸들러 (즉시 반영)
+// 4. 체크 상태 변경 핸들러 및 자동 저장
 function toggleWidgetSongCheck(index, isChecked) {
     if (widgetSelectedSongs[index]) {
         widgetSelectedSongs[index].checked = isChecked;
+        autoSaveWidgetSongs();
     }
 }
 
-// 5. 위젯 목록에서 특정 항목 제거 (즉시 반영)
+// 5. 위젯 목록에서 특정 항목 제거 및 자동 저장
 function removeSongFromWidget(index) {
     widgetSelectedSongs.splice(index, 1);
     renderWidgetSelectedList();
+    autoSaveWidgetSongs();
 }
 
-// 6. 위젯 목록 전체 삭제 (즉시 반영)
+// 6. 위젯 목록 전체 삭제 및 자동 저장
 function clearWidgetSongs() {
     if (widgetSelectedSongs.length === 0) return;
     if (confirm("위젯 목록에 있는 모든 곡을 삭제하시겠습니까?")) {
         widgetSelectedSongs = [];
         renderWidgetSelectedList();
+        autoSaveWidgetSongs();
         showToast("위젯 목록이 초기화되었습니다.");
     }
 }
 
-// 7. 위젯 데이터 최종 저장 (위젯 전용 파일 타입으로 저장)
-async function saveWidgetSongs() {
-    showToast("위젯 목록 반영 중...");
-
+// 7. 백엔드 JSON 자동 저장 함수
+async function autoSaveWidgetSongs() {
     try {
         const response = await fetch(WORKER_URL, {
             method: "POST",
@@ -269,14 +303,12 @@ async function saveWidgetSongs() {
                 content: { songs: widgetSelectedSongs }
             })
         });
-        const result = await response.json();
-        if (response.ok) {
-            showToast("위젯 목록이 성공적으로 업데이트되었습니다!");
-        } else {
-            throw new Error(result.error || "비밀번호 오류");
+        if (!response.ok) {
+            const result = await response.json();
+            throw new Error(result.error || "자동 저장 실패");
         }
     } catch (error) {
-        showToast("실패: " + error.message);
+        showToast("저장 오류: " + error.message);
     }
 }
 
