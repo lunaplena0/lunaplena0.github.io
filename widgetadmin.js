@@ -50,16 +50,21 @@ const adminHtmlTemplate = `
                 <h4 style="color: #0077b6; margin-top: 0;">🔍 노래 검색</h4>
                 <input type="text" id="widget-song-search" placeholder="제목 또는 가수 검색..." oninput="renderWidgetSearchPool()" style="margin-bottom: 10px;">
                 
-                <div id="widget-search-results" style="max-height: 300px; overflow-y: auto; border: 1px solid #cbd5e1; background: #fff; border-radius: 6px; padding: 8px;">
+                <!-- 높이가 고정된 검색 결과 창 -->
+                <div id="widget-search-results" style="height: 250px; max-height: 250px; overflow-y: auto; border: 1px solid #cbd5e1; background: #fff; border-radius: 6px; padding: 8px;">
                     <div style="padding: 10px; color: #64748b; text-align: center; font-size: 13px;">검색어를 입력해주세요.</div>
                 </div>
             </div>
 
             <!-- 오른쪽: 선택된 위젯 목록 영역 -->
             <div style="flex: 1; min-width: 300px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 15px;">
-                <h4 style="color: #0077b6; margin-top: 0;">📋 선택된 위젯 목록 (<span id="widget-selected-count">0</span>곡)</h4>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <h4 style="color: #0077b6; margin: 0;">📋 선택된 위젯 목록 (<span id="widget-selected-count">0</span>곡)</h4>
+                    <button type="button" onclick="clearWidgetSongs()" style="background-color: #ef4444; padding: 4px 8px; font-size: 11px; margin-bottom: 0;">전체 삭제</button>
+                </div>
                 
-                <div id="widget-selected-list" style="max-height: 300px; overflow-y: auto; border: 1px solid #cbd5e1; background: #fff; border-radius: 6px; padding: 8px; margin-bottom: 15px;">
+                <!-- 높이가 고정된 선택 목록 창 -->
+                <div id="widget-selected-list" style="height: 250px; max-height: 250px; overflow-y: auto; border: 1px solid #cbd5e1; background: #fff; border-radius: 6px; padding: 8px; margin-bottom: 15px;">
                     <div style="padding: 10px; color: #64748b; text-align: center; font-size: 13px;">선택된 곡이 없습니다.</div>
                 </div>
 
@@ -141,7 +146,7 @@ function initWidgetSongsPanel() {
     renderWidgetSelectedList();
 }
 
-// 1. 검색 풀 렌더링 (songlist 기반)
+// 1. 검색 풀 렌더링 (songlist 기반 - 실시간 반영)
 function renderWidgetSearchPool() {
     const searchInput = document.getElementById("widget-song-search");
     const keyword = searchInput ? searchInput.value.toLowerCase().trim() : "";
@@ -185,7 +190,7 @@ function renderWidgetSearchPool() {
     });
 }
 
-// 2. 검색된 곡을 위젯 목록에 추가
+// 2. 검색된 곡을 위젯 목록에 추가 (즉시 반영)
 function addSongToWidget(song) {
     const exists = widgetSelectedSongs.some(item => item.title === song.title && item.artist === song.artist);
     if (exists) {
@@ -227,20 +232,30 @@ function renderWidgetSelectedList() {
     });
 }
 
-// 4. 체크 상태 변경 핸들러
+// 4. 체크 상태 변경 핸들러 (즉시 반영)
 function toggleWidgetSongCheck(index, isChecked) {
     if (widgetSelectedSongs[index]) {
         widgetSelectedSongs[index].checked = isChecked;
     }
 }
 
-// 5. 위젯 목록에서만 항목 제거
+// 5. 위젯 목록에서 특정 항목 제거 (즉시 반영)
 function removeSongFromWidget(index) {
     widgetSelectedSongs.splice(index, 1);
     renderWidgetSelectedList();
 }
 
-// 6. 위젯 데이터 최종 저장 (위젯 전용 파일 타입으로 저장)
+// 6. 위젯 목록 전체 삭제 (즉시 반영)
+function clearWidgetSongs() {
+    if (widgetSelectedSongs.length === 0) return;
+    if (confirm("위젯 목록에 있는 모든 곡을 삭제하시겠습니까?")) {
+        widgetSelectedSongs = [];
+        renderWidgetSelectedList();
+        showToast("위젯 목록이 초기화되었습니다.");
+    }
+}
+
+// 7. 위젯 데이터 최종 저장 (위젯 전용 파일 타입으로 저장)
 async function saveWidgetSongs() {
     showToast("위젯 목록 반영 중...");
 
