@@ -24,7 +24,7 @@ function getLimitBadgeHTML(limit) {
     return `<span style="background-color: ${badgeColor}; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 500; margin-right: 6px; display: inline-block; vertical-align: middle;">${escapeHtml(limitVal)}</span>`;
 }
 
-// 🔒 2개 버튼으로 구성된 관리자 UI 템플릿
+// 🔒 2개 버튼으로 구성된 관리자 UI 템플릿 (제목, 가수, limit만 입력하는 수동 폼)
 const adminHtmlTemplate = `
     <!-- 대시보드 메뉴 -->
     <div id="dashboard-section" class="card">
@@ -56,20 +56,49 @@ const adminHtmlTemplate = `
         </div>
 
         <p style="color: #64748b; font-size: 14px; margin-bottom: 15px;">
-            songlist 데이터를 읽어와서 검색 후 위젯 목록을 구성합니다. 변경사항은 <strong>자동으로 즉시 저장</strong>됩니다.
+            노래를 검색하여 추가하거나, 직접 정보를 입력해 추가할 수 있습니다. 변경사항은 <strong>자동으로 즉시 저장</strong>됩니다.
         </p>
+
+        <!-- 탭 전환 버튼 -->
+        <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+            <button type="button" id="tab-btn-search" onclick="switchWidgetTab('search')" style="background-color: #0284c7; padding: 6px 14px; font-size: 13px; margin-bottom: 0;">🔍 검색해서 추가</button>
+            <button type="button" id="tab-btn-manual" onclick="switchWidgetTab('manual')" style="background-color: #64748b; padding: 6px 14px; font-size: 13px; margin-bottom: 0;">✏️ 수동 입력 추가</button>
+        </div>
 
         <div style="display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap;">
             
-            <!-- 왼쪽: 노래 검색 및 선택 영역 -->
+            <!-- 왼쪽 영역: 검색 탭 또는 수동 입력 탭 -->
             <div style="flex: 1; min-width: 300px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 15px;">
-                <h4 style="color: #0077b6; margin-top: 0;">🔍 노래 검색</h4>
-                <input type="text" id="widget-song-search" placeholder="제목 또는 가수 검색..." oninput="renderWidgetSearchPool()" style="margin-bottom: 10px;">
                 
-                <!-- 높이가 고정된 검색 결과 창 -->
-                <div id="widget-search-results" style="height: 250px; max-height: 250px; overflow-y: auto; border: 1px solid #cbd5e1; background: #fff; border-radius: 6px; padding: 8px;">
-                    <div style="padding: 10px; color: #64748b; text-align: center; font-size: 13px;">검색어를 입력해주세요.</div>
+                <!-- [검색 탭 내용] -->
+                <div id="sub-panel-search">
+                    <h4 style="color: #0077b6; margin-top: 0;">🔍 노래 검색</h4>
+                    <input type="text" id="widget-song-search" placeholder="제목 또는 가수 검색..." oninput="renderWidgetSearchPool()" style="margin-bottom: 10px;">
+                    <div id="widget-search-results" style="height: 200px; max-height: 200px; overflow-y: auto; border: 1px solid #cbd5e1; background: #fff; border-radius: 6px; padding: 8px;">
+                        <div style="padding: 10px; color: #64748b; text-align: center; font-size: 13px;">검색어를 입력해주세요.</div>
+                    </div>
                 </div>
+
+                <!-- [수동 입력 탭 내용 - 제목, 가수, limit만 구성] -->
+                <div id="sub-panel-manual" style="display: none;">
+                    <h4 style="color: #0077b6; margin-top: 0;">✏️ 수동 노래 추가</h4>
+                    <div style="display: flex; flex-direction: column; gap: 10px; font-size: 13px;">
+                        <div>
+                            <label style="display: block; font-weight: 600; margin-bottom: 3px;">노래 제목 *</label>
+                            <input type="text" id="manual-title" placeholder="예: 그때가 좋았어" style="margin-bottom: 0; padding: 6px;">
+                        </div>
+                        <div>
+                            <label style="display: block; font-weight: 600; margin-bottom: 3px;">아티스트 (가수)</label>
+                            <input type="text" id="manual-artist" placeholder="예: 케이시 (선택사항)" style="margin-bottom: 0; padding: 6px;">
+                        </div>
+                        <div>
+                            <label style="display: block; font-weight: 600; margin-bottom: 3px;">Limit 태그</label>
+                            <input type="text" id="manual-limit" placeholder="예: [200], [300], 기타 (선택사항)" style="margin-bottom: 0; padding: 6px;">
+                        </div>
+                        <button type="button" onclick="addManualSongToWidget()" style="background-color: #0284c7; padding: 8px; font-size: 13px; margin-top: 5px; margin-bottom: 0; width: 100%;">수동으로 위젯에 추가</button>
+                    </div>
+                </div>
+
             </div>
 
             <!-- 오른쪽: 선택된 위젯 목록 영역 -->
@@ -80,7 +109,7 @@ const adminHtmlTemplate = `
                 </div>
                 
                 <!-- 높이가 고정된 선택 목록 창 -->
-                <div id="widget-selected-list" style="height: 305px; max-height: 305px; overflow-y: auto; border: 1px solid #cbd5e1; background: #fff; border-radius: 6px; padding: 8px;">
+                <div id="widget-selected-list" style="height: 270px; max-height: 270px; overflow-y: auto; border: 1px solid #cbd5e1; background: #fff; border-radius: 6px; padding: 8px;">
                     <div style="padding: 10px; color: #64748b; text-align: center; font-size: 13px;">선택된 곡이 없습니다.</div>
                 </div>
             </div>
@@ -124,7 +153,7 @@ async function verifyAndLoad() {
             songData = { notice: data.notice || "", songs: Array.isArray(data.songs) ? data.songs : [] };
         }
 
-        // 2. 서버에서 위젯 전용 목록 불러오기 (type=widget)
+        // 2. 서버에서 위젯 전용 목록 불러오기
         const widgetRes = await fetch(WORKER_URL + "?type=widget&t=" + timestamp);
         if (widgetRes.ok) {
             const widgetData = await widgetRes.json();
@@ -162,10 +191,33 @@ function showPanel(type) {
 }
 
 function initWidgetSongsPanel() {
+    switchWidgetTab('search');
     const searchInput = document.getElementById("widget-song-search");
     if (searchInput) searchInput.value = "";
     renderWidgetSearchPool();
     renderWidgetSelectedList();
+}
+
+// 📌 탭 전환 기능 (검색 추가 vs 수동 입력 추가)
+function switchWidgetTab(mode) {
+    const searchSubPanel = document.getElementById("sub-panel-search");
+    const manualSubPanel = document.getElementById("sub-panel-manual");
+    const searchBtn = document.getElementById("tab-btn-search");
+    const manualBtn = document.getElementById("tab-btn-manual");
+
+    if (!searchSubPanel || !manualSubPanel) return;
+
+    if (mode === 'search') {
+        searchSubPanel.style.display = "block";
+        manualSubPanel.style.display = "none";
+        if (searchBtn) searchBtn.style.backgroundColor = "#0284c7";
+        if (manualBtn) manualBtn.style.backgroundColor = "#64748b";
+    } else {
+        searchSubPanel.style.display = "none";
+        manualSubPanel.style.display = "block";
+        if (searchBtn) searchBtn.style.backgroundColor = "#64748b";
+        if (manualBtn) manualBtn.style.backgroundColor = "#0284c7";
+    }
 }
 
 // 1. 검색 풀 렌더링 (배지 적용)
@@ -229,6 +281,44 @@ function addSongToWidget(song) {
     widgetSelectedSongs.push({ ...song, checked: false });
     renderWidgetSelectedList();
     autoSaveWidgetSongs();
+    showToast(`'${song.title}' 곡이 위젯 목록에 추가되었습니다.`);
+}
+
+// 2-1. 수동 입력된 곡을 위젯 목록에 추가 (제목만 필수, 나머지는 빈칸 허용)
+function addManualSongToWidget() {
+    const titleInput = document.getElementById("manual-title");
+    const artistInput = document.getElementById("manual-artist");
+    const limitInput = document.getElementById("manual-limit");
+
+    const title = titleInput ? titleInput.value.trim() : "";
+    const artist = artistInput ? artistInput.value.trim() : "";
+    const limit = limitInput ? limitInput.value.trim() : "";
+
+    if (!title) {
+        alert("노래 제목을 입력해주세요.");
+        if (titleInput) titleInput.focus();
+        return;
+    }
+
+    const newSong = {
+        title: title,
+        artist: artist,
+        genre: "",
+        limit: limit,
+        etc: "",
+        checked: false
+    };
+
+    widgetSelectedSongs.push(newSong);
+    renderWidgetSelectedList();
+    autoSaveWidgetSongs();
+
+    // 입력 필드 초기화
+    if (titleInput) titleInput.value = "";
+    if (artistInput) artistInput.value = "";
+    if (limitInput) limitInput.value = "";
+
+    showToast(`'${title}' 곡이 수동 추가되었습니다.`);
 }
 
 // 3. 선택된 위젯 목록 렌더링 (배지 적용)
@@ -291,7 +381,7 @@ function clearWidgetSongs() {
     }
 }
 
-// 7. 백엔드 JSON 자동 저장 함수 (fileType을 "widget"으로 수정)
+// 7. 백엔드 JSON 자동 저장 함수
 async function autoSaveWidgetSongs() {
     try {
         const response = await fetch(WORKER_URL, {
