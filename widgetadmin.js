@@ -4,6 +4,7 @@ let songData = { notice: "", songs: [] };
 let widgetSelectedSongs = []; // 위젯 전용 선택 목록 데이터
 let widgetBgColor = "transparent"; // 위젯 배경색 설정 값
 let widgetBgOpacity = 100; // 위젯 배경 불투명도 (0 ~ 100)
+let widgetNotice = ""; // 위젯 상단 공지 메시지
 
 // 📌 escapeHtml 함수
 function escapeHtml(str) {
@@ -26,7 +27,7 @@ function getLimitBadgeHTML(limit) {
     return `<span style="background-color: ${badgeColor}; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 500; margin-right: 6px; display: inline-block; vertical-align: middle;">${escapeHtml(limitVal)}</span>`;
 }
 
-// 🔒 관리자 UI 템플릿 (미리보기 박스와 HEX 입력창 수직 중앙 정렬 완벽 고정)
+// 🔒 관리자 UI 템플릿 (상단 메세지 입력창 추가)
 const adminHtmlTemplate = `
     <div id="dashboard-section" class="card">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
@@ -57,7 +58,7 @@ const adminHtmlTemplate = `
                 <button type="button" onclick="setTransparentBg()" style="background-color: #64748b; color: white; border: none; padding: 5px 10px; font-size: 12px; border-radius: 4px; cursor: pointer;">완전 투명하게</button>
             </div>
             <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 20px; background: rgba(255,255,255,0.7); padding: 10px 14px; border-radius: 6px;">
-                <!-- 색상 선택 그룹 (align-items: center로 수직 정렬 통일) -->
+                <!-- 색상 선택 그룹 -->
                 <div style="display: flex; align-items: center; gap: 8px;">
                     <span style="font-size: 13px; font-weight: 500;">색상:</span>
                     <div style="display: flex; align-items: center; gap: 6px; align-items: center;">
@@ -75,6 +76,14 @@ const adminHtmlTemplate = `
                     <span id="widget-bg-opacity-text" style="font-size: 13px; font-weight: 600; width: 35px; text-align: right;">100%</span>
                 </div>
             </div>
+        </div>
+
+        <!-- 📌 상단 메세지 입력 창 추가 -->
+        <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 15px; margin-bottom: 20px;">
+            <div style="margin-bottom: 8px;">
+                <strong style="color: #166534; font-size: 14px;">💬 위젯 상단 공지 메시지 설정</strong>
+            </div>
+            <input type="text" id="widget-notice-input" placeholder="위젯 상단에 표시될 메시지를 입력하세요..." oninput="updateWidgetNotice(this.value)" style="width: 100%; height: 36px; padding: 0 10px; font-size: 13px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; background: #fff;">
         </div>
 
         <div style="display: flex; gap: 10px; margin-bottom: 15px;">
@@ -132,6 +141,7 @@ async function verifyAndLoad() {
         widgetSelectedSongs = widgetData.songs || [];
         widgetBgColor = widgetData.bgColor || "transparent";
         widgetBgOpacity = widgetData.bgOpacity ?? 100;
+        widgetNotice = widgetData.notice || "";
         
         document.getElementById("login-section").style.display = "none";
         document.getElementById("admin-app-container").innerHTML = adminHtmlTemplate;
@@ -160,6 +170,7 @@ function initWidgetSongsPanel() {
     updateColorPreviewUI(widgetBgColor);
     document.getElementById("widget-bg-opacity-slider").value = widgetBgOpacity;
     document.getElementById("widget-bg-opacity-text").textContent = widgetBgOpacity + "%";
+    document.getElementById("widget-notice-input").value = widgetNotice;
     renderWidgetSearchPool();
     renderWidgetSelectedList();
 }
@@ -186,7 +197,12 @@ function autoSaveWidgetSongs() {
         body: JSON.stringify({
             password: document.getElementById("admin-password").value,
             fileType: "widget",
-            content: { songs: widgetSelectedSongs, bgColor: widgetBgColor, bgOpacity: widgetBgOpacity }
+            content: { 
+                songs: widgetSelectedSongs, 
+                bgColor: widgetBgColor, 
+                bgOpacity: widgetBgOpacity, 
+                notice: widgetNotice 
+            }
         })
     }).then(() => {
         const statusEl = document.getElementById("widget-status");
@@ -365,6 +381,11 @@ function updateBgOpacity(val) {
     widgetBgOpacity = val;
     const textEl = document.getElementById("widget-bg-opacity-text");
     if (textEl) textEl.textContent = val + "%";
+    autoSaveWidgetSongs();
+}
+
+function updateWidgetNotice(val) {
+    widgetNotice = val;
     autoSaveWidgetSongs();
 }
 
