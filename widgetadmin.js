@@ -78,12 +78,12 @@ const adminHtmlTemplate = `
             </div>
         </div>
 
-        <!-- 📌 상단 메세지 입력 창 추가 -->
+        <!-- 📌 상단 메세지 입력 창 (디바운스 적용) -->
         <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 15px; margin-bottom: 20px;">
             <div style="margin-bottom: 8px;">
                 <strong style="color: #166534; font-size: 14px;">💬 위젯 상단 공지 메시지 설정</strong>
             </div>
-            <input type="text" id="widget-notice-input" placeholder="위젯 상단에 표시될 메시지를 입력하세요..." oninput="updateWidgetNotice(this.value)" style="width: 100%; height: 36px; padding: 0 10px; font-size: 13px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; background: #fff;">
+            <input type="text" id="widget-notice-input" placeholder="위젯 상단에 표시될 메시지를 입력하세요..." oninput="handleNoticeInput(this.value)" style="width: 100%; height: 36px; padding: 0 10px; font-size: 13px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; background: #fff;">
         </div>
 
         <div style="display: flex; gap: 10px; margin-bottom: 15px;">
@@ -384,9 +384,22 @@ function updateBgOpacity(val) {
     autoSaveWidgetSongs();
 }
 
-function updateWidgetNotice(val) {
+let noticeTimer = null; // 공지 입력 지연 저장을 위한 타이머 변수
+
+// 📌 타이핑을 멈추고 1초 뒤에 자동으로 저장되도록 처리하는 함수
+function handleNoticeInput(val) {
     widgetNotice = val;
-    autoSaveWidgetSongs();
+    
+    const statusEl = document.getElementById("widget-status");
+    if (statusEl) {
+        statusEl.textContent = "✍️ 입력 중...";
+    }
+
+    if (noticeTimer) clearTimeout(noticeTimer);
+    
+    noticeTimer = setTimeout(() => {
+        autoSaveWidgetSongs();
+    }, 1000); // 1초 동안 추가 입력이 없으면 자동 저장
 }
 
 function showToast(msg) {
