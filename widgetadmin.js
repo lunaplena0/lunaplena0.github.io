@@ -1,17 +1,14 @@
 const WORKER_URL = "https://badabi-api.dalkkumli054.workers.dev/";
 
 let songData = { notice: "", songs: [] };
-let profileData = { name: "", image: "", catchphrase: "", details: [], time: "", content: "", bio1: "", bio2: "" };
-let linksData = []; 
-let mainpageData = { navBgColor: "rgba(3, 4, 94, 0.9)", logoText: "BABABI FAN ARCHIVE", mainContent: "", menuItems: [] };
-let fansongStatsData = { unregisteredSongs: [], registeredSongs: [], vodSources: [] };
+let widgetSelectedSongs = []; // 위젯 전용 선택 목록 데이터
 
 // 📌 escapeHtml 함수
 function escapeHtml(str) {
     return (str || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
 }
 
-// 🔒 2개 버튼으로 축소된 관리자 UI 템플릿
+// 🔒 2개 버튼으로 구성된 관리자 UI 템플릿
 const adminHtmlTemplate = `
     <!-- 대시보드 메뉴 -->
     <div id="dashboard-section" class="card">
@@ -21,88 +18,60 @@ const adminHtmlTemplate = `
         </div>
         
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px;">
-            <!-- 버튼 1: 관리페이지 이동 -->
-            <div class="menu-card" onclick="window.open('https://lunaplena0.github.io/', '_blank')">
+            <!-- 버튼 1: 관리페이지로 이동 -->
+            <div class="menu-card" onclick="window.open('https://lunaplena0.github.io/admin.html', '_blank')">
                 <h4 style="font-size: 16px;">관리페이지로 이동</h4>
-                <p style="font-size: 12px;">전체 대시보드 접속</p>
+                <p style="font-size: 12px;">전체 관리 페이지 새 창으로 열기</p>
             </div>
             
             <!-- 버튼 2: 노래위젯 관리 및 설정 -->
-            <div class="menu-card" onclick="showPanel('songs')">
+            <div class="menu-card" onclick="showPanel('widget-songs')">
                 <h4 style="font-size: 16px;">노래위젯 관리 및 설정</h4>
-                <p style="font-size: 12px;">목록 수정 및 환경설정</p>
+                <p style="font-size: 12px;">songlist 읽어와서 위젯 목록 구성</p>
             </div>
         </div>
     </div>
 
-    <!-- 노래책 수정 패널 (노래위젯 관리 클릭 시 표시됨) -->
-    <div id="panel-songs" class="card" style="display: none;">
+    <!-- 🎵 노래 위젯 목록 구성 패널 -->
+    <div id="panel-widget-songs" class="card" style="display: none;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h3 style="margin: 0; color: #03045e;">📝 노래위젯 내용 편집</h3>
+            <h3 style="margin: 0; color: #03045e;">🎛️ 노래 위젯 목록 구성</h3>
             <button onclick="showDashboard()" style="background-color: #64748b; padding: 6px 12px; font-size: 13px;">← 메뉴 목록으로</button>
         </div>
 
-        <div style="margin-bottom: 25px;">
-            <label for="notice-input">📢 공지사항 내용</label>
-            <textarea id="notice-input" placeholder="공지사항을 입력하세요..." style="height: 150px; resize: vertical;"></textarea>
-        </div>
+        <p style="color: #64748b; font-size: 14px; margin-bottom: 15px;">
+            songlist 데이터를 읽어와서 검색 후 위젯에 표시할 목록을 구성합니다. (여기서 삭제해도 원본 songlist는 안전합니다.)
+        </p>
 
-        <hr style="border: 0; border-top: 1px solid #e2e8f0; margin-bottom: 25px;">
-
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
-            <label style="margin: 0;">🎶 노래 목록 (<span id="song-count-badge">0</span>곡)</label>
-            <div style="display: flex; gap: 10px; flex: 1; max-width: 350px;">
-                <input type="text" id="search-input" placeholder="🔍 제목, 가수, 장르 검색..." oninput="renderTable()" style="margin-bottom: 0; padding: 8px 12px;">
+        <div style="display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap;">
+            
+            <!-- 왼쪽: 노래 검색 및 선택 영역 -->
+            <div style="flex: 1; min-width: 300px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 15px;">
+                <h4 style="color: #0077b6; margin-top: 0;">🔍 노래 검색</h4>
+                <input type="text" id="widget-song-search" placeholder="제목 또는 가수 검색..." oninput="renderWidgetSearchPool()" style="margin-bottom: 10px;">
+                
+                <div id="widget-search-results" style="max-height: 300px; overflow-y: auto; border: 1px solid #cbd5e1; background: #fff; border-radius: 6px; padding: 8px;">
+                    <div style="padding: 10px; color: #64748b; text-align: center; font-size: 13px;">검색어를 입력해주세요.</div>
+                </div>
             </div>
-            <div style="display: flex; gap: 8px;">
-                <button onclick="openEditModal(-1)" style="background-color: #10b981; padding: 8px 12px; font-size: 13px;">+ 새 노래 추가하기</button>
+
+            <!-- 오른쪽: 선택된 위젯 목록 영역 -->
+            <div style="flex: 1; min-width: 300px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 15px;">
+                <h4 style="color: #0077b6; margin-top: 0;">📋 선택된 위젯 목록 (<span id="widget-selected-count">0</span>곡)</h4>
+                
+                <div id="widget-selected-list" style="max-height: 300px; overflow-y: auto; border: 1px solid #cbd5e1; background: #fff; border-radius: 6px; padding: 8px; margin-bottom: 15px;">
+                    <div style="padding: 10px; color: #64748b; text-align: center; font-size: 13px;">선택된 곡이 없습니다.</div>
+                </div>
+
+                <button onclick="saveWidgetSongs()" style="width: 100%; background-color: #0077b6; padding: 12px; font-size: 15px;">위젯 데이터 저장하기</button>
             </div>
-        </div>
 
-        <div class="song-table-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th style="width: 8%;">번호</th>
-                        <th style="width: 27%;">제목</th>
-                        <th style="width: 20%;">가수</th>
-                        <th style="width: 15%;">장르</th>
-                        <th style="width: 15%;">제한/기타</th>
-                        <th style="width: 15%; text-align: center;">관리</th>
-                    </tr>
-                </thead>
-                <tbody id="song-table-body"></tbody>
-            </table>
         </div>
-
-        <button onclick="saveSonglist()" style="width: 100%; margin-top: 20px; background-color: #0077b6; padding: 14px; font-size: 16px;">페이지에 변경사항 반영하기</button>
-        <div id="status" class="status-msg"></div>
-    </div>
-
-    <!-- 곡 수정 모달 -->
-    <div id="edit-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000;">
-        <div class="modal-content" style="background: white; padding: 20px; border-radius: 8px; width: 400px; max-width: 90%;">
-            <h3 id="modal-title" style="margin-top: 0; color: #03045e;">곡 정보 수정</h3>
-            <input type="hidden" id="edit-index">
-            <label style="font-size: 13px;">노래 제목</label>
-            <input type="text" id="modal-title-input" placeholder="제목">
-            <label style="font-size: 13px;">가수</label>
-            <input type="text" id="modal-artist-input" placeholder="가수">
-            <label style="font-size: 13px;">장르</label>
-            <input type="text" id="modal-genre-input" placeholder="장르">
-            <label style="font-size: 13px;">제한 / 조건</label>
-            <input type="text" id="modal-limit-input" placeholder="제한">
-            <label style="font-size: 13px;">기타 정보</label>
-            <input type="text" id="modal-etc-input" placeholder="특이사항">
-            <div style="display: flex; gap: 10px; margin-top: 15px;">
-                <button onclick="closeEditModal()" style="background-color: #64748b; flex: 1; padding: 8px;">취소</button>
-                <button onclick="saveModalSong()" style="background-color: #0077b6; flex: 1; padding: 8px;">저장</button>
-            </div>
-        </div>
+        <div id="widget-status" class="status-msg"></div>
     </div>
 `;
 
-// 📌 로그인 및 데이터 불러오기
+// 📌 로그인 및 데이터 불러오기 (songlist 읽어오기 포함)
 async function verifyAndLoad() {
     const password = document.getElementById("admin-password").value;
     const statusEl = document.getElementById("login-status");
@@ -113,7 +82,7 @@ async function verifyAndLoad() {
     }
 
     statusEl.style.color = "#0077b6";
-    statusEl.textContent = "비밀번호 확인 및 데이터 로드 중...";
+    statusEl.textContent = "비밀번호 확인 및 songlist 로드 중...";
 
     try {
         const authResponse = await fetch(WORKER_URL, {
@@ -147,119 +116,133 @@ async function verifyAndLoad() {
 
 function showDashboard() {
     const dashboard = document.getElementById("dashboard-section");
-    const panelSongs = document.getElementById("panel-songs");
+    const panelWidgetSongs = document.getElementById("panel-widget-songs");
     if (dashboard) dashboard.style.display = "block";
-    if (panelSongs) panelSongs.style.display = "none";
+    if (panelWidgetSongs) panelWidgetSongs.style.display = "none";
 }
 
 function showPanel(type) {
     const dashboard = document.getElementById("dashboard-section");
-    const panelSongs = document.getElementById("panel-songs");
+    const panelWidgetSongs = document.getElementById("panel-widget-songs");
     
     if (dashboard) dashboard.style.display = "none";
-    if (panelSongs) panelSongs.style.display = "none";
+    if (panelWidgetSongs) panelWidgetSongs.style.display = "none";
 
-    if (type === 'songs') {
-        if (panelSongs) panelSongs.style.display = "block";
-        initSongsPanel();
+    if (type === 'widget-songs') {
+        if (panelWidgetSongs) panelWidgetSongs.style.display = "block";
+        initWidgetSongsPanel();
     }
 }
 
-function initSongsPanel() {
-    const noticeInput = document.getElementById("notice-input");
-    if (noticeInput) noticeInput.value = songData.notice || "";
-    renderTable();
+function initWidgetSongsPanel() {
+    const searchInput = document.getElementById("widget-song-search");
+    if (searchInput) searchInput.value = "";
+    renderWidgetSearchPool();
+    renderWidgetSelectedList();
 }
 
-function renderTable() {
-    if (!Array.isArray(songData.songs)) songData.songs = [];
-    const badge = document.getElementById("song-count-badge");
-    if (badge) badge.textContent = songData.songs.length;
-    
-    const searchInput = document.getElementById("search-input");
+// 1. 검색 풀 렌더링 (songlist 기반)
+function renderWidgetSearchPool() {
+    const searchInput = document.getElementById("widget-song-search");
     const keyword = searchInput ? searchInput.value.toLowerCase().trim() : "";
-    const tbody = document.getElementById("song-table-body");
-    if (!tbody) return;
-    tbody.innerHTML = "";
+    const resultContainer = document.getElementById("widget-search-results");
+    
+    if (!resultContainer) return;
+    resultContainer.innerHTML = "";
 
-    songData.songs.forEach((song, index) => {
+    if (!songData.songs || songData.songs.length === 0) {
+        resultContainer.innerHTML = `<div style="padding: 10px; color: #64748b; text-align: center; font-size: 13px;">등록된 노래가 없습니다.</div>`;
+        return;
+    }
+
+    if (!keyword) {
+        resultContainer.innerHTML = `<div style="padding: 10px; color: #64748b; text-align: center; font-size: 13px;">검색어를 입력해주세요.</div>`;
+        return;
+    }
+
+    const filteredSongs = songData.songs.filter(song => {
         const title = (song.title || "").toLowerCase();
         const artist = (song.artist || "").toLowerCase();
-        const genre = (song.genre || "").toLowerCase();
+        return title.includes(keyword) || artist.includes(keyword);
+    });
 
-        if (keyword && !title.includes(keyword) && !artist.includes(keyword) && !genre.includes(keyword)) return;
+    if (filteredSongs.length === 0) {
+        resultContainer.innerHTML = `<div style="padding: 10px; color: #64748b; text-align: center; font-size: 13px;">검색 결과가 없습니다.</div>`;
+        return;
+    }
 
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-            <td style="color: #64748b; font-weight: bold;">#${index + 1}</td>
-            <td style="font-weight: 600; color: #0f172a;">${escapeHtml(song.title || '제목 없음')}</td>
-            <td>${escapeHtml(song.artist || '-')}</td>
-            <td>${escapeHtml(song.genre || '-')}</td>
-            <td style="font-size: 12px; color: #475569;">${escapeHtml(song.limit || song.etc ? (song.limit + ' ' + song.etc).trim() : '-')}</td>
-            <td style="text-align: center;">
-                <button class="edit-btn" onclick="openEditModal(${index})" style="background-color: #0284c7; padding: 5px 10px; font-size: 12px; margin-right: 5px; color:white; border:none; border-radius:4px; cursor:pointer;">수정</button>
-                <button class="delete-btn" onclick="deleteSong(${index})" style="background-color: #ef4444; padding: 5px 10px; font-size: 12px; color:white; border:none; border-radius:4px; cursor:pointer;">삭제</button>
-            </td>
+    filteredSongs.forEach((song) => {
+        const div = document.createElement("div");
+        div.style.cssText = "display: flex; justify-content: space-between; align-items: center; padding: 8px; border-bottom: 1px solid #e2e8f0; font-size: 13px;";
+        div.innerHTML = `
+            <div>
+                <strong>${escapeHtml(song.title)}</strong> 
+                <span style="color: #64748b;">(${escapeHtml(song.artist || '가수 미상')})</span>
+            </div>
+            <button type="button" onclick='addSongToWidget(${JSON.stringify(song)})' style="background-color: #10b981; padding: 4px 8px; font-size: 12px; margin-bottom: 0;">선택</button>
         `;
-        tbody.appendChild(tr);
+        resultContainer.appendChild(div);
     });
 }
 
-function openEditModal(index) {
-    document.getElementById("edit-index").value = index;
-    if (index === -1) {
-        document.getElementById("modal-title").textContent = "새 노래 추가";
-        ["modal-title-input","modal-artist-input","modal-genre-input","modal-limit-input","modal-etc-input"].forEach(id => document.getElementById(id).value = "");
-    } else {
-        document.getElementById("modal-title").textContent = `#${index + 1} 곡 정보 수정`;
-        const song = songData.songs[index];
-        document.getElementById("modal-title-input").value = song.title || "";
-        document.getElementById("modal-artist-input").value = song.artist || "";
-        document.getElementById("modal-genre-input").value = song.genre || "";
-        document.getElementById("modal-limit-input").value = song.limit || "";
-        document.getElementById("modal-etc-input").value = song.etc || "";
-    }
-    document.getElementById("edit-modal").style.display = "flex";
-}
-
-function closeEditModal() {
-    document.getElementById("edit-modal").style.display = "none";
-}
-
-function saveModalSong() {
-    const index = parseInt(document.getElementById("edit-index").value);
-    const newSong = {
-        title: document.getElementById("modal-title-input").value.trim(),
-        artist: document.getElementById("modal-artist-input").value.trim(),
-        genre: document.getElementById("modal-genre-input").value.trim(),
-        limit: document.getElementById("modal-limit-input").value.trim(),
-        etc: document.getElementById("modal-etc-input").value.trim()
-    };
-
-    if (!newSong.title) { alert("노래 제목을 입력해주세요."); return; }
-
-    if (index === -1) {
-        songData.songs.unshift(newSong);
-    } else {
-        songData.songs[index] = newSong;
+// 2. 검색된 곡을 위젯 목록에 추가
+function addSongToWidget(song) {
+    const exists = widgetSelectedSongs.some(item => item.title === song.title && item.artist === song.artist);
+    if (exists) {
+        showToast("이미 위젯 목록에 추가된 곡입니다.");
+        return;
     }
 
-    closeEditModal();
-    renderTable();
+    widgetSelectedSongs.push({ ...song, checked: false });
+    renderWidgetSelectedList();
 }
 
-function deleteSong(index) {
-    if (confirm(`정말 #${index + 1} 곡을 삭제하시겠습니까?`)) {
-        songData.songs.splice(index, 1);
-        renderTable();
+// 3. 선택된 위젯 목록 렌더링
+function renderWidgetSelectedList() {
+    const container = document.getElementById("widget-selected-list");
+    const countBadge = document.getElementById("widget-selected-count");
+    if (!container) return;
+
+    container.innerHTML = "";
+    if (countBadge) countBadge.textContent = widgetSelectedSongs.length;
+
+    if (widgetSelectedSongs.length === 0) {
+        container.innerHTML = `<div style="padding: 10px; color: #64748b; text-align: center; font-size: 13px;">선택된 곡이 없습니다.</div>`;
+        return;
+    }
+
+    widgetSelectedSongs.forEach((song, index) => {
+        const div = document.createElement("div");
+        div.style.cssText = "display: flex; justify-content: space-between; align-items: center; padding: 8px; border-bottom: 1px solid #e2e8f0; font-size: 13px; background: #fff; margin-bottom: 4px; border-radius: 4px;";
+        div.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 8px; flex: 1; overflow: hidden;">
+                <input type="checkbox" style="margin-bottom: 0;" ${song.checked ? 'checked' : ''} onchange="toggleWidgetSongCheck(${index}, this.checked)">
+                <span style="text-overflow: ellipsis; overflow: hidden; white-space: nowrap;" title="${escapeHtml(song.title)}">
+                    <strong>${escapeHtml(song.title)}</strong> <span style="color: #64748b; font-size: 11px;">(${escapeHtml(song.artist || '-')})</span>
+                </span>
+            </div>
+            <button type="button" onclick="removeSongFromWidget(${index})" style="background-color: #ef4444; padding: 4px 8px; font-size: 12px; margin-bottom: 0; white-space: nowrap;">삭제</button>
+        `;
+        container.appendChild(div);
+    });
+}
+
+// 4. 체크 상태 변경 핸들러
+function toggleWidgetSongCheck(index, isChecked) {
+    if (widgetSelectedSongs[index]) {
+        widgetSelectedSongs[index].checked = isChecked;
     }
 }
 
-async function saveSonglist() {
-    const noticeInput = document.getElementById("notice-input");
-    if (noticeInput) songData.notice = noticeInput.value;
-    
-    showToast("페이지에 반영 중...");
+// 5. 위젯 목록에서만 항목 제거
+function removeSongFromWidget(index) {
+    widgetSelectedSongs.splice(index, 1);
+    renderWidgetSelectedList();
+}
+
+// 6. 위젯 데이터 최종 저장 (위젯 전용 파일 타입으로 저장)
+async function saveWidgetSongs() {
+    showToast("위젯 목록 반영 중...");
 
     try {
         const response = await fetch(WORKER_URL, {
@@ -267,13 +250,13 @@ async function saveSonglist() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 password: document.getElementById("admin-password").value,
-                fileType: "songlist",
-                content: songData
+                fileType: "widget_songs", 
+                content: { songs: widgetSelectedSongs }
             })
         });
         const result = await response.json();
         if (response.ok) {
-            showToast("성공적으로 업데이트되었습니다!");
+            showToast("위젯 목록이 성공적으로 업데이트되었습니다!");
         } else {
             throw new Error(result.error || "비밀번호 오류");
         }
