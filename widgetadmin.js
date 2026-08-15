@@ -26,7 +26,7 @@ function getLimitBadgeHTML(limit) {
     return `<span style="background-color: ${badgeColor}; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 500; margin-right: 6px; display: inline-block; vertical-align: middle;">${escapeHtml(limitVal)}</span>`;
 }
 
-// 🔒 관리자 UI 템플릿 (컬러 피커 브라우저 기본 스타일 초기화 및 높이 강제 일치)
+// 🔒 관리자 UI 템플릿 (커스텀 컬러 박스 구조 적용으로 높이 및 정렬 완벽 통일)
 const adminHtmlTemplate = `
     <div id="dashboard-section" class="card">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
@@ -57,11 +57,14 @@ const adminHtmlTemplate = `
                 <button type="button" onclick="setTransparentBg()" style="background-color: #64748b; color: white; border: none; padding: 5px 10px; font-size: 12px; border-radius: 4px; cursor: pointer;">완전 투명하게</button>
             </div>
             <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 20px; background: rgba(255,255,255,0.7); padding: 10px 14px; border-radius: 6px;">
-                <!-- 색상 선택 그룹 (높이 및 패딩 강제 통일) -->
+                <!-- 색상 선택 그룹 (커스텀 박스 + 투명 input 레이어 방식) -->
                 <div style="display: flex; align-items: center; gap: 8px;">
                     <span style="font-size: 13px; font-weight: 500;">색상:</span>
                     <div style="display: flex; align-items: center; gap: 6px;">
-                        <input type="color" id="widget-bg-color-picker" onchange="updateBgColorFromPicker(this.value)" style="-webkit-appearance: none; appearance: none; width: 32px; height: 32px; padding: 0; border: 1px solid #cbd5e1; border-radius: 4px; cursor: pointer; background: #fff; box-sizing: border-box;">
+                        <div style="position: relative; width: 32px; height: 32px; border: 1px solid #cbd5e1; border-radius: 4px; background: #fff; box-sizing: border-box; overflow: hidden; cursor: pointer;">
+                            <div id="widget-bg-color-preview" style="width: 100%; height: 100%; background: transparent;"></div>
+                            <input type="color" id="widget-bg-color-picker" onchange="updateBgColorFromPicker(this.value)" style="position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; opacity: 0; cursor: pointer;">
+                        </div>
                         <input type="text" id="widget-bg-color-input" oninput="updateBgColorFromInput(this.value)" style="width: 95px; height: 32px; line-height: 32px; padding: 0 8px; font-size: 12px; border: 1px solid #cbd5e1; border-radius: 4px; text-align: center; box-sizing: border-box; background: #fff;">
                     </div>
                 </div>
@@ -154,13 +157,26 @@ function showPanel(type) {
 function initWidgetSongsPanel() {
     switchWidgetTab('search');
     document.getElementById("widget-bg-color-input").value = widgetBgColor;
-    if (widgetBgColor !== "transparent" && widgetBgColor.startsWith('#')) {
-        document.getElementById("widget-bg-color-picker").value = widgetBgColor;
-    }
+    updateColorPreviewUI(widgetBgColor);
     document.getElementById("widget-bg-opacity-slider").value = widgetBgOpacity;
     document.getElementById("widget-bg-opacity-text").textContent = widgetBgOpacity + "%";
     renderWidgetSearchPool();
     renderWidgetSelectedList();
+}
+
+function updateColorPreviewUI(colorVal) {
+    const preview = document.getElementById("widget-bg-color-preview");
+    const picker = document.getElementById("widget-bg-color-picker");
+    if (!preview) return;
+
+    if (colorVal === "transparent") {
+        preview.style.background = "repeating-conic-gradient(#cbd5e1 0% 25%, #fff 0% 50%) 50% / 10px 10px";
+    } else {
+        preview.style.background = colorVal;
+        if (picker && colorVal.startsWith('#') && colorVal.length === 7) {
+            picker.value = colorVal;
+        }
+    }
 }
 
 function autoSaveWidgetSongs() {
@@ -323,10 +339,7 @@ function switchWidgetTab(mode) {
 
 function updateBgColorFromInput(val) {
     widgetBgColor = val;
-    const picker = document.getElementById("widget-bg-color-picker");
-    if (picker && val.startsWith('#') && val.length === 7) {
-        picker.value = val;
-    }
+    updateColorPreviewUI(val);
     autoSaveWidgetSongs();
 }
 
@@ -336,6 +349,7 @@ function updateBgColorFromPicker(val) {
     if (input) {
         input.value = val;
     }
+    updateColorPreviewUI(val);
     autoSaveWidgetSongs();
 }
 
@@ -343,6 +357,7 @@ function setTransparentBg() {
     widgetBgColor = "transparent";
     const input = document.getElementById("widget-bg-color-input");
     if (input) input.value = "transparent";
+    updateColorPreviewUI("transparent");
     autoSaveWidgetSongs();
 }
 
