@@ -456,26 +456,76 @@ function clearWidgetSongs() {
 // 📌 서버 저장 (songs, bgColor, bgOpacity 함께 저장)
 async function autoSaveWidgetSongs() {
     try {
+        // 서버에 보낼 데이터를 최신 상태로 재확인
+        const payload = {
+            password: document.getElementById("admin-password").value,
+            fileType: "widget", 
+            content: { 
+                songs: widgetSelectedSongs, // 현재 메모리의 위젯 목록
+                bgColor: widgetBgColor,
+                bgOpacity: widgetBgOpacity
+            }
+        };
+
         const response = await fetch(WORKER_URL, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                password: document.getElementById("admin-password").value,
-                fileType: "widget", 
-                content: { 
-                    songs: widgetSelectedSongs,
-                    bgColor: widgetBgColor,
-                    bgOpacity: widgetBgOpacity
-                }
-            })
+            body: JSON.stringify(payload)
         });
+
         if (!response.ok) {
             const result = await response.json();
-            throw new Error(result.error || "자동 저장 실패");
+            throw new Error(result.error || "저장 실패");
         }
+        
+        // 성공 시 위젯 상태 메시지 업데이트
+        const statusEl = document.getElementById("widget-status");
+        if (statusEl) {
+            statusEl.textContent = "✅ 변경사항이 실시간으로 저장되었습니다.";
+            setTimeout(() => { statusEl.textContent = ""; }, 2000);
+        }
+
     } catch (error) {
         showToast("저장 오류: " + error.message);
     }
+}
+
+// 📌 삭제나 체크 변경 시 비동기 로직이 꼬이지 않게 보완
+function toggleWidgetSongCheck(index, isChecked) {
+    if (widgetSelectedSongs[index]) {
+        widgetSelectedSongs[index].checked = isChecked;
+        
+        // 1. 화면 즉시 갱신
+        renderWidgetSelectedList();
+        // 2. 서버에 비동기 저장
+        autoSaveWidgetSongs();
+    }
+}
+
+function removeSongFromWidget(index) {
+    widgetSelectedSongs.splice(index, 1);
+    
+    // 1. 화면 즉시 갱신
+    renderWidgetSelectedList();
+    // 2. 서버에 비동기 저장
+    autoSaveWidgetSongs();
+}
+
+function addSongToWidget(song) {
+    // 중복 체크 로직 추가
+    const exists = widgetSelectedSongs.some(item => item.title === song.title && item.artist === song.artist);
+    if (exists) {
+        showToast("이미 위젯 목록에 추가된 곡입니다.");
+        return;
+    }
+
+    widgetSelectedSongs.push({ ...song, checked: false });
+    
+    // 1. 화면 갱신
+    renderWidgetSelectedList();
+    // 2. 서버 저장
+    autoSaveWidgetSongs();
+    showToast(`'${song.title}' 곡이 추가되었습니다.`);
 }
 
 function showToast(message) {
