@@ -248,11 +248,18 @@ function updateBgColorFromInput(color) {
     autoSaveWidgetSongs();
 }
 
+let opacitySaveTimer = null; // 타이머 변수
+
 function updateBgOpacity(opacity) {
     widgetBgOpacity = parseInt(opacity, 10);
     const opacityText = document.getElementById("widget-bg-opacity-text");
     if (opacityText) opacityText.textContent = widgetBgOpacity + "%";
-    autoSaveWidgetSongs();
+
+    // ⏱️ 슬라이더를 드래그하는 동안에는 저장을 연기하고, 멈춘 지 0.5초 뒤에 한 번만 저장합니다.
+    if (opacitySaveTimer) clearTimeout(opacitySaveTimer);
+    opacitySaveTimer = setTimeout(() => {
+        autoSaveWidgetSongs();
+    }, 500);
 }
 
 function setTransparentBg() {
