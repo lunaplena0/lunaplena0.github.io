@@ -26,7 +26,7 @@ function getLimitBadgeHTML(limit) {
     return `<span style="background-color: ${badgeColor}; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 500; margin-right: 6px; display: inline-block; vertical-align: middle;">${escapeHtml(limitVal)}</span>`;
 }
 
-// 🔒 관리자 UI 템플릿 (커스텀 컬러 박스 구조 적용으로 높이 및 정렬 완벽 통일)
+// 🔒 관리자 UI 템플릿 (미리보기 박스와 HEX 입력창 수직 중앙 정렬 완벽 고정)
 const adminHtmlTemplate = `
     <div id="dashboard-section" class="card">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
@@ -57,15 +57,15 @@ const adminHtmlTemplate = `
                 <button type="button" onclick="setTransparentBg()" style="background-color: #64748b; color: white; border: none; padding: 5px 10px; font-size: 12px; border-radius: 4px; cursor: pointer;">완전 투명하게</button>
             </div>
             <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 20px; background: rgba(255,255,255,0.7); padding: 10px 14px; border-radius: 6px;">
-                <!-- 색상 선택 그룹 (커스텀 박스 + 투명 input 레이어 방식) -->
+                <!-- 색상 선택 그룹 (align-items: center로 수직 정렬 통일) -->
                 <div style="display: flex; align-items: center; gap: 8px;">
                     <span style="font-size: 13px; font-weight: 500;">색상:</span>
-                    <div style="display: flex; align-items: center; gap: 6px;">
-                        <div style="position: relative; width: 32px; height: 32px; border: 1px solid #cbd5e1; border-radius: 4px; background: #fff; box-sizing: border-box; overflow: hidden; cursor: pointer;">
+                    <div style="display: flex; align-items: center; gap: 6px; align-items: center;">
+                        <div style="position: relative; width: 32px; height: 32px; border: 1px solid #cbd5e1; border-radius: 4px; background: #fff; box-sizing: border-box; overflow: hidden; cursor: pointer; flex-shrink: 0;">
                             <div id="widget-bg-color-preview" style="width: 100%; height: 100%; background: transparent;"></div>
                             <input type="color" id="widget-bg-color-picker" onchange="updateBgColorFromPicker(this.value)" style="position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; opacity: 0; cursor: pointer;">
                         </div>
-                        <input type="text" id="widget-bg-color-input" oninput="updateBgColorFromInput(this.value)" style="width: 95px; height: 32px; line-height: 32px; padding: 0 8px; font-size: 12px; border: 1px solid #cbd5e1; border-radius: 4px; text-align: center; box-sizing: border-box; background: #fff;">
+                        <input type="text" id="widget-bg-color-input" oninput="updateBgColorFromInput(this.value)" style="width: 95px; height: 32px; padding: 0 8px; font-size: 12px; border: 1px solid #cbd5e1; border-radius: 4px; text-align: center; box-sizing: border-box; background: #fff; margin: 0; vertical-align: middle;">
                     </div>
                 </div>
                 <!-- 불투명도 조절 그룹 -->
