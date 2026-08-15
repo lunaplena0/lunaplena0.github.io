@@ -124,8 +124,8 @@ async function verifyAndLoad() {
             songData = { notice: data.notice || "", songs: Array.isArray(data.songs) ? data.songs : [] };
         }
 
-        // 2. 기존 위젯 전용 목록 불러오기
-        const widgetRes = await fetch(WORKER_URL + "?type=widget_songs&t=" + timestamp);
+        // 2. 서버에서 위젯 전용 목록 불러오기 (type=widget)
+        const widgetRes = await fetch(WORKER_URL + "?type=widget&t=" + timestamp);
         if (widgetRes.ok) {
             const widgetData = await widgetRes.json();
             widgetSelectedSongs = Array.isArray(widgetData.songs) ? widgetData.songs : [];
@@ -291,7 +291,7 @@ function clearWidgetSongs() {
     }
 }
 
-// 7. 백엔드 JSON 자동 저장 함수
+// 7. 백엔드 JSON 자동 저장 함수 (fileType을 "widget"으로 수정)
 async function autoSaveWidgetSongs() {
     try {
         const response = await fetch(WORKER_URL, {
@@ -299,7 +299,7 @@ async function autoSaveWidgetSongs() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 password: document.getElementById("admin-password").value,
-                fileType: "widget_songs", 
+                fileType: "widget", 
                 content: { songs: widgetSelectedSongs }
             })
         });
