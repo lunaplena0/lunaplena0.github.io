@@ -26,7 +26,7 @@ function getLimitBadgeHTML(limit) {
     return `<span style="background-color: ${badgeColor}; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 500; margin-right: 6px; display: inline-block; vertical-align: middle;">${escapeHtml(limitVal)}</span>`;
 }
 
-// 🔒 관리자 UI 템플릿 (높이 일치 및 입력란 정렬 개선)
+// 🔒 관리자 UI 템플릿 (컬러 피커와 텍스트 입력창 높이 및 정렬 완벽 일치)
 const adminHtmlTemplate = `
     <div id="dashboard-section" class="card">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
@@ -57,11 +57,13 @@ const adminHtmlTemplate = `
                 <button type="button" onclick="setTransparentBg()" style="background-color: #64748b; color: white; border: none; padding: 5px 10px; font-size: 12px; border-radius: 4px; cursor: pointer;">완전 투명하게</button>
             </div>
             <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 20px; background: rgba(255,255,255,0.7); padding: 10px 14px; border-radius: 6px;">
+                <!-- 색상 선택 그룹 (수직 중앙 정렬 및 높이 일치) -->
                 <div style="display: flex; align-items: center; gap: 8px;">
                     <span style="font-size: 13px; font-weight: 500;">색상:</span>
-                    <input type="color" id="widget-bg-color-picker" onchange="updateBgColorFromPicker(this.value)" style="width: 32px; height: 30px; border: none; cursor: pointer; background: none; vertical-align: middle;">
-                    <input type="text" id="widget-bg-color-input" oninput="updateBgColorFromInput(this.value)" style="width: 95px; height: 30px; padding: 0 6px; font-size: 12px; border: 1px solid #cbd5e1; border-radius: 4px; text-align: center; box-sizing: border-box; vertical-align: middle;">
+                    <input type="color" id="widget-bg-color-picker" onchange="updateBgColorFromPicker(this.value)" style="width: 32px; height: 32px; padding: 0; border: 1px solid #cbd5e1; border-radius: 4px; cursor: pointer; background: #fff; box-sizing: border-box; vertical-align: middle;">
+                    <input type="text" id="widget-bg-color-input" oninput="updateBgColorFromInput(this.value)" style="width: 95px; height: 32px; padding: 0 8px; font-size: 12px; border: 1px solid #cbd5e1; border-radius: 4px; text-align: center; box-sizing: border-box; vertical-align: middle;">
                 </div>
+                <!-- 불투명도 조절 그룹 -->
                 <div style="display: flex; align-items: center; gap: 10px; flex: 1; min-width: 220px;">
                     <span style="font-size: 13px; font-weight: 500;">불투명도:</span>
                     <input type="range" id="widget-bg-opacity-slider" min="0" max="100" value="100" oninput="updateBgOpacity(this.value)" style="flex: 1; cursor: pointer;">
@@ -75,7 +77,7 @@ const adminHtmlTemplate = `
             <button type="button" id="tab-btn-manual" onclick="switchWidgetTab('manual')" style="background-color: #64748b; color: white; border: none; padding: 6px 14px; font-size: 13px; border-radius: 6px; cursor: pointer;">✏️ 수동 입력 추가</button>
         </div>
 
-        <!-- 양쪽 박스 높이 일치를 위해 display: flex 및 align-items: stretch 적용 -->
+        <!-- 양쪽 박스 높이 일치 -->
         <div style="display: flex; gap: 20px; align-items: stretch; flex-wrap: wrap;">
             <!-- 왼쪽: 추가 패널 (검색 / 수동) -->
             <div style="flex: 1; min-width: 300px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 15px; box-sizing: border-box; display: flex; flex-direction: column;">
