@@ -70,20 +70,20 @@ const adminHtmlTemplate = `
         <div style="display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap;">
             <div style="flex: 1; min-width: 300px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 15px;">
                 <div id="sub-panel-search">
-                    <input type="text" id="widget-song-search" placeholder="제목 또는 가수 검색..." oninput="renderWidgetSearchPool()" style="margin-bottom: 10px;">
+                    <input type="text" id="widget-song-search" placeholder="제목 또는 가수 검색..." oninput="renderWidgetSearchPool()" style="margin-bottom: 10px; width: 100%; padding: 6px; box-sizing: border-box;">
                     <div id="widget-search-results" style="height: 200px; overflow-y: auto; border: 1px solid #cbd5e1; background: #fff; padding: 8px;"></div>
                 </div>
                 <div id="sub-panel-manual" style="display: none;">
-                    <input type="text" id="manual-title" placeholder="노래 제목 *" style="margin-bottom: 10px; padding: 6px;">
-                    <input type="text" id="manual-artist" placeholder="아티스트" style="margin-bottom: 10px; padding: 6px;">
-                    <input type="text" id="manual-limit" placeholder="Limit 태그" style="margin-bottom: 10px; padding: 6px;">
-                    <button type="button" onclick="addManualSongToWidget()" style="background-color: #0284c7; width: 100%; padding: 8px;">추가</button>
+                    <input type="text" id="manual-title" placeholder="노래 제목 *" style="margin-bottom: 10px; padding: 6px; width: 100%; box-sizing: border-box;">
+                    <input type="text" id="manual-artist" placeholder="아티스트" style="margin-bottom: 10px; padding: 6px; width: 100%; box-sizing: border-box;">
+                    <input type="text" id="manual-limit" placeholder="Limit 태그" style="margin-bottom: 10px; padding: 6px; width: 100%; box-sizing: border-box;">
+                    <button type="button" onclick="addManualSongToWidget()" style="background-color: #0284c7; width: 100%; padding: 8px; color: white; border: none; border-radius: 4px; cursor: pointer;">추가</button>
                 </div>
             </div>
             <div style="flex: 1; min-width: 300px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 15px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                     <h4 style="margin: 0;">📋 선택된 목록 (<span id="widget-selected-count">0</span>곡)</h4>
-                    <button type="button" onclick="clearWidgetSongs()" style="background-color: #ef4444; padding: 4px 8px; font-size: 11px;">전체 삭제</button>
+                    <button type="button" onclick="clearWidgetSongs()" style="background-color: #ef4444; color: white; border: none; padding: 4px 8px; font-size: 11px; border-radius: 4px; cursor: pointer;">전체 삭제</button>
                 </div>
                 <div id="widget-selected-list" style="height: 270px; overflow-y: auto; border: 1px solid #cbd5e1; background: #fff; padding: 8px;"></div>
             </div>
@@ -139,6 +139,9 @@ function showPanel(type) {
 function initWidgetSongsPanel() {
     switchWidgetTab('search');
     document.getElementById("widget-bg-color-input").value = widgetBgColor;
+    if (widgetBgColor !== "transparent") {
+        document.getElementById("widget-bg-color-picker").value = widgetBgColor;
+    }
     document.getElementById("widget-bg-opacity-slider").value = widgetBgOpacity;
     document.getElementById("widget-bg-opacity-text").textContent = widgetBgOpacity + "%";
     renderWidgetSearchPool();
@@ -161,17 +164,85 @@ function autoSaveWidgetSongs() {
     });
 }
 
+// 📌 검색 풀 렌더링 함수
+function renderWidgetSearchPool() {
+    const searchInput = document.getElementById("widget-song-search");
+    const container = document.getElementById("widget-search-results");
+    if (!container) return;
+
+    const query = searchInput ? searchInput.value.trim().toLowerCase() : "";
+    container.innerHTML = "";
+
+    const songs = songData.songs || [];
+    const filtered = songs.filter(song => {
+        const title = (song.title || "").toLowerCase();
+        const artist = (song.artist || "").toLowerCase();
+        return title.includes(query) || artist.includes(query);
+    });
+
+    if (filtered.length === 0) {
+        container.innerHTML = `<div style="padding: 10px; color: #64748b; text-align: center; font-size: 13px;">검색 결과가 없습니다.</div>`;
+        return;
+    }
+
+    filtered.forEach((song) => {
+        const div = document.createElement("div");
+        div.style.cssText = "display: flex; justify-content: space-between; align-items: center; padding: 6px; border-bottom: 1px solid #eee; cursor: pointer;";
+        div.innerHTML = `
+            <div style="flex: 1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 13px;">
+                ${getLimitBadgeHTML(song.limit)} <strong>${escapeHtml(song.title)}</strong> <span style="color: #64748b; font-size: 12px;">(${escapeHtml(song.artist || '-')})</span>
+            </div>
+            <button type="button" style="background-color: #0284c7; color: white; border: none; padding: 2px 8px; border-radius: 4px; font-size: 12px; cursor: pointer;">추가</button>
+        `;
+        div.onclick = () => addSongToWidget(song);
+        container.appendChild(div);
+    });
+}
+
 function addSongToWidget(song) {
-    // 중복 체크 로직 제거됨 (이제 중복 추가 가능)
     widgetSelectedSongs.push({ ...song, checked: false });
     renderWidgetSelectedList();
     autoSaveWidgetSongs();
     showToast(`'${song.title}' 추가됨`);
 }
 
+// 📌 수동 입력 추가 함수
+function addManualSongToWidget() {
+    const titleInput = document.getElementById("manual-title");
+    const artistInput = document.getElementById("manual-artist");
+    const limitInput = document.getElementById("manual-limit");
+
+    const title = titleInput.value.trim();
+    if (!title) {
+        alert("노래 제목을 입력해주세요.");
+        titleInput.focus();
+        return;
+    }
+
+    const newSong = {
+        title: title,
+        artist: artistInput.value.trim(),
+        limit: limitInput.value.trim(),
+        checked: false
+    };
+
+    widgetSelectedSongs.push(newSong);
+    renderWidgetSelectedList();
+    autoSaveWidgetSongs();
+    showToast(`'${title}' 수동 추가됨`);
+
+    // 입력창 초기화
+    titleInput.value = "";
+    artistInput.value = "";
+    limitInput.value = "";
+    titleInput.focus();
+}
+
 function renderWidgetSelectedList() {
     const container = document.getElementById("widget-selected-list");
     const countBadge = document.getElementById("widget-selected-count");
+    if (!container || !countBadge) return;
+    
     container.innerHTML = "";
     countBadge.textContent = widgetSelectedSongs.length;
     
@@ -179,11 +250,11 @@ function renderWidgetSelectedList() {
         const div = document.createElement("div");
         div.style.cssText = "display: flex; justify-content: space-between; align-items: center; padding: 6px; border-bottom: 1px solid #eee;";
         div.innerHTML = `
-            <div style="flex: 1; overflow: hidden; white-space: nowrap;">
+            <div style="flex: 1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 13px;">
                 <input type="checkbox" ${song.checked ? 'checked' : ''} onchange="toggleWidgetSongCheck(${index}, this.checked)">
                 ${getLimitBadgeHTML(song.limit)} <strong>${escapeHtml(song.title)}</strong>
             </div>
-            <button onclick="removeSongFromWidget(${index})" style="background: #ef4444; color: #fff; border:none; padding: 2px 6px;">삭제</button>
+            <button type="button" onclick="removeSongFromWidget(${index})" style="background: #ef4444; color: #fff; border:none; padding: 2px 6px; border-radius: 4px; cursor: pointer;">삭제</button>
         `;
         container.appendChild(div);
     });
@@ -211,11 +282,47 @@ function clearWidgetSongs() {
 function switchWidgetTab(mode) {
     document.getElementById("sub-panel-search").style.display = mode === 'search' ? 'block' : 'none';
     document.getElementById("sub-panel-manual").style.display = mode === 'manual' ? 'block' : 'none';
+    
+    const searchBtn = document.getElementById("tab-btn-search");
+    const manualBtn = document.getElementById("tab-btn-manual");
+    if (searchBtn && manualBtn) {
+        searchBtn.style.backgroundColor = mode === 'search' ? '#0284c7' : '#64748b';
+        manualBtn.style.backgroundColor = mode === 'manual' ? '#0284c7' : '#64748b';
+    }
 }
 
-function updateBgColorFromInput(val) { widgetBgColor = val; autoSaveWidgetSongs(); }
-function updateBgOpacity(val) { widgetBgOpacity = val; document.getElementById("widget-bg-opacity-text").textContent = val + "%"; autoSaveWidgetSongs(); }
+function updateBgColorFromInput(val) {
+    widgetBgColor = val;
+    const picker = document.getElementById("widget-bg-color-picker");
+    if (picker && val.startsWith('#') && val.length === 7) {
+        picker.value = val;
+    }
+    autoSaveWidgetSongs();
+}
+
+function updateBgColorFromPicker(val) {
+    widgetBgColor = val;
+    const input = document.getElementById("widget-bg-color-input");
+    if (input) {
+        input.value = val;
+    }
+    autoSaveWidgetSongs();
+}
+
+function setTransparentBg() {
+    widgetBgColor = "transparent";
+    const input = document.getElementById("widget-bg-color-input");
+    if (input) input.value = "transparent";
+    autoSaveWidgetSongs();
+}
+
+function updateBgOpacity(val) {
+    widgetBgOpacity = val;
+    const textEl = document.getElementById("widget-bg-opacity-text");
+    if (textEl) textEl.textContent = val + "%";
+    autoSaveWidgetSongs();
+}
 
 function showToast(msg) {
-    console.log(msg); // 필요시 alert 또는 UI 구현
+    console.log(msg);
 }
