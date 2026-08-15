@@ -26,7 +26,7 @@ function getLimitBadgeHTML(limit) {
     return `<span style="background-color: ${badgeColor}; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 500; margin-right: 6px; display: inline-block; vertical-align: middle;">${escapeHtml(limitVal)}</span>`;
 }
 
-// 🔒 관리자 UI 템플릿 (깔끔한 정렬 및 박스 모델 적용)
+// 🔒 관리자 UI 템플릿 (높이 일치 및 입력란 정렬 개선)
 const adminHtmlTemplate = `
     <div id="dashboard-section" class="card">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
@@ -60,7 +60,7 @@ const adminHtmlTemplate = `
                 <div style="display: flex; align-items: center; gap: 8px;">
                     <span style="font-size: 13px; font-weight: 500;">색상:</span>
                     <input type="color" id="widget-bg-color-picker" onchange="updateBgColorFromPicker(this.value)" style="width: 32px; height: 30px; border: none; cursor: pointer; background: none; vertical-align: middle;">
-                    <input type="text" id="widget-bg-color-input" oninput="updateBgColorFromInput(this.value)" style="width: 95px; padding: 5px; font-size: 12px; border: 1px solid #cbd5e1; border-radius: 4px; text-align: center;">
+                    <input type="text" id="widget-bg-color-input" oninput="updateBgColorFromInput(this.value)" style="width: 95px; height: 30px; padding: 0 6px; font-size: 12px; border: 1px solid #cbd5e1; border-radius: 4px; text-align: center; box-sizing: border-box; vertical-align: middle;">
                 </div>
                 <div style="display: flex; align-items: center; gap: 10px; flex: 1; min-width: 220px;">
                     <span style="font-size: 13px; font-weight: 500;">불투명도:</span>
@@ -75,27 +75,28 @@ const adminHtmlTemplate = `
             <button type="button" id="tab-btn-manual" onclick="switchWidgetTab('manual')" style="background-color: #64748b; color: white; border: none; padding: 6px 14px; font-size: 13px; border-radius: 6px; cursor: pointer;">✏️ 수동 입력 추가</button>
         </div>
 
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; align-items: start;">
+        <!-- 양쪽 박스 높이 일치를 위해 display: flex 및 align-items: stretch 적용 -->
+        <div style="display: flex; gap: 20px; align-items: stretch; flex-wrap: wrap;">
             <!-- 왼쪽: 추가 패널 (검색 / 수동) -->
-            <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 15px; box-sizing: border-box;">
-                <div id="sub-panel-search">
+            <div style="flex: 1; min-width: 300px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 15px; box-sizing: border-box; display: flex; flex-direction: column;">
+                <div id="sub-panel-search" style="display: flex; flex-direction: column; flex: 1;">
                     <input type="text" id="widget-song-search" placeholder="제목 또는 가수 검색..." oninput="renderWidgetSearchPool()" style="margin-bottom: 10px; width: 100%; padding: 8px; font-size: 13px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box;">
-                    <div id="widget-search-results" style="height: 235px; overflow-y: auto; border: 1px solid #cbd5e1; background: #fff; padding: 6px; border-radius: 6px;"></div>
+                    <div id="widget-search-results" style="flex: 1; min-height: 235px; max-height: 235px; overflow-y: auto; border: 1px solid #cbd5e1; background: #fff; padding: 6px; border-radius: 6px;"></div>
                 </div>
-                <div id="sub-panel-manual" style="display: none;">
+                <div id="sub-panel-manual" style="display: none; flex-direction: column; flex: 1;">
                     <input type="text" id="manual-title" placeholder="노래 제목 *" style="margin-bottom: 10px; padding: 8px; font-size: 13px; width: 100%; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box;">
                     <input type="text" id="manual-artist" placeholder="아티스트" style="margin-bottom: 10px; padding: 8px; font-size: 13px; width: 100%; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box;">
                     <input type="text" id="manual-limit" placeholder="Limit 태그" style="margin-bottom: 10px; padding: 8px; font-size: 13px; width: 100%; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box;">
-                    <button type="button" onclick="addManualSongToWidget()" style="background-color: #0284c7; width: 100%; padding: 8px; color: white; border: none; border-radius: 6px; font-size: 13px; cursor: pointer; font-weight: 600;">추가하기</button>
+                    <button type="button" onclick="addManualSongToWidget()" style="background-color: #0284c7; width: 100%; padding: 8px; color: white; border: none; border-radius: 6px; font-size: 13px; cursor: pointer; font-weight: 600; margin-top: auto;">추가하기</button>
                 </div>
             </div>
             <!-- 오른쪽: 선택된 목록 -->
-            <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 15px; box-sizing: border-box;">
+            <div style="flex: 1; min-width: 300px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 15px; box-sizing: border-box; display: flex; flex-direction: column;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                     <h4 style="margin: 0; font-size: 14px; color: #1e293b;">📋 선택된 목록 (<span id="widget-selected-count">0</span>곡)</h4>
                     <button type="button" onclick="clearWidgetSongs()" style="background-color: #ef4444; color: white; border: none; padding: 4px 8px; font-size: 11px; border-radius: 4px; cursor: pointer;">전체 삭제</button>
                 </div>
-                <div id="widget-selected-list" style="height: 270px; overflow-y: auto; border: 1px solid #cbd5e1; background: #fff; padding: 6px; border-radius: 6px;"></div>
+                <div id="widget-selected-list" style="flex: 1; min-height: 270px; max-height: 270px; overflow-y: auto; border: 1px solid #cbd5e1; background: #fff; padding: 6px; border-radius: 6px;"></div>
             </div>
         </div>
         <div id="widget-status" class="status-msg" style="margin-top: 12px; font-weight: bold; color: #10b981; font-size: 13px; min-height: 20px;"></div>
@@ -301,8 +302,12 @@ function clearWidgetSongs() {
 }
 
 function switchWidgetTab(mode) {
-    document.getElementById("sub-panel-search").style.display = mode === 'search' ? 'block' : 'none';
-    document.getElementById("sub-panel-manual").style.display = mode === 'manual' ? 'block' : 'none';
+    const searchSub = document.getElementById("sub-panel-search");
+    const manualSub = document.getElementById("sub-panel-manual");
+    if (searchSub && manualSub) {
+        searchSub.style.display = mode === 'search' ? 'flex' : 'none';
+        manualSub.style.display = mode === 'manual' ? 'flex' : 'none';
+    }
     
     const searchBtn = document.getElementById("tab-btn-search");
     const manualBtn = document.getElementById("tab-btn-manual");
