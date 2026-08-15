@@ -53,8 +53,8 @@ const adminHtmlTemplate = `
 
         <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 25px 0 20px 0;">
         
-        <!-- 🎶 노래위젯 설정 메뉴가 두 밑줄 사이로 이동 -->
-        <div class="menu-grid" style="grid-template-columns: 1fr; margin-bottom: 20px;">
+        <!-- 🎶 노래위젯 설정 메뉴 (다른 카드들과 동일한 menu-grid 구조 적용) -->
+        <div class="menu-grid" style="margin-bottom: 20px;">
             <div class="menu-card" onclick="showPanel('songwidget')" style="cursor: pointer; background: #fdf4f8; border-color: #f472b6;">
                 <h4 style="color: #db2777;">🎶 노래위젯 설정</h4>
                 <p>실시간 노래 위젯 및 플레이어 관리</p>
