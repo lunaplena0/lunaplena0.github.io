@@ -1,6 +1,6 @@
 const WORKER_URL = "https://badabi-api.dalkkumli054.workers.dev/";
 
-let songData = { notice: "", songs: [] };
+let songData = { notice: "", songs: [], combinedSongs: [] };
 let widgetSelectedSongs = []; // 위젯 전용 선택 목록 데이터
 let widgetBgColor = "transparent"; // 위젯 배경색 설정 값
 let widgetBgOpacity = 100; // 위젯 배경 불투명도 (0 ~ 100)
@@ -131,12 +131,21 @@ async function verifyAndLoad() {
         if (!authResponse.ok) throw new Error("비밀번호 오류");
         
         const timestamp = new Date().getTime();
-        const [songRes, widgetRes] = await Promise.all([
+        const [songRes, widgetRes, statsRes] = await Promise.all([
             fetch(WORKER_URL + "?type=songlist&t=" + timestamp),
-            fetch(WORKER_URL + "?type=widget&t=" + timestamp)
+            fetch(WORKER_URL + "?type=widget&t=" + timestamp),
+            fetch(WORKER_URL + "?type=fansongstats&t=" + timestamp)
         ]);
         
         songData = await songRes.json();
+        
+        // 📌 fansongstats 내의 unregisteredSongs를 병합
+        const statsData = await statsRes.json();
+        const unregistered = (statsData && statsData.unregisteredSongs) ? statsData.unregisteredSongs : [];
+        
+        if (!songData.songs) songData.songs = [];
+        songData.combinedSongs = [...songData.songs, ...unregistered];
+
         const widgetData = await widgetRes.json();
         widgetSelectedSongs = widgetData.songs || [];
         widgetBgColor = widgetData.bgColor || "transparent";
@@ -213,7 +222,7 @@ function autoSaveWidgetSongs() {
     });
 }
 
-// 📌 검색 풀 렌더링 함수
+// 📌 검색 풀 렌더링 함수 (songlist와 fansongstats의 unregisteredSongs 통합 검색)
 function renderWidgetSearchPool() {
     const searchInput = document.getElementById("widget-song-search");
     const container = document.getElementById("widget-search-results");
@@ -222,7 +231,7 @@ function renderWidgetSearchPool() {
     const query = searchInput ? searchInput.value.trim().toLowerCase() : "";
     container.innerHTML = "";
 
-    const songs = songData.songs || [];
+    const songs = songData.combinedSongs || songData.songs || [];
     const filtered = songs.filter(song => {
         const title = (song.title || "").toLowerCase();
         const artist = (song.artist || "").toLowerCase();
