@@ -61,6 +61,18 @@ const adminHtmlTemplate = `
             </div>
         </div>
 
+        <!-- 💡 여기에 빈 버튼(카드) 2개 추가 -->
+        <div class="menu-grid" style="margin-bottom: 20px; grid-template-columns: repeat(2, 1fr);">
+            <div class="menu-card" style="cursor: default; opacity: 0.7;">
+                <h4>📌 빈 버튼 1</h4>
+                <p>추후 확장 예정인 기능입니다</p>
+            </div>
+            <div class="menu-card" style="cursor: default; opacity: 0.7;">
+                <h4>📌 빈 버튼 2</h4>
+                <p>추후 확장 예정인 기능입니다</p>
+            </div>
+        </div>
+
         <hr style="border: 0; border-top: 1px solid #cbd5e1; margin: 0 0 20px 0;">
 
         <div class="menu-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
