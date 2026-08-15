@@ -49,20 +49,11 @@ const adminHtmlTemplate = `
                 <h4>🏠 메인페이지 수정</h4>
                 <p>메인 화면 설정 및 공통 구성 변경</p>
             </div>
-        </div>
-
-        <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 25px 0 20px 0;">
-        
-        <!-- 🎶 노래위젯 설정 메뉴 (다른 카드들과 동일한 menu-grid 및 크기 구조 적용) -->
-        <div class="menu-grid" style="margin-bottom: 20px;">
+            <!-- 🎶 노래위젯 설정 및 빈 버튼 2개를 같은 그리에 포함 -->
             <div class="menu-card" onclick="showPanel('songwidget')" style="cursor: pointer; background: #fdf4f8; border-color: #f472b6;">
                 <h4 style="color: #db2777;">🎶 노래위젯 설정</h4>
                 <p>실시간 노래 위젯 및 플레이어 관리</p>
             </div>
-        </div>
-
-        <!-- 💡 여기에 빈 버튼(카드) 2개 추가 -->
-        <div class="menu-grid" style="margin-bottom: 20px; grid-template-columns: repeat(2, 1fr);">
             <div class="menu-card" style="cursor: default; opacity: 0.7;">
                 <h4>📌 빈 버튼 1</h4>
                 <p>추후 확장 예정인 기능입니다</p>
@@ -73,7 +64,7 @@ const adminHtmlTemplate = `
             </div>
         </div>
 
-        <hr style="border: 0; border-top: 1px solid #cbd5e1; margin: 0 0 20px 0;">
+        <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 25px 0 20px 0;">
 
         <div class="menu-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
             <div class="menu-card" onclick="showPanel('guide')" style="cursor: pointer;">
