@@ -26,21 +26,21 @@ function getLimitBadgeHTML(limit) {
     return `<span style="background-color: ${badgeColor}; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 500; margin-right: 6px; display: inline-block; vertical-align: middle;">${escapeHtml(limitVal)}</span>`;
 }
 
-// 🔒 관리자 UI 템플릿
+// 🔒 관리자 UI 템플릿 (깔끔한 정렬 및 박스 모델 적용)
 const adminHtmlTemplate = `
     <div id="dashboard-section" class="card">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
             <h3 style="margin: 0; color: #03045e;">🛠️ 관리자 대시보드</h3>
-            <button onclick="location.reload()" style="background-color: #64748b; padding: 6px 12px; font-size: 13px;">로그아웃</button>
+            <button onclick="location.reload()" style="background-color: #64748b; color: white; border: none; padding: 6px 12px; font-size: 13px; border-radius: 6px; cursor: pointer;">로그아웃</button>
         </div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px;">
-            <div class="menu-card" onclick="window.open('https://lunaplena0.github.io/admin.html', '_blank')">
-                <h4 style="font-size: 16px;">관리페이지로 이동</h4>
-                <p style="font-size: 12px;">전체 관리 페이지 새 창으로 열기</p>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-top: 20px;">
+            <div class="menu-card" onclick="window.open('https://lunaplena0.github.io/admin.html', '_blank')" style="cursor: pointer; padding: 15px; border: 1px solid #cbd5e1; border-radius: 8px; background: #f8fafc; transition: 0.2s;">
+                <h4 style="margin: 0 0 5px 0; font-size: 16px; color: #0284c7;">관리페이지로 이동</h4>
+                <p style="margin: 0; font-size: 12px; color: #64748b;">전체 관리 페이지 새 창으로 열기</p>
             </div>
-            <div class="menu-card" onclick="showPanel('widget-songs')">
-                <h4 style="font-size: 16px;">노래위젯 관리 및 설정</h4>
-                <p style="font-size: 12px;">위젯 목록 및 배경색/투명도 설정</p>
+            <div class="menu-card" onclick="showPanel('widget-songs')" style="cursor: pointer; padding: 15px; border: 1px solid #cbd5e1; border-radius: 8px; background: #f8fafc; transition: 0.2s;">
+                <h4 style="margin: 0 0 5px 0; font-size: 16px; color: #0284c7;">노래위젯 관리 및 설정</h4>
+                <p style="margin: 0; font-size: 12px; color: #64748b;">위젯 목록 및 배경색/투명도 설정</p>
             </div>
         </div>
     </div>
@@ -48,47 +48,57 @@ const adminHtmlTemplate = `
     <div id="panel-widget-songs" class="card" style="display: none;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
             <h3 style="margin: 0; color: #03045e;">🎛️ 노래 위젯 관리 및 설정</h3>
-            <button onclick="showDashboard()" style="background-color: #64748b; padding: 6px 12px; font-size: 13px;">← 메뉴 목록으로</button>
+            <button onclick="showDashboard()" style="background-color: #64748b; color: white; border: none; padding: 6px 12px; font-size: 13px; border-radius: 6px; cursor: pointer;">← 메뉴 목록으로</button>
         </div>
 
-        <div style="background: #e0f2fe; border: 1px solid #bae6fd; border-radius: 8px; padding: 12px 15px; margin-bottom: 20px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                <strong>🎨 위젯 배경색 및 불투명도 설정</strong>
-                <button type="button" onclick="setTransparentBg()" style="background-color: #64748b; padding: 6px 10px; font-size: 12px;">완전 투명하게</button>
+        <div style="background: #e0f2fe; border: 1px solid #bae6fd; border-radius: 8px; padding: 15px; margin-bottom: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <strong style="color: #0369a1; font-size: 14px;">🎨 위젯 배경색 및 불투명도 설정</strong>
+                <button type="button" onclick="setTransparentBg()" style="background-color: #64748b; color: white; border: none; padding: 5px 10px; font-size: 12px; border-radius: 4px; cursor: pointer;">완전 투명하게</button>
             </div>
-            <div style="display: flex; align-items: center; gap: 15px; background: rgba(255,255,255,0.6); padding: 8px 12px; border-radius: 6px;">
-                <div>색상: <input type="color" id="widget-bg-color-picker" onchange="updateBgColorFromPicker(this.value)" style="width: 32px; height: 30px; border: none; cursor: pointer; background: none;"> <input type="text" id="widget-bg-color-input" oninput="updateBgColorFromInput(this.value)" style="width: 100px; padding: 4px; font-size: 12px;"></div>
-                <div>불투명도: <input type="range" id="widget-bg-opacity-slider" min="0" max="100" value="100" oninput="updateBgOpacity(this.value)"> <span id="widget-bg-opacity-text">100%</span></div>
+            <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 20px; background: rgba(255,255,255,0.7); padding: 10px 14px; border-radius: 6px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 13px; font-weight: 500;">색상:</span>
+                    <input type="color" id="widget-bg-color-picker" onchange="updateBgColorFromPicker(this.value)" style="width: 32px; height: 30px; border: none; cursor: pointer; background: none; vertical-align: middle;">
+                    <input type="text" id="widget-bg-color-input" oninput="updateBgColorFromInput(this.value)" style="width: 95px; padding: 5px; font-size: 12px; border: 1px solid #cbd5e1; border-radius: 4px; text-align: center;">
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px; flex: 1; min-width: 220px;">
+                    <span style="font-size: 13px; font-weight: 500;">불투명도:</span>
+                    <input type="range" id="widget-bg-opacity-slider" min="0" max="100" value="100" oninput="updateBgOpacity(this.value)" style="flex: 1; cursor: pointer;">
+                    <span id="widget-bg-opacity-text" style="font-size: 13px; font-weight: 600; width: 35px; text-align: right;">100%</span>
+                </div>
             </div>
         </div>
 
         <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-            <button type="button" id="tab-btn-search" onclick="switchWidgetTab('search')" style="background-color: #0284c7; padding: 6px 14px; font-size: 13px;">🔍 검색해서 추가</button>
-            <button type="button" id="tab-btn-manual" onclick="switchWidgetTab('manual')" style="background-color: #64748b; padding: 6px 14px; font-size: 13px;">✏️ 수동 입력 추가</button>
+            <button type="button" id="tab-btn-search" onclick="switchWidgetTab('search')" style="background-color: #0284c7; color: white; border: none; padding: 6px 14px; font-size: 13px; border-radius: 6px; cursor: pointer;">🔍 검색해서 추가</button>
+            <button type="button" id="tab-btn-manual" onclick="switchWidgetTab('manual')" style="background-color: #64748b; color: white; border: none; padding: 6px 14px; font-size: 13px; border-radius: 6px; cursor: pointer;">✏️ 수동 입력 추가</button>
         </div>
 
-        <div style="display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap;">
-            <div style="flex: 1; min-width: 300px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 15px;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; align-items: start;">
+            <!-- 왼쪽: 추가 패널 (검색 / 수동) -->
+            <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 15px; box-sizing: border-box;">
                 <div id="sub-panel-search">
-                    <input type="text" id="widget-song-search" placeholder="제목 또는 가수 검색..." oninput="renderWidgetSearchPool()" style="margin-bottom: 10px; width: 100%; padding: 6px; box-sizing: border-box;">
-                    <div id="widget-search-results" style="height: 200px; overflow-y: auto; border: 1px solid #cbd5e1; background: #fff; padding: 8px;"></div>
+                    <input type="text" id="widget-song-search" placeholder="제목 또는 가수 검색..." oninput="renderWidgetSearchPool()" style="margin-bottom: 10px; width: 100%; padding: 8px; font-size: 13px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box;">
+                    <div id="widget-search-results" style="height: 235px; overflow-y: auto; border: 1px solid #cbd5e1; background: #fff; padding: 6px; border-radius: 6px;"></div>
                 </div>
                 <div id="sub-panel-manual" style="display: none;">
-                    <input type="text" id="manual-title" placeholder="노래 제목 *" style="margin-bottom: 10px; padding: 6px; width: 100%; box-sizing: border-box;">
-                    <input type="text" id="manual-artist" placeholder="아티스트" style="margin-bottom: 10px; padding: 6px; width: 100%; box-sizing: border-box;">
-                    <input type="text" id="manual-limit" placeholder="Limit 태그" style="margin-bottom: 10px; padding: 6px; width: 100%; box-sizing: border-box;">
-                    <button type="button" onclick="addManualSongToWidget()" style="background-color: #0284c7; width: 100%; padding: 8px; color: white; border: none; border-radius: 4px; cursor: pointer;">추가</button>
+                    <input type="text" id="manual-title" placeholder="노래 제목 *" style="margin-bottom: 10px; padding: 8px; font-size: 13px; width: 100%; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box;">
+                    <input type="text" id="manual-artist" placeholder="아티스트" style="margin-bottom: 10px; padding: 8px; font-size: 13px; width: 100%; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box;">
+                    <input type="text" id="manual-limit" placeholder="Limit 태그" style="margin-bottom: 10px; padding: 8px; font-size: 13px; width: 100%; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box;">
+                    <button type="button" onclick="addManualSongToWidget()" style="background-color: #0284c7; width: 100%; padding: 8px; color: white; border: none; border-radius: 6px; font-size: 13px; cursor: pointer; font-weight: 600;">추가하기</button>
                 </div>
             </div>
-            <div style="flex: 1; min-width: 300px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 15px;">
+            <!-- 오른쪽: 선택된 목록 -->
+            <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 15px; box-sizing: border-box;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                    <h4 style="margin: 0;">📋 선택된 목록 (<span id="widget-selected-count">0</span>곡)</h4>
+                    <h4 style="margin: 0; font-size: 14px; color: #1e293b;">📋 선택된 목록 (<span id="widget-selected-count">0</span>곡)</h4>
                     <button type="button" onclick="clearWidgetSongs()" style="background-color: #ef4444; color: white; border: none; padding: 4px 8px; font-size: 11px; border-radius: 4px; cursor: pointer;">전체 삭제</button>
                 </div>
-                <div id="widget-selected-list" style="height: 270px; overflow-y: auto; border: 1px solid #cbd5e1; background: #fff; padding: 8px;"></div>
+                <div id="widget-selected-list" style="height: 270px; overflow-y: auto; border: 1px solid #cbd5e1; background: #fff; padding: 6px; border-radius: 6px;"></div>
             </div>
         </div>
-        <div id="widget-status" class="status-msg" style="margin-top: 10px; font-weight: bold; color: #10b981;"></div>
+        <div id="widget-status" class="status-msg" style="margin-top: 12px; font-weight: bold; color: #10b981; font-size: 13px; min-height: 20px;"></div>
     </div>
 `;
 
@@ -139,7 +149,7 @@ function showPanel(type) {
 function initWidgetSongsPanel() {
     switchWidgetTab('search');
     document.getElementById("widget-bg-color-input").value = widgetBgColor;
-    if (widgetBgColor !== "transparent") {
+    if (widgetBgColor !== "transparent" && widgetBgColor.startsWith('#')) {
         document.getElementById("widget-bg-color-picker").value = widgetBgColor;
     }
     document.getElementById("widget-bg-opacity-slider").value = widgetBgOpacity;
@@ -159,8 +169,10 @@ function autoSaveWidgetSongs() {
         })
     }).then(() => {
         const statusEl = document.getElementById("widget-status");
-        statusEl.textContent = "✅ 변경사항이 실시간으로 저장되었습니다.";
-        setTimeout(() => { statusEl.textContent = ""; }, 2000);
+        if (statusEl) {
+            statusEl.textContent = "✅ 변경사항이 실시간으로 저장되었습니다.";
+            setTimeout(() => { statusEl.textContent = ""; }, 2000);
+        }
     });
 }
 
@@ -181,18 +193,21 @@ function renderWidgetSearchPool() {
     });
 
     if (filtered.length === 0) {
-        container.innerHTML = `<div style="padding: 10px; color: #64748b; text-align: center; font-size: 13px;">검색 결과가 없습니다.</div>`;
+        container.innerHTML = `<div style="padding: 15px; color: #64748b; text-align: center; font-size: 13px;">검색 결과가 없습니다.</div>`;
         return;
     }
 
     filtered.forEach((song) => {
         const div = document.createElement("div");
-        div.style.cssText = "display: flex; justify-content: space-between; align-items: center; padding: 6px; border-bottom: 1px solid #eee; cursor: pointer;";
+        div.style.cssText = "display: flex; justify-content: space-between; align-items: center; padding: 6px 8px; border-bottom: 1px solid #f1f5f9; cursor: pointer; border-radius: 4px; transition: background 0.1s;";
+        div.onmouseover = () => div.style.background = "#e2e8f0";
+        div.onmouseout = () => div.style.background = "transparent";
+
         div.innerHTML = `
-            <div style="flex: 1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 13px;">
-                ${getLimitBadgeHTML(song.limit)} <strong>${escapeHtml(song.title)}</strong> <span style="color: #64748b; font-size: 12px;">(${escapeHtml(song.artist || '-')})</span>
+            <div style="flex: 1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 13px; margin-right: 8px;">
+                ${getLimitBadgeHTML(song.limit)} <strong style="color: #1e293b;">${escapeHtml(song.title)}</strong> <span style="color: #64748b; font-size: 12px;">(${escapeHtml(song.artist || '-')})</span>
             </div>
-            <button type="button" style="background-color: #0284c7; color: white; border: none; padding: 2px 8px; border-radius: 4px; font-size: 12px; cursor: pointer;">추가</button>
+            <button type="button" style="background-color: #0284c7; color: white; border: none; padding: 3px 8px; border-radius: 4px; font-size: 11px; cursor: pointer; flex-shrink: 0;">추가</button>
         `;
         div.onclick = () => addSongToWidget(song);
         container.appendChild(div);
@@ -231,7 +246,6 @@ function addManualSongToWidget() {
     autoSaveWidgetSongs();
     showToast(`'${title}' 수동 추가됨`);
 
-    // 입력창 초기화
     titleInput.value = "";
     artistInput.value = "";
     limitInput.value = "";
@@ -246,15 +260,22 @@ function renderWidgetSelectedList() {
     container.innerHTML = "";
     countBadge.textContent = widgetSelectedSongs.length;
     
+    if (widgetSelectedSongs.length === 0) {
+        container.innerHTML = `<div style="padding: 15px; color: #64748b; text-align: center; font-size: 13px;">선택된 노래가 없습니다.</div>`;
+        return;
+    }
+
     widgetSelectedSongs.forEach((song, index) => {
         const div = document.createElement("div");
-        div.style.cssText = "display: flex; justify-content: space-between; align-items: center; padding: 6px; border-bottom: 1px solid #eee;";
+        div.style.cssText = "display: flex; justify-content: space-between; align-items: center; padding: 6px 8px; border-bottom: 1px solid #f1f5f9; gap: 8px;";
         div.innerHTML = `
-            <div style="flex: 1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 13px;">
-                <input type="checkbox" ${song.checked ? 'checked' : ''} onchange="toggleWidgetSongCheck(${index}, this.checked)">
-                ${getLimitBadgeHTML(song.limit)} <strong>${escapeHtml(song.title)}</strong>
+            <div style="display: flex; align-items: center; flex: 1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 13px; gap: 6px;">
+                <input type="checkbox" ${song.checked ? 'checked' : ''} onchange="toggleWidgetSongCheck(${index}, this.checked)" style="cursor: pointer; flex-shrink: 0;">
+                <div style="overflow: hidden; text-overflow: ellipsis; flex: 1;">
+                    ${getLimitBadgeHTML(song.limit)} <strong style="color: #1e293b;">${escapeHtml(song.title)}</strong>
+                </div>
             </div>
-            <button type="button" onclick="removeSongFromWidget(${index})" style="background: #ef4444; color: #fff; border:none; padding: 2px 6px; border-radius: 4px; cursor: pointer;">삭제</button>
+            <button type="button" onclick="removeSongFromWidget(${index})" style="background: #ef4444; color: #fff; border:none; padding: 3px 8px; border-radius: 4px; font-size: 11px; cursor: pointer; flex-shrink: 0;">삭제</button>
         `;
         container.appendChild(div);
     });
