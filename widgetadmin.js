@@ -26,7 +26,7 @@ function getLimitBadgeHTML(limit) {
     return `<span style="background-color: ${badgeColor}; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 500; margin-right: 6px; display: inline-block; vertical-align: middle;">${escapeHtml(limitVal)}</span>`;
 }
 
-// 🔒 관리자 UI 템플릿 (컬러 피커와 텍스트 입력창 높이 및 정렬 완벽 일치)
+// 🔒 관리자 UI 템플릿 (컬러 피커 브라우저 기본 스타일 초기화 및 높이 강제 일치)
 const adminHtmlTemplate = `
     <div id="dashboard-section" class="card">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
@@ -57,11 +57,13 @@ const adminHtmlTemplate = `
                 <button type="button" onclick="setTransparentBg()" style="background-color: #64748b; color: white; border: none; padding: 5px 10px; font-size: 12px; border-radius: 4px; cursor: pointer;">완전 투명하게</button>
             </div>
             <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 20px; background: rgba(255,255,255,0.7); padding: 10px 14px; border-radius: 6px;">
-                <!-- 색상 선택 그룹 (수직 중앙 정렬 및 높이 일치) -->
+                <!-- 색상 선택 그룹 (높이 및 패딩 강제 통일) -->
                 <div style="display: flex; align-items: center; gap: 8px;">
                     <span style="font-size: 13px; font-weight: 500;">색상:</span>
-                    <input type="color" id="widget-bg-color-picker" onchange="updateBgColorFromPicker(this.value)" style="width: 32px; height: 32px; padding: 0; border: 1px solid #cbd5e1; border-radius: 4px; cursor: pointer; background: #fff; box-sizing: border-box; vertical-align: middle;">
-                    <input type="text" id="widget-bg-color-input" oninput="updateBgColorFromInput(this.value)" style="width: 95px; height: 32px; padding: 0 8px; font-size: 12px; border: 1px solid #cbd5e1; border-radius: 4px; text-align: center; box-sizing: border-box; vertical-align: middle;">
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <input type="color" id="widget-bg-color-picker" onchange="updateBgColorFromPicker(this.value)" style="-webkit-appearance: none; appearance: none; width: 32px; height: 32px; padding: 0; border: 1px solid #cbd5e1; border-radius: 4px; cursor: pointer; background: #fff; box-sizing: border-box;">
+                        <input type="text" id="widget-bg-color-input" oninput="updateBgColorFromInput(this.value)" style="width: 95px; height: 32px; line-height: 32px; padding: 0 8px; font-size: 12px; border: 1px solid #cbd5e1; border-radius: 4px; text-align: center; box-sizing: border-box; background: #fff;">
+                    </div>
                 </div>
                 <!-- 불투명도 조절 그룹 -->
                 <div style="display: flex; align-items: center; gap: 10px; flex: 1; min-width: 220px;">
