@@ -164,21 +164,36 @@
                 const data = await response.json();
 
                 if (data) {
-if (data.image) {
-    const cacheBuster = data.image.includes('?') ? '&t=' : '?t=';
-    faviconEl.href = data.image + cacheBuster + timestamp;
-    
-    // 이미지 확장자에 맞춰 타입 설정 (GIF 호환성 추가)
-    if (data.image.endsWith('.png')) {
-        faviconEl.type = "image/png";
-    } else if (data.image.endsWith('.ico')) {
-        faviconEl.type = "image/x-icon";
-    } else if (data.image.endsWith('.svg')) {
-        faviconEl.type = "image/svg+xml";
-    } else if (data.image.endsWith('.gif')) {
-        faviconEl.type = "image/gif"; // ← 이 부분을 추가해주세요!
-    }
-}
+                    if (data.image) {
+                        const cacheBuster = data.image.includes('?') ? '&t=' : '?t=';
+                        const imageUrl = data.image + cacheBuster + timestamp;
+
+                        // GIF 등 이미지 포맷 무시 방지를 위해 Canvas를 이용해 정지 이미지(PNG)로 강제 변환 후 적용
+                        const img = new Image();
+                        img.crossOrigin = 'anonymous'; // CORS 이슈 방지
+                        
+                        img.onload = () => {
+                            const canvas = document.createElement('canvas');
+                            canvas.width = 64;  // 파비콘 표준 크기
+                            canvas.height = 64;
+                            const ctx = canvas.getContext('2d');
+                            
+                            // 캔버스에 이미지 그리기 (GIF의 경우 첫 번째 프레임이 그려져 정지 화면이 됨)
+                            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                            
+                            // 캔버스의 이미지를 PNG 포맷 데이터 URL로 추출
+                            faviconEl.href = canvas.toDataURL('image/png');
+                            faviconEl.type = "image/png";
+                        };
+
+                        img.onerror = (err) => {
+                            console.error("파비콘 이미지 로드 실패:", err);
+                            // 이미지 로드 실패 시 기본 원본 주소로 대체 시도
+                            faviconEl.href = imageUrl;
+                        };
+
+                        img.src = imageUrl;
+                    }
 
                     // 1. 네비게이션 배경 색상 적용
                     if (data.navBgColor) {
