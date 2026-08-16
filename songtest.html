@@ -3,566 +3,489 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>바다비 선곡 위젯</title>
+    <title>노래 위젯</title>
     <style>
-        :root {
-            --primary: #0ea5e9;
-            --primary-dark: #0284c7;
-            --bg-color: #f8fafc;
-            --card-bg: #ffffff;
-            --text-main: #0f172a;
-            --text-sub: #64748b;
-            --border-color: #e2e8f0;
-        }
-
         body {
             margin: 0;
+            padding: 0;
             width: 100vw;
             height: 100vh;
-            height: 100dvh;
             display: flex;
             justify-content: center;
             align-items: center;
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            overflow: hidden;
             background-color: transparent;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            color: var(--text-main);
         }
 
+        /* 📌 위젯 크기 고정 영역 */
         .widget-container {
             width: 100%;
-            max-width: 420px;
-            height: 100%;
-            max-height: 680px;
-            background-color: var(--card-bg);
-            border-radius: 20px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
+            max-width: 380px;
+            min-height: 440px;
+            max-height: 440px;
             box-sizing: border-box;
-            border: 1px solid rgba(255, 255, 255, 0.8);
-        }
-
-        @media (min-width: 480px) {
-            .widget-container {
-                height: 650px;
-                border: 1px solid var(--border-color);
-            }
-        }
-
-        .widget-header {
-            padding: 14px 16px;
-            background-color: var(--card-bg);
-            border-bottom: 1px solid var(--border-color);
+            padding: 10px;
+            
+            background-color: var(--widget-bg-resolved, transparent);
+            border-radius: 12px;
+            overflow: hidden;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            transition: background-color 0.3s ease;
+        }
+
+        /* 📌 상단 공지 메시지 감싸개 */
+        .notice-wrapper {
+            display: grid;
+            grid-template-rows: 0fr;
+            transition: grid-template-rows 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            width: 100%;
             flex-shrink: 0;
-            position: relative;
-            z-index: 10;
         }
 
-        .header-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        .notice-wrapper.show {
+            grid-template-rows: 1fr;
         }
 
-        .widget-title {
-            font-size: 16px;
-            font-weight: 800;
-            color: var(--text-main);
+        .notice-inner {
+            overflow: hidden;
+            min-height: 0;
+        }
+
+        .widget-notice {
+            width: 100%;
+            padding: 2px 6px;
+            margin-bottom: 6px;
+            color: #f8fafc;
+            font-size: 13px;
+            font-weight: 500;
+            line-height: 1.4;
+            word-break: break-all;
+            white-space: pre-wrap;
+            box-sizing: border-box;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+            
+            opacity: 0;
+            transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .notice-wrapper.show .widget-notice {
+            opacity: 1;
+        }
+
+        /* 📌 리스트 전환 효과 (페이지 바뀔 때만 작동) */
+        .song-list {
+            list-style: none;
+            padding: 0;
             margin: 0;
             display: flex;
-            align-items: center;
-            gap: 6px;
+            flex-direction: column;
+            flex: 1;
+            opacity: 1;
+            transform: translateY(0);
+            transition: opacity 0.2s ease, transform 0.2s ease;
         }
 
-        .widget-title svg {
-            width: 18px;
-            height: 18px;
-            stroke: var(--primary);
-            stroke-width: 2.2;
-            fill: none;
+        .song-list.fade-out {
+            opacity: 0;
+            transform: translateY(4px);
         }
 
-        .widget-badge {
-            font-size: 11px;
-            font-weight: 700;
-            background-color: #e0f2fe;
-            color: var(--primary-dark);
-            padding: 3px 8px;
-            border-radius: 8px;
-        }
-
-        .search-wrapper {
-            position: relative;
-            width: 100%;
-        }
-
-        .widget-search-box {
-            width: 100%;
-            padding: 9px 12px;
-            font-size: 13px;
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
-            outline: none;
-            background-color: var(--bg-color);
-            box-sizing: border-box;
-            transition: all 0.2s;
-        }
-
-        .widget-search-box:focus {
-            background-color: #ffffff;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
-        }
-
-        .search-results-dropdown {
-            position: absolute;
-            top: calc(100% + 4px);
-            left: 0;
-            width: 100%;
-            max-height: 220px;
-            overflow-y: auto;
-            background: #ffffff;
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
-            display: none;
-            z-index: 50;
-            box-sizing: border-box;
-        }
-
-        .search-results-dropdown.active {
-            display: block;
-        }
-
-        .search-result-item {
-            padding: 10px 12px;
-            border-bottom: 1px solid #f1f5f9;
-            cursor: pointer;
+        /* 📌 곡 항목 공통 스타일 (부드러운 슬라이드 및 추가/삭제 효과) */
+        .song-item {
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            transition: background 0.1s;
+            padding: 8px 6px;
+            background: transparent;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+            font-size: 15px;
+            height: 40px;
+            box-sizing: border-box;
+            
+            /* 슬라이드 및 페이드 효과 핵심 속성 */
+            opacity: 1;
+            max-height: 40px;
+            transform: translateY(0);
+            overflow: hidden;
+            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .search-result-item:last-child {
+        /* 📌 항목이 추가되거나 사라질 때 상태 */
+        .song-item.entering {
+            opacity: 0;
+            max-height: 0;
+            padding-top: 0;
+            padding-bottom: 0;
+            border-bottom-width: 0;
+            transform: translateY(-10px);
+        }
+
+        .song-item.leaving {
+            opacity: 0;
+            max-height: 0;
+            padding-top: 0;
+            padding-bottom: 0;
+            border-bottom-width: 0;
+            transform: translateY(-10px);
+        }
+
+        .song-item:last-child {
             border-bottom: none;
         }
 
-        .search-result-item:hover {
-            background-color: #f0f9ff;
-        }
-
-        .widget-main-content {
-            flex: 1;
-            overflow-y: auto;
-            padding: 8px 12px;
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-            box-sizing: border-box;
-        }
-
-        .section-label {
-            font-size: 11.5px;
+        /* 📌 순서 번호 */
+        .song-number {
             font-weight: 700;
-            color: var(--text-sub);
-            margin: 4px 0 6px 4px;
+            color: #000000;
+            margin-right: 10px;
+            font-size: 15px;
+            min-width: 22px;
+            text-align: right;
+            flex-shrink: 0;
+            text-shadow: 0 1px 3px rgba(255, 255, 255, 0.6);
         }
 
-        .widget-song-row {
+        .song-info {
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            padding: 8px 6px;
-            border-bottom: 1px solid #f1f5f9;
+            overflow: hidden;
+            flex: 1;
             gap: 8px;
-            transition: background-color 0.1s;
-            border-radius: 6px;
+            min-width: 0;
         }
 
-        .widget-song-row:hover {
-            background-color: #f8fafc;
-        }
-
-        .widget-song-row.completed {
-            opacity: 0.5;
-        }
-
-        .w-song-info {
+        /* 📌 글자 영역 기본 스타일 */
+        .song-content {
             display: flex;
             align-items: center;
-            gap: 6px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            color: #f8fafc;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+            max-width: 100%;
             min-width: 0;
             flex: 1;
-            cursor: pointer;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            
+            text-decoration: none;
+            transition: color 0.25s ease, opacity 0.25s ease;
         }
 
-        .song-tag {
-            font-size: 10px;
-            font-weight: 700;
-            padding: 2px 5px;
-            border-radius: 4px;
-            background-color: #fef3c7;
-            color: #d97706;
-            flex-shrink: 0;
-        }
-
-        .w-song-text {
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--text-main);
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .widget-song-row.completed .w-song-text {
+        /* 📌 체크된 곡에만 부드럽게 취소선과 투명도 적용 */
+        .song-item.checked .song-content {
             text-decoration: line-through;
-            color: #94a3b8;
+            text-decoration-thickness: 2.5px;
+            text-decoration-color: #f8fafc;
+            opacity: 0.65;
         }
 
-        .w-song-artist {
-            font-weight: 400;
-            color: var(--text-sub);
-            font-size: 12px;
-        }
-
-        .card-actions {
-            display: flex;
-            gap: 4px;
-            flex-shrink: 0;
-        }
-
-        .action-btn {
-            background: none;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            font-size: 11px;
-            font-weight: 600;
-            padding: 3px 7px;
-            cursor: pointer;
-            transition: all 0.1s;
-        }
-
-        .done-btn {
-            color: #16a34a;
-            border-color: #bbf7d0;
-            background-color: #f0fdf4;
-        }
-        .done-btn:hover {
-            background-color: #dcfce7;
-        }
-
-        .widget-song-row.completed .done-btn {
-            color: #475569;
-            border-color: #cbd5e1;
-            background-color: #e2e8f0;
-        }
-
-        .delete-btn {
-            color: #ef4444;
-            border-color: #fecaca;
-            background-color: #fef2f2;
-        }
-        .delete-btn:hover {
-            background-color: #fee2e2;
-        }
-
-        .widget-footer {
-            padding: 10px 16px;
-            background-color: var(--card-bg);
-            border-top: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-shrink: 0;
-        }
-
-        .footer-info {
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--text-sub);
-        }
-
-        .clear-btn {
-            background: none;
-            border: none;
-            color: #ef4444;
-            font-size: 12px;
+        .song-title {
             font-weight: 700;
-            cursor: pointer;
-            padding: 4px 6px;
-            border-radius: 6px;
-        }
-        .clear-btn:hover {
-            background-color: #fef2f2;
-        }
-
-        .placeholder-msg {
-            text-align: center;
-            color: var(--text-sub);
-            font-size: 13px;
-            margin-top: 40px;
-        }
-
-        .toast {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%) translateY(10px);
-            background-color: var(--text-main);
-            color: white;
-            padding: 8px 14px;
-            font-size: 12px;
-            font-weight: 600;
-            border-radius: 8px;
-            opacity: 0;
-            pointer-events: none;
-            transition: all 0.2s ease;
-            z-index: 100;
+            overflow: hidden;
+            text-overflow: ellipsis;
             white-space: nowrap;
+            flex-shrink: 1;
+            min-width: 0;
         }
-        .toast.show {
-            opacity: 1;
-            transform: translateX(-50%) translateY(0);
+
+        .song-artist {
+            font-weight: 700;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .empty-msg {
+            text-align: center;
+            color: #f8fafc;
+            font-size: 15px;
+            padding: 15px;
+            margin: auto;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
         }
     </style>
 </head>
 <body>
 
     <div class="widget-container">
-        <div class="widget-header">
-            <div class="header-top">
-                <h1 class="widget-title">
-                    <svg viewBox="0 0 24 24">
-                        <path d="M9 18V5l12-2v13"></path>
-                        <circle cx="6" cy="18" r="3"></circle>
-                        <circle cx="18" cy="16" r="3"></circle>
-                    </svg>
-                    선곡 위젯
-                </h1>
-                <span id="selectedCountBadge" class="widget-badge">선택 0곡</span>
-            </div>
-            
-            <div class="search-wrapper">
-                <input type="text" id="widgetSearch" class="widget-search-box" placeholder="노래 제목, 가수 또는 태그 검색..." oninput="handleSearchInput()" autocomplete="off">
-                <div id="searchResultsDropdown" class="search-results-dropdown"></div>
+        <!-- 📌 상단 공지 메시지 영역 -->
+        <div id="notice-wrapper" class="notice-wrapper">
+            <div class="notice-inner">
+                <div id="widget-notice-bar" class="widget-notice"></div>
             </div>
         </div>
 
-        <div class="widget-main-content" id="selectedSongContainer">
-            <p class="placeholder-msg">검색창에서 노래를 검색해 추가해보세요!</p>
-        </div>
-
-        <div class="widget-footer">
-            <span class="footer-info">버튼으로 완료/제거 가능</span>
-            <button class="clear-btn" onclick="clearAllSelected()">전체 비우기</button>
-        </div>
+        <ul id="widget-song-list" class="song-list">
+            <li class="empty-msg">목록을 불러오는 중...</li>
+        </ul>
     </div>
-
-    <div id="widgetToast" class="toast">알림</div>
 
     <script>
         const WORKER_URL = "https://badabi-api.dalkkumli054.workers.dev/";
-        const SONG_LIST_URL = WORKER_URL + "?type=songlist&t=";
-
-        // 브라우저 탭 간 실시간 통신 채널 생성
-        const channel = new BroadcastChannel('badabi_widget_sync');
 
         let allSongs = [];
-        let selectedSongs = [];
+        let currentPage = 0;
+        const ITEMS_PER_PAGE = 10;
+        let paginationTimer = null;
+        let lastFetchedNotice = ""; 
 
-        async function loadWidgetData() {
+        function escapeHtml(str) {
+            return (str || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+
+        function parseColorWithOpacity(color, opacity) {
+            if (!color || color === "transparent") return "transparent";
+            let hex = color.trim();
+            if (hex.startsWith('#') && hex.length === 7) {
+                let r = parseInt(hex.slice(1, 3), 16);
+                let g = parseInt(hex.slice(3, 5), 16);
+                let b = parseInt(hex.slice(5, 7), 16);
+                let alpha = opacity / 100;
+                return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+            }
+            return hex;
+        }
+
+        function getLimitBadgeHTML(limit) {
+            let limitVal = limit ? limit.replace(/[\[\]]/g, '').trim() : '';
+            if (limitVal === "") return "";
+            let badgeColor = "rgba(14, 165, 233, 0.85)";
+            if (limitVal.includes("200")) badgeColor = "rgba(16, 185, 129, 0.85)";
+            else if (limitVal.includes("300")) badgeColor = "rgba(249, 115, 22, 0.85)";
+            else if (limitVal.includes("기타")) {
+                badgeColor = "rgba(139, 92, 246, 0.85)";
+                limitVal = "기타 연주";
+            }
+            return `<span style="background-color: ${badgeColor}; backdrop-filter: blur(4px); color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 700; display: inline-block; vertical-align: middle; flex-shrink: 0; text-shadow: 0 1px 2px rgba(0,0,0,0.4);">${escapeHtml(limitVal)}</span>`;
+        }
+
+        async function fetchWidgetData() {
             try {
-                const timestamp = new Date().getTime();
-                const songRes = await fetch(SONG_LIST_URL + timestamp);
-                const songData = await songRes.json();
+                const response = await fetch(`${WORKER_URL}?type=widget&t=${new Date().getTime()}`);
+                if (!response.ok) throw new Error("데이터 오류");
+                const data = await response.json();
+                
+                const newSongs = Array.isArray(data.songs) ? data.songs : [];
+                const listContainer = document.getElementById("widget-song-list");
+                
+                const oldMaxPage = Math.ceil(allSongs.length / ITEMS_PER_PAGE);
+                const newMaxPage = newSongs.length > 0 ? Math.ceil(newSongs.length / ITEMS_PER_PAGE) : 0;
+                
+                const isStructureChanged = allSongs.length !== newSongs.length || 
+                    allSongs.some((song, i) => song.title !== newSongs[i]?.title || song.artist !== newSongs[i]?.artist);
 
-                allSongs = (songData.songs || []).map((song, index) => {
-                    const title = (song.title || '').trim();
-                    const artist = (song.artist || '').trim();
-                    const limitTag = (song.limit || '').trim();
+                allSongs = newSongs;
 
-                    return {
-                        ...song,
-                        title: title,
-                        artist: artist,
-                        tag: limitTag,
-                        id: `${title}_${artist}_${limitTag}_${index}`
-                    };
-                });
-
-                const savedSongs = localStorage.getItem("badabi_selected_songs");
-                if (savedSongs) {
-                    selectedSongs = JSON.parse(savedSongs);
+                if (currentPage >= newMaxPage) {
+                    currentPage = Math.max(0, newMaxPage - 1);
+                    if (listContainer) listContainer.classList.remove("fade-out");
                 }
-                renderSelectedList();
 
-            } catch (err) {
-                showWidgetToast("노래 데이터를 불러오지 못했습니다.");
+                // 📌 공지 메시지 처리
+                const noticeWrapper = document.getElementById("notice-wrapper");
+                const noticeBar = document.getElementById("widget-notice-bar");
+                
+                if (noticeWrapper && noticeBar) {
+                    const newNotice = data.notice ? data.notice.trim() : "";
+                    if (newNotice !== lastFetchedNotice) {
+                        lastFetchedNotice = newNotice;
+                        if (newNotice === "") {
+                            noticeWrapper.classList.remove("show");
+                            setTimeout(() => { noticeBar.textContent = ""; }, 400);
+                        } else {
+                            if (noticeWrapper.classList.contains("show")) {
+                                noticeBar.style.opacity = "0"; 
+                                setTimeout(() => {
+                                    noticeBar.textContent = newNotice;
+                                    noticeBar.style.opacity = ""; 
+                                }, 300);
+                            } else {
+                                noticeBar.textContent = newNotice;
+                                setTimeout(() => { noticeWrapper.classList.add("show"); }, 10);
+                            }
+                        }
+                    }
+                }
+
+                const resolvedColor = parseColorWithOpacity(data.bgColor || "transparent", data.bgOpacity ?? 100);
+                document.querySelector('.widget-container').style.setProperty('--widget-bg-resolved', resolvedColor);
+                
+                if (isStructureChanged || oldMaxPage !== newMaxPage || listContainer.innerHTML.includes("목록을 불러오는 중...")) {
+                    renderCurrentPageSmoothly();
+                } else {
+                    updateCheckStatesOnly();
+                }
+            } catch (error) {
+                console.error(error);
             }
         }
 
-        // 상태 저장 및 다른 창(OBS 포함)으로 실시간 방송 전송
-        function saveAndBroadcast() {
-            localStorage.setItem("badabi_selected_songs", JSON.stringify(selectedSongs));
-            channel.postMessage(selectedSongs); // 다른 창에 즉시 알림
-        }
-
-        // 다른 창(크롬 등)에서 조작이 일어나면 OBS 화면도 즉시 반응
-        channel.onmessage = function (event) {
-            selectedSongs = event.data;
-            renderSelectedList();
-        };
-
-        function handleSearchInput() {
-            const keyword = document.getElementById("widgetSearch").value.toLowerCase().trim();
-            const dropdown = document.getElementById("searchResultsDropdown");
-
-            if (!keyword) {
-                dropdown.classList.remove("active");
-                dropdown.innerHTML = "";
-                return;
-            }
-
-            const matched = allSongs.filter(song => {
-                const title = (song.title || '').toLowerCase();
-                const artist = (song.artist || '').toLowerCase();
-                const tag = (song.tag || '').toLowerCase();
-                return title.includes(keyword) || artist.includes(keyword) || tag.includes(keyword);
-            });
-
-            if (matched.length === 0) {
-                dropdown.innerHTML = '<div class="search-result-item" style="color: #94a3b8; justify-content: center;">검색 결과가 없습니다</div>';
-                dropdown.classList.add("active");
-                return;
-            }
-
-            let html = "";
-            matched.forEach(song => {
-                const isAlreadyAdded = selectedSongs.some(item => item.id === song.id);
-                html += `
-                    <div class="search-result-item" onclick="addSongToList('${song.id}')">
-                        <div style="display: flex; align-items: center; gap: 6px; min-width: 0; flex: 1; padding-right: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                            ${song.tag ? `<span class="song-tag">${song.tag}</span>` : ''}
-                            <span style="font-size: 13px; font-weight: 700; color: #0f172a;">${song.title}</span>
-                            <span style="font-size: 12px; color: #64748b;">- ${song.artist}</span>
-                        </div>
-                        <span style="font-size: 11px; font-weight: 700; color: ${isAlreadyAdded ? '#94a3b8' : '#0ea5e9'}; flex-shrink: 0;">
-                            ${isAlreadyAdded ? '추가됨' : '+ 추가'}
-                        </span>
-                    </div>
-                `;
-            });
-
-            dropdown.innerHTML = html;
-            dropdown.classList.add("active");
-        }
-
-        function addSongToList(songId) {
-            const song = allSongs.find(s => s.id === songId);
-            if (!song) return;
-
-            const existingIndex = selectedSongs.findIndex(item => item.id === songId);
-            if (existingIndex !== -1) {
-                showWidgetToast("이미 리스트에 있는 곡입니다.");
-                return;
-            }
-
-            selectedSongs.push({
-                ...song,
-                completed: false
-            });
-
-            saveAndBroadcast();
-
-            document.getElementById("widgetSearch").value = "";
-            document.getElementById("searchResultsDropdown").classList.remove("active");
-            document.getElementById("searchResultsDropdown").innerHTML = "";
-
-            renderSelectedList();
-            showWidgetToast("리스트에 추가되었습니다.");
-        }
-
-        function renderSelectedList() {
-            const container = document.getElementById("selectedSongContainer");
+        // 📌 체크 상태만 가볍게 실시간 반영
+        function updateCheckStatesOnly() {
+            const listContainer = document.getElementById("widget-song-list");
+            if (!listContainer) return;
             
-            if (selectedSongs.length === 0) {
-                container.innerHTML = '<p class="placeholder-msg">검색창에서 노래를 검색해 추가해보세요!</p>';
-                updateBadge();
+            const startIndex = currentPage * ITEMS_PER_PAGE;
+            const pageSongs = allSongs.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+            const itemElements = listContainer.children;
+
+            pageSongs.forEach((song, idx) => {
+                if (itemElements[idx]) {
+                    if (song.checked) {
+                        itemElements[idx].classList.add('checked');
+                    } else {
+                        itemElements[idx].classList.remove('checked');
+                    }
+                }
+            });
+        }
+
+        // 📌 중간 항목 추가/삭제 시 슬라이드되면서 밀려붙는 렌더링 함수
+        function renderCurrentPageSmoothly() {
+            const listContainer = document.getElementById("widget-song-list");
+            if (!listContainer) return;
+            
+            if (allSongs.length === 0) { 
+                listContainer.innerHTML = `<li class="empty-msg">선택된 곡이 없습니다.</li>`; 
+                return; 
+            }
+            
+            const maxPage = Math.ceil(allSongs.length / ITEMS_PER_PAGE);
+            if (currentPage >= maxPage) currentPage = maxPage - 1;
+            if (currentPage < 0) currentPage = 0;
+
+            const startIndex = currentPage * ITEMS_PER_PAGE;
+            const pageSongs = allSongs.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+
+            const existingItems = Array.from(listContainer.children);
+            
+            // 처음 로딩인 경우
+            if (existingItems.length === 0 || existingItems[0].classList.contains('empty-msg')) {
+                renderCurrentPage();
                 return;
             }
 
-            let html = '<div class="section-label">선택한 노래 목록</div>';
-            selectedSongs.forEach((song, index) => {
-                html += `
-                    <div class="widget-song-row ${song.completed ? 'completed' : ''}">
-                        <div class="w-song-info" onclick="toggleComplete(${index})">
-                            ${song.tag ? `<span class="song-tag">${song.tag}</span>` : ''}
-                            <span class="w-song-text">${song.title} <span class="w-song-artist">- ${song.artist}</span></span>
-                        </div>
-                        <div class="card-actions">
-                            <button class="action-btn done-btn" onclick="toggleComplete(${index})">
-                                ${song.completed ? '취소' : '완료'}
-                            </button>
-                            <button class="action-btn delete-btn" onclick="removeSong(${index})">
-                                삭제
-                            </button>
+            // 기존 곡 데이터 키값 추출 (고유 식별용: title + artist)
+            const existingKeys = existingItems.map(item => item.dataset.key);
+            const newKeys = pageSongs.map(song => `${song.title}_${song.artist || ''}`);
+
+            // 1. 사라져야 할 항목(삭제되거나 다른 페이지로 넘어간 항목)에 'leaving' 클래스 추가하여 슬라이드 축소
+            existingItems.forEach((item, index) => {
+                const key = item.dataset.key;
+                if (!newKeys.includes(key)) {
+                    item.classList.add('leaving');
+                    setTimeout(() => item.remove(), 350); // 애니메이션 시간 후 DOM에서 제거
+                }
+            });
+
+            // 2. 새로 추가되거나 위치가 바뀐 항목 처리
+            pageSongs.forEach((song, idx) => {
+                const key = `${song.title}_${song.artist || ''}`;
+                const existingIndex = existingKeys.indexOf(key);
+                const isCheckedClass = song.checked ? 'checked' : '';
+
+                let itemHTML = `
+                    <span class="song-number">${startIndex + idx + 1}.</span>
+                    <div class="song-info">
+                        ${getLimitBadgeHTML(song.limit)}
+                        <div class="song-content">
+                            <span class="song-title">${escapeHtml(song.title)}</span>
+                            <span class="song-artist">${song.artist ? `&nbsp;-&nbsp;${escapeHtml(song.artist)}` : ''}</span>
                         </div>
                     </div>
                 `;
+
+                if (existingIndex !== -1) {
+                    // 이미 존재하는 항목이면 순서 번호와 클래스만 갱신하고 위치 이동
+                    const item = existingItems[existingIndex];
+                    item.querySelector('.song-number').textContent = `${startIndex + idx + 1}.`;
+                    if (song.checked) item.classList.add('checked');
+                    else item.classList.remove('checked');
+
+                    // DOM 상에서 올바른 위치로 재배치 (슬라이드 이동 효과 유도)
+                    if (listContainer.children[idx] !== item) {
+                        listContainer.insertBefore(item, listContainer.children[idx] || null);
+                    }
+                } else {
+                    // 새로 추가된 항목이면 'entering' 클래스를 붙여서 슬라이드되며 나타나게 함
+                    const newItem = document.createElement('li');
+                    newItem.className = `song-item entering ${isCheckedClass}`;
+                    newItem.dataset.key = key;
+                    newItem.innerHTML = itemHTML;
+
+                    const refNode = listContainer.children[idx] || null;
+                    listContainer.insertBefore(newItem, refNode);
+
+                    // 잠시 후 'entering' 클래스를 제거하여 원래 크기로 부드럽게 펼쳐짐
+                    requestAnimationFrame(() => {
+                        requestAnimationFrame(() => {
+                            newItem.classList.remove('entering');
+                        });
+                    });
+                }
             });
-
-            container.innerHTML = html;
-            updateBadge();
         }
 
-        function toggleComplete(index) {
-            selectedSongs[index].completed = !selectedSongs[index].completed;
-            saveAndBroadcast();
-            renderSelectedList();
-        }
-
-        function removeSong(index) {
-            selectedSongs.splice(index, 1);
-            saveAndBroadcast();
-            renderSelectedList();
-            showWidgetToast("목록에서 제거되었습니다.");
-        }
-
-        function clearAllSelected() {
-            selectedSongs = [];
-            saveAndBroadcast();
-            renderSelectedList();
-            showWidgetToast("리스트가 비워졌습니다.");
-        }
-
-        function updateBadge() {
-            document.getElementById("selectedCountBadge").textContent = `선택 ${selectedSongs.length}곡`;
-        }
-
-        function showWidgetToast(msg) {
-            const toast = document.getElementById("widgetToast");
-            toast.textContent = msg;
-            toast.classList.add("show");
-            setTimeout(() => toast.classList.remove("show"), 1800);
-        }
-
-        document.addEventListener("click", (e) => {
-            const searchWrapper = document.querySelector(".search-wrapper");
-            if (!searchWrapper.contains(e.target)) {
-                document.getElementById("searchResultsDropdown").classList.remove("active");
+        // 초기 전체 렌더링용
+        function renderCurrentPage() {
+            const listContainer = document.getElementById("widget-song-list");
+            if (!listContainer) return;
+            
+            if (allSongs.length === 0) { 
+                listContainer.innerHTML = `<li class="empty-msg">선택된 곡이 없습니다.</li>`; 
+                return; 
             }
-        });
+            
+            const maxPage = Math.ceil(allSongs.length / ITEMS_PER_PAGE);
+            if (currentPage >= maxPage) currentPage = maxPage - 1;
+            if (currentPage < 0) currentPage = 0;
 
-        loadWidgetData();
+            const startIndex = currentPage * ITEMS_PER_PAGE;
+            const pageSongs = allSongs.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+            let htmlContent = "";
+            
+            pageSongs.forEach((song, idx) => {
+                const isCheckedClass = song.checked ? 'checked' : '';
+                const key = `${song.title}_${song.artist || ''}`;
+                htmlContent += `
+                    <li class="song-item ${isCheckedClass}" data-key="${key}">
+                        <span class="song-number">${startIndex + idx + 1}.</span>
+                        <div class="song-info">
+                            ${getLimitBadgeHTML(song.limit)}
+                            <div class="song-content">
+                                <span class="song-title">${escapeHtml(song.title)}</span>
+                                <span class="song-artist">${song.artist ? `&nbsp;-&nbsp;${escapeHtml(song.artist)}` : ''}</span>
+                            </div>
+                        </div>
+                    </li>
+                `;
+            });
+            listContainer.innerHTML = htmlContent;
+        }
+
+        function startPaginationLoop() {
+            if (paginationTimer) clearInterval(paginationTimer);
+            paginationTimer = setInterval(() => {
+                if (allSongs.length <= ITEMS_PER_PAGE) return;
+                const listContainer = document.getElementById("widget-song-list");
+                if (!listContainer) return;
+                
+                listContainer.classList.add("fade-out");
+                
+                setTimeout(() => {
+                    const maxPage = Math.ceil(allSongs.length / ITEMS_PER_PAGE);
+                    currentPage = (currentPage + 1) % maxPage;
+                    renderCurrentPage();
+                    listContainer.classList.remove("fade-out");
+                }, 200);
+            }, 5000);
+        }
+
+        fetchWidgetData();
+        setInterval(fetchWidgetData, 3000);
+        startPaginationLoop();
     </script>
 </body>
 </html>
