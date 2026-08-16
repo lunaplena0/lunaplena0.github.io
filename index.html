@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>바다비 메인페이지</title>
-    <!-- 탭 아이콘(Favicon) 동적 변경을 위한 기본 link 태그 추가 -->
-    <link rel="icon" id="dynamic-favicon" href="">
     <!-- Noto Sans KR 폰트 불러오기 -->
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;900&display=swap" rel="stylesheet">
     <style>
@@ -140,56 +138,31 @@
 
     <!-- 메인 콘텐츠 영역 -->
     <div class="main-content-container" id="main-content-area">
-        <div class="loading-text" id="loading-message">데이터를 불러오는 중입니다...</div>
+        <div class="loading-text">데이터를 불러오는 중입니다...</div>
     </div>
 
     <script>
         const WORKER_URL = "https://badabi-api.dalkkumli054.workers.dev/";
 
-        // 페이지가 로드될 때 서버에서 fanstartpage 데이터를 불러와 적용
+        // 페이지가 로드될 때 서버에서 메인페이지 설정 데이터를 불러와 적용
         async function loadMainPageSettings() {
             const navBar = document.getElementById('marine-nav-bar');
             const logoEl = document.getElementById('default-home-link');
             const navLinksContainer = document.getElementById('nav-links-container');
-            const faviconEl = document.getElementById('dynamic-favicon'); 
             const mainContainer = document.getElementById('main-content-area');
 
             try {
                 const timestamp = new Date().getTime();
-                const requestUrl = WORKER_URL + "?type=fanstartpage&t=" + timestamp;
-                console.log("요청 URL:", requestUrl);
-
-                const response = await fetch(requestUrl);
+                // fanstartpage 타입으로 요청하도록 변경
+                const response = await fetch(WORKER_URL + "?type=fanstartpage&t=" + timestamp);
                 
                 if (!response.ok) {
-                    throw new Error("서버 응답 코드 오류: " + response.status);
+                    throw new Error("서버에서 데이터를 불러오지 못했습니다.");
                 }
 
                 const data = await response.json();
-                console.log("받아온 데이터:", data);
 
                 if (data) {
-                    // 파비콘 설정
-                    if (data.image) {
-                        const cacheBuster = data.image.includes('?') ? '&t=' : '?t=';
-                        const imageUrl = data.image + cacheBuster + timestamp;
-
-                        faviconEl.href = imageUrl;
-
-                        const lowerImage = data.image.toLowerCase();
-                        if (lowerImage.endsWith('.png')) {
-                            faviconEl.type = "image/png";
-                        } else if (lowerImage.endsWith('.jpg') || lowerImage.endsWith('.jpeg')) {
-                            faviconEl.type = "image/jpeg";
-                        } else if (lowerImage.endsWith('.gif')) {
-                            faviconEl.type = "image/gif";
-                        } else if (lowerImage.endsWith('.ico')) {
-                            faviconEl.type = "image/x-icon";
-                        } else if (lowerImage.endsWith('.svg')) {
-                            faviconEl.type = "image/svg+xml";
-                        }
-                    }
-
                     // 1. 네비게이션 배경 색상 적용
                     if (data.navBgColor) {
                         navBar.style.background = data.navBgColor;
@@ -206,9 +179,10 @@
                         }
                     };
 
-                    // 3. 네비게이션 메뉴 목록 동적 생성
+                    // 3. 네비게이션 메뉴 목록 동적 생성 및 싱글 페이지(SPA) 스타일 연동
                     if (navLinksContainer && Array.isArray(data.menuItems)) {
                         navLinksContainer.innerHTML = "";
+                        
                         data.menuItems.forEach(item => {
                             if (!item.name) return;
                             const li = document.createElement('li');
@@ -216,6 +190,7 @@
                             a.textContent = item.name;
                             a.href = item.url || "#";
 
+                            // 메뉴 클릭 시 페이지 전체 이동 대신 내부 콘텐츠 변경
                             a.onclick = (e) => {
                                 e.preventDefault();
                                 if (item.url) {
@@ -241,14 +216,14 @@
             } catch (err) {
                 console.error("메인페이지 설정 로드 실패:", err);
                 if (mainContainer) {
-                    mainContainer.innerHTML = `<div class="loading-text" style="color: #ef4444;">설정을 불러오지 못했습니다. (콘솔 에러 확인)</div>`;
+                    mainContainer.innerHTML = `<div class="loading-text" style="color: #ef4444;">설정을 불러오지 못했습니다. 잠시 후 다시 시도해주세요.</div>`;
                 }
             }
         }
 
         // 메인 콘텐츠 영역에 주소(.html, http) 혹은 일반 HTML을 채워 넣는 공통 함수
         function renderMainContent(contentValue) {
-            const mainContainer = document.getElementById('main-content-area');
+            const mainContainer = document.querySelector('.main-content-container');
             if (!mainContainer) return;
 
             const trimmed = contentValue.trim();
