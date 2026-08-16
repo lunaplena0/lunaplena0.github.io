@@ -164,11 +164,19 @@
                 const data = await response.json();
 
                 if (data) {
-                    // 0. image 값을 브라우저 탭 아이콘(Favicon)으로 동적 적용 (캐시 방지 타임스탬프 포함)
-                    if (data.image) {
-                        const cacheBuster = data.image.includes('?') ? '&t=' : '?t=';
-                        faviconEl.href = data.image + cacheBuster + timestamp;
-                    }
+if (data.image) {
+    const cacheBuster = data.image.includes('?') ? '&t=' : '?t=';
+    faviconEl.href = data.image + cacheBuster + timestamp;
+    
+    // 이미지 확장자에 맞춰 타입 설정 (브라우저 호환성 향상)
+    if (data.image.endsWith('.png')) {
+        faviconEl.type = "image/png";
+    } else if (data.image.endsWith('.ico')) {
+        faviconEl.type = "image/x-icon";
+    } else if (data.image.endsWith('.svg')) {
+        faviconEl.type = "image/svg+xml";
+    }
+}
 
                     // 1. 네비게이션 배경 색상 적용
                     if (data.navBgColor) {
