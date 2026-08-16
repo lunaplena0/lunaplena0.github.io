@@ -123,16 +123,12 @@
             fill: currentColor;
         }
 
-        /* [개선] 아코디언 형태로 펼쳐지는 인라인 태그 바 */
+        /* [수정] 박스 상자 배경/테두리 제거, 패딩만 미세하게 주어 자연스럽게 노출 */
         .inline-tag-bar {
             display: none; /* 기본 숨김 */
             flex-wrap: wrap;
             gap: 6px;
-            background: #ffffff;
-            padding: 12px;
-            border-radius: 12px;
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+            padding: 4px 0 8px 0;
             animation: fadeIn 0.2s ease forwards;
         }
 
@@ -146,7 +142,7 @@
         }
 
         .tag-chip {
-            background-color: #f8fafc;
+            background-color: #ffffff;
             border: 1px solid #cbd5e1;
             color: #475569;
             padding: 6px 12px;
@@ -161,7 +157,7 @@
         .tag-chip:hover {
             border-color: #0077b6;
             color: #0077b6;
-            background-color: #f1f5f9;
+            background-color: #f8fafc;
         }
 
         .tag-chip.active {
@@ -489,7 +485,7 @@
                 allHeaderEl.appendChild(allTitleWrapper);
                 allSection.appendChild(allHeaderEl);
 
-                // 전체 섹션 아코디언 인라인 태그 바 부착
+                // 전체 섹션 태그 칩 바 부착
                 const allTagBar = createInlineTagBar("ALL", globalVods);
                 allSection.appendChild(allTagBar);
 
@@ -540,7 +536,7 @@
                     headerEl.appendChild(titleWrapper);
                     section.appendChild(headerEl);
 
-                    // 각 월별 아코디언 인라인 태그 바 부착
+                    // 각 월별 태그 칩 바 부착
                     const inlineTagBar = createInlineTagBar(yearMonth, monthVods);
                     section.appendChild(inlineTagBar);
 
@@ -591,7 +587,7 @@
             }
         }
 
-        /* 인라인 태그 바 생성 함수 */
+        /* 태그 칩 바 생성 함수 */
         function createInlineTagBar(targetKey, targetVods) {
             const tagBar = document.createElement("div");
             tagBar.className = "inline-tag-bar";
@@ -632,7 +628,7 @@
             return tagBar;
         }
 
-        /* [개선] 태그 필터 버튼 클릭 시 인라인 바 토글 */
+        /* 태그 필터 버튼 클릭 시 토글 */
         function toggleTagBar(targetKey) {
             const tagBar = document.querySelector(`.inline-tag-bar[data-tag-bar-key="${targetKey}"]`);
             const triggerBtn = document.querySelector(`.tag-filter-trigger-btn[data-trigger-key="${targetKey}"]`);
