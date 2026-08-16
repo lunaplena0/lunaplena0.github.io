@@ -89,7 +89,6 @@
             margin: 0;
         }
 
-        /* [수정] 글씨를 지우고 아이콘 크기에 맞춘 컴팩트한 버튼 스타일 */
         .tag-filter-trigger-btn {
             background-color: #ffffff;
             border: 1px solid #cbd5e1;
@@ -123,9 +122,8 @@
             fill: currentColor;
         }
 
-        /* 박스 상자 배경/테두리 없는 인라인 태그 바 */
         .inline-tag-bar {
-            display: none; /* 기본 숨김 */
+            display: none;
             flex-wrap: wrap;
             gap: 6px;
             padding: 4px 0 8px 0;
@@ -211,7 +209,6 @@
             display: none !important;
         }
 
-        /* 썸네일 영역 */
         .vod-thumb-wrapper {
             position: relative;
             width: 100%;
@@ -251,7 +248,6 @@
             border-radius: 3px;
         }
 
-        /* VOD 정보 영역 */
         .vod-info {
             padding: 12px;
             display: flex;
@@ -300,7 +296,6 @@
             text-overflow: ellipsis;
         }
 
-        /* 뱃지 영역 */
         .badge-container {
             display: flex;
             flex-wrap: wrap;
@@ -330,7 +325,6 @@
             color: #475569;
         }
 
-        /* 더보기 버튼 스타일 */
         .expand-btn {
             background-color: #ffffff;
             border: 1px solid #cbd5e1;
@@ -390,8 +384,6 @@
         const VOD_API_URL = WORKER_URL + "?type=fanvodlist";
 
         const CALENDAR_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zM9 14H7v-2h2v2zm4 0h-2v-2h2v2zm4 0h-2v-2h2v2zm-8 4H7v-2h2v2zm4 0h-2v-2h2v2zm4 0h-2v-2h2v2z"/></svg>`;
-        
-        // [수정] 전형적인 필터 깔때기(Funnel) 모양 SVG 아이콘
         const FILTER_ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 4h18v2H3V4zm2 4h14v2H5V8zm3 4h8v2H8v-2zm3 4h2v2h-2v-2z"/></svg>`;
 
         const currentActiveTags = {};
@@ -406,6 +398,9 @@
                 
                 const data = await response.json();
                 globalVods = data.vods || [];
+
+                // [수정] 날짜 기준 내림차순(최신순)으로 자동 정렬
+                globalVods.sort((a, b) => new Date(b.date) - new Date(a.date));
 
                 container.innerHTML = "";
 
@@ -488,7 +483,6 @@
                 allHeaderEl.appendChild(allTitleWrapper);
                 allSection.appendChild(allHeaderEl);
 
-                // 전체 섹션 태그 칩 바 부착
                 const allTagBar = createInlineTagBar("ALL", globalVods);
                 allSection.appendChild(allTagBar);
 
@@ -540,7 +534,6 @@
                     headerEl.appendChild(titleWrapper);
                     section.appendChild(headerEl);
 
-                    // 각 월별 태그 칩 바 부착
                     const inlineTagBar = createInlineTagBar(yearMonth, monthVods);
                     section.appendChild(inlineTagBar);
 
@@ -591,7 +584,6 @@
             }
         }
 
-        /* 태그 칩 바 생성 함수 */
         function createInlineTagBar(targetKey, targetVods) {
             const tagBar = document.createElement("div");
             tagBar.className = "inline-tag-bar";
@@ -614,7 +606,6 @@
             const uniqueTags = Array.from(tagSet);
             const activeTag = currentActiveTags[targetKey];
 
-            // 전체 칩
             const allChip = document.createElement("button");
             allChip.className = `tag-chip ${!activeTag ? "active" : ""}`;
             allChip.textContent = "전체 보기";
@@ -632,7 +623,6 @@
             return tagBar;
         }
 
-        /* 태그 필터 버튼 클릭 시 토글 */
         function toggleTagBar(targetKey) {
             const tagBar = document.querySelector(`.inline-tag-bar[data-tag-bar-key="${targetKey}"]`);
             const triggerBtn = document.querySelector(`.tag-filter-trigger-btn[data-trigger-key="${targetKey}"]`);
@@ -717,7 +707,6 @@
         function applyTagFilter(targetKey, selectedTag) {
             currentActiveTags[targetKey] = selectedTag;
 
-            // 해당 섹션의 태그 바 칩 액티브 상태 갱신
             const tagBar = document.querySelector(`.inline-tag-bar[data-tag-bar-key="${targetKey}"]`);
             if (tagBar) {
                 tagBar.querySelectorAll(".tag-chip").forEach(chip => {
