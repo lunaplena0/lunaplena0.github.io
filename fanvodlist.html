@@ -89,20 +89,20 @@
             margin: 0;
         }
 
-        /* 태그 필터 오픈 버튼 */
+        /* [수정] 글씨를 지우고 아이콘 크기에 맞춘 컴팩트한 버튼 스타일 */
         .tag-filter-trigger-btn {
             background-color: #ffffff;
             border: 1px solid #cbd5e1;
             color: #475569;
-            padding: 6px 14px;
+            width: 36px;
+            height: 36px;
             border-radius: 10px;
-            font-size: 13px;
-            font-weight: 600;
             cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 6px;
+            justify-content: center;
             transition: all 0.2s ease;
+            padding: 0;
         }
 
         .tag-filter-trigger-btn:hover {
@@ -118,12 +118,12 @@
         }
 
         .tag-filter-trigger-btn svg {
-            width: 14px;
-            height: 14px;
+            width: 16px;
+            height: 16px;
             fill: currentColor;
         }
 
-        /* [수정] 박스 상자 배경/테두리 제거, 패딩만 미세하게 주어 자연스럽게 노출 */
+        /* 박스 상자 배경/테두리 없는 인라인 태그 바 */
         .inline-tag-bar {
             display: none; /* 기본 숨김 */
             flex-wrap: wrap;
@@ -390,7 +390,9 @@
         const VOD_API_URL = WORKER_URL + "?type=fanvodlist";
 
         const CALENDAR_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zM9 14H7v-2h2v2zm4 0h-2v-2h2v2zm4 0h-2v-2h2v2zm-8 4H7v-2h2v2zm4 0h-2v-2h2v2zm4 0h-2v-2h2v2z"/></svg>`;
-        const FILTER_ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"/></svg>`;
+        
+        // [수정] 전형적인 필터 깔때기(Funnel) 모양 SVG 아이콘
+        const FILTER_ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 4h18v2H3V4zm2 4h14v2H5V8zm3 4h8v2H8v-2zm3 4h2v2h-2v-2z"/></svg>`;
 
         const currentActiveTags = {};
         let globalVods = [];
@@ -479,7 +481,8 @@
                 const allTagTriggerBtn = document.createElement("button");
                 allTagTriggerBtn.className = "tag-filter-trigger-btn";
                 allTagTriggerBtn.dataset.triggerKey = "ALL";
-                allTagTriggerBtn.innerHTML = `${FILTER_ICON_SVG}<span>태그 필터</span>`;
+                allTagTriggerBtn.title = "태그 필터";
+                allTagTriggerBtn.innerHTML = FILTER_ICON_SVG;
                 allTagTriggerBtn.onclick = () => toggleTagBar("ALL");
                 allTitleWrapper.appendChild(allTagTriggerBtn);
                 allHeaderEl.appendChild(allTitleWrapper);
@@ -529,7 +532,8 @@
                     const tagTriggerBtn = document.createElement("button");
                     tagTriggerBtn.className = "tag-filter-trigger-btn";
                     tagTriggerBtn.dataset.triggerKey = yearMonth;
-                    tagTriggerBtn.innerHTML = `${FILTER_ICON_SVG}<span>태그 필터</span>`;
+                    tagTriggerBtn.title = "태그 필터";
+                    tagTriggerBtn.innerHTML = FILTER_ICON_SVG;
                     tagTriggerBtn.onclick = () => toggleTagBar(yearMonth);
                     titleWrapper.appendChild(tagTriggerBtn);
 
