@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>바다비 메인페이지</title>
+    <!-- 동적으로 로드될 탭 아이콘(파비콘) 기본 태그 -->
+    <link rel="icon" id="dynamic-favicon" href="">
     <!-- Noto Sans KR 폰트 불러오기 -->
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;900&display=swap" rel="stylesheet">
     <style>
@@ -153,22 +155,39 @@
 
             try {
                 const timestamp = new Date().getTime();
-                // fanstartpage 타입으로 요청하도록 변경
-                const response = await fetch(WORKER_URL + "?type=fanstartpage&t=" + timestamp);
                 
-                if (!response.ok) {
-                    throw new Error("서버에서 데이터를 불러오지 못했습니다.");
+                // 1. 메인페이지 기본 데이터(fanmainpages)와 탭 아이콘 데이터(fanstartpage)를 동시에 병렬 호출
+                const [mainResponse, startResponse] = await Promise.all([
+                    fetch(WORKER_URL + "?type=fanmainpages&t=" + timestamp),
+                    fetch(WORKER_URL + "?type=fanstartpage&t=" + timestamp)
+                ]);
+                
+                if (!mainResponse.ok) {
+                    throw new Error("메인페이지 데이터를 불러오지 못했습니다.");
                 }
 
-                const data = await response.json();
+                const data = await mainResponse.json();
+
+                // 2. fanstartpage에서 탭 아이콘(파비콘) 데이터 가져와서 적용
+                if (startResponse.ok) {
+                    const startData = await startResponse.json();
+                    // 서버 응답 구조에 따라 탭 아이콘 필드명(예: favicon, icon, faviconUrl 등)을 지정할 수 있습니다.
+                    const faviconUrl = startData.favicon || startData.icon || startData.faviconUrl;
+                    if (faviconUrl) {
+                        const faviconEl = document.getElementById('dynamic-favicon');
+                        if (faviconEl) {
+                            faviconEl.href = faviconUrl;
+                        }
+                    }
+                }
 
                 if (data) {
-                    // 1. 네비게이션 배경 색상 적용
+                    // 3. 네비게이션 배경 색상 적용
                     if (data.navBgColor) {
                         navBar.style.background = data.navBgColor;
                     }
 
-                    // 2. 로고 텍스트 및 링크 적용
+                    // 4. 로고 텍스트 및 링크 적용
                     if (data.logoText) {
                         logoEl.textContent = data.logoText;
                     }
@@ -179,7 +198,7 @@
                         }
                     };
 
-                    // 3. 네비게이션 메뉴 목록 동적 생성 및 싱글 페이지(SPA) 스타일 연동
+                    // 5. 네비게이션 메뉴 목록 동적 생성 및 싱글 페이지(SPA) 스타일 연동
                     if (navLinksContainer && Array.isArray(data.menuItems)) {
                         navLinksContainer.innerHTML = "";
                         
@@ -203,7 +222,7 @@
                         });
                     }
 
-                    // 4. 초기 메인페이지 본문 콘텐츠 영역 렌더링
+                    // 6. 초기 메인페이지 본문 콘텐츠 영역 렌더링
                     if (data.mainContent) {
                         renderMainContent(data.mainContent);
                     } else {
