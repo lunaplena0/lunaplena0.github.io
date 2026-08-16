@@ -111,7 +111,7 @@
             color: inherit;
             transition: transform 0.2s ease, box-shadow 0.2s ease;
             opacity: 0;
-            animation: fadeUpIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            animation: fadeUpIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
         .vod-card:hover {
@@ -300,16 +300,16 @@
 
     <script>
         const WORKER_URL = "https://badabi-api.dalkkumli054.workers.dev/";
-        const VOD_API_URL = WORKER_URL + "?type=fanvodlist&t=";
+        const VOD_API_URL = WORKER_URL + "?type=fanvodlist";
 
-        // 달력 모양 SVG 아이콘 템플릿 상수
         const CALENDAR_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zM9 14H7v-2h2v2zm4 0h-2v-2h2v2zm4 0h-2v-2h2v2zm-8 4H7v-2h2v2zm4 0h-2v-2h2v2zm4 0h-2v-2h2v2z"/></svg>`;
 
         async function loadVODs() {
             const container = document.getElementById("main-container");
             
             try {
-                const response = await fetch(VOD_API_URL + new Date().getTime());
+                // 불필요한 타임스탬프 제거 혹은 캐시 효율화 고려
+                const response = await fetch(VOD_API_URL);
                 if (!response.ok) throw new Error("VOD 정보를 불러오지 못했습니다.");
                 
                 const data = await response.json();
@@ -322,7 +322,6 @@
                     return;
                 }
 
-                // 1. 년-월(YYYY-MM) 기준으로 데이터 그룹화
                 const groupedVods = {};
                 vods.forEach(item => {
                     if (!item.date) return;
@@ -333,17 +332,15 @@
                     groupedVods[yearMonth].push(item);
                 });
 
-                // 2. 최신순 정렬
                 const sortedMonths = Object.keys(groupedVods).sort().reverse();
-                const latestMonth = sortedMonths[0]; // 가장 최신 월
+                const latestMonth = sortedMonths[0];
 
-                // 3. 상단 월 선택 필터 바 생성 (버튼에 개수 표시)
                 const filterBar = document.createElement("div");
                 filterBar.className = "filter-bar";
 
                 sortedMonths.forEach((ym) => {
                     const [y, m] = ym.split("-");
-                    const count = groupedVods[ym].length; // 해당 월의 VOD 총 개수
+                    const count = groupedVods[ym].length;
                     
                     const btn = document.createElement("button");
                     btn.className = "filter-btn";
@@ -356,7 +353,6 @@
 
                 container.appendChild(filterBar);
 
-                // 컨텐츠가 담길 래퍼 생성
                 const contentWrapper = document.createElement("div");
                 contentWrapper.id = "content-wrapper";
                 contentWrapper.style.display = "flex";
@@ -364,12 +360,8 @@
                 contentWrapper.style.gap = "36px";
                 container.appendChild(contentWrapper);
 
-                let globalIndex = 0;
-
-                // 화면 크기에 따른 기본 노출 개수 설정 (모바일 500px 이하: 6개, PC: 5개)
                 const defaultVisibleCount = window.innerWidth <= 500 ? 6 : 5;
 
-                // 4. 월별 섹션 구성
                 sortedMonths.forEach(yearMonth => {
                     const [year, month] = yearMonth.split("-");
                     const formattedMonthTitle = `${year}년 ${parseInt(month, 10)}월`;
@@ -395,20 +387,23 @@
                     const gridEl = document.createElement("div");
                     gridEl.className = "vod-grid";
 
+                    // DocumentFragment를 활용해 DOM 조작 횟수를 줄여 렌더링 성능 최적화
+                    const fragment = document.createDocumentFragment();
+
                     monthVods.forEach((item, itemIdx) => {
                         const card = document.createElement("a");
                         card.href = item.link;
                         card.className = "vod-card";
                         card.target = "_blank";
                         card.rel = "noopener noreferrer";
-                        card.style.animationDelay = `${(globalIndex++) * 0.03}s`;
 
                         if (itemIdx >= defaultVisibleCount) {
                             card.classList.add("collapsed-hidden");
                         }
 
+                        // 브라우저 기본 lazy 로딩 및 디코딩 속도 향상 속성 추가
                         const thumbHTML = item.thumbnail 
-                            ? `<img src="${item.thumbnail}" alt="thumbnail" class="vod-thumb" loading="lazy">` 
+                            ? `<img src="${item.thumbnail}" alt="thumbnail" class="vod-thumb" loading="lazy" decoding="async">` 
                             : `<div class="no-thumb">No Image</div>`;
 
                         let badgesHTML = "";
@@ -441,9 +436,10 @@
                             </div>
                         `;
 
-                        gridEl.appendChild(card);
+                        fragment.appendChild(card);
                     });
 
+                    gridEl.appendChild(fragment);
                     section.appendChild(gridEl);
 
                     if (monthVods.length > defaultVisibleCount) {
@@ -467,7 +463,6 @@
             }
         }
 
-        // 월별 필터링 기능
         function filterMonth(targetMonth) {
             document.querySelectorAll(".filter-btn").forEach(btn => {
                 if (btn.dataset.month === targetMonth) {
