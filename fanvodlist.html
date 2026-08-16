@@ -300,14 +300,14 @@
             border-color: #94a3b8;
         }
 
-        /* 모달 팝업 스타일 */
+        /* 모달 팝업 스타일 수정 */
         .modal-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100vw;
             height: 100vh;
-            background-color: rgba(0, 0, 0, 0.4);
+            background-color: rgba(0, 0, 0, 0.45);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -315,6 +315,7 @@
             opacity: 0;
             visibility: hidden;
             transition: opacity 0.2s ease, visibility 0.2s ease;
+            backdrop-filter: blur(2px);
         }
 
         .modal-overlay.open {
@@ -324,16 +325,17 @@
 
         .modal-content {
             background: #ffffff;
-            width: 90%;
-            max-width: 480px;
-            border-radius: 14px;
-            padding: 22px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            width: 92%;
+            max-width: 520px;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
             display: flex;
             flex-direction: column;
-            gap: 16px;
+            gap: 18px;
             transform: translateY(10px);
             transition: transform 0.2s ease;
+            box-sizing: border-box;
         }
 
         .modal-overlay.open .modal-content {
@@ -345,11 +347,11 @@
             justify-content: space-between;
             align-items: center;
             border-bottom: 1px solid #e2e8f0;
-            padding-bottom: 12px;
+            padding-bottom: 14px;
         }
 
         .modal-title {
-            font-size: 16px;
+            font-size: 17px;
             font-weight: 700;
             color: #0f172a;
             margin: 0;
@@ -358,35 +360,38 @@
         .modal-close-btn {
             background: none;
             border: none;
-            font-size: 18px;
+            font-size: 20px;
             cursor: pointer;
             color: #64748b;
+            padding: 0 4px;
         }
 
-        /* 팝업 내 버튼들 3열 격자(Grid) 정렬 및 컴팩트한 디자인 */
+        /* 4열 격자 레이아웃 및 깔끔한 여백 */
         .modal-body {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 6px;
-            max-height: 260px;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            max-height: 300px;
             overflow-y: auto;
-            padding-right: 2px;
+            padding-right: 4px;
         }
 
-        /* 첫 번째 '전체 보기' 버튼은 3칸 모두 가로로 꽉 차게 설정 */
+        /* '전체 보기' 버튼은 4열 전체를 가득 채우도록 설정 */
         .modal-tag-chip.chip-all {
-            grid-column: span 3;
-            background-color: #f8fafc;
+            grid-column: span 4;
+            background-color: #f1f5f9;
             font-weight: 700;
+            color: #0f172a;
+            border-color: #cbd5e1;
         }
 
         .modal-tag-chip {
             background-color: #ffffff;
             border: 1px solid #cbd5e1;
             color: #475569;
-            padding: 8px 6px;
-            border-radius: 6px;
-            font-size: 12px;
+            padding: 10px 8px;
+            border-radius: 8px;
+            font-size: 13px;
             font-weight: 600;
             cursor: pointer;
             text-align: center;
@@ -434,6 +439,13 @@
             .vod-title {
                 font-size: 12px;
                 height: calc(12px * 1.35 * 2);
+            }
+            /* 모바일 화면에서는 3열로 조절하여 가독성 확보 */
+            .modal-body {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            .modal-tag-chip.chip-all {
+                grid-column: span 3;
             }
         }
     </style>
