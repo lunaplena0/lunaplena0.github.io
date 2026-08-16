@@ -371,7 +371,6 @@
             overflow-y: auto;
         }
 
-        /* 팝업 내 태그 칩 (살짝 각진 둥근 모서리 적용) */
         .modal-tag-chip {
             background-color: #ffffff;
             border: 1px solid #cbd5e1;
@@ -453,6 +452,7 @@
         const FILTER_ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"/></svg>`;
 
         const currentActiveTags = {};
+        let globalVods = [];
 
         async function loadVODs() {
             const container = document.getElementById("main-container");
@@ -462,17 +462,17 @@
                 if (!response.ok) throw new Error("VOD 정보를 불러오지 못했습니다.");
                 
                 const data = await response.json();
-                const vods = data.vods || [];
+                globalVods = data.vods || [];
 
                 container.innerHTML = "";
 
-                if (vods.length === 0) {
+                if (globalVods.length === 0) {
                     container.innerHTML = '<p class="full-width-message">등록된 VOD가 없습니다.</p>';
                     return;
                 }
 
                 const groupedVods = {};
-                vods.forEach(item => {
+                globalVods.forEach(item => {
                     if (!item.date) return;
                     const yearMonth = item.date.substring(0, 7);
                     if (!groupedVods[yearMonth]) {
@@ -486,6 +486,14 @@
 
                 const filterBar = document.createElement("div");
                 filterBar.className = "filter-bar";
+
+                // 전체 보기 버튼 생성
+                const allBtn = document.createElement("button");
+                allBtn.className = "filter-btn";
+                allBtn.dataset.month = "ALL";
+                allBtn.textContent = `전체 보기 (${globalVods.length})`;
+                allBtn.onclick = () => filterMonth("ALL");
+                filterBar.appendChild(allBtn);
 
                 sortedMonths.forEach((ym) => {
                     const [y, m] = ym.split("-");
@@ -511,6 +519,44 @@
 
                 const defaultVisibleCount = window.innerWidth <= 500 ? 6 : 5;
 
+                // 1. 전체 보기용 통합 섹션 생성
+                const allSection = document.createElement("div");
+                allSection.className = "month-section";
+                allSection.dataset.sectionMonth = "ALL";
+                allSection.style.display = "none"; // 기본은 최신월이 보이도록 설정
+
+                const allHeaderEl = document.createElement("div");
+                allHeaderEl.className = "month-header";
+                const allTitleWrapper = document.createElement("div");
+                allTitleWrapper.className = "month-title-wrapper";
+
+                const allTitleEl = document.createElement("h2");
+                allTitleEl.className = "month-title";
+                allTitleEl.textContent = `전체 VOD 리스트`;
+                allTitleWrapper.appendChild(allTitleEl);
+
+                const allTagTriggerBtn = document.createElement("button");
+                allTagTriggerBtn.className = "tag-filter-trigger-btn";
+                allTagTriggerBtn.innerHTML = `${FILTER_ICON_SVG}<span>태그 필터</span>`;
+                allTagTriggerBtn.onclick = () => openTagModal("ALL", globalVods);
+                allTitleWrapper.appendChild(allTagTriggerBtn);
+
+                allHeaderEl.appendChild(allTitleWrapper);
+                allSection.appendChild(allHeaderEl);
+
+                const allGridEl = document.createElement("div");
+                allGridEl.className = "vod-grid";
+                const allFragment = document.createDocumentFragment();
+
+                globalVods.forEach((item) => {
+                    const card = createVodCard(item);
+                    allFragment.appendChild(card);
+                });
+                allGridEl.appendChild(allFragment);
+                allSection.appendChild(allGridEl);
+                contentWrapper.appendChild(allSection);
+
+                // 2. 월별 섹션들 생성
                 sortedMonths.forEach(yearMonth => {
                     const [year, month] = yearMonth.split("-");
                     const formattedMonthTitle = `${year}년 ${parseInt(month, 10)}월`;
@@ -550,55 +596,10 @@
                     const fragment = document.createDocumentFragment();
 
                     monthVods.forEach((item, itemIdx) => {
-                        const card = document.createElement("a");
-                        card.href = item.link;
-                        card.className = "vod-card";
-                        card.target = "_blank";
-                        card.rel = "noopener noreferrer";
-
-                        const itemCategories = item.category ? item.category.split(",").map(c => c.trim()).filter(Boolean) : ["기타"];
-                        if (item.adult === "Y") itemCategories.push("19+");
-                        if (item.subPlus === "Y") itemCategories.push("구독+");
-
-                        card.dataset.tags = JSON.stringify(itemCategories);
-
+                        const card = createVodCard(item);
                         if (itemIdx >= defaultVisibleCount) {
                             card.classList.add("collapsed-hidden");
                         }
-
-                        const thumbHTML = item.thumbnail 
-                            ? `<img src="${item.thumbnail}" alt="thumbnail" class="vod-thumb" loading="lazy" decoding="async">` 
-                            : `<div class="no-thumb">No Image</div>`;
-
-                        let badgesHTML = "";
-                        if (item.category) {
-                            item.category.split(",").map(cat => cat.trim()).filter(Boolean).forEach(cat => {
-                                badgesHTML += `<span class="badge badge-category">${cat}</span>`;
-                            });
-                        } else {
-                            badgesHTML += `<span class="badge badge-category">기타</span>`;
-                        }
-
-                        if (item.adult === "Y") badgesHTML += `<span class="badge badge-adult">19+</span>`;
-                        if (item.subPlus === "Y") badgesHTML += `<span class="badge badge-sub">구독+</span>`;
-
-                        card.innerHTML = `
-                            <div class="vod-thumb-wrapper">
-                                ${thumbHTML}
-                                <div class="vod-duration">${item.duration || "-:--:--"}</div>
-                            </div>
-                            <div class="vod-info">
-                                <h3 class="vod-title">${item.title}</h3>
-                                <div class="vod-meta">
-                                    ${CALENDAR_SVG}<span>${item.date}</span>
-                                </div>
-                                <p class="vod-desc">${item.description || "설명 없음"}</p>
-                                <div class="badge-container">
-                                    ${badgesHTML}
-                                </div>
-                            </div>
-                        `;
-
                         fragment.appendChild(card);
                     });
 
@@ -636,6 +637,54 @@
             }
         }
 
+        function createVodCard(item) {
+            const card = document.createElement("a");
+            card.href = item.link;
+            card.className = "vod-card";
+            card.target = "_blank";
+            card.rel = "noopener noreferrer";
+
+            const itemCategories = item.category ? item.category.split(",").map(c => c.trim()).filter(Boolean) : ["기타"];
+            if (item.adult === "Y") itemCategories.push("19+");
+            if (item.subPlus === "Y") itemCategories.push("구독+");
+
+            card.dataset.tags = JSON.stringify(itemCategories);
+
+            const thumbHTML = item.thumbnail 
+                ? `<img src="${item.thumbnail}" alt="thumbnail" class="vod-thumb" loading="lazy" decoding="async">` 
+                : `<div class="no-thumb">No Image</div>`;
+
+            let badgesHTML = "";
+            if (item.category) {
+                item.category.split(",").map(cat => cat.trim()).filter(Boolean).forEach(cat => {
+                    badgesHTML += `<span class="badge badge-category">${cat}</span>`;
+                });
+            } else {
+                badgesHTML += `<span class="badge badge-category">기타</span>`;
+            }
+
+            if (item.adult === "Y") badgesHTML += `<span class="badge badge-adult">19+</span>`;
+            if (item.subPlus === "Y") badgesHTML += `<span class="badge badge-sub">구독+</span>`;
+
+            card.innerHTML = `
+                <div class="vod-thumb-wrapper">
+                    ${thumbHTML}
+                    <div class="vod-duration">${item.duration || "-:--:--"}</div>
+                </div>
+                <div class="vod-info">
+                    <h3 class="vod-title">${item.title}</h3>
+                    <div class="vod-meta">
+                        ${CALENDAR_SVG}<span>${item.date}</span>
+                    </div>
+                    <p class="vod-desc">${item.description || "설명 없음"}</p>
+                    <div class="badge-container">
+                        ${badgesHTML}
+                    </div>
+                </div>
+            `;
+            return card;
+        }
+
         function filterMonth(targetMonth) {
             document.querySelectorAll(".filter-btn").forEach(btn => {
                 if (btn.dataset.month === targetMonth) {
@@ -654,17 +703,21 @@
             });
         }
 
-        function openTagModal(yearMonth, monthVods) {
+        function openTagModal(targetKey, targetVods) {
             const modalOverlay = document.getElementById("tag-modal-overlay");
             const modalTitle = document.getElementById("modal-title-text");
             const tagListContainer = document.getElementById("modal-tag-list-container");
 
-            const [y, m] = yearMonth.split("-");
-            modalTitle.textContent = `${y}년 ${parseInt(m, 10)}월 태그 필터`;
+            if (targetKey === "ALL") {
+                modalTitle.textContent = `전체 VOD 태그 필터`;
+            } else {
+                const [y, m] = targetKey.split("-");
+                modalTitle.textContent = `${y}년 ${parseInt(m, 10)}월 태그 필터`;
+            }
             tagListContainer.innerHTML = "";
 
             const tagSet = new Set();
-            monthVods.forEach(item => {
+            targetVods.forEach(item => {
                 if (item.category) {
                     item.category.split(",").forEach(cat => {
                         const trimmed = cat.trim();
@@ -678,13 +731,13 @@
             });
 
             const uniqueTags = Array.from(tagSet);
-            const activeTag = currentActiveTags[yearMonth];
+            const activeTag = currentActiveTags[targetKey];
 
             const allChip = document.createElement("button");
             allChip.className = `modal-tag-chip ${!activeTag ? "active" : ""}`;
             allChip.textContent = "전체 보기";
             allChip.onclick = () => {
-                applyTagFilter(yearMonth, null);
+                applyTagFilter(targetKey, null);
                 closeTagModal();
             };
             tagListContainer.appendChild(allChip);
@@ -694,7 +747,7 @@
                 chip.className = `modal-tag-chip ${activeTag === tag ? "active" : ""}`;
                 chip.textContent = tag;
                 chip.onclick = () => {
-                    applyTagFilter(yearMonth, tag);
+                    applyTagFilter(targetKey, tag);
                     closeTagModal();
                 };
                 tagListContainer.appendChild(chip);
@@ -710,10 +763,10 @@
             }
         }
 
-        function applyTagFilter(yearMonth, selectedTag) {
-            currentActiveTags[yearMonth] = selectedTag;
+        function applyTagFilter(targetKey, selectedTag) {
+            currentActiveTags[targetKey] = selectedTag;
 
-            const section = document.querySelector(`.month-section[data-section-month="${yearMonth}"]`);
+            const section = document.querySelector(`.month-section[data-section-month="${targetKey}"]`);
             if (!section) return;
 
             const cards = section.querySelectorAll(".vod-card");
@@ -726,7 +779,7 @@
 
                 if (matches) {
                     card.classList.remove("tag-hidden");
-                    if (selectedTag) {
+                    if (targetKey === "ALL" || selectedTag) {
                         card.classList.remove("collapsed-hidden");
                     } else {
                         if (idx >= defaultVisibleCount) {
@@ -741,7 +794,7 @@
             });
 
             if (expandBtn) {
-                if (selectedTag) {
+                if (selectedTag || targetKey === "ALL") {
                     expandBtn.style.display = "none";
                 } else {
                     expandBtn.style.display = "block";
