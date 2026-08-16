@@ -74,6 +74,12 @@
             align-items: center;
         }
 
+        .month-title-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
         .month-title {
             font-size: 20px;
             font-weight: 800;
@@ -83,9 +89,43 @@
             margin: 0;
         }
 
-        /* [개선] 인라인 태그 필터 칩 바 (팝업 대신 화면에 상시 노출) */
-        .inline-tag-bar {
+        /* 태그 필터 오픈 버튼 */
+        .tag-filter-trigger-btn {
+            background-color: #ffffff;
+            border: 1px solid #cbd5e1;
+            color: #475569;
+            padding: 6px 14px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
             display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .tag-filter-trigger-btn:hover {
+            border-color: #0077b6;
+            color: #0077b6;
+            background-color: #f8fafc;
+        }
+
+        .tag-filter-trigger-btn.active {
+            background-color: #0077b6;
+            border-color: #0077b6;
+            color: #ffffff;
+        }
+
+        .tag-filter-trigger-btn svg {
+            width: 14px;
+            height: 14px;
+            fill: currentColor;
+        }
+
+        /* [개선] 아코디언 형태로 펼쳐지는 인라인 태그 바 */
+        .inline-tag-bar {
+            display: none; /* 기본 숨김 */
             flex-wrap: wrap;
             gap: 6px;
             background: #ffffff;
@@ -93,6 +133,16 @@
             border-radius: 12px;
             border: 1px solid #e2e8f0;
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+            animation: fadeIn 0.2s ease forwards;
+        }
+
+        .inline-tag-bar.open {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .tag-chip {
@@ -344,6 +394,7 @@
         const VOD_API_URL = WORKER_URL + "?type=fanvodlist";
 
         const CALENDAR_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zM9 14H7v-2h2v2zm4 0h-2v-2h2v2zm4 0h-2v-2h2v2zm-8 4H7v-2h2v2zm4 0h-2v-2h2v2zm4 0h-2v-2h2v2z"/></svg>`;
+        const FILTER_ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"/></svg>`;
 
         const currentActiveTags = {};
         let globalVods = [];
@@ -421,13 +472,24 @@
 
                 const allHeaderEl = document.createElement("div");
                 allHeaderEl.className = "month-header";
+                
+                const allTitleWrapper = document.createElement("div");
+                allTitleWrapper.className = "month-title-wrapper";
                 const allTitleEl = document.createElement("h2");
                 allTitleEl.className = "month-title";
                 allTitleEl.textContent = `전체 VOD 리스트`;
-                allHeaderEl.appendChild(allTitleEl);
+                allTitleWrapper.appendChild(allTitleEl);
+
+                const allTagTriggerBtn = document.createElement("button");
+                allTagTriggerBtn.className = "tag-filter-trigger-btn";
+                allTagTriggerBtn.dataset.triggerKey = "ALL";
+                allTagTriggerBtn.innerHTML = `${FILTER_ICON_SVG}<span>태그 필터</span>`;
+                allTagTriggerBtn.onclick = () => toggleTagBar("ALL");
+                allTitleWrapper.appendChild(allTagTriggerBtn);
+                allHeaderEl.appendChild(allTitleWrapper);
                 allSection.appendChild(allHeaderEl);
 
-                // 전체 섹션 인라인 태그 바
+                // 전체 섹션 아코디언 인라인 태그 바 부착
                 const allTagBar = createInlineTagBar("ALL", globalVods);
                 allSection.appendChild(allTagBar);
 
@@ -460,14 +522,25 @@
                     const headerEl = document.createElement("div");
                     headerEl.className = "month-header";
 
+                    const titleWrapper = document.createElement("div");
+                    titleWrapper.className = "month-title-wrapper";
+
                     const titleEl = document.createElement("h2");
                     titleEl.className = "month-title";
                     titleEl.textContent = formattedMonthTitle;
-                    headerEl.appendChild(titleEl);
+                    titleWrapper.appendChild(titleEl);
 
+                    const tagTriggerBtn = document.createElement("button");
+                    tagTriggerBtn.className = "tag-filter-trigger-btn";
+                    tagTriggerBtn.dataset.triggerKey = yearMonth;
+                    tagTriggerBtn.innerHTML = `${FILTER_ICON_SVG}<span>태그 필터</span>`;
+                    tagTriggerBtn.onclick = () => toggleTagBar(yearMonth);
+                    titleWrapper.appendChild(tagTriggerBtn);
+
+                    headerEl.appendChild(titleWrapper);
                     section.appendChild(headerEl);
 
-                    // 각 월별 인라인 태그 바 부착
+                    // 각 월별 아코디언 인라인 태그 바 부착
                     const inlineTagBar = createInlineTagBar(yearMonth, monthVods);
                     section.appendChild(inlineTagBar);
 
@@ -541,14 +614,13 @@
             const uniqueTags = Array.from(tagSet);
             const activeTag = currentActiveTags[targetKey];
 
-            // 전체 보기 칩
+            // 전체 칩
             const allChip = document.createElement("button");
             allChip.className = `tag-chip ${!activeTag ? "active" : ""}`;
-            allChip.textContent = "전체";
+            allChip.textContent = "전체 보기";
             allChip.onclick = () => applyTagFilter(targetKey, null);
             tagBar.appendChild(allChip);
 
-            // 각 카테고리/태그 칩
             uniqueTags.forEach(tag => {
                 const chip = document.createElement("button");
                 chip.className = `tag-chip ${activeTag === tag ? "active" : ""}`;
@@ -558,6 +630,22 @@
             });
 
             return tagBar;
+        }
+
+        /* [개선] 태그 필터 버튼 클릭 시 인라인 바 토글 */
+        function toggleTagBar(targetKey) {
+            const tagBar = document.querySelector(`.inline-tag-bar[data-tag-bar-key="${targetKey}"]`);
+            const triggerBtn = document.querySelector(`.tag-filter-trigger-btn[data-trigger-key="${targetKey}"]`);
+            if (!tagBar) return;
+
+            const isOpen = tagBar.classList.contains("open");
+            if (isOpen) {
+                tagBar.classList.remove("open");
+                triggerBtn.classList.remove("active");
+            } else {
+                tagBar.classList.add("open");
+                triggerBtn.classList.add("active");
+            }
         }
 
         function createVodCard(item) {
@@ -633,7 +721,7 @@
             const tagBar = document.querySelector(`.inline-tag-bar[data-tag-bar-key="${targetKey}"]`);
             if (tagBar) {
                 tagBar.querySelectorAll(".tag-chip").forEach(chip => {
-                    if ((!selectedTag && chip.textContent === "전체") || chip.textContent === selectedTag) {
+                    if ((!selectedTag && chip.textContent === "전체 보기") || chip.textContent === selectedTag) {
                         chip.classList.add("active");
                     } else {
                         chip.classList.remove("active");
