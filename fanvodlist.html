@@ -89,19 +89,19 @@
             margin: 0;
         }
 
-        /* 월별 태그 필터 오픈 버튼 */
+        /* 월별 태그 필터 오픈 버튼 (다른 버튼들과 통일된 10px 둥근 모서리) */
         .tag-filter-trigger-btn {
             background-color: #ffffff;
             border: 1px solid #cbd5e1;
             color: #475569;
-            padding: 5px 10px;
-            border-radius: 8px;
-            font-size: 12px;
+            padding: 6px 14px;
+            border-radius: 10px;
+            font-size: 13px;
             font-weight: 600;
             cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 6px;
             transition: all 0.2s ease;
         }
 
@@ -449,7 +449,6 @@
         const CALENDAR_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zM9 14H7v-2h2v2zm4 0h-2v-2h2v2zm4 0h-2v-2h2v2zm-8 4H7v-2h2v2zm4 0h-2v-2h2v2zm4 0h-2v-2h2v2z"/></svg>`;
         const FILTER_ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"/></svg>`;
 
-        // 각 월별 태그 상태 관리 객체 (Key: yearMonth, Value: 선택된 태그명 또는 null)
         const currentActiveTags = {};
 
         async function loadVODs() {
@@ -522,7 +521,6 @@
                         section.style.display = "none";
                     }
 
-                    // 월별 헤더 구성 (타이틀 + 태그 필터 버튼)
                     const headerEl = document.createElement("div");
                     headerEl.className = "month-header";
 
@@ -555,8 +553,11 @@
                         card.target = "_blank";
                         card.rel = "noopener noreferrer";
 
-                        // 각 카드에 태그 데이터 부여 (필터링용)
+                        // 카테고리 태그 + 19+ / 구독+ 태그 포함 구성
                         const itemCategories = item.category ? item.category.split(",").map(c => c.trim()).filter(Boolean) : ["기타"];
+                        if (item.adult === "Y") itemCategories.push("19+");
+                        if (item.subPlus === "Y") itemCategories.push("구독+");
+
                         card.dataset.tags = JSON.stringify(itemCategories);
 
                         if (itemIdx >= defaultVisibleCount) {
@@ -568,9 +569,13 @@
                             : `<div class="no-thumb">No Image</div>`;
 
                         let badgesHTML = "";
-                        itemCategories.forEach(cat => {
-                            badgesHTML += `<span class="badge badge-category">${cat}</span>`;
-                        });
+                        if (item.category) {
+                            item.category.split(",").map(cat => cat.trim()).filter(Boolean).forEach(cat => {
+                                badgesHTML += `<span class="badge badge-category">${cat}</span>`;
+                            });
+                        } else {
+                            badgesHTML += `<span class="badge badge-category">기타</span>`;
+                        }
 
                         if (item.adult === "Y") badgesHTML += `<span class="badge badge-adult">19+</span>`;
                         if (item.subPlus === "Y") badgesHTML += `<span class="badge badge-sub">구독+</span>`;
@@ -605,7 +610,6 @@
                         expandBtn.onclick = () => {
                             const hiddenCards = gridEl.querySelectorAll(".collapsed-hidden");
                             hiddenCards.forEach(c => {
-                                // 현재 태그 필터 상태에 어긋나지 않는 카드만 해제
                                 const activeTag = currentActiveTags[yearMonth];
                                 if (!activeTag) {
                                     c.classList.remove("collapsed-hidden");
@@ -648,7 +652,6 @@
             });
         }
 
-        // 태그 모달 열기
         function openTagModal(yearMonth, monthVods) {
             const modalOverlay = document.getElementById("tag-modal-overlay");
             const modalTitle = document.getElementById("modal-title-text");
@@ -658,7 +661,6 @@
             modalTitle.textContent = `${y}년 ${parseInt(m, 10)}월 태그 필터`;
             tagListContainer.innerHTML = "";
 
-            // 해당 월의 모든 고유 태그 수집
             const tagSet = new Set();
             monthVods.forEach(item => {
                 if (item.category) {
@@ -669,12 +671,13 @@
                 } else {
                     tagSet.add("기타");
                 }
+                if (item.adult === "Y") tagSet.add("19+");
+                if (item.subPlus === "Y") tagSet.add("구독+");
             });
 
             const uniqueTags = Array.from(tagSet);
             const activeTag = currentActiveTags[yearMonth];
 
-            // '전체 보기' 칩 생성
             const allChip = document.createElement("button");
             allChip.className = `modal-tag-chip ${!activeTag ? "active" : ""}`;
             allChip.textContent = "전체 보기";
@@ -684,7 +687,6 @@
             };
             tagListContainer.appendChild(allChip);
 
-            // 개별 태그 칩 생성
             uniqueTags.forEach(tag => {
                 const chip = document.createElement("button");
                 chip.className = `modal-tag-chip ${activeTag === tag ? "active" : ""}`;
@@ -699,7 +701,6 @@
             modalOverlay.classList.add("open");
         }
 
-        // 태그 모달 닫기
         function closeTagModal(event) {
             const modalOverlay = document.getElementById("tag-modal-overlay");
             if (!event || event.target === modalOverlay) {
@@ -707,7 +708,6 @@
             }
         }
 
-        // 태그 필터 적용 로직
         function applyTagFilter(yearMonth, selectedTag) {
             currentActiveTags[yearMonth] = selectedTag;
 
@@ -716,8 +716,6 @@
 
             const cards = section.querySelectorAll(".vod-card");
             const expandBtn = section.querySelector(".expand-btn");
-
-            let visibleCount = 0;
             const defaultVisibleCount = window.innerWidth <= 500 ? 6 : 5;
 
             cards.forEach((card, idx) => {
@@ -726,9 +724,7 @@
 
                 if (matches) {
                     card.classList.remove("tag-hidden");
-                    // 개수 제한 로직 적용
                     if (selectedTag) {
-                        // 특정 태그가 선택되면 더보기 버튼과 관계없이 일치하는 항목 전부 노출하거나 규칙 적용 가능
                         card.classList.remove("collapsed-hidden");
                     } else {
                         if (idx >= defaultVisibleCount) {
@@ -742,7 +738,6 @@
                 }
             });
 
-            // 필터 적용 시 더보기 버튼 숨기기/보이기 처리
             if (expandBtn) {
                 if (selectedTag) {
                     expandBtn.style.display = "none";
