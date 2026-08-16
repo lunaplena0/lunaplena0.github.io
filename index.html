@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>바다비 메인페이지</title>
+    <!-- 탭 아이콘(Favicon) 동적 변경을 위한 기본 link 태그 추가 -->
+    <link rel="icon" id="dynamic-favicon" href="">
     <!-- Noto Sans KR 폰트 불러오기 -->
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;900&display=swap" rel="stylesheet">
     <style>
@@ -149,6 +151,7 @@
             const navBar = document.getElementById('marine-nav-bar');
             const logoEl = document.getElementById('default-home-link');
             const navLinksContainer = document.getElementById('nav-links-container');
+            const faviconEl = document.getElementById('dynamic-favicon'); // 파비콘 엘리먼트 가져오기
 
             try {
                 const timestamp = new Date().getTime();
@@ -161,6 +164,12 @@
                 const data = await response.json();
 
                 if (data) {
+                    // 0. image 값을 브라우저 탭 아이콘(Favicon)으로 동적 적용 (캐시 방지 타임스탬프 포함)
+                    if (data.image) {
+                        const cacheBuster = data.image.includes('?') ? '&t=' : '?t=';
+                        faviconEl.href = data.image + cacheBuster + timestamp;
+                    }
+
                     // 1. 네비게이션 배경 색상 적용
                     if (data.navBgColor) {
                         navBar.style.background = data.navBgColor;
