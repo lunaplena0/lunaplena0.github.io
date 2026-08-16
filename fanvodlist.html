@@ -74,6 +74,12 @@
             align-items: center;
         }
 
+        .month-title-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
         .month-title {
             font-size: 20px;
             font-weight: 800;
@@ -81,6 +87,34 @@
             border-left: 5px solid #0077b6;
             padding-left: 10px;
             margin: 0;
+        }
+
+        /* 월별 태그 필터 오픈 버튼 */
+        .tag-filter-trigger-btn {
+            background-color: #ffffff;
+            border: 1px solid #cbd5e1;
+            color: #475569;
+            padding: 5px 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .tag-filter-trigger-btn:hover {
+            border-color: #0077b6;
+            color: #0077b6;
+            background-color: #f8fafc;
+        }
+
+        .tag-filter-trigger-btn svg {
+            width: 14px;
+            height: 14px;
+            fill: currentColor;
         }
 
         .vod-grid {
@@ -119,8 +153,11 @@
             box-shadow: 0 6px 20px rgba(0, 119, 182, 0.12);
         }
 
-        /* 기본 숨김 처리 제어를 위한 클래스 */
         .vod-card.collapsed-hidden {
+            display: none !important;
+        }
+
+        .vod-card.tag-hidden {
             display: none !important;
         }
 
@@ -263,6 +300,100 @@
             border-color: #94a3b8;
         }
 
+        /* 모달 팝업 스타일 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(0, 0, 0, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s ease, visibility 0.2s ease;
+        }
+
+        .modal-overlay.open {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background: #ffffff;
+            width: 90%;
+            max-width: 400px;
+            border-radius: 14px;
+            padding: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            transform: translateY(10px);
+            transition: transform 0.2s ease;
+        }
+
+        .modal-overlay.open .modal-content {
+            transform: translateY(0);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 10px;
+        }
+
+        .modal-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 0;
+        }
+
+        .modal-close-btn {
+            background: none;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            color: #64748b;
+        }
+
+        .modal-body {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            max-height: 250px;
+            overflow-y: auto;
+        }
+
+        .modal-tag-chip {
+            background-color: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            color: #475569;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .modal-tag-chip:hover {
+            border-color: #0077b6;
+            color: #0077b6;
+        }
+
+        .modal-tag-chip.active {
+            background-color: #0077b6;
+            border-color: #0077b6;
+            color: #ffffff;
+        }
+
         .full-width-message {
             text-align: center;
             color: #64748b;
@@ -298,17 +429,33 @@
         <p class="full-width-message">VOD 리스트를 불러오는 중...</p>
     </div>
 
+    <!-- 태그 필터 모달 팝업 구조 -->
+    <div class="modal-overlay" id="tag-modal-overlay" onclick="closeTagModal(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modal-title-text">태그 선택</h3>
+                <button class="modal-close-btn" onclick="closeTagModal()">×</button>
+            </div>
+            <div class="modal-body" id="modal-tag-list-container">
+                <!-- 동적으로 생성될 태그 칩들 -->
+            </div>
+        </div>
+    </div>
+
     <script>
         const WORKER_URL = "https://badabi-api.dalkkumli054.workers.dev/";
         const VOD_API_URL = WORKER_URL + "?type=fanvodlist";
 
         const CALENDAR_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zM9 14H7v-2h2v2zm4 0h-2v-2h2v2zm4 0h-2v-2h2v2zm-8 4H7v-2h2v2zm4 0h-2v-2h2v2zm4 0h-2v-2h2v2z"/></svg>`;
+        const FILTER_ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"/></svg>`;
+
+        // 각 월별 태그 상태 관리 객체 (Key: yearMonth, Value: 선택된 태그명 또는 null)
+        const currentActiveTags = {};
 
         async function loadVODs() {
             const container = document.getElementById("main-container");
             
             try {
-                // 불필요한 타임스탬프 제거 혹은 캐시 효율화 고려
                 const response = await fetch(VOD_API_URL);
                 if (!response.ok) throw new Error("VOD 정보를 불러오지 못했습니다.");
                 
@@ -375,19 +522,30 @@
                         section.style.display = "none";
                     }
 
+                    // 월별 헤더 구성 (타이틀 + 태그 필터 버튼)
+                    const headerEl = document.createElement("div");
+                    headerEl.className = "month-header";
+
+                    const titleWrapper = document.createElement("div");
+                    titleWrapper.className = "month-title-wrapper";
+
                     const titleEl = document.createElement("h2");
                     titleEl.className = "month-title";
                     titleEl.textContent = formattedMonthTitle;
-                    
-                    const headerEl = document.createElement("div");
-                    headerEl.className = "month-header";
-                    headerEl.appendChild(titleEl);
+                    titleWrapper.appendChild(titleEl);
+
+                    const tagTriggerBtn = document.createElement("button");
+                    tagTriggerBtn.className = "tag-filter-trigger-btn";
+                    tagTriggerBtn.innerHTML = `${FILTER_ICON_SVG}<span>태그 필터</span>`;
+                    tagTriggerBtn.onclick = () => openTagModal(yearMonth, monthVods);
+                    titleWrapper.appendChild(tagTriggerBtn);
+
+                    headerEl.appendChild(titleWrapper);
                     section.appendChild(headerEl);
 
                     const gridEl = document.createElement("div");
                     gridEl.className = "vod-grid";
 
-                    // DocumentFragment를 활용해 DOM 조작 횟수를 줄여 렌더링 성능 최적화
                     const fragment = document.createDocumentFragment();
 
                     monthVods.forEach((item, itemIdx) => {
@@ -397,24 +555,22 @@
                         card.target = "_blank";
                         card.rel = "noopener noreferrer";
 
+                        // 각 카드에 태그 데이터 부여 (필터링용)
+                        const itemCategories = item.category ? item.category.split(",").map(c => c.trim()).filter(Boolean) : ["기타"];
+                        card.dataset.tags = JSON.stringify(itemCategories);
+
                         if (itemIdx >= defaultVisibleCount) {
                             card.classList.add("collapsed-hidden");
                         }
 
-                        // 브라우저 기본 lazy 로딩 및 디코딩 속도 향상 속성 추가
                         const thumbHTML = item.thumbnail 
                             ? `<img src="${item.thumbnail}" alt="thumbnail" class="vod-thumb" loading="lazy" decoding="async">` 
                             : `<div class="no-thumb">No Image</div>`;
 
                         let badgesHTML = "";
-                        if (item.category) {
-                            const categories = item.category.split(",").map(cat => cat.trim()).filter(Boolean);
-                            categories.forEach(cat => {
-                                badgesHTML += `<span class="badge badge-category">${cat}</span>`;
-                            });
-                        } else {
-                            badgesHTML += `<span class="badge badge-category">기타</span>`;
-                        }
+                        itemCategories.forEach(cat => {
+                            badgesHTML += `<span class="badge badge-category">${cat}</span>`;
+                        });
 
                         if (item.adult === "Y") badgesHTML += `<span class="badge badge-adult">19+</span>`;
                         if (item.subPlus === "Y") badgesHTML += `<span class="badge badge-sub">구독+</span>`;
@@ -448,7 +604,18 @@
                         expandBtn.textContent = `더보기 (${monthVods.length - defaultVisibleCount}개 더 있음)`;
                         expandBtn.onclick = () => {
                             const hiddenCards = gridEl.querySelectorAll(".collapsed-hidden");
-                            hiddenCards.forEach(c => c.classList.remove("collapsed-hidden"));
+                            hiddenCards.forEach(c => {
+                                // 현재 태그 필터 상태에 어긋나지 않는 카드만 해제
+                                const activeTag = currentActiveTags[yearMonth];
+                                if (!activeTag) {
+                                    c.classList.remove("collapsed-hidden");
+                                } else {
+                                    const tags = JSON.parse(c.dataset.tags || "[]");
+                                    if (tags.includes(activeTag)) {
+                                        c.classList.remove("collapsed-hidden");
+                                    }
+                                }
+                            });
                             expandBtn.style.display = "none";
                         };
                         section.appendChild(expandBtn);
@@ -479,6 +646,110 @@
                     section.style.display = "none";
                 }
             });
+        }
+
+        // 태그 모달 열기
+        function openTagModal(yearMonth, monthVods) {
+            const modalOverlay = document.getElementById("tag-modal-overlay");
+            const modalTitle = document.getElementById("modal-title-text");
+            const tagListContainer = document.getElementById("modal-tag-list-container");
+
+            const [y, m] = yearMonth.split("-");
+            modalTitle.textContent = `${y}년 ${parseInt(m, 10)}월 태그 필터`;
+            tagListContainer.innerHTML = "";
+
+            // 해당 월의 모든 고유 태그 수집
+            const tagSet = new Set();
+            monthVods.forEach(item => {
+                if (item.category) {
+                    item.category.split(",").forEach(cat => {
+                        const trimmed = cat.trim();
+                        if (trimmed) tagSet.add(trimmed);
+                    });
+                } else {
+                    tagSet.add("기타");
+                }
+            });
+
+            const uniqueTags = Array.from(tagSet);
+            const activeTag = currentActiveTags[yearMonth];
+
+            // '전체 보기' 칩 생성
+            const allChip = document.createElement("button");
+            allChip.className = `modal-tag-chip ${!activeTag ? "active" : ""}`;
+            allChip.textContent = "전체 보기";
+            allChip.onclick = () => {
+                applyTagFilter(yearMonth, null);
+                closeTagModal();
+            };
+            tagListContainer.appendChild(allChip);
+
+            // 개별 태그 칩 생성
+            uniqueTags.forEach(tag => {
+                const chip = document.createElement("button");
+                chip.className = `modal-tag-chip ${activeTag === tag ? "active" : ""}`;
+                chip.textContent = tag;
+                chip.onclick = () => {
+                    applyTagFilter(yearMonth, tag);
+                    closeTagModal();
+                };
+                tagListContainer.appendChild(chip);
+            });
+
+            modalOverlay.classList.add("open");
+        }
+
+        // 태그 모달 닫기
+        function closeTagModal(event) {
+            const modalOverlay = document.getElementById("tag-modal-overlay");
+            if (!event || event.target === modalOverlay) {
+                modalOverlay.classList.remove("open");
+            }
+        }
+
+        // 태그 필터 적용 로직
+        function applyTagFilter(yearMonth, selectedTag) {
+            currentActiveTags[yearMonth] = selectedTag;
+
+            const section = document.querySelector(`.month-section[data-section-month="${yearMonth}"]`);
+            if (!section) return;
+
+            const cards = section.querySelectorAll(".vod-card");
+            const expandBtn = section.querySelector(".expand-btn");
+
+            let visibleCount = 0;
+            const defaultVisibleCount = window.innerWidth <= 500 ? 6 : 5;
+
+            cards.forEach((card, idx) => {
+                const tags = JSON.parse(card.dataset.tags || "[]");
+                const matches = !selectedTag || tags.includes(selectedTag);
+
+                if (matches) {
+                    card.classList.remove("tag-hidden");
+                    // 개수 제한 로직 적용
+                    if (selectedTag) {
+                        // 특정 태그가 선택되면 더보기 버튼과 관계없이 일치하는 항목 전부 노출하거나 규칙 적용 가능
+                        card.classList.remove("collapsed-hidden");
+                    } else {
+                        if (idx >= defaultVisibleCount) {
+                            card.classList.add("collapsed-hidden");
+                        } else {
+                            card.classList.remove("collapsed-hidden");
+                        }
+                    }
+                } else {
+                    card.classList.add("tag-hidden");
+                }
+            });
+
+            // 필터 적용 시 더보기 버튼 숨기기/보이기 처리
+            if (expandBtn) {
+                if (selectedTag) {
+                    expandBtn.style.display = "none";
+                } else {
+                    expandBtn.style.display = "block";
+                }
+            }
         }
 
         loadVODs();
