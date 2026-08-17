@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>바다비 톡</title>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: #f4f7f9;
+            overflow: hidden; /* 전체 페이지 스크롤 방지 */
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .ocean-profile-container {
+            position: relative;
+            width: 100%;
+            max-width: 520px;
+            height: 100vh;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            padding: 12px 16px;
+            box-sizing: border-box;
+            background: transparent;
+        }
+
+        .profile-info-card {
+            position: relative;
+            z-index: 2;
+            background: transparent;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+
+        @keyframes fadeUpIn {
+            0% {
+                opacity: 0;
+                transform: translateY(15px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .hidden-auth {
+            display: none !important;
+        }
+
+        /* 상단 헤더 영역 */
+        .talk-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0 10px 16px;
+            border-bottom: 1px solid rgba(0, 119, 190, 0.15);
+            position: relative;
+            opacity: 0;
+            animation: fadeUpIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            cursor: pointer;
+            user-select: none;
+            flex-shrink: 0;
+        }
+
+        .talk-header::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 4px;
+            height: 20px;
+            background-color: #0077b6;
+            border-radius: 3px;
+        }
+
+        .talk-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #0077b6;
+            margin: 0;
+        }
+
+        /* 날짜 구분선 스타일 */
+        .date-divider {
+            width: 100%;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 600;
+            color: #0077b6;
+            padding: 10px 0 4px 0;
+            border-bottom: 1px solid rgba(0, 119, 190, 0.2);
+            margin: 4px 0;
+            box-sizing: border-box;
+            opacity: 0;
+            animation: fadeUpIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        /* 채팅(메시지 목록) 영역 - 남은 공간을 무조건 끝까지 채우도록 설정 */
+        .talk-chat-grid {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            flex: 1; /* 남은 전체 공간을 꽉 채움 */
+            min-height: 0; /* flex 내부 스크롤 정상 작동을 위한 필수 설정 */
+            overflow-y: auto;
+            padding: 5px 0;
+            box-sizing: border-box;
+        }
+
+        .chat-row {
+            position: relative;
+            width: 100%;
+            box-sizing: border-box;
+            opacity: 0;
+            animation: fadeUpIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .chat-item {
+            background: transparent;
+            border: none;
+            border-radius: 0;
+            border-bottom: 1px solid rgba(0, 119, 190, 0.15);
+            padding: 10px 0 10px 16px;
+            font-size: 16px;
+            color: #1e293b;
+            text-align: left;
+            width: 100%;
+            box-sizing: border-box;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .chat-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 14px;
+            width: 4px;
+            height: 16px;
+            background-color: #0077b6;
+            border-radius: 3px;
+        }
+
+        .chat-text {
+            word-break: break-all;
+            line-height: 1.4;
+        }
+
+        .chat-time {
+            font-size: 11px;
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        /* 하단 입력 폼 영역 */
+        .talk-input-section {
+            width: 100%;
+            display: none;
+            flex-direction: column;
+            gap: 12px;
+            padding-top: 5px;
+            flex-shrink: 0; /* 크기가 찌그러지지 않도록 고정 */
+            opacity: 0;
+            animation: fadeUpIn 0.6s 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .talk-input-section.active-input {
+            display: flex;
+        }
+
+        .input-wrapper {
+            display: flex;
+            border-bottom: 2px solid rgba(0, 119, 190, 0.2);
+            padding-bottom: 6px;
+            transition: border-color 0.2s;
+        }
+
+        .input-wrapper:focus-within {
+            border-bottom-color: #03045e;
+        }
+
+        .talk-textarea {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            padding: 6px 8px;
+            font-size: 16px;
+            font-family: inherit;
+            color: #03045e;
+            resize: none;
+            height: 30px;
+            line-height: 1.4;
+        }
+
+        .talk-textarea::placeholder {
+            color: #94a3b8;
+        }
+
+        .talk-send-btn {
+            background: transparent;
+            border: none;
+            color: #0077b6;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            padding: 6px 10px;
+            transition: color 0.2s;
+        }
+
+        .talk-send-btn:hover {
+            color: #03045e;
+        }
+
+        /* 패스워드 입력 모달창 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(3, 4, 94, 0.4);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-box {
+            background: #ffffff;
+            width: 90%;
+            max-width: 360px;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            box-sizing: border-box;
+            transform: translateY(20px);
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .modal-overlay.active .modal-box {
+            transform: translateY(0);
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #03045e;
+            margin: 0;
+        }
+
+        .modal-input {
+            padding: 12px 16px;
+            border: 1px solid rgba(0, 119, 190, 0.3);
+            border-radius: 8px;
+            font-size: 15px;
+            outline: none;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+
+        .modal-btn {
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+        }
+
+        .modal-btn.cancel {
+            background-color: #e2e8f0;
+            color: #475569;
+        }
+
+        .modal-btn.submit {
+            background-color: #0077b6;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="ocean-profile-container">
+        <div class="profile-info-card">
+            
+            <!-- 상단 헤더 -->
+            <div class="talk-header" onclick="openAuthModal()">
+                <h1 class="talk-title">바다비 톡</h1>
+                <button class="auth-status-btn hidden-auth" id="authBtn">🔒 권한 인증</button>
+            </div>
+
+            <!-- 채팅(메시지 목록) 영역 -->
+            <div class="talk-chat-grid" id="chatGrid">
+            </div>
+
+            <!-- 하단 입력 영역 -->
+            <div class="talk-input-section" id="inputSection">
+                <div class="input-wrapper">
+                    <textarea class="talk-textarea" id="chatInput" placeholder="입력 가능합니다..."></textarea>
+                    <button class="talk-send-btn" id="sendBtn" onclick="sendMessage()">전송</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- 패스워드 입력 모달 -->
+    <div class="modal-overlay" id="authModal">
+        <div class="modal-box">
+            <h3 class="modal-title">🔐 패스워드 인증</h3>
+            <p style="font-size: 14px; color: #64748b; margin: 0;">작성 권한 패스워드를 입력하세요.</p>
+            <input type="password" class="modal-input" id="passwordInput" placeholder="패스워드 입력">
+            <div class="modal-buttons">
+                <button class="modal-btn cancel" onclick="closeAuthModal()">취소</button>
+                <button class="modal-btn submit" onclick="verifyPassword()">확인</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const WORKER_URL = "https://badabi-api.dalkkumli054.workers.dev/";
+
+        let isAuthenticated = localStorage.getItem("badabi_auth") === "true";
+        let lastAppendedDate = "";
+
+        const chatInput = document.getElementById("chatInput");
+        const inputSection = document.getElementById("inputSection");
+        const authModal = document.getElementById("authModal");
+        const passwordInput = document.getElementById("passwordInput");
+        const chatGrid = document.getElementById("chatGrid");
+
+        window.addEventListener("DOMContentLoaded", () => {
+            if (isAuthenticated) {
+                inputSection.classList.add("active-input");
+            }
+            loadMessages();
+            setInterval(loadMessages, 3000);
+        });
+
+        async function loadMessages() {
+            try {
+                const response = await fetch(`${WORKER_URL}?fileType=talk&t=${Date.now()}`);
+                if (!response.ok) return;
+                const data = await response.json();
+                
+                const isAtBottom = chatGrid.scrollHeight - chatGrid.scrollTop <= chatGrid.clientHeight + 50;
+
+                renderMessages(data);
+
+                if (isAtBottom) {
+                    chatGrid.scrollTop = chatGrid.scrollHeight;
+                }
+            } catch (err) {
+                console.error("메시지 동기화 실패:", err);
+            }
+        }
+
+        function renderMessages(messages) {
+            chatGrid.innerHTML = "";
+            lastAppendedDate = "";
+
+            if (!Array.isArray(messages) || messages.length === 0) {
+                const emptyDiv = document.createElement("div");
+                emptyDiv.style.cssText = "flex: 1; display: flex; align-items: center; justify-content: center; color: #94a3b8; font-size: 14px; text-align: center; padding: 20px;";
+                emptyDiv.textContent = "아직 등록된 대화가 없습니다.";
+                chatGrid.appendChild(emptyDiv);
+                return;
+            }
+
+            messages.forEach(msg => {
+                const dateStr = msg.date;
+                const timeStr = msg.time || "";
+                const text = msg.message || "";
+
+                if (dateStr !== lastAppendedDate) {
+                    lastAppendedDate = dateStr;
+                    const dateDivider = document.createElement("div");
+                    dateDivider.className = "date-divider";
+                    dateDivider.textContent = dateStr;
+                    chatGrid.appendChild(dateDivider);
+                }
+
+                const row = document.createElement("div");
+                row.className = "chat-row";
+                row.style.animation = "none";
+                row.innerHTML = `
+                    <div class="chat-item">
+                        <div class="chat-text">${escapeHtml(text)}</div>
+                        <div class="chat-time">${timeStr}</div>
+                    </div>
+                `;
+                chatGrid.appendChild(row);
+            });
+        }
+
+        function openAuthModal() {
+            if (isAuthenticated) {
+                if (confirm("로그인 상태입니다. 인증을 해제(로그아웃)하시겠습니까?")) {
+                    isAuthenticated = false;
+                    localStorage.removeItem("badabi_auth");
+                    updateAuthUI();
+                    alert("인증이 해제되었습니다.");
+                }
+                return;
+            }
+            authModal.classList.add("active");
+            passwordInput.value = "";
+            passwordInput.focus();
+        }
+
+        function closeAuthModal() {
+            authModal.classList.remove("active");
+        }
+
+        async function verifyPassword() {
+            const password = passwordInput.value;
+            if (!password) {
+                alert("패스워드를 입력해주세요.");
+                return;
+            }
+
+            try {
+                const authResponse = await fetch(WORKER_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ 
+                        password: password, 
+                        action: "verify",
+                        fileType: "verify" 
+                    })
+                });
+
+                if (!authResponse.ok) {
+                    throw new Error("인증 실패");
+                }
+
+                isAuthenticated = true;
+                localStorage.setItem("badabi_auth", "true");
+                closeAuthModal();
+                updateAuthUI();
+                alert("인증되었습니다.");
+
+            } catch (error) {
+                alert("패스워드가 일치하지 않습니다.");
+                passwordInput.value = "";
+                passwordInput.focus();
+            }
+        }
+
+        function updateAuthUI() {
+            if (isAuthenticated) {
+                inputSection.classList.add("active-input");
+                chatInput.focus();
+            } else {
+                inputSection.classList.remove("active-input");
+                chatInput.value = "";
+            }
+        }
+
+        async function sendMessage() {
+            const text = chatInput.value.trim();
+            if (!text || !isAuthenticated) return;
+
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const dateStr = `${year}-${month}-${day}`;
+
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const timeStr = `${hours}:${minutes}`;
+
+            chatInput.value = "";
+
+            try {
+                await fetch(WORKER_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        action: "save",
+                        fileType: "talk",
+                        message: text,
+                        date: dateStr,
+                        time: timeStr
+                    })
+                });
+                
+                loadMessages();
+            } catch (err) {
+                console.error("메시지 저장 실패:", err);
+            }
+        }
+
+        function escapeHtml(str) {
+            return (str || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        }
+
+        chatInput.addEventListener("keydown", (e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        passwordInput.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") {
+                verifyPassword();
+            }
+        });
+    </script>
+</body>
+</html>
