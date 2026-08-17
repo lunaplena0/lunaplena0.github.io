@@ -493,7 +493,7 @@
             const text = chatInput.value.trim();
             if (!text || !isAuthenticated) return;
 
-            // 🔑 저장된 비밀번호를 가져옴
+            // 🔑 저장된 패스워드 가져오기
             const password = localStorage.getItem("badabi_pw") || "";
 
             const now = new Date();
@@ -509,26 +509,41 @@
             chatInput.value = "";
 
             try {
+                // 1. 서버에서 기존 talk 데이터를 먼저 불러옴 (누적 저장을 위해 필수)
+                const getResponse = await fetch(`${WORKER_URL}?type=talk&t=${Date.now()}`);
+                let existingData = await getResponse.ok ? await getResponse.json() : [];
+                
+                // 만약 기존 데이터가 배열 형식이 아니라면 빈 배열로 초기화
+                let messagesList = Array.isArray(existingData) ? existingData : [];
+
+                // 2. 새 메시지 객체를 기존 배열에 추가
+                messagesList.push({
+                    message: text,
+                    date: dateStr,
+                    time: timeStr
+                });
+
+                // 3. 서버가 요구하는 `content` 구조에 맞춰 전체 배열을 통째로 전송
                 const response = await fetch(WORKER_URL, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
-                        password: password, // 🔑 서버 전송 시 비밀번호 포함
+                        password: password,
                         action: "save",
                         fileType: "talk",
-                        message: text,
-                        date: dateStr,
-                        time: timeStr
+                        content: messagesList // 👈 서버가 기대하는 content 객체(또는 배열)에 담아서 전송
                     })
                 });
 
                 if (!response.ok) {
-                    throw new Error("메시지 저장 실패");
+                    const errRes = await response.json().catch(() => ({}));
+                    throw new Error(errRes.error || "메시지 저장 실패");
                 }
                 
                 loadMessages();
             } catch (err) {
                 console.error("메시지 저장 실패:", err);
+                alert("메시지 저장에 실패했습니다: " + err.message);
             }
         }
 
