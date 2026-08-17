@@ -988,11 +988,12 @@
 
         function populateFilterOptions() {
             const monthSet = new Set();
-            const genreSet = new Set();
+            const genreCounts = {};
 
             allSongs.forEach(song => {
                 if (song.genre) {
-                    genreSet.add(song.genre.trim());
+                    const g = song.genre.trim();
+                    genreCounts[g] = (genreCounts[g] || 0) + 1;
                 }
                 if (song.dateTimes) {
                     song.dateTimes.forEach(dt => {
@@ -1024,13 +1025,21 @@
                 dateSelect.appendChild(opt);
             });
 
-            const sortedGenres = Array.from(genreSet).sort((a, b) => a.localeCompare(b, 'ko'));
+            const sortedGenres = Object.keys(genreCounts).sort((a, b) => {
+                const countA = genreCounts[a];
+                const countB = genreCounts[b];
+                if (countB !== countA) {
+                    return countB - countA; // 개수가 많은 순서대로
+                }
+                return a.localeCompare(b, 'ko'); // 개수가 같으면 가나다순
+            });
+
             const genreSelect = document.getElementById("genreFilterSelect");
             genreSelect.innerHTML = '<option value="all">모든 장르</option>';
             sortedGenres.forEach(genre => {
                 const opt = document.createElement("option");
                 opt.value = genre;
-                opt.textContent = genre;
+                opt.textContent = `${genre} (${genreCounts[genre]}곡)`;
                 genreSelect.appendChild(opt);
             });
         }
