@@ -125,7 +125,6 @@
             transition: stroke 0.2s;
         }
 
-        /* 활성화된 필터 버튼 표시용 스타일 */
         .header-action-btn.filtered {
             background-color: #e0f2fe;
             border-color: #0ea5e9;
@@ -556,7 +555,6 @@
             color: #0f172a;
         }
 
-        /* 상세 통계 모달용 추가 스타일 (기존 유지) */
         .stat-item {
             display: flex;
             flex-direction: column;
@@ -724,7 +722,6 @@
                 <div id="statsSummary" class="stats-summary">통계 데이터 계산 중...</div>
             </div>
             <div class="header-btn-group">
-                <!-- 필터 팝업 열기 버튼 -->
                 <button id="filterOpenBtn" class="header-action-btn" onclick="toggleFilterModal(true)">
                     <svg class="btn-icon-svg" viewBox="0 0 24 24">
                         <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
@@ -732,7 +729,6 @@
                     필터
                 </button>
 
-                <!-- 상세 통계 버튼 -->
                 <button class="header-action-btn" onclick="toggleStatsModal(true)">
                     <svg class="btn-icon-svg" viewBox="0 0 24 24">
                         <path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path>
@@ -774,7 +770,7 @@
             </div>
             <div class="modal-body">
                 <div class="filter-group">
-                    <label class="filter-label" for="dateFilterSelect">날짜 선택</label>
+                    <label class="filter-label" for="dateFilterSelect">날짜 선택 (월별 그룹)</label>
                     <select id="dateFilterSelect" class="filter-select">
                         <option value="all">모든 날짜</option>
                     </select>
@@ -887,7 +883,6 @@
         let unregistered = [];
         let vodMap = {};
 
-        // 현재 적용된 필터 상태값 저장용
         let currentActiveFilters = {
             date: 'all',
             genre: 'all'
@@ -906,7 +901,6 @@
         function toggleFilterModal(isOpen) {
             const modal = document.getElementById("filterModal");
             if (isOpen) {
-                // 모달을 열 때 현재 적용된 값으로 셀렉트박스 동기화
                 document.getElementById("dateFilterSelect").value = currentActiveFilters.date;
                 document.getElementById("genreFilterSelect").value = currentActiveFilters.genre;
                 modal.classList.add("active");
@@ -993,7 +987,7 @@
         }
 
         function populateFilterOptions() {
-            const dateSet = new Set();
+            const monthSet = new Set();
             const genreSet = new Set();
 
             allSongs.forEach(song => {
@@ -1004,19 +998,34 @@
                     song.dateTimes.forEach(dt => {
                         if (dt.date) {
                             const cleanDate = dt.date.replace(/\(.*?\)/g, "").trim();
-                            dateSet.add(cleanDate);
+                            // "YYYY.MM" 형태로 연도-월 추출 (예: 2026.04)
+                            const parts = cleanDate.split(/[\.-]/);
+                            if (parts.length >= 2) {
+                                const yearMonth = `${parts[0]}.${parts[1].padStart(2, '0')}`;
+                                monthSet.add(yearMonth);
+                            } else {
+                                monthSet.add(cleanDate);
+                            }
                         }
                     });
                 }
             });
 
-            const sortedDates = Array.from(dateSet).sort((a, b) => new Date(b) - new Date(a));
+            // 연도-월 기준 최신순 정렬
+            const sortedMonths = Array.from(monthSet).sort((a, b) => b.localeCompare(a));
             const dateSelect = document.getElementById("dateFilterSelect");
-            dateSelect.innerHTML = '<option value="all">모든 날짜</option>';
-            sortedDates.forEach(date => {
+            dateSelect.innerHTML = '<option value="all">모든 날짜 (전체보기)</option>';
+            
+            sortedMonths.forEach(ym => {
                 const opt = document.createElement("option");
-                opt.value = date;
-                opt.textContent = date;
+                opt.value = ym; // 예: "2026.04"
+                // 사용자에게 보기 편하도록 "2026년 04월" 형식으로 표시
+                if (ym.includes('.')) {
+                    const [y, m] = ym.split('.');
+                    opt.textContent = `${y}년 ${m}월`;
+                } else {
+                    opt.textContent = ym;
+                }
                 dateSelect.appendChild(opt);
             });
 
@@ -1035,7 +1044,6 @@
             currentActiveFilters.date = document.getElementById("dateFilterSelect").value;
             currentActiveFilters.genre = document.getElementById("genreFilterSelect").value;
 
-            // 필터 적용 상태에 따라 버튼 디자인 변경
             const filterBtn = document.getElementById("filterOpenBtn");
             if (currentActiveFilters.date !== 'all' || currentActiveFilters.genre !== 'all') {
                 filterBtn.classList.add("filtered");
@@ -1311,7 +1319,7 @@
 
         function updateFilteredAndSorted() {
             const keyword = document.getElementById("searchInput").value.toLowerCase().trim();
-            const selectedDate = currentActiveFilters.date;
+            const selectedYM = currentActiveFilters.date; // 예: "2026.04" 또는 "all"
             const selectedGenre = currentActiveFilters.genre;
 
             filteredSongs = allSongs.filter(song => {
@@ -1323,10 +1331,11 @@
                 const matchesGenre = (selectedGenre === 'all') || (genre === selectedGenre);
 
                 let matchesDate = true;
-                if (selectedDate !== 'all') {
+                if (selectedYM !== 'all') {
                     matchesDate = song.dateTimes && song.dateTimes.some(dt => {
                         const cleanDate = dt.date.replace(/\(.*?\)/g, "").trim();
-                        return cleanDate === selectedDate;
+                        // 해당 월(YYYY.MM)이 포함되는지 확인
+                        return cleanDate.startsWith(selectedYM);
                     });
                 }
 
