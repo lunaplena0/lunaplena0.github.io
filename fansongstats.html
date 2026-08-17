@@ -86,7 +86,7 @@
             justify-content: flex-end;
         }
 
-        .header-action-btn, .filter-select {
+        .header-action-btn {
             background-color: #ffffff;
             border: 1px solid #cbd5e1;
             color: #0369a1;
@@ -104,18 +104,8 @@
             outline: none;
         }
 
-        .filter-select {
-            color: #475569;
-            font-weight: 600;
-        }
-
-        .header-action-btn:hover, .filter-select:hover {
+        .header-action-btn:hover {
             background-color: #f8fafc;
-            border-color: #0ea5e9;
-            box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
-        }
-
-        .filter-select:focus {
             border-color: #0ea5e9;
             box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
         }
@@ -133,6 +123,16 @@
             stroke-linejoin: round;
             fill: none;
             transition: stroke 0.2s;
+        }
+
+        /* 활성화된 필터 버튼 표시용 스타일 */
+        .header-action-btn.filtered {
+            background-color: #e0f2fe;
+            border-color: #0ea5e9;
+            color: #0284c7;
+        }
+        .header-action-btn.filtered .btn-icon-svg {
+            stroke: #0284c7;
         }
 
         .search-container {
@@ -414,7 +414,7 @@
             border: 1px solid #e2e8f0;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
             width: 100%;
-            max-width: 640px;
+            max-width: 500px;
             max-height: calc(100dvh - 40px);
             padding: 20px;
             box-sizing: border-box;
@@ -476,9 +476,87 @@
         .modal-body {
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 16px;
         }
 
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .filter-label {
+            font-size: 13.5px;
+            font-weight: 700;
+            color: #334155;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .filter-select {
+            width: 100%;
+            background-color: #ffffff;
+            border: 1px solid #cbd5e1;
+            color: #0f172a;
+            padding: 10px 12px;
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            outline: none;
+            box-sizing: border-box;
+        }
+
+        .filter-select:hover {
+            border-color: #0ea5e9;
+        }
+
+        .filter-select:focus {
+            border-color: #0ea5e9;
+            box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
+        }
+
+        .filter-footer {
+            display: flex;
+            gap: 8px;
+            margin-top: 4px;
+        }
+
+        .filter-btn-apply {
+            flex: 1;
+            background-color: #0ea5e9;
+            color: #ffffff;
+            border: none;
+            padding: 10px;
+            font-size: 14px;
+            font-weight: 700;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .filter-btn-apply:hover {
+            background-color: #0284c7;
+        }
+
+        .filter-btn-reset {
+            background-color: #f1f5f9;
+            color: #64748b;
+            border: 1px solid #cbd5e1;
+            padding: 10px 16px;
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .filter-btn-reset:hover {
+            background-color: #e2e8f0;
+            color: #0f172a;
+        }
+
+        /* 상세 통계 모달용 추가 스타일 (기존 유지) */
         .stat-item {
             display: flex;
             flex-direction: column;
@@ -646,17 +724,16 @@
                 <div id="statsSummary" class="stats-summary">통계 데이터 계산 중...</div>
             </div>
             <div class="header-btn-group">
-                <!-- 날짜 필터 선택 드롭다운 -->
-                <select id="dateFilter" class="filter-select" onchange="onFilterChange()">
-                    <option value="all">모든 날짜</option>
-                </select>
+                <!-- 필터 팝업 열기 버튼 -->
+                <button id="filterOpenBtn" class="header-action-btn" onclick="toggleFilterModal(true)">
+                    <svg class="btn-icon-svg" viewBox="0 0 24 24">
+                        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                    </svg>
+                    필터
+                </button>
 
-                <!-- 장르 필터 선택 드롭다운 -->
-                <select id="genreFilter" class="filter-select" onchange="onFilterChange()">
-                    <option value="all">모든 장르</option>
-                </select>
-
-                <button class="header-action-btn" onclick="toggleModal(true)">
+                <!-- 상세 통계 버튼 -->
+                <button class="header-action-btn" onclick="toggleStatsModal(true)">
                     <svg class="btn-icon-svg" viewBox="0 0 24 24">
                         <path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path>
                         <path d="M22 12A10 10 0 0 0 12 2v10z"></path>
@@ -683,8 +760,41 @@
         </div>
     </div>
 
+    <!-- 필터 선택 모달 팝업 -->
+    <div id="filterModal" class="modal-overlay" onclick="handleOutsideClick(event, 'filterModal')">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3 class="modal-title">
+                    <svg class="modal-title-svg" viewBox="0 0 24 24">
+                        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                    </svg>
+                    노래 목록 필터
+                </h3>
+                <button class="modal-close-btn" onclick="toggleFilterModal(false)">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="filter-group">
+                    <label class="filter-label" for="dateFilterSelect">날짜 선택</label>
+                    <select id="dateFilterSelect" class="filter-select">
+                        <option value="all">모든 날짜</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label" for="genreFilterSelect">장르 선택</label>
+                    <select id="genreFilterSelect" class="filter-select">
+                        <option value="all">모든 장르</option>
+                    </select>
+                </div>
+                <div class="filter-footer">
+                    <button class="filter-btn-reset" onclick="resetFilters()">초기화</button>
+                    <button class="filter-btn-apply" onclick="applyFilters()">적용하기</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- 상세 통계 팝업 모달 -->
-    <div id="statsModal" class="modal-overlay" onclick="handleModalClick(event)">
+    <div id="statsModal" class="modal-overlay" onclick="handleOutsideClick(event, 'statsModal')">
         <div class="modal-box">
             <div class="modal-header">
                 <h3 class="modal-title">
@@ -694,7 +804,7 @@
                     </svg>
                     바다비 노래 통계 요약
                 </h3>
-                <button class="modal-close-btn" onclick="toggleModal(false)">✕</button>
+                <button class="modal-close-btn" onclick="toggleStatsModal(false)">✕</button>
             </div>
             <div class="modal-body">
                 <div class="stat-item">
@@ -777,6 +887,12 @@
         let unregistered = [];
         let vodMap = {};
 
+        // 현재 적용된 필터 상태값 저장용
+        let currentActiveFilters = {
+            date: 'all',
+            genre: 'all'
+        };
+
         function timeToSeconds(timeStr) {
             if (!timeStr) return 0;
             const parts = timeStr.split(":").map(Number);
@@ -787,7 +903,19 @@
 
         function toggleSongCard(cardElement) { cardElement.classList.toggle("expanded"); }
 
-        function toggleModal(isOpen) {
+        function toggleFilterModal(isOpen) {
+            const modal = document.getElementById("filterModal");
+            if (isOpen) {
+                // 모달을 열 때 현재 적용된 값으로 셀렉트박스 동기화
+                document.getElementById("dateFilterSelect").value = currentActiveFilters.date;
+                document.getElementById("genreFilterSelect").value = currentActiveFilters.genre;
+                modal.classList.add("active");
+            } else {
+                modal.classList.remove("active");
+            }
+        }
+
+        function toggleStatsModal(isOpen) {
             const modal = document.getElementById("statsModal");
             if (isOpen) {
                 modal.classList.add("active");
@@ -796,15 +924,16 @@
             }
         }
 
-        function handleModalClick(event) {
-            if (event.target === document.getElementById("statsModal")) {
-                toggleModal(false);
+        function handleOutsideClick(event, modalId) {
+            if (event.target === document.getElementById(modalId)) {
+                if (modalId === 'filterModal') toggleFilterModal(false);
+                if (modalId === 'statsModal') toggleStatsModal(false);
             }
         }
 
         function searchByKeyword(keyword) {
             document.getElementById("searchInput").value = keyword;
-            toggleModal(false);
+            toggleStatsModal(false);
             updateFilteredAndSorted();
             renderList();
         }
@@ -875,34 +1004,61 @@
                     song.dateTimes.forEach(dt => {
                         if (dt.date) {
                             const cleanDate = dt.date.replace(/\(.*?\)/g, "").trim();
-                            // 예: YYYY-MM-DD 형태에서 연도-월 단위나 날짜 전체 추출 가능 (여기서는 날짜 전체 혹은 YYYY-MM 추출)
                             dateSet.add(cleanDate);
                         }
                     });
                 }
             });
 
-            // 날짜 정렬 (최신순)
             const sortedDates = Array.from(dateSet).sort((a, b) => new Date(b) - new Date(a));
-            const dateFilterSelect = document.getElementById("dateFilter");
-            dateFilterSelect.innerHTML = '<option value="all">모든 날짜</option>';
+            const dateSelect = document.getElementById("dateFilterSelect");
+            dateSelect.innerHTML = '<option value="all">모든 날짜</option>';
             sortedDates.forEach(date => {
                 const opt = document.createElement("option");
                 opt.value = date;
                 opt.textContent = date;
-                dateFilterSelect.appendChild(opt);
+                dateSelect.appendChild(opt);
             });
 
-            // 장르 정렬 (가나다순)
             const sortedGenres = Array.from(genreSet).sort((a, b) => a.localeCompare(b, 'ko'));
-            const genreFilterSelect = document.getElementById("genreFilter");
-            genreFilterSelect.innerHTML = '<option value="all">모든 장르</option>';
+            const genreSelect = document.getElementById("genreFilterSelect");
+            genreSelect.innerHTML = '<option value="all">모든 장르</option>';
             sortedGenres.forEach(genre => {
                 const opt = document.createElement("option");
                 opt.value = genre;
                 opt.textContent = genre;
-                genreFilterSelect.appendChild(opt);
+                genreSelect.appendChild(opt);
             });
+        }
+
+        function applyFilters() {
+            currentActiveFilters.date = document.getElementById("dateFilterSelect").value;
+            currentActiveFilters.genre = document.getElementById("genreFilterSelect").value;
+
+            // 필터 적용 상태에 따라 버튼 디자인 변경
+            const filterBtn = document.getElementById("filterOpenBtn");
+            if (currentActiveFilters.date !== 'all' || currentActiveFilters.genre !== 'all') {
+                filterBtn.classList.add("filtered");
+            } else {
+                filterBtn.classList.remove("filtered");
+            }
+
+            toggleFilterModal(false);
+            updateFilteredAndSorted();
+            renderList();
+        }
+
+        function resetFilters() {
+            document.getElementById("dateFilterSelect").value = 'all';
+            document.getElementById("genreFilterSelect").value = 'all';
+            currentActiveFilters.date = 'all';
+            currentActiveFilters.genre = 'all';
+            
+            document.getElementById("filterOpenBtn").classList.remove("filtered");
+
+            toggleFilterModal(false);
+            updateFilteredAndSorted();
+            renderList();
         }
 
         function calculateStats(registered, unregistered) {
@@ -1155,21 +1311,17 @@
 
         function updateFilteredAndSorted() {
             const keyword = document.getElementById("searchInput").value.toLowerCase().trim();
-            const selectedDate = document.getElementById("dateFilter").value;
-            const selectedGenre = document.getElementById("genreFilter").value;
+            const selectedDate = currentActiveFilters.date;
+            const selectedGenre = currentActiveFilters.genre;
 
             filteredSongs = allSongs.filter(song => {
                 const title = song.title || '';
                 const artist = song.artist || '';
                 const genre = song.genre ? song.genre.trim() : '미분류';
 
-                // 검색어 조건
                 const matchesKeyword = title.toLowerCase().includes(keyword) || artist.toLowerCase().includes(keyword);
-                
-                // 장르 조건
                 const matchesGenre = (selectedGenre === 'all') || (genre === selectedGenre);
 
-                // 날짜 조건
                 let matchesDate = true;
                 if (selectedDate !== 'all') {
                     matchesDate = song.dateTimes && song.dateTimes.some(dt => {
@@ -1282,11 +1434,6 @@
         function triggerSearch() { 
             updateFilteredAndSorted(); 
             renderList(); 
-        }
-
-        function onFilterChange() {
-            updateFilteredAndSorted();
-            renderList();
         }
 
         loadData();
