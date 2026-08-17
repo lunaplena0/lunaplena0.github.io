@@ -428,6 +428,7 @@
                 if (confirm("로그인 상태입니다. 인증을 해제(로그아웃)하시겠습니까?")) {
                     isAuthenticated = false;
                     localStorage.removeItem("badabi_auth");
+                    localStorage.removeItem("badabi_pw"); // 로그아웃 시 비밀번호도 함께 제거
                     updateAuthUI();
                     alert("인증이 해제되었습니다.");
                 }
@@ -466,6 +467,7 @@
 
                 isAuthenticated = true;
                 localStorage.setItem("badabi_auth", "true");
+                localStorage.setItem("badabi_pw", password); // 🔑 인증 성공 시 비밀번호 임시 저장
                 closeAuthModal();
                 updateAuthUI();
                 alert("인증되었습니다.");
@@ -491,6 +493,9 @@
             const text = chatInput.value.trim();
             if (!text || !isAuthenticated) return;
 
+            // 🔑 저장된 비밀번호를 가져옴
+            const password = localStorage.getItem("badabi_pw") || "";
+
             const now = new Date();
             const year = now.getFullYear();
             const month = String(now.getMonth() + 1).padStart(2, '0');
@@ -504,10 +509,11 @@
             chatInput.value = "";
 
             try {
-                await fetch(WORKER_URL, {
+                const response = await fetch(WORKER_URL, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
+                        password: password, // 🔑 서버 전송 시 비밀번호 포함
                         action: "save",
                         fileType: "talk",
                         message: text,
@@ -515,6 +521,10 @@
                         time: timeStr
                     })
                 });
+
+                if (!response.ok) {
+                    throw new Error("메시지 저장 실패");
+                }
                 
                 loadMessages();
             } catch (err) {
