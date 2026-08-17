@@ -82,9 +82,11 @@
             gap: 6px;
             align-items: center;
             flex-shrink: 0;
+            flex-wrap: wrap;
+            justify-content: flex-end;
         }
 
-        .header-action-btn {
+        .header-action-btn, .filter-select {
             background-color: #ffffff;
             border: 1px solid #cbd5e1;
             color: #0369a1;
@@ -99,10 +101,21 @@
             display: flex;
             align-items: center;
             gap: 5px;
+            outline: none;
         }
 
-        .header-action-btn:hover {
+        .filter-select {
+            color: #475569;
+            font-weight: 600;
+        }
+
+        .header-action-btn:hover, .filter-select:hover {
             background-color: #f8fafc;
+            border-color: #0ea5e9;
+            box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
+        }
+
+        .filter-select:focus {
             border-color: #0ea5e9;
             box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
         }
@@ -633,6 +646,16 @@
                 <div id="statsSummary" class="stats-summary">통계 데이터 계산 중...</div>
             </div>
             <div class="header-btn-group">
+                <!-- 날짜 필터 선택 드롭다운 -->
+                <select id="dateFilter" class="filter-select" onchange="onFilterChange()">
+                    <option value="all">모든 날짜</option>
+                </select>
+
+                <!-- 장르 필터 선택 드롭다운 -->
+                <select id="genreFilter" class="filter-select" onchange="onFilterChange()">
+                    <option value="all">모든 장르</option>
+                </select>
+
                 <button class="header-action-btn" onclick="toggleModal(true)">
                     <svg class="btn-icon-svg" viewBox="0 0 24 24">
                         <path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path>
@@ -809,7 +832,7 @@
 
                 registered = (songListData.songs || []).map(song => {
                     const key = `${(song.title || '').trim().toLowerCase()}_${(song.artist || '').trim().toLowerCase()}_${(song.limit || '').trim().toLowerCase()}`;
-                    return { ...song, dateTimes: statsMap[key] || [], isUnregistered: false };
+                    return { ...song, dateTimes: statsMap[key] || [], genre: song.genre || '미분류', isUnregistered: false };
                 });
 
                 unregistered = (statsData.unregisteredSongs || []).map(song => {
@@ -831,12 +854,55 @@
                 const totalSongCount = totalRegisteredCount + totalUnregisteredCount;
                 document.getElementById("statsSummary").textContent = `총 ${totalSongCount}곡 | 등록곡 ${totalRegisteredCount}곡 | 미등록곡 ${totalUnregisteredCount}곡`;
 
+                populateFilterOptions();
                 calculateStats(registered, unregistered);
                 updateFilteredAndSorted();
                 renderList();
             } catch (err) {
                 container.innerHTML = '<p class="no-result" style="color: #ef4444;">데이터 로드 실패</p>';
             }
+        }
+
+        function populateFilterOptions() {
+            const dateSet = new Set();
+            const genreSet = new Set();
+
+            allSongs.forEach(song => {
+                if (song.genre) {
+                    genreSet.add(song.genre.trim());
+                }
+                if (song.dateTimes) {
+                    song.dateTimes.forEach(dt => {
+                        if (dt.date) {
+                            const cleanDate = dt.date.replace(/\(.*?\)/g, "").trim();
+                            // 예: YYYY-MM-DD 형태에서 연도-월 단위나 날짜 전체 추출 가능 (여기서는 날짜 전체 혹은 YYYY-MM 추출)
+                            dateSet.add(cleanDate);
+                        }
+                    });
+                }
+            });
+
+            // 날짜 정렬 (최신순)
+            const sortedDates = Array.from(dateSet).sort((a, b) => new Date(b) - new Date(a));
+            const dateFilterSelect = document.getElementById("dateFilter");
+            dateFilterSelect.innerHTML = '<option value="all">모든 날짜</option>';
+            sortedDates.forEach(date => {
+                const opt = document.createElement("option");
+                opt.value = date;
+                opt.textContent = date;
+                dateFilterSelect.appendChild(opt);
+            });
+
+            // 장르 정렬 (가나다순)
+            const sortedGenres = Array.from(genreSet).sort((a, b) => a.localeCompare(b, 'ko'));
+            const genreFilterSelect = document.getElementById("genreFilter");
+            genreFilterSelect.innerHTML = '<option value="all">모든 장르</option>';
+            sortedGenres.forEach(genre => {
+                const opt = document.createElement("option");
+                opt.value = genre;
+                opt.textContent = genre;
+                genreFilterSelect.appendChild(opt);
+            });
         }
 
         function calculateStats(registered, unregistered) {
@@ -1011,15 +1077,8 @@
 
             const genreCounts = {};
             const genreColors = [
-                "#60a5fa", // 부드러운 스카이 블루
-                "#f87171", // 부드러운 코랄 레드
-                "#34d399", // 부드러운 민트/에메랄드
-                "#a78bfa", // 부드러운 라벤더 퍼플
-                "#fb923c", // 부드러운 피치 오렌지
-                "#f472b6", // 부드러운 로즈 핑크
-                "#2dd4bf", // 부드러운 아쿠아 틸
-                "#facc15", // 부드러운 버터 레몬
-                "#94a3b8"  // 부드러운 그레이 (미분류용)
+                "#60a5fa", "#f87171", "#34d399", "#a78bfa", 
+                "#fb923c", "#f472b6", "#2dd4bf", "#facc15", "#94a3b8"
             ];
             
             allTotalSongs.forEach(s => {
@@ -1096,11 +1155,30 @@
 
         function updateFilteredAndSorted() {
             const keyword = document.getElementById("searchInput").value.toLowerCase().trim();
+            const selectedDate = document.getElementById("dateFilter").value;
+            const selectedGenre = document.getElementById("genreFilter").value;
 
             filteredSongs = allSongs.filter(song => {
                 const title = song.title || '';
                 const artist = song.artist || '';
-                return title.toLowerCase().includes(keyword) || artist.toLowerCase().includes(keyword);
+                const genre = song.genre ? song.genre.trim() : '미분류';
+
+                // 검색어 조건
+                const matchesKeyword = title.toLowerCase().includes(keyword) || artist.toLowerCase().includes(keyword);
+                
+                // 장르 조건
+                const matchesGenre = (selectedGenre === 'all') || (genre === selectedGenre);
+
+                // 날짜 조건
+                let matchesDate = true;
+                if (selectedDate !== 'all') {
+                    matchesDate = song.dateTimes && song.dateTimes.some(dt => {
+                        const cleanDate = dt.date.replace(/\(.*?\)/g, "").trim();
+                        return cleanDate === selectedDate;
+                    });
+                }
+
+                return matchesKeyword && matchesGenre && matchesDate;
             });
 
             filteredSongs.sort((a, b) => {
@@ -1204,6 +1282,11 @@
         function triggerSearch() { 
             updateFilteredAndSorted(); 
             renderList(); 
+        }
+
+        function onFilterChange() {
+            updateFilteredAndSorted();
+            renderList();
         }
 
         loadData();
