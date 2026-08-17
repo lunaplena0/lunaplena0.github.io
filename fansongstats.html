@@ -563,19 +563,23 @@
 
         .multi-progress-container {
         width: 100%;
-        height: 12px; /* 모바일에서 터치 및 시인성을 위해 높이 약간 확대 */
+        height: 14px;
         background-color: #e2e8f0;
         border-radius: 6px;
         display: flex;
         overflow: hidden;
-        gap: 2px;
+        gap: 1.5px; /* 세그먼트 사이 미세한 간격을 주어 경계를 명확히 함 */
+        padding: 1px;
+        background-color: #cbd5e1;
         margin-top: 8px;
     }
-        .multi-bar-segment {
+
+    .multi-bar-segment {
         height: 100%;
         transition: width 0.4s ease;
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
+        border-radius: 1px;
     }
 
 .legend-row {
@@ -1009,7 +1013,17 @@
             `;
 
             const genreCounts = {};
-            const genreColors = ["#2563eb", "#0ea5e9", "#059669", "#d97706", "#dc2626", "#7c3aed"];
+            const genreColors = [
+                "#1d4ed8", // 진한 파랑 (Blue 700)
+                "#06b6d4", // 선명한 시안 (Cyan 500)
+                "#10b981", // 에메랄드 초록 (Emerald 500)
+                "#f59e0b", // 진한 호박색 (Amber 500)
+                "#ef4444", // 선명한 빨강 (Red 500)
+                "#8b5cf6", // 보라 (Violet 500)
+                "#ec4899", // 핫핑크 (Pink 500)
+                "#84cc16", // 라임 (Lime 500)
+                "#64748b"  // 슬레이트 회색 (Slate 500 - 미분류 등 대체용)
+            ];
             
             allTotalSongs.forEach(s => {
                 const genre = s.genre ? s.genre.trim() : "미분류";
@@ -1024,7 +1038,8 @@
                 const ratio = totalCountAll > 0 ? ((count / totalCountAll) * 100) : 0;
                 const color = genreColors[colorIndex % genreColors.length];
                 
-                multiBarHtml += `<div class="multi-bar-segment" style="width: ${ratio.toFixed(1)}%; background-color: ${color};" title="${genre}"></div>`;
+                // 만약 비율이 너무 작아서(예: 1% 미만) 모바일에서 안 보일 경우를 대비해 최소 표시 너비(min-width 느낌) 보장 또는 타이틀 툴팁 강화
+                multiBarHtml += `<div class="multi-bar-segment" style="width: ${ratio.toFixed(1)}%; background-color: ${color};" title="${genre}: ${count}곡 (${ratio.toFixed(1)}%)"></div>`;
                 legendHtml += `<div class="legend-item"><span class="legend-dot" style="background-color: ${color};"></span>${genre} (${count}곡, ${ratio.toFixed(1)}%)</div>`;
                 
                 colorIndex++;
@@ -1038,7 +1053,7 @@
                     ${legendHtml}
                 </div>
             `;
-
+            
             const nonGuitarRegistered = registered.filter(s => {
                 const cleanLimit = (s.limit || '').replace(/[\[\]]/g, '').trim();
                 return cleanLimit !== "기타";
