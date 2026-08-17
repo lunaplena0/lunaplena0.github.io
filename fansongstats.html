@@ -187,7 +187,6 @@
 
         .animate-fade-in {
             opacity: 0;
-            /* 애니메이션 속도를 매우 빠르게(0.1s) 수정[cite: 8] */
             animation: fadeInUp 0.1s ease-out forwards;
         }
 
@@ -371,7 +370,6 @@
             transition: stroke 0.2s;
         }
 
-        /* 상세 통계 모달 디자인 (모바일 최적화) */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -562,55 +560,54 @@
         .medal-3 { background-color: #d97706; }
 
         .multi-progress-container {
-        width: 100%;
-        height: 14px;
-        background-color: #e2e8f0;
-        border-radius: 6px;
-        display: flex;
-        overflow: hidden;
-        gap: 1.5px; /* 세그먼트 사이 미세한 간격을 주어 경계를 명확히 함 */
-        padding: 1px;
-        background-color: #cbd5e1;
-        margin-top: 8px;
-    }
+            width: 100%;
+            height: 14px;
+            background-color: #cbd5e1;
+            border-radius: 6px;
+            display: flex;
+            overflow: hidden;
+            gap: 1.5px;
+            padding: 1px;
+            margin-top: 8px;
+        }
 
-    .multi-bar-segment {
-        height: 100%;
-        transition: width 0.4s ease;
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
-        border-radius: 1px;
-    }
+        .multi-bar-segment {
+            height: 100%;
+            transition: width 0.4s ease;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+            border-radius: 1px;
+        }
 
-.legend-row {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px 12px;
-        font-size: 12px;
-        font-weight: 600;
-        color: #475569;
-        margin-top: 10px;
-    }
+        .legend-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px 12px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #475569;
+            margin-top: 10px;
+        }
 
-    .legend-item {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        word-break: break-all;
-        background: #f1f5f9;
-        padding: 3px 8px;
-        border-radius: 6px;
-        border: 1px solid #e2e8f0;
-    }
+        .legend-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            word-break: break-all;
+            background: #f1f5f9;
+            padding: 3px 8px;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+        }
 
         .legend-dot {
-        width: 10px;
-        height: 10px;
-        border-radius: 50%;
-        flex-shrink: 0;
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
-    }
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
 
         .no-result {
             text-align: center;
@@ -1014,16 +1011,16 @@
 
             const genreCounts = {};
             const genreColors = [
-    "#60a5fa", // 부드러운 스카이 블루
-    "#f87171", // 부드러운 코랄 레드
-    "#34d399", // 부드러운 민트/에메랄드
-    "#a78bfa", // 부드러운 라벤더 퍼플
-    "#fb923c", // 부드러운 피치 오렌지
-    "#f472b6", // 부드러운 로즈 핑크
-    "#2dd4bf", // 부드러운 아쿠아 틸
-    "#facc15", // 부드러운 버터 레몬
-    "#94a3b8"  // 부드러운 그레이 (미분류용)
-];
+                "#60a5fa", // 부드러운 스카이 블루
+                "#f87171", // 부드러운 코랄 레드
+                "#34d399", // 부드러운 민트/에메랄드
+                "#a78bfa", // 부드러운 라벤더 퍼플
+                "#fb923c", // 부드러운 피치 오렌지
+                "#f472b6", // 부드러운 로즈 핑크
+                "#2dd4bf", // 부드러운 아쿠아 틸
+                "#facc15", // 부드러운 버터 레몬
+                "#94a3b8"  // 부드러운 그레이 (미분류용)
+            ];
             
             allTotalSongs.forEach(s => {
                 const genre = s.genre ? s.genre.trim() : "미분류";
@@ -1038,7 +1035,6 @@
                 const ratio = totalCountAll > 0 ? ((count / totalCountAll) * 100) : 0;
                 const color = genreColors[colorIndex % genreColors.length];
                 
-                // 만약 비율이 너무 작아서(예: 1% 미만) 모바일에서 안 보일 경우를 대비해 최소 표시 너비(min-width 느낌) 보장 또는 타이틀 툴팁 강화
                 multiBarHtml += `<div class="multi-bar-segment" style="width: ${ratio.toFixed(1)}%; background-color: ${color};" title="${genre}: ${count}곡 (${ratio.toFixed(1)}%)"></div>`;
                 legendHtml += `<div class="legend-item"><span class="legend-dot" style="background-color: ${color};"></span>${genre} (${count}곡, ${ratio.toFixed(1)}%)</div>`;
                 
@@ -1086,14 +1082,14 @@
 
             document.getElementById("distributionStatContent").innerHTML = `
                 <div class="multi-progress-container">
-                    <div class="multi-bar-segment" style="width: ${zeroRatio.toFixed(1)}%; background-color: #94a3b8;" title="0회 (미부름)"></div>
-                    <div class="multi-bar-segment" style="width: ${onceRatio.toFixed(1)}%; background-color: #0ea5e9;" title="1회 부름"></div>
-                    <div class="multi-bar-segment" style="width: ${multiRatio.toFixed(1)}%; background-color: #10b981;" title="2회 이상 부름"></div>
+                    <div class="multi-bar-segment" style="width: ${zeroRatio.toFixed(1)}%; background-color: #cbd5e1;" title="0회 (미부름)"></div>
+                    <div class="multi-bar-segment" style="width: ${onceRatio.toFixed(1)}%; background-color: #60a5fa;" title="1회 부름"></div>
+                    <div class="multi-bar-segment" style="width: ${multiRatio.toFixed(1)}%; background-color: #34d399;" title="2회 이상 부름"></div>
                 </div>
                 <div class="legend-row">
-                    <div class="legend-item"><span class="legend-dot" style="background-color: #94a3b8;"></span>0회 (${zeroPlayCount}곡, ${zeroRatio.toFixed(1)}%)</div>
-                    <div class="legend-item"><span class="legend-dot" style="background-color: #0ea5e9;"></span>1회 (${onceCount}곡, ${onceRatio.toFixed(1)}%)</div>
-                    <div class="legend-item"><span class="legend-dot" style="background-color: #10b981;"></span>2회 이상 (${multiPlayCount}곡, ${multiRatio.toFixed(1)}%)</div>
+                    <div class="legend-item"><span class="legend-dot" style="background-color: #cbd5e1;"></span>0회 (${zeroPlayCount}곡, ${zeroRatio.toFixed(1)}%)</div>
+                    <div class="legend-item"><span class="legend-dot" style="background-color: #60a5fa;"></span>1회 (${onceCount}곡, ${onceRatio.toFixed(1)}%)</div>
+                    <div class="legend-item"><span class="legend-dot" style="background-color: #34d399;"></span>2회 이상 (${multiPlayCount}곡, ${multiRatio.toFixed(1)}%)</div>
                 </div>
             `;
         }
@@ -1131,7 +1127,6 @@
             filteredSongs.forEach((song, idx) => {
                 const card = document.createElement("div");
                 card.className = "song-card animate-fade-in";
-                // 순차 지연 속도를 매우 빠르게 단축 (idx * 0.003s)[cite: 8]
                 card.style.animationDelay = `${idx * 0.003}s`;
                 card.onclick = (e) => {
                     if (e.target.tagName === 'A' || e.target.closest('a')) return;
