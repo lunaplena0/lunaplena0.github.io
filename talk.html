@@ -9,7 +9,7 @@
             margin: 0;
             padding: 0;
             width: 100vw;
-            height: 100dvh; /* 모바일 동적 뷰포트 높이 적용 */
+            height: 100dvh;
             background-color: #f4f7f9;
             overflow: hidden;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -19,7 +19,7 @@
             position: relative;
             width: 100%;
             max-width: 520px;
-            height: 100dvh; /* 모바일 동적 뷰포트 높이 적용 */
+            height: 100dvh;
             margin: 0 auto;
             display: flex;
             flex-direction: column;
@@ -90,7 +90,7 @@
             box-sizing: border-box;
         }
 
-        /* 채팅(메시지 목록) 영역 */
+        /* 채팅(메시지 목록) 영역 및 커스텀 스크롤바 */
         .talk-chat-grid {
             width: 100%;
             display: flex;
@@ -99,8 +99,33 @@
             flex: 1;
             min-height: 0;
             overflow-y: auto;
-            padding: 4px 0;
+            padding: 4px 6px 4px 0; /* 스크롤바 공간을 위해 오른쪽 패딩 약간 조정 */
             box-sizing: border-box;
+        }
+
+        /* 웹킷 브라우저(Chrome, Safari, Edge) 스크롤바 디자인 */
+        .talk-chat-grid::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .talk-chat-grid::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .talk-chat-grid::-webkit-scrollbar-thumb {
+            background-color: rgba(0, 119, 190, 0.25);
+            border-radius: 10px;
+            transition: background-color 0.2s;
+        }
+
+        .talk-chat-grid::-webkit-scrollbar-thumb:hover {
+            background-color: rgba(0, 119, 190, 0.5);
+        }
+
+        /* 파이어폭스 스크롤바 디자인 */
+        .talk-chat-grid {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(0, 119, 190, 0.25) transparent;
         }
 
         .chat-row {
@@ -158,7 +183,7 @@
             flex-direction: column;
             gap: 8px;
             padding-top: 4px;
-            flex-shrink: 0; /* 모바일에서 입력창 영역이 찌그러지지 않도록 고정 */
+            flex-shrink: 0;
         }
 
         .talk-input-section.active-input {
@@ -170,7 +195,7 @@
             border-bottom: 2px solid rgba(0, 119, 190, 0.2);
             padding-bottom: 4px;
             transition: border-color 0.2s;
-            background-color: #f4f7f9; /* 모바일 입력 시 배경 구분 */
+            background-color: #f4f7f9;
         }
 
         .input-wrapper:focus-within {
