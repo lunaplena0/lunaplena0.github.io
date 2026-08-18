@@ -613,15 +613,15 @@ const todayKey = kstDate.toISOString().split('T')[0];
                 // 오늘의 노래 추천 처리 (날짜 기반 고정 인덱스 적용 - 모든 사용자에게 동일)
                 if (songRes && songRes.ok) {
                     const songData = await songRes.json();
-                    const allSongs = [
-                        ...(songData.registeredSongs || []),
-                        ...(songData.unregisteredSongs || [])
-                    ];
+                    const registeredSongs = songData.registeredSongs || [];
                     const vodSources = songData.vodSources || [];
 
-                    if (allSongs.length > 0) {
-                        const songIndex = getDailyIndex(todayKey + "_song", allSongs.length);
-                        const selectedSong = allSongs[songIndex];
+                    // dateTimes 배열이 존재하고 비어있지 않은 노래들만 필터링
+                    const validSongs = registeredSongs.filter(song => Array.isArray(song.dateTimes) && song.dateTimes.length > 0);
+
+                    if (validSongs.length > 0) {
+                        const songIndex = getDailyIndex(todayKey + "_song", validSongs.length);
+                        const selectedSong = validSongs[songIndex];
 
                         let targetUrl = "#";
                         if (selectedSong && selectedSong.dateTimes && selectedSong.dateTimes.length > 0) {
@@ -641,9 +641,11 @@ const todayKey = kstDate.toISOString().split('T')[0];
 
                         vodEl.href = targetUrl;
                         vodListEl.innerHTML = `<li class="widget-item">· ${selectedSong.title} (${selectedSong.artist})</li>`;
+                    } else {
+                        document.getElementById("widget-vod-list").innerHTML = `<li class="widget-item">· 날짜 기록이 있는 노래가 없습니다.</li>`;
                     }
                 }
-
+                
                 allTimelineData = data.timeline || [];
                 currentPage = 0;
                 renderTimeline();
