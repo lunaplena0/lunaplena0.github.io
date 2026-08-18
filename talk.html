@@ -109,12 +109,13 @@
             box-sizing: border-box;
         }
 
+        /* 메시지 아이템: 왼쪽에 파란색 바가 내용 전체(시간 포함)를 감싸도록 설정 */
         .chat-item {
             background: transparent;
             border: none;
             border-radius: 0;
             border-bottom: 1px solid rgba(0, 119, 190, 0.15);
-            padding: 10px 0 10px 20px;
+            padding: 10px 0 10px 20px; /* 왼쪽 패딩으로 바 공간 확보 */
             font-size: 16px;
             color: #1e293b;
             text-align: left;
@@ -128,9 +129,9 @@
             content: '';
             position: absolute;
             left: 0;
-            top: 14px;
+            top: 10px;
+            bottom: 10px; /* 위아래 패딩에 맞춰 세로 길이를 가변적으로 채움 */
             width: 4px;
-            height: 16px;
             background-color: #0077b6;
             border-radius: 3px;
         }
@@ -335,7 +336,7 @@
 
         let isAuthenticated = localStorage.getItem("badabi_auth") === "true";
         let lastAppendedDate = "";
-        let cachedMessagesJson = ""; // 내용이 변경되었을 때만 DOM을 갱신하기 위한 캐시 변수
+        let cachedMessagesJson = "";
 
         const chatInput = document.getElementById("chatInput");
         const inputSection = document.getElementById("inputSection");
@@ -358,7 +359,6 @@
                 const data = await response.json();
                 
                 const newJson = JSON.stringify(data);
-                // 데이터 내용에 변화가 없을 경우 불필요한 DOM 재렌더링 및 화면 들썩임을 방지합니다.
                 if (newJson === cachedMessagesJson) return;
                 cachedMessagesJson = newJson;
 
@@ -403,7 +403,8 @@
                 row.className = "chat-row";
                 row.innerHTML = `
                     <div class="chat-item">
-                        <div class="chat-text">${escapeHtml(text)}` + (timeStr ? `<div class="chat-time">${timeStr}</div>` : ``) + `</div>
+                        <div class="chat-text">${escapeHtml(text)}</div>
+                        ` + (timeStr ? `<div class="chat-time">${timeStr}</div>` : ``) + `
                     </div>
                 `;
                 chatGrid.appendChild(row);
@@ -455,7 +456,6 @@
                 isAuthenticated = true;
                 localStorage.setItem("badabi_auth", "true");
                 localStorage.setItem("badabi_pw", password);
-                closeAuthManager(); // 안전한 모달 닫기
                 closeAuthModal();
                 updateAuthUI();
                 alert("인증되었습니다.");
