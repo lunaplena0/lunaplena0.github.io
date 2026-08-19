@@ -128,7 +128,7 @@
             width: 100%;
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            gap: 6px;
             flex: 1;
             min-height: 0;
             overflow-y: auto;
@@ -165,7 +165,7 @@
             box-sizing: border-box;
         }
 
-        /* 메시지 아이템 */
+        /* 메시지 상자 아이템 */
         .chat-item {
             background: transparent;
             border: none;
@@ -178,7 +178,9 @@
             width: 100%;
             box-sizing: border-box;
             position: relative;
-            display: block;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
         }
 
         .chat-item::before {
@@ -192,19 +194,41 @@
             border-radius: 3px;
         }
 
+        /* 닉네임 스타일 */
+        .chat-nickname {
+            font-size: 13px;
+            font-weight: 700;
+            color: #0077b6;
+            display: block;
+        }
+
+        /* 메시지 내부 라인들 */
+        .chat-lines-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .chat-line-wrapper {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            gap: 8px;
+        }
+
         .chat-text {
             word-break: break-all;
             line-height: 1.35;
-            display: block;
-            margin-bottom: 2px;
-            color: #1e293b; 
+            color: #1e293b;
+            flex: 1;
         }
 
         .chat-time {
             font-size: 11px;
             color: #64748b;
             font-weight: 500;
-            display: block; 
+            flex-shrink: 0;
+            white-space: nowrap;
         }
 
         /* 하단 입력 폼 영역 */
@@ -427,7 +451,6 @@
         const WORKER_URL = "https://badabi-api.dalkkumli054.workers.dev/";
 
         let isAuthenticated = localStorage.getItem("badabi_auth") === "true";
-        let lastAppendedDate = "";
         let cachedMessagesJson = "";
 
         const chatInput = document.getElementById("chatInput");
@@ -477,9 +500,15 @@
             }
         }
 
+        function timeToSeconds(timeStr) {
+            if (!timeStr) return 0;
+            const parts = timeStr.split(":");
+            if (parts.length < 2) return 0;
+            return parseInt(parts[0], 10) * 3600 + parseInt(parts[1], 10) * 60 + (parts[2] ? parseInt(parts[2], 10) : 0);
+        }
+
         function renderMessages(messages) {
             chatGrid.innerHTML = "";
-            lastAppendedDate = "";
 
             if (!Array.isArray(messages) || messages.length === 0) {
                 const emptyDiv = document.createElement("div");
@@ -489,28 +518,70 @@
                 return;
             }
 
+            let lastAppendedDate = "";
+            let currentGroup = null;
+
             messages.forEach(msg => {
-                const dateStr = msg.date;
+                const dateStr = msg.date || "";
                 const timeStr = msg.time || "";
                 const text = msg.message || "";
+                const msgSec = timeToSeconds(timeStr);
 
+                // 날짜가 바뀌면 날짜 구분선 추가 후 그룹 초기화
                 if (dateStr !== lastAppendedDate) {
                     lastAppendedDate = dateStr;
+                    currentGroup = null;
                     const dateDivider = document.createElement("div");
                     dateDivider.className = "date-divider";
                     dateDivider.textContent = dateStr;
                     chatGrid.appendChild(dateDivider);
                 }
 
-                const row = document.createElement("div");
-                row.className = "chat-row";
-                row.innerHTML = `
-                    <div class="chat-item">
+                // 90초(1분 30초) 이내 연달아 친 채팅인지 확인
+                let canGroup = false;
+                if (currentGroup && currentGroup.date === dateStr) {
+                    const diff = Math.abs(msgSec - currentGroup.lastSec);
+                    if (diff <= 90) {
+                        canGroup = true;
+                    }
+                }
+
+                if (canGroup) {
+                    // 기존 그룹에 내용 추가
+                    currentGroup.lastSec = msgSec;
+                    const linesGroup = currentGroup.element.querySelector(".chat-lines-group");
+                    const lineWrapper = document.createElement("div");
+                    lineWrapper.className = "chat-line-wrapper";
+                    lineWrapper.innerHTML = `
                         <div class="chat-text">${escapeHtml(text)}</div>
                         ` + (timeStr ? `<div class="chat-time">${timeStr}</div>` : ``) + `
-                    </div>
-                `;
-                chatGrid.appendChild(row);
+                    `;
+                    linesGroup.appendChild(lineWrapper);
+                } else {
+                    // 새로운 상자(그룹) 생성
+                    const row = document.createElement("div");
+                    row.className = "chat-row";
+                    
+                    const chatItem = document.createElement("div");
+                    chatItem.className = "chat-item";
+                    chatItem.innerHTML = `
+                        <span class="chat-nickname">바다비</span>
+                        <div class="chat-lines-group">
+                            <div class="chat-line-wrapper">
+                                <div class="chat-text">${escapeHtml(text)}</div>
+                                ` + (timeStr ? `<div class="chat-time">${timeStr}</div>` : ``) + `
+                            </div>
+                        </div>
+                    `;
+                    row.appendChild(chatItem);
+                    chatGrid.appendChild(row);
+
+                    currentGroup = {
+                        date: dateStr,
+                        lastSec: msgSec,
+                        element: chatItem
+                    };
+                }
             });
         }
 
@@ -596,7 +667,8 @@
 
             const hours = String(now.getHours()).padStart(2, '0');
             const minutes = String(now.getMinutes()).padStart(2, '0');
-            const timeStr = `${hours}:${minutes}`;
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            const timeStr = `${hours}:${minutes}:${seconds}`;
 
             chatInput.value = "";
 
