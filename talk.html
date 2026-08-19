@@ -489,6 +489,7 @@
         let isAuthenticated = localStorage.getItem("badabi_auth") === "true";
         let cachedMessagesJson = "";
         let currentMessagesList = [];
+        let isSavingOrDeleting = false; // 서버 통신 중 동기화 충돌 방지 플래그
 
         const chatInput = document.getElementById("chatInput");
         const inputSection = document.getElementById("inputSection");
@@ -517,6 +518,9 @@
         }
 
         async function loadMessages() {
+            // 저장이나 삭제 작업이 진행 중일 때는 서버 동기화를 잠시 건너뜁니다.
+            if (isSavingOrDeleting) return;
+
             try {
                 const response = await fetch(`${WORKER_URL}?type=talk&t=${Date.now()}`);
                 if (!response.ok) return;
@@ -662,6 +666,8 @@
             if (!isAuthenticated) return;
             if (!confirm("이 메시지를 삭제하시겠습니까?")) return;
 
+            isSavingOrDeleting = true; // 동기화 일시 중지
+
             currentMessagesList.splice(index, 1);
             cachedMessagesJson = JSON.stringify(currentMessagesList);
             renderMessages(currentMessagesList);
@@ -689,6 +695,11 @@
                 console.error("메시지 삭제 실패:", err);
                 showToast("메시지 삭제에 실패했습니다.");
                 loadMessages();
+            } finally {
+                // 서버 반영이 완료된 후 약간의 여유를 두고 동기화 재개
+                setTimeout(() => {
+                    isSavingOrDeleting = false;
+                }, 1500);
             }
         }
 
@@ -770,6 +781,7 @@
             const text = chatInput.value.trim();
             if (!text || !isAuthenticated) return;
 
+            isSavingOrDeleting = true; // 동기화 일시 중지
             const password = localStorage.getItem("badabi_pw") || "";
 
             const now = new Date();
@@ -814,6 +826,10 @@
                 console.error("메시지 저장 실패:", err);
                 showToast("메시지 저장에 실패했습니다.");
                 loadMessages();
+            } finally {
+                setTimeout(() => {
+                    isSavingOrDeleting = false;
+                }, 1500);
             }
         }
 
