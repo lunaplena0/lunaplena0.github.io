@@ -205,7 +205,7 @@
             font-weight: 500;
         }
 
-        /* 메시지 상자 아이템 (왼쪽 정렬 및 들여쓰기 제거) */
+        /* 메시지 상자 아이템 */
         .chat-item {
             background: transparent;
             border: none;
@@ -454,6 +454,7 @@
 
         let isAuthenticated = localStorage.getItem("badabi_auth") === "true";
         let cachedMessagesJson = "";
+        let currentMessagesList = []; // 현재 로드된 메시지 목록 메모리 캐시
 
         const chatInput = document.getElementById("chatInput");
         const inputSection = document.getElementById("inputSection");
@@ -489,10 +490,11 @@
                 const newJson = JSON.stringify(data);
                 if (newJson === cachedMessagesJson) return;
                 cachedMessagesJson = newJson;
+                currentMessagesList = Array.isArray(data) ? data : [];
 
                 const isAtBottom = chatGrid.scrollHeight - chatGrid.scrollTop <= chatGrid.clientHeight + 50;
 
-                renderMessages(data);
+                renderMessages(currentMessagesList);
 
                 if (isAtBottom) {
                     chatGrid.scrollTop = chatGrid.scrollHeight;
@@ -539,31 +541,25 @@
                     chatGrid.appendChild(dateDivider);
                 }
 
-                // 90초(1분 30초) 이내 연달아 친 채팅인지 확인
+                // 첫 메시지 기준 90초(1분 30초) 이내 연달아 친 채팅인지 확인
                 let canGroup = false;
                 if (currentGroup && currentGroup.date === dateStr) {
-                    const diff = Math.abs(msgSec - currentGroup.lastSec);
+                    const diff = Math.abs(msgSec - currentGroup.firstSec);
                     if (diff <= 90) {
                         canGroup = true;
                     }
                 }
 
                 if (canGroup) {
-                    // 기존 그룹에 내용 추가
-                    currentGroup.lastSec = msgSec;
+                    // 기존 그룹에 내용 추가 (시간은 유지 또는 갱신 필요시 조정 가능, 여기선 첫 메시지 시간 고정)
                     const linesGroup = currentGroup.element.querySelector(".chat-lines-group");
                     
                     const lineDiv = document.createElement("div");
                     lineDiv.className = "chat-text";
                     lineDiv.textContent = text;
                     linesGroup.appendChild(lineDiv);
-
-                    // 그룹 내 최신 시간으로 갱신
-                    if (timeStr && currentGroup.timeElement) {
-                        currentGroup.timeElement.textContent = timeStr;
-                    }
                 } else {
-                    // 새로운 행 생성
+                    // 새로운 행 생성 (이 그룹의 첫 메시지 시간이 기준이 됨)
                     const row = document.createElement("div");
                     row.className = "chat-row";
                     
@@ -603,9 +599,8 @@
 
                     currentGroup = {
                         date: dateStr,
-                        lastSec: msgSec,
-                        element: chatItem,
-                        timeElement: timeElement
+                        firstSec: msgSec, // 첫 메시지의 시간을 기준으로 저장
+                        element: chatItem
                     };
                 }
             });
@@ -698,17 +693,17 @@
 
             chatInput.value = "";
 
+            // 1. 낙관적 업데이트: 서버 응답을 기다리지 않고 즉시 로컬 배열에 추가 후 화면 렌더링
+            currentMessagesList.push({
+                message: text,
+                date: dateStr,
+                time: timeStr
+            });
+            cachedMessagesJson = JSON.stringify(currentMessagesList);
+            renderMessages(currentMessagesList);
+            chatGrid.scrollTop = chatGrid.scrollHeight;
+
             try {
-                const getResponse = await fetch(`${WORKER_URL}?type=talk&t=${Date.now()}`);
-                let existingData = await getResponse.ok ? await getResponse.json() : [];
-                let messagesList = Array.isArray(existingData) ? existingData : [];
-
-                messagesList.push({
-                    message: text,
-                    date: dateStr,
-                    time: timeStr
-                });
-
                 const response = await fetch(WORKER_URL, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -716,7 +711,7 @@
                         password: password,
                         action: "save",
                         fileType: "talk",
-                        content: messagesList
+                        content: currentMessagesList
                     })
                 });
 
@@ -724,11 +719,10 @@
                     const errRes = await response.json().catch(() => ({}));
                     throw new Error(errRes.error || "메시지 저장 실패");
                 }
-                
-                loadMessages();
             } catch (err) {
                 console.error("메시지 저장 실패:", err);
                 showToast("메시지 저장에 실패했습니다.");
+                loadMessages(); // 실패 시 서버 데이터로 원복
             }
         }
 
