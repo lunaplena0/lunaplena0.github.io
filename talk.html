@@ -231,10 +231,42 @@
             gap: 3px;
         }
 
+        .chat-line-row {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 8px;
+            width: 100%;
+        }
+
         .chat-text {
             word-break: break-all;
             line-height: 1.35;
             color: #1e293b;
+            flex: 1;
+        }
+
+        /* 관리자용 개별 삭제 버튼 (기본 숨김) */
+        .chat-delete-btn {
+            display: none;
+            background: transparent;
+            border: none;
+            color: #94a3b8;
+            font-size: 13px;
+            cursor: pointer;
+            padding: 0 4px;
+            line-height: 1;
+            transition: color 0.2s;
+            flex-shrink: 0;
+        }
+
+        .chat-delete-btn:hover {
+            color: #ef4444;
+        }
+
+        /* 인증 상태일 때만 삭제 버튼 표시 */
+        body.authenticated-mode .chat-delete-btn {
+            display: inline-block;
         }
 
         /* 하단 입력 폼 영역 */
@@ -296,7 +328,7 @@
             color: #03045e;
         }
 
-        /* 토스트 메시지 스타일 */
+        /* 토스트 메시지 스타일 (끝이 살짝 동글한 모서리 사각형 + 테마 컬러) */
         .toast-message {
             position: fixed;
             bottom: 30px;
@@ -468,6 +500,7 @@
 
         window.addEventListener("DOMContentLoaded", () => {
             if (isAuthenticated) {
+                document.body.classList.add("authenticated-mode");
                 inputSection.classList.add("active-input");
                 oceanAuthBtn.classList.add("authenticated");
             }
@@ -527,7 +560,7 @@
             let lastAppendedDate = "";
             let currentGroup = null;
 
-            messages.forEach(msg => {
+            messages.forEach((msg, originalIndex) => {
                 const dateStr = msg.date || "";
                 const timeStr = msg.time || "";
                 const text = msg.message || "";
@@ -552,10 +585,23 @@
 
                 if (canGroup) {
                     const linesGroup = currentGroup.element.querySelector(".chat-lines-group");
+                    
+                    const lineRow = document.createElement("div");
+                    lineRow.className = "chat-line-row";
+                    
                     const lineDiv = document.createElement("div");
                     lineDiv.className = "chat-text";
                     lineDiv.textContent = text;
-                    linesGroup.appendChild(lineDiv);
+                    lineRow.appendChild(lineDiv);
+
+                    const deleteBtn = document.createElement("button");
+                    deleteBtn.className = "chat-delete-btn";
+                    deleteBtn.textContent = "×";
+                    deleteBtn.title = "메시지 삭제";
+                    deleteBtn.onclick = () => deleteMessage(originalIndex);
+                    lineRow.appendChild(deleteBtn);
+
+                    linesGroup.appendChild(lineRow);
                 } else {
                     const row = document.createElement("div");
                     row.className = "chat-row";
@@ -583,11 +629,22 @@
                     const linesGroup = document.createElement("div");
                     linesGroup.className = "chat-lines-group";
                     
+                    const lineRow = document.createElement("div");
+                    lineRow.className = "chat-line-row";
+                    
                     const lineDiv = document.createElement("div");
                     lineDiv.className = "chat-text";
                     lineDiv.textContent = text;
-                    linesGroup.appendChild(lineDiv);
-                    
+                    lineRow.appendChild(lineDiv);
+
+                    const deleteBtn = document.createElement("button");
+                    deleteBtn.className = "chat-delete-btn";
+                    deleteBtn.textContent = "×";
+                    deleteBtn.title = "메시지 삭제";
+                    deleteBtn.onclick = () => deleteMessage(originalIndex);
+                    lineRow.appendChild(deleteBtn);
+
+                    linesGroup.appendChild(lineRow);
                     chatItem.appendChild(linesGroup);
                     row.appendChild(chatItem);
                     chatGrid.appendChild(row);
@@ -601,14 +658,50 @@
             });
         }
 
+        async function deleteMessage(index) {
+            if (!isAuthenticated) return;
+            if (!confirm("이 메시지를 삭제하시겠습니까?")) return;
+
+            currentMessagesList.splice(index, 1);
+            cachedMessagesJson = JSON.stringify(currentMessagesList);
+            renderMessages(currentMessagesList);
+
+            const password = localStorage.getItem("badabi_pw") || "";
+
+            try {
+                const response = await fetch(WORKER_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        password: password,
+                        action: "save",
+                        fileType: "talk",
+                        content: currentMessagesList
+                    })
+                });
+
+                if (!response.ok) {
+                    const errRes = await response.json().catch(() => ({}));
+                    throw new Error(errRes.error || "메시지 삭제 저장 실패");
+                }
+                showToast("메시지가 삭제되었습니다.");
+            } catch (err) {
+                console.error("메시지 삭제 실패:", err);
+                showToast("메시지 삭제에 실패했습니다.");
+                loadMessages();
+            }
+        }
+
         function openAuthModal() {
             if (isAuthenticated) {
                 if (confirm("로그인 상태입니다. 인증을 해제(로그아웃)하시겠습니까?")) {
                     isAuthenticated = false;
+                    document.body.classList.remove("authenticated-mode");
                     localStorage.removeItem("badabi_auth");
                     localStorage.removeItem("badabi_pw");
                     updateAuthUI();
                     showToast("인증이 해제되었습니다.");
+                    renderMessages(currentMessagesList);
                 }
                 return;
             }
@@ -644,11 +737,13 @@
                 }
 
                 isAuthenticated = true;
+                document.body.classList.add("authenticated-mode");
                 localStorage.setItem("badabi_auth", "true");
                 localStorage.setItem("badabi_pw", password);
                 closeAuthModal();
                 updateAuthUI();
                 showToast("성공적으로 인증되었습니다!");
+                renderMessages(currentMessagesList);
 
             } catch (error) {
                 showToast("패스워드가 일치하지 않습니다.");
@@ -659,10 +754,12 @@
 
         function updateAuthUI() {
             if (isAuthenticated) {
+                document.body.classList.add("authenticated-mode");
                 inputSection.classList.add("active-input");
                 oceanAuthBtn.classList.add("authenticated");
                 chatInput.focus();
             } else {
+                document.body.classList.remove("authenticated-mode");
                 inputSection.classList.remove("active-input");
                 oceanAuthBtn.classList.remove("authenticated");
                 chatInput.value = "";
