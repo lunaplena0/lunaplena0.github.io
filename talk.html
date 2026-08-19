@@ -169,13 +169,40 @@
             margin-top: 4px;
         }
 
-        /* 닉네임 스타일 (색상바 위쪽) */
+        /* 상단 정보 영역 (색상바 + 닉네임 + 시간) */
+        .chat-header-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            position: relative;
+            padding-left: 10px;
+        }
+
+        /* 세로 색상바 (닉네임 왼쪽) */
+        .chat-header-info::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 3px;
+            height: 14px;
+            background-color: #0077b6;
+            border-radius: 3px;
+        }
+
+        /* 닉네임 스타일 */
         .chat-nickname {
             font-size: 13px;
             font-weight: 700;
             color: #0077b6;
-            display: block;
-            padding-left: 14px;
+        }
+
+        /* 시간 스타일 (닉네임 오른쪽) */
+        .chat-time {
+            font-size: 11px;
+            color: #64748b;
+            font-weight: 500;
         }
 
         /* 메시지 상자 아이템 */
@@ -183,28 +210,14 @@
             background: transparent;
             border: none;
             border-radius: 0;
-            border-bottom: 1px solid rgba(0, 119, 190, 0.12);
-            padding: 6px 0 6px 14px;
+            padding: 2px 0 4px 10px;
             font-size: 15px;
             color: #1e293b;
             text-align: left;
             width: 100%;
             box-sizing: border-box;
-            position: relative;
             display: flex;
             flex-direction: column;
-            gap: 4px;
-        }
-
-        .chat-item::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 6px;
-            bottom: 6px;
-            width: 3px;
-            background-color: #0077b6;
-            border-radius: 3px;
         }
 
         /* 메시지 내부 라인들 */
@@ -218,15 +231,6 @@
             word-break: break-all;
             line-height: 1.35;
             color: #1e293b;
-        }
-
-        /* 상자 하단에 하나만 표시되는 시간 스타일 */
-        .chat-time {
-            font-size: 11px;
-            color: #64748b;
-            font-weight: 500;
-            margin-top: 2px;
-            display: block;
         }
 
         /* 하단 입력 폼 영역 */
@@ -545,7 +549,7 @@
                 }
 
                 if (canGroup) {
-                    // 기존 그룹에 내용 추가 (시간을 갱신하여 그룹 맨 하단에 최신 시간 반영)
+                    // 기존 그룹에 내용 추가
                     currentGroup.lastSec = msgSec;
                     const linesGroup = currentGroup.element.querySelector(".chat-lines-group");
                     
@@ -554,20 +558,34 @@
                     lineDiv.textContent = text;
                     linesGroup.appendChild(lineDiv);
 
-                    // 상자 하단의 시간 갱신
-                    if (timeStr) {
+                    // 그룹 내 최신 시간으로 갱신
+                    if (timeStr && currentGroup.timeElement) {
                         currentGroup.timeElement.textContent = timeStr;
                     }
                 } else {
-                    // 새로운 행(닉네임 + 상자) 생성
+                    // 새로운 행 생성
                     const row = document.createElement("div");
                     row.className = "chat-row";
+                    
+                    // 상단 정보 영역 (색상바 + 닉네임 + 시간)
+                    const headerInfo = document.createElement("div");
+                    headerInfo.className = "chat-header-info";
                     
                     const nicknameSpan = document.createElement("span");
                     nicknameSpan.className = "chat-nickname";
                     nicknameSpan.textContent = "바다비";
-                    row.appendChild(nicknameSpan);
+                    headerInfo.appendChild(nicknameSpan);
 
+                    let timeElement = null;
+                    if (timeStr) {
+                        timeElement = document.createElement("span");
+                        timeElement.className = "chat-time";
+                        timeElement.textContent = timeStr;
+                        headerInfo.appendChild(timeElement);
+                    }
+                    row.appendChild(headerInfo);
+
+                    // 메시지 상자 아이템
                     const chatItem = document.createElement("div");
                     chatItem.className = "chat-item";
                     
@@ -578,16 +596,8 @@
                     lineDiv.className = "chat-text";
                     lineDiv.textContent = text;
                     linesGroup.appendChild(lineDiv);
+                    
                     chatItem.appendChild(linesGroup);
-
-                    let timeElement = null;
-                    if (timeStr) {
-                        timeElement = document.createElement("span");
-                        timeElement.className = "chat-time";
-                        timeElement.textContent = timeStr;
-                        chatItem.appendChild(timeElement);
-                    }
-
                     row.appendChild(chatItem);
                     chatGrid.appendChild(row);
 
