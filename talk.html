@@ -194,36 +194,44 @@
             font-weight: 500;
         }
 
-        /* 하나의 큰 말풍선 박스 역할을 하도록 수정된 스타일 */
         .chat-item {
             background: #ffffff;
             border: 1px solid rgba(0, 119, 190, 0.1);
             border-radius: 8px;
             box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
-            padding: 8px 12px;
+            padding: 6px 8px; /* 내부 여백 조절 */
             font-size: 15px;
             color: #1e293b;
             width: 100%;
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
+            gap: 4px;
         }
 
         .chat-lines-group {
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 2px;
         }
 
+        /* 개별 줄 컨테이너 (마우스 호버 시 배경색 변경 대상) */
         .chat-line-row {
             display: flex;
-            align-items: flex-start;
+            align-items: center;
             justify-content: space-between;
-            gap: 8px;
+            gap: 12px;
             width: 100%;
+            padding: 4px 6px;
+            border-radius: 6px;
+            transition: background-color 0.15s ease;
         }
 
-        /* 개별 텍스트 줄 스타일 */
+        /* 삭제 버튼에 마우스를 올렸을 때 부모인 .chat-line-row의 배경을 붉은색으로 변경 */
+        .chat-line-row:has(.chat-delete-btn:hover) {
+            background-color: rgba(239, 68, 68, 0.08);
+        }
+
         .chat-text {
             word-break: break-all;
             line-height: 1.35;
@@ -233,10 +241,6 @@
             padding: 0;
             border: none;
             box-shadow: none;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
         }
 
         /* 관리자용 개별 삭제 버튼 */
@@ -558,7 +562,6 @@
                 const text = msg.message || "";
                 const msgSec = timeToSeconds(timeStr);
 
-                // 1. 날짜가 바뀌면 날짜 구분선 생성 및 그룹 초기화
                 if (dateStr !== lastAppendedDate) {
                     lastAppendedDate = dateStr;
                     currentGroupElement = null;
@@ -570,16 +573,13 @@
                     chatGrid.appendChild(dateDivider);
                 }
 
-                // 2. 90초 이내인지 확인 (같은 날짜 기준)
                 const isWithinTime = (msgSec - lastMsgSec) <= 90;
                 const canGroup = currentGroupElement !== null && isWithinTime;
 
                 if (canGroup) {
-                    // 기존 상자(linesGroup)에 새로운 줄 추가
                     const linesGroup = currentGroupElement.querySelector(".chat-lines-group");
                     appendChatLine(linesGroup, text, originalIndex);
                 } else {
-                    // 새로운 행(채팅 블록) 생성
                     const row = document.createElement("div");
                     row.className = "chat-row";
                     
@@ -618,26 +618,22 @@
             });
         }
 
-        // 개별 줄과 삭제 버튼을 생성하는 헬퍼 함수
         function appendChatLine(container, text, originalIndex) {
             const lineRow = document.createElement("div");
             lineRow.className = "chat-line-row";
             
-            const lineDiv = document.createElement("div");
-            lineDiv.className = "chat-text";
-            
             const spanText = document.createElement("span");
+            spanText.className = "chat-text";
             spanText.textContent = text;
-            lineDiv.appendChild(spanText);
+            lineRow.appendChild(spanText);
 
             const deleteBtn = document.createElement("button");
             deleteBtn.className = "chat-delete-btn";
             deleteBtn.textContent = "×";
             deleteBtn.title = "메시지 삭제";
             deleteBtn.onclick = () => deleteMessage(originalIndex);
-            lineDiv.appendChild(deleteBtn);
+            lineRow.appendChild(deleteBtn);
 
-            lineRow.appendChild(lineDiv);
             container.appendChild(lineRow);
         }
 
@@ -749,6 +745,7 @@
                 chatInput.focus();
             } else {
                 document.body.classList.remove("authenticated-mode");
+                inputSection.classList.remove("input-section");
                 inputSection.classList.remove("active-input");
                 oceanAuthBtn.classList.remove("authenticated");
                 chatInput.value = "";
