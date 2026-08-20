@@ -434,6 +434,23 @@
             outline: none;
         }
 
+        .modal-checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: #475569;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .modal-checkbox-label input {
+            width: 16px;
+            height: 16px;
+            accent-color: #0077b6;
+            cursor: pointer;
+        }
+
         .modal-buttons {
             display: flex;
             gap: 8px;
@@ -456,6 +473,11 @@
 
         .modal-btn.submit {
             background-color: #0077b6;
+            color: white;
+        }
+
+        .modal-btn.danger {
+            background-color: #dc2626;
             color: white;
         }
     </style>
@@ -491,7 +513,7 @@
 
     <div class="toast-message" id="toastMessage">토스트 메시지</div>
 
-    <!-- 통합 인증/로그아웃 모달 -->
+    <!-- 통합 모달 (인증/로그아웃/삭제 확인용) -->
     <div class="modal-overlay" id="authModal">
         <div class="modal-box" id="authModalBox">
             <!-- 동적으로 내용 변경됨 -->
@@ -506,9 +528,8 @@
         let currentMessagesList = [];
         let displayLimit = 50;
 
-        // 순차 처리를 위한 요청 큐 (Queue) 시스템
         let saveQueue = Promise.resolve();
-        let isLocallyMutating = false; // 내 작업이 진행 중일 때 폴링 충돌 방지
+        let isLocallyMutating = false;
 
         const chatInput = document.getElementById("chatInput");
         const inputSection = document.getElementById("inputSection");
@@ -548,7 +569,7 @@
         }
 
         async function loadMessages(isInitial = false) {
-            if (isLocallyMutating) return; // 내가 입력/삭제 중일 때는 폴링 동기화 건너뜀
+            if (isLocallyMutating) return;
 
             try {
                 const response = await fetch(`${WORKER_URL}?type=talk&t=${Date.now()}`);
@@ -686,13 +707,12 @@
             deleteBtn.className = "chat-delete-btn";
             deleteBtn.textContent = "×";
             deleteBtn.title = "메시지 삭제";
-            deleteBtn.onclick = () => deleteMessage(originalIndex);
+            deleteBtn.onclick = () => requestDeleteMessage(originalIndex);
             lineRow.appendChild(deleteBtn);
 
             container.appendChild(lineRow);
         }
 
-        // 큐(Queue)에 작업을 등록하여 순차적으로 실행하는 함수
         function enqueueServerSave() {
             isLocallyMutating = true;
             saveQueue = saveQueue.then(async () => {
@@ -719,17 +739,58 @@
                 showToast("저장에 실패했습니다. 최신 상태를 불러옵니다.");
                 loadMessages(false);
             }).finally(() => {
-                // 큐에 남은 작업이 없을 때만 뮤타크 잠금 해제
                 setTimeout(() => {
                     isLocallyMutating = false;
                 }, 1000);
             });
         }
 
-        function deleteMessage(index) {
+        function requestDeleteMessage(index) {
             if (!isAuthenticated) return;
-            if (!confirm("이 메시지를 삭제하시겠습니까?")) return;
 
+            // '오늘 하루 바로 삭제' 설정이 유효한지 확인
+            const instantDeleteUntil = localStorage.getItem("badabi_instant_delete_until");
+            const now = Date.now();
+
+            if (instantDeleteUntil && now < parseInt(instantDeleteUntil, 10)) {
+                // 체크되어 있다면 모달 띄우지 않고 바로 삭제 실행
+                executeDelete(index);
+                return;
+            }
+
+            // 모달 팝업 띄우기
+            authModalBox.innerHTML = `
+                <div class="modal-header">
+                    <svg class="modal-icon" viewBox="0 0 24 24">
+                        <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    </svg>
+                    <h3 class="modal-title">메시지 삭제</h3>
+                </div>
+                <p style="font-size: 14px; color: #64748b; margin: 0;">이 메시지를 삭제하시겠습니까?</p>
+                <label class="modal-checkbox-label">
+                    <input type="checkbox" id="instantDeleteCheck"> 오늘 하루 동안 묻지 않고 바로 삭제하기
+                </label>
+                <div class="modal-buttons">
+                    <button class="modal-btn cancel" onclick="closeAuthModal()">취소</button>
+                    <button class="modal-btn danger" onclick="confirmDeleteModal(${index})">삭제</button>
+                </div>
+            `;
+            authModal.classList.add("active");
+        }
+
+        function confirmDeleteModal(index) {
+            const checkbox = document.getElementById("instantDeleteCheck");
+            if (checkbox && checkbox.checked) {
+                // 오늘 자정(23:59:59)까지 만료 시간 설정
+                const midnight = new Date();
+                midnight.setHours(23, 59, 59, 999);
+                localStorage.setItem("badabi_instant_delete_until", midnight.getTime().toString());
+            }
+            closeAuthModal();
+            executeDelete(index);
+        }
+
+        function executeDelete(index) {
             currentMessagesList.splice(index, 1);
             renderMessages(currentMessagesList, false);
             enqueueServerSave();
@@ -873,7 +934,6 @@
             renderMessages(currentMessagesList, false);
             chatGrid.scrollTop = chatGrid.scrollHeight;
 
-            // 순차 큐에 서버 저장 작업 추가
             enqueueServerSave();
         }
 
