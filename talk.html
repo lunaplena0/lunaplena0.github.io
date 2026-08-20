@@ -465,15 +465,10 @@
 
     <div class="toast-message" id="toastMessage">토스트 메시지</div>
 
+    <!-- 통합 인증/로그아웃 모달 -->
     <div class="modal-overlay" id="authModal">
-        <div class="modal-box">
-            <h3 class="modal-title">🔐 패스워드 인증</h3>
-            <p style="font-size: 14px; color: #64748b; margin: 0;">작성 권한 패스워드를 입력하세요.</p>
-            <input type="password" class="modal-input" id="passwordInput" placeholder="패스워드 입력">
-            <div class="modal-buttons">
-                <button class="modal-btn cancel" onclick="closeAuthModal()">취소</button>
-                <button class="modal-btn submit" onclick="verifyPassword()">확인</button>
-            </div>
+        <div class="modal-box" id="authModalBox">
+            <!-- 동적으로 내용 변경됨 -->
         </div>
     </div>
 
@@ -488,7 +483,7 @@
         const chatInput = document.getElementById("chatInput");
         const inputSection = document.getElementById("inputSection");
         const authModal = document.getElementById("authModal");
-        const passwordInput = document.getElementById("passwordInput");
+        const authModalBox = document.getElementById("authModalBox");
         const chatGrid = document.getElementById("chatGrid");
         const oceanAuthBtn = document.getElementById("oceanAuthBtn");
         const toastElement = document.getElementById("toastMessage");
@@ -681,28 +676,52 @@
 
         function openAuthModal() {
             if (isAuthenticated) {
-                if (confirm("로그인 상태입니다. 인증을 해제(로그아웃)하시겠습니까?")) {
-                    isAuthenticated = false;
-                    document.body.classList.remove("authenticated-mode");
-                    localStorage.removeItem("badabi_auth");
-                    localStorage.removeItem("badabi_pw");
-                    updateAuthUI();
-                    showToast("인증이 해제되었습니다.");
-                    renderMessages(currentMessagesList);
-                }
-                return;
+                // 로그아웃 확인 모달 UI 구성
+                authModalBox.innerHTML = `
+                    <h3 class="modal-title">🔓 로그아웃</h3>
+                    <p style="font-size: 14px; color: #64748b; margin: 0;">인증을 해제(로그아웃)하시겠습니까?</p>
+                    <div class="modal-buttons">
+                        <button class="modal-btn cancel" onclick="closeAuthModal()">취소</button>
+                        <button class="modal-btn submit" onclick="executeLogout()">확인</button>
+                    </div>
+                `;
+            } else {
+                // 로그인 인증 모달 UI 구성
+                authModalBox.innerHTML = `
+                    <h3 class="modal-title">🔐 패스워드 인증</h3>
+                    <p style="font-size: 14px; color: #64748b; margin: 0;">작성 권한 패스워드를 입력하세요.</p>
+                    <input type="password" class="modal-input" id="passwordInput" placeholder="패스워드 입력">
+                    <div class="modal-buttons">
+                        <button class="modal-btn cancel" onclick="closeAuthModal()">취소</button>
+                        <button class="modal-btn submit" onclick="verifyPassword()">확인</button>
+                    </div>
+                `;
+                setTimeout(() => {
+                    const pwInput = document.getElementById("passwordInput");
+                    if (pwInput) pwInput.focus();
+                }, 50);
             }
             authModal.classList.add("active");
-            passwordInput.value = "";
-            passwordInput.focus();
         }
 
         function closeAuthModal() {
             authModal.classList.remove("active");
         }
 
+        function executeLogout() {
+            isAuthenticated = false;
+            document.body.classList.remove("authenticated-mode");
+            localStorage.removeItem("badabi_auth");
+            localStorage.removeItem("badabi_pw");
+            closeAuthModal();
+            updateAuthUI();
+            showToast("인증이 해제되었습니다.");
+            renderMessages(currentMessagesList);
+        }
+
         async function verifyPassword() {
-            const password = passwordInput.value;
+            const passwordInput = document.getElementById("passwordInput");
+            const password = passwordInput ? passwordInput.value : "";
             if (!password) {
                 showToast("패스워드를 입력해주세요.");
                 return;
@@ -734,8 +753,10 @@
 
             } catch (error) {
                 showToast("패스워드가 일치하지 않습니다.");
-                passwordInput.value = "";
-                passwordInput.focus();
+                if (passwordInput) {
+                    passwordInput.value = "";
+                    passwordInput.focus();
+                }
             }
         }
 
@@ -816,9 +837,12 @@
             }
         });
 
-        passwordInput.addEventListener("keydown", (e) => {
+        document.addEventListener("keydown", (e) => {
             if (e.key === "Enter") {
-                verifyPassword();
+                const passwordInput = document.getElementById("passwordInput");
+                if (passwordInput && document.activeElement === passwordInput) {
+                    verifyPassword();
+                }
             }
         });
     </script>
