@@ -152,6 +152,19 @@
             border-radius: 10px;
         }
 
+        .load-more-indicator {
+            text-align: center;
+            font-size: 12px;
+            color: #0077b6;
+            padding: 8px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .load-more-indicator:hover {
+            text-decoration: underline;
+        }
+
         .chat-row {
             position: relative;
             width: 100%;
@@ -492,6 +505,7 @@
         let cachedMessagesJson = "";
         let currentMessagesList = [];
         let isSavingOrDeleting = false;
+        let displayLimit = 50; // 처음에 보여줄 메시지 수 (이후 스크롤 시 50개씩 추가 로드)
 
         const chatInput = document.getElementById("chatInput");
         const inputSection = document.getElementById("inputSection");
@@ -507,8 +521,21 @@
                 inputSection.classList.add("active-input");
                 oceanAuthBtn.classList.add("authenticated");
             }
-            loadMessages();
-            setInterval(loadMessages, 3000);
+            loadMessages(true);
+            setInterval(() => loadMessages(false), 3000);
+
+            // 위로 스크롤 시 과거 메시지 추가 로드 감지
+            chatGrid.addEventListener("scroll", () => {
+                if (chatGrid.scrollTop === 0) {
+                    if (displayLimit < currentMessagesList.length) {
+                        const oldScrollHeight = chatGrid.scrollHeight;
+                        displayLimit += 50;
+                        renderMessages(currentMessagesList, false);
+                        // 스크롤 위치 유지 (위로 쏠림 방지)
+                        chatGrid.scrollTop = chatGrid.scrollHeight - oldScrollHeight;
+                    }
+                }
+            });
         });
 
         function showToast(message) {
@@ -519,7 +546,7 @@
             }, 2500);
         }
 
-        async function loadMessages() {
+        async function loadMessages(isInitial = false) {
             if (isSavingOrDeleting) return;
 
             try {
@@ -534,9 +561,9 @@
 
                 const isAtBottom = chatGrid.scrollHeight - chatGrid.scrollTop <= chatGrid.clientHeight + 50;
 
-                renderMessages(currentMessagesList);
+                renderMessages(currentMessagesList, isInitial);
 
-                if (isAtBottom) {
+                if (isInitial || isAtBottom) {
                     chatGrid.scrollTop = chatGrid.scrollHeight;
                 }
             } catch (err) {
@@ -551,7 +578,7 @@
             return parseInt(parts[0], 10) * 3600 + parseInt(parts[1], 10) * 60 + (parts[2] ? parseInt(parts[2], 10) : 0);
         }
 
-        function renderMessages(messages) {
+        function renderMessages(messages, isInitial = false) {
             chatGrid.innerHTML = "";
 
             if (!Array.isArray(messages) || messages.length === 0) {
@@ -562,11 +589,30 @@
                 return;
             }
 
+            // 전체 중 뒤에서 displayLimit 만큼만 잘라서 표시 (최신 메시지 우선)
+            const startIndex = Math.max(0, messages.length - displayLimit);
+            const visibleMessages = messages.slice(startIndex);
+
+            // 아직 더 불러올 과거 메시지가 있다면 상단에 안내 표시
+            if (startIndex > 0) {
+                const loadMoreDiv = document.createElement("div");
+                loadMoreDiv.className = "load-more-indicator";
+                loadMoreDiv.textContent = "👆 위로 스크롤하여 이전 메시지 더보기";
+                loadMoreDiv.onclick = () => {
+                    const oldScrollHeight = chatGrid.scrollHeight;
+                    displayLimit += 50;
+                    renderMessages(currentMessagesList, false);
+                    chatGrid.scrollTop = chatGrid.scrollHeight - oldScrollHeight;
+                };
+                chatGrid.appendChild(loadMoreDiv);
+            }
+
             let lastAppendedDate = "";
             let currentGroupElement = null;
             let lastMsgSec = -999;
 
-            messages.forEach((msg, originalIndex) => {
+            visibleMessages.forEach((msg, idx) => {
+                const originalIndex = startIndex + idx;
                 const dateStr = msg.date || "";
                 const timeStr = msg.time || "";
                 const text = msg.message || "";
@@ -655,7 +701,7 @@
 
             currentMessagesList.splice(index, 1);
             cachedMessagesJson = JSON.stringify(currentMessagesList);
-            renderMessages(currentMessagesList);
+            renderMessages(currentMessagesList, false);
 
             const password = localStorage.getItem("badabi_pw") || "";
 
@@ -679,7 +725,7 @@
             } catch (err) {
                 console.error("메시지 삭제 실패:", err);
                 showToast("메시지 삭제에 실패했습니다.");
-                loadMessages();
+                loadMessages(false);
             } finally {
                 setTimeout(() => {
                     isSavingOrDeleting = false;
@@ -689,7 +735,6 @@
 
         function openAuthModal() {
             if (isAuthenticated) {
-                // 로그아웃 확인 모달 UI 구성 (잠금 해제 아이콘 적용)
                 authModalBox.innerHTML = `
                     <div class="modal-header">
                         <svg class="modal-icon" viewBox="0 0 24 24">
@@ -705,7 +750,6 @@
                     </div>
                 `;
             } else {
-                // 로그인 인증 모달 UI 구성 (자물쇠 아이콘 적용)
                 authModalBox.innerHTML = `
                     <div class="modal-header">
                         <svg class="modal-icon" viewBox="0 0 24 24">
@@ -741,7 +785,7 @@
             closeAuthModal();
             updateAuthUI();
             showToast("인증이 해제되었습니다.");
-            renderMessages(currentMessagesList);
+            renderMessages(currentMessagesList, false);
         }
 
         async function verifyPassword() {
@@ -774,7 +818,7 @@
                 closeAuthModal();
                 updateAuthUI();
                 showToast("성공적으로 인증되었습니다!");
-                renderMessages(currentMessagesList);
+                renderMessages(currentMessagesList, false);
 
             } catch (error) {
                 showToast("패스워드가 일치하지 않습니다.");
@@ -825,7 +869,8 @@
                 time: timeStr
             });
             cachedMessagesJson = JSON.stringify(currentMessagesList);
-            renderMessages(currentMessagesList);
+            displayLimit = Math.max(displayLimit, currentMessagesList.length); // 새 메시지 추가 시 최신 내역이 보이도록 확장
+            renderMessages(currentMessagesList, false);
             chatGrid.scrollTop = chatGrid.scrollHeight;
 
             try {
@@ -847,7 +892,7 @@
             } catch (err) {
                 console.error("메시지 저장 실패:", err);
                 showToast("메시지 저장에 실패했습니다.");
-                loadMessages();
+                loadMessages(false);
             } finally {
                 setTimeout(() => {
                     isSavingOrDeleting = false;
