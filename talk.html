@@ -199,7 +199,7 @@
             border: 1px solid rgba(0, 119, 190, 0.1);
             border-radius: 8px;
             box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
-            padding: 6px 8px; /* 내부 여백 조절 */
+            padding: 6px 8px;
             font-size: 15px;
             color: #1e293b;
             width: 100%;
@@ -213,21 +213,22 @@
             display: flex;
             flex-direction: column;
             gap: 2px;
+            align-items: flex-start; /* 왼쪽 정렬로 텍스트 크기만큼만 영역 차지 */
         }
 
-        /* 개별 줄 컨테이너 (마우스 호버 시 배경색 변경 대상) */
+        /* 개별 줄 컨테이너 (텍스트와 삭제 버튼을 감싸는 영역) */
         .chat-line-row {
-            display: flex;
+            display: inline-flex;
             align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            width: 100%;
-            padding: 4px 6px;
+            gap: 10px;
+            padding: 3px 6px;
             border-radius: 6px;
             transition: background-color 0.15s ease;
+            max-width: 100%;
+            box-sizing: border-box;
         }
 
-        /* 삭제 버튼에 마우스를 올렸을 때 부모인 .chat-line-row의 배경을 붉은색으로 변경 */
+        /* 삭제 버튼에 마우스를 올렸을 때 해당 줄 영역에만 붉은색 배경 적용 */
         .chat-line-row:has(.chat-delete-btn:hover) {
             background-color: rgba(239, 68, 68, 0.08);
         }
@@ -236,7 +237,6 @@
             word-break: break-all;
             line-height: 1.35;
             color: #1e293b;
-            flex: 1;
             background: transparent;
             padding: 0;
             border: none;
@@ -252,8 +252,8 @@
             font-size: 12px;
             font-weight: 600;
             cursor: pointer;
-            width: 20px;
-            height: 20px;
+            width: 18px;
+            height: 18px;
             flex-shrink: 0;
             align-items: center;
             justify-content: center;
@@ -745,7 +745,6 @@
                 chatInput.focus();
             } else {
                 document.body.classList.remove("authenticated-mode");
-                inputSection.classList.remove("input-section");
                 inputSection.classList.remove("active-input");
                 oceanAuthBtn.classList.remove("authenticated");
                 chatInput.value = "";
