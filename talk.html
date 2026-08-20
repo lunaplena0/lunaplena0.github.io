@@ -538,122 +538,108 @@
         }
 
         function renderMessages(messages) {
-            chatGrid.innerHTML = "";
+    chatGrid.innerHTML = "";
 
-            if (!Array.isArray(messages) || messages.length === 0) {
-                const emptyDiv = document.createElement("div");
-                emptyDiv.style.cssText = "flex: 1; display: flex; align-items: center; justify-content: center; color: #94a3b8; font-size: 14px; text-align: center; padding: 20px;";
-                emptyDiv.textContent = "아직 등록된 대화가 없습니다.";
-                chatGrid.appendChild(emptyDiv);
-                return;
-            }
+    if (!Array.isArray(messages) || messages.length === 0) {
+        const emptyDiv = document.createElement("div");
+        emptyDiv.style.cssText = "flex: 1; display: flex; align-items: center; justify-content: center; color: #94a3b8; font-size: 14px; text-align: center; padding: 20px;";
+        emptyDiv.textContent = "아직 등록된 대화가 없습니다.";
+        chatGrid.appendChild(emptyDiv);
+        return;
+    }
 
-            let lastAppendedDate = "";
-            let currentGroup = null;
+    let lastAppendedDate = "";
+    let currentGroupElement = null;
+    let lastMsgSec = -999;
 
-            messages.forEach((msg, originalIndex) => {
-                const dateStr = msg.date || "";
-                const timeStr = msg.time || "";
-                const text = msg.message || "";
-                const msgSec = timeToSeconds(timeStr);
+    messages.forEach((msg, originalIndex) => {
+        const dateStr = msg.date || "";
+        const timeStr = msg.time || "";
+        const text = msg.message || "";
+        const msgSec = timeToSeconds(timeStr);
 
-                if (dateStr !== lastAppendedDate) {
-                    lastAppendedDate = dateStr;
-                    currentGroup = null;
-                    const dateDivider = document.createElement("div");
-                    dateDivider.className = "date-divider";
-                    dateDivider.textContent = dateStr;
-                    chatGrid.appendChild(dateDivider);
-                }
+        // 1. 날짜가 바뀌면 날짜 구분선 생성 및 그룹 초기화
+        if (dateStr !== lastAppendedDate) {
+            lastAppendedDate = dateStr;
+            currentGroupElement = null;
+            lastMsgSec = -999;
 
-                let canGroup = false;
-                if (currentGroup && currentGroup.date === dateStr) {
-                    const diff = Math.abs(msgSec - currentGroup.firstSec);
-                    if (diff <= 90) {
-                        canGroup = true;
-                    }
-                }
-
-                if (canGroup) {
-                    const linesGroup = currentGroup.element.querySelector(".chat-lines-group");
-                    
-                    const lineRow = document.createElement("div");
-                    lineRow.className = "chat-line-row";
-                    
-                    const lineDiv = document.createElement("div");
-                    lineDiv.className = "chat-text";
-                    
-                    const spanText = document.createElement("span");
-                    spanText.textContent = text;
-                    lineDiv.appendChild(spanText);
-
-                    const deleteBtn = document.createElement("button");
-                    deleteBtn.className = "chat-delete-btn";
-                    deleteBtn.textContent = "×";
-                    deleteBtn.title = "메시지 삭제";
-                    deleteBtn.onclick = () => deleteMessage(originalIndex);
-                    lineDiv.appendChild(deleteBtn);
-
-                    lineRow.appendChild(lineDiv);
-                    linesGroup.appendChild(lineRow);
-                } else {
-                    const row = document.createElement("div");
-                    row.className = "chat-row";
-                    
-                    const headerInfo = document.createElement("div");
-                    headerInfo.className = "chat-header-info";
-                    
-                    const nicknameSpan = document.createElement("span");
-                    nicknameSpan.className = "chat-nickname";
-                    nicknameSpan.textContent = "바다비";
-                    headerInfo.appendChild(nicknameSpan);
-
-                    let timeElement = null;
-                    if (timeStr) {
-                        timeElement = document.createElement("span");
-                        timeElement.className = "chat-time";
-                        timeElement.textContent = timeStr;
-                        headerInfo.appendChild(timeElement);
-                    }
-                    row.appendChild(headerInfo);
-
-                    const chatItem = document.createElement("div");
-                    chatItem.className = "chat-item";
-                    
-                    const linesGroup = document.createElement("div");
-                    linesGroup.className = "chat-lines-group";
-                    
-                    const lineRow = document.createElement("div");
-                    lineRow.className = "chat-line-row";
-                    
-                    const lineDiv = document.createElement("div");
-                    lineDiv.className = "chat-text";
-                    
-                    const spanText = document.createElement("span");
-                    spanText.textContent = text;
-                    lineDiv.appendChild(spanText);
-
-                    const deleteBtn = document.createElement("button");
-                    deleteBtn.className = "chat-delete-btn";
-                    deleteBtn.textContent = "×";
-                    deleteBtn.title = "메시지 삭제";
-                    deleteBtn.onclick = () => deleteMessage(originalIndex);
-                    lineDiv.appendChild(deleteBtn);
-
-                    lineRow.appendChild(lineDiv);
-                    linesGroup.appendChild(lineRow);
-                    chatItem.appendChild(linesGroup);
-                    row.appendChild(chatItem);
-                    chatGrid.appendChild(row);
-
-                    currentGroup = {
-                        date: dateStr,
-                        firstSec: msgSec,
-                        element: chatItem
-                    };
-                }
-            });
+            const dateDivider = document.createElement("div");
+            dateDivider.className = "date-divider";
+            dateDivider.textContent = dateStr;
+            chatGrid.appendChild(dateDivider);
         }
+
+        // 2. 90초 이내인지 확인 (같은 날짜 기준)
+        const isWithinTime = (msgSec - lastMsgSec) <= 90;
+        const canGroup = currentGroupElement !== null && isWithinTime;
+
+        if (canGroup) {
+            // 기존 상자(linesGroup)에 새로운 줄 추가
+            const linesGroup = currentGroupElement.querySelector(".chat-lines-group");
+            appendChatLine(linesGroup, text, originalIndex);
+        } else {
+            // 새로운 행(채팅 블록) 생성
+            const row = document.createElement("div");
+            row.className = "chat-row";
+            
+            const headerInfo = document.createElement("div");
+            headerInfo.className = "chat-header-info";
+            
+            const nicknameSpan = document.createElement("span");
+            nicknameSpan.className = "chat-nickname";
+            nicknameSpan.textContent = "바다비";
+            headerInfo.appendChild(nicknameSpan);
+
+            if (timeStr) {
+                const timeElement = document.createElement("span");
+                timeElement.className = "chat-time";
+                timeElement.textContent = timeStr;
+                headerInfo.appendChild(timeElement);
+            }
+            row.appendChild(headerInfo);
+
+            const chatItem = document.createElement("div");
+            chatItem.className = "chat-item";
+            
+            const linesGroup = document.createElement("div");
+            linesGroup.className = "chat-lines-group";
+            
+            appendChatLine(linesGroup, text, originalIndex);
+
+            chatItem.appendChild(linesGroup);
+            row.appendChild(chatItem);
+            chatGrid.appendChild(row);
+
+            currentGroupElement = chatItem;
+        }
+
+        lastMsgSec = msgSec;
+    });
+}
+
+// 개별 줄과 삭제 버튼을 생성하는 헬퍼 함수
+function appendChatLine(container, text, originalIndex) {
+    const lineRow = document.createElement("div");
+    lineRow.className = "chat-line-row";
+    
+    const lineDiv = document.createElement("div");
+    lineDiv.className = "chat-text";
+    
+    const spanText = document.createElement("span");
+    spanText.textContent = text;
+    lineDiv.appendChild(spanText);
+
+    const deleteBtn = document.createElement("button");
+    deleteBtn.className = "chat-delete-btn";
+    deleteBtn.textContent = "×";
+    deleteBtn.title = "메시지 삭제";
+    deleteBtn.onclick = () => deleteMessage(originalIndex);
+    lineDiv.appendChild(deleteBtn);
+
+    lineRow.appendChild(lineDiv);
+    container.appendChild(lineRow);
+}
 
         async function deleteMessage(index) {
             if (!isAuthenticated) return;
