@@ -76,7 +76,11 @@ const adminHtmlTemplate = `
             <button onclick="showDashboard()" style="background-color: #64748b; padding: 6px 12px; font-size: 13px;">← 메뉴 목록으로</button>
         </div>
         <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 20px; color: #1e293b; line-height: 1.6;">
-            <h4 style="color: #0077b6; margin-top: 0;">페이지를 게시글에 적용하는 방법입니다 </br> 현재 숲 게시글 iframe패치로 게시글에 화면을 보여주는 방법이 막혔습니다.</h4>
+            <h4 style="color: #0077b6; margin-top: 0;">페이지를 게시글에 적용하는 방법입니다 </br> 
+            [08.20] 현재 숲 게시글 iframe패치로 게시글에 화면을 보여주는 방법이 막혔습니다. </br>
+            https://badabi.pages.dev/필요한 주소 에 맞게 사용해주세요 </br>
+            (예시)https://badabi.pages.dev/songlist, https://badabi.pages.dev/mainpages
+            </h4>
             
             <div style="margin: 20px 0; display: flex; align-items: center; justify-content: space-between; background: #fff; padding: 15px; border: 1px solid #cbd5e1; border-radius: 8px;">
                 <span style="font-weight: 600;">1-1. 메인페이지로 시작하는 경우</span>
