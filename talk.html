@@ -228,7 +228,7 @@
         .chat-lines-group {
             display: flex;
             flex-direction: column;
-            gap: 3px;
+            gap: 4px;
         }
 
         .chat-line-row {
@@ -239,46 +239,52 @@
             width: 100%;
         }
 
+        /* 메시지 내용 (끝이 살짝 둥근 사각형 박스) */
         .chat-text {
             word-break: break-all;
             line-height: 1.35;
             color: #1e293b;
             flex: 1;
             background-color: #ffffff;
-            padding: 8px 12px;
-            border-radius: 8px; /* 둥근 정도 조절 가능 (예: 6px ~ 10px) */
-            border: 1px solid rgba(0, 119, 190, 0.1); /* 은은한 테두리 추가 */
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02); /* 가벼운 입체감 */
+            padding: 8px 36px 8px 12px; /* 오른쪽 버튼 공간 확보를 위해 패스 넉넉히 설정 */
+            border-radius: 8px;
+            border: 1px solid rgba(0, 119, 190, 0.1);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+            position: relative; /* 삭제 버튼 절대 위치 기준점 */
         }
 
-        /* 관리자용 개별 삭제 버튼 (기본 숨김) */
+        /* 관리자용 개별 삭제 버튼 (빨간색 둥근 사각형 상자, 박스 안쪽 오른쪽 끝 고정) */
         .chat-delete-btn {
             display: none;
-            background: transparent;
-            border: 1px solid transparent; /* 기본 상태 테두리 공간 확보 */
-            color: #ef4444; /* 빨간색 글자 */
-            font-size: 13px;
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(239, 68, 68, 0.05);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            font-size: 12px;
             font-weight: 600;
             cursor: pointer;
-            padding: 2px 6px;
-            line-height: 1;
-            border-radius: 6px; /* 살짝 둥근 사각형 모서리 */
+            width: 20px;
+            height: 20px;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
             transition: all 0.2s ease;
-            flex-shrink: 0;
-            background-color: rgba(239, 68, 68, 0.05); /* 연한 빨간색 배경 */
+            padding: 0;
+            line-height: 1;
         }
 
         .chat-delete-btn:hover {
-            background-color: rgba(239, 68, 68, 0.15); /* 마우스 올렸을 때 진해짐 */
-            border-color: rgba(239, 68, 68, 0.3); /* 은은한 빨간 테두리 */
+            background-color: rgba(239, 68, 68, 0.15);
+            border-color: rgba(239, 68, 68, 0.4);
             color: #dc2626;
         }
 
-        /* 인증 상태일 때만 삭제 버튼 표시 (기존 유지) */
+        /* 인증 상태일 때만 삭제 버튼 표시 */
         body.authenticated-mode .chat-delete-btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
+            display: flex;
         }
 
         /* 하단 입력 폼 영역 */
@@ -340,7 +346,7 @@
             color: #03045e;
         }
 
-        /* 토스트 메시지 스타일 (끝이 살짝 동글한 모서리 사각형 + 테마 컬러) */
+        /* 토스트 메시지 스타일 */
         .toast-message {
             position: fixed;
             bottom: 30px;
@@ -501,7 +507,7 @@
         let isAuthenticated = localStorage.getItem("badabi_auth") === "true";
         let cachedMessagesJson = "";
         let currentMessagesList = [];
-        let isSavingOrDeleting = false; // 서버 통신 중 동기화 충돌 방지 플래그
+        let isSavingOrDeleting = false;
 
         const chatInput = document.getElementById("chatInput");
         const inputSection = document.getElementById("inputSection");
@@ -530,7 +536,6 @@
         }
 
         async function loadMessages() {
-            // 저장이나 삭제 작업이 진행 중일 때는 서버 동기화를 잠시 건너뜁니다.
             if (isSavingOrDeleting) return;
 
             try {
@@ -592,12 +597,12 @@
                 }
 
                 let canGroup = false;
-if (currentGroup && currentGroup.date === dateStr) {
-    const diff = Math.abs(msgSec - currentGroup.firstSec);
-    if (diff <= 90) {
-        canGroup = true;
-    }
-}
+                if (currentGroup && currentGroup.date === dateStr) {
+                    const diff = Math.abs(msgSec - currentGroup.firstSec);
+                    if (diff <= 90) {
+                        canGroup = true;
+                    }
+                }
 
                 if (canGroup) {
                     const linesGroup = currentGroup.element.querySelector(".chat-lines-group");
@@ -678,7 +683,7 @@ if (currentGroup && currentGroup.date === dateStr) {
             if (!isAuthenticated) return;
             if (!confirm("이 메시지를 삭제하시겠습니까?")) return;
 
-            isSavingOrDeleting = true; // 동기화 일시 중지
+            isSavingOrDeleting = true;
 
             currentMessagesList.splice(index, 1);
             cachedMessagesJson = JSON.stringify(currentMessagesList);
@@ -708,7 +713,6 @@ if (currentGroup && currentGroup.date === dateStr) {
                 showToast("메시지 삭제에 실패했습니다.");
                 loadMessages();
             } finally {
-                // 서버 반영이 완료된 후 약간의 여유를 두고 동기화 재개
                 setTimeout(() => {
                     isSavingOrDeleting = false;
                 }, 1500);
@@ -793,7 +797,7 @@ if (currentGroup && currentGroup.date === dateStr) {
             const text = chatInput.value.trim();
             if (!text || !isAuthenticated) return;
 
-            isSavingOrDeleting = true; // 동기화 일시 중지
+            isSavingOrDeleting = true;
             const password = localStorage.getItem("badabi_pw") || "";
 
             const now = new Date();
