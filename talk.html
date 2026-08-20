@@ -504,8 +504,11 @@
         let isAuthenticated = localStorage.getItem("badabi_auth") === "true";
         let cachedMessagesJson = "";
         let currentMessagesList = [];
-        let isSavingOrDeleting = false;
-        let displayLimit = 50; // 처음에 보여줄 메시지 수 (이후 스크롤 시 50개씩 추가 로드)
+        let displayLimit = 50;
+
+        // 순차 처리를 위한 요청 큐 (Queue) 시스템
+        let saveQueue = Promise.resolve();
+        let isLocallyMutating = false; // 내 작업이 진행 중일 때 폴링 충돌 방지
 
         const chatInput = document.getElementById("chatInput");
         const inputSection = document.getElementById("inputSection");
@@ -524,14 +527,12 @@
             loadMessages(true);
             setInterval(() => loadMessages(false), 3000);
 
-            // 위로 스크롤 시 과거 메시지 추가 로드 감지
             chatGrid.addEventListener("scroll", () => {
                 if (chatGrid.scrollTop === 0) {
                     if (displayLimit < currentMessagesList.length) {
                         const oldScrollHeight = chatGrid.scrollHeight;
                         displayLimit += 50;
                         renderMessages(currentMessagesList, false);
-                        // 스크롤 위치 유지 (위로 쏠림 방지)
                         chatGrid.scrollTop = chatGrid.scrollHeight - oldScrollHeight;
                     }
                 }
@@ -547,7 +548,7 @@
         }
 
         async function loadMessages(isInitial = false) {
-            if (isSavingOrDeleting) return;
+            if (isLocallyMutating) return; // 내가 입력/삭제 중일 때는 폴링 동기화 건너뜀
 
             try {
                 const response = await fetch(`${WORKER_URL}?type=talk&t=${Date.now()}`);
@@ -589,11 +590,9 @@
                 return;
             }
 
-            // 전체 중 뒤에서 displayLimit 만큼만 잘라서 표시 (최신 메시지 우선)
             const startIndex = Math.max(0, messages.length - displayLimit);
             const visibleMessages = messages.slice(startIndex);
 
-            // 아직 더 불러올 과거 메시지가 있다면 상단에 안내 표시
             if (startIndex > 0) {
                 const loadMoreDiv = document.createElement("div");
                 loadMoreDiv.className = "load-more-indicator";
@@ -693,19 +692,13 @@
             container.appendChild(lineRow);
         }
 
-        async function deleteMessage(index) {
-            if (!isAuthenticated) return;
-            if (!confirm("이 메시지를 삭제하시겠습니까?")) return;
+        // 큐(Queue)에 작업을 등록하여 순차적으로 실행하는 함수
+        function enqueueServerSave() {
+            isLocallyMutating = true;
+            saveQueue = saveQueue.then(async () => {
+                const password = localStorage.getItem("badabi_pw") || "";
+                cachedMessagesJson = JSON.stringify(currentMessagesList);
 
-            isSavingOrDeleting = true;
-
-            currentMessagesList.splice(index, 1);
-            cachedMessagesJson = JSON.stringify(currentMessagesList);
-            renderMessages(currentMessagesList, false);
-
-            const password = localStorage.getItem("badabi_pw") || "";
-
-            try {
                 const response = await fetch(WORKER_URL, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -719,18 +712,28 @@
 
                 if (!response.ok) {
                     const errRes = await response.json().catch(() => ({}));
-                    throw new Error(errRes.error || "메시지 삭제 저장 실패");
+                    throw new Error(errRes.error || "서버 저장 실패");
                 }
-                showToast("메시지가 삭제되었습니다.");
-            } catch (err) {
-                console.error("메시지 삭제 실패:", err);
-                showToast("메시지 삭제에 실패했습니다.");
+            }).catch(err => {
+                console.error("저장 큐 에러:", err);
+                showToast("저장에 실패했습니다. 최신 상태를 불러옵니다.");
                 loadMessages(false);
-            } finally {
+            }).finally(() => {
+                // 큐에 남은 작업이 없을 때만 뮤타크 잠금 해제
                 setTimeout(() => {
-                    isSavingOrDeleting = false;
-                }, 1500);
-            }
+                    isLocallyMutating = false;
+                }, 1000);
+            });
+        }
+
+        function deleteMessage(index) {
+            if (!isAuthenticated) return;
+            if (!confirm("이 메시지를 삭제하시겠습니까?")) return;
+
+            currentMessagesList.splice(index, 1);
+            renderMessages(currentMessagesList, false);
+            enqueueServerSave();
+            showToast("메시지가 삭제되었습니다.");
         }
 
         function openAuthModal() {
@@ -843,12 +846,9 @@
             }
         }
 
-        async function sendMessage() {
+        function sendMessage() {
             const text = chatInput.value.trim();
             if (!text || !isAuthenticated) return;
-
-            isSavingOrDeleting = true;
-            const password = localStorage.getItem("badabi_pw") || "";
 
             const now = new Date();
             const year = now.getFullYear();
@@ -868,36 +868,13 @@
                 date: dateStr,
                 time: timeStr
             });
-            cachedMessagesJson = JSON.stringify(currentMessagesList);
-            displayLimit = Math.max(displayLimit, currentMessagesList.length); // 새 메시지 추가 시 최신 내역이 보이도록 확장
+
+            displayLimit = Math.max(displayLimit, currentMessagesList.length);
             renderMessages(currentMessagesList, false);
             chatGrid.scrollTop = chatGrid.scrollHeight;
 
-            try {
-                const response = await fetch(WORKER_URL, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        password: password,
-                        action: "save",
-                        fileType: "talk",
-                        content: currentMessagesList
-                    })
-                });
-
-                if (!response.ok) {
-                    const errRes = await response.json().catch(() => ({}));
-                    throw new Error(errRes.error || "메시지 저장 실패");
-                }
-            } catch (err) {
-                console.error("메시지 저장 실패:", err);
-                showToast("메시지 저장에 실패했습니다.");
-                loadMessages(false);
-            } finally {
-                setTimeout(() => {
-                    isSavingOrDeleting = false;
-                }, 1500);
-            }
+            // 순차 큐에 서버 저장 작업 추가
+            enqueueServerSave();
         }
 
         chatInput.addEventListener("keydown", (e) => {
