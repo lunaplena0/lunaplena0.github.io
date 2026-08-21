@@ -49,7 +49,7 @@
         }
 
         .page-title {
-            font-size: 22px;
+            font-size: 21px;
             font-weight: 800;
             color: #0f172a;
             margin: 0;
@@ -60,8 +60,8 @@
         }
 
         .page-title-svg {
-            width: 26px;
-            height: 26px;
+            width: 24px;
+            height: 24px;
             stroke: #0ea5e9;
             stroke-width: 2.2;
             stroke-linecap: round;
@@ -284,12 +284,9 @@
             padding-right: 0px; 
             position: relative;
             box-sizing: border-box;
-            
-            /* 핵심: 브라우저가 스크롤바 공간을 따로 비워두지 않도록 강제 설정 */
             scrollbar-gutter: stable both-edges;
         }
 
-        /* 크롬/사파리 스크롤바 디자인 및 오버레이 설정 */
         .song-list-scroll-wrapper::-webkit-scrollbar {
             width: 8px;
         }
@@ -303,56 +300,6 @@
         }
         .song-list-scroll-wrapper::-webkit-scrollbar-thumb:hover {
             background-color: rgba(148, 163, 184, 1);
-        }
-
-        .quick-index-sidebar {
-            display: none;
-        }
-
-        @media (min-width: 1200px) {
-            .quick-index-sidebar {
-                display: flex;
-                flex-direction: column;
-                position: fixed;
-                top: 50%;
-                transform: translateY(-50%);
-                right: max(16px, calc((100vw - 840px) / 2 - 68px));
-                background: #ffffff;
-                border: 1px solid #e2e8f0;
-                border-radius: 10px;
-                padding: 4px 4px;
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-                z-index: 100;
-                gap: 1px;
-            }
-
-            .quick-index-btn {
-                background: none;
-                border: none;
-                color: #64748b;
-                font-size: 10px;
-                font-weight: 700;
-                width: 32px;
-                height: 20px;
-                border-radius: 4px;
-                cursor: pointer;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                transition: all 0.15s ease;
-            }
-
-            .quick-index-btn:hover {
-                background-color: #0ea5e9;
-                color: #ffffff;
-            }
-
-            .quick-index-divider {
-                width: 22px;
-                height: 1px;
-                background-color: #cbd5e1;
-                margin: 2px auto;
-            }
         }
 
         .artist-group-header {
@@ -386,7 +333,7 @@
             gap: 6px;
             width: 100%;
             box-sizing: border-box;
-            padding-right: 0px; /* 여백 제거 */
+            padding-right: 0px;
         }
 
         .song-card {
@@ -396,7 +343,7 @@
             box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
             overflow: hidden;
             transition: border-color 0.2s ease, box-shadow 0.2s ease;
-            width: 100%; /* 100%로 꽉 채움 */
+            width: 100%;
             box-sizing: border-box;
         }
 
@@ -794,6 +741,17 @@
             font-size: 14px;
             padding: 40px 0;
         }
+        @media (max-width: 768px) { 
+.page-title {
+            font-size: 20px;
+            gap: 6px;
+        }
+
+        .page-title-svg {
+            width: 20px;
+            height: 20px;
+        }
+}
     </style>
 </head>
 <body>
@@ -807,7 +765,7 @@
                         <circle cx="6" cy="18" r="3"></circle>
                         <circle cx="18" cy="16" r="3"></circle>
                     </svg>
-                    노래책 테스트
+                    바다비 노래책
                 </h1>
                 <div id="statsSummary" class="stats-summary">통계 계산 중...</div>
             </div>
@@ -865,7 +823,6 @@
         </div>
     </div>
 
-    <div id="quickIndexSidebar" class="quick-index-sidebar"></div>
     <div id="toastMessage" class="toast-message">노래가 복사되었습니다.</div>
 
     <div class="modal-overlay" id="filterModal">
@@ -1273,99 +1230,12 @@
             });
         }
 
-        function getInitialConsonant(str) {
-            if (!str) return '#';
-            const char = str.trim().charAt(0);
-            const constans = ['ㄱ','ㄲ','ㄴ','ㄷ','ㄸ','ㄹ','ㅁ','ㅂ','ㅃ','ㅅ','ㅆ','ㅇ','ㅈ','ㅉ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
-            const code = char.charCodeAt(0);
-            if (code >= 44032 && code <= 55203) return constans[Math.floor((code - 44032) / 588)];
-            if ((code >= 65 && code <= 90) || (code >= 97 && code <= 122)) return char.toUpperCase();
-            if (code >= 48 && code <= 57) return '0-9';
-            return '#';
-        }
-
-        function renderQuickIndexSidebar() {
-            const sidebar = document.getElementById('quickIndexSidebar');
-            if (!sidebar) return;
-            sidebar.innerHTML = '';
-
-            const availableIndices = new Set();
-            sortedSongs.forEach(song => {
-                availableIndices.add(getInitialConsonant(song.artist || '아티스트 미상'));
-            });
-
-            const numberList = ['0-9'];
-            const koreanList = ['ㄱ','ㄴ','ㄷ','ㄹ','ㅁ','ㅂ','ㅅ','ㅇ','ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
-            const etcList = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z', '#'];
-
-            let hasNumber = numberList.some(item => availableIndices.has(item));
-            let hasKorean = koreanList.some(item => availableIndices.has(item));
-
-            numberList.forEach(indexChar => {
-                if (availableIndices.has(indexChar)) {
-                    const btn = document.createElement('button');
-                    btn.className = 'quick-index-btn';
-                    btn.textContent = indexChar;
-                    btn.onclick = () => scrollToArtistGroup(indexChar);
-                    sidebar.appendChild(btn);
-                }
-            });
-
-            if (hasNumber && (hasKorean || etcList.some(item => availableIndices.has(item)))) {
-                const divider1 = document.createElement('div');
-                divider1.className = 'quick-index-divider';
-                sidebar.appendChild(divider1);
-            }
-
-            koreanList.forEach(indexChar => {
-                if (availableIndices.has(indexChar)) {
-                    const btn = document.createElement('button');
-                    btn.className = 'quick-index-btn';
-                    btn.textContent = indexChar;
-                    btn.onclick = () => scrollToArtistGroup(indexChar);
-                    sidebar.appendChild(btn);
-                }
-            });
-
-            if (hasKorean && etcList.some(item => availableIndices.has(item))) {
-                const divider2 = document.createElement('div');
-                divider2.className = 'quick-index-divider';
-                sidebar.appendChild(divider2);
-            }
-
-            etcList.forEach(indexChar => {
-                if (availableIndices.has(indexChar)) {
-                    const btn = document.createElement('button');
-                    btn.className = 'quick-index-btn';
-                    btn.textContent = indexChar;
-                    btn.onclick = () => scrollToArtistGroup(indexChar);
-                    sidebar.appendChild(btn);
-                }
-            });
-        }
-
-        function scrollToArtistGroup(targetInitial) {
-            const scrollWrapper = document.querySelector('.song-list-scroll-wrapper');
-            const headers = scrollWrapper.querySelectorAll('.artist-group-header');
-            let targetElement = null;
-            for (let header of headers) {
-                if (getInitialConsonant(header.textContent.trim()) === targetInitial) {
-                    targetElement = header;
-                    break;
-                }
-            }
-            if (targetElement) {
-                scrollWrapper.scrollTo({ top: targetElement.offsetTop - scrollWrapper.offsetTop, behavior: 'smooth' });
-            }
-        }
-
         function renderAllSongs() {
             const container = document.getElementById("songContainer");
             container.innerHTML = "";
 
             if (sortedSongs.length === 0) {
                 container.innerHTML = '<p class="no-result">검색 결과가 없습니다.</p>';
-                renderQuickIndexSidebar();
                 return;
             }
 
@@ -1472,7 +1342,6 @@
             });
 
             container.appendChild(fragment);
-            renderQuickIndexSidebar();
         }
 
         function onSearchInput() { updateFilteredAndSorted(); renderAllSongs(); }
