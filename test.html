@@ -1916,11 +1916,18 @@
         }
         function normalizeNoticeText(value) {
             if (value == null) return "";
-            return String(value)
-                .replace(/\\r\\n/g, "\n")
-                .replace(/\\n/g, "\n")
-                .replace(/\r\n/g, "\n")
-                .replace(/\r/g, "\n");
+
+            let text = String(value);
+
+            // 실제 줄바꿈
+            text = text.replace(/\r\n/g, "\n");
+            text = text.replace(/\r/g, "\n");
+
+            // JSON 데이터가 문자 그대로 "\\n"을 포함하는 경우도 실제 줄바꿈으로 복원
+            text = text.replace(/\\r\\n/g, "\n");
+            text = text.replace(/\\n/g, "\n");
+
+            return text;
         }
 
         function renderNoticeContent(value) {
@@ -1942,14 +1949,11 @@
         function openNoticeEditModal() {
             if (!isSongAuthenticated) { openSongAuthModal(); return; }
 
-            const noticeEl = document.getElementById("noticeModalContent");
-            const visibleNotice = noticeEl ? noticeEl.textContent : "";
-            const sourceNotice =
-                visibleNotice && visibleNotice.trim() !== "등록된 공지가 없습니다."
-                    ? visibleNotice
-                    : currentNoticeText;
+            // 서버에서 받아온 원본 공지를 직접 사용한다.
+            // 화면의 <br>을 거친 textContent를 다시 읽으면 줄바꿈이 사라질 수 있다.
+            document.getElementById("noticeEditTextarea").value =
+                normalizeNoticeText(currentNoticeText || "");
 
-            document.getElementById("noticeEditTextarea").value = normalizeNoticeText(sourceNotice);
             noticeEditModal.classList.add("active");
         }
         function closeNoticeEditModal() { noticeEditModal.classList.remove("active"); }
@@ -1961,7 +1965,10 @@ closeNoticeEditModal(); enqueueSongServerSave(); showToastMessage("노래공지�
         }
         function openRecommendModal() { generateRecommendations(); document.getElementById("recommendModal").classList.add("active"); }
         function closeRecommendModal() { document.getElementById("recommendModal").classList.remove("active"); }
-        function openNoticeModal() { document.getElementById("noticeModal").classList.add("active"); }
+        function openNoticeModal() {
+            renderNoticeContent(currentNoticeText || "공지사항이 없습니다.");
+            document.getElementById("noticeModal").classList.add("active");
+        }
         function closeNoticeModal() { document.getElementById("noticeModal").classList.remove("active"); }
         function openFilterModal() { document.getElementById("filterModal").classList.add("active"); }
         function closeFilterModal() { document.getElementById("filterModal").classList.remove("active"); }
@@ -2105,7 +2112,8 @@ closeNoticeEditModal(); enqueueSongServerSave(); showToastMessage("노래공지�
                 const songListData = await songListRes.json();
                 const statsData = await statsRes.json();
 
-                document.getElementById('noticeModalContent').innerText = songListData.notice?.trim() || "공지사항이 없습니다.";
+                currentNoticeText = normalizeNoticeText(songListData.notice || "");
+                renderNoticeContent(currentNoticeText || "공지사항이 없습니다.");
 
                 vodMap = {};
                 statsData.vodSources?.forEach(vod => { vodMap[vod.date] = vod.url; });
