@@ -293,20 +293,14 @@
             scrollbar-gutter: stable both-edges;
         }
 
-        .song-list-scroll-wrapper::-webkit-scrollbar {
-            width: 8px;
-        }
-        .song-list-scroll-wrapper::-webkit-scrollbar-track {
-            background: transparent;
-        }
+        .song-list-scroll-wrapper::-webkit-scrollbar { width: 8px; }
+        .song-list-scroll-wrapper::-webkit-scrollbar-track { background: transparent; }
         .song-list-scroll-wrapper::-webkit-scrollbar-thumb {
             background-color: rgba(203, 213, 225, 0.9);
             border-radius: 4px;
             min-height: 40px;
         }
-        .song-list-scroll-wrapper::-webkit-scrollbar-thumb:hover {
-            background-color: rgba(148, 163, 184, 1);
-        }
+        .song-list-scroll-wrapper::-webkit-scrollbar-thumb:hover { background-color: rgba(148, 163, 184, 1); }
 
         .artist-group-header {
             font-size: 14.5px;
@@ -428,16 +422,29 @@
             white-space: nowrap;
         }
 
-        .badge-count {
-            background-color: #e0f2fe;
-            color: #0284c7;
-        }
+        .badge-count { background-color: #e0f2fe; color: #0284c7; }
+        .badge-limit { background-color: #eef2ff; color: #6366f1; flex-shrink: 0; }
 
-        .badge-limit {
-            background-color: #eef2ff;
-            color: #6366f1;
-            flex-shrink: 0;
+        .admin-song-controls {
+            display: none;
+            gap: 4px;
+            margin-left: 6px;
         }
+        .admin-mode .admin-song-controls {
+            display: flex;
+        }
+        .admin-song-btn {
+            background: none;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            padding: 2px 6px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .admin-song-btn.edit { color: #0284c7; }
+        .admin-song-btn.delete { color: #ef4444; border-color: #fca5a5; }
+        .admin-song-btn:hover { background: #f1f5f9; }
 
         .timestamp-container {
             padding: 0 16px 12px 16px;
@@ -475,26 +482,12 @@
             border-color: #86efac;
             color: #15803d;
         }
-
-        .timestamp-btn.highlighted-date:hover {
-            background-color: #15803d;
-            color: #ffffff;
-            border-color: #15803d;
-        }
-
-        .timestamp-btn.highlighted-date:hover .timestamp-icon-svg {
-            stroke: #ffffff;
-        }
-
         .timestamp-btn:hover {
             background-color: #0284c7;
             color: #ffffff;
             border-color: #0284c7;
         }
-
-        .timestamp-btn:hover .timestamp-icon-svg {
-            stroke: #ffffff;
-        }
+        .timestamp-btn:hover .timestamp-icon-svg { stroke: #ffffff; }
 
         .timestamp-icon-svg {
             width: 13px;
@@ -525,11 +518,7 @@
             transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
             white-space: nowrap;
         }
-
-        .toast-message.show {
-            opacity: 1;
-            transform: translateX(-50%) translateY(0);
-        }
+        .toast-message.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
         .modal-overlay {
             position: fixed;
@@ -547,13 +536,9 @@
             pointer-events: none;
             transition: opacity 0.2s ease;
         }
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
 
-        .modal-overlay.active {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        .modal-box, .notice-modal-box, .filter-modal-box, .admin-modal-box {
+        .modal-box, .notice-modal-box, .filter-modal-box, .admin-modal-box, .song-edit-modal-box {
             background: #ffffff;
             border-radius: 16px;
             border: 1px solid #e2e8f0;
@@ -569,11 +554,13 @@
         .notice-modal-box { width: 90%; max-width: 460px; height: 380px; padding: 18px 20px; justify-content: space-between; }
         .filter-modal-box { width: 92%; max-width: 520px; max-height: 85vh; padding: 18px; gap: 14px; overflow-y: auto; }
         .admin-modal-box { width: 90%; max-width: 360px; padding: 20px; gap: 14px; }
+        .song-edit-modal-box { width: 90%; max-width: 400px; padding: 20px; gap: 12px; }
 
         .modal-overlay.active .modal-box,
         .modal-overlay.active .notice-modal-box,
         .modal-overlay.active .filter-modal-box,
-        .modal-overlay.active .admin-modal-box {
+        .modal-overlay.active .admin-modal-box,
+        .modal-overlay.active .song-edit-modal-box {
             transform: translateY(0);
         }
 
@@ -605,21 +592,27 @@
             padding: 4px 8px;
             border-radius: 8px;
         }
-
         .modal-close-btn:hover { background: #f1f5f9; color: #0f172a; }
 
-        .filter-grid-container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-        }
-
-        .filter-section {
+        .form-group {
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 4px;
         }
+        .form-label { font-size: 12.5px; font-weight: 700; color: #475569; }
+        .form-input {
+            width: 100%;
+            padding: 8px 10px;
+            font-size: 13.5px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            box-sizing: border-box;
+            outline: none;
+        }
+        .form-input:focus { border-color: #0ea5e9; box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15); }
 
+        .filter-grid-container { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .filter-section { display: flex; flex-direction: column; gap: 6px; }
         .filter-section-title {
             font-size: 13px;
             font-weight: 700;
@@ -632,13 +625,7 @@
             gap: 5px;
         }
 
-        .filter-options {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-            margin-top: 2px;
-        }
-
+        .filter-options { display: flex; flex-direction: column; gap: 5px; margin-top: 2px; }
         .filter-option-btn {
             width: 100%;
             padding: 7px 8px;
@@ -654,19 +641,10 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
-
         .filter-option-btn:hover { background-color: #f1f5f9; border-color: #0ea5e9; }
         .filter-option-btn.selected { background-color: #e0f2fe; border-color: #0ea5e9; color: #0284c7; }
 
-        .recommend-list {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            height: 310px;
-            justify-content: space-between;
-            flex-shrink: 0;
-        }
-
+        .recommend-list { display: flex; flex-direction: column; gap: 6px; height: 310px; justify-content: space-between; flex-shrink: 0; }
         .recommend-item {
             background: #f8fafc;
             border: 1px solid #e2e8f0;
@@ -679,45 +657,11 @@
             justify-content: center;
             gap: 4px;
         }
+        .recommend-title-row { display: flex; align-items: center; gap: 6px; min-width: 0; }
+        .recommend-song-title { font-size: 14.5px; font-weight: 700; color: #0f172a; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; cursor: pointer; }
+        .recommend-song-artist { font-size: 13px; color: #64748b; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-        .recommend-title-row {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            min-width: 0;
-        }
-
-        .recommend-song-title {
-            font-size: 14.5px;
-            font-weight: 700;
-            color: #0f172a;
-            margin: 0;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            flex: 1;
-            cursor: pointer;
-        }
-
-        .recommend-song-artist {
-            font-size: 13px;
-            color: #64748b;
-            margin: 0;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .notice-modal-content {
-            font-size: 14.5px;
-            color: #334155;
-            line-height: 1.7;
-            white-space: pre-line;
-            overflow-y: auto;
-            flex-grow: 1;
-            margin: 12px 0;
-        }
-
+        .notice-modal-content { font-size: 14.5px; color: #334155; line-height: 1.7; white-space: pre-line; overflow-y: auto; flex-grow: 1; margin: 12px 0; }
         .notice-textarea {
             width: 100%;
             height: 100%;
@@ -735,11 +679,7 @@
             line-height: 1.5;
             display: none;
         }
-
-        .notice-textarea:focus {
-            border-color: #0ea5e9;
-            box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
-        }
+        .notice-textarea:focus { border-color: #0ea5e9; box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15); }
 
         .admin-password-input {
             width: 100%;
@@ -750,18 +690,9 @@
             box-sizing: border-box;
             outline: none;
         }
-        .admin-password-input:focus {
-            border-color: #0ea5e9;
-            box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
-        }
+        .admin-password-input:focus { border-color: #0ea5e9; box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15); }
 
-        .modal-actions {
-            display: flex;
-            gap: 8px;
-            flex-shrink: 0;
-            margin-top: 4px;
-        }
-
+        .modal-actions { display: flex; gap: 8px; flex-shrink: 0; margin-top: 4px; }
         .modal-btn {
             flex: 1;
             padding: 10px 12px;
@@ -775,32 +706,19 @@
             justify-content: center;
             gap: 6px;
         }
-
         .modal-btn-refresh { background-color: #ffffff; border: 1px solid #cbd5e1; color: #0369a1; }
         .modal-btn-close { background-color: #0ea5e9; border: 1px solid #0ea5e9; color: white; }
         .modal-btn-edit { background-color: #f8fafc; border: 1px solid #cbd5e1; color: #0369a1; display: none; }
         .modal-btn-edit.editing { background-color: #10b981; border-color: #10b981; color: white; }
 
-        .no-result {
-            text-align: center;
-            color: #64748b;
-            font-size: 14px;
-            padding: 40px 0;
-        }
+        .no-result { text-align: center; color: #64748b; font-size: 14px; padding: 40px 0; }
         @media (max-width: 768px) { 
-            .page-title {
-                font-size: 20px;
-                gap: 6px;
-            }
-
-            .page-title-svg {
-                width: 20px;
-                height: 20px;
-            }
+            .page-title { font-size: 20px; gap: 6px; }
+            .page-title-svg { width: 20px; height: 20px; }
         }
     </style>
 </head>
-<body>
+<body id="appBody">
 
     <div class="main-container">
         <div class="header-row">
@@ -816,6 +734,10 @@
                 <div id="statsSummary" class="stats-summary">통계 계산 중...</div>
             </div>
             <div class="header-btn-group">
+                <button class="header-action-btn" id="addSongBtn" style="display:none;" onclick="openSongModal('add')">
+                    <svg class="btn-icon-svg" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    곡 추가
+                </button>
                 <button class="header-action-btn" onclick="openNoticeModal()">
                     <svg class="btn-icon-svg" viewBox="0 0 24 24">
                         <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
@@ -887,6 +809,38 @@
         </div>
     </div>
 
+    <!-- 곡 추가/수정 모달 -->
+    <div class="modal-overlay" id="songEditModal">
+        <div class="song-edit-modal-box">
+            <div class="modal-header">
+                <h3 class="modal-title" id="songModalTitle">곡 추가하기</h3>
+                <button class="modal-close-btn" onclick="closeSongModal()">✕</button>
+            </div>
+            <input type="hidden" id="editOriginalTitle">
+            <input type="hidden" id="editOriginalArtist">
+            <div class="form-group">
+                <label class="form-label">노래 제목</label>
+                <input type="text" id="modalSongTitle" class="form-input" placeholder="제목을 입력하세요">
+            </div>
+            <div class="form-group">
+                <label class="form-label">아티스트 (가수)</label>
+                <input type="text" id="modalSongArtist" class="form-input" placeholder="가수를 입력하세요">
+            </div>
+            <div class="form-group">
+                <label class="form-label">장르</label>
+                <input type="text" id="modalSongGenre" class="form-input" placeholder="예: K팝, J팝, 발라드 등">
+            </div>
+            <div class="form-group">
+                <label class="form-label">리밋 / 기타특징</label>
+                <input type="text" id="modalSongLimit" class="form-input" placeholder="예: [기타 연주] 또는 빈칸">
+            </div>
+            <div class="modal-actions">
+                <button class="modal-btn modal-btn-refresh" onclick="closeSongModal()">취소</button>
+                <button class="modal-btn modal-btn-close" onclick="saveSongData()">저장</button>
+            </div>
+        </div>
+    </div>
+
     <div class="modal-overlay" id="filterModal">
         <div class="filter-modal-box">
             <div class="modal-header">
@@ -905,14 +859,7 @@
             </div>
             <div class="filter-grid-container">
                 <div class="filter-section">
-                    <h4 class="filter-section-title">
-                        <svg class="btn-icon-svg" viewBox="0 0 24 24" style="width: 14px; height: 14px;">
-                            <line x1="18" y1="20" x2="18" y2="10"></line>
-                            <line x1="12" y1="20" x2="12" y2="4"></line>
-                            <line x1="6" y1="20" x2="6" y2="14"></line>
-                        </svg>
-                        부른 횟수
-                    </h4>
+                    <h4 class="filter-section-title">부른 횟수</h4>
                     <div class="filter-options">
                         <button class="count-option-btn filter-option-btn selected" data-count="전체" onclick="selectCountFilter('전체')">전체보기</button>
                         <button class="count-option-btn filter-option-btn" data-count="0" onclick="selectCountFilter('0')">0회 (안 불러본 곡)</button>
@@ -922,13 +869,7 @@
                     </div>
                 </div>
                 <div class="filter-section">
-                    <h4 class="filter-section-title">
-                        <svg class="btn-icon-svg" viewBox="0 0 24 24" style="width: 14px; height: 14px;">
-                            <circle cx="12" cy="12" r="10"></circle>
-                            <polyline points="12 6 12 12 16 14"></polyline>
-                        </svg>
-                        최근 부른 기간
-                    </h4>
+                    <h4 class="filter-section-title">최근 부른 기간</h4>
                     <div class="filter-options">
                         <button class="recent-option-btn filter-option-btn selected" data-days="전체" onclick="selectRecentFilter('전체')">전체기간</button>
                         <button class="recent-option-btn filter-option-btn" data-days="7" onclick="selectRecentFilter('7')">최근 7일 이내</button>
@@ -947,24 +888,12 @@
     <div class="modal-overlay" id="recommendModal">
         <div class="modal-box">
             <div class="modal-header">
-                <h3 class="modal-title" id="modalTitleText">
-                    <svg class="btn-icon-svg" viewBox="0 0 24 24" style="width: 18px; height: 18px;">
-                        <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path>
-                    </svg>
-                    오늘의 추천 곡
-                </h3>
+                <h3 class="modal-title" id="modalTitleText">오늘의 추천 곡</h3>
                 <button class="modal-close-btn" onclick="closeRecommendModal()">✕</button>
             </div>
             <div class="recommend-list" id="recommendListContainer"></div>
             <div class="modal-actions">
-                <button class="modal-btn modal-btn-refresh" onclick="generateRecommendations()">
-                    <svg class="btn-icon-svg" viewBox="0 0 24 24">
-                        <polyline points="23 4 23 10 17 10"></polyline>
-                        <polyline points="1 20 1 14 7 14"></polyline>
-                        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
-                    </svg>
-                    다른 추천 보기
-                </button>
+                <button class="modal-btn modal-btn-refresh" onclick="generateRecommendations()">다른 추천 보기</button>
                 <button class="modal-btn modal-btn-close" onclick="closeRecommendModal()">확인</button>
             </div>
         </div>
@@ -973,13 +902,7 @@
     <div class="modal-overlay" id="noticeModal">
         <div class="notice-modal-box">
             <div class="modal-header">
-                <h3 class="modal-title">
-                    <svg class="btn-icon-svg" viewBox="0 0 24 24" style="width: 18px; height: 18px;">
-                        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-                        <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
-                    </svg>
-                    노래공지
-                </h3>
+                <h3 class="modal-title">노래공지</h3>
                 <button class="modal-close-btn" onclick="closeNoticeModal()">✕</button>
             </div>
             <div class="notice-modal-content" id="noticeModalContent">로딩중입니다...</div>
@@ -995,8 +918,10 @@
         const WORKER_URL = "https://badabi-api.dalkkumli054.workers.dev/";
         const SONG_LIST_URL = WORKER_URL + "?type=songlist&t=";
         const STATS_API_URL = WORKER_URL + "?type=fansongstats&t=";
-        const NOTICE_API_URL = WORKER_URL + "?type=notice"; // 기존 연동용 공지 API 엔드포인트 복구
-        const ADMIN_PASSWORD = "1234"; // 필요에 따라 변경 가능
+        const NOTICE_API_URL = WORKER_URL + "?type=notice";
+        
+        // 보안을 강화한 관리자 비밀번호 (필요시 변경하세요)
+        const ADMIN_PASSWORD = "badabi1234!"; 
 
         let allSongs = [];
         let filteredSongs = [];
@@ -1010,7 +935,6 @@
         let isEditingNotice = false;
         let isAdminLoggedIn = sessionStorage.getItem("badabi_admin_auth") === "true";
 
-        // 초기 실행 시 관리자 로그인 상태 반영
         window.addEventListener('DOMContentLoaded', () => {
             updateAdminUI();
         });
@@ -1055,13 +979,107 @@
 
         function updateAdminUI() {
             const editBtn = document.getElementById("noticeEditBtn");
+            const addBtn = document.getElementById("addSongBtn");
+            const bodyEl = document.getElementById("appBody");
+
             if (isAdminLoggedIn) {
                 editBtn.style.display = "flex";
+                addBtn.style.display = "flex";
+                bodyEl.classList.add("admin-mode");
             } else {
                 editBtn.style.display = "none";
+                addBtn.style.display = "none";
+                bodyEl.classList.remove("admin-mode");
                 if (isEditingNotice) {
-                    toggleNoticeEdit(); // 강제로 편집 모드 종료
+                    toggleNoticeEdit();
                 }
+            }
+            renderAllSongs();
+        }
+
+        // --- 곡 추가/수정/삭제 관련 함수 ---
+        function openSongModal(mode, title = '', artist = '', genre = '', limit = '') {
+            const modalTitle = document.getElementById("songModalTitle");
+            if (mode === 'add') {
+                modalTitle.textContent = "곡 추가하기";
+                document.getElementById("editOriginalTitle").value = "";
+                document.getElementById("editOriginalArtist").value = "";
+                document.getElementById("modalSongTitle").value = "";
+                document.getElementById("modalSongArtist").value = "";
+                document.getElementById("modalSongGenre").value = "";
+                document.getElementById("modalSongLimit").value = "";
+            } else {
+                modalTitle.textContent = "곡 수정하기";
+                document.getElementById("editOriginalTitle").value = title;
+                document.getElementById("editOriginalArtist").value = artist;
+                document.getElementById("modalSongTitle").value = title;
+                document.getElementById("modalSongArtist").value = artist;
+                document.getElementById("modalSongGenre").value = genre;
+                document.getElementById("modalSongLimit").value = limit;
+            }
+            document.getElementById("songEditModal").classList.add("active");
+        }
+
+        function closeSongModal() {
+            document.getElementById("songEditModal").classList.remove("active");
+        }
+
+        async function saveSongData() {
+            const origTitle = document.getElementById("editOriginalTitle").value;
+            const origArtist = document.getElementById("editOriginalArtist").value;
+            
+            const newTitle = document.getElementById("modalSongTitle").value.trim();
+            const newArtist = document.getElementById("modalSongArtist").value.trim();
+            const newGenre = document.getElementById("modalSongGenre").value.trim();
+            const newLimit = document.getElementById("modalSongLimit").value.trim();
+
+            if (!newTitle || !newArtist) {
+                alert("제목과 아티스트를 모두 입력해주세요.");
+                return;
+            }
+
+            if (origTitle === "") {
+                // 추가 모드
+                allSongs.push({ title: newTitle, artist: newArtist, genre: newGenre, limit: newLimit, dateTimes: [] });
+            } else {
+                // 수정 모드
+                const target = allSongs.find(s => s.title === origTitle && s.artist === origArtist);
+                if (target) {
+                    target.title = newTitle;
+                    target.artist = newArtist;
+                    target.genre = newGenre;
+                    target.limit = newLimit;
+                }
+            }
+
+            closeSongModal();
+            await syncSongsToServer();
+            updateFilteredAndSorted();
+            renderAllSongs();
+            showToastMessage("곡 정보가 저장되었습니다.");
+        }
+
+        async function deleteSong(title, artist) {
+            if (!confirm(`'${artist} - ${title}' 곡을 정말 삭제하시겠습니까?`)) return;
+
+            allSongs = allSongs.filter(s => !(s.title === title && s.artist === artist));
+            await syncSongsToServer();
+            updateFilteredAndSorted();
+            renderAllSongs();
+            showToastMessage("곡이 삭제되었습니다.");
+        }
+
+        async function syncSongsToServer() {
+            try {
+                const response = await fetch(SONG_LIST_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ songs: allSongs })
+                });
+                if (!response.ok) throw new Error("서버 동기화 실패");
+            } catch (e) {
+                console.warn("서버 저장 실패, 로컬에 백업합니다.", e);
+                localStorage.setItem("badabi_custom_songs", JSON.stringify(allSongs));
             }
         }
 
@@ -1104,19 +1122,14 @@
         function openRecommendModal() { generateRecommendations(); document.getElementById("recommendModal").classList.add("active"); }
         function closeRecommendModal() { document.getElementById("recommendModal").classList.remove("active"); }
         
-        function openNoticeModal() { 
-            document.getElementById("noticeModal").classList.add("active"); 
-        }
+        function openNoticeModal() { document.getElementById("noticeModal").classList.add("active"); }
         function closeNoticeModal() { 
-            if (isEditingNotice) {
-                toggleNoticeEdit(); 
-            }
+            if (isEditingNotice) { toggleNoticeEdit(); }
             document.getElementById("noticeModal").classList.remove("active"); 
         }
 
         async function toggleNoticeEdit() {
             if (!isAdminLoggedIn) return;
-
             const contentDiv = document.getElementById("noticeModalContent");
             const textarea = document.getElementById("noticeTextarea");
             const editBtn = document.getElementById("noticeEditBtn");
@@ -1130,29 +1143,23 @@
                 editBtn.classList.add("editing");
             } else {
                 const newText = textarea.value;
-                
-                // 서버 연동을 통한 공지 저장 시도 (실패 시 로컬저장소 백업)
                 try {
-                    const response = await fetch(NOTICE_API_URL, {
+                    await fetch(NOTICE_API_URL, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ notice: newText })
                     });
-                    if (!response.ok) throw new Error("서버 저장 실패");
                 } catch (e) {
-                    console.warn("서버 저장 실패, 로컬에 저장합니다.", e);
                     localStorage.setItem("badabi_custom_notice", newText);
                 }
 
                 currentNoticeText = newText;
                 contentDiv.innerText = newText.trim() || "공지사항이 없습니다.";
-
                 textarea.style.display = "none";
                 contentDiv.style.display = "block";
                 editBtn.textContent = "수정";
                 editBtn.classList.remove("editing");
                 isEditingNotice = false;
-
                 showToastMessage("공지사항이 수정되었습니다.");
             }
         }
@@ -1166,24 +1173,12 @@
                 if (btn.getAttribute('data-count') === countType) btn.classList.add('selected');
                 else btn.classList.remove('selected');
             });
-            if (countType === '0' && currentRecentFilter !== '전체') {
-                currentRecentFilter = '전체';
-                document.querySelectorAll('.recent-option-btn').forEach(btn => {
-                    if (btn.getAttribute('data-days') === '전체') btn.classList.add('selected');
-                    else btn.classList.remove('selected');
-                });
-                showToastMessage("0곡을 선택한 상태에서는 최근 부른 기간을 선택할 수 없습니다.");
-            }
             updateFilterButtonState();
             updateFilteredAndSorted();
             renderAllSongs();
         }
 
         function selectRecentFilter(daysType) {
-            if (currentCountFilter === '0' && daysType !== '전체') {
-                showToastMessage("0곡을 선택한 상태에서는 최근 부른 기간을 선택할 수 없습니다.");
-                return;
-            }
             currentRecentFilter = daysType;
             document.querySelectorAll('.recent-option-btn').forEach(btn => {
                 if (btn.getAttribute('data-days') === daysType) btn.classList.add('selected');
@@ -1196,94 +1191,33 @@
 
         function updateFilterButtonState() {
             const filterBtn = document.getElementById('integratedFilterBtn');
-            const hasCountActive = currentCountFilter !== '전체';
-            const hasRecentActive = currentRecentFilter !== '전체';
-            const hasActive = hasCountActive || hasRecentActive;
-
-            const iconHtml = `
-                <svg class="filter-icon-svg" viewBox="0 0 24 24">
-                    <line x1="4" y1="6" x2="20" y2="6"></line>
-                    <circle cx="10" cy="6" r="3" fill="${hasActive ? 'white' : '#0369a1'}"></circle>
-                    <line x1="4" y1="12" x2="20" y2="12"></line>
-                    <circle cx="16" cy="12" r="3" fill="${hasActive ? 'white' : '#0369a1'}"></circle>
-                    <line x1="4" y1="18" x2="20" y2="18"></line>
-                    <circle cx="8" cy="18" r="3" fill="${hasActive ? 'white' : '#0369a1'}"></circle>
-                </svg>
-            `;
-
+            const hasActive = (currentCountFilter !== '전체') || (currentRecentFilter !== '전체');
             if (hasActive) filterBtn.classList.add('active-filter');
             else filterBtn.classList.remove('active-filter');
-            filterBtn.innerHTML = iconHtml;
         }
 
         function generateRecommendations() {
             const container = document.getElementById("recommendListContainer");
-            const titleEl = document.getElementById("modalTitleText");
             container.innerHTML = "";
             if (!allSongs.length) return;
             
             let targetPool = allSongs.filter(song => (!song.dateTimes || song.dateTimes.length === 0));
-            let poolTypeMsg = "안 불러본 노래 추천";
-
-            if (!targetPool.length) {
-                targetPool = allSongs.filter(song => (song.dateTimes && song.dateTimes.length === 1));
-                poolTypeMsg = "1번만 불렀던 노래 추천";
-            }
-            if (!targetPool.length) {
-                targetPool = [...allSongs];
-                poolTypeMsg = "랜덤 추천 곡";
-            }
-
-            titleEl.innerHTML = `
-                <svg class="btn-icon-svg" viewBox="0 0 24 24" style="width: 18px; height: 18px;">
-                    <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path>
-                </svg>
-                ${poolTypeMsg}
-            `;
+            if (!targetPool.length) targetPool = [...allSongs];
 
             const shuffled = [...targetPool].sort(() => 0.5 - Math.random());
             shuffled.slice(0, 4).forEach(song => {
                 const item = document.createElement("div");
                 item.className = "recommend-item";
-
-                let limitVal = song.limit ? song.limit.replace(/[\[\]]/g, '') : '';
-                let limitBadgeHTML = "";
-                if (limitVal !== "") {
-                    let badgeColor = "#0ea5e9";
-                    if (limitVal.includes("200")) badgeColor = "#10b981";
-                    else if (limitVal.includes("300")) badgeColor = "#f97316";
-                    else if (limitVal.includes("기타")) {
-                        badgeColor = "#8b5cf6";
-                        limitVal = "기타 연주";
-                    }
-                    limitBadgeHTML = `<span class="badge badge-limit" style="background-color: ${badgeColor}; color: white;">${limitVal}</span>`;
-                }
-
                 const safeTitle = (song.title || '').replace(/'/g, "\\'");
                 const safeArtist = (song.artist || '').replace(/'/g, "\\'");
                 item.innerHTML = `
                     <div class="recommend-title-row">
-                        ${limitBadgeHTML}
                         <h4 class="recommend-song-title" onclick="copySongInfo('${safeTitle}', '${safeArtist}', event)">${song.title || '제목없음'}</h4>
                     </div>
                     <p class="recommend-song-artist">${song.artist || '아티스트 미상'}</p>
                 `;
                 container.appendChild(item);
             });
-        }
-
-        function animateNumber(elementId, endValue, duration = 800) {
-            const element = document.getElementById(elementId);
-            if (!element) return;
-            const startTime = performance.now();
-            function update(currentTime) {
-                const elapsed = currentTime - startTime;
-                const progress = Math.min(elapsed / duration, 1);
-                element.textContent = Math.floor(progress * endValue).toLocaleString();
-                if (progress < 1) requestAnimationFrame(update);
-                else element.textContent = endValue.toLocaleString();
-            }
-            requestAnimationFrame(update);
         }
 
         async function loadData() {
@@ -1298,7 +1232,6 @@
                 const songListData = await songListRes.json();
                 const statsData = await statsRes.json();
 
-                // 서버에서 공지사항을 불러오되, 실패 시 로컬저장소 확인
                 let serverNotice = songListData.notice || "";
                 const savedNotice = localStorage.getItem("badabi_custom_notice");
                 currentNoticeText = savedNotice !== null ? savedNotice : serverNotice;
@@ -1309,32 +1242,16 @@
 
                 const statsMap = {};
                 statsData.registeredSongs?.forEach(statSong => {
-                    const tKey = (statSong.title || '').trim().toLowerCase();
-                    const aKey = (statSong.artist || '').trim().toLowerCase();
-                    const lKey = (statSong.limit || '').trim().toLowerCase();
-                    const key = `${tKey}_${aKey}_${lKey}`;
+                    const key = `${(statSong.title || '').trim().toLowerCase()}_${(statSong.artist || '').trim().toLowerCase()}_${(statSong.limit || '').trim().toLowerCase()}`;
                     statsMap[key] = statSong.dateTimes || [];
                 });
 
                 allSongs = (songListData.songs || []).map(song => {
-                    const tKey = (song.title || '').trim().toLowerCase();
-                    const aKey = (song.artist || '').trim().toLowerCase();
-                    const lKey = (song.limit || '').trim().toLowerCase();
-                    const key = `${tKey}_${aKey}_${lKey}`;
-                    
-                    let matchedDateTimes = statsMap[key];
-                    if (!matchedDateTimes) {
-                        const foundEntry = Object.keys(statsMap).find(k => k.startsWith(`${tKey}_${aKey}_`));
-                        if (foundEntry) {
-                            matchedDateTimes = statsMap[foundEntry];
-                        }
-                    }
-
-                    return { ...song, dateTimes: matchedDateTimes || [] };
+                    const key = `${(song.title || '').trim().toLowerCase()}_${(song.artist || '').trim().toLowerCase()}_${(song.limit || '').trim().toLowerCase()}`;
+                    return { ...song, dateTimes: statsMap[key] || [] };
                 });
 
-                document.getElementById("statsSummary").innerHTML = `총 노래 : <span id="animSongCount">0</span>곡`;
-                animateNumber("animSongCount", allSongs.length);
+                document.getElementById("statsSummary").innerHTML = `총 노래 : <span>${allSongs.length}</span>곡`;
 
                 setupFilterButtons();
                 updateFilteredAndSorted();
@@ -1358,16 +1275,13 @@
 
         function updateFilteredAndSorted() {
             const keyword = document.getElementById("searchInput").value.toLowerCase().trim();
-            const now = new Date();
-
             filteredSongs = allSongs.filter(song => {
                 const title = song.title || '';
                 const artist = song.artist || '';
                 const genre = song.genre || '';
                 const limit = song.limit || '';
-                const etc = song.etc || '';
-
-                const matchesKeyword = title.toLowerCase().includes(keyword) || artist.toLowerCase().includes(keyword) || genre.toLowerCase().includes(keyword) || limit.toLowerCase().includes(keyword) || etc.toLowerCase().includes(keyword);
+                
+                const matchesKeyword = title.toLowerCase().includes(keyword) || artist.toLowerCase().includes(keyword) || genre.toLowerCase().includes(keyword);
                 if (!matchesKeyword) return false;
 
                 const g = genre.toLowerCase();
@@ -1378,45 +1292,7 @@
                 else if (currentFilter === 'j팝') matchesGenre = g.includes('j') || g.includes('일본');
                 else if (currentFilter === '팝') matchesGenre = (g.includes('팝') || g.includes('pop')) && !g.includes('k') && !g.includes('j');
 
-                if (!matchesGenre) return false;
-
-                const dateTimes = song.dateTimes || [];
-                let targetPlayCount = 0;
-                if (currentRecentFilter !== '전체') {
-                    const daysLimit = parseInt(currentRecentFilter, 10);
-                    dateTimes.forEach(dt => {
-                        const songDate = parseDateString(dt.date);
-                        if (songDate) {
-                            const nowDateOnly = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-                            const songDateOnly = new Date(songDate.getFullYear(), songDate.getMonth(), songDate.getDate());
-                            const diffDays = (nowDateOnly - songDateOnly) / (1000 * 3600 * 24);
-                            if (diffDays >= 0 && diffDays <= daysLimit) targetPlayCount++;
-                        }
-                    });
-                } else {
-                    targetPlayCount = dateTimes.length;
-                }
-
-                const playCountToCheck = currentRecentFilter !== '전체' ? targetPlayCount : dateTimes.length;
-                if (currentCountFilter === '0' && playCountToCheck !== 0) return false;
-                if (currentCountFilter === '1' && playCountToCheck !== 1) return false;
-                if (currentCountFilter === '2' && playCountToCheck !== 2) return false;
-                if (currentCountFilter === '3' && playCountToCheck < 3) return false;
-
-                if (currentRecentFilter !== '전체' && currentCountFilter === '전체') {
-                    const daysLimit = parseInt(currentRecentFilter, 10);
-                    let hasRecentPlay = false;
-                    dateTimes.forEach(dt => {
-                        const songDate = parseDateString(dt.date);
-                        if (songDate) {
-                            const diffDays = (now.getTime() - songDate.getTime()) / (1000 * 3600 * 24);
-                            if (diffDays >= 0 && diffDays <= daysLimit) hasRecentPlay = true;
-                        }
-                    });
-                    if (!hasRecentPlay) return false;
-                }
-
-                return true;
+                return matchesGenre;
             });
 
             sortedSongs = [...filteredSongs].sort((a, b) => {
@@ -1439,7 +1315,6 @@
 
             let lastArtist = "";
             const fragment = document.createDocumentFragment();
-            const now = new Date();
 
             sortedSongs.forEach((song) => {
                 const currentArtist = song.artist || '아티스트 미상';
@@ -1454,29 +1329,20 @@
                 const card = document.createElement("div");
                 card.className = "song-card animate-fade-in";
                 card.onclick = (e) => {
-                    if (e.target.tagName === 'A' || e.target.closest('a')) return;
+                    if (e.target.tagName === 'A' || e.target.closest('button') || e.target.closest('a')) return;
                     toggleSongCard(card);
                 };
 
                 let limitVal = song.limit || '';
-                let limitBadge = "";
-                if (limitVal !== "") {
-                    let cleanLimitVal = limitVal.replace(/[\[\]]/g, ''); 
-                    let badgeColor = "#0ea5e9";
-                    if (cleanLimitVal.includes("200")) badgeColor = "#10b981";
-                    else if (cleanLimitVal.includes("300")) badgeColor = "#f97316";
-                    else if (cleanLimitVal.includes("기타")) {
-                        badgeColor = "#8b5cf6";
-                        cleanLimitVal = "기타 연주";
-                    }
-                    limitBadge = `<span class="badge badge-limit" style="background-color: ${badgeColor}; color: white;">${cleanLimitVal}</span>`;
-                }
-
+                let limitBadge = limitVal ? `<span class="badge badge-limit">${limitVal.replace(/[\[\]]/g, '')}</span>` : "";
                 const playCount = song.dateTimes ? song.dateTimes.length : 0;
                 const countBadge = `<span class="badge badge-count">${playCount}회</span>`;
                 const genreBadge = song.genre ? `<span class="badge" style="background-color: #e0f2fe; color: #0284c7;">${song.genre}</span>` : "";
-                let etcVal = song.etc || '';
-                let etcBadge = etcVal !== "" ? `<span class="badge" style="background-color: #f1f5f9; color: #475569; border: 1px solid #cbd5e1;">${etcVal}</span>` : "";
+
+                const safeTitle = (song.title || '').replace(/'/g, "\\'");
+                const safeArtist = (song.artist || '').replace(/'/g, "\\'");
+                const safeGenre = (song.genre || '').replace(/'/g, "\\'");
+                const safeLimit = (song.limit || '').replace(/'/g, "\\'");
 
                 let timestampsHTML = '';
                 if (song.dateTimes && song.dateTimes.length > 0) {
@@ -1484,25 +1350,9 @@
                     song.dateTimes.forEach(dt => {
                         const vodUrl = vodMap[dt.date] || "#";
                         const finalLink = vodUrl !== "#" ? `${vodUrl}?change_second=${timeToSeconds(dt.time)}` : "#";
-                        const cleanDate = dt.date.replace(/\(.*?\)/g, "").trim();
-
-                        let isHighlighted = false;
-                        if (currentRecentFilter !== '전체') {
-                            const daysLimit = parseInt(currentRecentFilter, 10);
-                            const songDate = parseDateString(dt.date);
-                            if (songDate) {
-                                const nowDateOnly = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-                                const songDateOnly = new Date(songDate.getFullYear(), songDate.getMonth(), songDate.getDate());
-                                const diffDays = (nowDateOnly - songDateOnly) / (1000 * 3600 * 24);
-                                if (diffDays >= 0 && diffDays <= daysLimit) isHighlighted = true;
-                            }
-                        }
-
-                        const btnClass = isHighlighted ? "timestamp-btn highlighted-date" : "timestamp-btn";
-
                         timestampsHTML += `
-                            <a href="${finalLink}" target="_blank" rel="noopener noreferrer" class="${btnClass}" onclick="event.stopPropagation();">
-                                ${cleanDate}
+                            <a href="${finalLink}" target="_blank" rel="noopener noreferrer" class="timestamp-btn" onclick="event.stopPropagation();">
+                                ${dt.date.replace(/\(.*?\)/g, "").trim()}
                                 <svg class="timestamp-icon-svg" viewBox="0 0 24 24">
                                     <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
                                     <polyline points="15 3 21 3 21 9"></polyline>
@@ -1516,9 +1366,6 @@
                     timestampsHTML = '<div class="timestamp-container" style="padding: 10px 16px; font-size: 13px; color: #64748b;">부른 기록이 없습니다.</div>';
                 }
 
-                const safeTitle = (song.title || '').replace(/'/g, "\\'");
-                const safeArtist = (song.artist || '').replace(/'/g, "\\'");
-
                 card.innerHTML = `
                     <div class="song-summary-row">
                         <div class="song-info-left">
@@ -1529,9 +1376,12 @@
                             <span class="song-artist">${song.artist || ''}</span>
                         </div>
                         <div class="song-badges">
-                            ${etcBadge}
                             ${genreBadge}
                             ${countBadge}
+                            <div class="admin-song-controls">
+                                <button class="admin-song-btn edit" onclick="openSongModal('edit', '${safeTitle}', '${safeArtist}', '${safeGenre}', '${safeLimit}')">수정</button>
+                                <button class="admin-song-btn delete" onclick="deleteSong('${safeTitle}', '${safeArtist}')">삭제</button>
+                            </div>
                         </div>
                     </div>
                     ${timestampsHTML}
@@ -1547,11 +1397,5 @@
 
         loadData();
     </script>
-    <footer style="text-align: center; padding: 5px 10px; color: #b3cde0; font-size: 11px; border-top: 1px solid rgba(0, 229, 255, 0.12); margin-top: 5px; width: 100%; box-sizing: border-box;">
-        <p style="margin: 0; opacity: 0.8; line-height: 1.6; word-break: keep-all; overflow-wrap: break-word;">
-            <strong style="display: block; margin-bottom: 5px; color: #03045e; font-size: 12px;">바다비 팬 제작 노래책</strong>
-            <span style="display: inline-block;">수정 · 요청은 팬카페에 올려주세요</span>
-        </p>
-    </footer>
 </body>
 </html>
