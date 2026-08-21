@@ -118,6 +118,12 @@
         .song-admin-btn:hover { border-color: #0ea5e9; background: #f0f9ff; }
         .song-add-form { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .song-add-form .edit-form-field.full { grid-column: 1 / -1; }
+        #noticeModalContent {
+            white-space: pre-wrap;
+            word-break: break-word;
+            overflow-wrap: anywhere;
+        }
+
         .notice-edit-textarea {
             width: 100%;
             min-height: 220px;
@@ -1436,7 +1442,9 @@
         let toastTimer = null;
 
         // 참고2.txt와 동일한 인증 방식
-        let isSongAuthenticated = localStorage.getItem("badabi_auth") === "true";
+        let isSongAuthenticated =
+            localStorage.getItem("badabi_auth") === "true" &&
+            !!localStorage.getItem("badabi_pw");
         let editingSongIndex = -1;
         let songSaveQueue = Promise.resolve();
         let isSongLocallyMutating = false;
@@ -1486,6 +1494,7 @@
         }
 
         function openSongAuthModal() {
+            restoreSongAuthentication();
             if (isSongAuthenticated) {
                 songAuthModalContent.innerHTML = `
                     <div class="song-logout-card">
@@ -1571,6 +1580,7 @@
                 isSongAuthenticated = true;
                 localStorage.setItem("badabi_auth", "true");
                 localStorage.setItem("badabi_pw", password);
+                isSongAuthenticated = true;
                 updateSongAuthUI();
                 closeSongAuthModal();
                 showToastMessage("성공적으로 인증되었습니다!");
@@ -1587,12 +1597,23 @@
             isSongAuthenticated = false;
             localStorage.removeItem("badabi_auth");
             localStorage.removeItem("badabi_pw");
+            isSongAuthenticated = false;
             updateSongAuthUI();
             closeSongAuthModal();
             showToastMessage("인증이 해제되었습니다.");
         }
 
+        function restoreSongAuthentication() {
+            const auth = localStorage.getItem("badabi_auth") === "true";
+            const password = localStorage.getItem("badabi_pw") || "";
+
+            isSongAuthenticated = auth && !!password;
+            document.body.classList.toggle("authenticated-mode", isSongAuthenticated);
+            return isSongAuthenticated;
+        }
+
         function updateSongAuthUI() {
+            restoreSongAuthentication();
             // 참고2.txt와 동일하게 인증 상태를 body 클래스에도 반영
             // 수정 버튼은 body.authenticated-mode 아래에서 표시됩니다.
             document.body.classList.toggle("authenticated-mode", isSongAuthenticated);
@@ -1675,7 +1696,8 @@
             }).catch(error => {
                 console.error("노래책 저장 실패:", error);
                 showToastMessage(error.message || "저장에 실패했습니다.");
-                updateSongAuthUI();
+                restoreSongAuthentication();
+        updateSongAuthUI();
         loadData();
 
         document.addEventListener("keydown", (e) => {
