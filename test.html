@@ -116,6 +116,55 @@
         body.authenticated-mode .song-admin-toolbar { display: flex; }
         .song-admin-btn { border: 1px solid #cbd5e1; background: #fff; color: #0369a1; border-radius: 8px; padding: 6px 9px; font-size: 11.5px; font-weight: 700; cursor: pointer; }
         .song-admin-btn:hover { border-color: #0ea5e9; background: #f0f9ff; }
+        .song-autocomplete-wrap {
+            position: relative;
+        }
+
+        .song-autocomplete-list {
+            display: none;
+            position: absolute;
+            z-index: 1005;
+            left: 0;
+            right: 0;
+            top: calc(100% + 4px);
+            max-height: 190px;
+            overflow-y: auto;
+            padding: 4px;
+            background: #fff;
+            border: 1px solid #dbe3ec;
+            border-radius: 10px;
+            box-shadow: 0 8px 22px rgba(15, 23, 42, .10);
+        }
+
+        .song-autocomplete-list.active {
+            display: block;
+        }
+
+        .song-autocomplete-item {
+            width: 100%;
+            display: block;
+            border: 0;
+            background: transparent;
+            text-align: left;
+            padding: 8px 9px;
+            border-radius: 7px;
+            color: #334155;
+            font: inherit;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .song-autocomplete-item:hover {
+            background: #f0f9ff;
+            color: #0369a1;
+        }
+
+        .song-autocomplete-empty {
+            padding: 9px;
+            color: #94a3b8;
+            font-size: 11px;
+        }
+
         .song-add-form { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .song-add-form .edit-form-field.full { grid-column: 1 / -1; }
         #noticeModalContent {
@@ -1394,8 +1443,22 @@
             <div class="modal-header"><h3 class="modal-title">＋ 노래 추가</h3><button class="modal-close-btn" onclick="closeSongAddModal()">✕</button></div>
             <div class="song-add-form">
                 <div class="edit-form-field full"><label class="edit-form-label">노래 제목</label><input id="addSongTitle" class="edit-form-input" type="text"></div>
-                <div class="edit-form-field full"><label class="edit-form-label">가수</label><input id="addSongArtist" class="edit-form-input" type="text"></div>
-                <div class="edit-form-field"><label class="edit-form-label">장르</label><input id="addSongGenre" class="edit-form-input" type="text"></div>
+                <div class="edit-form-field full">
+                    <label class="edit-form-label">가수</label>
+                    <div class="song-autocomplete-wrap">
+                        <input id="addSongArtist" class="edit-form-input" type="text" autocomplete="off"
+                               placeholder="가수명을 입력하거나 기존 가수 선택">
+                        <div id="addSongArtistSuggestions" class="song-autocomplete-list"></div>
+                    </div>
+                </div>
+                <div class="edit-form-field">
+                    <label class="edit-form-label">장르</label>
+                    <div class="song-autocomplete-wrap">
+                        <input id="addSongGenre" class="edit-form-input" type="text" autocomplete="off"
+                               placeholder="장르를 입력하거나 기존 장르 선택">
+                        <div id="addSongGenreSuggestions" class="song-autocomplete-list"></div>
+                    </div>
+                </div>
                 <div class="edit-form-field"><label class="edit-form-label">제한</label><input id="addSongLimit" class="edit-form-input" type="text"></div>
                 <div class="edit-form-field full"><label class="edit-form-label">기타</label><input id="addSongEtc" class="edit-form-input" type="text"></div>
             </div>
@@ -1764,10 +1827,72 @@
             showToastMessage("노래가 삭제되었습니다.");
         }
 
+        function getUniqueSongValues(key) {
+            const values = new Map();
+
+            (Array.isArray(allSongs) ? allSongs : []).forEach(song => {
+                const value = String(song?.[key] ?? "").trim();
+                if (!value) return;
+                const normalized = value.toLocaleLowerCase();
+                if (!values.has(normalized)) values.set(normalized, value);
+            });
+
+            return [...values.values()].sort((a, b) => a.localeCompare(b, "ko"));
+        }
+
+        function setupSongAutocomplete(inputId, listId, key) {
+            const input = document.getElementById(inputId);
+            const list = document.getElementById(listId);
+            if (!input || !list || input.dataset.autocompleteReady === "true") return;
+
+            input.dataset.autocompleteReady = "true";
+
+            const render = () => {
+                const query = input.value.trim().toLocaleLowerCase();
+                const values = getUniqueSongValues(key)
+                    .filter(value => !query || value.toLocaleLowerCase().includes(query))
+                    .slice(0, 30);
+
+                list.innerHTML = "";
+
+                if (!values.length) {
+                    list.classList.remove("active");
+                    return;
+                }
+
+                values.forEach(value => {
+                    const button = document.createElement("button");
+                    button.type = "button";
+                    button.className = "song-autocomplete-item";
+                    button.textContent = value;
+                    button.addEventListener("mousedown", event => {
+                        event.preventDefault();
+                        input.value = value;
+                        list.classList.remove("active");
+                    });
+                    list.appendChild(button);
+                });
+
+                list.classList.add("active");
+            };
+
+            input.addEventListener("focus", render);
+            input.addEventListener("input", render);
+            input.addEventListener("blur", () => {
+                setTimeout(() => list.classList.remove("active"), 150);
+            });
+        }
+
+        function setupSongAddAutocompletes() {
+            setupSongAutocomplete("addSongArtist", "addSongArtistSuggestions", "artist");
+            setupSongAutocomplete("addSongGenre", "addSongGenreSuggestions", "genre");
+        }
+
         function openSongAddModal() {
             if (!isSongAuthenticated) { openSongAuthModal(); return; }
             ["addSongTitle","addSongArtist","addSongGenre","addSongLimit","addSongEtc"].forEach(id => document.getElementById(id).value = "");
             songAddModal.classList.add("active");
+            setupSongAddAutocompletes();
             setTimeout(() => document.getElementById("addSongTitle")?.focus(), 50);
         }
         function closeSongAddModal() { songAddModal.classList.remove("active"); }
@@ -1789,20 +1914,31 @@
             enqueueSongServerSave();
             showToastMessage("노래가 추가되었습니다.");
         }
+        function normalizeNoticeText(value) {
+            if (value == null) return "";
+            return String(value)
+                .replace(/\\\\n/g, "\n")
+                .replace(/\\r\\n/g, "\n")
+                .replace(/\\r/g, "\n");
+        }
+
         function openNoticeEditModal() {
             if (!isSongAuthenticated) { openSongAuthModal(); return; }
+
             const noticeEl = document.getElementById("noticeModalContent");
-            const visibleNotice = noticeEl ? noticeEl.textContent.trim() : "";
-            document.getElementById("noticeEditTextarea").value =
-                visibleNotice && visibleNotice !== "등록된 공지가 없습니다."
+            const visibleNotice = noticeEl ? noticeEl.textContent : "";
+            const sourceNotice =
+                visibleNotice && visibleNotice.trim() !== "등록된 공지가 없습니다."
                     ? visibleNotice
-                    : (currentNoticeText || "");
+                    : currentNoticeText;
+
+            document.getElementById("noticeEditTextarea").value = normalizeNoticeText(sourceNotice);
             noticeEditModal.classList.add("active");
         }
         function closeNoticeEditModal() { noticeEditModal.classList.remove("active"); }
         function saveNoticeEdit() {
             if (!isSongAuthenticated) return;
-            currentNoticeText=document.getElementById("noticeEditTextarea").value;
+            currentNoticeText = normalizeNoticeText(document.getElementById("noticeEditTextarea").value);
             const el=document.getElementById("noticeModalContent");
             if(el) el.textContent=currentNoticeText || "등록된 공지가 없습니다.";
             closeNoticeEditModal(); enqueueSongServerSave(); showToastMessage("노래공지가 저장되었습니다.");
