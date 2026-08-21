@@ -222,39 +222,6 @@
             border-color: #0ea5e9;
         }
 
-        .sub-filter-btn {
-            background-color: #ffffff;
-            border: 1px solid #cbd5e1;
-            color: #0369a1;
-            width: 35px;
-            height: 34px;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
-            flex-shrink: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-sizing: border-box;
-        }
-
-        .sub-filter-btn:hover {
-            background-color: #f8fafc;
-            border-color: #0ea5e9;
-            box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
-        }
-
-        .filter-icon-svg {
-            width: 18px;
-            height: 18px;
-            stroke: #0369a1;
-            stroke-width: 2.2;
-            stroke-linecap: round;
-            fill: none;
-            transition: stroke 0.2s;
-        }
-
         @keyframes fadeInUp {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
@@ -279,12 +246,8 @@
             scrollbar-gutter: stable both-edges;
         }
 
-        .song-list-scroll-wrapper::-webkit-scrollbar {
-            width: 8px;
-        }
-        .song-list-scroll-wrapper::-webkit-scrollbar-track {
-            background: transparent;
-        }
+        .song-list-scroll-wrapper::-webkit-scrollbar { width: 8px; }
+        .song-list-scroll-wrapper::-webkit-scrollbar-track { background: transparent; }
         .song-list-scroll-wrapper::-webkit-scrollbar-thumb {
             background-color: rgba(203, 213, 225, 0.9);
             border-radius: 4px;
@@ -414,6 +377,49 @@
         .badge-count {
             background-color: #e0f2fe;
             color: #0284c7;
+        }
+
+        .badge-genre {
+            background-color: #f3e8ff;
+            color: #7e22ce;
+        }
+
+        /* 날짜 상세 아코디언 영역 */
+        .song-details-box {
+            display: none;
+            padding: 10px 16px 12px 16px;
+            background-color: #f8fafc;
+            border-top: 1px solid #e2e8f0;
+            font-size: 13px;
+            color: #475569;
+        }
+
+        .song-card.expanded .song-details-box {
+            display: block;
+        }
+
+        .date-list-title {
+            font-weight: 700;
+            color: #334155;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .date-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+
+        .date-badge {
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            color: #1e293b;
         }
 
         /* 관리자 전용 수정/삭제 버튼 */
@@ -819,7 +825,7 @@
         let noticeText = "";
         let currentFilter = '전체';
         let toastTimer = null;
-        let editingIndex = -1; // -1이면 추가, 0 이상이면 해당 인덱스 수정
+        let editingIndex = -1;
 
         function checkAdminSession() {
             const token = localStorage.getItem("badabi_admin_token");
@@ -860,7 +866,6 @@
 
                 const data = await res.json();
                 if (res.ok && data.success) {
-                    // 비밀번호를 localStorage에 저장하여 추후 수정 요청 시 사용
                     localStorage.setItem("badabi_admin_token", password);
                     document.body.classList.add("is-admin");
                     closeLoginModal();
@@ -874,7 +879,6 @@
             }
         }
 
-        // 곡 추가/수정 모달 열기/닫기
         function openAddSongModal() {
             editingIndex = -1;
             document.getElementById("songEditModalTitle").textContent = "새 곡 추가";
@@ -884,9 +888,10 @@
             document.getElementById("songEditModal").classList.add("active");
         }
 
-        function openEditSongModal(index) {
+        function openEditSongModal(index, event) {
+            if (event) event.stopPropagation();
             editingIndex = index;
-            const song = sortedSongs[index]; // 정렬된 목록 기준 혹은 원본 기준
+            const song = sortedSongs[index];
             document.getElementById("songEditModalTitle").textContent = "곡 정보 수정";
             document.getElementById("editSongTitle").value = song.title || "";
             document.getElementById("editSongArtist").value = song.artist || "";
@@ -898,7 +903,6 @@
             document.getElementById("songEditModal").classList.remove("active");
         }
 
-        // 곡 저장 (추가 또는 수정 후 워커에 전송)
         async function saveSongEdit() {
             const title = document.getElementById("editSongTitle").value.trim();
             const artist = document.getElementById("editSongArtist").value.trim();
@@ -911,10 +915,8 @@
             }
 
             if (editingIndex === -1) {
-                // 추가
                 allSongs.push({ title, artist, genre, limit: genre });
             } else {
-                // 수정: sortedSongs 항목을 찾아 allSongs에서 매칭 후 변경
                 const target = sortedSongs[editingIndex];
                 const realIndex = allSongs.findIndex(s => s === target);
                 if (realIndex !== -1) {
@@ -925,7 +927,6 @@
                 }
             }
 
-            // 서버에 반영 요청
             try {
                 const res = await fetch(WORKER_URL, {
                     method: "POST",
@@ -954,8 +955,8 @@
             }
         }
 
-        // 곡 삭제
-        async function deleteSong(index) {
+        async function deleteSong(index, event) {
+            if (event) event.stopPropagation();
             const password = localStorage.getItem("badabi_admin_token");
             const target = sortedSongs[index];
             if (!confirm(`'${target.artist} - ${target.title}' 곡을 정말 삭제하시겠습니까?`)) return;
@@ -1006,6 +1007,11 @@
             navigator.clipboard.writeText(textToCopy).then(() => {
                 showToastMessage(`'${textToCopy}' 복사 완료`);
             });
+        }
+
+        // 카드 클릭 시 날짜 아코디언 토글
+        function toggleCardExpand(cardElement) {
+            cardElement.classList.toggle('expanded');
         }
 
         function openRecommendModal() { generateRecommendations(); document.getElementById("recommendModal").classList.add("active"); }
@@ -1135,10 +1141,18 @@
 
                 const card = document.createElement("div");
                 card.className = "song-card animate-fade-in";
+                card.onclick = () => toggleCardExpand(card);
 
                 const playCount = song.dateTimes ? song.dateTimes.length : 0;
+                const genreTag = song.genre || song.limit || "";
                 const safeTitle = (song.title || '').replace(/'/g, "\\'");
                 const safeArtist = (song.artist || '').replace(/'/g, "\\'");
+
+                // 날짜 목록 태그 생성
+                let datesHtml = `<span style="font-size:12px; color:#94a3b8;">부른 기록이 없습니다.</span>`;
+                if (song.dateTimes && song.dateTimes.length > 0) {
+                    datesHtml = `<div class="date-tags">` + song.dateTimes.map(d => `<span class="date-badge">${d}</span>`).join('') + `</div>`;
+                }
 
                 card.innerHTML = `
                     <div class="song-summary-row">
@@ -1149,12 +1163,17 @@
                             <span class="song-artist">${song.artist || ''}</span>
                         </div>
                         <div class="song-badges">
+                            ${genreTag ? `<span class="badge badge-genre">${genreTag}</span>` : ''}
                             <span class="badge badge-count">${playCount}회</span>
                             <div class="admin-song-actions">
-                                <button class="admin-icon-btn" onclick="openEditSongModal(${index})">수정</button>
-                                <button class="admin-icon-btn delete" onclick="deleteSong(${index})">삭제</button>
+                                <button class="admin-icon-btn" onclick="openEditSongModal(${index}, event)">수정</button>
+                                <button class="admin-icon-btn delete" onclick="deleteSong(${index}, event)">삭제</button>
                             </div>
                         </div>
+                    </div>
+                    <div class="song-details-box" onclick="event.stopPropagation()">
+                        <div class="date-list-title">부른 날짜 기록</div>
+                        ${datesHtml}
                     </div>
                 `;
                 fragment.appendChild(card);
