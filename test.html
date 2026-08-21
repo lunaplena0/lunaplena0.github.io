@@ -116,55 +116,24 @@
         body.authenticated-mode .song-admin-toolbar { display: flex; }
         .song-admin-btn { border: 1px solid #cbd5e1; background: #fff; color: #0369a1; border-radius: 8px; padding: 6px 9px; font-size: 11.5px; font-weight: 700; cursor: pointer; }
         .song-admin-btn:hover { border-color: #0ea5e9; background: #f0f9ff; }
-        .song-autocomplete-wrap {
-            position: relative;
-        }
-
-        .song-autocomplete-list {
-            display: none;
-            position: absolute;
-            z-index: 1005;
-            left: 0;
-            right: 0;
-            top: calc(100% + 4px);
-            max-height: 190px;
-            overflow-y: auto;
-            padding: 4px;
-            background: #fff;
-            border: 1px solid #dbe3ec;
-            border-radius: 10px;
-            box-shadow: 0 8px 22px rgba(15, 23, 42, .10);
-        }
-
-        .song-autocomplete-list.active {
-            display: block;
-        }
-
-        .song-autocomplete-item {
-            width: 100%;
-            display: block;
-            border: 0;
-            background: transparent;
-            text-align: left;
-            padding: 8px 9px;
-            border-radius: 7px;
-            color: #334155;
-            font: inherit;
-            font-size: 12px;
-            cursor: pointer;
-        }
-
-        .song-autocomplete-item:hover {
-            background: #f0f9ff;
-            color: #0369a1;
-        }
-
-        .song-autocomplete-empty {
-            padding: 9px;
-            color: #94a3b8;
-            font-size: 11px;
-        }
-
+        .song-unregistered-section { grid-column:1/-1; border:1px solid #e2e8f0; border-radius:11px; background:#f8fafc; padding:10px; margin-bottom:2px; }
+        .song-unregistered-header { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:7px; }
+        .song-unregistered-title { font-size:12px; font-weight:800; color:#0369a1; margin:0; }
+        .song-unregistered-help { font-size:10.5px; color:#94a3b8; margin:0; }
+        .song-unregistered-list { display:flex; flex-direction:column; gap:5px; max-height:180px; overflow-y:auto; }
+        .song-unregistered-item { width:100%; display:flex; align-items:center; justify-content:space-between; gap:10px; padding:8px 9px; border:1px solid #e2e8f0; border-radius:8px; background:#fff; cursor:pointer; text-align:left; font-family:inherit; }
+        .song-unregistered-item:hover { border-color:#7dd3fc; background:#f0f9ff; }
+        .song-unregistered-main { min-width:0; flex:1; }
+        .song-unregistered-song { display:block; font-size:12px; font-weight:700; color:#334155; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .song-unregistered-meta { display:block; margin-top:2px; font-size:10.5px; color:#94a3b8; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .song-unregistered-count { flex-shrink:0; padding:3px 6px; border-radius:7px; background:#e0f2fe; color:#0369a1; font-size:10px; font-weight:700; }
+        .song-autocomplete-wrap { position:relative; }
+        .song-autocomplete-list { display:none; position:absolute; z-index:1005; left:0; right:0; top:calc(100% + 4px); max-height:190px; overflow-y:auto; padding:4px; background:#fff; border:1px solid #dbe3ec; border-radius:10px; box-shadow:0 8px 22px rgba(15,23,42,.10); }
+        .song-autocomplete-list.active { display:block; }
+        .song-autocomplete-item { width:100%; display:block; border:0; background:transparent; text-align:left; padding:8px 9px; border-radius:7px; color:#334155; font:inherit; font-size:12px; cursor:pointer; }
+        .song-autocomplete-item:hover { background:#f0f9ff; color:#0369a1; }
+        .song-autocomplete-empty { padding:9px; color:#94a3b8; font-size:11px; }
+        #noticeModalContent { white-space:pre-wrap; word-break:break-word; overflow-wrap:anywhere; }
         .song-add-form { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .song-add-form .edit-form-field.full { grid-column: 1 / -1; }
         #noticeModalContent {
@@ -1439,26 +1408,16 @@
     </div>
 
     <div class="modal-overlay" id="songAddModal">
-        <div class="filter-modal-box" style="width:92%;max-width:520px;max-height:85vh;">
+        <div class="filter-modal-box" style="width:92%;max-width:620px;max-height:88vh;">
             <div class="modal-header"><h3 class="modal-title">＋ 노래 추가</h3><button class="modal-close-btn" onclick="closeSongAddModal()">✕</button></div>
             <div class="song-add-form">
+                <div class="song-unregistered-section">
+                    <div class="song-unregistered-header"><p class="song-unregistered-title">팬송 통계에만 등록된 노래</p><p class="song-unregistered-help">클릭하면 노래책 등록 정보로 자동 입력됩니다.</p></div>
+                    <div id="unregisteredSongList" class="song-unregistered-list"></div>
+                </div>
                 <div class="edit-form-field full"><label class="edit-form-label">노래 제목</label><input id="addSongTitle" class="edit-form-input" type="text"></div>
-                <div class="edit-form-field full">
-                    <label class="edit-form-label">가수</label>
-                    <div class="song-autocomplete-wrap">
-                        <input id="addSongArtist" class="edit-form-input" type="text" autocomplete="off"
-                               placeholder="가수명을 입력하거나 기존 가수 선택">
-                        <div id="addSongArtistSuggestions" class="song-autocomplete-list"></div>
-                    </div>
-                </div>
-                <div class="edit-form-field">
-                    <label class="edit-form-label">장르</label>
-                    <div class="song-autocomplete-wrap">
-                        <input id="addSongGenre" class="edit-form-input" type="text" autocomplete="off"
-                               placeholder="장르를 입력하거나 기존 장르 선택">
-                        <div id="addSongGenreSuggestions" class="song-autocomplete-list"></div>
-                    </div>
-                </div>
+                <div class="edit-form-field full"><label class="edit-form-label">가수</label><div class="song-autocomplete-wrap"><input id="addSongArtist" class="edit-form-input" type="text" autocomplete="off" placeholder="가수명을 입력하거나 기존 가수 선택"><div id="addSongArtistSuggestions" class="song-autocomplete-list"></div></div></div>
+                <div class="edit-form-field"><label class="edit-form-label">장르</label><div class="song-autocomplete-wrap"><input id="addSongGenre" class="edit-form-input" type="text" autocomplete="off" placeholder="장르를 입력하거나 기존 장르 선택"><div id="addSongGenreSuggestions" class="song-autocomplete-list"></div></div></div>
                 <div class="edit-form-field"><label class="edit-form-label">제한</label><input id="addSongLimit" class="edit-form-input" type="text"></div>
                 <div class="edit-form-field full"><label class="edit-form-label">기타</label><input id="addSongEtc" class="edit-form-input" type="text"></div>
             </div>
@@ -1512,6 +1471,8 @@
         let songSaveQueue = Promise.resolve();
         let isSongLocallyMutating = false;
         let currentNoticeText = "";
+        let fansongStatsData = { vodSources: [], registeredSongs: [], unregisteredSongs: [] };
+        let selectedUnregisteredKey = "";
         const songAddModal = document.getElementById("songAddModal");
         const noticeEditModal = document.getElementById("noticeEditModal");
 
@@ -1722,91 +1683,60 @@
             songEditModal.classList.remove("active");
         }
 
+        function songIdentity(song) {
+            return `${String(song?.title || '').trim().toLowerCase()}_${String(song?.artist || '').trim().toLowerCase()}_${String(song?.limit || '').trim().toLowerCase()}`;
+        }
+
+        function cloneSongForStats(song, dateTimes = []) {
+            return { title:song.title||"", artist:song.artist||"", limit:song.limit||"", genre:song.genre||"", etc:song.etc||"", dateTimes:Array.isArray(dateTimes)?dateTimes:[] };
+        }
+
         function getEditableSongContent() {
-            return allSongs.map(song => {
-                const copy = { ...song };
-                // 화면 표시용 통계는 songlist 원본에 저장하지 않음
-                delete copy.dateTimes;
-                return copy;
-            });
+            return allSongs.map(song => { const copy={...song}; delete copy.dateTimes; return copy; });
+        }
+
+        function updateRegisteredSongForCurrentSong(oldSong, newSong) {
+            const registered = Array.isArray(fansongStatsData.registeredSongs) ? fansongStatsData.registeredSongs : [];
+            const index = registered.findIndex(song => songIdentity(song) === songIdentity(oldSong));
+            if (index >= 0) registered[index] = cloneSongForStats(newSong, registered[index].dateTimes || []);
+            else registered.push(cloneSongForStats(newSong, []));
+        }
+
+        function addSongToRegisteredStats(song, dateTimes=[]) {
+            const registered = Array.isArray(fansongStatsData.registeredSongs) ? fansongStatsData.registeredSongs : [];
+            if (!registered.some(item => songIdentity(item) === songIdentity(song))) registered.push(cloneSongForStats(song,dateTimes));
+        }
+
+        function removeFromUnregisteredStats(song) {
+            const list = Array.isArray(fansongStatsData.unregisteredSongs) ? fansongStatsData.unregisteredSongs : [];
+            fansongStatsData.unregisteredSongs = list.filter(item => songIdentity(item) !== songIdentity(song));
+        }
+
+        async function saveWorkerFile(fileType, content, password) {
+            const response = await fetch(WORKER_URL, { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({password, action:"save", fileType, content}) });
+            if (!response.ok) { const err=await response.json().catch(()=>({})); throw new Error(err.error || `${fileType} 서버 저장 실패`); }
         }
 
         function enqueueSongServerSave() {
             isSongLocallyMutating = true;
-
             songSaveQueue = songSaveQueue.then(async () => {
-                const password = localStorage.getItem("badabi_pw") || "";
-                if (!isSongAuthenticated || !password) {
-                    throw new Error("로그인 인증이 만료되었습니다. 다시 로그인해주세요.");
-                }
-
-                const content = {
-                    notice: currentNoticeText || "",
-                    songs: getEditableSongContent()
-                };
-
-                const response = await fetch(WORKER_URL, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        password: password,
-                        action: "save",
-                        fileType: "songlist",
-                        content: content
-                    })
-                });
-
-                if (!response.ok) {
-                    const err = await response.json().catch(() => ({}));
-                    throw new Error(err.error || "서버 저장 실패");
-                }
-            }).catch(error => {
-                console.error("노래책 저장 실패:", error);
-                showToastMessage(error.message || "저장에 실패했습니다.");
-                restoreSongAuthentication();
-        updateSongAuthUI();
-        loadData();
-
-        document.addEventListener("keydown", (e) => {
-            if (e.key === "Enter") {
-                const passwordInput = document.getElementById("songPasswordInput");
-                if (passwordInput && document.activeElement === passwordInput) {
-                    verifySongPassword();
-                }
-            }
-        });
-            }).finally(() => {
-                setTimeout(() => {
-                    isSongLocallyMutating = false;
-                }, 1000);
-            });
+                const password=localStorage.getItem("badabi_pw") || "";
+                if (!isSongAuthenticated || !password) throw new Error("로그인 인증이 만료되었습니다. 다시 로그인해주세요.");
+                const songListContent={ notice:currentNoticeText||"", songs:getEditableSongContent() };
+                const statsContent={ vodSources:Array.isArray(fansongStatsData.vodSources)?fansongStatsData.vodSources:[], registeredSongs:Array.isArray(fansongStatsData.registeredSongs)?fansongStatsData.registeredSongs:[], unregisteredSongs:Array.isArray(fansongStatsData.unregisteredSongs)?fansongStatsData.unregisteredSongs:[] };
+                await saveWorkerFile("songlist", songListContent, password);
+                await saveWorkerFile("fansongstats", statsContent, password);
+            }).catch(error => { console.error("노래책/팬송 통계 저장 실패:",error); showToastMessage(error.message||"서버 저장에 실패했습니다."); }).finally(()=>{ setTimeout(()=>{isSongLocallyMutating=false;},1000); });
         }
 
         function saveEditingSong() {
             if (!isSongAuthenticated || editingSongIndex < 0) return;
-
-            const song = allSongs[editingSongIndex];
-            if (!song) return;
-
-            const title = document.getElementById("editSongTitle").value.trim();
-            const artist = document.getElementById("editSongArtist").value.trim();
-
-            if (!title) {
-                showToastMessage("노래 제목을 입력해주세요.");
-                return;
-            }
-
-            song.title = title;
-            song.artist = artist;
-            song.genre = document.getElementById("editSongGenre").value.trim();
-            song.limit = document.getElementById("editSongLimit").value.trim();
-            song.etc = document.getElementById("editSongEtc").value.trim();
-
-            closeSongEditModal();
-            updateFilteredAndSorted();
-            renderAllSongs();
-            enqueueSongServerSave();
-            showToastMessage("노래 정보가 저장되었습니다.");
+            const song=allSongs[editingSongIndex]; if(!song) return;
+            const oldSong={...song};
+            const title=document.getElementById("editSongTitle").value.trim(); if(!title){showToastMessage("노래 제목을 입력해주세요.");return;}
+            song.title=title; song.artist=document.getElementById("editSongArtist").value.trim(); song.genre=document.getElementById("editSongGenre").value.trim(); song.limit=document.getElementById("editSongLimit").value.trim(); song.etc=document.getElementById("editSongEtc").value.trim();
+            updateRegisteredSongForCurrentSong(oldSong,song);
+            closeSongEditModal(); updateFilteredAndSorted(); renderAllSongs(); enqueueSongServerSave(); showToastMessage("노래 정보와 팬송 통계를 저장했습니다.");
         }
 
         function deleteEditingSong() {
@@ -1828,147 +1758,47 @@
         }
 
         function getUniqueSongValues(key) {
-            const values = new Map();
-
-            (Array.isArray(allSongs) ? allSongs : []).forEach(song => {
-                const value = String(song?.[key] ?? "").trim();
-                if (!value) return;
-                const normalized = value.toLocaleLowerCase();
-                if (!values.has(normalized)) values.set(normalized, value);
-            });
-
-            return [...values.values()].sort((a, b) => a.localeCompare(b, "ko"));
+            const values=new Map(); (Array.isArray(allSongs)?allSongs:[]).forEach(song=>{const v=String(song?.[key]??"").trim();if(v&&!values.has(v.toLocaleLowerCase()))values.set(v.toLocaleLowerCase(),v);}); return [...values.values()].sort((a,b)=>a.localeCompare(b,"ko"));
+        }
+        function setupSongAutocomplete(inputId,listId,key){
+            const input=document.getElementById(inputId), list=document.getElementById(listId); if(!input||!list||input.dataset.autocompleteReady==="true")return; input.dataset.autocompleteReady="true";
+            const render=()=>{const q=input.value.trim().toLocaleLowerCase();const vals=getUniqueSongValues(key).filter(v=>!q||v.toLocaleLowerCase().includes(q)).slice(0,30);list.innerHTML="";if(!vals.length){list.classList.remove("active");return;}vals.forEach(v=>{const b=document.createElement("button");b.type="button";b.className="song-autocomplete-item";b.textContent=v;b.onmousedown=e=>{e.preventDefault();input.value=v;list.classList.remove("active");};list.appendChild(b);});list.classList.add("active");};
+            input.addEventListener("focus",render); input.addEventListener("input",render); input.addEventListener("blur",()=>setTimeout(()=>list.classList.remove("active"),150));
+        }
+        function setupSongAddAutocompletes(){setupSongAutocomplete("addSongArtist","addSongArtistSuggestions","artist");setupSongAutocomplete("addSongGenre","addSongGenreSuggestions","genre");}
+        function renderUnregisteredSongs(){
+            const c=document.getElementById("unregisteredSongList"); if(!c)return; const list=Array.isArray(fansongStatsData.unregisteredSongs)?fansongStatsData.unregisteredSongs:[]; c.innerHTML="";
+            if(!list.length){const e=document.createElement("div");e.className="song-autocomplete-empty";e.textContent="현재 노래책에 등록되지 않은 곡이 없습니다.";c.appendChild(e);return;}
+            list.forEach(song=>{const b=document.createElement("button");b.type="button";b.className="song-unregistered-item";const m=document.createElement("span");m.className="song-unregistered-main";const t=document.createElement("span");t.className="song-unregistered-song";t.textContent=song.title||"제목없음";const meta=document.createElement("span");meta.className="song-unregistered-meta";meta.textContent=`${song.artist||"아티스트 미상"}${song.genre?` · ${song.genre}`:""}${song.limit?` · ${song.limit}`:""}`;m.append(t,meta);const n=document.createElement("span");n.className="song-unregistered-count";n.textContent=`${Array.isArray(song.dateTimes)?song.dateTimes.length:0}회`;b.append(m,n);b.onclick=()=>selectUnregisteredSong(song);c.appendChild(b);});
+        }
+        function selectUnregisteredSong(song){selectedUnregisteredKey=songIdentity(song);document.getElementById("addSongTitle").value=song.title||"";document.getElementById("addSongArtist").value=song.artist||"";document.getElementById("addSongGenre").value=song.genre||"";document.getElementById("addSongLimit").value=song.limit||"";document.getElementById("addSongEtc").value=song.etc||"";showToastMessage("팬송 통계의 미등록 곡 정보를 불러왔습니다.");}
+        function openSongAddModal(){if(!isSongAuthenticated){openSongAuthModal();return;}["addSongTitle","addSongArtist","addSongGenre","addSongLimit","addSongEtc"].forEach(id=>{document.getElementById(id).value="";});selectedUnregisteredKey="";renderUnregisteredSongs();setupSongAddAutocompletes();songAddModal.classList.add("active");setTimeout(()=>document.getElementById("addSongTitle")?.focus(),50);}
+        function closeSongAddModal(){songAddModal.classList.remove("active");}
+        function addNewSong(){
+            if(!isSongAuthenticated)return; const title=document.getElementById("addSongTitle").value.trim(), artist=document.getElementById("addSongArtist").value.trim(); if(!title||!artist){showToastMessage("노래 제목과 가수를 입력해주세요.");return;}
+            const newSong={title,artist,genre:document.getElementById("addSongGenre").value.trim(),limit:document.getElementById("addSongLimit").value.trim(),etc:document.getElementById("addSongEtc").value.trim(),dateTimes:[]};
+            const unregistered=Array.isArray(fansongStatsData.unregisteredSongs)?fansongStatsData.unregisteredSongs:[]; const selected=unregistered.find(x=>songIdentity(x)===selectedUnregisteredKey)||unregistered.find(x=>songIdentity(x)===songIdentity(newSong)); const dt=selected&&Array.isArray(selected.dateTimes)?selected.dateTimes:[];
+            allSongs.push(newSong); addSongToRegisteredStats(newSong,dt); if(selected)removeFromUnregisteredStats(selected);
+            closeSongAddModal();updateFilteredAndSorted();renderAllSongs();animateNumber("animSongCount",allSongs.length);enqueueSongServerSave();showToastMessage(selected?"미등록 곡을 노래책과 팬송 통계에 등록했습니다.":"노래책과 팬송 통계에 노래를 추가했습니다.");
         }
 
-        function setupSongAutocomplete(inputId, listId, key) {
-            const input = document.getElementById(inputId);
-            const list = document.getElementById(listId);
-            if (!input || !list || input.dataset.autocompleteReady === "true") return;
-
-            input.dataset.autocompleteReady = "true";
-
-            const render = () => {
-                const query = input.value.trim().toLocaleLowerCase();
-                const values = getUniqueSongValues(key)
-                    .filter(value => !query || value.toLocaleLowerCase().includes(query))
-                    .slice(0, 30);
-
-                list.innerHTML = "";
-
-                if (!values.length) {
-                    list.classList.remove("active");
-                    return;
-                }
-
-                values.forEach(value => {
-                    const button = document.createElement("button");
-                    button.type = "button";
-                    button.className = "song-autocomplete-item";
-                    button.textContent = value;
-                    button.addEventListener("mousedown", event => {
-                        event.preventDefault();
-                        input.value = value;
-                        list.classList.remove("active");
-                    });
-                    list.appendChild(button);
-                });
-
-                list.classList.add("active");
-            };
-
-            input.addEventListener("focus", render);
-            input.addEventListener("input", render);
-            input.addEventListener("blur", () => {
-                setTimeout(() => list.classList.remove("active"), 150);
-            });
-        }
-
-        function setupSongAddAutocompletes() {
-            setupSongAutocomplete("addSongArtist", "addSongArtistSuggestions", "artist");
-            setupSongAutocomplete("addSongGenre", "addSongGenreSuggestions", "genre");
-        }
-
-        function openSongAddModal() {
-            if (!isSongAuthenticated) { openSongAuthModal(); return; }
-            ["addSongTitle","addSongArtist","addSongGenre","addSongLimit","addSongEtc"].forEach(id => document.getElementById(id).value = "");
-            songAddModal.classList.add("active");
-            setupSongAddAutocompletes();
-            setTimeout(() => document.getElementById("addSongTitle")?.focus(), 50);
-        }
-        function closeSongAddModal() { songAddModal.classList.remove("active"); }
-        function addNewSong() {
-            if (!isSongAuthenticated) return;
-            const title=document.getElementById("addSongTitle").value.trim();
-            const artist=document.getElementById("addSongArtist").value.trim();
-            if (!title || !artist) { showToastMessage("노래 제목과 가수를 입력해주세요."); return; }
-            allSongs.push({
-                title, artist,
-                genre:document.getElementById("addSongGenre").value.trim(),
-                limit:document.getElementById("addSongLimit").value.trim(),
-                etc:document.getElementById("addSongEtc").value.trim(),
-                dateTimes:[]
-            });
-            closeSongAddModal();
-            updateFilteredAndSorted(); renderAllSongs();
-            animateNumber("animSongCount", allSongs.length);
-            enqueueSongServerSave();
-            showToastMessage("노래가 추가되었습니다.");
-        }
         function normalizeNoticeText(value) {
             if (value == null) return "";
-
             let text = String(value);
-
-            // 실제 줄바꿈
-            text = text.replace(/\r\n/g, "\n");
-            text = text.replace(/\r/g, "\n");
-
-            // JSON 데이터가 문자 그대로 "\\n"을 포함하는 경우도 실제 줄바꿈으로 복원
-            text = text.replace(/\\r\\n/g, "\n");
-            text = text.replace(/\\n/g, "\n");
-
+            text = text.replaceAll("\r\n", "\n");
+            text = text.replaceAll("\r", "\n");
+            text = text.replaceAll("\\r\\n", "\n");
+            text = text.replaceAll("\\n", "\n");
             return text;
         }
 
-        function renderNoticeContent(value) {
-            const el = document.getElementById("noticeModalContent");
-            if (!el) return;
-
-            const normalized = normalizeNoticeText(value);
-            // HTML로 해석되지 않도록 escape 후 개행을 <br>로 변환
-            const escaped = String(normalized)
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#39;");
-
-            el.innerHTML = escaped.replace(/\n/g, "<br>");
-        }
-
-        function openNoticeEditModal() {
-            if (!isSongAuthenticated) { openSongAuthModal(); return; }
-
-            // 서버에서 받아온 원본 공지를 직접 사용한다.
-            // 화면의 <br>을 거친 textContent를 다시 읽으면 줄바꿈이 사라질 수 있다.
-            document.getElementById("noticeEditTextarea").value =
-                normalizeNoticeText(currentNoticeText || "");
-
-            noticeEditModal.classList.add("active");
-        }
-        function closeNoticeEditModal() { noticeEditModal.classList.remove("active"); }
-        function saveNoticeEdit() {
-            if (!isSongAuthenticated) return;
-            currentNoticeText = normalizeNoticeText(document.getElementById("noticeEditTextarea").value);
-            renderNoticeContent(currentNoticeText || "등록된 공지가 없습니다.");
-closeNoticeEditModal(); enqueueSongServerSave(); showToastMessage("노래공지가 저장되었습니다.");
-        }
+        function renderNoticeContent(value){const el=document.getElementById("noticeModalContent");if(el)el.textContent=normalizeNoticeText(value)||"공지사항이 없습니다.";}
+        function openNoticeEditModal(){if(!isSongAuthenticated){openSongAuthModal();return;}document.getElementById("noticeEditTextarea").value=normalizeNoticeText(currentNoticeText||"");noticeEditModal.classList.add("active");}
+        function closeNoticeEditModal(){noticeEditModal.classList.remove("active");}
+        function saveNoticeEdit(){if(!isSongAuthenticated)return;currentNoticeText=normalizeNoticeText(document.getElementById("noticeEditTextarea").value);renderNoticeContent(currentNoticeText);closeNoticeEditModal();enqueueSongServerSave();showToastMessage("노래공지가 저장되었습니다.");}
         function openRecommendModal() { generateRecommendations(); document.getElementById("recommendModal").classList.add("active"); }
         function closeRecommendModal() { document.getElementById("recommendModal").classList.remove("active"); }
-        function openNoticeModal() {
-            renderNoticeContent(currentNoticeText || "공지사항이 없습니다.");
-            document.getElementById("noticeModal").classList.add("active");
-        }
+        function openNoticeModal(){renderNoticeContent(currentNoticeText);document.getElementById("noticeModal").classList.add("active");}
         function closeNoticeModal() { document.getElementById("noticeModal").classList.remove("active"); }
         function openFilterModal() { document.getElementById("filterModal").classList.add("active"); }
         function closeFilterModal() { document.getElementById("filterModal").classList.remove("active"); }
@@ -2099,48 +1929,19 @@ closeNoticeEditModal(); enqueueSongServerSave(); showToastMessage("노래공지�
             requestAnimationFrame(update);
         }
 
-        async function loadData() {
-            if (isSongLocallyMutating) return;
-            const container = document.getElementById("songContainer");
-            try {
-                const timestamp = new Date().getTime();
-                const [songListRes, statsRes] = await Promise.all([
-                    fetch(SONG_LIST_URL + timestamp),
-                    fetch(STATS_API_URL + timestamp)
-                ]);
-                if (!songListRes.ok || !statsRes.ok) throw new Error();
-                const songListData = await songListRes.json();
-                const statsData = await statsRes.json();
-
-                currentNoticeText = normalizeNoticeText(songListData.notice || "");
-                renderNoticeContent(currentNoticeText || "공지사항이 없습니다.");
-
-                vodMap = {};
-                statsData.vodSources?.forEach(vod => { vodMap[vod.date] = vod.url; });
-
-                const statsMap = {};
-                statsData.registeredSongs?.forEach(statSong => {
-                    const key = `${(statSong.title || '').trim().toLowerCase()}_${(statSong.artist || '').trim().toLowerCase()}_${(statSong.limit || '').trim().toLowerCase()}`;
-                    statsMap[key] = statSong.dateTimes || [];
-                });
-
-                allSongs = (songListData.songs || []).map(song => {
-                    const key = `${(song.title || '').trim().toLowerCase()}_${(song.artist || '').trim().toLowerCase()}_${(song.limit || '').trim().toLowerCase()}`;
-                    return { ...song, dateTimes: statsMap[key] || [] };
-                });
-
-                document.getElementById("statsSummary").innerHTML = `총 노래 : <span id="animSongCount">0</span>곡`;
-                animateNumber("animSongCount", allSongs.length);
-
-                setupFilterButtons();
-                updateFilteredAndSorted();
-                renderAllSongs();
-            } catch (err) {
-                container.innerHTML = '<p class="no-result" style="color: #ef4444;">데이터 로드 실패</p>';
-            }
-        
-            updateSongAuthUI();
-}
+        async function loadData(){
+            if(isSongLocallyMutating)return; const container=document.getElementById("songContainer");
+            try{
+                const timestamp=Date.now(); const [songListRes,statsRes]=await Promise.all([fetch(SONG_LIST_URL+timestamp),fetch(STATS_API_URL+timestamp)]); if(!songListRes.ok||!statsRes.ok)throw new Error();
+                const songListData=await songListRes.json(); const statsData=await statsRes.json();
+                currentNoticeText=normalizeNoticeText(songListData.notice||""); renderNoticeContent(currentNoticeText||"공지사항이 없습니다.");
+                fansongStatsData={vodSources:Array.isArray(statsData.vodSources)?statsData.vodSources:[],registeredSongs:Array.isArray(statsData.registeredSongs)?statsData.registeredSongs:[],unregisteredSongs:Array.isArray(statsData.unregisteredSongs)?statsData.unregisteredSongs:[]};
+                vodMap={}; fansongStatsData.vodSources.forEach(v=>{vodMap[v.date]=v.url;});
+                const statsMap={}; fansongStatsData.registeredSongs.forEach(stat=>{statsMap[songIdentity(stat)]=stat.dateTimes||[];});
+                allSongs=(songListData.songs||[]).map(song=>({...song,dateTimes:statsMap[songIdentity(song)]||[]}));
+                document.getElementById("statsSummary").innerHTML=`총 노래 : <span id="animSongCount">0</span>곡`; animateNumber("animSongCount",allSongs.length); setupFilterButtons();updateFilteredAndSorted();renderAllSongs();updateSongAuthUI();
+            }catch(err){console.error("노래책 데이터 로드 실패:",err);container.innerHTML='<p class="no-result" style="color:#ef4444;">데이터 로드 실패</p>';}
+        }
 
         function setupFilterButtons() {
             document.querySelectorAll('.filter-btn').forEach(btn => {
