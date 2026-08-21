@@ -68,6 +68,13 @@
             stroke-linejoin: round;
             fill: none;
             flex-shrink: 0;
+            cursor: pointer;
+            transition: transform 0.2s, stroke 0.2s;
+        }
+
+        .page-title-svg:hover {
+            transform: scale(1.1);
+            stroke: #0284c7;
         }
 
         .stats-summary {
@@ -546,7 +553,7 @@
             pointer-events: auto;
         }
 
-        .modal-box, .notice-modal-box, .filter-modal-box {
+        .modal-box, .notice-modal-box, .filter-modal-box, .admin-modal-box {
             background: #ffffff;
             border-radius: 16px;
             border: 1px solid #e2e8f0;
@@ -561,10 +568,12 @@
         .modal-box { width: 90%; max-width: 460px; height: 480px; padding: 18px 16px; justify-content: space-between; }
         .notice-modal-box { width: 90%; max-width: 460px; height: 380px; padding: 18px 20px; justify-content: space-between; }
         .filter-modal-box { width: 92%; max-width: 520px; max-height: 85vh; padding: 18px; gap: 14px; overflow-y: auto; }
+        .admin-modal-box { width: 90%; max-width: 360px; padding: 20px; gap: 14px; }
 
         .modal-overlay.active .modal-box,
         .modal-overlay.active .notice-modal-box,
-        .modal-overlay.active .filter-modal-box {
+        .modal-overlay.active .filter-modal-box,
+        .modal-overlay.active .admin-modal-box {
             transform: translateY(0);
         }
 
@@ -732,6 +741,20 @@
             box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
         }
 
+        .admin-password-input {
+            width: 100%;
+            padding: 10px 12px;
+            font-size: 14px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            box-sizing: border-box;
+            outline: none;
+        }
+        .admin-password-input:focus {
+            border-color: #0ea5e9;
+            box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
+        }
+
         .modal-actions {
             display: flex;
             gap: 8px;
@@ -755,7 +778,7 @@
 
         .modal-btn-refresh { background-color: #ffffff; border: 1px solid #cbd5e1; color: #0369a1; }
         .modal-btn-close { background-color: #0ea5e9; border: 1px solid #0ea5e9; color: white; }
-        .modal-btn-edit { background-color: #f8fafc; border: 1px solid #cbd5e1; color: #0369a1; }
+        .modal-btn-edit { background-color: #f8fafc; border: 1px solid #cbd5e1; color: #0369a1; display: none; }
         .modal-btn-edit.editing { background-color: #10b981; border-color: #10b981; color: white; }
 
         .no-result {
@@ -783,7 +806,7 @@
         <div class="header-row">
             <div class="title-summary-box">
                 <h1 class="page-title">
-                    <svg class="page-title-svg" viewBox="0 0 24 24">
+                    <svg class="page-title-svg" viewBox="0 0 24 24" onclick="handleTitleIconClick()" title="관리자 로그인">
                         <path d="M9 18V5l12-2v13"></path>
                         <circle cx="6" cy="18" r="3"></circle>
                         <circle cx="18" cy="16" r="3"></circle>
@@ -847,6 +870,22 @@
     </div>
 
     <div id="toastMessage" class="toast-message">노래가 복사되었습니다.</div>
+
+    <!-- 관리자 인증 모달 -->
+    <div class="modal-overlay" id="adminModal">
+        <div class="admin-modal-box">
+            <div class="modal-header">
+                <h3 class="modal-title">관리자 인증</h3>
+                <button class="modal-close-btn" onclick="closeAdminModal()">✕</button>
+            </div>
+            <div style="font-size: 13.5px; color: #475569;">관리자 비밀번호를 입력하세요.</div>
+            <input type="password" id="adminPasswordInput" class="admin-password-input" placeholder="비밀번호" onkeydown="if(event.key==='Enter') verifyAdmin()">
+            <div class="modal-actions">
+                <button class="modal-btn modal-btn-refresh" onclick="closeAdminModal()">취소</button>
+                <button class="modal-btn modal-btn-close" onclick="verifyAdmin()">확인</button>
+            </div>
+        </div>
+    </div>
 
     <div class="modal-overlay" id="filterModal">
         <div class="filter-modal-box">
@@ -956,6 +995,8 @@
         const WORKER_URL = "https://badabi-api.dalkkumli054.workers.dev/";
         const SONG_LIST_URL = WORKER_URL + "?type=songlist&t=";
         const STATS_API_URL = WORKER_URL + "?type=fansongstats&t=";
+        const NOTICE_API_URL = WORKER_URL + "?type=notice"; // 기존 연동용 공지 API 엔드포인트 복구
+        const ADMIN_PASSWORD = "1234"; // 필요에 따라 변경 가능
 
         let allSongs = [];
         let filteredSongs = [];
@@ -967,6 +1008,62 @@
         let toastTimer = null;
         let currentNoticeText = "";
         let isEditingNotice = false;
+        let isAdminLoggedIn = sessionStorage.getItem("badabi_admin_auth") === "true";
+
+        // 초기 실행 시 관리자 로그인 상태 반영
+        window.addEventListener('DOMContentLoaded', () => {
+            updateAdminUI();
+        });
+
+        function handleTitleIconClick() {
+            if (isAdminLoggedIn) {
+                if (confirm("관리자 모드를 로그아웃하시겠습니까?")) {
+                    isAdminLoggedIn = false;
+                    sessionStorage.removeItem("badabi_admin_auth");
+                    updateAdminUI();
+                    showToastMessage("관리자 모드가 해제되었습니다.");
+                }
+            } else {
+                openAdminModal();
+            }
+        }
+
+        function openAdminModal() {
+            document.getElementById("adminPasswordInput").value = "";
+            document.getElementById("adminModal").classList.add("active");
+            setTimeout(() => document.getElementById("adminPasswordInput").focus(), 100);
+        }
+
+        function closeAdminModal() {
+            document.getElementById("adminModal").classList.remove("active");
+        }
+
+        function verifyAdmin() {
+            const pwdInput = document.getElementById("adminPasswordInput").value;
+            if (pwdInput === ADMIN_PASSWORD) {
+                isAdminLoggedIn = true;
+                sessionStorage.setItem("badabi_admin_auth", "true");
+                closeAdminModal();
+                updateAdminUI();
+                showToastMessage("관리자 모드로 진입했습니다.");
+            } else {
+                showToastMessage("비밀번호가 틀렸습니다.");
+                document.getElementById("adminPasswordInput").value = "";
+                document.getElementById("adminPasswordInput").focus();
+            }
+        }
+
+        function updateAdminUI() {
+            const editBtn = document.getElementById("noticeEditBtn");
+            if (isAdminLoggedIn) {
+                editBtn.style.display = "flex";
+            } else {
+                editBtn.style.display = "none";
+                if (isEditingNotice) {
+                    toggleNoticeEdit(); // 강제로 편집 모드 종료
+                }
+            }
+        }
 
         function timeToSeconds(timeStr) {
             if (!timeStr) return 0;
@@ -1012,18 +1109,19 @@
         }
         function closeNoticeModal() { 
             if (isEditingNotice) {
-                toggleNoticeEdit(); // 모달 닫을 때 편집 상태였다면 저장 또는 해제 처리
+                toggleNoticeEdit(); 
             }
             document.getElementById("noticeModal").classList.remove("active"); 
         }
 
-        function toggleNoticeEdit() {
+        async function toggleNoticeEdit() {
+            if (!isAdminLoggedIn) return;
+
             const contentDiv = document.getElementById("noticeModalContent");
             const textarea = document.getElementById("noticeTextarea");
             const editBtn = document.getElementById("noticeEditBtn");
 
             if (!isEditingNotice) {
-                // 편집 모드 진입
                 isEditingNotice = true;
                 textarea.value = currentNoticeText;
                 contentDiv.style.display = "none";
@@ -1031,15 +1129,24 @@
                 editBtn.textContent = "저장";
                 editBtn.classList.add("editing");
             } else {
-                // 저장 모드 수행
                 const newText = textarea.value;
+                
+                // 서버 연동을 통한 공지 저장 시도 (실패 시 로컬저장소 백업)
+                try {
+                    const response = await fetch(NOTICE_API_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ notice: newText })
+                    });
+                    if (!response.ok) throw new Error("서버 저장 실패");
+                } catch (e) {
+                    console.warn("서버 저장 실패, 로컬에 저장합니다.", e);
+                    localStorage.setItem("badabi_custom_notice", newText);
+                }
+
                 currentNoticeText = newText;
                 contentDiv.innerText = newText.trim() || "공지사항이 없습니다.";
-                
-                // 로컬 저장소에 저장하여 새로고침해도 유지되도록 처리
-                localStorage.setItem("badabi_custom_notice", newText);
 
-                // UI 복원
                 textarea.style.display = "none";
                 contentDiv.style.display = "block";
                 editBtn.textContent = "수정";
@@ -1191,9 +1298,10 @@
                 const songListData = await songListRes.json();
                 const statsData = await statsRes.json();
 
-                // 서버 공지 설정 (로컬 저장소에 수정된 값이 있으면 우선 반영)
+                // 서버에서 공지사항을 불러오되, 실패 시 로컬저장소 확인
+                let serverNotice = songListData.notice || "";
                 const savedNotice = localStorage.getItem("badabi_custom_notice");
-                currentNoticeText = savedNotice !== null ? savedNotice : (songListData.notice || "");
+                currentNoticeText = savedNotice !== null ? savedNotice : serverNotice;
                 document.getElementById('noticeModalContent').innerText = currentNoticeText.trim() || "공지사항이 없습니다.";
 
                 vodMap = {};
