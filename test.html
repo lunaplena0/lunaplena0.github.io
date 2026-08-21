@@ -1606,28 +1606,32 @@
         function restoreSongAuthentication() {
             const auth = localStorage.getItem("badabi_auth") === "true";
             const password = localStorage.getItem("badabi_pw") || "";
-
             isSongAuthenticated = auth && !!password;
             document.body.classList.toggle("authenticated-mode", isSongAuthenticated);
             return isSongAuthenticated;
         }
 
         function updateSongAuthUI() {
-            restoreSongAuthentication();
-            // 참고2.txt와 동일하게 인증 상태를 body 클래스에도 반영
-            // 수정 버튼은 body.authenticated-mode 아래에서 표시됩니다.
+            // 새로고침 후에도 localStorage의 인증 정보를 기준으로 관리자 모드를 복원
+            const auth = localStorage.getItem("badabi_auth") === "true";
+            const password = localStorage.getItem("badabi_pw") || "";
+            isSongAuthenticated = auth && !!password;
+
             document.body.classList.toggle("authenticated-mode", isSongAuthenticated);
 
-            if (!songAuthBtn) return;
-            songAuthBtn.classList.toggle("authenticated", isSongAuthenticated);
-            songAuthBtn.title = isSongAuthenticated
-                ? "노래책 인증됨 - 클릭하여 로그아웃"
-                : "노래책 로그인 / 인증";
+            if (songAuthBtn) {
+                songAuthBtn.classList.toggle("authenticated", isSongAuthenticated);
+                songAuthBtn.title = isSongAuthenticated
+                    ? "노래책 관리자 모드 - 클릭하여 관리"
+                    : "노래책 로그인 / 인증";
+            }
 
-            // 로그인/로그아웃 직후 현재 목록을 다시 렌더링해서
-            // 수정 버튼 표시 상태를 즉시 반영합니다.
-            if (typeof sortedSongs !== "undefined" && sortedSongs.length >= 0) {
-                renderAllSongs();
+            // 현재 검색/정렬 상태에서도 관리자 버튼과 수정 버튼을 즉시 다시 렌더링
+            if (typeof updateFilteredAndSorted === "function") {
+                try { updateFilteredAndSorted(); } catch (e) {}
+            }
+            if (typeof renderAllSongs === "function") {
+                try { renderAllSongs(); } catch (e) {}
             }
         }
 
@@ -1974,7 +1978,9 @@
             } catch (err) {
                 container.innerHTML = '<p class="no-result" style="color: #ef4444;">데이터 로드 실패</p>';
             }
-        }
+        
+            updateSongAuthUI();
+}
 
         function setupFilterButtons() {
             document.querySelectorAll('.filter-btn').forEach(btn => {
