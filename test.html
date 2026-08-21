@@ -1917,9 +1917,33 @@
         function normalizeNoticeText(value) {
             if (value == null) return "";
             return String(value)
-                .replace(/\\\\n/g, "\n")
-                .replace(/\\r\\n/g, "\n")
-                .replace(/\\r/g, "\n");
+                // 문자 그대로 저장된 \n / \r\n도 실제 개행으로 변환
+                .replace(/\\r\\n/g, "
+")
+                .replace(/\\n/g, "
+")
+                .replace(/
+/g, "
+")
+                .replace(/
+/g, "
+");
+        }
+
+        function renderNoticeContent(value) {
+            const el = document.getElementById("noticeModalContent");
+            if (!el) return;
+
+            const normalized = normalizeNoticeText(value);
+            // HTML로 해석되지 않도록 escape 후 개행을 <br>로 변환
+            const escaped = String(normalized)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#39;");
+
+            el.innerHTML = escaped.replace(/\n/g, "<br>");
         }
 
         function openNoticeEditModal() {
@@ -1939,9 +1963,8 @@
         function saveNoticeEdit() {
             if (!isSongAuthenticated) return;
             currentNoticeText = normalizeNoticeText(document.getElementById("noticeEditTextarea").value);
-            const el=document.getElementById("noticeModalContent");
-            if(el) el.textContent=currentNoticeText || "등록된 공지가 없습니다.";
-            closeNoticeEditModal(); enqueueSongServerSave(); showToastMessage("노래공지가 저장되었습니다.");
+            renderNoticeContent(currentNoticeText || "등록된 공지가 없습니다.");
+closeNoticeEditModal(); enqueueSongServerSave(); showToastMessage("노래공지가 저장되었습니다.");
         }
         function openRecommendModal() { generateRecommendations(); document.getElementById("recommendModal").classList.add("active"); }
         function closeRecommendModal() { document.getElementById("recommendModal").classList.remove("active"); }
