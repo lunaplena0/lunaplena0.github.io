@@ -329,6 +329,16 @@
             flex: 1;
         }
 
+        .song-index-badge {
+            font-size: 11.5px;
+            font-weight: 700;
+            color: #0284c7;
+            background-color: #e0f2fe;
+            padding: 2px 6px;
+            border-radius: 6px;
+            flex-shrink: 0;
+        }
+
         .song-title {
             font-size: 15px;
             font-weight: 700;
@@ -382,6 +392,11 @@
         .badge-genre {
             background-color: #f3e8ff;
             color: #7e22ce;
+        }
+
+        .badge-limit {
+            background-color: #ffe4e6;
+            color: #e11d48;
         }
 
         /* 날짜 상세 아코디언 영역 */
@@ -508,7 +523,7 @@
         .modal-box { width: 90%; max-width: 460px; height: 480px; padding: 18px 16px; justify-content: space-between; }
         .notice-modal-box { width: 90%; max-width: 460px; height: 340px; padding: 18px 20px; justify-content: space-between; }
         .login-modal-box { width: 90%; max-width: 360px; padding: 20px; gap: 16px; }
-        .song-edit-modal-box { width: 90%; max-width: 420px; padding: 20px; gap: 14px; }
+        .song-edit-modal-box { width: 90%; max-width: 420px; padding: 20px; gap: 12px; }
 
         .modal-overlay.active .modal-box,
         .modal-overlay.active .notice-modal-box,
@@ -550,7 +565,7 @@
 
         .login-input, .edit-input {
             width: 100%;
-            padding: 10px 14px;
+            padding: 9px 12px;
             font-size: 14px;
             border: 1px solid #cbd5e1;
             border-radius: 10px;
@@ -562,10 +577,10 @@
         .edit-field-group {
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            gap: 3px;
         }
         .edit-field-label {
-            font-size: 12.5px;
+            font-size: 12px;
             font-weight: 700;
             color: #475569;
         }
@@ -639,7 +654,7 @@
 
         .modal-btn {
             flex: 1;
-            padding: 10px 12px;
+            padding: 9px 12px;
             border-radius: 10px;
             font-size: 13.5px;
             font-weight: 700;
@@ -778,8 +793,12 @@
                 <input type="text" id="editSongArtist" class="edit-input" placeholder="가수 입력">
             </div>
             <div class="edit-field-group">
-                <label class="edit-field-label">장르 / 제한사항 (예: 기타, K팝)</label>
-                <input type="text" id="editSongGenre" class="edit-input" placeholder="장르 또는 특징 입력">
+                <label class="edit-field-label">장르 (예: 기타, K팝 등)</label>
+                <input type="text" id="editSongGenre" class="edit-input" placeholder="장르 입력">
+            </div>
+            <div class="edit-field-group">
+                <label class="edit-field-label">제한사항 (예: 300 등)</label>
+                <input type="text" id="editSongLimit" class="edit-input" placeholder="제한사항 입력">
             </div>
             <div class="modal-actions">
                 <button class="modal-btn modal-btn-refresh" onclick="closeSongEditModal()">취소</button>
@@ -885,6 +904,7 @@
             document.getElementById("editSongTitle").value = "";
             document.getElementById("editSongArtist").value = "";
             document.getElementById("editSongGenre").value = "";
+            document.getElementById("editSongLimit").value = "";
             document.getElementById("songEditModal").classList.add("active");
         }
 
@@ -895,7 +915,8 @@
             document.getElementById("songEditModalTitle").textContent = "곡 정보 수정";
             document.getElementById("editSongTitle").value = song.title || "";
             document.getElementById("editSongArtist").value = song.artist || "";
-            document.getElementById("editSongGenre").value = song.genre || song.limit || "";
+            document.getElementById("editSongGenre").value = song.genre || "";
+            document.getElementById("editSongLimit").value = song.limit || "";
             document.getElementById("songEditModal").classList.add("active");
         }
 
@@ -907,6 +928,7 @@
             const title = document.getElementById("editSongTitle").value.trim();
             const artist = document.getElementById("editSongArtist").value.trim();
             const genre = document.getElementById("editSongGenre").value.trim();
+            const limit = document.getElementById("editSongLimit").value.trim();
             const password = localStorage.getItem("badabi_admin_token");
 
             if (!title) {
@@ -915,7 +937,7 @@
             }
 
             if (editingIndex === -1) {
-                allSongs.push({ title, artist, genre, limit: genre });
+                allSongs.push({ title, artist, genre, limit });
             } else {
                 const target = sortedSongs[editingIndex];
                 const realIndex = allSongs.findIndex(s => s === target);
@@ -923,7 +945,7 @@
                     allSongs[realIndex].title = title;
                     allSongs[realIndex].artist = artist;
                     allSongs[realIndex].genre = genre;
-                    allSongs[realIndex].limit = genre;
+                    allSongs[realIndex].limit = limit;
                 }
             }
 
@@ -1095,7 +1117,7 @@
                 const artist = song.artist || '';
                 const genre = song.genre || '';
                 const limit = song.limit || '';
-                const matchesKeyword = title.toLowerCase().includes(keyword) || artist.toLowerCase().includes(keyword) || genre.toLowerCase().includes(keyword);
+                const matchesKeyword = title.toLowerCase().includes(keyword) || artist.toLowerCase().includes(keyword) || genre.toLowerCase().includes(keyword) || limit.toLowerCase().includes(keyword);
                 if (!matchesKeyword) return false;
 
                 const l = (genre + " " + limit).toLowerCase();
@@ -1144,7 +1166,8 @@
                 card.onclick = () => toggleCardExpand(card);
 
                 const playCount = song.dateTimes ? song.dateTimes.length : 0;
-                const genreTag = song.genre || song.limit || "";
+                const genreTag = song.genre || "";
+                const limitTag = song.limit || "";
                 const safeTitle = (song.title || '').replace(/'/g, "\\'");
                 const safeArtist = (song.artist || '').replace(/'/g, "\\'");
 
@@ -1158,6 +1181,7 @@
                     <div class="song-summary-row">
                         <div class="song-info-left">
                             <div class="song-title-wrapper">
+                                ${limitTag ? `<span class="song-index-badge">${limitTag}</span>` : ''}
                                 <h3 class="song-title" onclick="copySongInfo('${safeTitle}', '${safeArtist}', event)">${song.title || '제목없음'}</h3>
                             </div>
                             <span class="song-artist">${song.artist || ''}</span>
