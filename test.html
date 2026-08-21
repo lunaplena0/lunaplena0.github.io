@@ -281,7 +281,6 @@
             flex-direction: column;
             gap: 8px;
             padding-bottom: 20px;
-            padding-right: 0px; 
             position: relative;
             box-sizing: border-box;
             scrollbar-gutter: stable both-edges;
@@ -333,7 +332,6 @@
             gap: 6px;
             width: 100%;
             box-sizing: border-box;
-            padding-right: 0px;
         }
 
         .song-card {
@@ -1124,15 +1122,34 @@
                 vodMap = {};
                 statsData.vodSources?.forEach(vod => { vodMap[vod.date] = vod.url; });
 
+                // fansongstats의 registeredSongs 데이터를 정확하게 매핑하기 위한 키 정규화
                 const statsMap = {};
                 statsData.registeredSongs?.forEach(statSong => {
-                    const key = `${(statSong.title || '').trim().toLowerCase()}_${(statSong.artist || '').trim().toLowerCase()}_${(statSong.limit || '').trim().toLowerCase()}`;
+                    const tKey = (statSong.title || '').trim().toLowerCase();
+                    const aKey = (statSong.artist || '').trim().toLowerCase();
+                    const lKey = (statSong.limit || '').trim().toLowerCase();
+                    const key = `${tKey}_${aKey}_${lKey}`;
                     statsMap[key] = statSong.dateTimes || [];
                 });
 
                 allSongs = (songListData.songs || []).map(song => {
-                    const key = `${(song.title || '').trim().toLowerCase()}_${(song.artist || '').trim().toLowerCase()}_${(song.limit || '').trim().toLowerCase()}`;
-                    return { ...song, dateTimes: statsMap[key] || [] };
+                    const tKey = (song.title || '').trim().toLowerCase();
+                    const aKey = (song.artist || '').trim().toLowerCase();
+                    const lKey = (song.limit || '').trim().toLowerCase();
+                    const key = `${tKey}_${aKey}_${lKey}`;
+                    
+                    // 만약 정확히 일치하는 키가 없다면 제목과 아티스트만으로도 한 번 더 매칭 시도 (안전장치)
+                    let matchedDateTimes = statsMap[key];
+                    if (!matchedDateTimes) {
+                        const fallbackKey = `${tKey}_${aKey}_`;
+                        // 키의 앞부분(제목_아티스트)이 일치하는 항목 찾기
+                        const foundEntry = Object.keys(statsMap).find(k => k.startsWith(`${tKey}_${aKey}_`));
+                        if (foundEntry) {
+                            matchedDateTimes = statsMap[foundEntry];
+                        }
+                    }
+
+                    return { ...song, dateTimes: matchedDateTimes || [] };
                 });
 
                 document.getElementById("statsSummary").innerHTML = `총 노래 : <span id="animSongCount">0</span>곡`;
