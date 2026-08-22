@@ -654,6 +654,14 @@
             border-color: #0ea5e9;
         }
 
+        /* 주요 4개 장르 외의 장르가 있을 때만 표시 */
+        .filter-btn.other-genre-btn {
+            display: none;
+        }
+        .filter-btn.other-genre-btn.visible {
+            display: inline-flex;
+        }
+
         .sub-filter-btn {
             background-color: #ffffff;
             border: 1px solid #cbd5e1;
@@ -1242,6 +1250,7 @@
                 <button class="filter-btn" data-filter="k팝">K팝</button>
                 <button class="filter-btn" data-filter="j팝">J팝</button>
                 <button class="filter-btn" data-filter="팝">팝</button>
+                <button class="filter-btn other-genre-btn" id="otherGenreFilterBtn" data-filter="그 외">그 외</button>
             </div>
             <button id="integratedFilterBtn" class="sub-filter-btn" onclick="openFilterModal()">
                 <svg class="filter-icon-svg" viewBox="0 0 24 24">
@@ -1944,6 +1953,7 @@
         }
 
         function setupFilterButtons() {
+            updateOtherGenreButtonVisibility();
             document.querySelectorAll('.filter-btn').forEach(btn => {
                 btn.onclick = () => {
                     document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
@@ -1953,6 +1963,36 @@
                     renderAllSongs();
                 };
             });
+        }
+
+        // 주요 빠른 필터(기타연주/K팝/J팝/팝)에 속하지 않는 장르가 있을 때만 '그 외' 표시
+        function updateOtherGenreButtonVisibility() {
+            const btn = document.getElementById('otherGenreFilterBtn');
+            if (!btn) return;
+
+            const hasOtherGenre = allSongs.some(song => {
+                const genre = String(song.genre || '').toLowerCase().trim();
+                const limit = String(song.limit || '').toLowerCase();
+
+                // 기타연주는 장르가 아니라 제한값으로 구분하므로 '그 외'에 중복 포함하지 않음
+                if (limit.includes('기타')) return false;
+                if (!genre) return false;
+
+                const isKpop = genre.includes('k') || genre.includes('가요');
+                const isJpop = genre.includes('j') || genre.includes('일본');
+                const isPop = (genre.includes('팝') || genre.includes('pop')) && !isKpop && !isJpop;
+
+                return !isKpop && !isJpop && !isPop;
+            });
+
+            btn.classList.toggle('visible', hasOtherGenre);
+
+            if (!hasOtherGenre && currentFilter === '그 외') {
+                currentFilter = '전체';
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                const allBtn = document.querySelector('.filter-btn[data-filter="전체"]');
+                if (allBtn) allBtn.classList.add('active');
+            }
         }
 
         function updateFilteredAndSorted() {
@@ -1976,6 +2016,12 @@
                 else if (currentFilter === 'k팝') matchesGenre = g.includes('k') || g.includes('가요');
                 else if (currentFilter === 'j팝') matchesGenre = g.includes('j') || g.includes('일본');
                 else if (currentFilter === '팝') matchesGenre = (g.includes('팝') || g.includes('pop')) && !g.includes('k') && !g.includes('j');
+                 else if (currentFilter === '그 외') {
+                     const isKpop = g.includes('k') || g.includes('가요');
+                     const isJpop = g.includes('j') || g.includes('일본');
+                     const isPop = (g.includes('팝') || g.includes('pop')) && !isKpop && !isJpop;
+                     matchesGenre = l.includes('기타') ? false : (g !== '' && !isKpop && !isJpop && !isPop);
+                 }
 
                 if (!matchesGenre) return false;
 
