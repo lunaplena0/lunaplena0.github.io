@@ -770,6 +770,14 @@
             </div>
             <div class="modal-body">
                 <div class="filter-group">
+                    <label class="filter-label" for="statusFilterSelect">등록 상태 선택</label>
+                    <select id="statusFilterSelect" class="filter-select">
+                        <option value="all">전체 곡 보기</option>
+                        <option value="registered">등록된 곡만 보기</option>
+                        <option value="unregistered">미등록된 곡만 보기</option>
+                    </select>
+                </div>
+                <div class="filter-group">
                     <label class="filter-label" for="dateFilterSelect">날짜 선택 (월별 그룹)</label>
                     <select id="dateFilterSelect" class="filter-select">
                         <option value="all">모든 날짜</option>
@@ -884,6 +892,7 @@
         let vodMap = {};
 
         let currentActiveFilters = {
+            status: 'all',
             date: 'all',
             genre: 'all'
         };
@@ -901,6 +910,7 @@
         function toggleFilterModal(isOpen) {
             const modal = document.getElementById("filterModal");
             if (isOpen) {
+                document.getElementById("statusFilterSelect").value = currentActiveFilters.status;
                 document.getElementById("dateFilterSelect").value = currentActiveFilters.date;
                 document.getElementById("genreFilterSelect").value = currentActiveFilters.genre;
                 modal.classList.add("active");
@@ -974,7 +984,6 @@
 
                 const totalRegisteredCount = registered.length;
                 const totalUnregisteredCount = unregistered.length;
-                const totalSongCount = totalRegisteredCount + totalUnregisteredCount;
                 document.getElementById("statsSummary").textContent = `등록곡 ${totalRegisteredCount}곡 | 미등록곡 ${totalUnregisteredCount}곡`;
 
                 populateFilterOptions();
@@ -1029,9 +1038,9 @@
                 const countA = genreCounts[a];
                 const countB = genreCounts[b];
                 if (countB !== countA) {
-                    return countB - countA; // 개수가 많은 순서대로
+                    return countB - countA;
                 }
-                return a.localeCompare(b, 'ko'); // 개수가 같으면 가나다순
+                return a.localeCompare(b, 'ko');
             });
 
             const genreSelect = document.getElementById("genreFilterSelect");
@@ -1045,11 +1054,12 @@
         }
 
         function applyFilters() {
+            currentActiveFilters.status = document.getElementById("statusFilterSelect").value;
             currentActiveFilters.date = document.getElementById("dateFilterSelect").value;
             currentActiveFilters.genre = document.getElementById("genreFilterSelect").value;
 
             const filterBtn = document.getElementById("filterOpenBtn");
-            if (currentActiveFilters.date !== 'all' || currentActiveFilters.genre !== 'all') {
+            if (currentActiveFilters.status !== 'all' || currentActiveFilters.date !== 'all' || currentActiveFilters.genre !== 'all') {
                 filterBtn.classList.add("filtered");
             } else {
                 filterBtn.classList.remove("filtered");
@@ -1061,8 +1071,10 @@
         }
 
         function resetFilters() {
+            document.getElementById("statusFilterSelect").value = 'all';
             document.getElementById("dateFilterSelect").value = 'all';
             document.getElementById("genreFilterSelect").value = 'all';
+            currentActiveFilters.status = 'all';
             currentActiveFilters.date = 'all';
             currentActiveFilters.genre = 'all';
             
@@ -1323,7 +1335,8 @@
 
         function updateFilteredAndSorted() {
             const keyword = document.getElementById("searchInput").value.toLowerCase().trim();
-            const selectedYM = currentActiveFilters.date; // 예: "2026.04" 또는 "all"
+            const selectedStatus = currentActiveFilters.status;
+            const selectedYM = currentActiveFilters.date;
             const selectedGenre = currentActiveFilters.genre;
 
             filteredSongs = allSongs.filter(song => {
@@ -1333,6 +1346,13 @@
 
                 const matchesKeyword = title.toLowerCase().includes(keyword) || artist.toLowerCase().includes(keyword);
                 const matchesGenre = (selectedGenre === 'all') || (genre === selectedGenre);
+
+                let matchesStatus = true;
+                if (selectedStatus === 'registered') {
+                    matchesStatus = !song.isUnregistered;
+                } else if (selectedStatus === 'unregistered') {
+                    matchesStatus = song.isUnregistered;
+                }
 
                 let matchesDate = true;
                 if (selectedYM !== 'all') {
@@ -1347,7 +1367,7 @@
                     });
                 }
 
-                return matchesKeyword && matchesGenre && matchesDate;
+                return matchesKeyword && matchesGenre && matchesStatus && matchesDate;
             });
 
             filteredSongs.sort((a, b) => {
