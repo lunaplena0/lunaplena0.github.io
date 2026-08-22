@@ -215,7 +215,7 @@ const adminHtmlTemplate = `
     <!-- 노래책 수정 패널 -->
     <div id="panel-songs" class="card" style="display: none;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h3 style="margin: 0; color: #03045e;">📝 노래책 내용 편집</h3>
+            <h3 style="margin: 0; color: #03045e;">📝 노래책 내용 편집 (현재 관련 페이지 대대적인 수정중입니다)</h3>
             <button onclick="showDashboard()" style="background-color: #64748b; padding: 6px 12px; font-size: 13px;">← 메뉴 목록으로</button>
         </div>
 
