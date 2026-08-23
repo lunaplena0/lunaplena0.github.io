@@ -879,13 +879,16 @@
             .song-title-viewport.marquee-active {
                 overflow: hidden;
             }
-            .song-title-viewport.marquee-active .song-title-marquee {
-                animation: songTitleMarquee 7s ease-in-out infinite;
+            .song-title-viewport.marquee-active.marquee-visible .song-title-marquee {
+                animation: songTitleMarquee 8s linear infinite;
+            }
+            .song-title-viewport.marquee-active:not(.marquee-visible) .song-title-marquee {
+                animation: none;
             }
             @keyframes songTitleMarquee {
-                0%, 18% { transform: translateX(0); }
-                45%, 62% { transform: translateX(var(--song-title-shift)); }
-                82%, 100% { transform: translateX(0); }
+                0%, 12% { transform: translateX(0); }
+                58%, 70% { transform: translateX(var(--song-title-shift)); }
+                100% { transform: translateX(0); }
             }
         }
 
@@ -2334,9 +2337,12 @@
 
             container.appendChild(fragment);
 
-            // 모바일에서 실제로 영역을 넘는 긴 제목만 자동 슬라이드 활성화
+            // 모바일에서 실제로 영역을 넘는 긴 제목만 자동 슬라이드.
+            // 화면에 보이는 제목만 애니메이션을 실행해 불필요한 렌더링을 줄인다.
             if (window.innerWidth <= 768) {
                 requestAnimationFrame(() => {
+                    const marquees = [];
+
                     container.querySelectorAll('.song-title-viewport').forEach(viewport => {
                         const title = viewport.querySelector('.song-title-marquee');
                         if (!title) return;
@@ -2345,8 +2351,24 @@
                         if (overflow > 8) {
                             viewport.classList.add('marquee-active');
                             title.style.setProperty('--song-title-shift', `${-overflow}px`);
+                            marquees.push(viewport);
                         }
                     });
+
+                    if ('IntersectionObserver' in window) {
+                        const observer = new IntersectionObserver(entries => {
+                            entries.forEach(entry => {
+                                entry.target.classList.toggle('marquee-visible', entry.isIntersecting);
+                            });
+                        }, { root: container.closest('.song-list-scroll-wrapper') || null, threshold: 0.05 });
+
+                        marquees.forEach(viewport => {
+                            observer.observe(viewport);
+                        });
+                    } else {
+                        // 구형 브라우저에서는 기본적으로 표시된 긴 제목만 애니메이션
+                        marquees.forEach(viewport => viewport.classList.add('marquee-visible'));
+                    }
                 });
             }
         }
