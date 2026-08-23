@@ -866,6 +866,7 @@
         /* 모바일 긴 노래 제목 자동 슬라이드 */
         .song-title-viewport {
             min-width: 0;
+            width: 100%;
             max-width: 100%;
             overflow: hidden;
             position: relative;
@@ -873,7 +874,11 @@
         .song-title-marquee {
             display: inline-block;
             white-space: nowrap;
-            will-change: transform;
+        }
+        @media (max-width: 768px) {
+            .song-title-marquee {
+                will-change: transform;
+            }
         }
         @media (max-width: 768px) {
             .song-title-viewport.marquee-active {
@@ -2346,20 +2351,27 @@
                         const title = viewport.querySelector('.song-title-marquee');
                         if (!title) return;
 
-                        const overflow = title.scrollWidth - viewport.clientWidth;
-                        if (overflow > 8) {
+                        const overflow = Math.ceil(title.scrollWidth - viewport.clientWidth);
+
+                        // 실제로 1px이라도 넘치면 긴 제목으로 처리한다.
+                        // 애매하게 긴 제목도 잘리지 않고 전체가 보이도록 한다.
+                        if (overflow > 0) {
                             viewport.classList.add('marquee-active');
                             title.style.setProperty('--song-title-shift', `${-overflow}px`);
                             marquees.push(viewport);
+                        } else {
+                            viewport.classList.remove('marquee-active', 'marquee-visible');
+                            title.style.removeProperty('--song-title-shift');
                         }
                     });
 
                     if ('IntersectionObserver' in window) {
+                        const scrollRoot = container.closest('.song-list-scroll-wrapper') || null;
                         const observer = new IntersectionObserver(entries => {
                             entries.forEach(entry => {
                                 entry.target.classList.toggle('marquee-visible', entry.isIntersecting);
                             });
-                        }, { root: container.closest('.song-list-scroll-wrapper') || null, threshold: 0.05 });
+                        }, { root: scrollRoot, threshold: 0.01 });
 
                         marquees.forEach(viewport => {
                             observer.observe(viewport);
