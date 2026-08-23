@@ -1318,7 +1318,6 @@
                 <div id="statsSummary" class="stats-summary">통계 계산 중...</div>
                 <div class="song-admin-toolbar">
                     <button class="song-admin-btn" onclick="openSongAddModal()">＋ 노래 추가</button>
-                    <button class="song-admin-btn" onclick="openNoticeEditModal()">✎ 공지 수정</button>
                 </div>
             </div>
             <div class="header-btn-group">
@@ -1920,7 +1919,14 @@
         function saveNoticeEdit(){if(!isSongAuthenticated)return;currentNoticeText=normalizeNoticeText(document.getElementById("noticeEditTextarea").value);renderNoticeContent(currentNoticeText);closeNoticeEditModal();enqueueSongServerSave();showToastMessage("노래공지가 저장되었습니다.");}
         function openRecommendModal() { generateRecommendations(); document.getElementById("recommendModal").classList.add("active"); }
         function closeRecommendModal() { document.getElementById("recommendModal").classList.remove("active"); }
-        function openNoticeModal(){renderNoticeContent(currentNoticeText);document.getElementById("noticeModal").classList.add("active");}
+        function openNoticeModal(){
+            if (isSongAuthenticated) {
+                openNoticeEditModal();
+                return;
+            }
+            renderNoticeContent(currentNoticeText);
+            document.getElementById("noticeModal").classList.add("active");
+        }
         function closeNoticeModal() { document.getElementById("noticeModal").classList.remove("active"); }
         function openFilterModal() { document.getElementById("filterModal").classList.add("active"); }
         function closeFilterModal() { document.getElementById("filterModal").classList.remove("active"); }
