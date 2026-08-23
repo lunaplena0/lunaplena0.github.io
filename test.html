@@ -863,6 +863,32 @@
             flex: 1;
         }
 
+        /* 모바일 긴 노래 제목 자동 슬라이드 */
+        .song-title-viewport {
+            min-width: 0;
+            max-width: 100%;
+            overflow: hidden;
+            position: relative;
+        }
+        .song-title-marquee {
+            display: inline-block;
+            white-space: nowrap;
+            will-change: transform;
+        }
+        @media (max-width: 768px) {
+            .song-title-viewport.marquee-active {
+                overflow: hidden;
+            }
+            .song-title-viewport.marquee-active .song-title-marquee {
+                animation: songTitleMarquee 7s ease-in-out infinite;
+            }
+            @keyframes songTitleMarquee {
+                0%, 18% { transform: translateX(0); }
+                45%, 62% { transform: translateX(var(--song-title-shift)); }
+                82%, 100% { transform: translateX(0); }
+            }
+        }
+
         .song-title {
             font-size: 15px;
             font-weight: 700;
@@ -2288,7 +2314,9 @@
                         <div class="song-info-left">
                             <div class="song-title-wrapper">
                                 ${limitBadge}
-                                <h3 class="song-title" onclick="copySongInfo('${safeTitle}', '${safeArtist}', event)">${song.title || '제목없음'}</h3>
+                                <div class="song-title-viewport">
+                                    <h3 class="song-title song-title-marquee" onclick="copySongInfo('${safeTitle}', '${safeArtist}', event)">${song.title || '제목없음'}</h3>
+                                </div>
                             </div>
                             <span class="song-artist">${song.artist || ''}</span>
                         </div>
@@ -2305,6 +2333,22 @@
             });
 
             container.appendChild(fragment);
+
+            // 모바일에서 실제로 영역을 넘는 긴 제목만 자동 슬라이드 활성화
+            if (window.innerWidth <= 768) {
+                requestAnimationFrame(() => {
+                    container.querySelectorAll('.song-title-viewport').forEach(viewport => {
+                        const title = viewport.querySelector('.song-title-marquee');
+                        if (!title) return;
+
+                        const overflow = title.scrollWidth - viewport.clientWidth;
+                        if (overflow > 8) {
+                            viewport.classList.add('marquee-active');
+                            title.style.setProperty('--song-title-shift', `${-overflow}px`);
+                        }
+                    });
+                });
+            }
         }
 
         function onSearchInput() { updateFilteredAndSorted(); renderAllSongs(); }
