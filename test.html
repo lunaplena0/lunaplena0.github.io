@@ -1902,13 +1902,78 @@
             const title = song.title || "이 노래";
             if (!confirm(`'${title}'을(를) 노래책에서 삭제하시겠습니까?`)) return;
 
+            // 노래책(songlist)에서는 항상 삭제
             allSongs.splice(editingSongIndex, 1);
+
+            // 팬송 통계에서는 해당 곡의 날짜 기록 유무에 따라 처리
+            const registered = Array.isArray(fansongStatsData.registeredSongs)
+                ? fansongStatsData.registeredSongs
+                : [];
+            const registeredIndex = registered.findIndex(item => songIdentity(item) === songIdentity(song));
+
+            let movedToUnregistered = false;
+            let removedFromStats = false;
+
+            if (registeredIndex >= 0) {
+                const statsSong = registered[registeredIndex];
+                const dateTimes = Array.isArray(statsSong.dateTimes) ? statsSong.dateTimes : [];
+
+                if (dateTimes.length > 0) {
+                    // 부른 기록이 있으면 통계를 보존하면서 '미등록 곡'으로 이동
+                    const unregistered = Array.isArray(fansongStatsData.unregisteredSongs)
+                        ? fansongStatsData.unregisteredSongs
+                        : [];
+
+                    const existingIndex = unregistered.findIndex(item => songIdentity(item) === songIdentity(statsSong));
+                    const preservedSong = cloneSongForStats(statsSong, dateTimes);
+
+                    if (existingIndex >= 0) {
+                        // 이미 미등록 곡이 있다면 날짜 기록을 잃지 않도록 병합
+                        const existingDates = Array.isArray(unregistered[existingIndex].dateTimes)
+                            ? unregistered[existingIndex].dateTimes
+                            : [];
+                        const mergedDates = [...existingDates];
+
+                        dateTimes.forEach(dt => {
+                            const key = JSON.stringify(dt);
+                            if (!mergedDates.some(existing => JSON.stringify(existing) === key)) {
+                                mergedDates.push(dt);
+                            }
+                        });
+
+                        unregistered[existingIndex] = {
+                            ...unregistered[existingIndex],
+                            ...preservedSong,
+                            dateTimes: mergedDates
+                        };
+                    } else {
+                        unregistered.push(preservedSong);
+                    }
+
+                    fansongStatsData.unregisteredSongs = unregistered;
+                    registered.splice(registeredIndex, 1);
+                    movedToUnregistered = true;
+                } else {
+                    // 부른 기록이 전혀 없으면 팬송 통계에서도 완전히 삭제
+                    registered.splice(registeredIndex, 1);
+                    removedFromStats = true;
+                }
+            }
+
             closeSongEditModal();
             updateFilteredAndSorted();
             renderAllSongs();
+            renderUnregisteredSongs();
             animateNumber("animSongCount", allSongs.length);
             enqueueSongServerSave();
-            showToastMessage("노래가 삭제되었습니다.");
+
+            if (movedToUnregistered) {
+                showToastMessage("노래책에서 삭제하고 팬송 통계는 미등록 곡으로 이동했습니다.");
+            } else if (removedFromStats) {
+                showToastMessage("노래책과 팬송 통계에서 삭제되었습니다.");
+            } else {
+                showToastMessage("노래책에서 삭제되었습니다.");
+            }
         }
 
         function getUniqueSongValues(key) {
