@@ -1638,6 +1638,34 @@
     }
 }
 
+
+        @media (max-width: 768px) {
+            .song-title-line .song-limit-badge,
+            .song-title-line .limit-badge,
+            .song-title-line .song-tag,
+            .song-title-line .song-count-badge {
+                min-height: 14px !important;
+                height: 14px !important;
+                padding: 0 3px !important;
+                margin-right: 4px !important;
+                border-radius: 4px !important;
+                font-size: 0.54em !important;
+                line-height: 1 !important;
+                vertical-align: middle !important;
+            }
+
+            .song-title-line {
+                min-height: 16px !important;
+                height: 16px !important;
+                align-items: center !important;
+            }
+
+            .song-title-wrapper > .song-artist {
+                margin-top: 4px !important;
+                line-height: 1.05 !important;
+            }
+        }
+
 </style>
 </head>
 <body>
@@ -2403,7 +2431,7 @@
             if (tag === "s" || tag === "strike" || style.includes("text-decoration:line-through")) return "strikeThrough";
             if (tag === "u" || style.includes("text-decoration:underline")) return "underline";
             if (tag === "i" || style.includes("font-style:italic")) return "italic";
-            if (tag === "b" || tag === "strong" || style.includes("font-weight:bold") || style.includes("font-weight:700")) return "bold";
+            if (tag === "b" || tag === "strong" || /font-weight:(?:bold|700)/.test(style)) return "bold";
             return "";
         }
 
@@ -2584,16 +2612,89 @@
             const editor=document.getElementById("noticeEditTextarea");
             if(!editor)return;
 
-            // HTML을 먼저 안전하게 정리한 뒤, 줄바꿈은 실제 \n으로 저장한다.
-            const safeHtml=sanitizeNoticeHtml(editor.innerHTML);
-            currentNoticeText=noticeHtmlToStorage(safeHtml);
+            // sanitizer가 굵게 스타일을 제거하는 경우를 방지하기 위해
+            // 허용된 서식만 직접 보존하면서 저장 문자열을 만든다.
+            currentNoticeText=serializeNoticeForStorage(editor);
 
-            // 서식 span은 저장 문자열에 그대로 남겨야 하므로,
-            // 일반 텍스트 부분만 \n으로 바뀌고 span은 보존된다.
             renderNoticeContent(currentNoticeText);
             closeNoticeEditModal();
             enqueueSongServerSave();
             showToastMessage("노래공지가 저장되었습니다.");
+        }
+
+        function serializeNoticeForStorage(editor){
+            function escText(value){
+                return String(value ?? "")
+                    .replace(/&/g,"&amp;")
+                    .replace(/</g,"&lt;")
+                    .replace(/>/g,"&gt;")
+                    .replace(/"/g,"&quot;");
+            }
+
+            function walk(node){
+                if(node.nodeType===Node.TEXT_NODE) return escText(node.nodeValue);
+                if(node.nodeType!==Node.ELEMENT_NODE) return "";
+
+                const tag=node.tagName.toLowerCase();
+
+                if(tag==="br") return "\\n";
+
+                let inner="";
+                Array.from(node.childNodes).forEach(child=>{
+                    inner+=walk(child);
+                });
+
+                if(tag==="div" || tag==="p"){
+                    return "\\n"+inner+"\\n";
+                }
+
+                // 허용된 서식만 저장
+                if(tag==="b" || tag==="strong"){
+                    return '<span style="font-weight: bold;">'+inner+"</span>";
+                }
+                if(tag==="i"){
+                    return '<span style="font-style: italic;">'+inner+"</span>";
+                }
+                if(tag==="u"){
+                    return '<span style="text-decoration: underline;">'+inner+"</span>";
+                }
+                if(tag==="s" || tag==="strike"){
+                    return '<span style="text-decoration: line-through;">'+inner+"</span>";
+                }
+
+                if(tag==="span"){
+                    const raw=node.getAttribute("style") || "";
+                    const styles=[];
+                    raw.split(";").forEach(part=>{
+                        const bits=part.split(":");
+                        if(bits.length<2)return;
+                        const prop=bits[0].trim().toLowerCase();
+                        const val=bits.slice(1).join(":").trim().toLowerCase();
+
+                        if(prop==="font-weight" && (val==="bold" || val==="700")){
+                            styles.push("font-weight: bold");
+                        }else if(prop==="font-style" && val==="italic"){
+                            styles.push("font-style: italic");
+                        }else if(prop==="text-decoration" && val.includes("line-through")){
+                            styles.push("text-decoration: line-through");
+                        }else if(prop==="text-decoration" && val.includes("underline")){
+                            styles.push("text-decoration: underline");
+                        }
+                    });
+
+                    if(styles.length){
+                        return '<span style="'+styles.join("; ")+';">'+inner+"</span>";
+                    }
+                    return inner;
+                }
+
+                return inner;
+            }
+
+            return walk(editor)
+                .replace(/\r\n/g,"\\n")
+                .replace(/\n{3,}/g,"\\n\\n")
+                .replace(/^\\n+|\\n+$/g,"");
         }
 
 function openRecommendModal() { generateRecommendations(); document.getElementById("recommendModal").classList.add("active"); }
@@ -2692,7 +2793,7 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
             `;
 
             const shuffled = [...targetPool].sort(() => 0.5 - Math.random());
-            shuffled.slice(0, 5).forEach(song => {
+            shuffled.slice(0, 4).forEach(song => {
                 const item = document.createElement("div");
                 item.className = "recommend-item";
 
