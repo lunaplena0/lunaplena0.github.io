@@ -2270,33 +2270,156 @@
             if(editor.contains(r.commonAncestorContainer)) noticeSavedRange=r.cloneRange();
         }
 
-        function applyNoticeFormat(command){
-            const editor=document.getElementById("noticeEditTextarea");
-            if(!editor||!isSongAuthenticated||!noticeSavedRange)return;
-            const sel=window.getSelection();
-            sel.removeAllRanges(); sel.addRange(noticeSavedRange);
-            const r=sel.getRangeAt(0);
-            if(r.collapsed||!editor.contains(r.commonAncestorContainer))return;
-            const styles={strikeThrough:"text-decoration:line-through;",underline:"text-decoration:underline;",italic:"font-style:italic;"};
-            if(!styles[command])return;
-            const span=document.createElement("span");
-            span.setAttribute("style",styles[command]);
-            const frag=r.extractContents(); span.appendChild(frag); r.insertNode(span);
-            const nr=document.createRange(); nr.selectNodeContents(span);
-            sel.removeAllRanges(); sel.addRange(nr); noticeSavedRange=nr.cloneRange();
-            editor.focus({preventScroll:true});
+        function getNoticeStyleInfo(node) {
+            if (!node || node.nodeType !== Node.ELEMENT_NODE) return "";
+            const style = (node.getAttribute("style") || "").toLowerCase().replace(/\s+/g, "");
+            if (node.matches("s,strike")) return "strikeThrough";
+            if (node.matches("u")) return "underline";
+            if (node.matches("i")) return "italic";
+            if (style.includes("text-decoration:line-through")) return "strikeThrough";
+            if (style.includes("text-decoration:underline")) return "underline";
+            if (style.includes("font-style:italic")) return "italic";
+            return "";
         }
 
-        function formatNoticeText(command){applyNoticeFormat(command);}
+        function unwrapNoticeNode(node) {
+            if (!node || !node.parentNode) return;
+            const parent=node.parentNode;
+            while(node.firstChild) parent.insertBefore(node.firstChild,node);
+            parent.removeChild(node);
+        }
+
+        function applyNoticeFormat(command) {
+            const editor=document.getElementById("noticeEditTextarea");
+            if(!editor || !isSongAuthenticated || !noticeSavedRange) return;
+
+            const sel=window.getSelection();
+            sel.removeAllRanges();
+            sel.addRange(noticeSavedRange);
+
+            const range=sel.getRangeAt(0);
+            if(range.collapsed || !editor.contains(range.commonAncestorContainer)) return;
+
+            const wanted=command;
+            const startEl=range.startContainer.nodeType===Node.ELEMENT_NODE
+                ? range.startContainer
+                : range.startContainer.parentElement;
+            const endEl=range.endContainer.nodeType===Node.ELEMENT_NODE
+                ? range.endContainer
+                : range.endContainer.parentElement;
+
+            // 같은 서식으로 이미 감싸져 있으면 다시 누를 때 서식을 해제한다.
+            let existing=null;
+            let cur=startEl;
+            while(cur && cur!==editor){
+                if(getNoticeStyleInfo(cur)===wanted){ existing=cur; break; }
+                cur=cur.parentElement;
+            }
+            if(!existing && endEl){
+                cur=endEl;
+                while(cur && cur!==editor){
+                    if(getNoticeStyleInfo(cur)===wanted){ existing=cur; break; }
+                    cur=cur.parentElement;
+                }
+            }
+
+            if(existing && existing.contains(range.commonAncestorContainer)){
+                const r=document.createRange();
+                r.selectNodeContents(existing);
+                const selectedText=sel.toString();
+                if(selectedText && selectedText===r.toString()){
+                    unwrapNoticeNode(existing);
+                    const nr=document.createRange();
+                    nr.selectNodeContents(existing.parentNode || editor);
+                    sel.removeAllRanges();
+                    sel.addRange(nr);
+                    noticeSavedRange=nr.cloneRange();
+                    return;
+                }
+            }
+
+            const styleMap={
+                strikeThrough:"text-decoration: line-through;",
+                underline:"text-decoration: underline;",
+                italic:"font-style: italic;"
+            };
+            if(!styleMap[wanted]) return;
+
+            const span=document.createElement("span");
+            span.setAttribute("style",styleMap[wanted]);
+
+            try{
+                const frag=range.extractContents();
+                span.appendChild(frag);
+                range.insertNode(span);
+
+                const nr=document.createRange();
+                nr.selectNodeContents(span);
+                sel.removeAllRanges();
+                sel.addRange(nr);
+                noticeSavedRange=nr.cloneRange();
+            }catch(err){
+                console.warn("공지 서식 적용 실패:",err);
+            }
+        }
+
+        function formatNoticeText(command){ applyNoticeFormat(command); }
+
+        // contenteditable에서 Enter로 만들어지는 div/p/br을
+        // 저장할 때 기존처럼 실제 \n으로 변환한다.
         function noticeHtmlToStorage(html){
-            const temp=document.createElement("div"); temp.innerHTML=html||"";
-            temp.querySelectorAll("br").forEach(br=>br.replaceWith(document.createTextNode("\n")));
-            temp.querySelectorAll("div,p").forEach(el=>el.insertAdjacentText("afterend","\n"));
-            return temp.innerHTML.replace(/&nbsp;/gi," ").replace(/<div>/gi,"").replace(/<\/div>/gi,"").replace(/<p>/gi,"").replace(/<\/p>/gi,"").replace(/\n{3,}/g,"\n\n");
+            const temp=document.createElement("div");
+            temp.innerHTML=html || "";
+
+            function serialize(node){
+                if(node.nodeType===Node.TEXT_NODE) return node.nodeValue || "";
+                if(node.nodeType!==Node.ELEMENT_NODE) return "";
+
+                const tag=node.tagName.toLowerCase();
+                if(tag==="br") return "\n";
+
+                let inner="";
+                Array.from(node.childNodes).forEach(child=>{ inner+=serialize(child); });
+
+                if(tag==="div" || tag==="p"){
+                    return "\n"+inner+"\n";
+                }
+
+                if(tag==="span"){
+                    const style=node.getAttribute("style") || "";
+                    if(style){
+                        const clean=style
+                            .replace(/\s+/g," ")
+                            .replace(/;\s*$/,"")
+                            .trim();
+                        return `<span style="${clean}">${inner}</span>`;
+                    }
+                    return inner;
+                }
+
+                if(tag==="b" || tag==="i" || tag==="u" || tag==="s" || tag==="strike"){
+                    return `<${tag}>${inner}</${tag}>`;
+                }
+
+                return inner;
+            }
+
+            return serialize(temp)
+                .replace(/\r\n/g,"\n")
+                .replace(/\n{3,}/g,"\n\n")
+                .replace(/^\n+|\n+$/g,"");
         }
+
         function plainNoticeToHtml(value){
-            return String(value??"").replace(/\r\n/g,"\n").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/\n/g,"<br>");
+            return String(value??"")
+                .replace(/\r\n/g,"\n")
+                .replace(/&/g,"&amp;")
+                .replace(/</g,"&lt;")
+                .replace(/>/g,"&gt;")
+                .replace(/"/g,"&quot;")
+                .replace(/\n/g,"<br>");
         }
+
         function renderNoticeContent(value){
             const el=document.getElementById("noticeModalContent"); if(!el)return;
             const raw=String(value??""); if(!raw){el.textContent="공지사항이 없습니다.";return;}
@@ -2314,9 +2437,19 @@
         function closeNoticeEditModal(){noticeEditModal.classList.remove("active");}
         function saveNoticeEdit(){
             if(!isSongAuthenticated)return;
-            const editor=document.getElementById("noticeEditTextarea"); if(!editor)return;
-            currentNoticeText=sanitizeNoticeHtml(noticeHtmlToStorage(editor.innerHTML));
-            renderNoticeContent(currentNoticeText); closeNoticeEditModal(); enqueueSongServerSave(); showToastMessage("노래공지가 저장되었습니다.");
+            const editor=document.getElementById("noticeEditTextarea");
+            if(!editor)return;
+
+            // HTML을 먼저 안전하게 정리한 뒤, 줄바꿈은 실제 \n으로 저장한다.
+            const safeHtml=sanitizeNoticeHtml(editor.innerHTML);
+            currentNoticeText=noticeHtmlToStorage(safeHtml);
+
+            // 서식 span은 저장 문자열에 그대로 남겨야 하므로,
+            // 일반 텍스트 부분만 \n으로 바뀌고 span은 보존된다.
+            renderNoticeContent(currentNoticeText);
+            closeNoticeEditModal();
+            enqueueSongServerSave();
+            showToastMessage("노래공지가 저장되었습니다.");
         }
 
 function openRecommendModal() { generateRecommendations(); document.getElementById("recommendModal").classList.add("active"); }
