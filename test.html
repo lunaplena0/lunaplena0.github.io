@@ -1513,7 +1513,27 @@
             height: 20px;
         }
 }
-    </style>
+    
+        @media (max-width: 768px) {
+            .song-title-line .song-limit-badge,
+            .song-title-line .limit-badge,
+            .song-title-line .song-tag,
+            .song-title-line .song-count-badge {
+                min-height: 18px !important;
+                height: 18px !important;
+                padding: 1px 5px !important;
+                margin-right: 5px !important;
+                border-radius: 5px !important;
+                font-size: 0.62em !important;
+                line-height: 1 !important;
+            }
+        }
+        .song-title-copy {
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+</style>
 </head>
 <body>
 
@@ -2272,96 +2292,112 @@
 
         function getNoticeStyleInfo(node) {
             if (!node || node.nodeType !== Node.ELEMENT_NODE) return "";
+            const tag = node.tagName.toLowerCase();
             const style = (node.getAttribute("style") || "").toLowerCase().replace(/\s+/g, "");
-            if (node.matches("s,strike")) return "strikeThrough";
-            if (node.matches("u")) return "underline";
-            if (node.matches("i")) return "italic";
-            if (style.includes("text-decoration:line-through")) return "strikeThrough";
-            if (style.includes("text-decoration:underline")) return "underline";
-            if (style.includes("font-style:italic")) return "italic";
+            if (tag === "s" || tag === "strike" || style.includes("text-decoration:line-through")) return "strikeThrough";
+            if (tag === "u" || style.includes("text-decoration:underline")) return "underline";
+            if (tag === "i" || style.includes("font-style:italic")) return "italic";
             return "";
+        }
+
+        function findNoticeFormatAncestor(node, command, editor) {
+            let cur = node && node.nodeType === Node.ELEMENT_NODE ? node : node?.parentElement;
+            while (cur && cur !== editor) {
+                if (getNoticeStyleInfo(cur) === command) return cur;
+                cur = cur.parentElement;
+            }
+            return null;
         }
 
         function unwrapNoticeNode(node) {
             if (!node || !node.parentNode) return;
-            const parent=node.parentNode;
-            while(node.firstChild) parent.insertBefore(node.firstChild,node);
+            const parent = node.parentNode;
+            while (node.firstChild) parent.insertBefore(node.firstChild, node);
             parent.removeChild(node);
         }
 
         function applyNoticeFormat(command) {
-            const editor=document.getElementById("noticeEditTextarea");
-            if(!editor || !isSongAuthenticated || !noticeSavedRange) return;
+            const editor = document.getElementById("noticeEditTextarea");
+            if (!editor || !isSongAuthenticated || !noticeSavedRange) return;
 
-            const sel=window.getSelection();
+            const sel = window.getSelection();
             sel.removeAllRanges();
             sel.addRange(noticeSavedRange);
 
-            const range=sel.getRangeAt(0);
-            if(range.collapsed || !editor.contains(range.commonAncestorContainer)) return;
+            const range = sel.getRangeAt(0);
+            if (range.collapsed || !editor.contains(range.commonAncestorContainer)) return;
 
-            const wanted=command;
-            const startEl=range.startContainer.nodeType===Node.ELEMENT_NODE
-                ? range.startContainer
-                : range.startContainer.parentElement;
-            const endEl=range.endContainer.nodeType===Node.ELEMENT_NODE
-                ? range.endContainer
-                : range.endContainer.parentElement;
+            const startStyled = findNoticeFormatAncestor(range.startContainer, command, editor);
+            const endStyled = findNoticeFormatAncestor(range.endContainer, command, editor);
 
-            // 같은 서식으로 이미 감싸져 있으면 다시 누를 때 서식을 해제한다.
-            let existing=null;
-            let cur=startEl;
-            while(cur && cur!==editor){
-                if(getNoticeStyleInfo(cur)===wanted){ existing=cur; break; }
-                cur=cur.parentElement;
-            }
-            if(!existing && endEl){
-                cur=endEl;
-                while(cur && cur!==editor){
-                    if(getNoticeStyleInfo(cur)===wanted){ existing=cur; break; }
-                    cur=cur.parentElement;
-                }
-            }
+            // 선택 영역 전체가 같은 서식으로 감싸져 있으면 다시 눌렀을 때 해제
+            if (startStyled && startStyled === endStyled && startStyled.contains(range.commonAncestorContainer)) {
+                const full = document.createRange();
+                full.selectNodeContents(startStyled);
 
-            if(existing && existing.contains(range.commonAncestorContainer)){
-                const r=document.createRange();
-                r.selectNodeContents(existing);
-                const selectedText=sel.toString();
-                if(selectedText && selectedText===r.toString()){
-                    unwrapNoticeNode(existing);
-                    const nr=document.createRange();
-                    nr.selectNodeContents(existing.parentNode || editor);
+                if (range.toString() === full.toString()) {
+                    const parent = startStyled.parentNode;
+                    const beforeNode = startStyled.previousSibling;
+                    unwrapNoticeNode(startStyled);
+
+                    const nr = document.createRange();
+                    if (beforeNode && beforeNode.parentNode === parent) {
+                        nr.setStartAfter(beforeNode);
+                        nr.collapse(true);
+                    } else {
+                        nr.setStart(parent || editor, 0);
+                        nr.collapse(true);
+                    }
                     sel.removeAllRanges();
                     sel.addRange(nr);
-                    noticeSavedRange=nr.cloneRange();
+                    noticeSavedRange = nr.cloneRange();
                     return;
                 }
-            }
 
-            const styleMap={
-                strikeThrough:"text-decoration: line-through;",
-                underline:"text-decoration: underline;",
-                italic:"font-style: italic;"
-            };
-            if(!styleMap[wanted]) return;
+                // 서식 span 일부만 선택한 경우 선택된 부분만 서식을 제거
+                const fragment = range.extractContents();
+                const plain = document.createDocumentFragment();
+                while (fragment.firstChild) plain.appendChild(fragment.firstChild);
+                range.insertNode(plain);
 
-            const span=document.createElement("span");
-            span.setAttribute("style",styleMap[wanted]);
-
-            try{
-                const frag=range.extractContents();
-                span.appendChild(frag);
-                range.insertNode(span);
-
-                const nr=document.createRange();
-                nr.selectNodeContents(span);
+                const nr = document.createRange();
+                nr.selectNodeContents(plain);
                 sel.removeAllRanges();
                 sel.addRange(nr);
-                noticeSavedRange=nr.cloneRange();
-            }catch(err){
-                console.warn("공지 서식 적용 실패:",err);
+                noticeSavedRange = nr.cloneRange();
+                return;
             }
+
+            const styles = {
+                strikeThrough: "text-decoration: line-through;",
+                underline: "text-decoration: underline;",
+                italic: "font-style: italic;"
+            };
+            if (!styles[command]) return;
+
+            const span = document.createElement("span");
+            span.setAttribute("style", styles[command]);
+
+            const fragment = range.extractContents();
+            span.appendChild(fragment);
+            range.insertNode(span);
+
+            const nr = document.createRange();
+            nr.selectNodeContents(span);
+            sel.removeAllRanges();
+            sel.addRange(nr);
+            noticeSavedRange = nr.cloneRange();
         }
+
+        document.addEventListener("selectionchange", function() {
+            const editor = document.getElementById("noticeEditTextarea");
+            const sel = window.getSelection();
+            if (!editor || !sel || !sel.rangeCount) return;
+            const range = sel.getRangeAt(0);
+            if (!range.collapsed && editor.contains(range.commonAncestorContainer)) {
+                noticeSavedRange = range.cloneRange();
+            }
+        });
 
         function formatNoticeText(command){ applyNoticeFormat(command); }
 
@@ -2826,7 +2862,7 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
                                     ${limitBadge}
                                     <div class="song-text-viewport">
                                         <div class="song-text-marquee">
-                                            <h3 class="song-title" onclick="copySongInfo('${safeTitle}', '${safeArtist}', event)">${song.title || '제목없음'}</h3>
+                                            <h3 class="song-title"><span class="song-title-copy" onclick="copySongInfo('${safeTitle}', '${safeArtist}', event)">${song.title || '제목없음'}</span></h3>
                                         </div>
                                     </div>
                                 </div>
