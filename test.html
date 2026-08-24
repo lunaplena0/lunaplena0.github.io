@@ -143,6 +143,38 @@
             overflow-wrap: anywhere;
         }
 
+        .notice-format-toolbar {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+        }
+        .notice-format-btn {
+            min-width: 38px;
+            height: 34px;
+            padding: 0 10px;
+            border: 1px solid var(--border-color, #d1d5db);
+            border-radius: 8px;
+            background: var(--card-bg, #fff);
+            color: inherit;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 700;
+        }
+        .notice-format-btn:hover {
+            filter: brightness(0.96);
+        }
+        .notice-edit-content {
+            white-space: pre-wrap;
+            overflow-y: auto;
+            outline: none;
+        }
+        .notice-edit-content:empty::before {
+            content: "공지 내용을 입력해주세요.";
+            opacity: 0.45;
+            pointer-events: none;
+        }
+
         .notice-edit-textarea {
             width: 100%;
             min-height: 220px;
@@ -875,6 +907,22 @@
             display: inline-block;
             white-space: nowrap;
         }
+        .song-text-viewport {
+            min-width: 0;
+            width: 100%;
+            max-width: 100%;
+            overflow: hidden;
+            position: relative;
+        }
+        .song-text-marquee {
+            display: inline-block;
+            white-space: nowrap;
+            min-width: max-content;
+        }
+        .song-text-marquee .song-title,
+        .song-text-marquee .song-artist {
+            display: block;
+        }
         @media (max-width: 768px) {
             .song-title-marquee {
                 will-change: transform;
@@ -884,10 +932,10 @@
             .song-title-viewport.marquee-active {
                 overflow: hidden;
             }
-            .song-title-viewport.marquee-active.marquee-visible .song-title-marquee {
+            .song-text-viewport.marquee-active.marquee-visible .song-text-marquee {
                 animation: songTitleMarquee 8s linear infinite;
             }
-            .song-title-viewport.marquee-active:not(.marquee-visible) .song-title-marquee {
+            .song-text-viewport.marquee-active:not(.marquee-visible) .song-text-marquee {
                 animation: none;
             }
             @keyframes songTitleMarquee {
@@ -1574,7 +1622,15 @@
     <div class="modal-overlay" id="noticeEditModal">
         <div class="filter-modal-box" style="width:92%;max-width:620px;max-height:85vh;">
             <div class="modal-header"><h3 class="modal-title">✎ 노래공지 수정</h3><button class="modal-close-btn" onclick="closeNoticeEditModal()">✕</button></div>
-            <div class="edit-form-field"><label class="edit-form-label">공지 내용</label><textarea id="noticeEditTextarea" class="notice-edit-textarea"></textarea></div>
+            <div class="edit-form-field">
+                <label class="edit-form-label">공지 내용</label>
+                <div class="notice-format-toolbar" role="toolbar" aria-label="공지 서식">
+                    <button type="button" class="notice-format-btn" onmousedown="event.preventDefault()" onclick="formatNoticeText('strikeThrough')" title="취소선">S̶</button>
+                    <button type="button" class="notice-format-btn" onmousedown="event.preventDefault()" onclick="formatNoticeText('underline')" title="밑줄"><u>U</u></button>
+                    <button type="button" class="notice-format-btn" onmousedown="event.preventDefault()" onclick="formatNoticeText('italic')" title="기울임"><i>I</i></button>
+                </div>
+                <div id="noticeEditTextarea" class="notice-edit-textarea notice-edit-content" contenteditable="true" role="textbox" aria-multiline="true"></div>
+            </div>
             <div class="modal-actions" style="margin-top:14px;"><button class="modal-btn modal-btn-close" onclick="saveNoticeEdit()">저장</button><button class="modal-btn modal-btn-refresh" onclick="closeNoticeEditModal()">취소</button></div>
         </div>
     </div>
@@ -2011,10 +2067,77 @@
             return text;
         }
 
-        function renderNoticeContent(value){const el=document.getElementById("noticeModalContent");if(el)el.textContent=normalizeNoticeText(value)||"공지사항이 없습니다.";}
-        function openNoticeEditModal(){if(!isSongAuthenticated){openSongAuthModal();return;}document.getElementById("noticeEditTextarea").value=normalizeNoticeText(currentNoticeText||"");noticeEditModal.classList.add("active");}
+        function sanitizeNoticeHtml(value) {
+            const raw = String(value ?? "");
+            if (!raw) return "";
+
+            // 공지에 필요한 서식 태그만 허용하고 나머지는 제거한다.
+            const doc = new DOMParser().parseFromString(`<div>${raw}</div>`, "text/html");
+            const root = doc.body.firstElementChild;
+            if (!root) return "";
+
+            const allowed = new Set(["B", "I", "U", "S", "BR", "P", "DIV", "SPAN"]);
+            root.querySelectorAll("*").forEach(node => {
+                if (!allowed.has(node.tagName)) {
+                    node.replaceWith(...Array.from(node.childNodes));
+                    return;
+                }
+                Array.from(node.attributes).forEach(attr => node.removeAttribute(attr.name));
+            });
+            return root.innerHTML;
+        }
+
+        function plainNoticeToHtml(value) {
+            const text = normalizeNoticeText(value || "");
+            const escaped = text
+                .replaceAll("&", "&amp;")
+                .replaceAll("<", "&lt;")
+                .replaceAll(">", "&gt;")
+                .replaceAll('"', "&quot;");
+            return escaped.replaceAll("\n", "<br>");
+        }
+
+        function renderNoticeContent(value){
+            const el=document.getElementById("noticeModalContent");
+            if(!el)return;
+            const raw=String(value ?? "");
+            if(!raw){el.textContent="공지사항이 없습니다.";return;}
+            const hasFormatting=/<(?:b|i|u|s|br|p|div|span)(?:\s|>)/i.test(raw);
+            el.innerHTML=hasFormatting ? sanitizeNoticeHtml(raw) : plainNoticeToHtml(raw);
+        }
+
+        function formatNoticeText(command){
+            if(!isSongAuthenticated)return;
+            const editor=document.getElementById("noticeEditTextarea");
+            if(!editor)return;
+            editor.focus();
+            document.execCommand(command, false, null);
+        }
+
+        function openNoticeEditModal(){
+            if(!isSongAuthenticated){openSongAuthModal();return;}
+            const editor=document.getElementById("noticeEditTextarea");
+            if(editor){
+                const raw=String(currentNoticeText || "");
+                editor.innerHTML=/<(?:b|i|u|s|br|p|div|span)(?:\s|>)/i.test(raw)
+                    ? sanitizeNoticeHtml(raw)
+                    : plainNoticeToHtml(raw);
+            }
+            noticeEditModal.classList.add("active");
+        }
+
         function closeNoticeEditModal(){noticeEditModal.classList.remove("active");}
-        function saveNoticeEdit(){if(!isSongAuthenticated)return;currentNoticeText=normalizeNoticeText(document.getElementById("noticeEditTextarea").value);renderNoticeContent(currentNoticeText);closeNoticeEditModal();enqueueSongServerSave();showToastMessage("노래공지가 저장되었습니다.");}
+
+        function saveNoticeEdit(){
+            if(!isSongAuthenticated)return;
+            const editor=document.getElementById("noticeEditTextarea");
+            if(!editor)return;
+            currentNoticeText=sanitizeNoticeHtml(editor.innerHTML);
+            renderNoticeContent(currentNoticeText);
+            closeNoticeEditModal();
+            enqueueSongServerSave();
+            showToastMessage("노래공지가 저장되었습니다.");
+        }
         function openRecommendModal() { generateRecommendations(); document.getElementById("recommendModal").classList.add("active"); }
         function closeRecommendModal() { document.getElementById("recommendModal").classList.remove("active"); }
         function openNoticeModal(){
@@ -2386,11 +2509,13 @@
                         <div class="song-info-left">
                             <div class="song-title-wrapper">
                                 ${limitBadge}
-                                <div class="song-title-viewport">
-                                    <h3 class="song-title song-title-marquee" onclick="copySongInfo('${safeTitle}', '${safeArtist}', event)">${song.title || '제목없음'}</h3>
+                                <div class="song-text-viewport">
+                                    <div class="song-text-marquee">
+                                        <h3 class="song-title" onclick="copySongInfo('${safeTitle}', '${safeArtist}', event)">${song.title || '제목없음'}</h3>
+                                        <span class="song-artist">${song.artist || ''}</span>
+                                    </div>
                                 </div>
                             </div>
-                            <span class="song-artist">${song.artist || ''}</span>
                         </div>
                         <div class="song-badges">
                             ${etcBadge}
@@ -2412,21 +2537,20 @@
                 requestAnimationFrame(() => {
                     const marquees = [];
 
-                    container.querySelectorAll('.song-title-viewport').forEach(viewport => {
-                        const title = viewport.querySelector('.song-title-marquee');
-                        if (!title) return;
+                    container.querySelectorAll('.song-text-viewport').forEach(viewport => {
+                        const text = viewport.querySelector('.song-text-marquee');
+                        if (!text) return;
 
-                        const overflow = Math.ceil(title.scrollWidth - viewport.clientWidth);
+                        const overflow = Math.ceil(text.scrollWidth - viewport.clientWidth);
 
-                        // 실제로 1px이라도 넘치면 긴 제목으로 처리한다.
-                        // 애매하게 긴 제목도 잘리지 않고 전체가 보이도록 한다.
+                        // 제목과 가수를 하나의 묶음으로 측정해 함께 이동한다.
                         if (overflow > 0) {
                             viewport.classList.add('marquee-active');
-                            title.style.setProperty('--song-title-shift', `${-overflow}px`);
+                            text.style.setProperty('--song-title-shift', `${-overflow}px`);
                             marquees.push(viewport);
                         } else {
                             viewport.classList.remove('marquee-active', 'marquee-visible');
-                            title.style.removeProperty('--song-title-shift');
+                            text.style.removeProperty('--song-title-shift');
                         }
                     });
 
