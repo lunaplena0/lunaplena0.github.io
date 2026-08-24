@@ -2382,6 +2382,9 @@
                         if(parts.length < 2) return;
                         const prop = parts[0].trim().toLowerCase();
                         const value = parts.slice(1).join(":").trim();
+                        if(prop === "font-weight" && (value === "bold" || value === "700")){
+                            allowedStyles.push("font-weight: bold");
+                        }
                         if(prop === "text-decoration" && /^(underline|line-through)(\s+underline|\s+line-through)*$/.test(value)){
                             allowedStyles.push(`${prop}: ${value}`);
                         }
@@ -2594,14 +2597,15 @@
 
         function renderNoticeContent(value){
             const el=document.getElementById("noticeModalContent"); if(!el)return;
-            const raw=String(value??""); if(!raw){el.textContent="공지사항이 없습니다.";return;}
+            const raw=normalizeNoticeText(value);
+            if(!raw){el.textContent="공지사항이 없습니다.";return;}
             const hasFormatting=/<(?:b|i|u|s|strike|span)(?:\s|>)/i.test(raw);
             el.innerHTML=hasFormatting?sanitizeNoticeHtml(raw).replace(/\n/g,"<br>"):plainNoticeToHtml(raw);
         }
         function openNoticeEditModal(){
             if(!isSongAuthenticated){openSongAuthModal();return;}
             const editor=document.getElementById("noticeEditTextarea"); if(!editor)return;
-            const raw=String(currentNoticeText||"");
+            const raw=normalizeNoticeText(currentNoticeText||"");
             editor.innerHTML=/<(?:b|i|u|s|strike|span)(?:\s|>)/i.test(raw)?sanitizeNoticeHtml(raw).replace(/\n/g,"<br>"):plainNoticeToHtml(raw);
             noticeSavedRange=null; editor.onmouseup=rememberNoticeSelection; editor.onkeyup=rememberNoticeSelection; editor.oninput=rememberNoticeSelection;
             noticeEditModal.classList.add("active");
@@ -2616,6 +2620,7 @@
             // 허용된 서식만 직접 보존하면서 저장 문자열을 만든다.
             currentNoticeText=serializeNoticeForStorage(editor);
 
+            // 저장 직후에도 서버 재조회와 동일하게 줄바꿈/서식을 즉시 렌더링
             renderNoticeContent(currentNoticeText);
             closeNoticeEditModal();
             enqueueSongServerSave();
