@@ -960,6 +960,86 @@
             white-space: nowrap;
         }
 
+
+        /* 노래 태그: 목록 카드와 어울리는 둥근 사각형 */
+        .song-limit-badge,
+        .limit-badge,
+        .song-tag,
+        .song-count-badge,
+        .song-title-wrapper .badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex: 0 0 auto;
+            min-height: 22px;
+            padding: 2px 7px;
+            margin: 0 7px 0 0;
+            border: 1px solid currentColor;
+            border-radius: 7px;
+            background: transparent;
+            white-space: nowrap;
+            line-height: 1.1;
+            font-size: 0.72em;
+            font-weight: 600;
+            vertical-align: middle;
+            box-sizing: border-box;
+        }
+        .song-title-wrapper {
+            display: flex;
+            align-items: center;
+            min-width: 0;
+            gap: 0;
+        }
+        .song-title-wrapper .song-text-viewport {
+            flex: 1 1 auto;
+            min-width: 0;
+        }
+
+
+        /* 목록 카드 내부 여백을 살짝 압축 */
+        .song-item {
+            padding-top: 8px !important;
+            padding-bottom: 8px !important;
+        }
+        .song-item > * {
+            margin-top: 0;
+            margin-bottom: 0;
+        }
+        .song-title-wrapper {
+            padding-top: 1px;
+            padding-bottom: 1px;
+        }
+
+
+        .notice-format-toolbar {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+        .notice-format-btn {
+            width: 38px;
+            height: 34px;
+            padding: 0;
+            border: 1px solid var(--border-color, #d1d5db);
+            border-radius: 7px;
+            background: var(--card-bg, #fff);
+            color: inherit;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 700;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        .notice-format-btn:hover {
+            filter: brightness(0.96);
+        }
+        .notice-edit-content {
+            min-height: 130px;
+            white-space: pre-wrap;
+            overflow-y: auto;
+            outline: none;
+        }
+
         @media (max-width: 768px) {
             .song-title-marquee {
                 will-change: transform;
@@ -1662,6 +1742,11 @@
             <div class="edit-form-field">
                 <label class="edit-form-label">공지 내용</label>
                 <div class="notice-format-toolbar" role="toolbar" aria-label="공지 서식">
+                    <button type="button" class="notice-format-btn" data-notice-format="strikeThrough" title="취소선">S̶</button>
+                    <button type="button" class="notice-format-btn" data-notice-format="underline" title="밑줄"><u>U</u></button>
+                    <button type="button" class="notice-format-btn" data-notice-format="italic" title="기울임"><i>I</i></button>
+                </div>
+                <div class="notice-format-toolbar" role="toolbar" aria-label="공지 서식">
                     <button type="button" class="notice-format-btn" onmousedown="event.preventDefault()" onmousedown="applyNoticeFormat(event, 'strikeThrough')" title="취소선">S̶</button>
                     <button type="button" class="notice-format-btn" onmousedown="event.preventDefault()" onmousedown="applyNoticeFormat(event, 'underline')" title="밑줄"><u>U</u></button>
                     <button type="button" class="notice-format-btn" onmousedown="event.preventDefault()" onmousedown="applyNoticeFormat(event, 'italic')" title="기울임"><i>I</i></button>
@@ -2168,106 +2253,199 @@
 
         let noticeSavedRange = null;
 
-        function saveNoticeSelection(){
-            const editor=document.getElementById("noticeEditTextarea");
-            const selection=window.getSelection();
-            if(!editor || !selection || !selection.rangeCount) return;
-            const range=selection.getRangeAt(0);
-            if(editor.contains(range.commonAncestorContainer)){
-                noticeSavedRange=range.cloneRange();
+        function rememberNoticeSelection() {
+            const editor = document.getElementById("noticeEditTextarea");
+            const sel = window.getSelection();
+            if (!editor || !sel || !sel.rangeCount) return;
+
+            const range = sel.getRangeAt(0);
+            if (editor.contains(range.commonAncestorContainer)) {
+                noticeSavedRange = range.cloneRange();
             }
         }
 
-        function restoreNoticeSelection(){
-            const editor=document.getElementById("noticeEditTextarea");
-            if(!editor || !noticeSavedRange) return;
-            editor.focus();
-            const selection=window.getSelection();
-            selection.removeAllRanges();
-            selection.addRange(noticeSavedRange);
+        function restoreNoticeSelection() {
+            const editor = document.getElementById("noticeEditTextarea");
+            if (!editor || !noticeSavedRange) return false;
+
+            const sel = window.getSelection();
+            sel.removeAllRanges();
+            sel.addRange(noticeSavedRange);
+            editor.focus({preventScroll:true});
+            return true;
         }
 
-        function applyNoticeFormat(event, command){
-            if(event) event.preventDefault();
-            if(!isSongAuthenticated) return;
+        function applyNoticeFormat(command) {
+            const editor = document.getElementById("noticeEditTextarea");
+            if (!editor || !isSongAuthenticated) return;
 
-            const editor=document.getElementById("noticeEditTextarea");
-            if(!editor) return;
-            editor.focus();
-
-            const sel=window.getSelection();
-            if(!sel || sel.rangeCount===0) return;
-
-            const range=sel.getRangeAt(0);
-            if(!editor.contains(range.commonAncestorContainer)) return;
-            if(range.collapsed) return;
-
-            let styleName="";
-            if(command==="strikeThrough") styleName="text-decoration: line-through;";
-            else if(command==="underline") styleName="text-decoration: underline;";
-            else if(command==="italic") styleName="font-style: italic;";
-            else return;
-
-            const span=document.createElement("span");
-            span.setAttribute("style", styleName);
-
-            try{
-                const fragment=range.extractContents();
-                span.appendChild(fragment);
-                range.insertNode(span);
-
-                // 적용 직후 선택 영역을 새로 만든 span 안으로 유지
-                const newRange=document.createRange();
-                newRange.selectNodeContents(span);
-                sel.removeAllRanges();
-                sel.addRange(newRange);
-                window.noticeSavedRange=newRange.cloneRange();
-            }catch(err){
-                console.warn("공지 서식 적용 실패:", err);
+            // 버튼을 클릭하기 직전에 저장해 둔 selection을 복원
+            if (!restoreNoticeSelection()) {
+                editor.focus();
+                return;
             }
-        }
 
-        function saveNoticeSelection(){
-            const editor=document.getElementById("noticeEditTextarea");
-            const sel=window.getSelection();
-            if(!editor || !sel || !sel.rangeCount) return;
-            const range=sel.getRangeAt(0);
-            if(editor.contains(range.commonAncestorContainer)){
-                window.noticeSavedRange=range.cloneRange();
+            const sel = window.getSelection();
+            if (!sel || sel.rangeCount === 0 || sel.getRangeAt(0).collapsed) {
+                return;
             }
-        }
 
-        function formatNoticeText(command){
-            applyNoticeFormat(null, command);
-        }
+            const range = sel.getRangeAt(0);
+            if (!editor.contains(range.commonAncestorContainer)) return;
 
-        function openNoticeEditModal(){
-            if(!isSongAuthenticated){openSongAuthModal();return;}
-            const editor=document.getElementById("noticeEditTextarea");
-            if(editor){
-                const raw=String(currentNoticeText || "");
-                editor.innerHTML=/<(?:b|i|u|s|br|p|div|span)(?:\s|>)/i.test(raw)
-                    ? sanitizeNoticeHtml(raw)
-                    : plainNoticeToHtml(raw);
-                editor.onkeyup=saveNoticeSelection;
-                editor.onmouseup=saveNoticeSelection;
-                editor.oninput=saveNoticeSelection;
+            // 브라우저 기본 명령을 사용하되, selection을 먼저 복원한다.
+            try {
+                document.execCommand("styleWithCSS", false, true);
+            } catch(e) {}
+
+            const ok = document.execCommand(command, false, null);
+            if (!ok) {
+                // fallback: 선택된 텍스트를 직접 span으로 감싼다.
+                let style = "";
+                if (command === "strikeThrough") style = "text-decoration: line-through;";
+                if (command === "underline") style = "text-decoration: underline;";
+                if (command === "italic") style = "font-style: italic;";
+                if (!style) return;
+
+                const span = document.createElement("span");
+                span.setAttribute("style", style);
+                try {
+                    const fragment = range.extractContents();
+                    span.appendChild(fragment);
+                    range.insertNode(span);
+                    const newRange = document.createRange();
+                    newRange.selectNodeContents(span);
+                    sel.removeAllRanges();
+                    sel.addRange(newRange);
+                } catch(e) {
+                    console.warn("공지 서식 적용 실패:", e);
+                }
             }
-            noticeEditModal.classList.add("active");
+
+            rememberNoticeSelection();
         }
 
-        function closeNoticeEditModal(){noticeEditModal.classList.remove("active");}
+        function sanitizeNoticeHtml(value) {
+            const raw = String(value ?? "");
+            if (!raw) return "";
 
-        function saveNoticeEdit(){
-            if(!isSongAuthenticated)return;
-            const editor=document.getElementById("noticeEditTextarea");
-            if(!editor)return;
-            currentNoticeText=sanitizeNoticeHtml(editor.innerHTML);
+            const doc = new DOMParser().parseFromString(`<div>${raw}</div>`, "text/html");
+            const root = doc.body.firstElementChild;
+            if (!root) return "";
+
+            const allowed = new Set(["B","I","U","S","STRIKE","BR","P","DIV","SPAN"]);
+            root.querySelectorAll("*").forEach(node => {
+                if (!allowed.has(node.tagName)) {
+                    node.replaceWith(...Array.from(node.childNodes));
+                    return;
+                }
+
+                Array.from(node.attributes).forEach(attr => {
+                    if (attr.name.toLowerCase() !== "style") {
+                        node.removeAttribute(attr.name);
+                    }
+                });
+
+                if (node.hasAttribute("style")) {
+                    const source = node.getAttribute("style") || "";
+                    const kept = [];
+                    source.split(";").forEach(rule => {
+                        const p = rule.split(":");
+                        if (p.length < 2) return;
+                        const prop = p[0].trim().toLowerCase();
+                        const val = p.slice(1).join(":").trim().toLowerCase();
+
+                        if (prop === "text-decoration" && /^(underline|line-through|underline line-through|line-through underline)$/.test(val)) {
+                            kept.push(`text-decoration: ${val}`);
+                        } else if (prop === "font-style" && val === "italic") {
+                            kept.push("font-style: italic");
+                        }
+                    });
+
+                    if (kept.length) node.setAttribute("style", kept.join("; "));
+                    else node.removeAttribute("style");
+                }
+            });
+
+            return root.innerHTML;
+        }
+
+        function plainNoticeToHtml(value) {
+            const text = normalizeNoticeText(value || "");
+            const escaped = text
+                .replaceAll("&", "&amp;")
+                .replaceAll("<", "&lt;")
+                .replaceAll(">", "&gt;")
+                .replaceAll('"', "&quot;");
+
+            return escaped
+                .replaceAll("\n", "<br>")
+                .replace(/&lt;br\s*\/?&gt;/gi, "<br>");
+        }
+
+        function renderNoticeContent(value) {
+            const el = document.getElementById("noticeModalContent");
+            if (!el) return;
+
+            const raw = String(value ?? "");
+            if (!raw) {
+                el.textContent = "공지사항이 없습니다.";
+                return;
+            }
+
+            const hasHtml = /<(?:b|i|u|s|strike|br|p|div|span)(?:\s|>)/i.test(raw);
+            el.innerHTML = hasHtml ? sanitizeNoticeHtml(raw) : plainNoticeToHtml(raw);
+        }
+
+        function openNoticeEditModal() {
+            if (!isSongAuthenticated) {
+                openSongAuthModal();
+                return;
+            }
+
+            const editor = document.getElementById("noticeEditTextarea");
+            if (!editor) return;
+
+            const raw = String(currentNoticeText || "");
+            editor.innerHTML = /<(?:b|i|u|s|strike|br|p|div|span)(?:\s|>)/i.test(raw)
+                ? sanitizeNoticeHtml(raw)
+                : plainNoticeToHtml(raw);
+
+            noticeSavedRange = null;
+
+            editor.addEventListener("mouseup", rememberNoticeSelection);
+            editor.addEventListener("keyup", rememberNoticeSelection);
+            editor.addEventListener("input", rememberNoticeSelection);
+
+            document.getElementById("noticeEditModal").classList.add("active");
+        }
+
+        function closeNoticeEditModal() {
+            document.getElementById("noticeEditModal").classList.remove("active");
+        }
+
+        function saveNoticeEdit() {
+            if (!isSongAuthenticated) return;
+
+            const editor = document.getElementById("noticeEditTextarea");
+            if (!editor) return;
+
+            currentNoticeText = sanitizeNoticeHtml(editor.innerHTML);
             renderNoticeContent(currentNoticeText);
             closeNoticeEditModal();
             enqueueSongServerSave();
             showToastMessage("노래공지가 저장되었습니다.");
         }
+
+        // 버튼은 mousedown에서 브라우저가 selection을 없애기 전에 실행한다.
+        document.addEventListener("mousedown", function(e) {
+            const btn = e.target.closest("[data-notice-format]");
+            if (!btn) return;
+            e.preventDefault();
+            e.stopPropagation();
+            applyNoticeFormat(btn.getAttribute("data-notice-format"));
+        }, true);
+
         function openRecommendModal() { generateRecommendations(); document.getElementById("recommendModal").classList.add("active"); }
         function closeRecommendModal() { document.getElementById("recommendModal").classList.remove("active"); }
         function openNoticeModal(){
