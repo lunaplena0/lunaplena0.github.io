@@ -1533,6 +1533,45 @@
             -webkit-tap-highlight-color: transparent;
         }
 
+
+        /* 목록/추천 태그 공통 스타일 */
+        .song-limit-badge,
+        .limit-badge,
+        .song-tag,
+        .song-count-badge,
+        .recommend-limit-badge,
+        .recommend-tag,
+        .recommend-count-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-sizing: border-box;
+            min-height: 18px;
+            padding: 1px 4px !important;
+            margin-right: 5px;
+            border: 1px solid currentColor;
+            border-radius: 5px;
+            background: transparent;
+            white-space: nowrap;
+            line-height: 1;
+            font-size: 0.68em;
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+            .song-title-line .song-limit-badge,
+            .song-title-line .limit-badge,
+            .song-title-line .song-tag,
+            .song-title-line .song-count-badge {
+                min-height: 17px !important;
+                height: 17px !important;
+                padding: 0 4px !important;
+                margin-right: 4px !important;
+                border-radius: 5px !important;
+                font-size: 0.60em !important;
+            }
+        }
+
 </style>
 </head>
 <body>
@@ -1777,6 +1816,7 @@
             <div class="edit-form-field">
                 <label class="edit-form-label">공지 내용</label>
                 <div class="notice-format-toolbar" role="toolbar" aria-label="공지 서식">
+                    <button type="button" class="notice-format-btn" onmousedown="event.preventDefault(); applyNoticeFormat('bold')" title="굵게"><b>B</b></button>
                     <button type="button" class="notice-format-btn" onmousedown="event.preventDefault(); applyNoticeFormat('strikeThrough')" title="취소선">S̶</button>
                     <button type="button" class="notice-format-btn" onmousedown="event.preventDefault(); applyNoticeFormat('underline')" title="밑줄"><u>U</u></button>
                     <button type="button" class="notice-format-btn" onmousedown="event.preventDefault(); applyNoticeFormat('italic')" title="기울임"><i>I</i></button>
@@ -2297,6 +2337,7 @@
             if (tag === "s" || tag === "strike" || style.includes("text-decoration:line-through")) return "strikeThrough";
             if (tag === "u" || style.includes("text-decoration:underline")) return "underline";
             if (tag === "i" || style.includes("font-style:italic")) return "italic";
+            if (tag === "b" || tag === "strong" || style.includes("font-weight:bold") || style.includes("font-weight:700")) return "bold";
             return "";
         }
 
@@ -2369,6 +2410,7 @@
             }
 
             const styles = {
+                bold: "font-weight: bold;",
                 strikeThrough: "text-decoration: line-through;",
                 underline: "text-decoration: underline;",
                 italic: "font-style: italic;"
