@@ -986,9 +986,19 @@
         }
         .song-title-wrapper {
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             min-width: 0;
             gap: 0;
+        }
+        .song-title-wrapper .song-text-viewport {
+            flex: 1 1 auto;
+            min-width: 0;
+        }
+        .song-title-wrapper .song-limit-badge,
+        .song-title-wrapper .limit-badge,
+        .song-title-wrapper .song-tag,
+        .song-title-wrapper .song-count-badge {
+            order: -1;
         }
         .song-title-wrapper .song-text-viewport {
             flex: 1 1 auto;
@@ -1742,16 +1752,12 @@
             <div class="edit-form-field">
                 <label class="edit-form-label">공지 내용</label>
                 <div class="notice-format-toolbar" role="toolbar" aria-label="공지 서식">
-                    <button type="button" class="notice-format-btn" data-notice-format="strikeThrough" title="취소선">S̶</button>
-                    <button type="button" class="notice-format-btn" data-notice-format="underline" title="밑줄"><u>U</u></button>
-                    <button type="button" class="notice-format-btn" data-notice-format="italic" title="기울임"><i>I</i></button>
+                    <button type="button" class="notice-format-btn" onclick="event.preventDefault(); applyNoticeFormat('strikeThrough')" title="취소선">S̶</button>
+                    <button type="button" class="notice-format-btn" onclick="event.preventDefault(); applyNoticeFormat('underline')" title="밑줄"><u>U</u></button>
+                    <button type="button" class="notice-format-btn" onclick="event.preventDefault(); applyNoticeFormat('italic')" title="기울임"><i>I</i></button>
                 </div>
-                <div class="notice-format-toolbar" role="toolbar" aria-label="공지 서식">
-                    <button type="button" class="notice-format-btn" onmousedown="event.preventDefault()" onmousedown="applyNoticeFormat(event, 'strikeThrough')" title="취소선">S̶</button>
-                    <button type="button" class="notice-format-btn" onmousedown="event.preventDefault()" onmousedown="applyNoticeFormat(event, 'underline')" title="밑줄"><u>U</u></button>
-                    <button type="button" class="notice-format-btn" onmousedown="event.preventDefault()" onmousedown="applyNoticeFormat(event, 'italic')" title="기울임"><i>I</i></button>
-                </div>
-                <div id="noticeEditTextarea" class="notice-edit-textarea notice-edit-content" contenteditable="true" role="textbox" aria-multiline="true" onkeyup="saveNoticeSelection()" onmouseup="saveNoticeSelection()" oninput="saveNoticeSelection()"></div>
+
+<div id="noticeEditTextarea" class="notice-edit-textarea notice-edit-content" contenteditable="true" role="textbox" aria-multiline="true" onkeyup="saveNoticeSelection()" onmouseup="saveNoticeSelection()" oninput="saveNoticeSelection()"></div>
             </div>
             <div class="modal-actions" style="margin-top:14px;"><button class="modal-btn modal-btn-close" onclick="saveNoticeEdit()">저장</button><button class="modal-btn modal-btn-refresh" onclick="closeNoticeEditModal()">취소</button></div>
         </div>
@@ -2438,15 +2444,7 @@
         }
 
         // 버튼은 mousedown에서 브라우저가 selection을 없애기 전에 실행한다.
-        document.addEventListener("mousedown", function(e) {
-            const btn = e.target.closest("[data-notice-format]");
-            if (!btn) return;
-            e.preventDefault();
-            e.stopPropagation();
-            applyNoticeFormat(btn.getAttribute("data-notice-format"));
-        }, true);
-
-        function openRecommendModal() { generateRecommendations(); document.getElementById("recommendModal").classList.add("active"); }
+function openRecommendModal() { generateRecommendations(); document.getElementById("recommendModal").classList.add("active"); }
         function closeRecommendModal() { document.getElementById("recommendModal").classList.remove("active"); }
         function openNoticeModal(){
             if (isSongAuthenticated) {
