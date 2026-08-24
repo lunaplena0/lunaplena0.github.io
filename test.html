@@ -930,6 +930,36 @@
             font-size: 0.88em;
             line-height: 1.25;
         }
+        /* 노래 목록 2줄 표시: 기존 상자 폭은 유지하고 높이만 축소 */
+        .song-text-viewport {
+            max-height: 42px;
+            overflow: hidden;
+        }
+        .song-text-marquee {
+            line-height: 1.15;
+        }
+        .song-text-marquee .song-title {
+            line-height: 1.2;
+            margin: 0;
+            font-size: 1em;
+        }
+        .song-text-marquee .song-artist {
+            line-height: 1.05;
+            margin: 1px 0 0;
+            font-size: 0.78em;
+            opacity: 0.82;
+        }
+
+        .song-title-wrapper {
+            align-items: center;
+        }
+        .song-title-wrapper .song-limit-badge,
+        .song-title-wrapper .limit-badge {
+            align-self: center;
+            flex-shrink: 0;
+            white-space: nowrap;
+        }
+
         @media (max-width: 768px) {
             .song-title-marquee {
                 will-change: transform;
@@ -2089,7 +2119,30 @@
                     node.replaceWith(...Array.from(node.childNodes));
                     return;
                 }
-                Array.from(node.attributes).forEach(attr => node.removeAttribute(attr.name));
+                Array.from(node.attributes).forEach(attr => {
+                    if(attr.name.toLowerCase() !== "style"){
+                        node.removeAttribute(attr.name);
+                    }
+                });
+
+                if(node.hasAttribute("style")){
+                    const allowedStyles = [];
+                    const styleText = node.getAttribute("style") || "";
+                    styleText.split(";").forEach(rule => {
+                        const parts = rule.split(":");
+                        if(parts.length < 2) return;
+                        const prop = parts[0].trim().toLowerCase();
+                        const value = parts.slice(1).join(":").trim();
+                        if(prop === "text-decoration" && /^(underline|line-through)(\s+underline|\s+line-through)*$/.test(value)){
+                            allowedStyles.push(`${prop}: ${value}`);
+                        }
+                        if(prop === "font-style" && value === "italic"){
+                            allowedStyles.push(`${prop}: italic`);
+                        }
+                    });
+                    if(allowedStyles.length) node.setAttribute("style", allowedStyles.join("; "));
+                    else node.removeAttribute("style");
+                }
             });
             return root.innerHTML;
         }
@@ -2140,18 +2193,38 @@
 
             const editor=document.getElementById("noticeEditTextarea");
             if(!editor) return;
-
             editor.focus();
 
-            // 버튼으로 포커스가 이동하기 전에 저장해 둔 선택 영역 복원
-            if(window.noticeSavedRange){
-                const sel=window.getSelection();
-                sel.removeAllRanges();
-                sel.addRange(window.noticeSavedRange);
-            }
+            const sel=window.getSelection();
+            if(!sel || sel.rangeCount===0) return;
 
-            document.execCommand(command, false, null);
-            saveNoticeSelection();
+            const range=sel.getRangeAt(0);
+            if(!editor.contains(range.commonAncestorContainer)) return;
+            if(range.collapsed) return;
+
+            let styleName="";
+            if(command==="strikeThrough") styleName="text-decoration: line-through;";
+            else if(command==="underline") styleName="text-decoration: underline;";
+            else if(command==="italic") styleName="font-style: italic;";
+            else return;
+
+            const span=document.createElement("span");
+            span.setAttribute("style", styleName);
+
+            try{
+                const fragment=range.extractContents();
+                span.appendChild(fragment);
+                range.insertNode(span);
+
+                // 적용 직후 선택 영역을 새로 만든 span 안으로 유지
+                const newRange=document.createRange();
+                newRange.selectNodeContents(span);
+                sel.removeAllRanges();
+                sel.addRange(newRange);
+                window.noticeSavedRange=newRange.cloneRange();
+            }catch(err){
+                console.warn("공지 서식 적용 실패:", err);
+            }
         }
 
         function saveNoticeSelection(){
