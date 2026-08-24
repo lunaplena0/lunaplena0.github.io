@@ -921,10 +921,12 @@
         }
         .song-text-marquee .song-title,
         .song-text-marquee .song-artist {
-            display: inline;
+            display: block;
         }
         .song-text-marquee .song-artist {
-            margin-left: 6px;
+            margin-left: 0;
+            font-size: 0.88em;
+            line-height: 1.25;
         }
         @media (max-width: 768px) {
             .song-title-marquee {
@@ -2097,7 +2099,7 @@
                 .replaceAll("<", "&lt;")
                 .replaceAll(">", "&gt;")
                 .replaceAll('"', "&quot;");
-            return escaped.replaceAll("\n", "<br>");
+            return escaped.replaceAll("\n", "<br>").replaceAll("&lt;br&gt;", "<br>");
         }
 
         function renderNoticeContent(value){
@@ -2109,28 +2111,41 @@
             el.innerHTML=hasFormatting ? sanitizeNoticeHtml(raw) : plainNoticeToHtml(raw);
         }
 
+        let noticeSavedRange = null;
+
+        function saveNoticeSelection(){
+            const editor=document.getElementById("noticeEditTextarea");
+            const selection=window.getSelection();
+            if(!editor || !selection || !selection.rangeCount) return;
+            const range=selection.getRangeAt(0);
+            if(editor.contains(range.commonAncestorContainer)){
+                noticeSavedRange=range.cloneRange();
+            }
+        }
+
+        function restoreNoticeSelection(){
+            const editor=document.getElementById("noticeEditTextarea");
+            if(!editor || !noticeSavedRange) return;
+            editor.focus();
+            const selection=window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(noticeSavedRange);
+        }
+
         function formatNoticeText(command){
             if(!isSongAuthenticated)return;
             const editor=document.getElementById("noticeEditTextarea");
             if(!editor)return;
 
-            editor.focus();
+            const supported=["strikeThrough","underline","italic"];
+            if(!supported.includes(command))return;
 
-            // contenteditable에서 버튼을 눌러도 선택 영역이 유지되도록
-            // 현재 선택 범위를 저장한 뒤 서식을 적용한다.
-            const selection=window.getSelection();
-            if(selection && selection.rangeCount){
-                const range=selection.getRangeAt(0);
-                if(!editor.contains(range.commonAncestorContainer)){
-                    return;
-                }
-            }
+            restoreNoticeSelection();
 
-            const supported = ["strikeThrough", "underline", "italic"];
-            if(!supported.includes(command)) return;
-
+            // 선택된 텍스트가 없으면 이후 입력부터 서식이 적용되도록
+            // 해당 명령을 현재 커서 위치에 적용한다.
             document.execCommand(command, false, null);
-            editor.dispatchEvent(new InputEvent("input", {bubbles:true, inputType:"formatBlock"}));
+            saveNoticeSelection();
         }
 
         function openNoticeEditModal(){
@@ -2141,6 +2156,9 @@
                 editor.innerHTML=/<(?:b|i|u|s|br|p|div|span)(?:\s|>)/i.test(raw)
                     ? sanitizeNoticeHtml(raw)
                     : plainNoticeToHtml(raw);
+                editor.onkeyup=saveNoticeSelection;
+                editor.onmouseup=saveNoticeSelection;
+                editor.oninput=saveNoticeSelection;
             }
             noticeEditModal.classList.add("active");
         }
