@@ -921,7 +921,10 @@
         }
         .song-text-marquee .song-title,
         .song-text-marquee .song-artist {
-            display: block;
+            display: inline;
+        }
+        .song-text-marquee .song-artist {
+            margin-left: 6px;
         }
         @media (max-width: 768px) {
             .song-title-marquee {
@@ -2110,8 +2113,24 @@
             if(!isSongAuthenticated)return;
             const editor=document.getElementById("noticeEditTextarea");
             if(!editor)return;
+
             editor.focus();
+
+            // contenteditable에서 버튼을 눌러도 선택 영역이 유지되도록
+            // 현재 선택 범위를 저장한 뒤 서식을 적용한다.
+            const selection=window.getSelection();
+            if(selection && selection.rangeCount){
+                const range=selection.getRangeAt(0);
+                if(!editor.contains(range.commonAncestorContainer)){
+                    return;
+                }
+            }
+
+            const supported = ["strikeThrough", "underline", "italic"];
+            if(!supported.includes(command)) return;
+
             document.execCommand(command, false, null);
+            editor.dispatchEvent(new InputEvent("input", {bubbles:true, inputType:"formatBlock"}));
         }
 
         function openNoticeEditModal(){
