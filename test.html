@@ -1050,6 +1050,11 @@
             outline: none;
         }
 
+        .song-title-wrapper{display:flex;flex-direction:column;align-items:stretch;min-width:0;flex:1;gap:1px}
+        .song-title-line{display:flex;align-items:center;min-width:0;width:100%;gap:0}
+        .song-title-line .song-limit-badge,.song-title-line .limit-badge,.song-title-line .song-tag,.song-title-line .song-count-badge{flex:0 0 auto;margin-right:6px}
+        .song-title-line .song-text-viewport{flex:1 1 auto;min-width:0}
+        .song-title-wrapper>.song-artist{display:block;margin:0;padding:0;font-size:.78em;line-height:1.05;opacity:.82}
         @media (max-width: 768px) {
             .song-title-marquee {
                 will-change: transform;
@@ -1752,11 +1757,10 @@
             <div class="edit-form-field">
                 <label class="edit-form-label">공지 내용</label>
                 <div class="notice-format-toolbar" role="toolbar" aria-label="공지 서식">
-                    <button type="button" class="notice-format-btn" onclick="event.preventDefault(); applyNoticeFormat('strikeThrough')" title="취소선">S̶</button>
-                    <button type="button" class="notice-format-btn" onclick="event.preventDefault(); applyNoticeFormat('underline')" title="밑줄"><u>U</u></button>
-                    <button type="button" class="notice-format-btn" onclick="event.preventDefault(); applyNoticeFormat('italic')" title="기울임"><i>I</i></button>
+                    <button type="button" class="notice-format-btn" onmousedown="event.preventDefault(); applyNoticeFormat('strikeThrough')" title="취소선">S̶</button>
+                    <button type="button" class="notice-format-btn" onmousedown="event.preventDefault(); applyNoticeFormat('underline')" title="밑줄"><u>U</u></button>
+                    <button type="button" class="notice-format-btn" onmousedown="event.preventDefault(); applyNoticeFormat('italic')" title="기울임"><i>I</i></button>
                 </div>
-
 <div id="noticeEditTextarea" class="notice-edit-textarea notice-edit-content" contenteditable="true" role="textbox" aria-multiline="true" onkeyup="saveNoticeSelection()" onmouseup="saveNoticeSelection()" oninput="saveNoticeSelection()"></div>
             </div>
             <div class="modal-actions" style="margin-top:14px;"><button class="modal-btn modal-btn-close" onclick="saveNoticeEdit()">저장</button><button class="modal-btn modal-btn-refresh" onclick="closeNoticeEditModal()">취소</button></div>
@@ -2257,193 +2261,64 @@
             el.innerHTML=hasFormatting ? sanitizeNoticeHtml(raw) : plainNoticeToHtml(raw);
         }
 
-        let noticeSavedRange = null;
+                let noticeSavedRange = null;
 
-        function rememberNoticeSelection() {
-            const editor = document.getElementById("noticeEditTextarea");
-            const sel = window.getSelection();
-            if (!editor || !sel || !sel.rangeCount) return;
-
-            const range = sel.getRangeAt(0);
-            if (editor.contains(range.commonAncestorContainer)) {
-                noticeSavedRange = range.cloneRange();
-            }
+        function rememberNoticeSelection(){
+            const editor=document.getElementById("noticeEditTextarea"), sel=window.getSelection();
+            if(!editor||!sel||!sel.rangeCount)return;
+            const r=sel.getRangeAt(0);
+            if(editor.contains(r.commonAncestorContainer)) noticeSavedRange=r.cloneRange();
         }
 
-        function restoreNoticeSelection() {
-            const editor = document.getElementById("noticeEditTextarea");
-            if (!editor || !noticeSavedRange) return false;
-
-            const sel = window.getSelection();
-            sel.removeAllRanges();
-            sel.addRange(noticeSavedRange);
+        function applyNoticeFormat(command){
+            const editor=document.getElementById("noticeEditTextarea");
+            if(!editor||!isSongAuthenticated||!noticeSavedRange)return;
+            const sel=window.getSelection();
+            sel.removeAllRanges(); sel.addRange(noticeSavedRange);
+            const r=sel.getRangeAt(0);
+            if(r.collapsed||!editor.contains(r.commonAncestorContainer))return;
+            const styles={strikeThrough:"text-decoration:line-through;",underline:"text-decoration:underline;",italic:"font-style:italic;"};
+            if(!styles[command])return;
+            const span=document.createElement("span");
+            span.setAttribute("style",styles[command]);
+            const frag=r.extractContents(); span.appendChild(frag); r.insertNode(span);
+            const nr=document.createRange(); nr.selectNodeContents(span);
+            sel.removeAllRanges(); sel.addRange(nr); noticeSavedRange=nr.cloneRange();
             editor.focus({preventScroll:true});
-            return true;
         }
 
-        function applyNoticeFormat(command) {
-            const editor = document.getElementById("noticeEditTextarea");
-            if (!editor || !isSongAuthenticated) return;
-
-            // 버튼을 클릭하기 직전에 저장해 둔 selection을 복원
-            if (!restoreNoticeSelection()) {
-                editor.focus();
-                return;
-            }
-
-            const sel = window.getSelection();
-            if (!sel || sel.rangeCount === 0 || sel.getRangeAt(0).collapsed) {
-                return;
-            }
-
-            const range = sel.getRangeAt(0);
-            if (!editor.contains(range.commonAncestorContainer)) return;
-
-            // 브라우저 기본 명령을 사용하되, selection을 먼저 복원한다.
-            try {
-                document.execCommand("styleWithCSS", false, true);
-            } catch(e) {}
-
-            const ok = document.execCommand(command, false, null);
-            if (!ok) {
-                // fallback: 선택된 텍스트를 직접 span으로 감싼다.
-                let style = "";
-                if (command === "strikeThrough") style = "text-decoration: line-through;";
-                if (command === "underline") style = "text-decoration: underline;";
-                if (command === "italic") style = "font-style: italic;";
-                if (!style) return;
-
-                const span = document.createElement("span");
-                span.setAttribute("style", style);
-                try {
-                    const fragment = range.extractContents();
-                    span.appendChild(fragment);
-                    range.insertNode(span);
-                    const newRange = document.createRange();
-                    newRange.selectNodeContents(span);
-                    sel.removeAllRanges();
-                    sel.addRange(newRange);
-                } catch(e) {
-                    console.warn("공지 서식 적용 실패:", e);
-                }
-            }
-
-            rememberNoticeSelection();
+        function formatNoticeText(command){applyNoticeFormat(command);}
+        function noticeHtmlToStorage(html){
+            const temp=document.createElement("div"); temp.innerHTML=html||"";
+            temp.querySelectorAll("br").forEach(br=>br.replaceWith(document.createTextNode("\n")));
+            temp.querySelectorAll("div,p").forEach(el=>el.insertAdjacentText("afterend","\n"));
+            return temp.innerHTML.replace(/&nbsp;/gi," ").replace(/<div>/gi,"").replace(/<\/div>/gi,"").replace(/<p>/gi,"").replace(/<\/p>/gi,"").replace(/\n{3,}/g,"\n\n");
+        }
+        function plainNoticeToHtml(value){
+            return String(value??"").replace(/\r\n/g,"\n").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/\n/g,"<br>");
+        }
+        function renderNoticeContent(value){
+            const el=document.getElementById("noticeModalContent"); if(!el)return;
+            const raw=String(value??""); if(!raw){el.textContent="공지사항이 없습니다.";return;}
+            const hasFormatting=/<(?:b|i|u|s|strike|span)(?:\s|>)/i.test(raw);
+            el.innerHTML=hasFormatting?sanitizeNoticeHtml(raw).replace(/\n/g,"<br>"):plainNoticeToHtml(raw);
+        }
+        function openNoticeEditModal(){
+            if(!isSongAuthenticated){openSongAuthModal();return;}
+            const editor=document.getElementById("noticeEditTextarea"); if(!editor)return;
+            const raw=String(currentNoticeText||"");
+            editor.innerHTML=/<(?:b|i|u|s|strike|span)(?:\s|>)/i.test(raw)?sanitizeNoticeHtml(raw).replace(/\n/g,"<br>"):plainNoticeToHtml(raw);
+            noticeSavedRange=null; editor.onmouseup=rememberNoticeSelection; editor.onkeyup=rememberNoticeSelection; editor.oninput=rememberNoticeSelection;
+            noticeEditModal.classList.add("active");
+        }
+        function closeNoticeEditModal(){noticeEditModal.classList.remove("active");}
+        function saveNoticeEdit(){
+            if(!isSongAuthenticated)return;
+            const editor=document.getElementById("noticeEditTextarea"); if(!editor)return;
+            currentNoticeText=sanitizeNoticeHtml(noticeHtmlToStorage(editor.innerHTML));
+            renderNoticeContent(currentNoticeText); closeNoticeEditModal(); enqueueSongServerSave(); showToastMessage("노래공지가 저장되었습니다.");
         }
 
-        function sanitizeNoticeHtml(value) {
-            const raw = String(value ?? "");
-            if (!raw) return "";
-
-            const doc = new DOMParser().parseFromString(`<div>${raw}</div>`, "text/html");
-            const root = doc.body.firstElementChild;
-            if (!root) return "";
-
-            const allowed = new Set(["B","I","U","S","STRIKE","BR","P","DIV","SPAN"]);
-            root.querySelectorAll("*").forEach(node => {
-                if (!allowed.has(node.tagName)) {
-                    node.replaceWith(...Array.from(node.childNodes));
-                    return;
-                }
-
-                Array.from(node.attributes).forEach(attr => {
-                    if (attr.name.toLowerCase() !== "style") {
-                        node.removeAttribute(attr.name);
-                    }
-                });
-
-                if (node.hasAttribute("style")) {
-                    const source = node.getAttribute("style") || "";
-                    const kept = [];
-                    source.split(";").forEach(rule => {
-                        const p = rule.split(":");
-                        if (p.length < 2) return;
-                        const prop = p[0].trim().toLowerCase();
-                        const val = p.slice(1).join(":").trim().toLowerCase();
-
-                        if (prop === "text-decoration" && /^(underline|line-through|underline line-through|line-through underline)$/.test(val)) {
-                            kept.push(`text-decoration: ${val}`);
-                        } else if (prop === "font-style" && val === "italic") {
-                            kept.push("font-style: italic");
-                        }
-                    });
-
-                    if (kept.length) node.setAttribute("style", kept.join("; "));
-                    else node.removeAttribute("style");
-                }
-            });
-
-            return root.innerHTML;
-        }
-
-        function plainNoticeToHtml(value) {
-            const text = normalizeNoticeText(value || "");
-            const escaped = text
-                .replaceAll("&", "&amp;")
-                .replaceAll("<", "&lt;")
-                .replaceAll(">", "&gt;")
-                .replaceAll('"', "&quot;");
-
-            return escaped
-                .replaceAll("\n", "<br>")
-                .replace(/&lt;br\s*\/?&gt;/gi, "<br>");
-        }
-
-        function renderNoticeContent(value) {
-            const el = document.getElementById("noticeModalContent");
-            if (!el) return;
-
-            const raw = String(value ?? "");
-            if (!raw) {
-                el.textContent = "공지사항이 없습니다.";
-                return;
-            }
-
-            const hasHtml = /<(?:b|i|u|s|strike|br|p|div|span)(?:\s|>)/i.test(raw);
-            el.innerHTML = hasHtml ? sanitizeNoticeHtml(raw) : plainNoticeToHtml(raw);
-        }
-
-        function openNoticeEditModal() {
-            if (!isSongAuthenticated) {
-                openSongAuthModal();
-                return;
-            }
-
-            const editor = document.getElementById("noticeEditTextarea");
-            if (!editor) return;
-
-            const raw = String(currentNoticeText || "");
-            editor.innerHTML = /<(?:b|i|u|s|strike|br|p|div|span)(?:\s|>)/i.test(raw)
-                ? sanitizeNoticeHtml(raw)
-                : plainNoticeToHtml(raw);
-
-            noticeSavedRange = null;
-
-            editor.addEventListener("mouseup", rememberNoticeSelection);
-            editor.addEventListener("keyup", rememberNoticeSelection);
-            editor.addEventListener("input", rememberNoticeSelection);
-
-            document.getElementById("noticeEditModal").classList.add("active");
-        }
-
-        function closeNoticeEditModal() {
-            document.getElementById("noticeEditModal").classList.remove("active");
-        }
-
-        function saveNoticeEdit() {
-            if (!isSongAuthenticated) return;
-
-            const editor = document.getElementById("noticeEditTextarea");
-            if (!editor) return;
-
-            currentNoticeText = sanitizeNoticeHtml(editor.innerHTML);
-            renderNoticeContent(currentNoticeText);
-            closeNoticeEditModal();
-            enqueueSongServerSave();
-            showToastMessage("노래공지가 저장되었습니다.");
-        }
-
-        // 버튼은 mousedown에서 브라우저가 selection을 없애기 전에 실행한다.
 function openRecommendModal() { generateRecommendations(); document.getElementById("recommendModal").classList.add("active"); }
         function closeRecommendModal() { document.getElementById("recommendModal").classList.remove("active"); }
         function openNoticeModal(){
@@ -2814,13 +2689,15 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
                     <div class="song-summary-row">
                         <div class="song-info-left">
                             <div class="song-title-wrapper">
-                                ${limitBadge}
-                                <div class="song-text-viewport">
-                                    <div class="song-text-marquee">
-                                        <h3 class="song-title" onclick="copySongInfo('${safeTitle}', '${safeArtist}', event)">${song.title || '제목없음'}</h3>
-                                        <span class="song-artist">${song.artist || ''}</span>
+                                <div class="song-title-line">
+                                    ${limitBadge}
+                                    <div class="song-text-viewport">
+                                        <div class="song-text-marquee">
+                                            <h3 class="song-title" onclick="copySongInfo('${safeTitle}', '${safeArtist}', event)">${song.title || '제목없음'}</h3>
+                                        </div>
                                     </div>
                                 </div>
+                                <span class="song-artist">${song.artist || ''}</span>
                             </div>
                         </div>
                         <div class="song-badges">
