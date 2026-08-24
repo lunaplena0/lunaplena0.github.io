@@ -915,16 +915,18 @@
             position: relative;
         }
         .song-text-marquee {
-            display: inline-block;
+            display: block;
             white-space: nowrap;
             min-width: max-content;
         }
-        .song-text-marquee .song-title,
-        .song-text-marquee .song-artist {
+        .song-text-marquee .song-title {
             display: block;
+            margin: 0;
+            line-height: 1.35;
         }
         .song-text-marquee .song-artist {
-            margin-left: 0;
+            display: block;
+            margin: 0;
             font-size: 0.88em;
             line-height: 1.25;
         }
@@ -1630,11 +1632,11 @@
             <div class="edit-form-field">
                 <label class="edit-form-label">공지 내용</label>
                 <div class="notice-format-toolbar" role="toolbar" aria-label="공지 서식">
-                    <button type="button" class="notice-format-btn" onmousedown="event.preventDefault()" onclick="formatNoticeText('strikeThrough')" title="취소선">S̶</button>
-                    <button type="button" class="notice-format-btn" onmousedown="event.preventDefault()" onclick="formatNoticeText('underline')" title="밑줄"><u>U</u></button>
-                    <button type="button" class="notice-format-btn" onmousedown="event.preventDefault()" onclick="formatNoticeText('italic')" title="기울임"><i>I</i></button>
+                    <button type="button" class="notice-format-btn" onmousedown="event.preventDefault()" onmousedown="applyNoticeFormat(event, 'strikeThrough')" title="취소선">S̶</button>
+                    <button type="button" class="notice-format-btn" onmousedown="event.preventDefault()" onmousedown="applyNoticeFormat(event, 'underline')" title="밑줄"><u>U</u></button>
+                    <button type="button" class="notice-format-btn" onmousedown="event.preventDefault()" onmousedown="applyNoticeFormat(event, 'italic')" title="기울임"><i>I</i></button>
                 </div>
-                <div id="noticeEditTextarea" class="notice-edit-textarea notice-edit-content" contenteditable="true" role="textbox" aria-multiline="true"></div>
+                <div id="noticeEditTextarea" class="notice-edit-textarea notice-edit-content" contenteditable="true" role="textbox" aria-multiline="true" onkeyup="saveNoticeSelection()" onmouseup="saveNoticeSelection()" oninput="saveNoticeSelection()"></div>
             </div>
             <div class="modal-actions" style="margin-top:14px;"><button class="modal-btn modal-btn-close" onclick="saveNoticeEdit()">저장</button><button class="modal-btn modal-btn-refresh" onclick="closeNoticeEditModal()">취소</button></div>
         </div>
@@ -2099,7 +2101,7 @@
                 .replaceAll("<", "&lt;")
                 .replaceAll(">", "&gt;")
                 .replaceAll('"', "&quot;");
-            return escaped.replaceAll("\n", "<br>").replaceAll("&lt;br&gt;", "<br>");
+            return escaped.replaceAll("\n", "<br>").replace(/&lt;br&gt;/gi, "<br>");
         }
 
         function renderNoticeContent(value){
@@ -2132,20 +2134,38 @@
             selection.addRange(noticeSavedRange);
         }
 
-        function formatNoticeText(command){
-            if(!isSongAuthenticated)return;
+        function applyNoticeFormat(event, command){
+            if(event) event.preventDefault();
+            if(!isSongAuthenticated) return;
+
             const editor=document.getElementById("noticeEditTextarea");
-            if(!editor)return;
+            if(!editor) return;
 
-            const supported=["strikeThrough","underline","italic"];
-            if(!supported.includes(command))return;
+            editor.focus();
 
-            restoreNoticeSelection();
+            // 버튼으로 포커스가 이동하기 전에 저장해 둔 선택 영역 복원
+            if(window.noticeSavedRange){
+                const sel=window.getSelection();
+                sel.removeAllRanges();
+                sel.addRange(window.noticeSavedRange);
+            }
 
-            // 선택된 텍스트가 없으면 이후 입력부터 서식이 적용되도록
-            // 해당 명령을 현재 커서 위치에 적용한다.
             document.execCommand(command, false, null);
             saveNoticeSelection();
+        }
+
+        function saveNoticeSelection(){
+            const editor=document.getElementById("noticeEditTextarea");
+            const sel=window.getSelection();
+            if(!editor || !sel || !sel.rangeCount) return;
+            const range=sel.getRangeAt(0);
+            if(editor.contains(range.commonAncestorContainer)){
+                window.noticeSavedRange=range.cloneRange();
+            }
+        }
+
+        function formatNoticeText(command){
+            applyNoticeFormat(null, command);
         }
 
         function openNoticeEditModal(){
