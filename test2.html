@@ -975,7 +975,6 @@
             white-space: nowrap;
         }
 
-
         /* 노래 태그: 목록 카드와 어울리는 둥근 사각형 */
         .song-limit-badge,
         .limit-badge,
@@ -1016,14 +1015,12 @@
             order: -1;
         }
 
-
         /* 목록 카드 내부 여백을 살짝 압축 */
 
         .song-title-wrapper {
             padding-top: 1px;
             padding-bottom: 1px;
         }
-
 
         .notice-format-toolbar {
             display: flex;
@@ -1307,14 +1304,22 @@
 
         .filter-grid-container {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
             gap: 12px;
+            align-items: stretch;
         }
 
         .filter-section {
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 8px;
+            min-width: 0;
+            min-height: 118px;
+            padding: 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            background: #f8fafc;
+            box-sizing: border-box;
         }
 
         .filter-section-title {
@@ -1327,6 +1332,11 @@
             display: flex;
             align-items: center;
             gap: 5px;
+        }
+
+        @media (max-width: 560px) {
+            .filter-grid-container { grid-template-columns: 1fr; gap: 9px; }
+            .filter-section { min-height: 0; padding: 10px; }
         }
 
         .filter-options {
@@ -1368,7 +1378,6 @@
     box-sizing: border-box;
 }
 
-
         
 
         
@@ -1378,7 +1387,6 @@
         
 
         
-
 
         #recommendModal .modal-btn {
             transition: all 0.2s ease;
@@ -1467,7 +1475,6 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-
         /* 모바일 기타연주/200개/300개 제한 태그 - 가독성 개선 */
 @media (max-width: 768px) {
     .song-title-line .badge-limit{
@@ -1488,7 +1495,6 @@
     }
 }
 
-
 /* 공지 서식 SVG 아이콘 */
 .notice-format-btn {
     display: inline-flex;
@@ -1505,7 +1511,6 @@
 .notice-format-btn svg path {
     vector-effect: non-scaling-stroke;
 }
-
 
 /* === 모바일 태그/추천 영역 최종 보정 === */
 @media (max-width: 768px) {
@@ -1536,7 +1541,6 @@
     fill: none !important;
     stroke: currentColor !important;
 }
-
 
 /* === limit JSON 값 기준 태그 색상 최종 적용 === */
 /* limit="기타" */
@@ -1606,7 +1610,6 @@
     height: 20px !important;
 }
 
-
 /* === limit 필드 기반 태그 색상: 실제 렌더링 클래스 === */
 .badge.badge-limit.limit-other {
     background-color: #e0f2fe !important;
@@ -1641,7 +1644,6 @@
     }
 }
 
-
 /* 기울임 아이콘 최종 스타일 */
 .italic-format-icon {
     width: 20px !important;
@@ -1653,7 +1655,6 @@
     stroke: currentColor !important;
     stroke-linecap: round !important;
 }
-
 
 /* === 그 외 장르 선택 === */
 .other-genre-modal-box {
@@ -1719,7 +1720,6 @@
     }
 }
 
-
 /* === 노래 추가 모달: 모바일 하단 잘림 방지 === */
 #songAddModal {
     padding: 12px;
@@ -1754,107 +1754,6 @@
         background: #fff;
         z-index: 2;
     }
-}
-
-
-/* === PC 노래 목록도 모바일과 동일한 2줄 구조 === */
-.song-summary-row {
-    min-height: 58px;
-    padding: 9px 12px;
-    align-items: center;
-}
-.song-title-wrapper {
-    gap: 2px !important;
-}
-.song-title-line {
-    min-height: 18px;
-    align-items: center;
-}
-.song-title {
-    font-size: 14px;
-    line-height: 1.2;
-}
-.song-title-wrapper > .song-artist {
-    margin-top: 2px;
-    font-size: 11.5px;
-    line-height: 1.2;
-    max-width: none;
-}
-.song-badges {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    max-width: 45%;
-    min-width: 0;
-    flex: 0 0 auto;
-    margin-left: auto;
-    overflow: visible;
-}
-.song-badges .badge {
-    max-width: 120px;
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-.song-badges .badge-genre {
-    flex: 0 1 auto;
-    width: auto;
-    max-width: 120px;
-    min-width: 0;
-}
-.song-badges .badge-count {
-    flex: 0 0 auto;
-    width: auto;
-    min-width: max-content;
-    max-width: none;
-    overflow: visible;
-    text-overflow: clip;
-    white-space: nowrap;
-}
-@media (max-width: 768px) {
-    .song-title {
-        font-size: 13.5px;
-    }
-    .song-title-wrapper > .song-artist {
-        font-size: 11px;
-        margin-top: 3px;
-    }
-}
-
-
-/* === v2: PC/모바일 노래 목록 카드 높이 및 내부 여백 축소 === */
-.song-card {
-    border-radius: 9px;
-}
-
-.song-title-wrapper {
-    padding-top: 0 !important;
-    padding-bottom: 0 !important;
-}
-.song-text-viewport {
-    max-height: 34px !important;
-}
-.song-text-marquee .song-title {
-    line-height: 1.12 !important;
-}
-.song-text-marquee .song-artist {
-    line-height: 1.0 !important;
-    margin-top: 0 !important;
-}
-
-/* 목록 상/하단의 카드 내부 여백도 같이 압축 */
-.song-summary-row {
-    min-height: 46px !important;
-    padding: 5px 8px !important;
-}
-.song-summary-row > * {
-    margin-top: 0 !important;
-    margin-bottom: 0 !important;
-}
-.timestamp-container {
-    padding-top: 5px !important;
-    padding-bottom: 5px !important;
 }
 
 /* === v2: 모바일 노래 추가 버튼이 하단바에 가려지지 않게 === */
@@ -1898,17 +1797,10 @@
         min-height: 38px;
     }
 
-.song-summary-row {
-        min-height: 44px !important;
-        padding: 4px 7px !important;
-    }
 }
-
 
         /* === 2026-08-25 요청사항 최종 보정 === */
         /* 1) 노래 목록 제목이 카드 왼쪽에 붙지 않도록 내부 여백 확보 */
-        .song-summary-row { padding-left: 12px !important; padding-top: 7px !important; padding-bottom: 7px !important; }
-        .song-info-left { padding-left: 3px; box-sizing: border-box; }
 
         /* 3) 모바일 노래 추가: 모달 자체만 스크롤되고 저장/취소 바는 카드 안에서 고정 */
         @media (max-width: 768px) {
@@ -1963,8 +1855,6 @@
             .song-summary-row { padding-left: 11px !important; padding-top: 6px !important; padding-bottom: 6px !important; }
             .song-info-left { padding-left: 2px; }
         }
-
-
 
 /* === v16: 노래 목록/추천의 오른쪽 요소 정렬 통일 === */
 .song-summary-row {
@@ -2043,14 +1933,11 @@
     }
 }
 
-
 /* 노래통계 전용 날짜 편집 */
-.stats-date-editor{display:flex;flex-direction:column;gap:7px;max-height:220px;overflow:auto;padding:2px}.stats-date-row{display:grid;grid-template-columns:minmax(0,1fr) 92px 28px;gap:6px;align-items:center;height:38px}.stats-date-row input,.stats-date-row select{min-width:0;height:38px}.stats-date-remove,.stats-date-add{height:28px;border-radius:8px;cursor:pointer;font-weight:700}.stats-date-remove{border:1px solid #f3c1c9;background:#fff0f2;color:#b45353}.stats-date-add{width:100%;border:1px dashed #7dd3fc;background:#f0f9ff;color:#0369a1;font-size:11px}.stats-vod-link{color:inherit;text-decoration:none}.stats-vod-link:hover{text-decoration:underline}.version-general{background:#e0f2fe!important;color:#0369a1!important;border-color:#7dd3fc!important}.version-guitar{background:#ede9fe!important;color:#6d28d9!important;border-color:#c4b5fd!important}
-.song-unregistered-item.selected{outline:2px solid #38bdf8;background:#f0f9ff!important}
-.song-etc-expanded{width:100%;padding:8px 0 2px;display:flex;justify-content:flex-start;border-bottom:1px solid #e2e8f0;margin-bottom:2px}.song-etc-expanded .badge{max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.stats-vod-row{display:flex;align-items:center;justify-content:space-between;gap:10px;border-top:1px solid #e2e8f0;padding:10px 0;font-size:12px}.stats-vod-info{min-width:0;flex:1}.stats-vod-info>div{color:#64748b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.stats-vod-actions{display:flex;gap:5px;flex-shrink:0}.stats-vod-actions .modal-btn{width:auto;padding:0 9px}
+.stats-date-editor{display:flex;flex-direction:column;gap:7px;max-height:220px;overflow:auto;padding:2px}.stats-date-row{display:grid;grid-template-columns:minmax(0,1fr) 92px 28px;gap:6px;align-items:center;height:38px}.stats-date-row input,.stats-date-row select{min-width:0;height:38px}.stats-date-remove,.stats-date-add{height:28px;border-radius:8px;cursor:pointer;font-weight:700}.stats-date-remove{border:1px solid #f3c1c9;background:#fff0f2;color:#b45353}.stats-date-add{width:100%;border:1px dashed #7dd3fc;background:#f0f9ff;color:#0369a1;font-size:11px}.song-unregistered-item.selected{outline:2px solid #38bdf8;background:#f0f9ff!important}
+.song-etc-expanded{width:100%;min-height:34px;padding:6px 0;display:flex;align-items:center;justify-content:flex-start;box-sizing:border-box;border-bottom:1px solid #e2e8f0;margin-bottom:2px}.song-etc-expanded .badge{display:inline-flex;align-items:center;min-height:24px;max-width:100%;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-sizing:border-box}.vod-input-panel{display:block;width:100%;padding:12px;border:1px solid #e2e8f0;border-radius:10px;background:#f8fafc;box-sizing:border-box}.vod-input-panel .edit-form-grid{display:grid}.stats-vod-row{display:flex;align-items:center;justify-content:space-between;gap:10px;border-top:1px solid #e2e8f0;padding:10px 0;font-size:12px}.stats-vod-info{min-width:0;flex:1}.stats-vod-info>div{color:#64748b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.stats-vod-actions{display:flex;gap:5px;flex-shrink:0}.stats-vod-actions .modal-btn{width:auto;padding:0 9px}
 @media(max-width:768px){.stats-date-row{grid-template-columns:minmax(0,1fr) 72px 28px}}
 
-.bulk-song-result{}
 @media(max-width:768px){#bulkSongInputModal .modal-actions{position:sticky;bottom:0;background:#fff;padding-top:10px}#bulkSongInputModal textarea{min-height:220px}}
 
 /* 노래책과 동일한 페이지 안내사항 팝업 */
@@ -2248,7 +2135,6 @@
             </div>
         </div>
     </div>
-
 
     <div class="modal-overlay" id="otherGenreModal">
         <div class="filter-modal-box other-genre-modal-box">
@@ -3075,7 +2961,6 @@ function addEditDateRow(date="",time=""){
             return root.innerHTML;
         }
 
-
                 let noticeSavedRange = null;
 
         function rememberNoticeSelection(){
@@ -3425,7 +3310,6 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
             filterBtn.innerHTML = iconHtml;
         }
 
-
         // 모바일 긴 노래 제목 자동 슬라이드: 일반 목록과 추천 목록에서 공통 사용
         function setupSongTitleMarquees(container, scrollRoot = null) {
             if (window.innerWidth > 768 || !container) return;
@@ -3586,7 +3470,6 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
                 };
             });
         }
-
 
         function isMainQuickGenre(song) {
             const genre = String(song?.genre || '').toLowerCase().trim();
@@ -3895,7 +3778,7 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
         });
     </script>
 <div class="modal-overlay" id="songStatsDashboardModal"><div class="filter-modal-box stats-dashboard-box"><div class="modal-header"><h3 class="modal-title">노래 통계</h3><button class="modal-close-btn" onclick="closeSongStatsDashboard()">✕</button></div><div id="songStatsDashboardContent"></div></div></div>
-<div class="modal-overlay" id="vodModal"><div class="filter-modal-box" style="width:92%;max-width:620px;max-height:88vh"><div class="modal-header"><h3 class="modal-title">VOD 관리</h3><button class="modal-close-btn" onclick="closeVodModal()">✕</button></div><div class="edit-form-grid"><div class="edit-form-field"><label class="edit-form-label">VOD 날짜</label><input id="statsVodDate" class="edit-form-input" type="text" inputmode="numeric" placeholder="YYYY-MM-DD"></div><div class="edit-form-field full"><label class="edit-form-label">VOD 주소</label><input id="statsVodUrl" class="edit-form-input" type="url" placeholder="https://..."></div></div><div class="modal-actions"><button class="modal-btn modal-btn-close" type="button" onclick="startAddVod()">＋ 추가</button><button class="modal-btn modal-btn-close" type="button" onclick="saveStatsVod()">저장</button><button class="modal-btn modal-btn-refresh" type="button" onclick="closeVodModal()">닫기</button></div><div id="statsVodList" class="stats-vod-list"></div></div></div><script>
+<div class="modal-overlay" id="vodModal"><div class="filter-modal-box" style="width:92%;max-width:620px;max-height:88vh"><div class="modal-header"><h3 class="modal-title">VOD 관리</h3><button class="modal-close-btn" onclick="closeVodModal()">✕</button></div><div class="vod-input-panel"><div class="edit-form-grid"><div class="edit-form-field"><label class="edit-form-label">VOD 날짜</label><input id="statsVodDate" class="edit-form-input" type="text" inputmode="numeric" placeholder="YYYY-MM-DD" autocomplete="off"></div><div class="edit-form-field full"><label class="edit-form-label">VOD 주소</label><input id="statsVodUrl" class="edit-form-input" type="url" placeholder="https://..." autocomplete="off"></div></div></div><div class="modal-actions"><button class="modal-btn modal-btn-close" type="button" onclick="startAddVod()">＋ 추가</button><button class="modal-btn modal-btn-close" type="button" onclick="saveStatsVod()">저장</button><button class="modal-btn modal-btn-refresh" type="button" onclick="closeVodModal()">닫기</button></div><div id="statsVodList" class="stats-vod-list"></div></div></div><script>
 function closeSongStatsDashboard(){document.getElementById('songStatsDashboardModal')?.classList.remove('active');}
 function escStats(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
 function parseStatsDate(v){
@@ -3953,15 +3836,12 @@ function localTodayString(){
     const day=String(d.getDate()).padStart(2,'0');
     return `${y}-${m}-${day}`;
 }
-function validTimeString(value){
-    const v=String(value||'').trim();
-    return !v || /^(?:\d{1,2}):[0-5]\d(?::[0-5]\d)?$/.test(v);
-}
 function openVodModal(){
     if(!isSongAuthenticated){openSongAuthModal();return;}
     resetVodForm();
     renderStatsVodList();
     document.getElementById('vodModal')?.classList.add('active');
+    requestAnimationFrame(()=>document.getElementById('statsVodDate')?.focus());
 }
 function closeVodModal(){document.getElementById('vodModal')?.classList.remove('active');}
 function resetVodForm(){
@@ -3978,6 +3858,7 @@ function startAddVod(){
 }
 function editStatsVod(key){
     if(!isSongAuthenticated)return;
+    document.getElementById('vodModal')?.classList.add('active');
     const v=(fansongStatsData.vodSources||[]).find(x=>String(x.date||'')===String(key));
     if(!v){showToastMessage('해당 VOD를 찾을 수 없습니다.');return;}
     editingVodKey=String(key);
