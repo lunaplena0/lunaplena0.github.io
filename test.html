@@ -2314,7 +2314,7 @@
                 </div>
 <div id="noticeEditTextarea" class="notice-edit-textarea notice-edit-content" contenteditable="true" role="textbox" aria-multiline="true" onkeyup="saveNoticeSelection()" onmouseup="saveNoticeSelection()" oninput="saveNoticeSelection()"></div>
             </div>
-            <div class="modal-actions" style="margin-top:14px;"><button class="modal-btn modal-btn-close" onclick="saveNoticeEdit()">저장</button><button class="modal-btn modal-btn-refresh" onclick="closeNoticeEditModal()">취소</button></div>
+            <div class="modal-actions" style="margin-top:14px;"><button class="modal-btn modal-btn-close" onclick="saveNoticeEdit()">저장</button><button class="modal-btn modal-btn-refresh" onclick="cancelNoticeEdit()">취소</button></div>
         </div>
     </div>
 
@@ -2356,6 +2356,7 @@
         let songSaveQueue = Promise.resolve();
         let isSongLocallyMutating = false;
         let currentNoticeText = "";
+        let noticeEditOriginalText = "";
         let fansongStatsData = { vodSources: [], registeredSongs: [], unregisteredSongs: [] };
         let selectedUnregisteredKey = "";
         const songAddModal = document.getElementById("songAddModal");
@@ -2984,12 +2985,35 @@
         function openNoticeEditModal(){
             if(!isSongAuthenticated){openSongAuthModal();return;}
             const editor=document.getElementById("noticeEditTextarea"); if(!editor)return;
-            const raw=normalizeNoticeText(currentNoticeText||"");
+            noticeEditOriginalText=normalizeNoticeText(currentNoticeText||"");
+            const raw=noticeEditOriginalText;
             editor.innerHTML=/<(?:b|i|u|s|strike|span)(?:\s|>)/i.test(raw)?sanitizeNoticeHtml(raw).replace(/\n/g,"<br>"):plainNoticeToHtml(raw);
-            noticeSavedRange=null; editor.onmouseup=rememberNoticeSelection; editor.onkeyup=rememberNoticeSelection; editor.oninput=rememberNoticeSelection;
+            noticeSavedRange=null;
+            editor.onmouseup=rememberNoticeSelection;
+            editor.onkeyup=rememberNoticeSelection;
+            editor.oninput=rememberNoticeSelection;
+            editor.onkeydown=function(event){
+                if(event.key==="Enter"){
+                    event.preventDefault();
+                    document.execCommand("insertHTML",false,"<br>");
+                    rememberNoticeSelection();
+                }
+            };
             noticeEditModal.classList.add("active");
         }
-        function closeNoticeEditModal(){noticeEditModal.classList.remove("active");}
+        function closeNoticeEditModal(){
+            const editor=document.getElementById("noticeEditTextarea");
+            if(editor) editor.innerHTML="";
+            noticeSavedRange=null;
+            noticeEditOriginalText="";
+            noticeEditModal.classList.remove("active");
+        }
+        function cancelNoticeEdit(){
+            // 취소는 편집 중 DOM과 서버/JSON 저장 대상 모두에 어떤 변경도 남기지 않는다.
+            currentNoticeText=noticeEditOriginalText||"";
+            closeNoticeEditModal();
+            renderNoticeContent(currentNoticeText||"공지사항이 없습니다.");
+        }
         function saveNoticeEdit(){
             if(!isSongAuthenticated)return;
             const editor=document.getElementById("noticeEditTextarea");
@@ -3066,7 +3090,7 @@
                         }
                     });
 
-                    if(styles.length){
+                    if(styles.length && inner){
                         return '<span style="'+styles.join("; ")+';">'+inner+"</span>";
                     }
                     return inner;
