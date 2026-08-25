@@ -2075,7 +2075,7 @@
 </style>
 
 <style>
-.song-etc-top{display:flex;justify-content:flex-start;align-items:center;padding:0 16px 6px;min-height:0}.song-etc-top .badge{max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.song-artist-row{display:flex;align-items:center;gap:6px;width:100%;min-width:0;}
+.song-etc-top{display:none;justify-content:flex-start;align-items:center;padding:0 16px 8px;min-height:0}.song-card.expanded .song-etc-top{display:flex}.song-etc-top .badge{max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.song-artist-row{display:flex;align-items:center;gap:6px;width:100%;min-width:0;}
 .song-artist-row .song-artist{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .song-artist-row > .badge{margin-left:auto;flex:0 0 auto;max-width:48%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 @media(max-width:768px){
@@ -2219,6 +2219,7 @@
                 </div>
             </div>
             <div class="modal-actions">
+                <button class="modal-btn modal-btn-refresh" type="button" onclick="resetDetailedFilters()">초기화</button>
                 <button class="modal-btn modal-btn-close" onclick="closeFilterModal()">확인</button>
             </div>
         </div>
@@ -3325,6 +3326,26 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
         function closeSiteInfoModal() { document.getElementById("siteInfoModal").classList.remove("active"); }
         function openFilterModal() { document.getElementById("filterModal").classList.add("active"); }
         function closeFilterModal() { document.getElementById("filterModal").classList.remove("active"); }
+
+        function resetDetailedFilters() {
+            currentCountFilter = '전체';
+            currentRecentFilter = '전체';
+            currentRegistrationFilter = '전체';
+
+            document.querySelectorAll('.count-option-btn').forEach(btn => {
+                btn.classList.toggle('selected', btn.getAttribute('data-count') === '전체');
+            });
+            document.querySelectorAll('.recent-option-btn').forEach(btn => {
+                btn.classList.toggle('selected', btn.getAttribute('data-days') === '전체');
+            });
+            document.querySelectorAll('.registration-option-btn').forEach(btn => {
+                btn.classList.toggle('selected', btn.getAttribute('data-registration') === '전체');
+            });
+
+            updateFilteredAndSorted();
+            renderAllSongs();
+            showToastMessage('상세 필터가 초기화되었습니다.');
+        }
 
         function selectRegistrationFilter(value) {
             currentRegistrationFilter = value;
