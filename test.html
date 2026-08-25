@@ -2336,6 +2336,7 @@
 
     <script>
         const WORKER_URL = "https://badabi-api.dalkkumli054.workers.dev/";
+        // 관리자 비밀번호는 localStorage/sessionStorage에 저장하지 않는다. 서버에서 권한을 검증해야 한다.
         const SONG_LIST_URL = WORKER_URL + "?type=songlist&t=";
         const STATS_API_URL = WORKER_URL + "?type=fansongstats&t=";
 
@@ -2348,10 +2349,9 @@
         let currentRecentFilter = '전체';
         let toastTimer = null;
 
-        // 참고2.txt와 동일한 인증 방식
-        let isSongAuthenticated =
-            localStorage.getItem("badabi_auth") === "true" &&
-            !!localStorage.getItem("badabi_pw");
+        // 관리자 비밀번호는 브라우저 저장소에 보관하지 않고 메모리에만 유지한다.
+        let isSongAuthenticated = false;
+        let songAuthPassword = "";
         let editingSongIndex = -1;
         let songSaveQueue = Promise.resolve();
         let isSongLocallyMutating = false;
@@ -2496,9 +2496,7 @@
                 if (!response.ok) throw new Error("인증 실패");
 
                 isSongAuthenticated = true;
-                localStorage.setItem("badabi_auth", "true");
-                localStorage.setItem("badabi_pw", password);
-                isSongAuthenticated = true;
+                songAuthPassword = password;
                 updateSongAuthUI();
                 closeSongAuthModal();
                 showToastMessage("성공적으로 인증되었습니다!");
@@ -2513,28 +2511,18 @@
 
         function logoutSongAuth() {
             isSongAuthenticated = false;
-            localStorage.removeItem("badabi_auth");
-            localStorage.removeItem("badabi_pw");
-            isSongAuthenticated = false;
+            songAuthPassword = "";
             updateSongAuthUI();
             closeSongAuthModal();
             showToastMessage("인증이 해제되었습니다.");
         }
 
         function restoreSongAuthentication() {
-            const auth = localStorage.getItem("badabi_auth") === "true";
-            const password = localStorage.getItem("badabi_pw") || "";
-            isSongAuthenticated = auth && !!password;
             document.body.classList.toggle("authenticated-mode", isSongAuthenticated);
             return isSongAuthenticated;
         }
 
         function updateSongAuthUI() {
-            // 새로고침 후에도 localStorage의 인증 정보를 기준으로 관리자 모드를 복원
-            const auth = localStorage.getItem("badabi_auth") === "true";
-            const password = localStorage.getItem("badabi_pw") || "";
-            isSongAuthenticated = auth && !!password;
-
             document.body.classList.toggle("authenticated-mode", isSongAuthenticated);
 
             if (songAuthBtn) {
@@ -2614,7 +2602,7 @@
         function enqueueSongServerSave() {
             isSongLocallyMutating = true;
             songSaveQueue = songSaveQueue.then(async () => {
-                const password=localStorage.getItem("badabi_pw") || "";
+                const password=songAuthPassword;
                 if (!isSongAuthenticated || !password) throw new Error("로그인 인증이 만료되었습니다. 다시 로그인해주세요.");
                 const songListContent={ notice:currentNoticeText||"", songs:getEditableSongContent() };
                 const statsContent={ vodSources:Array.isArray(fansongStatsData.vodSources)?fansongStatsData.vodSources:[], registeredSongs:Array.isArray(fansongStatsData.registeredSongs)?fansongStatsData.registeredSongs:[], unregisteredSongs:Array.isArray(fansongStatsData.unregisteredSongs)?fansongStatsData.unregisteredSongs:[] };
@@ -2920,51 +2908,6 @@
 
         function formatNoticeText(command){ applyNoticeFormat(command); }
 
-        // contenteditable에서 Enter로 만들어지는 div/p/br을
-        // 저장할 때 기존처럼 실제 \n으로 변환한다.
-        function noticeHtmlToStorage(html){
-            const temp=document.createElement("div");
-            temp.innerHTML=html || "";
-
-            function serialize(node){
-                if(node.nodeType===Node.TEXT_NODE) return node.nodeValue || "";
-                if(node.nodeType!==Node.ELEMENT_NODE) return "";
-
-                const tag=node.tagName.toLowerCase();
-                if(tag==="br") return "\n";
-
-                let inner="";
-                Array.from(node.childNodes).forEach(child=>{ inner+=serialize(child); });
-
-                if(tag==="div" || tag==="p"){
-                    return "\n"+inner+"\n";
-                }
-
-                if(tag==="span"){
-                    const style=node.getAttribute("style") || "";
-                    if(style){
-                        const clean=style
-                            .replace(/\s+/g," ")
-                            .replace(/;\s*$/,"")
-                            .trim();
-                        return `<span style="${clean}">${inner}</span>`;
-                    }
-                    return inner;
-                }
-
-                if(tag==="b" || tag==="i" || tag==="u" || tag==="s" || tag==="strike"){
-                    return `<${tag}>${inner}</${tag}>`;
-                }
-
-                return inner;
-            }
-
-            return serialize(temp)
-                .replace(/\r\n/g,"\n")
-                .replace(/\n{3,}/g,"\n\n")
-                .replace(/^\n+|\n+$/g,"");
-        }
-
         function plainNoticeToHtml(value){
             return String(value??"")
                 .replace(/\r\n/g,"\n")
@@ -2995,22 +2938,20 @@
             editor.onkeydown=function(event){
                 if(event.key==="Enter"){
                     event.preventDefault();
+                    event.stopPropagation();
                     const sel=window.getSelection();
                     if(!sel || !sel.rangeCount) return;
                     const range=sel.getRangeAt(0);
                     if(!editor.contains(range.commonAncestorContainer)) return;
-
-                    // 브라우저 기본 contenteditable Enter 동작을 사용하지 않고
-                    // 현재 커서 위치에 BR을 직접 삽입한 뒤 커서를 BR 뒤로 이동한다.
-                    // 다음 줄에 이미 글자가 있어도 그 글자 위치로 건너뛰지 않는다.
                     range.deleteContents();
                     const br=document.createElement("br");
                     range.insertNode(br);
-                    range.setStartAfter(br);
-                    range.collapse(true);
+                    const caret=document.createRange();
+                    caret.setStartAfter(br);
+                    caret.collapse(true);
                     sel.removeAllRanges();
-                    sel.addRange(range);
-                    rememberNoticeSelection();
+                    sel.addRange(caret);
+                    noticeSavedRange=caret.cloneRange();
                 }
             };
             noticeEditModal.classList.add("active");
