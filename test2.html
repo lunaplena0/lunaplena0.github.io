@@ -2111,6 +2111,12 @@
                     </svg>
                     VOD 관리
                 </button>
+                <button id="songStatsBtn" class="header-action-btn" onclick="openSongStatsModal()" style="display:none;">
+                    <svg class="btn-icon-svg" viewBox="0 0 24 24">
+                        <line x1="4" y1="19" x2="20" y2="19"></line><line x1="7" y1="16" x2="7" y2="10"></line><line x1="12" y1="16" x2="12" y2="6"></line><line x1="17" y1="16" x2="17" y2="3"></line>
+                    </svg>
+                    통계
+                </button>
             </div>
         </div>
 
@@ -2755,7 +2761,9 @@
             document.body.classList.toggle("authenticated-mode", isSongAuthenticated);
 
             const vodManageBtn = document.getElementById("vodManageBtn");
+            const songStatsBtn = document.getElementById("songStatsBtn");
             if (vodManageBtn) vodManageBtn.style.display = isSongAuthenticated ? "" : "none";
+            if (songStatsBtn) songStatsBtn.style.display = isSongAuthenticated ? "" : "none";
 
             if (songAuthBtn) {
                 songAuthBtn.classList.toggle("authenticated", isSongAuthenticated);
@@ -3823,7 +3831,7 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
                         const vodUrl = vodMap[rawDate] || "#";
                         const separator = vodUrl.includes("?") ? "&" : "?";
                         const finalLink = vodUrl !== "#" ? `${vodUrl}${separator}change_second=${timeToSeconds(dt.time)}` : "#";
-                        const cleanDate = rawDate || "날짜없음";
+                        const cleanDate = rawDate ? rawDate.replace(/\(\d+\)$/, '') : "날짜없음";
 
                         let isHighlighted = false;
                         if (currentRecentFilter !== '전체') {
@@ -3898,8 +3906,66 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
             loadData();
         });
     </script>
-<div class="modal-overlay" id="vodModal"><div class="filter-modal-box" style="width:92%;max-width:620px;max-height:88vh"><div class="modal-header"><h3 class="modal-title">VOD 관리</h3><button class="modal-close-btn" onclick="closeVodModal()">✕</button></div><div class="vod-entry-form"><div class="edit-form-field"><label class="edit-form-label">VOD 날짜</label><input id="statsVodDate" class="edit-form-input stats-manual-date" type="text" inputmode="numeric" autocomplete="off" placeholder="2026-08-25"></div><div class="edit-form-field vod-url-field"><label class="edit-form-label">VOD 주소</label><input id="statsVodUrl" class="edit-form-input" type="url" placeholder="https://..."></div></div><div class="modal-actions"><button class="modal-btn modal-btn-close" type="button" onclick="startAddVod()">＋ 추가</button><button class="modal-btn modal-btn-close" type="button" onclick="saveStatsVod()">저장</button><button class="modal-btn modal-btn-refresh" type="button" onclick="closeVodModal()">닫기</button></div><div id="statsVodList" class="stats-vod-list"></div></div></div><script>
+<div class="modal-overlay" id="songStatsModal">
+  <div class="filter-modal-box stats-dashboard-modal">
+    <div class="modal-header">
+      <h3 class="modal-title">노래 통계</h3>
+      <button class="modal-close-btn" onclick="closeSongStatsModal()">✕</button>
+    </div>
+    <div id="songStatsContent" class="song-stats-content"></div>
+    <div class="modal-actions"><button class="modal-btn modal-btn-refresh" onclick="closeSongStatsModal()">닫기</button></div>
+  </div>
+</div>
+<div class="modal-overlay" id="vodModal"><div class="filter-modal-box" style="width:92%;max-width:620px;max-height:88vh"><div class="modal-header"><h3 class="modal-title">VOD 관리</h3><button class="modal-close-btn" onclick="closeVodModal()">✕</button></div><div class="vod-entry-form"><div class="edit-form-field"><label class="edit-form-label">VOD 날짜</label><input id="statsVodDate" class="edit-form-input stats-manual-date" type="text" inputmode="numeric" autocomplete="off" placeholder="2026-08-25"></div><div class="edit-form-field vod-url-field"><label class="edit-form-label">VOD 주소</label><input id="statsVodUrl" class="edit-form-input" type="url" placeholder="https://..."></div></div><div class="modal-actions"><button class="modal-btn modal-btn-close" type="button" onclick="startAddVod()">＋ 추가</button><button class="modal-btn modal-btn-close" type="button" onclick="saveStatsVod()">저장</button><button class="modal-btn modal-btn-refresh" type="button" onclick="closeVodModal()">닫기</button></div><div id="statsVodList" class="stats-vod-list"></div></div></div><style>
+.stats-dashboard-modal{width:92%;max-width:760px;max-height:88vh;overflow-y:auto}.song-stats-content{display:grid;gap:14px}.song-stats-section{border:1px solid #e2e8f0;border-radius:12px;padding:14px;background:#fff}.song-stats-section h4{margin:0 0 10px;font-size:14px;color:#0f172a}.song-stats-list{display:grid;gap:6px}.song-stats-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid #f1f5f9;font-size:12px}.song-stats-row:last-child{border-bottom:0}.song-stats-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.song-stats-value{font-weight:700;color:#0369a1;white-space:nowrap}.song-stats-muted{font-size:11px;color:#64748b}.song-stats-empty{color:#64748b;font-size:12px;padding:6px 0}.song-stats-pair{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid #f1f5f9;font-size:12px}.song-stats-pair:last-child{border-bottom:0}.song-stats-subtitle{margin:12px 0 6px;font-size:12px;font-weight:700;color:#334155}.song-stats-top-song{padding:8px 0;border-bottom:1px solid #f1f5f9}.song-stats-top-song:last-child{border-bottom:0}.song-stats-top-song strong{display:block;font-size:12px}.song-stats-top-song span{display:block;font-size:11px;color:#64748b;margin-top:2px}@media(max-width:768px){.stats-dashboard-modal{width:94%;max-height:86vh}.song-stats-section{padding:12px}}
+</style>
+<script>
 let editingVodKey='';
+
+function openSongStatsModal(){
+    if(!isSongAuthenticated){openSongAuthModal();return;}
+    renderSongStatsDashboard();
+    document.getElementById('songStatsModal')?.classList.add('active');
+}
+function closeSongStatsModal(){document.getElementById('songStatsModal')?.classList.remove('active');}
+function formatPercent(value,total){return total?((value/total)*100).toFixed(1)+'%':'0%';}
+function statsDateOnly(dt){return parseDateString(dt?.date)||null;}
+function renderSongStatsDashboard(){
+    const c=document.getElementById('songStatsContent'); if(!c)return;
+    const registered=Array.isArray(fansongStatsData.registeredSongs)?fansongStatsData.registeredSongs:[];
+    const unregistered=Array.isArray(fansongStatsData.unregisteredSongs)?fansongStatsData.unregisteredSongs:[];
+    const all=[...registered,...unregistered];
+    const regCounts=new Map();
+    registered.forEach(song=>{const n=Array.isArray(song.dateTimes)?song.dateTimes.length:0;regCounts.set(n,(regCounts.get(n)||0)+1);});
+    const maxCount=Math.max(0,...regCounts.keys());
+    const countRows=[];
+    for(let i=0;i<=maxCount;i++) countRows.push(`<div class="song-stats-row"><span class="song-stats-name">${i}번 불렀던 노래</span><span class="song-stats-value">${regCounts.get(i)||0}곡</span></div>`);
+
+    const genreMap=new Map();
+    all.forEach(song=>{const g=String(song.genre||'미분류').trim()||'미분류';genreMap.set(g,(genreMap.get(g)||0)+1);});
+    const genreRows=[...genreMap.entries()].sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0],'ko')).map(([g,n])=>`<div class="song-stats-pair"><span>${escapeHtml(g)}</span><span>${n}곡 · ${formatPercent(n,all.length)}</span></div>`).join('');
+
+    const artistMap=new Map();
+    all.forEach(song=>{const a=String(song.artist||'아티스트 미상').trim()||'아티스트 미상';artistMap.set(a,(artistMap.get(a)||0)+(Array.isArray(song.dateTimes)?song.dateTimes.length:0));});
+    const artistRows=[...artistMap.entries()].sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0],'ko')).slice(0,20).map(([a,n],i)=>`<div class="song-stats-row"><span class="song-stats-name">${i+1}. ${escapeHtml(a)}</span><span class="song-stats-value">${n}회</span></div>`).join('');
+
+    const now=new Date(); const cutoff=new Date(now.getFullYear(),now.getMonth(),now.getDate()); cutoff.setDate(cutoff.getDate()-29);
+    function recentSongs(pool){
+        return pool.map(song=>{const recent=(song.dateTimes||[]).filter(dt=>{const d=statsDateOnly(dt);return d&&d>=cutoff&&d<=now;});return {...song,_recentCount:recent.length};}).filter(song=>song._recentCount>0);
+    }
+    function topRecent(pool){
+        const items=recentSongs(pool); if(!items.length)return '<div class="song-stats-empty">최근 30일 기록이 없습니다.</div>';
+        const max=Math.max(...items.map(x=>x._recentCount));
+        return items.filter(x=>x._recentCount===max).sort((a,b)=>(a.title||'').localeCompare(b.title||'','ko')).map(song=>`<div class="song-stats-top-song"><strong>${escapeHtml(song.title||'제목없음')}</strong><span>${escapeHtml(song.artist||'')} · 최근 30일 ${song._recentCount}회</span></div>`).join('');
+    }
+    c.innerHTML=`
+      <div class="song-stats-section"><h4>등록된 노래 · 부른 횟수 비율</h4><div class="song-stats-list">${countRows.join('')||'<div class="song-stats-empty">등록된 노래가 없습니다.</div>'}</div></div>
+      <div class="song-stats-section"><h4>전체 노래 · 장르 비율</h4><div>${genreRows||'<div class="song-stats-empty">장르 데이터가 없습니다.</div>'}</div></div>
+      <div class="song-stats-section"><h4>가장 많이 부른 가수 순위</h4><div class="song-stats-list">${artistRows||'<div class="song-stats-empty">기록이 없습니다.</div>'}</div></div>
+      <div class="song-stats-section"><h4>최근 30일 가장 많이 부른 등록곡</h4>${topRecent(registered)}</div>
+      <div class="song-stats-section"><h4>최근 30일 가장 많이 부른 미등록곡</h4>${topRecent(unregistered)}</div>`;
+}
+
 
 function localTodayString(){
     const d=new Date();
@@ -3940,7 +4006,6 @@ function editStatsVod(key){
     const m=String(v.date||'').match(/^(\d{4}-\d{2}-\d{2})(?:\((\d+)\))?$/);
     const d=document.getElementById('statsVodDate'), u=document.getElementById('statsVodUrl');
     if(d)d.value=m?m[1]:'';
-    if(t)t.value=v.time||'';
     if(u)u.value=v.url||'';
 }
 function deleteStatsVod(key){
@@ -3958,18 +4023,16 @@ function renderStatsVodList(){
     const list=Array.isArray(fansongStatsData.vodSources)?fansongStatsData.vodSources:[];
     c.innerHTML=list.slice().sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))).map(v=>{
         const key=String(v.date||'');
-        const time=v.time?` · ${escapeHtml(v.time)}`:'';
-        return `<div class="stats-vod-row"><div class="stats-vod-info"><strong>${escapeHtml(key)}</strong><div>${escapeHtml(v.url||'')}${time}</div></div><div class="stats-vod-actions"><button type="button" class="modal-btn" onclick="editStatsVod(${JSON.stringify(key)})">수정</button><button type="button" class="modal-btn modal-btn-danger" onclick="deleteStatsVod(${JSON.stringify(key)})">삭제</button></div></div>`;
+        return `<div class="stats-vod-row"><div class="stats-vod-info"><strong>${escapeHtml(key)}</strong><div>${escapeHtml(v.url||'')}</div></div><div class="stats-vod-actions"><button type="button" class="modal-btn" onclick="editStatsVod(${JSON.stringify(key)})">수정</button><button type="button" class="modal-btn modal-btn-danger" onclick="deleteStatsVod(${JSON.stringify(key)})">삭제</button></div></div>`;
     }).join('')||'<div class="no-result">등록된 VOD가 없습니다.</div>';
 }
 function saveStatsVod(){
     if(!isSongAuthenticated){openSongAuthModal();return;}
     const d=document.getElementById('statsVodDate'), u=document.getElementById('statsVodUrl');
-    const baseDate=normalizeManualDate(d?.value), time=(t?.value||'').trim(), url=(u?.value||'').trim();
+    const baseDate=normalizeManualDate(d?.value), url=(u?.value||'').trim();
     if(!baseDate){showToastMessage('VOD 날짜를 입력해주세요.');return;}
     if(!url){showToastMessage('VOD 주소를 입력해주세요.');return;}
     if(!/^https?:\/\//i.test(url)){showToastMessage('VOD 주소는 http:// 또는 https://로 입력해주세요.');return;}
-    if(!validTimeString(time)){showToastMessage('VOD 시간은 예: 20:30:00 형식으로 입력해주세요.');return;}
 
     // 회차는 기존 vodSources의 날짜 형식을 유지한다.
     // 추가 모드에서는 같은 날짜가 이미 있으면 다음 회차를 자동 부여한다.
@@ -3994,10 +4057,10 @@ function saveStatsVod(){
         const old=String(editingVodKey);
         const target=list.find(v=>String(v.date||'')===old);
         if(!target){showToastMessage('수정할 VOD를 찾을 수 없습니다.');return;}
-        target.date=key; target.url=url; if(time)target.time=time; else delete target.time;
+        target.date=key; target.url=url; delete target.time;
         if(old!==key)delete vodMap[old];
     }else{
-        list.push(time?{date:key,url,time}:{date:key,url});
+        list.push({date:key,url});
     }
     fansongStatsData.vodSources=list;
     vodMap[key]=url;
