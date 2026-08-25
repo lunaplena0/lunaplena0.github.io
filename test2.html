@@ -2073,6 +2073,17 @@
   #siteInfoModal .site-info-intro { font-size:12px; line-height:1.65; }
 }
 </style>
+
+<style>
+.song-artist-row{display:flex;align-items:center;gap:6px;width:100%;min-width:0;}
+.song-artist-row .song-artist{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.song-artist-row > .badge{margin-left:auto;flex:0 0 auto;max-width:48%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+@media(max-width:768px){
+ .song-artist-row{min-height:22px;}
+ .song-artist-row > .badge{font-size:11px;line-height:20px;padding:0 6px;}
+ .song-text-viewport{min-width:0;}
+}
+</style>
 </head>
 <body>
 
@@ -2094,7 +2105,7 @@
                 </div>
             </div>
             <div class="header-btn-group">
-                <button class="header-action-btn" onclick="openVodModal()">
+                <button id="vodManageBtn" class="header-action-btn" onclick="openVodModal()" style="display:none;">
                     <svg class="btn-icon-svg" viewBox="0 0 24 24">
                         <path d="M4 5h16v14H4z"></path><path d="M8 9h8M8 13h5"></path>
                     </svg>
@@ -2727,6 +2738,9 @@
 
         function updateSongAuthUI() {
             document.body.classList.toggle("authenticated-mode", isSongAuthenticated);
+
+            const vodManageBtn = document.getElementById("vodManageBtn");
+            if (vodManageBtn) vodManageBtn.style.display = isSongAuthenticated ? "" : "none";
 
             if (songAuthBtn) {
                 songAuthBtn.classList.toggle("authenticated", isSongAuthenticated);
@@ -3683,22 +3697,18 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
             });
 
             sortedSongs = [...filteredSongs].sort((a, b) => {
-                const artistA = (a.artist || '아티스트 미상').trim();
-                const artistB = (b.artist || '아티스트 미상').trim();
-                const artistCompare = artistA.localeCompare(artistB, 'ko', { sensitivity: 'base' });
-                if (artistCompare !== 0) return artistCompare;
+                const countA = Array.isArray(a.dateTimes) ? a.dateTimes.length : 0;
+                const countB = Array.isArray(b.dateTimes) ? b.dateTimes.length : 0;
+                if (countA !== countB) return countB - countA;
 
                 const titleA = (a.title || '').trim();
                 const titleB = (b.title || '').trim();
                 const titleCompare = titleA.localeCompare(titleB, 'ko', { sensitivity: 'base' });
                 if (titleCompare !== 0) return titleCompare;
 
-                // 같은 가수/같은 제목이면 일반 버전을 먼저, 기타전용 버전을 다음으로
-                const isGuitarA = String(a.limit || '').toLowerCase().includes('기타');
-                const isGuitarB = String(b.limit || '').toLowerCase().includes('기타');
-                if (isGuitarA !== isGuitarB) return isGuitarA ? 1 : -1;
-
-                return 0;
+                const artistA = (a.artist || '아티스트 미상').trim();
+                const artistB = (b.artist || '아티스트 미상').trim();
+                return artistA.localeCompare(artistB, 'ko', { sensitivity: 'base' });
             });
         }
 
@@ -3809,11 +3819,10 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
                                         </div>
                                     </div>
                                 </div>
-                                <span class="song-artist">${song.artist || ''}</span>
+                                <div class="song-artist-row"><span class="song-artist">${song.artist || ''}</span>${etcBadge}</div>
                             </div>
                         </div>
                         <div class="song-badges">
-                            ${etcBadge}
                             ${genreBadge}
                             ${countBadge}
                             ${isSongAuthenticated ? `<button class="song-edit-btn" onclick="event.stopPropagation(); openSongEditModal(${sortedIndex})" title="노래 수정">✎ 수정</button>` : ""}
@@ -3837,7 +3846,7 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
             loadData();
         });
     </script>
-<div class="modal-overlay" id="vodModal"><div class="filter-modal-box" style="width:92%;max-width:620px;max-height:88vh"><div class="modal-header"><h3 class="modal-title">VOD 관리</h3><button class="modal-close-btn" onclick="closeVodModal()">✕</button></div><div class="vod-entry-form"><div class="edit-form-field"><label class="edit-form-label">VOD 날짜</label><input id="statsVodDate" class="edit-form-input stats-manual-date" type="text" inputmode="numeric" autocomplete="off" placeholder="2026-08-25"></div><div class="edit-form-field"><label class="edit-form-label">VOD 시간</label><input id="statsVodTime" class="edit-form-input" type="text" placeholder="예: 20:30:00" inputmode="numeric"></div><div class="edit-form-field vod-url-field"><label class="edit-form-label">VOD 주소</label><input id="statsVodUrl" class="edit-form-input" type="url" placeholder="https://..."></div></div><div class="modal-actions"><button class="modal-btn modal-btn-close" type="button" onclick="startAddVod()">＋ 추가</button><button class="modal-btn modal-btn-close" type="button" onclick="saveStatsVod()">저장</button><button class="modal-btn modal-btn-refresh" type="button" onclick="closeVodModal()">닫기</button></div><div id="statsVodList" class="stats-vod-list"></div></div></div><script>
+<div class="modal-overlay" id="vodModal"><div class="filter-modal-box" style="width:92%;max-width:620px;max-height:88vh"><div class="modal-header"><h3 class="modal-title">VOD 관리</h3><button class="modal-close-btn" onclick="closeVodModal()">✕</button></div><div class="vod-entry-form"><div class="edit-form-field"><label class="edit-form-label">VOD 날짜</label><input id="statsVodDate" class="edit-form-input stats-manual-date" type="text" inputmode="numeric" autocomplete="off" placeholder="2026-08-25"></div><div class="edit-form-field vod-url-field"><label class="edit-form-label">VOD 주소</label><input id="statsVodUrl" class="edit-form-input" type="url" placeholder="https://..."></div></div><div class="modal-actions"><button class="modal-btn modal-btn-close" type="button" onclick="startAddVod()">＋ 추가</button><button class="modal-btn modal-btn-close" type="button" onclick="saveStatsVod()">저장</button><button class="modal-btn modal-btn-refresh" type="button" onclick="closeVodModal()">닫기</button></div><div id="statsVodList" class="stats-vod-list"></div></div></div><script>
 let editingVodKey='';
 
 function localTodayString(){
@@ -3860,10 +3869,9 @@ function openVodModal(){
 function closeVodModal(){document.getElementById('vodModal')?.classList.remove('active');}
 function resetVodForm(){
     editingVodKey='';
-    const d=document.getElementById('statsVodDate'), t=document.getElementById('statsVodTime'), u=document.getElementById('statsVodUrl');
+    const d=document.getElementById('statsVodDate'), u=document.getElementById('statsVodUrl');
     bindManualDate('statsVodDate');
     if(d)d.value=localTodayString();
-    if(t)t.value='';
     if(u)u.value='';
 }
 function startAddVod(){
@@ -3878,7 +3886,7 @@ function editStatsVod(key){
     if(!v){showToastMessage('해당 VOD를 찾을 수 없습니다.');return;}
     editingVodKey=String(key);
     const m=String(v.date||'').match(/^(\d{4}-\d{2}-\d{2})(?:\((\d+)\))?$/);
-    const d=document.getElementById('statsVodDate'), t=document.getElementById('statsVodTime'), u=document.getElementById('statsVodUrl');
+    const d=document.getElementById('statsVodDate'), u=document.getElementById('statsVodUrl');
     if(d)d.value=m?m[1]:'';
     if(t)t.value=v.time||'';
     if(u)u.value=v.url||'';
@@ -3904,7 +3912,7 @@ function renderStatsVodList(){
 }
 function saveStatsVod(){
     if(!isSongAuthenticated){openSongAuthModal();return;}
-    const d=document.getElementById('statsVodDate'), t=document.getElementById('statsVodTime'), u=document.getElementById('statsVodUrl');
+    const d=document.getElementById('statsVodDate'), u=document.getElementById('statsVodUrl');
     const baseDate=normalizeManualDate(d?.value), time=(t?.value||'').trim(), url=(u?.value||'').trim();
     if(!baseDate){showToastMessage('VOD 날짜를 입력해주세요.');return;}
     if(!url){showToastMessage('VOD 주소를 입력해주세요.');return;}
