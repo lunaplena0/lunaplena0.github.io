@@ -1339,9 +1339,27 @@
         .filter-heading-icon { width: 15px; height: 15px; flex: 0 0 15px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 
         @media (max-width: 768px) {
-            .filter-modal-box { width: 94%; max-width: none; padding: 16px; }
+            /* 모바일 브라우저 하단 내비게이션/툴바에 팝업 하단이 가려지지 않도록
+               모든 공통 팝업에 여유 공간을 확보합니다. */
+            .modal-overlay {
+                height: 100dvh;
+                min-height: 100vh;
+                box-sizing: border-box;
+                padding: 12px 0 calc(68px + env(safe-area-inset-bottom));
+                align-items: center;
+                overflow: hidden;
+            }
+            .modal-box,
+            .notice-modal-box,
+            .filter-modal-box,
+            .other-genre-modal-box {
+                max-height: calc(100dvh - 80px - env(safe-area-inset-bottom));
+                margin-bottom: 0;
+                box-sizing: border-box;
+            }
+            .filter-modal-box { width: 94%; max-width: none; padding: 16px 16px calc(22px + env(safe-area-inset-bottom)); }
             .filter-grid-container { grid-template-columns: 1fr; gap: 14px; }
-            .filter-section { min-height: 0; padding: 10px; }
+            .filter-section { min-height: 0; padding: 10px 0; }
         }
 
         .filter-options {
@@ -1946,6 +1964,24 @@
 @media(max-width:768px){#bulkSongInputModal .modal-actions{position:sticky;bottom:0;background:#fff;padding-top:10px}#bulkSongInputModal textarea{min-height:220px}}
 
 /* 노래책과 동일한 페이지 안내사항 팝업 */
+/* 모든 모바일 팝업의 하단 안전 여백을 최종적으로 통일 */
+@media (max-width:768px){
+  .modal-overlay > .modal-box,
+  .modal-overlay > .notice-modal-box,
+  .modal-overlay > .filter-modal-box,
+  .modal-overlay > .other-genre-modal-box{
+    max-height:calc(100dvh - 80px - env(safe-area-inset-bottom)) !important;
+    padding-bottom:max(24px, calc(24px + env(safe-area-inset-bottom)));
+  }
+  #bulkSongInputModal .modal-box,
+  #songEditModal .modal-box,
+  #songAddModal .filter-modal-box,
+  #recommendModal .modal-box,
+  #siteInfoModal .notice-modal-box{
+    padding-bottom:max(28px, calc(28px + env(safe-area-inset-bottom))) !important;
+  }
+}
+
 #siteInfoModal .notice-modal-box { height:auto; max-height:82vh; }
 #siteInfoModal .modal-header { padding-bottom:8px; }
 #siteInfoModal .modal-title { gap:6px; }
