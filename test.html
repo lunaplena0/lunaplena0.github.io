@@ -2149,50 +2149,78 @@
 
 
 
-/* === v10: 추천 팝업 여백/모바일 높이 및 장르·횟수 배지 표시 보정 === */
+/* === v11: 추천 팝업 높이 복원 + 모바일 장르/횟수 배지 안정화 === */
 @media (min-width: 769px) {
-    /* 제목과 추천 목록 사이에 살짝 여백 */
+    /* 제목과 첫 추천곡 사이의 여백은 유지하고, 4번째 카드가 잘리지 않도록 높이 복원 */
+    #recommendModal .modal-box {
+        height: 400px !important;
+        min-height: 400px !important;
+        max-height: 400px !important;
+    }
     #recommendModal .recommend-list {
+        height: 276px !important;
+        min-height: 276px !important;
+        max-height: 276px !important;
+        flex: 0 0 276px !important;
         padding-top: 8px !important;
+        gap: 6px !important;
         box-sizing: border-box !important;
+        overflow: hidden !important;
     }
 }
 
 @media (max-width: 768px) {
-    /* 모바일 추천 팝업의 불필요한 빈 공간 축소 */
+    /* 모바일 추천곡 카드 자체의 높이를 목록 카드와 비슷하게 복원 */
     #recommendModal .modal-box {
-        height: 350px !important;
-        min-height: 350px !important;
-        max-height: 350px !important;
+        height: 400px !important;
+        min-height: 400px !important;
+        max-height: 400px !important;
     }
     #recommendModal .recommend-list {
-        height: 204px !important;
-        min-height: 204px !important;
-        max-height: 204px !important;
-        flex: 0 0 204px !important;
+        height: 238px !important;
+        min-height: 238px !important;
+        max-height: 238px !important;
+        flex: 0 0 238px !important;
         gap: 6px !important;
         overflow: hidden !important;
         box-sizing: border-box !important;
     }
-
-    /* 장르가 길어도 장르·횟수 배지가 함께 보이도록 영역 확보 */
-    #recommendModal .song-badges {
-        max-width: 52% !important;
-        min-width: max-content !important;
-        flex-shrink: 0 !important;
-        gap: 4px !important;
-    }
-    #recommendModal .song-badges .badge {
-        flex-shrink: 0 !important;
+    #recommendModal .song-card .song-summary-row {
+        min-height: 54px !important;
+        height: 54px !important;
+        padding: 6px 8px !important;
         box-sizing: border-box !important;
     }
+
+    /* 장르가 길어도 장르만 줄이고 횟수는 절대 줄어들지 않게 */
+    #recommendModal .song-badges {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: flex-end !important;
+        gap: 4px !important;
+        width: 52% !important;
+        max-width: 52% !important;
+        min-width: 0 !important;
+        flex: 0 0 52% !important;
+        flex-shrink: 0 !important;
+        overflow: hidden !important;
+        white-space: nowrap !important;
+    }
     #recommendModal .song-badges .badge:first-child {
-        max-width: 112px !important;
+        flex: 1 1 auto !important;
+        min-width: 0 !important;
+        max-width: none !important;
         overflow: hidden !important;
         text-overflow: ellipsis !important;
+        white-space: nowrap !important;
     }
     #recommendModal .song-badges .badge-count {
+        flex: 0 0 auto !important;
+        width: auto !important;
         min-width: 30px !important;
+        max-width: none !important;
+        overflow: visible !important;
+        text-overflow: clip !important;
         white-space: nowrap !important;
     }
 }
