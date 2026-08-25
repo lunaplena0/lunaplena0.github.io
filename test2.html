@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>바다비 노래통계</title>
+<link rel="icon" type="image/png" href="badabi_logo.png"><script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+<style>
+*{box-sizing:border-box}
+body{margin:0;width:100vw;height:100dvh;overflow:hidden;background:#f8fafc;color:#1e293b;font-family:"Segoe UI",Tahoma,Geneva,Verdana,sans-serif}
+.main-container{width:100%;max-width:840px;height:100%;margin:auto;padding:12px 16px;display:flex;flex-direction:column;gap:12px}
+.page-title{font-size:21px;font-weight:800;color:#0f172a;margin:0;display:flex;align-items:center;gap:8px}
+.page-title-svg{width:24px;height:24px;stroke:#0ea5e9;stroke-width:2.2;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.title-summary-box{border-left:5px solid #0ea5e9;padding-left:14px}
+.stats-summary{font-size:13px;color:#64748b;font-weight:600;margin-top:4px}
+.header-row{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-shrink:0}
+.header-btn-group{display:flex;gap:6px}
+.header-action-btn,.admin-btn{border:1px solid #cbd5e1;background:#fff;color:#0369a1;border-radius:10px;padding:7px 10px;font-size:12px;font-weight:700;cursor:pointer}
+.header-action-btn:hover,.admin-btn:hover{border-color:#0ea5e9;background:#f0f9ff}
+.auth-icon-btn{width:34px;height:34px;border:1px solid #cbd5e1;border-radius:10px;background:#fff;color:#0369a1;cursor:pointer}
+body.authenticated-mode .auth-icon-btn{background:#e0f2fe;border-color:#0ea5e9}
+.admin-toolbar{display:none;gap:6px;margin-top:8px}
+body.authenticated-mode .admin-toolbar{display:flex}
+.search-container{position:relative;flex-shrink:0}
+.search-box{width:100%;padding:12px 42px 12px 16px;border:1px solid #cbd5e1;border-radius:12px;background:#fff;font:inherit;outline:none}
+.search-box:focus{border-color:#0ea5e9;box-shadow:0 0 0 3px rgba(14,165,233,.12)}
+.search-icon-wrapper{position:absolute;right:8px;top:7px;width:34px;height:34px;border:0;background:transparent;color:#64748b;cursor:pointer}
+.stats-tabs{display:flex;gap:6px;flex-shrink:0}
+.stats-tab{height:34px;padding:0 12px;border:1px solid #cbd5e1;border-radius:10px;background:#fff;color:#0369a1;font-weight:700;cursor:pointer}
+.stats-tab.active{background:#0ea5e9;border-color:#0ea5e9;color:#fff}
+.content-scroll{flex:1;min-height:0;overflow:auto;padding-right:2px;padding-bottom:16px}
+.stats-section{display:none}
+.stats-section.active{display:block}
+.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
+.stat-box{background:#fff;border:1px solid #e2e8f0;border-radius:11px;padding:11px}
+.stat-label{font-size:11px;color:#64748b;font-weight:700}.stat-value{font-size:20px;font-weight:800;color:#0369a1;margin-top:4px}
+.song-list,.vod-list{display:flex;flex-direction:column;gap:7px}
+.song-card,.vod-card{background:#fff;border:1px solid #e2e8f0;border-radius:10px;overflow:hidden}
+.song-summary{padding:10px 12px;display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer}
+.song-main{min-width:0;flex:1}.song-title{font-size:14px;font-weight:800;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.song-artist{font-size:11.5px;color:#64748b;margin-top:2px}
+.badges{display:flex;gap:5px;align-items:center;flex-shrink:0}.badge{font-size:10.5px;font-weight:700;padding:3px 6px;border-radius:7px;background:#e0f2fe;color:#0369a1}
+.date-list{display:none;border-top:1px solid #f1f5f9;background:#fafbfc;padding:8px 10px;gap:5px;flex-wrap:wrap}.song-card.expanded .date-list{display:flex}
+.date-chip{border:1px solid #cbd5e1;background:#fff;color:#0369a1;border-radius:8px;padding:5px 7px;font-size:11px;display:flex;align-items:center;gap:5px}
+.date-chip button{border:0;background:transparent;color:#94a3b8;cursor:pointer;font-weight:800;padding:0 2px}
+.vod-card{padding:11px 12px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.vod-info{min-width:0}.vod-date{font-weight:800;font-size:13px;color:#0f172a}.vod-url{font-size:11px;color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:3px}
+.vod-actions{display:flex;gap:5px;flex-shrink:0}.mini-btn{border:1px solid #cbd5e1;background:#fff;border-radius:7px;padding:5px 7px;color:#0369a1;font-size:10.5px;font-weight:700;cursor:pointer}.mini-btn.danger{color:#b45353}
+.empty{text-align:center;color:#94a3b8;padding:35px 10px;font-size:13px}
+.modal-overlay{position:fixed;inset:0;background:rgba(15,23,42,.5);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:1000;opacity:0;pointer-events:none;transition:opacity .18s}
+.modal-overlay.active{opacity:1;pointer-events:auto}
+.modal-box{width:min(92vw,520px);max-height:88dvh;background:#fff;border:1px solid #e2e8f0;border-radius:16px;padding:16px;box-shadow:0 10px 25px rgba(0,0,0,.12);display:flex;flex-direction:column;gap:12px}
+.modal-header{display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid #e2e8f0;padding-bottom:8px}
+.modal-title{margin:0;font-size:16px;font-weight:800}.modal-close{border:0;background:transparent;color:#64748b;font-size:16px;cursor:pointer}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;overflow:auto}.field{display:flex;flex-direction:column;gap:5px}.field.full{grid-column:1/-1}.field label{font-size:11.5px;font-weight:700;color:#0369a1}.input{width:100%;height:40px;border:1px solid #cbd5e1;border-radius:9px;padding:0 10px;font:inherit;font-size:13px;outline:none;background:#fff}.input:focus{border-color:#0ea5e9;box-shadow:0 0 0 3px rgba(14,165,233,.12)}
+.modal-actions{display:flex;gap:7px}.modal-btn{flex:1;height:39px;border-radius:9px;border:1px solid #cbd5e1;background:#fff;color:#64748b;font-weight:700;cursor:pointer}.modal-btn.primary{background:#0ea5e9;border-color:#0ea5e9;color:#fff}.modal-btn.danger{background:#fff0f2;border-color:#f3c1c9;color:#b45353}
+.auth-panel{text-align:center}.auth-icon{width:46px;height:46px;margin:2px auto 10px;border-radius:13px;background:#f0f9ff;color:#0369a1;display:flex;align-items:center;justify-content:center}.auth-panel p{font-size:11.5px;color:#94a3b8;line-height:1.5}.turnstile{display:flex;justify-content:center;min-height:65px;margin:10px 0}.password-wrap{position:relative}.password-wrap .input{padding-right:42px}.password-toggle{position:absolute;right:7px;top:5px;width:30px;height:30px;border:0;background:transparent;color:#64748b;cursor:pointer}
+.toast-message{position:fixed;bottom:24px;left:50%;transform:translate(-50%,20px);background:#0f172a;color:#fff;padding:10px 16px;border-radius:11px;font-size:12.5px;font-weight:700;opacity:0;pointer-events:none;transition:.2s;z-index:2000;white-space:nowrap}.toast-message.show{opacity:1;transform:translate(-50%,0)}
+@media(max-width:600px){.main-container{padding:9px 10px}.page-title{font-size:19px}.header-action-btn{padding:6px 8px}.stat-grid{grid-template-columns:1fr 1fr}.form-grid{grid-template-columns:1fr}.field.full{grid-column:auto}.vod-actions .mini-btn{font-size:10px;padding:5px}.modal-overlay{backdrop-filter:none}.modal-box{max-height:92dvh}}
+</style></head>
+<body><div class="main-container">
+<header class="header-row"><div class="title-summary-box"><h1 class="page-title">
+<button class="auth-icon-btn" id="authBtn" onclick="openAuthModal()" title="관리자 로그인">♪</button> 바다비 노래통계</h1>
+<div id="statsSummary" class="stats-summary">통계 데이터를 불러오는 중...</div>
+<div class="admin-toolbar"><button class="admin-btn" onclick="openSongModal()">＋ 노래 기록</button><button class="admin-btn" onclick="openVodModal()">＋ VOD 등록</button></div></div>
+<div class="header-btn-group"><button class="header-action-btn" onclick="openVodModal()">VOD</button></div></header>
+<div class="search-container"><input id="searchInput" class="search-box" placeholder="노래 제목이나 가수를 검색하세요..." oninput="renderSongs()"><button class="search-icon-wrapper" onclick="document.getElementById('searchInput').focus()">⌕</button></div>
+<div class="stats-tabs"><button class="stats-tab active" data-tab="songs" onclick="switchTab('songs')">노래 통계</button><button class="stats-tab" data-tab="vods" onclick="switchTab('vods')">VOD 목록</button></div>
+<main class="content-scroll">
+<section id="songsSection" class="stats-section active"><div class="stat-grid"><div class="stat-box"><div class="stat-label">등록 노래</div><div class="stat-value" id="songCount">0</div></div><div class="stat-box"><div class="stat-label">총 부른 횟수</div><div class="stat-value" id="playCount">0</div></div><div class="stat-box"><div class="stat-label">VOD</div><div class="stat-value" id="vodCount">0</div></div></div><div id="songList" class="song-list"></div></section>
+<section id="vodsSection" class="stats-section"><div id="vodList" class="vod-list"></div></section>
+</main></div>
+<div id="toastMessage" class="toast-message"></div>
+
+<div class="modal-overlay" id="authModal"><div class="modal-box"><div class="modal-header"><h3 class="modal-title">관리자 로그인</h3><button class="modal-close" onclick="closeModal('authModal')">✕</button></div><div id="authContent"></div></div></div>
+<div class="modal-overlay" id="songModal"><div class="modal-box"><div class="modal-header"><h3 class="modal-title" id="songModalTitle">노래 기록 추가</h3><button class="modal-close" onclick="closeModal('songModal')">✕</button></div><div class="form-grid">
+<div class="field full"><label>노래 제목</label><input id="songTitle" class="input" type="text" placeholder="노래 제목"></div>
+<div class="field full"><label>가수</label><input id="songArtist" class="input" type="text" placeholder="가수"></div>
+<div class="field"><label>부른 날짜</label><input id="songDate" class="input" type="date"></div>
+<div class="field"><label>부른 시간</label><input id="songTime" class="input" type="text" placeholder="예: 01:23:45"></div>
+</div><div class="modal-actions"><button class="modal-btn primary" onclick="saveSongRecord()">저장</button><button class="modal-btn" onclick="closeModal('songModal')">취소</button></div></div></div>
+<div class="modal-overlay" id="vodModal"><div class="modal-box"><div class="modal-header"><h3 class="modal-title" id="vodModalTitle">VOD 등록</h3><button class="modal-close" onclick="closeModal('vodModal')">✕</button></div><div class="form-grid">
+<div class="field"><label>VOD 날짜</label><input id="vodDate" class="input" type="date"></div>
+<div class="field full"><label>VOD 주소</label><input id="vodUrl" class="input" type="url" placeholder="https://..."></div>
+</div><div class="modal-actions"><button class="modal-btn primary" onclick="saveVod()">저장</button><button class="modal-btn" onclick="closeModal('vodModal')">취소</button></div></div></div>
+<script>
+const WORKER_URL="https://badabi-api.dalkkumli054.workers.dev/";
+const TURNSTILE_SITE_KEY="0x4AAAAAAEbQ0YWNiL_WiyKR";
+const STATS_API_URL=WORKER_URL+"?type=fansongstats&t=";
+let data={vodSources:[],registeredSongs:[],unregisteredSongs:[]},sessionToken=localStorage.getItem("badabi_session")||"",authenticated=false,toastTimer=null;
+let editingSongIndex=-1,editingVodIndex=-1,turnstileToken="",turnstileWidgetId=null;
+
+const $=id=>document.getElementById(id);
+function toast(t){$("toastMessage").textContent=t;$("toastMessage").classList.add("show");clearTimeout(toastTimer);toastTimer=setTimeout(()=>$("toastMessage").classList.remove("show"),2200)}
+function openModal(id){$ (id).classList.add("active")}
+function closeModal(id){$(id).classList.remove("active");if(id==="authModal"&&!authenticated)resetTurnstile()}
+function songKey(s){return `${String(s.title||"").trim().toLowerCase()}|||${String(s.artist||"").trim().toLowerCase()}`}
+function normalizeSong(s){return {title:s.title||"",artist:s.artist||"",limit:s.limit||"",genre:s.genre||"",etc:s.etc||"",dateTimes:Array.isArray(s.dateTimes)?s.dateTimes:[]}}
+function allStatSongs(){const m=new Map();[...(data.registeredSongs||[]),...(data.unregisteredSongs||[])].forEach(s=>{const n=normalizeSong(s),k=songKey(n);if(!m.has(k))m.set(k,n);else m.get(k).dateTimes=[...(m.get(k).dateTimes||[]),...(n.dateTimes||[])];});return [...m.values()]}
+function fmtDate(d){if(!d)return "";const p=d.replaceAll(".","-").split("-");return p.length===3?`${p[0]}-${p[1].padStart(2,"0")}-${p[2].padStart(2,"0")}`:d}
+function timeSec(t){const p=String(t||"").split(":").map(Number);return p.length===3?p[0]*3600+p[1]*60+p[2]:p.length===2?p[0]*60+p[1]:0}
+function vodUrl(date,time){const v=(data.vodSources||[]).find(x=>fmtDate(x.date)===fmtDate(date));if(!v||!v.url)return "#";const sep=v.url.includes("?")?"&":"?";return v.url+sep+"change_second="+timeSec(time)}
+
+async function loadData(){
+ try{const r=await fetch(STATS_API_URL+Date.now());if(!r.ok)throw Error();const j=await r.json();data={vodSources:Array.isArray(j.vodSources)?j.vodSources:[],registeredSongs:Array.isArray(j.registeredSongs)?j.registeredSongs:[],unregisteredSongs:Array.isArray(j.unregisteredSongs)?j.unregisteredSongs:[]};renderAll();}
+ catch(e){console.error(e);$("statsSummary").textContent="통계 데이터 로드 실패";$("songList").innerHTML='<div class="empty">데이터를 불러오지 못했습니다.</div>'}
+}
+function renderAll(){const songs=allStatSongs(),plays=songs.reduce((n,s)=>n+(s.dateTimes||[]).length,0);$("songCount").textContent=songs.length.toLocaleString();$("playCount").textContent=plays.toLocaleString();$("vodCount").textContent=(data.vodSources||[]).length.toLocaleString();$("statsSummary").textContent=`노래 ${songs.length}곡 · 총 ${plays}회 · VOD ${(data.vodSources||[]).length}개`;renderSongs();renderVods()}
+function renderSongs(){
+ const q=$("searchInput").value.trim().toLowerCase(),list=$("songList");list.innerHTML="";let songs=allStatSongs().filter(s=>`${s.title} ${s.artist}`.toLowerCase().includes(q));
+ songs.sort((a,b)=>(b.dateTimes?.length||0)-(a.dateTimes?.length||0)||String(a.artist).localeCompare(String(b.artist),"ko")||String(a.title).localeCompare(String(b.title),"ko"));
+ if(!songs.length){list.innerHTML='<div class="empty">검색 결과가 없습니다.</div>';return}
+ songs.forEach((s,i)=>{const card=document.createElement("div");card.className="song-card";const dates=[...(s.dateTimes||[])].sort((a,b)=>String(b.date||"").localeCompare(String(a.date||""))||String(b.time||"").localeCompare(String(a.time||"")));
+ card.innerHTML=`<div class="song-summary"><div class="song-main"><div class="song-title">${escapeHtml(s.title||"제목없음")}</div><div class="song-artist">${escapeHtml(s.artist||"가수 미상")}</div></div><div class="badges"><span class="badge">${dates.length}회</span>${authenticated?'<button class="mini-btn" data-edit>수정</button>':''}</div></div><div class="date-list">${dates.length?dates.map((d,di)=>`<span class="date-chip">${escapeHtml(fmtDate(d.date))} ${escapeHtml(d.time||"")} <a href="${vodUrl(d.date,d.time)}" target="_blank" rel="noopener" style="color:inherit;text-decoration:none">↗</a>${authenticated?`<button data-del="${di}">×</button>`:""}</span>`).join(""):'<span style="color:#94a3b8;font-size:11px">기록이 없습니다.</span>'}</div>`;
+ card.querySelector(".song-summary").addEventListener("click",e=>{if(e.target.closest("button"))return;card.classList.toggle("expanded")});
+ if(authenticated){card.querySelector("[data-edit]")?.addEventListener("click",e=>{e.stopPropagation();openSongEditor(s)});card.querySelectorAll("[data-del]").forEach((b,di)=>b.onclick=e=>{e.stopPropagation();removeSongDate(s,dates[di])})}
+ list.appendChild(card)})
+}
+function renderVods(){
+ const c=$("vodList");c.innerHTML="";const list=[...(data.vodSources||[])].sort((a,b)=>String(b.date||"").localeCompare(String(a.date||"")));
+ if(!list.length){c.innerHTML='<div class="empty">등록된 VOD가 없습니다.</div>';return}
+ list.forEach((v,i)=>{const el=document.createElement("div");el.className="vod-card";el.innerHTML=`<div class="vod-info"><div class="vod-date">${escapeHtml(fmtDate(v.date))}</div><div class="vod-url">${escapeHtml(v.url||"주소 없음")}</div></div><div class="vod-actions">${v.url?`<a class="mini-btn" href="${escapeAttr(v.url)}" target="_blank" rel="noopener">열기</a>`:""}${authenticated?'<button class="mini-btn" data-edit>수정</button><button class="mini-btn danger" data-del>삭제</button>':""}</div>`;
+ if(authenticated){el.querySelector("[data-edit]")?.addEventListener("click",()=>openVodEditor(i));el.querySelector("[data-del]")?.addEventListener("click",()=>deleteVod(i))}c.appendChild(el)})
+}
+function escapeHtml(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function escapeAttr(v){return escapeHtml(v).replace(/javascript:/gi,"")}
+function switchTab(tab){document.querySelectorAll(".stats-tab").forEach(b=>b.classList.toggle("active",b.dataset.tab===tab));$("songsSection").classList.toggle("active",tab==="songs");$("vodsSection").classList.toggle("active",tab==="vods");$("searchInput").placeholder=tab==="songs"?"노래 제목이나 가수를 검색하세요...":"VOD 날짜나 주소를 검색하세요...";if(tab==="vods")renderVods()}
+
+function openSongModal(){if(!authenticated)return;editingSongIndex=-1;$("songModalTitle").textContent="노래 기록 추가";$("songTitle").value="";$("songArtist").value="";$("songDate").value=new Date().toISOString().slice(0,10);$("songTime").value="";openModal("songModal")}
+function openSongEditor(song){if(!authenticated)return;editingSongIndex=allStatSongs().findIndex(x=>songKey(x)===songKey(song));$("songModalTitle").textContent="노래 통계 수정";$("songTitle").value=song.title;$("songArtist").value=song.artist;$("songDate").value="";$("songTime").value="";openModal("songModal")}
+function saveSongRecord(){
+ if(!authenticated)return;const title=$("songTitle").value.trim(),artist=$("songArtist").value.trim(),date=$("songDate").value,time=$("songTime").value.trim();
+ if(!title||!artist||!date){toast("노래 제목, 가수, 날짜를 입력해주세요.");return}
+ let songs=data.registeredSongs||[],target=songs.find(s=>songKey(s)===(songKey({title,artist})));
+ if(!target){const u=(data.unregisteredSongs||[]).find(s=>songKey(s)===songKey({title,artist}));if(u){target=normalizeSong(u);data.unregisteredSongs=data.unregisteredSongs.filter(x=>songKey(x)!==songKey(u));songs.push(target)}else{target={title,artist,dateTimes:[]};songs.push(target)}}
+ target.dateTimes=Array.isArray(target.dateTimes)?target.dateTimes:[];const rec={date,time};if(!target.dateTimes.some(x=>x.date===date&&x.time===time))target.dateTimes.push(rec);
+ closeModal("songModal");renderAll();saveStats();toast("노래 날짜 기록을 저장했습니다.")
+}
+function removeSongDate(song,rec){if(!authenticated)return;const s=(data.registeredSongs||[]).find(x=>songKey(x)===songKey(song))||(data.unregisteredSongs||[]).find(x=>songKey(x)===songKey(song));if(!s)return;if(!confirm(`${fmtDate(rec.date)} 기록을 삭제할까요?`))return;s.dateTimes=(s.dateTimes||[]).filter(x=>!(x.date===rec.date&&x.time===rec.time));renderAll();saveStats();toast("노래 날짜 기록을 삭제했습니다.")}
+function openVodModal(){if(!authenticated)return;editingVodIndex=-1;$("vodModalTitle").textContent="VOD 등록";$("vodDate").value=new Date().toISOString().slice(0,10);$("vodUrl").value="";openModal("vodModal")}
+function openVodEditor(i){editingVodIndex=i;const v=data.vodSources[i];$("vodModalTitle").textContent="VOD 수정";$("vodDate").value=fmtDate(v.date);$("vodUrl").value=v.url||"";openModal("vodModal")}
+function saveVod(){if(!authenticated)return;const date=$("vodDate").value,url=$("vodUrl").value.trim();if(!date||!url){toast("VOD 날짜와 주소를 입력해주세요.");return}const v={date,url};if(editingVodIndex>=0)data.vodSources[editingVodIndex]=v;else{const old=data.vodSources.find(x=>fmtDate(x.date)===date);if(old)old.url=url;else data.vodSources.push(v)}closeModal("vodModal");renderAll();saveStats();toast("VOD 정보를 저장했습니다.")}
+function deleteVod(i){if(!authenticated)return;if(!confirm(`${fmtDate(data.vodSources[i].date)} VOD를 삭제할까요?`))return;data.vodSources.splice(i,1);renderAll();saveStats();toast("VOD를 삭제했습니다.")}
+async function saveStats(){
+ try{const r=await fetch(WORKER_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({sessionToken,action:"save",fileType:"fansongstats",content:data})});const j=await r.json().catch(()=>({}));if(r.status===401){authenticated=false;sessionToken="";localStorage.removeItem("badabi_session");updateAuthUI();throw Error("로그인 세션이 만료되었습니다.")}if(!r.ok)throw Error(j.error||"팬송 통계 저장 실패");}
+ catch(e){console.error(e);toast(e.message||"저장에 실패했습니다.")}
+}
+function updateAuthUI(){document.body.classList.toggle("authenticated-mode",authenticated);$("authBtn").title=authenticated?"관리자 모드 / 로그아웃":"관리자 로그인"}
+function openAuthModal(){
+ if(authenticated){$("authContent").innerHTML=`<div class="auth-panel"><div class="auth-icon">✓</div><h3>관리자 모드</h3><p>fansongstats 통계를 직접 수정할 수 있습니다.</p><div class="modal-actions"><button class="modal-btn danger" onclick="logout()">로그아웃</button><button class="modal-btn" onclick="closeModal('authModal')">닫기</button></div></div>`;openModal("authModal");return}
+ $("authContent").innerHTML=`<div class="auth-panel"><div class="auth-icon">🔒</div><h3>관리자 인증</h3><p>노래통계의 VOD와 노래 날짜 기록을 관리합니다.</p><div class="field" style="text-align:left"><label>패스워드</label><div class="password-wrap"><input id="passwordInput" class="input" type="password" placeholder="관리자 패스워드"></div></div><div id="turnstileWidget" class="turnstile"></div><button class="modal-btn primary" style="width:100%" onclick="verifyPassword()">로그인</button></div>`;openModal("authModal");waitTurnstile()
+}
+function resetTurnstile(){turnstileToken="";if(window.turnstile&&turnstileWidgetId!==null){try{turnstile.reset(turnstileWidgetId)}catch(e){}}}
+function waitTurnstile(){if(window.turnstile)return renderTurnstile();let n=0,t=setInterval(()=>{if(window.turnstile){clearInterval(t);renderTurnstile()}else if(++n>50)clearInterval(t)},100)}
+function renderTurnstile(){const c=$("turnstileWidget");if(!c||!window.turnstile)return;try{if(turnstileWidgetId!==null)window.turnstile.remove(turnstileWidgetId);turnstileWidgetId=window.turnstile.render(c,{sitekey:TURNSTILE_SITE_KEY,callback:t=>turnstileToken=t,"expired-callback":resetTurnstile,"timeout-callback":resetTurnstile,theme:"auto"})}catch(e){console.error(e)}}
+async function verifyPassword(){
+ const p=$("passwordInput")?.value||"";if(!p){toast("패스워드를 입력해주세요.");return}if(!turnstileToken){toast("보안 인증을 완료해주세요.");return}
+ try{const r=await fetch(WORKER_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({password:p,turnstileToken,rateLimitId:getRateLimitId(),action:"verify"})});const j=await r.json().catch(()=>({}));if(!r.ok||!j.success||!j.sessionToken)throw Error(j.error||"인증 실패");sessionToken=j.sessionToken;localStorage.setItem("badabi_session",sessionToken);authenticated=true;resetTurnstile();updateAuthUI();closeModal("authModal");toast("로그인되었습니다.")}catch(e){toast(e.message||"로그인에 실패했습니다.");resetTurnstile();if($("passwordInput"))$("passwordInput").value=""}
+}
+function getRateLimitId(){let x=localStorage.getItem("badabi_rate_limit_id");if(x)return x;const b=new Uint8Array(32);crypto.getRandomValues(b);x=Array.from(b,v=>v.toString(16).padStart(2,"0")).join("");localStorage.setItem("badabi_rate_limit_id",x);return x}
+function logout(){authenticated=false;sessionToken="";localStorage.removeItem("badabi_session");updateAuthUI();closeModal("authModal");toast("로그아웃되었습니다.")}
+async function restoreAuth(){if(!sessionToken){updateAuthUI();return}try{const r=await fetch(WORKER_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({sessionToken,action:"verify"})});const j=await r.json().catch(()=>({}));if(!r.ok||!j.success||!j.role)throw Error();authenticated=true}catch(e){authenticated=false;sessionToken="";localStorage.removeItem("badabi_session")}updateAuthUI()}
+document.addEventListener("click",e=>{if(e.target.classList.contains("modal-overlay")&&e.target.id!=="authModal")closeModal(e.target.id)})
+restoreAuth().finally(loadData);
+</script></body></html>
