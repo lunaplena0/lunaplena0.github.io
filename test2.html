@@ -2049,6 +2049,9 @@
 .song-unregistered-item.selected{outline:2px solid #38bdf8;background:#f0f9ff!important}
 .stats-vod-row{display:flex;align-items:center;justify-content:space-between;gap:10px;border-top:1px solid #e2e8f0;padding:10px 0;font-size:12px}.stats-vod-info{min-width:0;flex:1}.stats-vod-info>div{color:#64748b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.stats-vod-actions{display:flex;gap:5px;flex-shrink:0}.stats-vod-actions .modal-btn{width:auto;padding:0 9px}
 @media(max-width:768px){.stats-date-row{grid-template-columns:1fr 72px 1fr 32px}}
+
+.bulk-song-result{}
+@media(max-width:768px){#bulkSongInputModal .modal-actions{position:sticky;bottom:0;background:#fff;padding-top:10px}#bulkSongInputModal textarea{min-height:220px}}
 </style>
 </head>
 <body>
@@ -2067,6 +2070,7 @@
                 <div id="statsSummary" class="stats-summary">통계 계산 중...</div>
                 <div class="song-admin-toolbar">
                     <button class="song-admin-btn" onclick="openSongAddModal()">＋ 노래 추가</button>
+                    <button class="song-admin-btn" onclick="openBulkSongInputModal()">♫ 노래 한번에 입력</button>
                 </div>
             </div>
             <div class="header-btn-group">
@@ -2293,6 +2297,22 @@
                 <div class="edit-form-field full"><label class="edit-form-label">기타</label><input id="addSongEtc" class="edit-form-input" type="text"></div>
             </div>
             <div class="modal-actions" style="margin-top:14px;"><button class="modal-btn modal-btn-close" onclick="addNewSong()">추가</button><button class="modal-btn modal-btn-refresh" onclick="closeSongAddModal()">취소</button></div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="bulkSongInputModal">
+        <div class="filter-modal-box" style="width:92%;max-width:760px;max-height:88vh;">
+            <div class="modal-header"><h3 class="modal-title">♫ 노래 한번에 입력</h3><button class="modal-close-btn" onclick="closeBulkSongInputModal()">✕</button></div>
+            <div class="edit-form-grid">
+                <div class="edit-form-field"><label class="edit-form-label">날짜</label><input id="bulkSongDate" class="edit-form-input" type="date"></div>
+                <div class="edit-form-field"><label class="edit-form-label">방송 회차</label><select id="bulkSongRound" class="edit-form-input"><option value="0">일반</option><option value="1">(1)</option><option value="2">(2)</option><option value="3">(3)</option><option value="4">(4)</option><option value="5">(5)</option><option value="6">(6)</option><option value="7">(7)</option><option value="8">(8)</option><option value="9">(9)</option><option value="10">(10)</option></select></div>
+                <div class="edit-form-field full"><label class="edit-form-label">노래 기록</label><textarea id="bulkSongInput" class="edit-form-input" style="min-height:260px;resize:vertical;font-family:inherit;line-height:1.7" placeholder="00:47:17 🎵 홀씨 - 아이유 (IU)
+00:51:34 🎵 Auburn - 데이먼스 이어
+00:57:31 🎵 가을밤에 든 생각 - 잔나비"></textarea></div>
+                <div class="edit-form-field full"><div style="font-size:12px;color:#64748b;line-height:1.6">제목과 가수명이 <b>노래통계에 등록된 노래와 정확히 일치</b>하는 경우에만 기록됩니다. 🎸가 붙은 줄은 해당 노래의 <b>기타</b> 태그에 🎸가 기록됩니다. 날짜와 방송 회차가 함께 매칭됩니다.</div></div>
+            </div>
+            <div id="bulkSongResult" style="margin-top:12px;max-height:220px;overflow:auto;font-size:12px"></div>
+            <div class="modal-actions" style="margin-top:14px;"><button class="modal-btn modal-btn-close" onclick="applyBulkSongInput()">입력 및 저장</button><button class="modal-btn modal-btn-refresh" onclick="closeBulkSongInputModal()">취소</button></div>
         </div>
     </div>
 
@@ -2847,6 +2867,54 @@
             const newSong={title,artist,genre:document.getElementById("addSongGenre").value.trim(),limit:document.getElementById("addSongLimit").value.trim(),etc:document.getElementById("addSongEtc").value.trim(),dateTimes:[]};
             addSongToRegisteredStats(newSong,[]); allSongs.push(newSong); selectedUnregisteredKey='';
             closeSongAddModal();updateFilteredAndSorted();renderAllSongs();renderUnregisteredSongs();animateNumber("animSongCount",allSongs.length);animateNumber("animPlayCount",allSongs.reduce((n,s)=>n+(s.dateTimes||[]).length,0));enqueueSongServerSave();showToastMessage("새 노래를 등록된 통계에 추가했습니다.");
+        }
+
+        function escapeHtml(value){return String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));}
+        function openBulkSongInputModal(){
+            if(!isSongAuthenticated){openSongAuthModal();return;}
+            document.getElementById('bulkSongDate').value=new Date().toISOString().slice(0,10);
+            document.getElementById('bulkSongRound').value='0';
+            document.getElementById('bulkSongInput').value='';
+            document.getElementById('bulkSongResult').innerHTML='';
+            document.getElementById('bulkSongInputModal').classList.add('active');
+            setTimeout(()=>document.getElementById('bulkSongInput')?.focus(),50);
+        }
+        function closeBulkSongInputModal(){document.getElementById('bulkSongInputModal')?.classList.remove('active');}
+        function parseBulkSongLine(line){
+            const m=String(line||'').trim().match(/^(\d{1,2}:\d{2}:\d{2})\s+(🎸)?🎵?\s*(.+?)\s+-\s+(.+)$/);
+            if(!m)return null;
+            return {time:m[1],guitar:!!m[2],title:m[3].trim(),artist:m[4].trim()};
+        }
+        function applyBulkSongInput(){
+            if(!isSongAuthenticated)return;
+            const baseDate=document.getElementById('bulkSongDate').value.trim();
+            const round=Number(document.getElementById('bulkSongRound').value||0);
+            const raw=document.getElementById('bulkSongInput').value||'';
+            if(!baseDate){showToastMessage('날짜를 입력해주세요.');return;}
+            const dateKey=vodRoundKey(baseDate,round);
+            const lines=raw.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+            if(!lines.length){showToastMessage('입력할 노래 기록을 넣어주세요.');return;}
+            const registered=Array.isArray(fansongStatsData.registeredSongs)?fansongStatsData.registeredSongs:[];
+            const results=[]; let added=0,skipped=0,ambiguous=0;
+            for(const line of lines){
+                const parsed=parseBulkSongLine(line);
+                if(!parsed){results.push(`<div style="color:#b45353">형식 오류: ${escapeHtml(line)}</div>`);skipped++;continue;}
+                const matches=registered.filter(song=>String(song.title||'').trim()===parsed.title && String(song.artist||'').trim()===parsed.artist);
+                if(matches.length===0){results.push(`<div style="color:#b45353">일치하는 노래 없음: ${escapeHtml(parsed.title)} - ${escapeHtml(parsed.artist)}</div>`);skipped++;continue;}
+                if(matches.length>1){results.push(`<div style="color:#b45353">동일 제목/가수가 여러 곡이라 제외: ${escapeHtml(parsed.title)} - ${escapeHtml(parsed.artist)}</div>`);ambiguous++;continue;}
+                const song=matches[0];
+                if(!Array.isArray(song.dateTimes))song.dateTimes=[];
+                if(!song.dateTimes.some(dt=>String(dt.date||'')===dateKey && String(dt.time||'')===parsed.time))song.dateTimes.push({date:dateKey,time:parsed.time});
+                if(parsed.guitar){song.etc='🎸';}
+                const allIndex=allSongs.findIndex(x=>songIdentity(x)===songIdentity(song));
+                if(allIndex>=0){allSongs[allIndex]={...allSongs[allIndex],dateTimes:[...song.dateTimes],etc:song.etc||allSongs[allIndex].etc||''};}
+                added++;
+                results.push(`<div style="color:#166534">입력 완료: ${escapeHtml(parsed.time)} · ${escapeHtml(parsed.title)} - ${escapeHtml(parsed.artist)}${parsed.guitar?' · 🎸':''}</div>`);
+            }
+            updateFilteredAndSorted();renderAllSongs();animateNumber('animPlayCount',allSongs.reduce((n,s)=>n+(s.dateTimes||[]).length,0));
+            if(added>0)enqueueSongServerSave();
+            document.getElementById('bulkSongResult').innerHTML=`<div style="font-weight:700;margin-bottom:8px">완료 ${added}개 · 미일치/오류 ${skipped}개 · 중복매칭 ${ambiguous}개</div>`+results.join('');
+            showToastMessage(`${added}개의 노래 기록을 입력했습니다.`);
         }
 
         function normalizeNoticeText(value) {
@@ -3715,7 +3783,7 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
         </p>
     </footer>
 
-<div class="modal-overlay" id="vodModal"><div class="filter-modal-box" style="width:92%;max-width:620px;max-height:88vh"><div class="modal-header"><h3 class="modal-title">VOD 관리</h3><button class="modal-close-btn" onclick="closeVodModal()">✕</button></div><div class="edit-form-grid"><div class="edit-form-field"><label class="edit-form-label">VOD 날짜</label><input id="statsVodDate" class="edit-form-input" type="date"></div><div class="edit-form-field"><label class="edit-form-label">방송 회차</label><select id="statsVodRound" class="edit-form-input"><option value="0">일반</option><option value="1">(1)</option><option value="2">(2)</option><option value="3">(3)</option><option value="4">(4)</option><option value="5">(5)</option></select></div><div class="edit-form-field full"><label class="edit-form-label">VOD 주소</label><input id="statsVodUrl" class="edit-form-input" type="url" placeholder="https://..."></div></div><div class="modal-actions"><button class="modal-btn modal-btn-close" onclick="saveStatsVod()">저장</button><button class="modal-btn modal-btn-refresh" onclick="resetVodForm()">초기화</button></div><div id="statsVodList" class="stats-vod-list"></div></div></div>
+<div class="modal-overlay" id="vodModal"><div class="filter-modal-box" style="width:92%;max-width:620px;max-height:88vh"><div class="modal-header"><h3 class="modal-title">VOD 관리</h3><button class="modal-close-btn" onclick="closeVodModal()">✕</button></div><div class="edit-form-grid"><div class="edit-form-field"><label class="edit-form-label">VOD 날짜</label><input id="statsVodDate" class="edit-form-input" type="date"></div><div class="edit-form-field"><label class="edit-form-label">방송 회차</label><select id="statsVodRound" class="edit-form-input"><option value="0">일반</option><option value="1">(1)</option><option value="2">(2)</option><option value="3">(3)</option><option value="4">(4)</option><option value="5">(5)</option></select></div><div class="edit-form-field full"><label class="edit-form-label">VOD 주소</label><input id="statsVodUrl" class="edit-form-input" type="url" placeholder="https://..."></div></div><div class="modal-actions"><button class="modal-btn modal-btn-close" onclick="resetVodForm()">＋ 추가</button><button class="modal-btn modal-btn-close" onclick="saveStatsVod()">저장</button><button class="modal-btn modal-btn-refresh" onclick="closeVodModal()">닫기</button></div><div id="statsVodList" class="stats-vod-list"></div></div></div>
 <script>
 let editingVodKey='';
 function openVodModal(){if(!isSongAuthenticated){openSongAuthModal();return;}resetVodForm();renderStatsVodList();document.getElementById('vodModal').classList.add('active')}
@@ -3725,7 +3793,7 @@ function vodRoundKey(date,round){return round>0?`${date} (${round})`:date}
 function editStatsVod(key){const v=(fansongStatsData.vodSources||[]).find(x=>String(x.date||'')===key);if(!v)return;editingVodKey=key;const m=String(v.date||'').match(/^(\d{4}-\d{2}-\d{2})(?: \((\d+)\))?$/);document.getElementById('statsVodDate').value=m?m[1]:String(v.date||'');document.getElementById('statsVodRound').value=m&&m[2]?m[2]:'0';document.getElementById('statsVodUrl').value=v.url||''}
 function deleteStatsVod(key){if(!isSongAuthenticated)return;if(!confirm(`'${key}' VOD를 삭제하시겠습니까?`))return;fansongStatsData.vodSources=(fansongStatsData.vodSources||[]).filter(v=>String(v.date||'')!==key);delete vodMap[key];enqueueSongServerSave();renderStatsVodList();showToastMessage('VOD를 삭제했습니다.')}
 function renderStatsVodList(){const c=document.getElementById('statsVodList');if(!c)return;c.innerHTML=(fansongStatsData.vodSources||[]).slice().sort((a,b)=>String(b.date).localeCompare(String(a.date))).map(v=>{const key=String(v.date||'');return `<div class="stats-vod-row"><div class="stats-vod-info"><strong>${key}</strong><div>${v.url||''}</div></div><div class="stats-vod-actions"><button class="modal-btn" onclick="editStatsVod('${key.replace(/'/g,"\\'")}')">수정</button><button class="modal-btn modal-btn-danger" onclick="deleteStatsVod('${key.replace(/'/g,"\\'")}')">삭제</button>${v.url?`<a class="modal-btn" href="${v.url}" target="_blank" rel="noopener">열기</a>`:''}</div></div>`}).join('')||'<div class="no-result">등록된 VOD가 없습니다.</div>'}
-function saveStatsVod(){if(!isSongAuthenticated)return;const date=document.getElementById('statsVodDate').value,round=Number(document.getElementById('statsVodRound').value||0),url=document.getElementById('statsVodUrl').value.trim();if(!date||!url){showToastMessage('VOD 날짜와 주소를 입력해주세요.');return;}const key=vodRoundKey(date,round);if(editingVodKey&&editingVodKey!==key){fansongStatsData.vodSources=(fansongStatsData.vodSources||[]).filter(v=>String(v.date||'')!==editingVodKey);delete vodMap[editingVodKey]}const existing=(fansongStatsData.vodSources||[]).find(v=>String(v.date||'')===key);if(existing)existing.url=url;else fansongStatsData.vodSources.push({date:key,url});vodMap[key]=url;enqueueSongServerSave();renderStatsVodList();editingVodKey='';showToastMessage('VOD 정보를 저장했습니다.')}
+function saveStatsVod(){if(!isSongAuthenticated)return;const date=document.getElementById('statsVodDate').value,round=Number(document.getElementById('statsVodRound').value||0),url=document.getElementById('statsVodUrl').value.trim();if(!date||!url){showToastMessage('VOD 날짜와 주소를 입력해주세요.');return;}const key=vodRoundKey(date,round);if(editingVodKey&&editingVodKey!==key){fansongStatsData.vodSources=(fansongStatsData.vodSources||[]).filter(v=>String(v.date||'')!==editingVodKey);delete vodMap[editingVodKey]}const existing=(fansongStatsData.vodSources||[]).find(v=>String(v.date||'')===key);if(existing)existing.url=url;else fansongStatsData.vodSources.push({date:key,url});vodMap[key]=url;enqueueSongServerSave();renderStatsVodList();editingVodKey='';showToastMessage(editingVodKey?'VOD를 수정했습니다.':'VOD를 추가했습니다.')}
 </script>
 </body>
 </html>
