@@ -2336,42 +2336,81 @@
 
         /* === 2026-08-25 요청사항 최종 보정 === */
         /* 1) 노래 목록 제목이 카드 왼쪽에 붙지 않도록 내부 여백 확보 */
-        .song-summary-row { padding-left: 14px !important; }
-        .song-info-left { padding-left: 4px; box-sizing: border-box; }
+        .song-summary-row { padding-left: 12px !important; padding-top: 7px !important; padding-bottom: 7px !important; }
+        .song-info-left { padding-left: 3px; box-sizing: border-box; }
 
         /* 2) 추천 곡 개별 상자 높이를 완전히 동일하게 고정 */
+        /* PC 추천창: 실제 노래 목록 카드와 동일한 구조/높이 */
+        @media (min-width: 769px) {
+        #recommendModal .modal-box {
+            width: min(92vw, 460px) !important;
+            height: 380px !important;
+            min-height: 380px !important;
+            max-height: 380px !important;
+        }
         #recommendModal .recommend-list {
             display: flex !important;
             flex-direction: column !important;
-            gap: 8px !important;
-            height: 310px !important;
-            min-height: 310px !important;
-            max-height: 310px !important;
-            overflow-y: auto !important;
-            overflow-x: hidden !important;
+            gap: 6px !important;
+            height: 206px !important;
+            min-height: 206px !important;
+            max-height: 206px !important;
+            flex: 0 0 206px !important;
+            overflow: hidden !important;
+            padding: 0 1px !important;
+            box-sizing: border-box !important;
         }
         #recommendModal .recommend-item {
-            height: 60px !important;
-            min-height: 60px !important;
-            max-height: 60px !important;
-            flex: 0 0 60px !important;
-            padding: 10px 14px !important;
+            height: 47px !important;
+            min-height: 47px !important;
+            max-height: 47px !important;
+            flex: 0 0 47px !important;
+            padding: 0 !important;
             box-sizing: border-box !important;
             overflow: hidden !important;
-            justify-content: center !important;
-            gap: 4px !important;
+            background: #fff !important;
+            border: 1px solid #e2e8f0 !important;
+            border-radius: 9px !important;
+            box-shadow: 0 1px 2px rgba(0,0,0,.02) !important;
         }
-        #recommendModal .recommend-title-row {
+        #recommendModal .recommend-item .song-summary-row {
+            min-height: 45px !important;
+            height: 45px !important;
+            padding: 5px 8px !important;
+            box-sizing: border-box !important;
+            cursor: default !important;
+        }
+        #recommendModal .recommend-item .song-info-left {
+            padding-left: 3px !important;
+        }
+        #recommendModal .recommend-item .song-title-wrapper {
+            gap: 2px !important;
+        }
+        #recommendModal .recommend-item .song-title-line {
             min-height: 18px !important;
             height: 18px !important;
-            flex: 0 0 18px !important;
-            overflow: hidden !important;
         }
-        #recommendModal .recommend-song-title,
-        #recommendModal .recommend-song-artist {
-            overflow: hidden !important;
-            text-overflow: ellipsis !important;
-            white-space: nowrap !important;
+        #recommendModal .recommend-item .song-text-viewport {
+            max-height: 34px !important;
+        }
+        #recommendModal .recommend-item .song-title {
+            font-size: 14px !important;
+            line-height: 1.12 !important;
+        }
+        #recommendModal .recommend-item .song-artist {
+            font-size: 11.5px !important;
+            line-height: 1.05 !important;
+            margin-top: 0 !important;
+        }
+        #recommendModal .recommend-item .song-badges {
+            max-width: 45% !important;
+        }
+        #recommendModal .recommend-item .badge {
+            max-width: 100px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
         }
 
         /* 3) 모바일 노래 추가: 모달 자체만 스크롤되고 저장/취소 바는 카드 안에서 고정 */
@@ -2424,8 +2463,8 @@
                 min-height: 38px !important;
             }
             /* 목록 카드 여백은 모바일에서도 제목 왼쪽 여백을 유지 */
-            .song-summary-row { padding-left: 12px !important; }
-            .song-info-left { padding-left: 3px; }
+            .song-summary-row { padding-left: 11px !important; padding-top: 6px !important; padding-bottom: 6px !important; }
+            .song-info-left { padding-left: 2px; }
         }
 
 </style>
@@ -3610,15 +3649,27 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
                     }
                     limitBadgeHTML = `<span class="badge badge-limit ${limitClass}" data-limit="${song.limit || ""}">${limitVal}</span>`;
                 }
-
+                const genreBadge = song.genre ? `<span class="badge" style="background-color:#e0f2fe;color:#0284c7;">${song.genre}</span>` : "";
+                const countBadge = `<span class="badge badge-count">${song.dateTimes ? song.dateTimes.length : 0}회</span>`;
                 const safeTitle = (song.title || '').replace(/'/g, "\\'");
                 const safeArtist = (song.artist || '').replace(/'/g, "\\'");
                 item.innerHTML = `
-                    <div class="recommend-title-row">
-                        ${limitBadgeHTML}
-                        <h4 class="recommend-song-title" onclick="copySongInfo('${safeTitle}', '${safeArtist}', event)">${song.title || '제목없음'}</h4>
+                    <div class="song-summary-row">
+                        <div class="song-info-left">
+                            <div class="song-title-wrapper">
+                                <div class="song-title-line">
+                                    ${limitBadgeHTML}
+                                    <div class="song-text-viewport">
+                                        <div class="song-text-marquee">
+                                            <h3 class="song-title"><span class="song-title-copy" onclick="copySongInfo('${safeTitle}', '${safeArtist}', event)">${song.title || '제목없음'}</span></h3>
+                                        </div>
+                                    </div>
+                                </div>
+                                <span class="song-artist">${song.artist || '아티스트 미상'}</span>
+                            </div>
+                        </div>
+                        <div class="song-badges">${genreBadge}${countBadge}</div>
                     </div>
-                    <p class="recommend-song-artist">${song.artist || '아티스트 미상'}</p>
                 `;
                 container.appendChild(item);
             });
