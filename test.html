@@ -2995,7 +2995,21 @@
             editor.onkeydown=function(event){
                 if(event.key==="Enter"){
                     event.preventDefault();
-                    document.execCommand("insertHTML",false,"<br>");
+                    const sel=window.getSelection();
+                    if(!sel || !sel.rangeCount) return;
+                    const range=sel.getRangeAt(0);
+                    if(!editor.contains(range.commonAncestorContainer)) return;
+
+                    // 브라우저 기본 contenteditable Enter 동작을 사용하지 않고
+                    // 현재 커서 위치에 BR을 직접 삽입한 뒤 커서를 BR 뒤로 이동한다.
+                    // 다음 줄에 이미 글자가 있어도 그 글자 위치로 건너뛰지 않는다.
+                    range.deleteContents();
+                    const br=document.createElement("br");
+                    range.insertNode(br);
+                    range.setStartAfter(br);
+                    range.collapse(true);
+                    sel.removeAllRanges();
+                    sel.addRange(range);
                     rememberNoticeSelection();
                 }
             };
