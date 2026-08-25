@@ -2260,7 +2260,7 @@
                 </div>
                 <div class="edit-form-field">
                     <label class="edit-form-label" for="editSongLimit">제한</label>
-                    <input id="editSongLimit" class="edit-form-input" type="text" placeholder="예: [200]">
+                    <input id="editSongLimit" class="edit-form-input" type="text" placeholder="예: 200개 / 300개 / 기타">
                 </div>
                 <div class="edit-form-field full">
                     <label class="edit-form-label" for="editSongEtc">기타</label>
@@ -2703,9 +2703,12 @@
         function addEditDateRow(date="",time=""){
             const box=document.getElementById("editSongDates"); if(!box)return;
             const row=document.createElement("div"); row.className="stats-date-row";
-            const raw=String(date||'').trim(); const m=raw.match(/^(\d{4}-\d{2}-\d{2})(?: \((\d+)\))?$/);
-            const safeDate=m?m[1]:raw.replace(/[^0-9-]/g,''); const round=m&&m[2]?m[2]:'0';
-            row.innerHTML=`<input class="edit-form-input stats-edit-date" type="date" value="${safeDate}"><select class="edit-form-input stats-edit-round"><option value="0">일반</option><option value="1">(1)</option><option value="2">(2)</option><option value="3">(3)</option><option value="4">(4)</option><option value="5">(5)</option></select><input class="edit-form-input stats-edit-time" type="text" placeholder="예: 01:23:45" value="${String(time||'').replace(/&/g,'&amp;').replace(/\"/g,'&quot;')}"><button type="button" class="stats-date-remove">×</button>`;
+            const raw=String(date||'').trim();
+            const m=raw.match(/^(\d{4}-\d{2}-\d{2})(?:\s*\((\d+)\))?$/);
+            const safeDate=m?m[1]:raw.replace(/[^0-9-]/g,'');
+            const round=m&&m[2]?String(Number(m[2])):'0';
+            const roundOptions=['<option value="0">일반</option>',...Array.from({length:20},(_,i)=>`<option value="${i+1}">(${i+1})</option>`)].join('');
+            row.innerHTML=`<input class="edit-form-input stats-edit-date" type="date" value="${safeDate}"><select class="edit-form-input stats-edit-round">${roundOptions}</select><input class="edit-form-input stats-edit-time" type="text" placeholder="예: 01:23:45" value="${String(time||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;')}"><button type="button" class="stats-date-remove">×</button>`;
             row.querySelector('.stats-edit-round').value=round; row.querySelector('.stats-date-remove').onclick=()=>row.remove(); box.appendChild(row);
         }
 
@@ -3287,18 +3290,14 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
                 const item = document.createElement("div");
                 item.className = "song-card";
 
-                let limitVal = song.limit ? song.limit.replace(/[\[\]]/g, '') : '';
+                let limitVal = song.limit ? song.limit.replace(/[\[\]]/g, '').trim() : '';
                 let limitBadgeHTML = "";
-                if (limitVal !== "") {
-                    let limitClass = "limit-other";
-                    if (limitVal.includes("200")) limitClass = "limit-200";
-                    else if (limitVal.includes("300")) limitClass = "limit-300";
-                    else if (limitVal.includes("기타")) {
-                        limitClass = "limit-other";
-                        limitVal = "기타전용";
-                    }
-                    limitBadgeHTML = `<span class="badge badge-limit ${limitClass}" data-limit="${song.limit || ""}">${limitVal}</span>`;
-                }
+                let limitClass = "";
+                let displayLimit = "";
+                if (/^기타(?:전용)?$/i.test(limitVal)) { limitClass="limit-other"; displayLimit="기타전용"; }
+                else if (/^200(?:개)?$/i.test(limitVal)) { limitClass="limit-200"; displayLimit="200개"; }
+                else if (/^300(?:개)?$/i.test(limitVal)) { limitClass="limit-300"; displayLimit="300개"; }
+                if (limitClass) limitBadgeHTML = `<span class="badge badge-limit ${limitClass}" data-limit="${song.limit || ""}">${displayLimit}</span>`;
                 const genreBadge = song.genre ? `<span class="badge badge-genre">${song.genre}</span>` : "";
                 const countBadge = `<span class="badge badge-count">${song.dateTimes ? song.dateTimes.length : 0}회</span>`;
                 const safeTitle = (song.title || '').replace(/'/g, "\\'");
@@ -3604,21 +3603,21 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
                     toggleSongCard(card);
                 };
 
-                let limitVal = song.limit || '';
+                const cleanLimitVal = String(song.limit || '').replace(/[\[\]]/g, '').trim();
                 let limitBadge = "";
-                if (limitVal !== "") {
-                    let cleanLimitVal = limitVal.replace(/[\[\]]/g, '');
-                    let limitClass = "limit-other";
-                    if (cleanLimitVal.includes("200")) limitClass = "limit-200";
-                    else if (cleanLimitVal.includes("300")) limitClass = "limit-300";
-                    else if (cleanLimitVal.includes("기타")) {
-                        limitClass = "limit-other";
-                        cleanLimitVal = "기타전용";
-                    }
-                    limitBadge = `<span class="badge badge-limit ${limitClass}" data-limit="${song.limit || ""}">${cleanLimitVal}</span>`;
+                let limitClass = "";
+                let displayLimit = "";
+                if (/^기타(?:전용)?$/i.test(cleanLimitVal)) {
+                    limitClass = "limit-other"; displayLimit = "기타전용";
+                } else if (/^200(?:개)?$/i.test(cleanLimitVal)) {
+                    limitClass = "limit-200"; displayLimit = "200개";
+                } else if (/^300(?:개)?$/i.test(cleanLimitVal)) {
+                    limitClass = "limit-300"; displayLimit = "300개";
+                }
+                if (limitClass) {
+                    limitBadge = `<span class="badge badge-limit ${limitClass}" data-limit="${song.limit || ""}">${displayLimit}</span>`;
                 }
 
-                const versionBadge = String(song.limit || '').includes('기타') ? `<span class="badge version-guitar">기타버전</span>` : `<span class="badge version-general">일반버전</span>`;
                 const playCount = song.dateTimes ? song.dateTimes.length : 0;
                 const countBadge = `<span class="badge badge-count">${playCount}회</span>`;
                 const genreBadge = song.genre ? `<span class="badge badge-genre">${song.genre}</span>` : "";
@@ -3630,8 +3629,8 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
                     timestampsHTML = '<div class="timestamp-container">';
                     song.dateTimes.forEach(dt => {
                         const rawDate = String(dt.date || "").trim();
-                        const baseDate = rawDate.replace(/\s*\(\d+\)\s*$/, "").trim();
-                        const vodUrl = vodMap[rawDate] || vodMap[baseDate] || "#";
+                        // 방송 회차가 붙은 날짜는 같은 회차의 VOD와 정확히 매칭합니다.
+                        const vodUrl = vodMap[rawDate] || "#";
                         const separator = vodUrl.includes("?") ? "&" : "?";
                         const finalLink = vodUrl !== "#" ? `${vodUrl}${separator}change_second=${timeToSeconds(dt.time)}` : "#";
                         const cleanDate = rawDate || "날짜없음";
@@ -3685,7 +3684,6 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
                             </div>
                         </div>
                         <div class="song-badges">
-                            ${versionBadge}
                             ${etcBadge}
                             ${genreBadge}
                             ${countBadge}
