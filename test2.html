@@ -2075,7 +2075,7 @@
 </style>
 
 <style>
-.song-artist-row{display:flex;align-items:center;gap:6px;width:100%;min-width:0;}
+.song-etc-top{display:flex;justify-content:flex-start;align-items:center;padding:0 16px 6px;min-height:0}.song-etc-top .badge{max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.song-artist-row{display:flex;align-items:center;gap:6px;width:100%;min-width:0;}
 .song-artist-row .song-artist{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .song-artist-row > .badge{margin-left:auto;flex:0 0 auto;max-width:48%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 @media(max-width:768px){
@@ -2203,6 +2203,19 @@
                         <button class="recent-option-btn filter-option-btn" data-days="90" onclick="selectRecentFilter('90')">최근 90일 이내</button>
                         <button class="recent-option-btn filter-option-btn" data-days="180" onclick="selectRecentFilter('180')">최근 180일 이내</button>
                     </div>
+                </div>
+            </div>
+            <div class="filter-section" style="margin-top:14px;">
+                <h4 class="filter-section-title">
+                    <svg class="btn-icon-svg" viewBox="0 0 24 24" style="width:14px;height:14px;">
+                        <path d="M20 6L9 17l-5-5"></path>
+                    </svg>
+                    등록 상태
+                </h4>
+                <div class="filter-options">
+                    <button class="registration-option-btn filter-option-btn selected" data-registration="전체" onclick="selectRegistrationFilter('전체')">전체보기</button>
+                    <button class="registration-option-btn filter-option-btn" data-registration="등록된" onclick="selectRegistrationFilter('등록된')">등록된 곡</button>
+                    <button class="registration-option-btn filter-option-btn" data-registration="등록되지 않은" onclick="selectRegistrationFilter('등록되지 않은')">등록되지 않은 곡</button>
                 </div>
             </div>
             <div class="modal-actions">
@@ -2441,6 +2454,7 @@
         let currentVersionFilter = '전체';
         let currentCountFilter = '전체';
         let currentRecentFilter = '전체';
+        let currentRegistrationFilter = '전체';
         let toastTimer = null;
 
         // 관리자 비밀번호는 브라우저에 저장하지 않는다.
@@ -3312,6 +3326,15 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
         function openFilterModal() { document.getElementById("filterModal").classList.add("active"); }
         function closeFilterModal() { document.getElementById("filterModal").classList.remove("active"); }
 
+        function selectRegistrationFilter(value) {
+            currentRegistrationFilter = value;
+            document.querySelectorAll('.registration-option-btn').forEach(btn => {
+                btn.classList.toggle('selected', btn.getAttribute('data-registration') === value);
+            });
+            updateFilteredAndSorted();
+            renderAllSongs();
+        }
+
         function selectCountFilter(countType) {
             currentCountFilter = countType;
             document.querySelectorAll('.count-option-btn').forEach(btn => {
@@ -3496,17 +3519,27 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
                 fansongStatsData={vodSources:Array.isArray(statsData.vodSources)?statsData.vodSources:[],registeredSongs:Array.isArray(statsData.registeredSongs)?statsData.registeredSongs:[],unregisteredSongs:Array.isArray(statsData.unregisteredSongs)?statsData.unregisteredSongs:[]};
                 vodMap={}; fansongStatsData.vodSources.forEach(v=>{vodMap[v.date]=v.url;});
                 const map=new Map();
-                [...fansongStatsData.registeredSongs,...fansongStatsData.unregisteredSongs].forEach(stat=>{
+                [
+                    ...fansongStatsData.registeredSongs.map(stat=>({stat, registered:true})),
+                    ...fansongStatsData.unregisteredSongs.map(stat=>({stat, registered:false}))
+                ].forEach(({stat, registered})=>{
                     const key=songIdentity(stat);
                     const copy=cloneSongForStats(stat,Array.isArray(stat.dateTimes)?stat.dateTimes:[]);
+                    Object.defineProperty(copy, '_registered', { value: registered, enumerable: false, writable: true });
                     if(!map.has(key))map.set(key,copy);
-                    else{const old=map.get(key); const dates=[...(old.dateTimes||[])]; (copy.dateTimes||[]).forEach(dt=>{if(!dates.some(x=>JSON.stringify(x)===JSON.stringify(dt)))dates.push(dt)}); old.dateTimes=dates;}
+                    else{
+                        const old=map.get(key);
+                        const dates=[...(old.dateTimes||[])];
+                        (copy.dateTimes||[]).forEach(dt=>{if(!dates.some(x=>JSON.stringify(x)===JSON.stringify(dt)))dates.push(dt)});
+                        old.dateTimes=dates;
+                        if(registered) old._registered=true;
+                    }
                 });
                 allSongs=[...map.values()];
-                document.getElementById("statsSummary").innerHTML=`총 노래 : <span id="animSongCount">0</span>곡 · 총 기록 : <span id="animPlayCount">0</span>회 · VOD : <span id="animVodCount">0</span>개`;
+                document.getElementById("statsSummary").innerHTML=`총 노래 : <span id="animSongCount">0</span>곡 · 총 기록 : <span id="animPlayCount">0</span>회`;
                 animateNumber("animSongCount",allSongs.length);
                 animateNumber("animPlayCount",allSongs.reduce((n,s)=>n+(s.dateTimes||[]).length,0));
-                animateNumber("animVodCount",fansongStatsData.vodSources.length);
+                
                 setupFilterButtons();updateFilteredAndSorted();renderAllSongs();renderUnregisteredSongs();updateSongAuthUI();
             }catch(err){console.error("노래통계 데이터 로드 실패:",err);container.innerHTML='<p class="no-result" style="color:#ef4444;">통계 데이터 로드 실패</p>';}
         }
@@ -3653,6 +3686,13 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
                  }
 
                 if (!matchesGenre) return false;
+
+                if (currentRegistrationFilter === '등록된') {
+                    if (song._registered !== true) return false;
+                } else if (currentRegistrationFilter === '등록되지 않은') {
+                    if (song._registered === true) return false;
+                }
+
                 const isGuitarVersion = l.includes('기타');
                 if (currentVersionFilter === '일반버전' && isGuitarVersion) return false;
                 if (currentVersionFilter === '기타버전' && !isGuitarVersion) return false;
@@ -3721,20 +3761,10 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
                 return;
             }
 
-            let lastArtist = "";
             const fragment = document.createDocumentFragment();
             const now = new Date();
 
             sortedSongs.forEach((song, sortedIndex) => {
-                const currentArtist = song.artist || '아티스트 미상';
-                if (currentArtist !== lastArtist) {
-                    lastArtist = currentArtist;
-                    const groupHeader = document.createElement('div');
-                    groupHeader.className = 'artist-group-header';
-                    groupHeader.innerHTML = `<svg class="artist-header-svg" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>${currentArtist}`;
-                    fragment.appendChild(groupHeader);
-                }
-
                 const card = document.createElement("div");
                 card.className = "song-card animate-fade-in";
                 card.onclick = (e) => {
@@ -3819,7 +3849,7 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
                                         </div>
                                     </div>
                                 </div>
-                                <div class="song-artist-row"><span class="song-artist">${song.artist || ''}</span>${etcBadge}</div>
+                                <div class="song-artist-row"><span class="song-artist">${song.artist || ''}</span></div>
                             </div>
                         </div>
                         <div class="song-badges">
@@ -3828,6 +3858,7 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
                             ${isSongAuthenticated ? `<button class="song-edit-btn" onclick="event.stopPropagation(); openSongEditModal(${sortedIndex})" title="노래 수정">✎ 수정</button>` : ""}
                         </div>
                     </div>
+                    ${etcBadge ? `<div class="song-etc-top">${etcBadge}</div>` : ""}
                     ${timestampsHTML}
                 `;
                 fragment.appendChild(card);
