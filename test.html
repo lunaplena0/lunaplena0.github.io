@@ -1112,6 +1112,11 @@
             color: #0284c7;
         }
 
+        .badge-genre {
+            background-color: #e0f2fe;
+            color: #0284c7;
+        }
+
         .badge-limit {
             background-color: #eef2ff;
             color: #6366f1;
@@ -1912,36 +1917,6 @@
 }
 
 
-/* === v2: 추천 상자 크기 완전 고정 === */
-#recommendModal {
-    align-items: center;
-    justify-content: center;
-    padding: 16px;
-    box-sizing: border-box;
-}
-#recommendModal .modal-box {
-    width: min(92vw, 460px) !important;
-    height: 480px !important;
-    min-height: 480px !important;
-    max-height: 480px !important;
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-}
-#recommendModal .recommend-list {
-    height: 310px !important;
-    min-height: 310px !important;
-    max-height: 310px !important;
-    flex: 0 0 310px !important;
-    overflow-y: auto !important;
-    overflow-x: hidden !important;
-}
-
-#recommendModal .modal-actions {
-    flex: 0 0 auto;
-}
-
 /* === v2: PC/모바일 노래 목록 카드 높이 및 내부 여백 축소 === */
 .song-card {
     border-radius: 9px;
@@ -2029,39 +2004,6 @@
         .song-summary-row { padding-left: 12px !important; padding-top: 7px !important; padding-bottom: 7px !important; }
         .song-info-left { padding-left: 3px; box-sizing: border-box; }
 
-        /* 2) 추천 곡 개별 상자 높이를 완전히 동일하게 고정 */
-        /* PC 추천창: 실제 노래 목록 카드와 동일한 구조/높이 */
-        @media (min-width: 769px) {
-        #recommendModal .modal-box {
-            width: min(92vw, 460px) !important;
-            height: 380px !important;
-            min-height: 380px !important;
-            max-height: 380px !important;
-        }
-        #recommendModal .recommend-list {
-            display: flex !important;
-            flex-direction: column !important;
-            gap: 6px !important;
-            height: 206px !important;
-            min-height: 206px !important;
-            max-height: 206px !important;
-            flex: 0 0 206px !important;
-            overflow: hidden !important;
-            padding: 0 1px !important;
-            box-sizing: border-box !important;
-        }
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        }
-
         /* 3) 모바일 노래 추가: 모달 자체만 스크롤되고 저장/취소 바는 카드 안에서 고정 */
         @media (max-width: 768px) {
             #songAddModal {
@@ -2117,153 +2059,89 @@
         }
 
 
-/* === v5: PC 추천 카드 높이 확대 / 모바일 추천 좌측 여백 축소 === */
-@media (min-width: 769px) {
-  #recommendModal .modal-box {
-    height: 380px !important;
-    min-height: 380px !important;
-    max-height: 380px !important;
-  }
-  #recommendModal .modal-actions {
-    flex: 0 0 auto !important;
-    display: flex !important;
-    visibility: visible !important;
-  }
-  #recommendModal .song-card {
-    min-height: 62px !important;
-    height: 62px !important;
+
+/* === 추천 팝업: 일반 노래목록 카드/배지 규칙을 그대로 사용 === */
+#recommendModal {
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
     box-sizing: border-box;
-  }
-  #recommendModal .recommend-list {
-    height: 270px !important;
-    min-height: 270px !important;
-    max-height: 270px !important;
-  }
 }
+#recommendModal .modal-box {
+    width: min(92vw, 460px) !important;
+    height: 400px !important;
+    min-height: 400px !important;
+    max-height: 400px !important;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+#recommendModal .recommend-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    height: 276px;
+    min-height: 276px;
+    max-height: 276px;
+    flex: 0 0 276px;
+    padding: 8px 1px 0;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+#recommendModal .song-card {
+    min-width: 0;
+    box-sizing: border-box;
+}
+#recommendModal .modal-actions {
+    flex: 0 0 auto;
+    display: flex;
+    visibility: visible;
+}
+
+/* 배지는 일반 노래목록과 동일한 크기 규칙.
+   장르만 줄어들고 횟수는 절대 줄어들지 않는다. */
+.song-badges .badge:not(.badge-count) {
+    flex: 1 1 auto;
+    min-width: 0;
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.song-badges .badge-count {
+    flex: 0 0 auto;
+    min-width: max-content;
+    width: auto;
+    max-width: none;
+    overflow: visible;
+    text-overflow: clip;
+    white-space: nowrap;
+}
+
 @media (max-width: 768px) {
-  #recommendModal .song-card {
-    padding-left: 6px !important;
-  }
-  
-}
-
-
-
-/* === v11: 추천 팝업 높이 복원 + 모바일 장르/횟수 배지 안정화 === */
-@media (min-width: 769px) {
-    /* 제목과 첫 추천곡 사이의 여백은 유지하고, 4번째 카드가 잘리지 않도록 높이 복원 */
     #recommendModal .modal-box {
+        width: min(94vw, 460px) !important;
         height: 400px !important;
         min-height: 400px !important;
         max-height: 400px !important;
     }
     #recommendModal .recommend-list {
-        height: 276px !important;
-        min-height: 276px !important;
-        max-height: 276px !important;
-        flex: 0 0 276px !important;
-        padding-top: 8px !important;
-        gap: 6px !important;
-        box-sizing: border-box !important;
-        overflow: hidden !important;
+        height: 238px;
+        min-height: 238px;
+        max-height: 238px;
+        flex-basis: 238px;
     }
-}
-
-@media (max-width: 768px) {
-    /* 모바일 추천곡 카드 자체의 높이를 목록 카드와 비슷하게 복원 */
-    #recommendModal .modal-box {
-        height: 400px !important;
-        min-height: 400px !important;
-        max-height: 400px !important;
+    #recommendModal .song-summary-row {
+        min-height: 54px;
+        padding: 8px 10px;
     }
-    #recommendModal .recommend-list {
-        height: 238px !important;
-        min-height: 238px !important;
-        max-height: 238px !important;
-        flex: 0 0 238px !important;
-        gap: 6px !important;
-        overflow: hidden !important;
-        box-sizing: border-box !important;
-    }
-    #recommendModal .song-card .song-summary-row {
-        min-height: 54px !important;
-        height: 54px !important;
-        padding: 6px 8px !important;
-        box-sizing: border-box !important;
-    }
-
-    /* 장르가 길어도 장르만 줄이고 횟수는 절대 줄어들지 않게 */
+    /* 추천곡도 일반 목록과 동일하게: 배지 영역 폭을 별도로 키우지 않는다. */
     #recommendModal .song-badges {
-        display: flex !important;
-        align-items: center !important;
-        justify-content: flex-end !important;
-        gap: 4px !important;
-        width: 52% !important;
-        max-width: 52% !important;
-        min-width: 0 !important;
-        flex: 0 0 52% !important;
-        flex-shrink: 0 !important;
-        overflow: hidden !important;
-        white-space: nowrap !important;
-    }
-    #recommendModal .song-badges .badge:first-child {
-        flex: 1 1 auto !important;
-        min-width: 0 !important;
-        max-width: none !important;
-        overflow: hidden !important;
-        text-overflow: ellipsis !important;
-        white-space: nowrap !important;
-    }
-    #recommendModal .song-badges .badge-count {
-        flex: 0 0 auto !important;
-        width: auto !important;
-        min-width: 30px !important;
-        max-width: none !important;
-        overflow: visible !important;
-        text-overflow: clip !important;
-        white-space: nowrap !important;
-    }
-}
-
-
-/* === v13: 모바일 추천곡 배지 동작을 일반 노래목록과 동일하게 통일 === */
-@media (max-width: 768px) {
-    /* 추천곡은 일반 노래목록의 .song-summary-row / .song-badges 규칙을 그대로 사용 */
-    #recommendModal .song-card .song-summary-row {
-        min-height: 54px !important;
-        height: auto !important;
-        padding: 8px 10px !important;
-        box-sizing: border-box !important;
-    }
-
-    /* 장르는 남는 공간만 사용하고 길면 장르만 ... 처리 */
-    #recommendModal .song-card .song-badges {
-        max-width: 42% !important;
-        min-width: 0 !important;
-        flex: 0 1 42% !important;
-        gap: 4px !important;
-        overflow: hidden !important;
-        white-space: nowrap !important;
-    }
-
-    #recommendModal .song-card .song-badges .badge:not(.badge-count) {
-        flex: 1 1 auto !important;
-        min-width: 0 !important;
-        max-width: 120px !important;
-        overflow: hidden !important;
-        text-overflow: ellipsis !important;
-        white-space: nowrap !important;
-    }
-
-    /* 횟수는 절대로 줄어들거나 ... 처리되지 않도록 고정 */
-    #recommendModal .song-card .song-badges .badge-count {
-        flex: 0 0 auto !important;
-        min-width: 30px !important;
-        width: auto !important;
-        max-width: none !important;
-        overflow: visible !important;
-        text-overflow: clip !important;
-        white-space: nowrap !important;
+        max-width: 42%;
+        min-width: 0;
+        flex: 0 1 42%;
+        gap: 4px;
     }
 }
 
@@ -3431,7 +3309,7 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
                     }
                     limitBadgeHTML = `<span class="badge badge-limit ${limitClass}" data-limit="${song.limit || ""}">${limitVal}</span>`;
                 }
-                const genreBadge = song.genre ? `<span class="badge" style="background-color:#e0f2fe;color:#0284c7;">${song.genre}</span>` : "";
+                const genreBadge = song.genre ? `<span class="badge badge-genre">${song.genre}</span>` : "";
                 const countBadge = `<span class="badge badge-count">${song.dateTimes ? song.dateTimes.length : 0}회</span>`;
                 const safeTitle = (song.title || '').replace(/'/g, "\\'");
                 const safeArtist = (song.artist || '').replace(/'/g, "\\'");
@@ -3732,7 +3610,7 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
 
                 const playCount = song.dateTimes ? song.dateTimes.length : 0;
                 const countBadge = `<span class="badge badge-count">${playCount}회</span>`;
-                const genreBadge = song.genre ? `<span class="badge" style="background-color: #e0f2fe; color: #0284c7;">${song.genre}</span>` : "";
+                const genreBadge = song.genre ? `<span class="badge badge-genre">${song.genre}</span>` : "";
                 let etcVal = song.etc || '';
                 let etcBadge = etcVal !== "" ? `<span class="badge" style="background-color: #f1f5f9; color: #475569; border: 1px solid #cbd5e1;">${etcVal}</span>` : "";
 
