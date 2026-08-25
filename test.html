@@ -2403,8 +2403,8 @@
             });
         }
 
-        function openSongAuthModal() {
-            restoreSongAuthentication();
+        async function openSongAuthModal() {
+            await restoreSongAuthentication();
             if (isSongAuthenticated) {
                 songAuthModalContent.innerHTML = `
                     <div class="song-logout-card">
@@ -2497,6 +2497,7 @@
 
                 isSongAuthenticated = true;
                 songAuthPassword = password;
+                try { localStorage.setItem("badabi_song_auth_password", password); } catch (e) {}
                 updateSongAuthUI();
                 closeSongAuthModal();
                 showToastMessage("성공적으로 인증되었습니다!");
@@ -2512,14 +2513,38 @@
         function logoutSongAuth() {
             isSongAuthenticated = false;
             songAuthPassword = "";
+            try { localStorage.removeItem("badabi_song_auth_password"); } catch (e) {}
             updateSongAuthUI();
             closeSongAuthModal();
             showToastMessage("인증이 해제되었습니다.");
         }
 
-        function restoreSongAuthentication() {
-            document.body.classList.toggle("authenticated-mode", isSongAuthenticated);
-            return isSongAuthenticated;
+        async function restoreSongAuthentication() {
+            if (isSongAuthenticated && songAuthPassword) return true;
+            let savedPassword = "";
+            try { savedPassword = localStorage.getItem("badabi_song_auth_password") || ""; } catch (e) {}
+            if (!savedPassword) {
+                document.body.classList.toggle("authenticated-mode", false);
+                return false;
+            }
+            try {
+                const response = await fetch(WORKER_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ password: savedPassword, action: "verify", fileType: "verify" })
+                });
+                if (!response.ok) throw new Error("saved auth rejected");
+                isSongAuthenticated = true;
+                songAuthPassword = savedPassword;
+                updateSongAuthUI();
+                return true;
+            } catch (e) {
+                try { localStorage.removeItem("badabi_song_auth_password"); } catch (ignore) {}
+                isSongAuthenticated = false;
+                songAuthPassword = "";
+                document.body.classList.toggle("authenticated-mode", false);
+                return false;
+            }
         }
 
         function updateSongAuthUI() {
@@ -2816,10 +2841,12 @@
         }
 
         function unwrapNoticeNode(node) {
-            if (!node || !node.parentNode) return;
+            if (!node || !node.parentNode) return [];
             const parent = node.parentNode;
-            while (node.firstChild) parent.insertBefore(node.firstChild, node);
+            const moved = Array.from(node.childNodes);
+            moved.forEach(child => parent.insertBefore(child, node));
             parent.removeChild(node);
+            return moved;
         }
 
         function applyNoticeFormat(command) {
@@ -2842,17 +2869,13 @@
                 full.selectNodeContents(startStyled);
 
                 if (range.toString() === full.toString()) {
-                    const parent = startStyled.parentNode;
-                    const beforeNode = startStyled.previousSibling;
-                    unwrapNoticeNode(startStyled);
-
+                    const movedNodes = unwrapNoticeNode(startStyled);
                     const nr = document.createRange();
-                    if (beforeNode && beforeNode.parentNode === parent) {
-                        nr.setStartAfter(beforeNode);
-                        nr.collapse(true);
+                    if (movedNodes.length) {
+                        nr.setStartBefore(movedNodes[0]);
+                        nr.setEndAfter(movedNodes[movedNodes.length - 1]);
                     } else {
-                        nr.setStart(parent || editor, 0);
-                        nr.collapse(true);
+                        nr.selectNodeContents(editor);
                     }
                     sel.removeAllRanges();
                     sel.addRange(nr);
@@ -2862,12 +2885,16 @@
 
                 // 서식 span 일부만 선택한 경우 선택된 부분만 서식을 제거
                 const fragment = range.extractContents();
-                const plain = document.createDocumentFragment();
-                while (fragment.firstChild) plain.appendChild(fragment.firstChild);
-                range.insertNode(plain);
+                const movedNodes = Array.from(fragment.childNodes);
+                range.insertNode(fragment);
 
                 const nr = document.createRange();
-                nr.selectNodeContents(plain);
+                if (movedNodes.length) {
+                    nr.setStartBefore(movedNodes[0]);
+                    nr.setEndAfter(movedNodes[movedNodes.length - 1]);
+                } else {
+                    nr.collapse(true);
+                }
                 sel.removeAllRanges();
                 sel.addRange(nr);
                 noticeSavedRange = nr.cloneRange();
@@ -2904,6 +2931,14 @@
             if (!range.collapsed && editor.contains(range.commonAncestorContainer)) {
                 noticeSavedRange = range.cloneRange();
             }
+        });
+
+        // 서식 버튼을 누르는 순간 브라우저가 편집기의 선택 영역을 잃지 않도록 한다.
+        document.addEventListener("mousedown", function(event) {
+            const button = event.target.closest?.(".notice-format-btn");
+            if (!button) return;
+            rememberNoticeSelection();
+            event.preventDefault();
         });
 
         function formatNoticeText(command){ applyNoticeFormat(command); }
