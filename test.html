@@ -2368,6 +2368,13 @@
 
         let isSongAuthenticated = false;
         let songSessionToken = localStorage.getItem("badabi_session") || "";
+        let rateLimitId = localStorage.getItem("badabi_rate_limit_id") || "";
+        if (!rateLimitId) {
+            const rateBytes = new Uint8Array(32);
+            crypto.getRandomValues(rateBytes);
+            rateLimitId = Array.from(rateBytes, byte => byte.toString(16).padStart(2, "0")).join("");
+            localStorage.setItem("badabi_rate_limit_id", rateLimitId);
+        }
         let editingSongIndex = -1;
         let songSaveQueue = Promise.resolve();
         let isSongLocallyMutating = false;
@@ -2573,6 +2580,7 @@
                     body: JSON.stringify({
                         password,
                         turnstileToken: songTurnstileToken,
+                        rateLimitId,
                         action: "verify"
                     })
                 });
