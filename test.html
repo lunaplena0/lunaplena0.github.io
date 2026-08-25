@@ -3151,6 +3151,42 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
             filterBtn.innerHTML = iconHtml;
         }
 
+
+        // 모바일 긴 노래 제목 자동 슬라이드: 일반 목록과 추천 목록에서 공통 사용
+        function setupSongTitleMarquees(container, scrollRoot = null) {
+            if (window.innerWidth > 768 || !container) return;
+
+            requestAnimationFrame(() => {
+                const marquees = [];
+                container.querySelectorAll('.song-text-viewport').forEach(viewport => {
+                    const text = viewport.querySelector('.song-text-marquee');
+                    if (!text) return;
+
+                    const overflow = Math.ceil(text.scrollWidth - viewport.clientWidth);
+                    if (overflow > 0) {
+                        viewport.classList.add('marquee-active');
+                        viewport.classList.remove('marquee-visible');
+                        text.style.setProperty('--song-title-shift', `${-overflow}px`);
+                        marquees.push(viewport);
+                    } else {
+                        viewport.classList.remove('marquee-active', 'marquee-visible');
+                        text.style.removeProperty('--song-title-shift');
+                    }
+                });
+
+                if ('IntersectionObserver' in window) {
+                    const observer = new IntersectionObserver(entries => {
+                        entries.forEach(entry => {
+                            entry.target.classList.toggle('marquee-visible', entry.isIntersecting);
+                        });
+                    }, { root: scrollRoot, threshold: 0.01 });
+                    marquees.forEach(viewport => observer.observe(viewport));
+                } else {
+                    marquees.forEach(viewport => viewport.classList.add('marquee-visible'));
+                }
+            });
+        }
+
         function generateRecommendations() {
             const container = document.getElementById("recommendListContainer");
             const titleEl = document.getElementById("modalTitleText");
@@ -3217,6 +3253,9 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
                 `;
                 container.appendChild(item);
             });
+
+            // 추천 팝업에서도 일반 노래목록과 동일하게 긴 제목을 자동 슬라이드
+            setupSongTitleMarquees(container, container);
         }
 
         function animateNumber(elementId, endValue, duration = 800) {
@@ -3569,45 +3608,7 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
             container.appendChild(fragment);
 
             // 모바일에서 실제로 영역을 넘는 긴 제목만 자동 슬라이드.
-            // 화면에 보이는 제목만 애니메이션을 실행해 불필요한 렌더링을 줄인다.
-            if (window.innerWidth <= 768) {
-                requestAnimationFrame(() => {
-                    const marquees = [];
-
-                    container.querySelectorAll('.song-text-viewport').forEach(viewport => {
-                        const text = viewport.querySelector('.song-text-marquee');
-                        if (!text) return;
-
-                        const overflow = Math.ceil(text.scrollWidth - viewport.clientWidth);
-
-                        // 제목과 가수를 하나의 묶음으로 측정해 함께 이동한다.
-                        if (overflow > 0) {
-                            viewport.classList.add('marquee-active');
-                            text.style.setProperty('--song-title-shift', `${-overflow}px`);
-                            marquees.push(viewport);
-                        } else {
-                            viewport.classList.remove('marquee-active', 'marquee-visible');
-                            text.style.removeProperty('--song-title-shift');
-                        }
-                    });
-
-                    if ('IntersectionObserver' in window) {
-                        const scrollRoot = container.closest('.song-list-scroll-wrapper') || null;
-                        const observer = new IntersectionObserver(entries => {
-                            entries.forEach(entry => {
-                                entry.target.classList.toggle('marquee-visible', entry.isIntersecting);
-                            });
-                        }, { root: scrollRoot, threshold: 0.01 });
-
-                        marquees.forEach(viewport => {
-                            observer.observe(viewport);
-                        });
-                    } else {
-                        // 구형 브라우저에서는 기본적으로 표시된 긴 제목만 애니메이션
-                        marquees.forEach(viewport => viewport.classList.add('marquee-visible'));
-                    }
-                });
-            }
+            setupSongTitleMarquees(container, container.closest('.song-list-scroll-wrapper') || null);
         }
 
         function onSearchInput() { updateFilteredAndSorted(); renderAllSongs(); }
