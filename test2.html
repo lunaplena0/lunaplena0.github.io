@@ -1304,7 +1304,7 @@
 
         .filter-grid-container {
             display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
+            grid-template-columns: repeat(4, minmax(0, 1fr));
             gap: 12px;
             align-items: stretch;
         }
@@ -1334,7 +1334,7 @@
             gap: 5px;
         }
 
-        @media (max-width: 560px) {
+        @media (max-width: 768px) {
             .filter-grid-container { grid-template-columns: 1fr; gap: 9px; }
             .filter-section { min-height: 0; padding: 10px; }
         }
@@ -1989,6 +1989,9 @@
         .stats-top-song-artist{font-size:10px;color:#94a3b8;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
         .stats-top-song-count{font-size:11px;font-weight:800;color:#0369a1;white-space:nowrap;}
         @media(max-width:700px){.stats-chart-grid{grid-template-columns:1fr}.stats-chart-card.full{grid-column:auto}.stats-donut-wrap{flex-direction:column;align-items:stretch}.stats-donut{margin:0 auto}.stats-bar-row{grid-template-columns:90px 1fr 42px}.stats-dashboard-box{width:94vw!important;}}
+
+        .data-check-grid{display:grid;grid-template-columns:1fr;gap:10px}.data-check-grid section{border:1px solid #e2e8f0;border-radius:10px;background:#f8fafc;padding:12px}.data-check-grid h4{margin:0 0 8px;font-size:13px;color:#0369a1}.data-check-grid ul{margin:0;padding-left:18px;max-height:180px;overflow:auto;font-size:12px;line-height:1.7}.data-check-grid small{color:#64748b}
+        @media(min-width:769px){.data-check-grid{grid-template-columns:1fr 1fr}}
 </style>
 </head>
 <body>
@@ -2008,6 +2011,7 @@
                 <div class="song-admin-toolbar">
                     <button class="song-admin-btn" onclick="openSongAddModal()">＋ 노래 추가</button>
                     <button class="song-admin-btn" onclick="openBulkSongInputModal()">♫ 노래 한번에 입력</button>
+                    <button class="song-admin-btn" onclick="openSongDataCheckModal()">✓ 노래 데이터 검사</button>
                 </div>
             </div>
             <div class="header-btn-group">
@@ -2267,6 +2271,14 @@
             </div>
             <div id="bulkSongResult" style="margin-top:12px;max-height:220px;overflow:auto;font-size:12px"></div>
             <div class="modal-actions" style="margin-top:14px;"><button class="modal-btn modal-btn-close" onclick="applyBulkSongInput()">입력 및 저장</button><button class="modal-btn modal-btn-refresh" onclick="closeBulkSongInputModal()">취소</button></div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="songDataCheckModal">
+        <div class="filter-modal-box" style="width:92%;max-width:820px;max-height:88vh;overflow:auto;">
+            <div class="modal-header"><h3 class="modal-title">✓ 노래 데이터 검사</h3><button class="modal-close-btn" onclick="closeSongDataCheckModal()">✕</button></div>
+            <div id="songDataCheckResult" class="data-check-result">검사 준비 중...</div>
+            <div class="modal-actions"><button class="modal-btn modal-btn-close" onclick="runSongDataCheck()">다시 검사</button><button class="modal-btn modal-btn-refresh" onclick="closeSongDataCheckModal()">닫기</button></div>
         </div>
     </div>
 
@@ -2874,35 +2886,40 @@ function addEditDateRow(date="",time=""){
             return {time:m[1],guitar:!!m[2],title:m[3].trim(),artist:m[4].trim()};
         }
         function applyBulkSongInput(){
-            if(!isSongAuthenticated)return;
-            const baseDate=document.getElementById('bulkSongDate').value.trim();
-            const raw=document.getElementById('bulkSongInput').value||'';
-            if(!baseDate){showToastMessage('날짜를 입력해주세요.');return;}
-            const dateKey=normalizeManualDate(baseDate);
-            if(!dateKey){showToastMessage('방송 날짜는 YYYY-MM-DD 형식으로 입력해주세요.');return;}
+            if(!isSongAuthenticated){openSongAuthModal();return;}
+            const date=normalizeManualDate(document.getElementById('bulkSongDate')?.value||'');
+            const raw=document.getElementById('bulkSongInput')?.value||'';
+            const result=document.getElementById('bulkSongResult');
+            if(!date){result.innerHTML='<div style="color:#dc2626;font-weight:700">방송 날짜를 YYYY-MM-DD 형식으로 입력해주세요.</div>';return;}
             const lines=raw.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
-            if(!lines.length){showToastMessage('입력할 노래 기록을 넣어주세요.');return;}
             const registered=Array.isArray(fansongStatsData.registeredSongs)?fansongStatsData.registeredSongs:[];
-            const results=[]; let added=0,skipped=0,ambiguous=0;
-            for(const line of lines){
-                const parsed=parseBulkSongLine(line);
-                if(!parsed){results.push(`<div style="color:#b45353">형식 오류: ${escapeHtml(line)}</div>`);skipped++;continue;}
-                const matches=registered.filter(song=>String(song.title||'').trim()===parsed.title && String(song.artist||'').trim()===parsed.artist);
-                if(matches.length===0){results.push(`<div style="color:#b45353">일치하는 노래 없음: ${escapeHtml(parsed.title)} - ${escapeHtml(parsed.artist)}</div>`);skipped++;continue;}
-                if(matches.length>1){results.push(`<div style="color:#b45353">동일 제목/가수가 여러 곡이라 제외: ${escapeHtml(parsed.title)} - ${escapeHtml(parsed.artist)}</div>`);ambiguous++;continue;}
-                const song=matches[0];
-                if(!Array.isArray(song.dateTimes))song.dateTimes=[];
-                if(!song.dateTimes.some(dt=>String(dt.date||'')===dateKey && String(dt.time||'')===parsed.time))song.dateTimes.push({date:dateKey,time:parsed.time});
-                if(parsed.guitar){song.limit='기타';}
-                const allIndex=allSongs.findIndex(x=>songIdentity(x)===songIdentity(song));
-                if(allIndex>=0){allSongs[allIndex]={...allSongs[allIndex],dateTimes:[...song.dateTimes],limit:song.limit||allSongs[allIndex].limit||'',etc:song.etc||allSongs[allIndex].etc||''};}
+            const outcomes=[]; const seen=new Set(); let added=0,duplicate=0,unmatched=0,invalid=0;
+            lines.forEach((line,i)=>{
+                const m=line.match(/^(\d{1,2}:\d{2}:\d{2})\s+(.*)$/);
+                if(!m){invalid++;outcomes.push(`<div style="color:#dc2626">${i+1}. 형식 오류 · ${escapeHtml(line)}</div>`);return;}
+                let rest=m[2].trim(), guitar=rest.includes('🎸'); rest=rest.replace(/🎸/g,'').trim(); rest=rest.replace(/^🎵\s*/,'');
+                const dash=rest.indexOf(' - '); if(dash<0){invalid++;outcomes.push(`<div style="color:#dc2626">${i+1}. 제목/가수 구분 실패 · ${escapeHtml(line)}</div>`);return;}
+                const title=rest.slice(0,dash).trim(), artist=rest.slice(dash+3).trim();
+                const key=`${date}|${m[1]}|${title}|${artist}|${guitar?'기타':''}`;
+                if(seen.has(key)){duplicate++;return;} seen.add(key);
+                const matches=registered.filter(s=>String(s.title||'').trim()===title&&String(s.artist||'').trim()===artist);
+                if(matches.length!==1){unmatched++;outcomes.push(`<div style="color:#b45309">${i+1}. 미일치 · ${escapeHtml(title)} - ${escapeHtml(artist)}${matches.length>1?' (동일 제목/가수 중복)':''}</div>`);return;}
+                const song=matches[0]; song.dateTimes=Array.isArray(song.dateTimes)?song.dateTimes:[];
+                if(song.dateTimes.some(dt=>String(dt.date||'')===date&&String(dt.time||'')===m[1])){duplicate++;return;}
+                song.dateTimes.push({date,time:m[1]});
+                if(guitar) song.limit='기타';
                 added++;
-                results.push(`<div style="color:#166534">입력 완료: ${escapeHtml(parsed.time)} · ${escapeHtml(parsed.title)} - ${escapeHtml(parsed.artist)}${parsed.guitar?' · 🎸':''}</div>`);
-            }
-            updateFilteredAndSorted();renderAllSongs();animateNumber('animPlayCount',allSongs.reduce((n,s)=>n+(s.dateTimes||[]).length,0));
-            if(added>0)enqueueSongServerSave();
-            document.getElementById('bulkSongResult').innerHTML=`<div style="font-weight:700;margin-bottom:8px">완료 ${added}개 · 미일치/오류 ${skipped}개 · 중복매칭 ${ambiguous}개</div>`+results.join('');
-            showToastMessage(`${added}개의 노래 기록을 입력했습니다.`);
+            });
+            fansongStatsData.registeredSongs=registered;
+            allSongs=[];const map=new Map();[...registered,...(fansongStatsData.unregisteredSongs||[])].forEach(song=>{const k=songIdentity(song);if(!map.has(k))map.set(k,cloneSongForStats(song,song.dateTimes||[]));});allSongs=[...map.values()];
+            updateFilteredAndSorted();renderAllSongs();enqueueSongServerSave();
+            const sections=[];
+            if(added)sections.push(`<div style="color:#15803d"><b>입력 완료 ${added}곡</b></div>`);
+            if(duplicate)sections.push(`<div style="color:#64748b"><b>중복 제외 ${duplicate}건</b></div>`);
+            if(unmatched)sections.push(`<div style="margin-top:8px;font-weight:700;color:#b45309">일치하지 않는 곡 ${unmatched}개</div>`);
+            if(invalid)sections.push(`<div style="margin-top:8px;font-weight:700;color:#dc2626">오류 ${invalid}개</div>`);
+            const detail=outcomes.length?`<div style="margin-top:8px;padding:8px;background:#f8fafc;border-radius:8px">${outcomes.join('')}</div>`:'';
+            result.innerHTML=sections.join('')+detail||'<div>입력할 데이터가 없습니다.</div>';
         }
 
         function normalizeNoticeText(value) {
@@ -3779,6 +3796,21 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
     </script>
 <div class="modal-overlay" id="songStatsDashboardModal"><div class="filter-modal-box stats-dashboard-box"><div class="modal-header"><h3 class="modal-title">노래 통계</h3><button class="modal-close-btn" onclick="closeSongStatsDashboard()">✕</button></div><div id="songStatsDashboardContent"></div></div></div>
 <div class="modal-overlay" id="vodModal"><div class="filter-modal-box" style="width:92%;max-width:620px;max-height:88vh"><div class="modal-header"><h3 class="modal-title">VOD 관리</h3><button class="modal-close-btn" onclick="closeVodModal()">✕</button></div><div class="vod-input-panel"><div class="edit-form-grid"><div class="edit-form-field"><label class="edit-form-label">VOD 날짜</label><input id="statsVodDate" class="edit-form-input" type="text" inputmode="numeric" placeholder="YYYY-MM-DD" autocomplete="off"></div><div class="edit-form-field full"><label class="edit-form-label">VOD 주소</label><input id="statsVodUrl" class="edit-form-input" type="url" placeholder="https://..." autocomplete="off"></div></div></div><div class="modal-actions"><button class="modal-btn modal-btn-close" type="button" onclick="startAddVod()">＋ 추가</button><button class="modal-btn modal-btn-close" type="button" onclick="saveStatsVod()">저장</button><button class="modal-btn modal-btn-refresh" type="button" onclick="closeVodModal()">닫기</button></div><div id="statsVodList" class="stats-vod-list"></div></div></div><script>
+function closeSongDataCheckModal(){document.getElementById('songDataCheckModal')?.classList.remove('active');}
+async function openSongDataCheckModal(){if(!isSongAuthenticated){openSongAuthModal();return;}document.getElementById('songDataCheckModal')?.classList.add('active');document.getElementById('songDataCheckResult').innerHTML='songlist와 fansongstats를 불러와 비교 중...';await runSongDataCheck();}
+function normalizeLimitForCheck(v){const x=String(v??'').trim().toLowerCase();if(!x)return '';if(x==='기타'||x==='기타전용'||x==='🎸')return '기타';if(x==='200'||x==='200개')return '200';if(x==='300'||x==='300개')return '300';return x;}
+async function runSongDataCheck(){
+ const box=document.getElementById('songDataCheckResult'); if(!box)return;
+ try{const res=await fetch(SONG_LIST_URL+Date.now());if(!res.ok)throw new Error('songlist 불러오기 실패');const data=await res.json();const songs=Array.isArray(data.songs)?data.songs:Array.isArray(data)?data:[];
+ const fs=Array.isArray(fansongStatsData.registeredSongs)?fansongStatsData.registeredSongs:[], us=Array.isArray(fansongStatsData.unregisteredSongs)?fansongStatsData.unregisteredSongs:[];
+ const key=s=>`${String(s.title||'').trim()}|${String(s.artist||'').trim()}|${normalizeLimitForCheck(s.limit)}`;
+ const sm=new Map(songs.map(s=>[key(s),s])); const fm=new Map(fs.map(s=>[key(s),s]));
+ const missingFromStats=songs.filter(s=>!fm.has(key(s))); const missingFromList=fs.filter(s=>!sm.has(key(s)));
+ const regKeys=new Set(fs.map(key)); const dup=us.filter(s=>regKeys.has(key(s)));
+ const listRows=a=>a.length?a.map(s=>`<li>${escapeHtml(s.title||'')} - ${escapeHtml(s.artist||'')} <small>(limit: ${escapeHtml(s.limit||'없음')})</small></li>`).join(''):'<li>없음</li>';
+ box.innerHTML=`<div class="data-check-grid"><section><h4>songlist에는 있지만 fansongstats 등록곡에 없는 곡 (${missingFromStats.length})</h4><ul>${listRows(missingFromStats)}</ul></section><section><h4>fansongstats 등록곡에는 있지만 songlist에 없는/불일치 곡 (${missingFromList.length})</h4><ul>${listRows(missingFromList)}</ul></section><section><h4>등록곡 ↔ 미등록곡 중복 (${dup.length})</h4><ul>${listRows(dup)}</ul></section></div><div style="margin-top:12px;font-weight:700;color:${(!missingFromStats.length&&!missingFromList.length&&!dup.length)?'#15803d':'#b45309'}">${(!missingFromStats.length&&!missingFromList.length&&!dup.length)?'모든 검사에서 불일치와 중복이 없습니다.':'불일치 또는 중복 항목을 확인해주세요.'}</div>`;
+ }catch(e){box.innerHTML=`<div style="color:#dc2626;font-weight:700">검사 실패: ${escapeHtml(e.message||e)}</div>`;}
+}
 function closeSongStatsDashboard(){document.getElementById('songStatsDashboardModal')?.classList.remove('active');}
 function escStats(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
 function parseStatsDate(v){
