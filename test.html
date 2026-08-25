@@ -115,31 +115,33 @@
         }
 
         /* 로그인 / 노래 수정 */
+        .song-admin-toolbar { display: none; align-items: center; gap: 7px; margin-top: 7px; }
+        body.authenticated-mode .song-admin-toolbar { display: flex; }
+        .song-admin-btn { border: 1px solid #cbd5e1; background: #fff; color: #0369a1; border-radius: 8px; padding: 6px 9px; font-size: 11.5px; font-weight: 700; cursor: pointer; }
+        .song-admin-btn:hover { border-color: #0ea5e9; background: #f0f9ff; }
         .stats-summary-row {
             display: flex;
             align-items: center;
             gap: 8px;
             min-width: 0;
         }
-        .song-admin-toolbar { display: none; align-items: center; gap: 7px; margin: 0; flex-shrink: 0; }
+        .song-admin-toolbar {
+            display: none;
+            align-items: center;
+            gap: 7px;
+            margin: 0;
+            flex-shrink: 0;
+        }
         body.authenticated-mode .song-admin-toolbar { display: flex; }
         .song-admin-btn {
             height: 26px;
             box-sizing: border-box;
-            border: 1px solid #cbd5e1;
-            background: #fff;
-            color: #0369a1;
-            border-radius: 8px;
             padding: 0 8px;
-            font-size: 11.5px;
-            font-weight: 700;
-            cursor: pointer;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             white-space: nowrap;
         }
-        .song-admin-btn:hover { border-color: #0ea5e9; background: #f0f9ff; }
         .song-unregistered-section { grid-column:1/-1; border:1px solid #e2e8f0; border-radius:11px; background:#f8fafc; padding:10px; margin-bottom:2px; }
         .song-unregistered-header { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:7px; }
         .song-unregistered-title { font-size:12px; font-weight:800; color:#0369a1; margin:0; }
@@ -164,6 +166,38 @@
             white-space: pre-wrap;
             word-break: break-word;
             overflow-wrap: anywhere;
+        }
+
+        .notice-format-toolbar {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+        }
+        .notice-format-btn {
+            min-width: 38px;
+            height: 34px;
+            padding: 0 10px;
+            border: 1px solid var(--border-color, #d1d5db);
+            border-radius: 8px;
+            background: var(--card-bg, #fff);
+            color: inherit;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 700;
+        }
+        .notice-format-btn:hover {
+            filter: brightness(0.96);
+        }
+        .notice-edit-content {
+            white-space: pre-wrap;
+            overflow-y: auto;
+            outline: none;
+        }
+        .notice-edit-content:empty::before {
+            content: "공지 내용을 입력해주세요.";
+            opacity: 0.45;
+            pointer-events: none;
         }
 
         .notice-edit-textarea {
@@ -409,7 +443,16 @@
             background: #f1f5f9;
             border-color: #cbd5e1;
         }
-.song-auth-password-toggle:hover { background:#f1f5f9; color:#0369a1; }
+
+        .song-auth-intro { display:flex; align-items:center; gap:12px; padding:12px 13px; margin-bottom:14px; border:1px solid #dbeafe; border-radius:12px; background:linear-gradient(135deg,#f0f9ff,#fff); }
+        .song-auth-intro-icon { width:38px; height:38px; flex-shrink:0; border-radius:10px; display:flex; align-items:center; justify-content:center; background:#e0f2fe; color:#0369a1; }
+        .song-auth-intro-icon svg { width:21px; height:21px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+        .song-auth-intro-text strong { display:block; font-size:14px; color:#03045e; margin-bottom:3px; }
+        .song-auth-intro-text span { display:block; font-size:11.5px; color:#64748b; }
+        .song-auth-password-wrap { position:relative; }
+        .song-auth-password-wrap .modal-input { width:100%; box-sizing:border-box; padding-right:42px; }
+        .song-auth-password-toggle { position:absolute; right:8px; top:50%; transform:translateY(-50%); width:30px; height:30px; border:0; background:transparent; color:#64748b; cursor:pointer; border-radius:7px; }
+        .song-auth-password-toggle:hover { background:#f1f5f9; color:#0369a1; }
         @media (max-width:520px) { .song-add-form { grid-template-columns:1fr; } .song-add-form .edit-form-field.full { grid-column:auto; } }
         .song-title-login-trigger {
             width: 24px;
@@ -433,7 +476,24 @@
         .song-title-login-trigger.authenticated .page-title-svg {
             stroke: #0369a1;
         }
-.auth-icon-btn:hover {
+
+        .auth-icon-btn {
+            width: 34px;
+            height: 34px;
+            padding: 0;
+            border: 1px solid #cbd5e1;
+            border-radius: 10px;
+            background: #ffffff;
+            color: #0369a1;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .auth-icon-btn:hover {
             border-color: #0ea5e9;
             background: #f8fafc;
             box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15);
@@ -444,7 +504,18 @@
             border-color: #0ea5e9;
             background: #e0f2fe;
         }
-.song-edit-btn {
+
+        .auth-icon-svg {
+            width: 18px;
+            height: 18px;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            fill: none;
+        }
+
+        .song-edit-btn {
             margin-left: 4px;
             display: none;
             border: 1px solid #cbd5e1;
@@ -500,12 +571,38 @@
         }
 
         .edit-form-input,
-.edit-form-input:focus,
+        .edit-form-textarea {
+            width: 100%;
+            box-sizing: border-box;
+            border: 1px solid #cbd5e1;
+            border-radius: 9px;
+            padding: 9px 10px;
+            font-size: 13px;
+            font-family: inherit;
+            color: #1e293b;
+            outline: none;
+            background: #ffffff;
+        }
+
+        .edit-form-input:focus,
         .edit-form-textarea:focus {
             border-color: #0ea5e9;
             box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.12);
         }
-.modal-btn-danger {
+
+        .edit-form-textarea {
+            min-height: 74px;
+            resize: vertical;
+            line-height: 1.45;
+        }
+
+        .auth-status {
+            font-size: 12px;
+            color: #64748b;
+            margin: -5px 0 0;
+        }
+
+        .modal-btn-danger {
             background: #ffadc0;
             border: 1px solid #efc3cc;
             color: #b85c6b;
@@ -830,43 +927,28 @@
 
         .song-title-wrapper {
             display: flex;
-            flex-direction: column;
-            align-items: stretch;
+            align-items: center;
+            gap: 6px;
             min-width: 0;
             flex: 1;
-            gap: 2px !important;
-            padding: 0 !important;
-        }
-        .song-title-line {
-            display: flex;
-            align-items: center;
-            min-width: 0;
-            width: 100%;
-            min-height: 18px;
-            gap: 0;
-        }
-        .song-title-line .badge-limit {
-            flex: 0 0 auto;
-            margin-right: 6px;
-        }
-        .song-title-wrapper .badge-limit {
-            align-self: center;
-            flex-shrink: 0;
-            white-space: nowrap;
-            order: -1;
-        }
-        .song-title-line .song-text-viewport,
-        .song-title-wrapper .song-text-viewport {
-            flex: 1 1 auto;
-            min-width: 0;
         }
 
         /* 모바일 긴 노래 제목 자동 슬라이드 */
-.song-text-viewport {
+        .song-title-viewport {
             min-width: 0;
             width: 100%;
             max-width: 100%;
-            max-height: 34px !important;
+            overflow: hidden;
+            position: relative;
+        }
+        .song-title-marquee {
+            display: inline-block;
+            white-space: nowrap;
+        }
+        .song-text-viewport {
+            min-width: 0;
+            width: 100%;
+            max-width: 100%;
             overflow: hidden;
             position: relative;
         }
@@ -874,43 +956,54 @@
             display: block;
             white-space: nowrap;
             min-width: max-content;
-            line-height: 1.15;
         }
         .song-text-marquee .song-title {
             display: block;
             margin: 0;
-            line-height: 1.12 !important;
-            font-size: 1em;
+            line-height: 1.35;
         }
         .song-text-marquee .song-artist {
             display: block;
-            margin: 0 !important;
+            margin: 0;
+            font-size: 0.88em;
+            line-height: 1.25;
+        }
+        /* 노래 목록 2줄 표시: 기존 상자 폭은 유지하고 높이만 축소 */
+        .song-text-viewport {
+            max-height: 42px;
+            overflow: hidden;
+        }
+        .song-text-marquee {
+            line-height: 1.15;
+        }
+        .song-text-marquee .song-title {
+            line-height: 1.2;
+            margin: 0;
+            font-size: 1em;
+        }
+        .song-text-marquee .song-artist {
+            line-height: 1.05;
+            margin: 1px 0 0;
             font-size: 0.78em;
-            line-height: 1 !important;
             opacity: 0.82;
         }
-        .song-title-wrapper > .song-artist {
-            display: block;
-            margin: 0;
-            padding: 0;
-            font-size: .78em;
-            line-height: 1.05;
-            opacity: .82;
+
+        .song-title-wrapper {
+            align-items: center;
         }
-        @media (max-width: 768px) {
-.song-text-viewport.marquee-active.marquee-visible .song-text-marquee {
-                animation: songTitleMarquee 8s linear infinite;
-            }
-            .song-text-viewport.marquee-active:not(.marquee-visible) .song-text-marquee {
-                animation: none;
-            }
-            @keyframes songTitleMarquee {
-                0%, 12% { transform: translateX(0); }
-                58%, 100% { transform: translateX(var(--song-title-shift)); }
-            }
+        .song-title-wrapper .song-limit-badge,
+        .song-title-wrapper .limit-badge {
+            align-self: center;
+            flex-shrink: 0;
+            white-space: nowrap;
         }
 
+
         /* 노래 태그: 목록 카드와 어울리는 둥근 사각형 */
+        .song-limit-badge,
+        .limit-badge,
+        .song-tag,
+        .song-count-badge,
         .song-title-wrapper .badge {
             display: inline-flex;
             align-items: center;
@@ -928,6 +1021,83 @@
             font-weight: 600;
             vertical-align: middle;
             box-sizing: border-box;
+        }
+        .song-title-wrapper {
+            display: flex;
+            align-items: flex-start;
+            min-width: 0;
+            gap: 0;
+        }
+        .song-title-wrapper .song-text-viewport {
+            flex: 1 1 auto;
+            min-width: 0;
+        }
+        .song-title-wrapper .song-limit-badge,
+        .song-title-wrapper .limit-badge,
+        .song-title-wrapper .song-tag,
+        .song-title-wrapper .song-count-badge {
+            order: -1;
+        }
+
+
+        /* 목록 카드 내부 여백을 살짝 압축 */
+
+        .song-title-wrapper {
+            padding-top: 1px;
+            padding-bottom: 1px;
+        }
+
+
+        .notice-format-toolbar {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+        .notice-format-btn {
+            width: 38px;
+            height: 34px;
+            padding: 0;
+            border: 1px solid var(--border-color, #d1d5db);
+            border-radius: 7px;
+            background: var(--card-bg, #fff);
+            color: inherit;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 700;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        .notice-edit-content {
+            min-height: 130px;
+            white-space: pre-wrap;
+            overflow-y: auto;
+            outline: none;
+        }
+
+        .song-title-wrapper{display:flex;flex-direction:column;align-items:stretch;min-width:0;flex:1;gap:1px}
+        .song-title-line{display:flex;align-items:center;min-width:0;width:100%;gap:0}
+        .song-title-line .song-limit-badge,.song-title-line .limit-badge,.song-title-line .song-tag,.song-title-line .song-count-badge{flex:0 0 auto;margin-right:6px}
+        .song-title-line .song-text-viewport{flex:1 1 auto;min-width:0}
+        .song-title-wrapper>.song-artist{display:block;margin:0;padding:0;font-size:.78em;line-height:1.05;opacity:.82}
+        @media (max-width: 768px) {
+            .song-title-marquee {
+                will-change: transform;
+            }
+        }
+        @media (max-width: 768px) {
+            .song-title-viewport.marquee-active {
+                overflow: hidden;
+            }
+            .song-text-viewport.marquee-active.marquee-visible .song-text-marquee {
+                animation: songTitleMarquee 8s linear infinite;
+            }
+            .song-text-viewport.marquee-active:not(.marquee-visible) .song-text-marquee {
+                animation: none;
+            }
+            @keyframes songTitleMarquee {
+                0%, 12% { transform: translateX(0); }
+                58%, 100% { transform: translateX(var(--song-title-shift)); }
+            }
         }
 
         .song-title {
@@ -1090,10 +1260,7 @@
             width: 100vw;
             height: 100vh;
             background: rgba(15, 23, 42, 0.5);
-            -webkit-backdrop-filter: blur(4px);
             backdrop-filter: blur(4px);
-            isolation: isolate;
-            will-change: opacity;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -1130,26 +1297,17 @@
             transform: translateY(0);
         }
 
-        /* 모바일 팝업 깜박임 방지: GPU 재합성 및 backdrop-filter 재도색을 최소화 */
         @media (max-width: 768px) {
             .modal-overlay {
                 -webkit-backdrop-filter: none;
                 backdrop-filter: none;
-                will-change: opacity;
             }
             .modal-overlay .modal-box,
             .modal-overlay .notice-modal-box,
             .modal-overlay .filter-modal-box,
             .modal-overlay .other-genre-modal-box {
                 transform: none;
-                will-change: auto;
                 transition: none;
-            }
-            .modal-overlay.active .modal-box,
-            .modal-overlay.active .notice-modal-box,
-            .modal-overlay.active .filter-modal-box,
-            .modal-overlay.active .other-genre-modal-box {
-                transform: none;
             }
         }
 
@@ -1247,11 +1405,17 @@
     box-sizing: border-box;
 }
 
+
+        
+
         
 
         
 
         
+
+        
+
 
         #recommendModal .modal-btn {
             transition: all 0.2s ease;
@@ -1340,6 +1504,7 @@
             -webkit-tap-highlight-color: transparent;
         }
 
+
         /* 모바일 기타연주/200개/300개 제한 태그 - 가독성 개선 */
 @media (max-width: 768px) {
     .song-title-line .badge-limit{
@@ -1360,6 +1525,7 @@
     }
 }
 
+
 /* 공지 서식 SVG 아이콘 */
 .notice-format-btn {
     display: inline-flex;
@@ -1377,10 +1543,15 @@
     vector-effect: non-scaling-stroke;
 }
 
+
 /* === 모바일 태그/추천 영역 최종 보정 === */
 @media (max-width: 768px) {
     /* 일반 목록 + 추천 목록의 태그를 동일한 크기/간격으로 통일 */
-    .song-title-line .badge-limit {
+    .song-title-line .badge-limit,
+    .song-title-line .song-limit-badge,
+    .song-title-line .limit-badge,
+    .song-title-line .song-tag,
+    .song-title-line .song-count-badge{
         margin-right: 3px !important;
     }
     
@@ -1403,20 +1574,30 @@
     stroke: currentColor !important;
 }
 
+
 /* === limit JSON 값 기준 태그 색상 최종 적용 === */
-/* limit="기타" */[data-limit="기타"],[data-limit="기타"],[data-limit="기타"]{
+/* limit="기타" */
+.song-limit-badge[data-limit="기타"],
+.limit-badge[data-limit="기타"],
+.song-tag[data-limit="기타"]{
     color: #0369a1 !important;
     border: 1px solid #38bdf8 !important;
     background-color: #e0f2fe !important;
 }
 
-/* limit="200개" */[data-limit="200개"],[data-limit="200개"],[data-limit="200개"]{
+/* limit="200개" */
+.song-limit-badge[data-limit="200개"],
+.limit-badge[data-limit="200개"],
+.song-tag[data-limit="200개"]{
     color: #6d28d9 !important;
     border: 1px solid #8b5cf6 !important;
     background-color: #ede9fe !important;
 }
 
-/* limit="300개" */[data-limit="300개"],[data-limit="300개"],[data-limit="300개"]{
+/* limit="300개" */
+.song-limit-badge[data-limit="300개"],
+.limit-badge[data-limit="300개"],
+.song-tag[data-limit="300개"]{
     color: #047857 !important;
     border: 1px solid #34d399 !important;
     background-color: #d1fae5 !important;
@@ -1432,15 +1613,24 @@
 }
 
 /* 어두운 환경 */
-@media (prefers-color-scheme: dark) {[data-limit="기타"],[data-limit="기타"],[data-limit="기타"]{
+@media (prefers-color-scheme: dark) {
+    .song-limit-badge[data-limit="기타"],
+    .limit-badge[data-limit="기타"],
+    .song-tag[data-limit="기타"]{
         color: #7dd3fc !important;
         border-color: #38bdf8 !important;
         background-color: rgba(14, 165, 233, .20) !important;
-    }[data-limit="200개"],[data-limit="200개"],[data-limit="200개"]{
+    }
+    .song-limit-badge[data-limit="200개"],
+    .limit-badge[data-limit="200개"],
+    .song-tag[data-limit="200개"]{
         color: #c4b5fd !important;
         border-color: #a78bfa !important;
         background-color: rgba(139, 92, 246, .20) !important;
-    }[data-limit="300개"],[data-limit="300개"],[data-limit="300개"]{
+    }
+    .song-limit-badge[data-limit="300개"],
+    .limit-badge[data-limit="300개"],
+    .song-tag[data-limit="300개"]{
         color: #6ee7b7 !important;
         border-color: #34d399 !important;
         background-color: rgba(16, 185, 129, .20) !important;
@@ -1452,6 +1642,7 @@
     width: 20px !important;
     height: 20px !important;
 }
+
 
 /* === limit 필드 기반 태그 색상: 실제 렌더링 클래스 === */
 .badge.badge-limit.limit-other {
@@ -1487,6 +1678,7 @@
     }
 }
 
+
 /* 기울임 아이콘 최종 스타일 */
 .italic-format-icon {
     width: 20px !important;
@@ -1498,6 +1690,7 @@
     stroke: currentColor !important;
     stroke-linecap: round !important;
 }
+
 
 /* === 그 외 장르 선택 === */
 .other-genre-modal-box {
@@ -1563,6 +1756,7 @@
     }
 }
 
+
 /* === 노래 추가 모달: 모바일 하단 잘림 방지 === */
 #songAddModal {
     padding: 12px;
@@ -1598,6 +1792,7 @@
         z-index: 2;
     }
 }
+
 
 /* === PC 노래 목록도 모바일과 동일한 2줄 구조 === */
 .song-summary-row {
@@ -1664,12 +1859,27 @@
     }
 }
 
+
 /* === v2: PC/모바일 노래 목록 카드 높이 및 내부 여백 축소 === */
 .song-card {
     border-radius: 9px;
-}.song-text-marquee .song-title {
+}
+
+.song-title-wrapper {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+}
+.song-text-viewport {
+    max-height: 34px !important;
+}
+.song-text-marquee .song-title {
     line-height: 1.12 !important;
 }
+.song-text-marquee .song-artist {
+    line-height: 1.0 !important;
+    margin-top: 0 !important;
+}
+
 /* 목록 상/하단의 카드 내부 여백도 같이 압축 */
 .song-summary-row {
     min-height: 46px !important;
@@ -1731,6 +1941,7 @@
     }
 }
 
+
         /* === 2026-08-25 요청사항 최종 보정 === */
         /* 1) 노래 목록 제목이 카드 왼쪽에 붙지 않도록 내부 여백 확보 */
         .song-summary-row { padding-left: 12px !important; padding-top: 7px !important; padding-bottom: 7px !important; }
@@ -1789,6 +2000,8 @@
             .song-summary-row { padding-left: 11px !important; padding-top: 6px !important; padding-bottom: 6px !important; }
             .song-info-left { padding-left: 2px; }
         }
+
+
 
 /* === v16: 노래 목록/추천의 오른쪽 요소 정렬 통일 === */
 .song-summary-row {
@@ -1867,6 +2080,7 @@
     }
 }
 
+
 /* 페이지 안내사항: 기존 팝업 디자인을 그대로 사용하고 내용만 컴팩트하게 조정 */
 #siteInfoModal .notice-modal-box {
     height: auto;
@@ -1918,7 +2132,11 @@
 #siteInfoModal .site-info-list li:last-child {
     margin-bottom: 0;
 }
-/* PC 안내사항 보정 */
+
+</style>
+
+
+<style id="site-info-pc-adjust">
 /* 페이지 안내사항: PC에서만 가로 폭 확대 */
 @media (min-width: 769px) {
     #siteInfoModal .notice-modal-box {
@@ -1932,7 +2150,6 @@
     }
 }
 </style>
-
 
 </head>
 <body>
@@ -2068,6 +2285,7 @@
             </div>
         </div>
     </div>
+
 
     <div class="modal-overlay" id="otherGenreModal">
         <div class="filter-modal-box other-genre-modal-box">
@@ -2876,6 +3094,7 @@
             return root.innerHTML;
         }
 
+
                 let noticeSavedRange = null;
 
         function rememberNoticeSelection(){
@@ -3337,6 +3556,7 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
                 };
             });
         }
+
 
         function isMainQuickGenre(song) {
             const genre = String(song?.genre || '').toLowerCase().trim();
