@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>바다비 노래책</title>
     <link rel="icon" type="image/png" href="badabi_logo.png">
+    <!-- Cloudflare Turnstile: Site Key는 공개 가능하지만 Secret Key는 Worker에만 보관합니다. -->
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
     <style>
         body {
             margin: 0;
@@ -292,6 +294,18 @@
         .song-auth-eye:hover {
             color: #0369a1;
             background: #f0f9ff;
+        }
+
+        .song-turnstile-wrap {
+            display: flex;
+            justify-content: center;
+            min-height: 65px;
+            margin-top: 12px;
+            overflow: hidden;
+        }
+
+        #songTurnstileWidget {
+            min-height: 65px;
         }
 
         .song-auth-action {
@@ -2336,7 +2350,10 @@
 
     <script>
         const WORKER_URL = "https://badabi-api.dalkkumli054.workers.dev/";
-        // 관리자 비밀번호는 localStorage/sessionStorage에 저장하지 않는다. 서버에서 권한을 검증해야 한다.
+        const TURNSTILE_SITE_KEY = "0x4AAAAAAEbQ0YWNiL_WiyKR";
+        let songTurnstileToken = "";
+        let songTurnstileWidgetId = null;
+
         const SONG_LIST_URL = WORKER_URL + "?type=songlist&t=";
         const STATS_API_URL = WORKER_URL + "?type=fansongstats&t=";
 
@@ -2349,8 +2366,6 @@
         let currentRecentFilter = '전체';
         let toastTimer = null;
 
-        // 관리자 비밀번호는 브라우저에 저장하지 않는다.
-        // Worker가 발급한 서명된 세션 토큰만 7일간 유지한다.
         let isSongAuthenticated = false;
         let songSessionToken = localStorage.getItem("badabi_session") || "";
         let editingSongIndex = -1;
@@ -2446,6 +2461,9 @@
                                 <button type="button" class="song-auth-eye" onclick="toggleSongPasswordVisibility()" aria-label="패스워드 표시">◉</button>
                             </div>
                         </div>
+                        <div class="song-turnstile-wrap">
+                            <div id="songTurnstileWidget"></div>
+                        </div>
                         <button class="song-auth-action" onclick="verifySongPassword()">로그인</button>
                         <button class="song-auth-cancel" onclick="closeSongAuthModal()">취소</button>
                     </div>
@@ -2461,13 +2479,72 @@
                             }
                         });
                     }
+                    waitForSongTurnstile();
                 }, 50);
             }
             songAuthModal.classList.add("active");
         }
 
+        function onSongTurnstileSuccess(token) {
+            songTurnstileToken = typeof token === "string" ? token : "";
+        }
+
+        function resetSongTurnstile() {
+            songTurnstileToken = "";
+            if (window.turnstile && songTurnstileWidgetId !== null) {
+                try {
+                    window.turnstile.reset(songTurnstileWidgetId);
+                } catch (error) {
+                    console.warn("Turnstile 초기화 실패");
+                }
+            }
+        }
+
+        function renderSongTurnstile() {
+            if (typeof window.turnstile === "undefined") return;
+            const container = document.getElementById("songTurnstileWidget");
+            if (!container || !TURNSTILE_SITE_KEY || TURNSTILE_SITE_KEY === "YOUR_TURNSTILE_SITE_KEY") return;
+
+            songTurnstileToken = "";
+
+            try {
+                if (songTurnstileWidgetId !== null) {
+                    window.turnstile.remove(songTurnstileWidgetId);
+                    songTurnstileWidgetId = null;
+                }
+
+                songTurnstileWidgetId = window.turnstile.render(container, {
+                    sitekey: TURNSTILE_SITE_KEY,
+                    callback: onSongTurnstileSuccess,
+                    "expired-callback": resetSongTurnstile,
+                    "timeout-callback": resetSongTurnstile,
+                    theme: "auto"
+                });
+            } catch (error) {
+                console.error("Turnstile 렌더링 실패:", error);
+            }
+        }
+
+        function waitForSongTurnstile() {
+            if (typeof window.turnstile !== "undefined") {
+                renderSongTurnstile();
+                return;
+            }
+            let attempts = 0;
+            const timer = setInterval(() => {
+                attempts += 1;
+                if (typeof window.turnstile !== "undefined") {
+                    clearInterval(timer);
+                    renderSongTurnstile();
+                } else if (attempts >= 50) {
+                    clearInterval(timer);
+                }
+            }, 100);
+        }
+
         function closeSongAuthModal() {
             songAuthModal.classList.remove("active");
+            if (!isSongAuthenticated) resetSongTurnstile();
         }
 
         function toggleSongPasswordVisibility() {
@@ -2484,12 +2561,18 @@
                 return;
             }
 
+            if (!songTurnstileToken) {
+                showToastMessage("보안 인증을 완료해주세요.");
+                return;
+            }
+
             try {
                 const response = await fetch(WORKER_URL, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
                         password,
+                        turnstileToken: songTurnstileToken,
                         action: "verify"
                     })
                 });
@@ -2497,22 +2580,22 @@
                 const data = await response.json().catch(() => ({}));
 
                 if (!response.ok || !data.success || !data.sessionToken) {
-                    throw new Error("인증 실패");
+                    throw new Error(data.error || "인증 실패");
                 }
 
-                // 비밀번호는 저장하지 않고 Worker가 발급한 세션 토큰만 유지한다.
                 songSessionToken = data.sessionToken;
                 localStorage.setItem("badabi_session", songSessionToken);
-                // 이전 버전에서 저장했을 수 있는 비밀번호 값은 즉시 제거한다.
                 localStorage.removeItem("badabi_song_auth_password");
 
                 isSongAuthenticated = true;
+                songTurnstileToken = "";
                 updateSongAuthUI();
                 closeSongAuthModal();
                 showToastMessage("성공적으로 로그인되었습니다!");
             } catch (error) {
                 console.error("관리자 로그인 실패:", error);
-                showToastMessage("패스워드가 일치하지 않습니다.");
+                showToastMessage(error.message || "로그인에 실패했습니다. 다시 시도해주세요.");
+                resetSongTurnstile();
                 if (input) {
                     input.value = "";
                     input.focus();
@@ -2525,6 +2608,7 @@
             songSessionToken = "";
             localStorage.removeItem("badabi_session");
             localStorage.removeItem("badabi_song_auth_password");
+            resetSongTurnstile();
             updateSongAuthUI();
             closeSongAuthModal();
             showToastMessage("로그아웃되었습니다.");
@@ -2582,7 +2666,6 @@
                     : "노래책 로그인 / 인증";
             }
 
-            // 현재 검색/정렬 상태에서도 관리자 버튼과 수정 버튼을 즉시 다시 렌더링
             if (typeof updateFilteredAndSorted === "function") {
                 try { updateFilteredAndSorted(); } catch (e) {}
             }
@@ -2723,10 +2806,8 @@
             const title = song.title || "이 노래";
             if (!confirm(`'${title}'을(를) 노래책에서 삭제하시겠습니까?`)) return;
 
-            // 노래책(songlist)에서는 항상 삭제
             allSongs.splice(editingSongIndex, 1);
 
-            // 팬송 통계에서는 해당 곡의 날짜 기록 유무에 따라 처리
             const registered = Array.isArray(fansongStatsData.registeredSongs)
                 ? fansongStatsData.registeredSongs
                 : [];
@@ -2740,8 +2821,7 @@
                 const dateTimes = Array.isArray(statsSong.dateTimes) ? statsSong.dateTimes : [];
 
                 if (dateTimes.length > 0) {
-                    // 부른 기록이 있으면 통계를 보존하면서 '미등록 곡'으로 이동
-                    const unregistered = Array.isArray(fansongStatsData.unregisteredSongs)
+                     const unregistered = Array.isArray(fansongStatsData.unregisteredSongs)
                         ? fansongStatsData.unregisteredSongs
                         : [];
 
@@ -2749,7 +2829,6 @@
                     const preservedSong = cloneSongForStats(statsSong, dateTimes);
 
                     if (existingIndex >= 0) {
-                        // 이미 미등록 곡이 있다면 날짜 기록을 잃지 않도록 병합
                         const existingDates = Array.isArray(unregistered[existingIndex].dateTimes)
                             ? unregistered[existingIndex].dateTimes
                             : [];
@@ -2775,7 +2854,6 @@
                     registered.splice(registeredIndex, 1);
                     movedToUnregistered = true;
                 } else {
-                    // 부른 기록이 전혀 없으면 팬송 통계에서도 완전히 삭제
                     registered.splice(registeredIndex, 1);
                     removedFromStats = true;
                 }
@@ -2836,7 +2914,6 @@
             const raw = String(value ?? "");
             if (!raw) return "";
 
-            // 공지에 필요한 서식 태그만 허용하고 나머지는 제거한다.
             const doc = new DOMParser().parseFromString(`<div>${raw}</div>`, "text/html");
             const root = doc.body.firstElementChild;
             if (!root) return "";
@@ -2937,8 +3014,6 @@
             const range = sel.getRangeAt(0);
             if (range.collapsed || !editor.contains(range.commonAncestorContainer)) return;
 
-            // 브라우저의 selection 기반 토글을 사용한다.
-            // 같은 서식을 다시 누르면 해당 서식만 해제되고, 다른 서식은 유지된다.
             try {
                 document.execCommand(command, false, null);
             } catch (error) {
@@ -2965,7 +3040,6 @@
             }
         });
 
-        // 서식 버튼을 누르는 순간 브라우저가 편집기의 선택 영역을 잃지 않도록 한다.
         document.addEventListener("mousedown", function(event) {
             const button = event.target.closest?.(".notice-format-btn");
             if (!button) return;
@@ -3031,7 +3105,6 @@
             noticeEditModal.classList.remove("active");
         }
         function cancelNoticeEdit(){
-            // 취소는 편집 중 DOM과 서버/JSON 저장 대상 모두에 어떤 변경도 남기지 않는다.
             currentNoticeText=noticeEditOriginalText||"";
             closeNoticeEditModal();
             renderNoticeContent(currentNoticeText||"공지사항이 없습니다.");
@@ -3041,11 +3114,8 @@
             const editor=document.getElementById("noticeEditTextarea");
             if(!editor)return;
 
-            // sanitizer가 굵게 스타일을 제거하는 경우를 방지하기 위해
-            // 허용된 서식만 직접 보존하면서 저장 문자열을 만든다.
             currentNoticeText=serializeNoticeForStorage(editor);
 
-            // 저장 직후에도 서버 재조회와 동일하게 줄바꿈/서식을 즉시 렌더링
             renderNoticeContent(currentNoticeText);
             closeNoticeEditModal();
             enqueueSongServerSave();
@@ -3078,7 +3148,6 @@
                     return inner + "\n";
                 }
 
-                // 허용된 서식만 저장
                 if(tag==="b" || tag==="strong"){
                     return '<span style="font-weight: bold;">'+inner+"</span>";
                 }
@@ -3197,8 +3266,6 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
             filterBtn.innerHTML = iconHtml;
         }
 
-
-        // 모바일 긴 노래 제목 자동 슬라이드: 일반 목록과 추천 목록에서 공통 사용
         function setupSongTitleMarquees(container, scrollRoot = null) {
             if (window.innerWidth > 768 || !container) return;
 
@@ -3300,7 +3367,6 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
                 container.appendChild(item);
             });
 
-            // 추천 팝업에서도 일반 노래목록과 동일하게 긴 제목을 자동 슬라이드
             setupSongTitleMarquees(container, container);
         }
 
@@ -3410,7 +3476,6 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
             renderAllSongs();
         }
 
-        // 주요 빠른 필터(기타연주/K팝/J팝/팝)에 속하지 않는 장르가 있을 때만 '그 외' 표시
         function updateOtherGenreButtonVisibility() {
             const btn = document.getElementById('otherGenreFilterBtn');
             if (!btn) return;
@@ -3419,7 +3484,6 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
                 const genre = String(song.genre || '').toLowerCase().trim();
                 const limit = String(song.limit || '').toLowerCase();
 
-                // 기타연주는 장르가 아니라 제한값으로 구분하므로 '그 외'에 중복 포함하지 않음
                 if (limit.includes('기타')) return false;
                 if (!genre) return false;
 
@@ -3524,7 +3588,6 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
                 const titleCompare = titleA.localeCompare(titleB, 'ko', { sensitivity: 'base' });
                 if (titleCompare !== 0) return titleCompare;
 
-                // 같은 가수/같은 제목이면 일반 버전을 먼저, 기타전용 버전을 다음으로
                 const isGuitarA = String(a.limit || '').toLowerCase().includes('기타');
                 const isGuitarB = String(b.limit || '').toLowerCase().includes('기타');
                 if (isGuitarA !== isGuitarB) return isGuitarA ? 1 : -1;
@@ -3653,7 +3716,6 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
 
             container.appendChild(fragment);
 
-            // 모바일에서 실제로 영역을 넘는 긴 제목만 자동 슬라이드.
             setupSongTitleMarquees(container, container.closest('.song-list-scroll-wrapper') || null);
         }
 
