@@ -1344,6 +1344,22 @@
             .filter-section { min-height: 0; padding: 10px; }
         }
 
+        .detail-filter-select {
+            width: 100%;
+            min-height: 38px;
+            padding: 8px 34px 8px 10px;
+            border-radius: 9px;
+            background: #fff;
+            color: #334155;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .filter-section .detail-filter-select:focus {
+            border-color: #0ea5e9;
+            box-shadow: 0 0 0 3px rgba(14,165,233,.12);
+        }
+
         .filter-options {
             display: flex;
             flex-direction: column;
@@ -2106,11 +2122,9 @@
                         부른 횟수
                     </h4>
                     <div class="filter-options">
-                        <button class="count-option-btn filter-option-btn selected" data-count="전체" onclick="selectCountFilter('전체')">전체보기</button>
-                        <button class="count-option-btn filter-option-btn" data-count="0" onclick="selectCountFilter('0')">0회 (안 불러본 곡)</button>
-                        <button class="count-option-btn filter-option-btn" data-count="1" onclick="selectCountFilter('1')">1회</button>
-                        <button class="count-option-btn filter-option-btn" data-count="2" onclick="selectCountFilter('2')">2회</button>
-                        <button class="count-option-btn filter-option-btn" data-count="3" onclick="selectCountFilter('3')">3회 이상</button>
+                        <select id="countFilterSelect" class="edit-form-input detail-filter-select" onchange="selectCountFilter(this.value)">
+                            <option value="전체">전체 횟수</option>
+                        </select>
                     </div>
                 </div>
                 <div class="filter-section">
@@ -2138,11 +2152,9 @@
                         최근 부른 기간
                     </h4>
                     <div class="filter-options">
-                        <button class="recent-option-btn filter-option-btn selected" data-days="전체" onclick="selectRecentFilter('전체')">전체기간</button>
-                        <button class="recent-option-btn filter-option-btn" data-days="7" onclick="selectRecentFilter('7')">최근 7일 이내</button>
-                        <button class="recent-option-btn filter-option-btn" data-days="30" onclick="selectRecentFilter('30')">최근 30일 이내</button>
-                        <button class="recent-option-btn filter-option-btn" data-days="90" onclick="selectRecentFilter('90')">최근 90일 이내</button>
-                        <button class="recent-option-btn filter-option-btn" data-days="180" onclick="selectRecentFilter('180')">최근 180일 이내</button>
+                        <select id="recentFilterSelect" class="edit-form-input detail-filter-select" onchange="selectRecentFilter(this.value)">
+                            <option value="전체">전체기간</option>
+                        </select>
                     </div>
                 </div>
             </div>
@@ -3294,8 +3306,63 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
 
         function openSiteInfoModal() { document.getElementById("siteInfoModal").classList.add("active"); }
         function closeSiteInfoModal() { document.getElementById("siteInfoModal").classList.remove("active"); }
-        function openFilterModal() { document.getElementById("filterModal").classList.add("active"); }
+        function openFilterModal() {
+            refreshCountFilterOptions();
+            refreshRecentFilterOptions();
+            refreshMonthFilterOptions();
+            document.getElementById("filterModal").classList.add("active");
+        }
         function closeFilterModal() { document.getElementById("filterModal").classList.remove("active"); }
+
+        function getMaxSongPlayCount() {
+            return allSongs.reduce((max, song) => Math.max(max, Array.isArray(song.dateTimes) ? song.dateTimes.length : 0), 0);
+        }
+
+        function refreshCountFilterOptions() {
+            const select = document.getElementById('countFilterSelect');
+            if (!select) return;
+            const current = currentCountFilter;
+            const max = getMaxSongPlayCount();
+            const frag = document.createDocumentFragment();
+            const allOpt = document.createElement('option');
+            allOpt.value = '전체'; allOpt.textContent = '전체 횟수'; frag.appendChild(allOpt);
+            for (let i = 0; i <= max; i++) {
+                const opt = document.createElement('option');
+                opt.value = String(i);
+                opt.textContent = i === 0 ? '0회 (안 불러본 곡)' : `${i}회`;
+                frag.appendChild(opt);
+            }
+            select.replaceChildren(frag);
+            select.value = (current !== '전체' && Number(current) <= max) ? current : '전체';
+            if (select.value === '전체' && current !== '전체') currentCountFilter = '전체';
+        }
+
+        function refreshRecentFilterOptions() {
+            const select = document.getElementById('recentFilterSelect');
+            if (!select) return;
+            const current = currentRecentFilter;
+            const dates = allSongs.flatMap(song => (song.dateTimes || []).map(dt => parseDateString(dt.date)).filter(Boolean));
+            const now = new Date();
+            const maxSpan = dates.length ? Math.max(0, Math.ceil((now - new Date(Math.min(...dates.map(d => d.getTime())))) / 86400000)) : 0;
+            const base = [7, 30, 90, 180, 365, 730];
+            const periods = base.filter(d => d <= Math.max(30, maxSpan));
+            if (maxSpan > 730) periods.push(Math.ceil(maxSpan / 365) * 365);
+            const unique = [...new Set(periods)];
+            const frag = document.createDocumentFragment();
+            const allOpt = document.createElement('option');
+            allOpt.value = '전체'; allOpt.textContent = '전체기간'; frag.appendChild(allOpt);
+            unique.forEach(days => { const opt=document.createElement('option'); opt.value=String(days); opt.textContent=`최근 ${days >= 365 ? (days % 365 === 0 ? `${days/365}년` : `${days}일`) : `${days}일`} 이내`; frag.appendChild(opt); });
+            select.replaceChildren(frag);
+            select.value = unique.includes(Number(current)) ? current : '전체';
+            if (select.value === '전체' && current !== '전체') currentRecentFilter = '전체';
+        }
+
+        function syncDetailFilterSelects() {
+            refreshCountFilterOptions();
+            refreshRecentFilterOptions();
+            const month = document.getElementById('monthFilterSelect');
+            if (month) month.value = currentMonthFilter;
+        }
 
         function refreshMonthFilterOptions() {
             const select=document.getElementById('monthFilterSelect'); if(!select)return;
@@ -3316,8 +3383,7 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
         }
         function resetDetailedFilters(){
             currentCountFilter='전체'; currentRecentFilter='전체'; currentRegistrationFilter='전체'; currentMonthFilter='전체';
-            document.querySelectorAll('.count-option-btn').forEach(b=>b.classList.toggle('selected',b.dataset.count==='전체'));
-            document.querySelectorAll('.recent-option-btn').forEach(b=>b.classList.toggle('selected',b.dataset.days==='전체'));
+            syncDetailFilterSelects();
             document.querySelectorAll('.registration-option-btn').forEach(b=>b.classList.toggle('selected',b.dataset.registration==='전체'));
             const sel=document.getElementById('monthFilterSelect'); if(sel)sel.value='전체';
             updateFilterButtonState(); updateFilteredAndSorted(); renderAllSongs();
@@ -3325,18 +3391,14 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
 
         function selectCountFilter(countType) {
             currentCountFilter = countType;
-            document.querySelectorAll('.count-option-btn').forEach(btn => {
-                if (btn.getAttribute('data-count') === countType) btn.classList.add('selected');
-                else btn.classList.remove('selected');
-            });
-            if (countType === '0' && currentRecentFilter !== '전체') {
+            if (countType === '0') {
                 currentRecentFilter = '전체';
-                document.querySelectorAll('.recent-option-btn').forEach(btn => {
-                    if (btn.getAttribute('data-days') === '전체') btn.classList.add('selected');
-                    else btn.classList.remove('selected');
-                });
-                showToastMessage("0곡을 선택한 상태에서는 최근 부른 기간을 선택할 수 없습니다.");
+                currentMonthFilter = '전체';
+                const month = document.getElementById('monthFilterSelect'); if(month) month.value='전체';
+                showToastMessage('0회를 선택하면 최근 부른 기간과 날짜 선택이 전체기간으로 초기화됩니다.');
             }
+            refreshCountFilterOptions();
+            refreshRecentFilterOptions();
             updateFilterButtonState();
             updateFilteredAndSorted();
             renderAllSongs();
@@ -3344,14 +3406,13 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
 
         function selectRecentFilter(daysType) {
             if (currentCountFilter === '0' && daysType !== '전체') {
-                showToastMessage("0곡을 선택한 상태에서는 최근 부른 기간을 선택할 수 없습니다.");
+                currentRecentFilter = '전체';
+                refreshRecentFilterOptions();
+                showToastMessage('0회를 선택한 상태에서는 최근 부른 기간을 사용할 수 없습니다.');
                 return;
             }
             currentRecentFilter = daysType;
-            document.querySelectorAll('.recent-option-btn').forEach(btn => {
-                if (btn.getAttribute('data-days') === daysType) btn.classList.add('selected');
-                else btn.classList.remove('selected');
-            });
+            refreshRecentFilterOptions();
             updateFilterButtonState();
             updateFilteredAndSorted();
             renderAllSongs();
@@ -3693,10 +3754,7 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
                 }
 
                 const playCountToCheck = currentRecentFilter !== '전체' ? targetPlayCount : dateTimes.length;
-                if (currentCountFilter === '0' && playCountToCheck !== 0) return false;
-                if (currentCountFilter === '1' && playCountToCheck !== 1) return false;
-                if (currentCountFilter === '2' && playCountToCheck !== 2) return false;
-                if (currentCountFilter === '3' && playCountToCheck < 3) return false;
+                if (currentCountFilter !== '전체' && playCountToCheck !== Number(currentCountFilter)) return false;
 
                 if (currentRecentFilter !== '전체' && currentCountFilter === '전체') {
                     const daysLimit = parseInt(currentRecentFilter, 10);
