@@ -2024,7 +2024,7 @@
 
 /* === 공통 모바일 팝업 안전영역 + 상세필터 커스텀 드롭다운 === */
 .detail-filter-select-native{position:absolute!important;width:1px!important;height:1px!important;opacity:0!important;pointer-events:none!important;overflow:hidden!important;}
-.custom-select{position:relative;width:100%;z-index:5;}
+.custom-select{position:relative;width:100%;min-height:40px;z-index:5;display:block;box-sizing:border-box;}
 .custom-select-trigger{width:100%;min-height:40px;padding:9px 36px 9px 11px;border:1px solid #cbd5e1;border-radius:10px;background:#fff;color:#334155;font:inherit;font-size:12.5px;font-weight:700;text-align:left;cursor:pointer;position:relative;box-sizing:border-box;transition:.18s ease;}
 .custom-select-trigger::after{content:"";position:absolute;right:12px;top:50%;width:7px;height:7px;border-right:1.8px solid #64748b;border-bottom:1.8px solid #64748b;transform:translateY(-65%) rotate(45deg);transition:transform .18s ease;}
 .custom-select.open .custom-select-trigger{border-color:#0ea5e9;box-shadow:0 0 0 3px rgba(14,165,233,.12);}
@@ -2411,7 +2411,7 @@
         // Cloudflare Turnstile Site Key
         // 아래 값은 Cloudflare Dashboard에서 발급받은 Site Key로 교체하세요.
         // Secret Key(TURNSTILE_SECRET_KEY)는 절대 이 HTML에 넣지 않습니다.
-        const TURNSTILE_SITE_KEY = "0x4AAAAAAEbQ0YWNiL_WiyKR";
+        const TURNSTILE_SITE_KEY = "YOUR_TURNSTILE_SITE_KEY";
         let songTurnstileToken = "";
         let songTurnstileWidgetId = null;
 
@@ -3337,7 +3337,7 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
             if(!root||!native)return;
             root.className='custom-select'; root.innerHTML='';
             const trigger=document.createElement('button'); trigger.type='button'; trigger.className='custom-select-trigger';
-            const selected=options.find(o=>String(o.value)===String(selectedValue))||options[0]||{value:'',label:''};
+            const selected=options.find(o=>String(o.value)===String(selectedValue))||options[0]||{value:'',label:'선택 없음'};
             trigger.textContent=selected.label;
             const menu=document.createElement('div'); menu.className='custom-select-menu';
             options.forEach(o=>{const b=document.createElement('button');b.type='button';b.className='custom-select-option'+(String(o.value)===String(selected.value)?' selected':'');b.textContent=o.label;b.onclick=(ev)=>{ev.stopPropagation();native.value=o.value;root.classList.remove('open');onSelect?.(o.value);};menu.appendChild(b);});
@@ -3357,6 +3357,7 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
             refreshCountFilterOptions();
             refreshRecentFilterOptions();
             refreshMonthFilterOptions();
+            syncCustomFilterSelects();
             document.getElementById("filterModal").classList.add("active");
         }
         function closeFilterModal() { document.getElementById("filterModal").classList.remove("active"); }
@@ -3426,11 +3427,13 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
         }
         function selectMonthFilter(month){
             currentMonthFilter=month||'전체';
+            syncCustomFilterSelects();
             updateFilterButtonState(); updateFilteredAndSorted(); renderAllSongs();
         }
         function resetDetailedFilters(){
             currentCountFilter='전체'; currentRecentFilter='전체'; currentRegistrationFilter='전체'; currentMonthFilter='전체';
             syncDetailFilterSelects();
+            syncCustomFilterSelects();
             document.querySelectorAll('.registration-option-btn').forEach(b=>b.classList.toggle('selected',b.dataset.registration==='전체'));
             const sel=document.getElementById('monthFilterSelect'); if(sel)sel.value='전체';
             updateFilterButtonState(); updateFilteredAndSorted(); renderAllSongs();
@@ -3446,6 +3449,7 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
             }
             refreshCountFilterOptions();
             refreshRecentFilterOptions();
+            syncCustomFilterSelects();
             updateFilterButtonState();
             updateFilteredAndSorted();
             renderAllSongs();
@@ -3460,6 +3464,7 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
             }
             currentRecentFilter = daysType;
             refreshRecentFilterOptions();
+            syncCustomFilterSelects();
             updateFilterButtonState();
             updateFilteredAndSorted();
             renderAllSongs();
