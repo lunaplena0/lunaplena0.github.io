@@ -1725,6 +1725,14 @@
     }
 }
 
+
+/* === 노래 추가 대상별 버튼 === */
+.song-add-actions .modal-btn{min-width:0;}
+@media (max-width:768px){
+    #songAddModal .song-add-actions{grid-template-columns:1fr !important;}
+    #songAddModal .song-add-actions .modal-btn{width:100%;}
+}
+
 /* === 노래 추가 모달: 모바일 하단 잘림 방지 === */
 #songAddModal {
     padding: 12px;
@@ -2260,7 +2268,11 @@
                 <div class="edit-form-field"><label class="edit-form-label">제한</label><input id="addSongLimit" class="edit-form-input" type="text"></div>
                 <div class="edit-form-field full"><label class="edit-form-label">기타</label><input id="addSongEtc" class="edit-form-input" type="text"></div>
             </div>
-            <div class="modal-actions" style="margin-top:14px;"><button class="modal-btn modal-btn-close" onclick="addNewSong()">추가</button><button class="modal-btn modal-btn-refresh" onclick="closeSongAddModal()">취소</button></div>
+            <div class="modal-actions song-add-actions" style="margin-top:14px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+                <button class="modal-btn modal-btn-close" onclick="addNewSong('unregistered')">미등록곡에 추가</button>
+                <button class="modal-btn modal-btn-close" onclick="addNewSong('registered')">등록곡에 추가</button>
+                <button class="modal-btn modal-btn-refresh" onclick="closeSongAddModal()">취소</button>
+            </div>
         </div>
     </div>
 
@@ -2368,7 +2380,7 @@
         // Cloudflare Turnstile Site Key
         // 아래 값은 Cloudflare Dashboard에서 발급받은 Site Key로 교체하세요.
         // Secret Key(TURNSTILE_SECRET_KEY)는 절대 이 HTML에 넣지 않습니다.
-        const TURNSTILE_SITE_KEY = "0x4AAAAAAEbQ0YWNiL_WiyKR";
+        const TURNSTILE_SITE_KEY = "YOUR_TURNSTILE_SITE_KEY";
         let songTurnstileToken = "";
         let songTurnstileWidgetId = null;
 
@@ -2870,11 +2882,39 @@ function addEditDateRow(date="",time=""){
         }
         function openSongAddModal(){if(!isSongAuthenticated){openSongAuthModal();return;}["addSongTitle","addSongArtist","addSongGenre","addSongLimit","addSongEtc"].forEach(id=>{document.getElementById(id).value="";});selectedUnregisteredKey="";renderUnregisteredSongs();setupSongAddAutocompletes();songAddModal.classList.add("active");setTimeout(()=>document.getElementById("addSongTitle")?.focus(),50);}
         function closeSongAddModal(){songAddModal.classList.remove("active");}
-        function addNewSong(){
-            if(!isSongAuthenticated)return; const title=document.getElementById("addSongTitle").value.trim(),artist=document.getElementById("addSongArtist").value.trim(); if(!title||!artist){showToastMessage("노래 제목과 가수를 입력해주세요.");return;}
+        function addNewSong(target='registered'){
+            if(!isSongAuthenticated)return;
+            const title=document.getElementById("addSongTitle").value.trim();
+            const artist=document.getElementById("addSongArtist").value.trim();
+            if(!title||!artist){showToastMessage("노래 제목과 가수를 입력해주세요.");return;}
             const newSong={title,artist,genre:document.getElementById("addSongGenre").value.trim(),limit:document.getElementById("addSongLimit").value.trim(),etc:document.getElementById("addSongEtc").value.trim(),dateTimes:[]};
-            addSongToRegisteredStats(newSong,[]); allSongs.push(newSong); selectedUnregisteredKey='';
-            closeSongAddModal();updateFilteredAndSorted();renderAllSongs();renderUnregisteredSongs();animateNumber("animSongCount",allSongs.length);animateNumber("animPlayCount",allSongs.reduce((n,s)=>n+(s.dateTimes||[]).length,0));enqueueSongServerSave();showToastMessage("새 노래를 등록된 통계에 추가했습니다.");
+            const identity=songIdentity(newSong);
+            const registered=Array.isArray(fansongStatsData.registeredSongs)?fansongStatsData.registeredSongs:[];
+            const unregistered=Array.isArray(fansongStatsData.unregisteredSongs)?fansongStatsData.unregisteredSongs:[];
+            if(registered.some(song=>songIdentity(song)===identity)||unregistered.some(song=>songIdentity(song)===identity)){
+                showToastMessage("같은 제목·가수·제한의 노래가 이미 등록되어 있습니다.");
+                return;
+            }
+            const targetList=target==='unregistered'?unregistered:registered;
+            targetList.push(cloneSongForStats(newSong,[]));
+            if(target==='unregistered') fansongStatsData.unregisteredSongs=targetList;
+            else fansongStatsData.registeredSongs=targetList;
+            allSongs=[];
+            const map=new Map();
+            [...(fansongStatsData.registeredSongs||[]),...(fansongStatsData.unregisteredSongs||[])].forEach(song=>{
+                const key=songIdentity(song);
+                if(!map.has(key))map.set(key,cloneSongForStats(song,song.dateTimes||[]));
+            });
+            allSongs=[...map.values()];
+            selectedUnregisteredKey='';
+            closeSongAddModal();
+            updateFilteredAndSorted();
+            renderAllSongs();
+            renderUnregisteredSongs();
+            animateNumber("animSongCount",allSongs.length);
+            animateNumber("animPlayCount",allSongs.reduce((n,s)=>n+(s.dateTimes||[]).length,0));
+            enqueueSongServerSave();
+            showToastMessage(target==='unregistered'?"새 노래를 미등록곡에 추가했습니다.":"새 노래를 등록곡에 추가했습니다.");
         }
 
         function escapeHtml(value){return String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));}
