@@ -7,43 +7,6 @@
     <link rel="icon" type="image/png" href="badabi_logo.png">
     <!-- Cloudflare Turnstile: Site Key는 공개 가능하지만 Secret Key는 Worker에만 보관합니다. -->
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer>
-function positionCustomSelectPortal(menu, anchor){
-  if(!menu || !anchor) return;
-  menu.classList.add('custom-select-portal');
-  document.body.appendChild(menu);
-  const r = anchor.getBoundingClientRect();
-  const gap = 6;
-  const vw = window.innerWidth;
-  const vh = window.innerHeight;
-  const width = Math.max(r.width, 180);
-  menu.style.width = Math.min(width, vw - 20) + 'px';
-  menu.style.left = Math.max(10, Math.min(r.left, vw - Math.min(width, vw - 20) - 10)) + 'px';
-
-  // Measure after portaling; choose the side with more room.
-  menu.style.top = '0px';
-  menu.style.visibility = 'hidden';
-  menu.style.maxHeight = Math.min(260, Math.max(120, vh * 0.45)) + 'px';
-  const h = Math.min(menu.scrollHeight || 0, vh * 0.45, 260);
-  const below = vh - r.bottom - gap;
-  const above = r.top - gap;
-  let top;
-  if (below >= Math.min(h, 260) || below >= above) {
-    top = Math.min(vh - h - 10, r.bottom + gap);
-  } else {
-    top = Math.max(10, r.top - h - gap);
-  }
-  menu.style.top = top + 'px';
-  menu.style.visibility = 'visible';
-}
-
-function closeAllCustomSelectPortals(except){
-  document.querySelectorAll('.custom-select-portal').forEach(menu=>{
-    if(menu !== except) menu.remove();
-  });
-}
-
-window.addEventListener('resize', ()=>closeAllCustomSelectPortals());
-window.addEventListener('scroll', ()=>closeAllCustomSelectPortals());
 </script>
     <style>
         body {
@@ -2120,6 +2083,28 @@ window.addEventListener('scroll', ()=>closeAllCustomSelectPortals());
   box-sizing:border-box;
 }
 
+
+/* === Custom select portal: popup overflow independent === */
+.custom-select-portal{
+    position:fixed!important;
+    z-index:2147483000!important;
+    max-height:min(260px,45vh)!important;
+    overflow-y:auto!important;
+    overflow-x:hidden!important;
+    box-sizing:border-box;
+    overscroll-behavior:contain;
+    -webkit-overflow-scrolling:touch;
+}
+@media(max-width:768px){
+    .modal-overlay.active{
+        animation:none!important;
+        transition:none!important;
+    }
+    .modal-overlay.active > *{
+        animation:none!important;
+    }
+}
+
 </style>
 </head>
 <body>
@@ -3509,32 +3494,170 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
 
         function openSiteInfoModal() { document.getElementById("siteInfoModal").classList.add("active"); }
         function closeSiteInfoModal() { document.getElementById("siteInfoModal").classList.remove("active"); }
+        let activeCustomSelectPortal = null;
+
         function closeAllCustomSelects(except=null){
-            document.querySelectorAll('.custom-select.open').forEach(el=>{if(el!==except)el.classList.remove('open');});
+            document.querySelectorAll('.custom-select.open').forEach(el=>{
+                if(el!==except) el.classList.remove('open');
+            });
+            document.querySelectorAll('.custom-select-portal').forEach(menu=>{
+                if(!except || menu.__customRoot !== except) {
+                    menu.remove();
+                }
+            });
+            if(!except) activeCustomSelectPortal = null;
         }
+
         document.addEventListener('click',function(e){
             const custom=e.target.closest('.custom-select');
-            if(!custom) closeAllCustomSelects();
+            const portal=e.target.closest('.custom-select-portal');
+            if(!custom && !portal) closeAllCustomSelects();
         });
+
+        function positionCustomSelectPortal(menu, trigger){
+            if(!menu || !trigger) return;
+
+            const rect = trigger.getBoundingClientRect();
+            const gap = 5;
+            const margin = 10;
+            const viewportW = document.documentElement.clientWidth || window.innerWidth;
+            const viewportH = document.documentElement.clientHeight || window.innerHeight;
+
+            menu.classList.add('custom-select-portal');
+            menu.style.display='block';
+            menu.style.visibility='hidden';
+            menu.style.position='fixed';
+            menu.style.left='0px';
+            menu.style.top='0px';
+            menu.style.width=Math.min(Math.max(rect.width,180), viewportW-margin*2)+'px';
+            menu.style.maxHeight=Math.min(260, Math.max(120, viewportH*0.45))+'px';
+
+            // Measure after it is attached to body.
+            const menuHeight=Math.min(menu.scrollHeight,260,viewportH-margin*2);
+            const menuWidth=Math.min(Math.max(rect.width,180),viewportW-margin*2);
+
+            let left=rect.left;
+            if(left + menuWidth > viewportW-margin) left=viewportW-margin-menuWidth;
+            if(left < margin) left=margin;
+
+            const belowSpace=viewportH-rect.bottom-margin-gap;
+            const aboveSpace=rect.top-margin-gap;
+
+            let top;
+            if(belowSpace >= Math.min(menuHeight,260) || belowSpace >= aboveSpace){
+                top=Math.min(rect.bottom+gap, viewportH-menuHeight-margin);
+            }else{
+                top=Math.max(margin, rect.top-menuHeight-gap);
+            }
+
+            menu.style.left=left+'px';
+            menu.style.top=top+'px';
+            menu.style.width=menuWidth+'px';
+            menu.style.visibility='visible';
+        }
+
         function renderCustomSelectElement(root,native,options,selectedValue,onSelect){
             if(!root||!native)return;
-            root.className='custom-select'; root.innerHTML='';
-            const trigger=document.createElement('button'); trigger.type='button'; trigger.className='custom-select-trigger';
-            const selected=options.find(o=>String(o.value)===String(selectedValue))||options[0]||{value:'',label:'선택 없음'};
+
+            // Remove an old portaled menu belonging to this control.
+            document.querySelectorAll('.custom-select-portal').forEach(menu=>{
+                if(menu.__customRoot===root) menu.remove();
+            });
+
+            root.className='custom-select';
+            root.innerHTML='';
+
+            const trigger=document.createElement('button');
+            trigger.type='button';
+            trigger.className='custom-select-trigger';
+
+            const selected=options.find(o=>String(o.value)===String(selectedValue))
+                || options[0]
+                || {value:'',label:'선택 없음'};
+
             trigger.textContent=selected.label;
-            const menu=document.createElement('div'); menu.className='custom-select-menu';
-            options.forEach(o=>{const b=document.createElement('button');b.type='button';b.className='custom-select-option'+(String(o.value)===String(selected.value)?' selected':'');b.textContent=o.label;b.onclick=(ev)=>{ev.stopPropagation();native.value=o.value;root.classList.remove('open');onSelect?.(o.value);};menu.appendChild(b);});
-            trigger.onclick=(ev)=>{ev.stopPropagation();const was=root.classList.contains('open');closeAllCustomSelects(root);root.classList.toggle('open',!was);};
-            root.append(trigger,menu);
+
+            const menu=document.createElement('div');
+            menu.className='custom-select-menu';
+            menu.__customRoot=root;
+            menu.__customTrigger=trigger;
+
+            options.forEach(o=>{
+                const b=document.createElement('button');
+                b.type='button';
+                b.className='custom-select-option'+
+                    (String(o.value)===String(selected.value)?' selected':'');
+                b.textContent=o.label;
+
+                b.onclick=(ev)=>{
+                    ev.stopPropagation();
+                    native.value=o.value;
+                    native.dispatchEvent(new Event('change',{bubbles:true}));
+
+                    root.classList.remove('open');
+                    menu.remove();
+                    if(activeCustomSelectPortal===menu) activeCustomSelectPortal=null;
+
+                    onSelect?.(o.value);
+                };
+
+                menu.appendChild(b);
+            });
+
+            trigger.onclick=(ev)=>{
+                ev.stopPropagation();
+
+                const wasOpen=root.classList.contains('open');
+
+                closeAllCustomSelects(root);
+
+                if(wasOpen){
+                    root.classList.remove('open');
+                    menu.remove();
+                    activeCustomSelectPortal=null;
+                    return;
+                }
+
+                root.classList.add('open');
+
+                // The menu is moved outside the modal so the modal's overflow
+                // and scroll height are completely unaffected.
+                document.body.appendChild(menu);
+                activeCustomSelectPortal=menu;
+                positionCustomSelectPortal(menu,trigger);
+            };
+
+            root.append(trigger);
         }
+
         function renderCustomSelect(customId,nativeId,options,selectedValue,onSelect){
-            renderCustomSelectElement(document.getElementById(customId),document.getElementById(nativeId),options,selectedValue,onSelect);
+            renderCustomSelectElement(
+                document.getElementById(customId),
+                document.getElementById(nativeId),
+                options,
+                selectedValue,
+                onSelect
+            );
         }
-        function syncCustomFilterSelects(){
-            const c=document.getElementById('countFilterSelect'); if(c){renderCustomSelect('countFilterCustom','countFilterSelect',[...c.options].map(o=>({value:o.value,label:o.textContent})),c.value,v=>selectCountFilter(v));}
-            const m=document.getElementById('monthFilterSelect'); if(m){renderCustomSelect('monthFilterCustom','monthFilterSelect',[...m.options].map(o=>({value:o.value,label:o.textContent})),m.value,v=>selectMonthFilter(v));}
-            const r=document.getElementById('recentFilterSelect'); if(r){renderCustomSelect('recentFilterCustom','recentFilterSelect',[...r.options].map(o=>({value:o.value,label:o.textContent})),r.value,v=>selectRecentFilter(v));}
-        }
+
+        // Keep an opened menu aligned with its trigger when a modal's internal
+        // scroll position changes. Capture is required because scroll does not bubble.
+        document.addEventListener('scroll',function(){
+            if(!activeCustomSelectPortal) return;
+            const menu=activeCustomSelectPortal;
+            const trigger=menu.__customTrigger;
+            if(document.body.contains(menu) && trigger){
+                positionCustomSelectPortal(menu,trigger);
+            }
+        },true);
+
+        window.addEventListener('resize',function(){
+            if(!activeCustomSelectPortal) return;
+            const menu=activeCustomSelectPortal;
+            if(document.body.contains(menu) && menu.__customTrigger){
+                positionCustomSelectPortal(menu,menu.__customTrigger);
+            }
+        });
 
         function openFilterModal() {
             refreshCountFilterOptions();
