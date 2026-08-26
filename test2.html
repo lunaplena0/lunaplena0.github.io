@@ -6,7 +6,45 @@
     <title>바다비 노래통계</title>
     <link rel="icon" type="image/png" href="badabi_logo.png">
     <!-- Cloudflare Turnstile: Site Key는 공개 가능하지만 Secret Key는 Worker에만 보관합니다. -->
-    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer>
+function positionCustomSelectPortal(menu, anchor){
+  if(!menu || !anchor) return;
+  menu.classList.add('custom-select-portal');
+  document.body.appendChild(menu);
+  const r = anchor.getBoundingClientRect();
+  const gap = 6;
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  const width = Math.max(r.width, 180);
+  menu.style.width = Math.min(width, vw - 20) + 'px';
+  menu.style.left = Math.max(10, Math.min(r.left, vw - Math.min(width, vw - 20) - 10)) + 'px';
+
+  // Measure after portaling; choose the side with more room.
+  menu.style.top = '0px';
+  menu.style.visibility = 'hidden';
+  menu.style.maxHeight = Math.min(260, Math.max(120, vh * 0.45)) + 'px';
+  const h = Math.min(menu.scrollHeight || 0, vh * 0.45, 260);
+  const below = vh - r.bottom - gap;
+  const above = r.top - gap;
+  let top;
+  if (below >= Math.min(h, 260) || below >= above) {
+    top = Math.min(vh - h - 10, r.bottom + gap);
+  } else {
+    top = Math.max(10, r.top - h - gap);
+  }
+  menu.style.top = top + 'px';
+  menu.style.visibility = 'visible';
+}
+
+function closeAllCustomSelectPortals(except){
+  document.querySelectorAll('.custom-select-portal').forEach(menu=>{
+    if(menu !== except) menu.remove();
+  });
+}
+
+window.addEventListener('resize', ()=>closeAllCustomSelectPortals());
+window.addEventListener('scroll', ()=>closeAllCustomSelectPortals());
+</script>
     <style>
         body {
             margin: 0;
@@ -2042,6 +2080,45 @@
   .custom-select-menu{max-height:200px;}
 }
 @media(min-width:769px){.custom-select-menu{max-height:260px;}}
+
+
+/* === Popup/dropdown stability patch === */
+@media (max-width:768px){
+  .modal-overlay{
+    -webkit-backface-visibility:hidden;
+    backface-visibility:hidden;
+    transform:translateZ(0);
+    -webkit-transform:translateZ(0);
+    will-change:auto;
+  }
+  .modal-overlay.active{
+    animation:none!important;
+    transition:none!important;
+  }
+  .modal-overlay > .modal-box,
+  .modal-overlay > .notice-modal-box,
+  .modal-overlay > .filter-modal-box,
+  .modal-overlay > .other-genre-modal-box{
+    transform:translateZ(0);
+    -webkit-transform:translateZ(0);
+    animation:none!important;
+  }
+}
+
+/* The menu is portaled to body and therefore does not affect modal height/scroll. */
+.custom-select-portal{
+  position:fixed!important;
+  z-index:2147483000!important;
+  max-height:min(260px,45vh)!important;
+  overflow-y:auto!important;
+  overflow-x:hidden!important;
+  overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
+  box-sizing:border-box;
+}
+.custom-select-portal .custom-select-option{
+  box-sizing:border-box;
+}
 
 </style>
 </head>
