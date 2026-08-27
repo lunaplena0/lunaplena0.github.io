@@ -745,8 +745,6 @@
             min-width: 0;
             flex: 1;
             gap: 1px;
-            padding-top: 1px;
-            padding-bottom: 1px;
         }
 
 
@@ -756,15 +754,11 @@
             overflow-y: auto;
             outline: none;
         }
-
-        .song-title-wrapper{display:flex;flex-direction:column;align-items:stretch;min-width:0;flex:1;gap:1px}
         .song-title-line{display:flex;align-items:center;min-width:0;width:100%;gap:0}
         .song-title-line .badge-limit{flex:0 0 auto;margin-right:6px}
         .song-title-line .song-text-viewport{flex:1 1 auto;min-width:0}
         .song-title-wrapper>.song-artist{display:block;margin:0;padding:0;font-size:.78em;line-height:1.05;opacity:.82}
-        @media (max-width: 768px) {
 
-}
         @media (max-width: 768px) {
 
 .song-text-viewport.marquee-active.marquee-visible .song-text-marquee {
@@ -838,6 +832,12 @@
             background-color: #eef2ff;
             color: #6366f1;
             flex-shrink: 0;
+        }
+
+        .song-title-line .badge-limit {
+            color: #0369a1;
+            border: 1px solid #38bdf8;
+            background-color: #e0f2fe;
         }
 
         .timestamp-container {
@@ -1176,21 +1176,6 @@
             height: 20px;
         }
 }
-
-        @media (max-width: 768px) {
-            .song-title-line .song-limit-badge,
-            .song-title-line .limit-badge,
-            .song-title-line .song-tag,
-            .song-title-line .song-count-badge {
-                min-height: 18px !important;
-                height: 18px !important;
-                padding: 1px 5px !important;
-                margin-right: 5px !important;
-                border-radius: 5px !important;
-                font-size: 0.62em !important;
-                line-height: 1 !important;
-            }
-        }
         .song-title-copy {
             cursor: pointer;
             -webkit-tap-highlight-color: transparent;
@@ -1218,59 +1203,18 @@
 
 /* 공지 서식 SVG 아이콘 */
 .notice-format-icon {
-    width: 18px;
-    height: 18px;
+    width: 20px;
+    height: 20px;
     display: block;
-    fill: currentColor;
+    fill: none;
+    overflow: visible;
     flex: 0 0 auto;
 }
-.notice-format-btn svg path {
-    vector-effect: non-scaling-stroke;
-}
-
-/* === 모바일 태그/추천 영역 최종 보정 === */
-@media (max-width: 768px) {
-    /* 일반 목록 + 추천 목록의 태그를 동일한 크기/간격으로 통일 */
-    .song-title-line .badge-limit,
-    .song-title-line .badge-limit{
-        margin-right: 3px !important;
-    }
-    
-}
-
-/* === 공지 서식 버튼: 확실히 새 SVG 아이콘으로 교체 === */
-.notice-format-icon {
-    width: 19px !important;
-    height: 19px !important;
-    display: block !important;
-    fill: none !important;
-    overflow: visible !important;
-}
-.notice-format-icon .fill-icon {
-    fill: currentColor !important;
-    stroke: none !important;
-}
-.notice-format-icon .stroke-icon {
-    fill: none !important;
-    stroke: currentColor !important;
-}
+.notice-format-icon .fill-icon { fill: currentColor; stroke: none; }
+.notice-format-icon .stroke-icon { fill: none; stroke: currentColor; }
+.notice-format-btn svg path { vector-effect: non-scaling-stroke; }
 
 /* === limit JSON 값 기준 태그 색상 최종 적용 === */
-
-/* limit 값을 data-limit으로 넣지 않는 기존 렌더링에도 대응:
-   태그 안의 실제 텍스트를 기준으로 색상을 구분할 수 있도록
-   클래스별 기본 색상도 별도 정의 */
-.song-title-line .badge-limit{
-    color: #0369a1 !important;
-    border-color: #38bdf8 !important;
-    background-color: #e0f2fe !important;
-}
-
-/* === 공지 수정 SVG: 더 직관적인 편집 아이콘 === */
-.notice-format-icon {
-    width: 20px !important;
-    height: 20px !important;
-}
 
 /* === limit 필드 기반 태그 색상: 실제 렌더링 클래스 === */
 .badge.badge-limit.limit-other {
@@ -1390,86 +1334,7 @@
     #songAddModal .song-add-actions .modal-btn{width:100%;}
 }
 
-/* === 노래 추가 모달: 모바일 하단 잘림 방지 === */
-#songAddModal {
-    padding: 12px;
-    box-sizing: border-box;
-}
-#songAddModal .filter-modal-box {
-    width: min(92vw, 620px);
-    max-height: calc(100dvh - 24px);
-    overflow-y: auto;
-    overscroll-behavior: contain;
-}
-#songAddModal .song-add-form,
-#songAddModal .modal-actions {
-    flex-shrink: 0;
-}
-@media (max-width: 768px) {
-    #songAddModal {
-        align-items: flex-start;
-        overflow-y: auto;
-        padding: max(12px, env(safe-area-inset-top)) 10px max(12px, env(safe-area-inset-bottom));
-    }
-    #songAddModal .filter-modal-box {
-        width: 100%;
-        max-height: calc(100dvh - 24px);
-        margin: auto 0;
-    }
-    #songAddModal .modal-actions {
-        position: sticky;
-        bottom: 0;
-        padding-top: 8px;
-        padding-bottom: 2px;
-        background: #fff;
-        z-index: 2;
-    }
-}
-
-/* === v2: 모바일 노래 추가 버튼이 하단바에 가려지지 않게 === */
-@media (max-width: 768px) {
-    #songAddModal {
-        position: fixed;
-        inset: 0;
-        z-index: 10000;
-        height: 100dvh;
-        min-height: 100dvh;
-        box-sizing: border-box;
-        padding: max(8px, env(safe-area-inset-top))
-                 8px
-                 max(72px, calc(env(safe-area-inset-bottom) + 64px));
-        align-items: flex-start;
-        justify-content: flex-start;
-        overflow-y: auto;
-        overscroll-behavior: contain;
-    }
-
-    #songAddModal .filter-modal-box {
-        width: 100% !important;
-        max-width: 620px !important;
-        max-height: calc(100dvh - 88px) !important;
-        margin: 0 auto 8px !important;
-        overflow-y: auto !important;
-        box-sizing: border-box;
-    }
-
-    #songAddModal .modal-actions {
-        position: sticky;
-        bottom: 0;
-        z-index: 20;
-        margin-top: 8px !important;
-        padding: 8px 0 max(6px, env(safe-area-inset-bottom)) !important;
-        background: #fff !important;
-        box-shadow: 0 -4px 10px rgba(15, 23, 42, 0.08);
-    }
-
-    #songAddModal .modal-actions .modal-btn {
-        min-height: 38px;
-    }
-
-}
-
-        /* === 2026-08-25 요청사항 최종 보정 === */
+/* === 2026-08-25 요청사항 최종 보정 === */
         /* 1) 노래 목록 제목이 카드 왼쪽에 붙지 않도록 내부 여백 확보 */
 
         /* 3) 모바일 노래 추가: 모달 자체만 스크롤되고 저장/취소 바는 카드 안에서 고정 */
@@ -3603,7 +3468,7 @@ function closeRecommendModal() { document.getElementById("recommendModal").class
         }
 
         function onSearchInput() { updateFilteredAndSorted(); renderAllSongs(); }
-        function triggerSearch() { updateFilteredAndSorted(); renderAllSongs(); }
+        function triggerSearch() { onSearchInput(); }
 
         restoreSongAuthentication().finally(() => {
             loadData();
@@ -3627,24 +3492,23 @@ async function runSongDataCheck(){
  }catch(e){box.innerHTML=`<div style="color:#dc2626;font-weight:700">검사 실패: ${escapeHtml(e.message||e)}</div>`;}
 }
 function closeSongStatsDashboard(){document.getElementById('songStatsDashboardModal')?.classList.remove('active');}
-function escStats(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
 function parseStatsDate(v){
     const m=String(v||'').match(/^(\d{4})-(\d{2})-(\d{2})/); if(!m)return null;
     const d=new Date(Number(m[1]),Number(m[2])-1,Number(m[3])); d.setHours(0,0,0,0); return isNaN(d.getTime())?null:d;
 }
 function makeStatsBars(items,max){
     if(!items.length)return '<div class="stats-empty">표시할 데이터가 없습니다.</div>';
-    return '<div class="stats-bars">'+items.map(x=>`<div class="stats-bar-row"><div class="stats-bar-label" title="${escStats(x.label)}">${escStats(x.label)}</div><div class="stats-bar-track"><div class="stats-bar-fill" style="width:${Math.max(2,(x.value/max)*100)}%"></div></div><div class="stats-bar-value">${x.value}회</div></div>`).join('')+'</div>';
+    return '<div class="stats-bars">'+items.map(x=>`<div class="stats-bar-row"><div class="stats-bar-label" title="${escapeHtml(x.label)}">${escapeHtml(x.label)}</div><div class="stats-bar-track"><div class="stats-bar-fill" style="width:${Math.max(2,(x.value/max)*100)}%"></div></div><div class="stats-bar-value">${x.value}회</div></div>`).join('')+'</div>';
 }
 function makeStatsDonut(items,total){
     if(!items.length||!total)return '<div class="stats-empty">장르 데이터가 없습니다.</div>';
     const colors=['#0ea5e9','#8b5cf6','#10b981','#f59e0b','#ef4444','#ec4899','#64748b','#14b8a6'];
     let start=0; const stops=items.map((x,i)=>{const end=start+(x.value/total)*360;const part=`${colors[i%colors.length]} ${start}deg ${end}deg`;start=end;return part;}).join(',');
-    return `<div class="stats-donut-wrap"><div class="stats-donut" style="background:conic-gradient(${stops})"><div class="stats-donut-center"><strong>${total}</strong><span>곡</span></div></div><div class="stats-legend">${items.map((x,i)=>`<div class="stats-legend-row"><span class="stats-legend-dot" style="background:${colors[i%colors.length]}"></span><span class="stats-legend-name">${escStats(x.label)}</span><span class="stats-legend-value">${x.value}곡 · ${((x.value/total)*100).toFixed(1)}%</span></div>`).join('')}</div></div>`;
+    return `<div class="stats-donut-wrap"><div class="stats-donut" style="background:conic-gradient(${stops})"><div class="stats-donut-center"><strong>${total}</strong><span>곡</span></div></div><div class="stats-legend">${items.map((x,i)=>`<div class="stats-legend-row"><span class="stats-legend-dot" style="background:${colors[i%colors.length]}"></span><span class="stats-legend-name">${escapeHtml(x.label)}</span><span class="stats-legend-value">${x.value}곡 · ${((x.value/total)*100).toFixed(1)}%</span></div>`).join('')}</div></div>`;
 }
 function makeRecentSongCards(items){
     if(!items.length)return '<div class="stats-empty">최근 30일 기록이 없습니다.</div>';
-    return '<div class="stats-top-song-list">'+items.map((x,i)=>`<div class="stats-top-song"><div class="stats-rank">${i+1}</div><div class="stats-top-song-main"><div class="stats-top-song-title">${escStats(x.title)}</div><div class="stats-top-song-artist">${escStats(x.artist)}</div></div><div class="stats-top-song-count">${x.value}회</div></div>`).join('')+'</div>';
+    return '<div class="stats-top-song-list">'+items.map((x,i)=>`<div class="stats-top-song"><div class="stats-rank">${i+1}</div><div class="stats-top-song-main"><div class="stats-top-song-title">${escapeHtml(x.title)}</div><div class="stats-top-song-artist">${escapeHtml(x.artist)}</div></div><div class="stats-top-song-count">${x.value}회</div></div>`).join('')+'</div>';
 }
 function openSongStatsDashboard(){
     const modal=document.getElementById('songStatsDashboardModal'); const content=document.getElementById('songStatsDashboardContent'); if(!modal||!content)return;
