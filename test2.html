@@ -435,7 +435,7 @@
         body.authenticated-mode .song-edit-btn { display: inline-flex; align-items: center; gap: 3px; }
         .song-card.auth-editing { border-color: #0ea5e9; box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.12); }
 
-        .edit-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; overflow-y: auto; padding-right: 2px; }
+        .edit-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding-right: 2px; }
         .edit-form-field { display: flex; flex-direction: column; gap: 5px; }
         .edit-form-field.full { grid-column: 1 / -1; }
         .edit-form-label { font-size: 12px; font-weight: 700; color: #0369a1; }
@@ -1512,7 +1512,7 @@
         .stats-donut-center strong{font-size:18px;color:#0f172a;}
         .stats-legend{display:flex;flex-direction:column;gap:6px;min-width:0;flex:1;}
         .stats-legend-row{display:flex;align-items:center;gap:6px;font-size:11px;}
-        .stats-legend-dot{width:9px;height:9px;border-radius:3px;flex-shrink:0;}
+        .stats-legend-dot{width:9px;height:9px;border-radius:3px;flex-shrink:0;background-color:var(--legend-color)!important;}
         .stats-legend-name{min-width:0;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#475569;}
         .stats-legend-value{font-weight:800;color:#334155;}
         .stats-empty{padding:20px;text-align:center;color:#94a3b8;font-size:11px;border:1px dashed #cbd5e1;border-radius:9px;}
@@ -1824,7 +1824,7 @@
         <div class="filter-modal-box" style="width:92%;max-width:760px;max-height:88vh;">
             <div class="modal-header"><h3 class="modal-title">♫ 노래 한번에 입력</h3><button class="modal-close-btn" onclick="closeBulkSongInputModal()">✕</button></div>
             <div class="edit-form-grid">
-                <div class="edit-form-field full"><label class="edit-form-label">방송 날짜</label><input id="bulkSongDate" class="edit-form-input" type="text" inputmode="numeric" placeholder="YYYY-MM-DD" aria-label="노래 한번에 입력 방송 날짜"></div>
+                <div class="edit-form-field full"><label class="edit-form-label">방송 날짜</label><input id="bulkSongDate" class="edit-form-input" type="text" inputmode="numeric" placeholder="YYYY-MM-DD 또는 YYYY-MM-DD(1)" aria-label="노래 한번에 입력 방송 날짜"></div>
                 <div class="edit-form-field full"><label class="edit-form-label">노래 기록</label><textarea id="bulkSongInput" class="edit-form-input" style="min-height:260px;resize:vertical;font-family:inherit;line-height:1.7" placeholder="00:47:17 🎵 홀씨 - 아이유 (IU)
 00:51:34 🎵 Auburn - 데이먼스 이어
 00:57:31 🎵 가을밤에 든 생각 - 잔나비"></textarea></div>
@@ -2434,12 +2434,14 @@ function addEditDateRow(date="",time=""){
         }
 
         function escapeHtml(value){return String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));}
-        function normalizeManualDate(value){
+        function normalizeManualDate(value,allowEpisodeSuffix=false){
             const v=String(value||'').trim().replace(/[./]/g,'-');
-            const m=v.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/); if(!m)return '';
+            const m=v.match(/^(\d{4})-(\d{1,2})-(\d{1,2})(?:\((\d+)\))?$/); if(!m)return '';
+            if(m[4]&&(!allowEpisodeSuffix||Number(m[4])<1))return '';
             const y=Number(m[1]),mo=Number(m[2]),d=Number(m[3]); const dt=new Date(y,mo-1,d);
             if(dt.getFullYear()!==y||dt.getMonth()!==mo-1||dt.getDate()!==d)return '';
-            return `${y}-${String(mo).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+            const base=`${y}-${String(mo).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+            return m[4]?`${base}(${Number(m[4])})`:base;
         }
         function openBulkSongInputModal(){
             if(!isSongAuthenticated){openSongAuthModal();return;}
@@ -2452,10 +2454,10 @@ function addEditDateRow(date="",time=""){
         function closeBulkSongInputModal(){document.getElementById('bulkSongInputModal')?.classList.remove('active');}
         function applyBulkSongInput(){
             if(!isSongAuthenticated){openSongAuthModal();return;}
-            const date=normalizeManualDate(document.getElementById('bulkSongDate')?.value||'');
+            const date=normalizeManualDate(document.getElementById('bulkSongDate')?.value||'',true);
             const raw=document.getElementById('bulkSongInput')?.value||'';
             const result=document.getElementById('bulkSongResult');
-            if(!date){result.innerHTML='<div style="color:#dc2626;font-weight:700">방송 날짜를 YYYY-MM-DD 형식으로 입력해주세요.</div>';return;}
+            if(!date){result.innerHTML='<div style="color:#dc2626;font-weight:700">방송 날짜를 YYYY-MM-DD 또는 YYYY-MM-DD(1) 형식으로 입력해주세요.</div>';return;}
             const lines=raw.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
             if(!lines.length){result.innerHTML='<div style="color:#dc2626;font-weight:700">입력할 노래 기록이 없습니다.</div>';return;}
 
@@ -3503,8 +3505,11 @@ function makeStatsBars(items,max){
 function makeStatsDonut(items,total){
     if(!items.length||!total)return '<div class="stats-empty">장르 데이터가 없습니다.</div>';
     const colors=['#0ea5e9','#8b5cf6','#10b981','#f59e0b','#ef4444','#ec4899','#64748b','#14b8a6'];
-    let start=0; const stops=items.map((x,i)=>{const end=start+(x.value/total)*360;const part=`${colors[i%colors.length]} ${start}deg ${end}deg`;start=end;return part;}).join(',');
-    return `<div class="stats-donut-wrap"><div class="stats-donut" style="background:conic-gradient(${stops})"><div class="stats-donut-center"><strong>${total}</strong><span>곡</span></div></div><div class="stats-legend">${items.map((x,i)=>`<div class="stats-legend-row"><span class="stats-legend-dot" style="background:${colors[i%colors.length]}"></span><span class="stats-legend-name">${escapeHtml(x.label)}</span><span class="stats-legend-value">${x.value}곡 · ${((x.value/total)*100).toFixed(1)}%</span></div>`).join('')}</div></div>`;
+    const coloredItems=items.map((item,i)=>({...item,color:colors[i%colors.length]}));
+    let start=0;
+    const stops=coloredItems.map(item=>{const end=start+(item.value/total)*360;const part=`${item.color} ${start}deg ${end}deg`;start=end;return part;}).join(',');
+    const legend=coloredItems.map(x=>`<div class="stats-legend-row"><span class="stats-legend-dot" style="--legend-color:${x.color}"></span><span class="stats-legend-name">${escapeHtml(x.label)}</span><span class="stats-legend-value">${x.value}곡 · ${((x.value/total)*100).toFixed(1)}%</span></div>`).join('');
+    return `<div class="stats-donut-wrap"><div class="stats-donut" style="background:conic-gradient(${stops})"><div class="stats-donut-center"><strong>${total}</strong><span>곡</span></div></div><div class="stats-legend">${legend}</div></div>`;
 }
 function makeRecentSongCards(items){
     if(!items.length)return '<div class="stats-empty">최근 30일 기록이 없습니다.</div>';
