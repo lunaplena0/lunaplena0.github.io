@@ -1514,8 +1514,9 @@
         .stats-bar-fill{height:100%;border-radius:6px;background:linear-gradient(90deg,#38bdf8,#0ea5e9);min-width:2px;}
         .stats-bar-value{text-align:right;font-weight:800;color:#0369a1;}
         .stats-donut-wrap{display:flex;align-items:center;gap:16px;min-height:210px;}
-        .stats-donut{width:170px;height:170px;border-radius:50%;background:#e2e8f0;position:relative;flex-shrink:0;}
-        .stats-donut::after{content:"";position:absolute;inset:38px;border-radius:50%;background:#fff;}
+        .stats-donut{width:170px;height:170px;position:relative;flex-shrink:0;}
+        .stats-donut-svg{display:block;width:170px;height:170px;overflow:visible;}
+        .stats-donut-svg circle{vector-effect:non-scaling-stroke;}
         .stats-donut-center{position:absolute;z-index:2;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;font-size:11px;color:#64748b;}
         .stats-donut-center strong{font-size:18px;color:#0f172a;}
         .stats-legend{display:flex;flex-direction:column;gap:6px;min-width:0;flex:1;}
@@ -1588,20 +1589,6 @@
             min-width:0;
             box-sizing:border-box;
         }
-        #addSongArtist" class="edit-form-input.filter-modal-box{max-height:calc(100dvh - 24px);overflow-y:auto;overflow-x:hidden;box-sizing:border-box;min-height:0;}
-        #addSongEtc" class="edit-form-input.filter-modal-box{max-height:calc(100dvh - 24px);overflow-y:auto;overflow-x:hidden;box-sizing:border-box;min-height:0;}
-        #addSongGenre" class="edit-form-input.filter-modal-box{max-height:calc(100dvh - 24px);overflow-y:auto;overflow-x:hidden;box-sizing:border-box;min-height:0;}
-        #addSongLimit" class="edit-form-input.filter-modal-box{max-height:calc(100dvh - 24px);overflow-y:auto;overflow-x:hidden;box-sizing:border-box;min-height:0;}
-        #addSongTitle" class="edit-form-input.filter-modal-box{max-height:calc(100dvh - 24px);overflow-y:auto;overflow-x:hidden;box-sizing:border-box;min-height:0;}
-        #bulkSongDate" class="edit-form-input.filter-modal-box{max-height:calc(100dvh - 24px);overflow-y:auto;overflow-x:hidden;box-sizing:border-box;min-height:0;}
-        #bulkSongInput" class="edit-form-input.filter-modal-box{max-height:calc(100dvh - 24px);overflow-y:auto;overflow-x:hidden;box-sizing:border-box;min-height:0;}
-        #editSongArtist" class="edit-form-input.filter-modal-box{max-height:calc(100dvh - 24px);overflow-y:auto;overflow-x:hidden;box-sizing:border-box;min-height:0;}
-        #editSongDates" class="stats-date-editor"></div><button type="button" class="stats-date-add" onclick="addEditDateRow().filter-modal-box{max-height:calc(100dvh - 24px);overflow-y:auto;overflow-x:hidden;box-sizing:border-box;min-height:0;}
-        #editSongEtc" class="edit-form-input.filter-modal-box{max-height:calc(100dvh - 24px);overflow-y:auto;overflow-x:hidden;box-sizing:border-box;min-height:0;}
-        #editSongGenre" class="edit-form-input.filter-modal-box{max-height:calc(100dvh - 24px);overflow-y:auto;overflow-x:hidden;box-sizing:border-box;min-height:0;}
-        #editSongLimit" class="edit-form-input.filter-modal-box{max-height:calc(100dvh - 24px);overflow-y:auto;overflow-x:hidden;box-sizing:border-box;min-height:0;}
-        #editSongTitle" class="edit-form-input.filter-modal-box{max-height:calc(100dvh - 24px);overflow-y:auto;overflow-x:hidden;box-sizing:border-box;min-height:0;}
-        #songEditModal.filter-modal-box{max-height:calc(100dvh - 24px);overflow-y:auto;overflow-x:hidden;box-sizing:border-box;min-height:0;}
 </style>
 </head>
 <body>
@@ -3541,10 +3528,16 @@ function makeStatsDonut(items,total){
     if(!items.length||!total)return '<div class="stats-empty">장르 데이터가 없습니다.</div>';
     const colors=['#0ea5e9','#8b5cf6','#10b981','#f59e0b','#ef4444','#ec4899','#64748b','#14b8a6'];
     const coloredItems=items.map((item,i)=>({...item,color:colors[i%colors.length]}));
-    let start=0;
-    const stops=coloredItems.map(item=>{const end=start+(item.value/total)*360;const part=`${item.color} ${start}deg ${end}deg`;start=end;return part;}).join(',');
+    const radius=76,circ=2*Math.PI*radius;
+    let offset=0;
+    const segments=coloredItems.map(item=>{
+        const length=(item.value/total)*circ;
+        const segment=`<circle cx="85" cy="85" r="${radius}" fill="none" stroke="${item.color}" stroke-width="34" stroke-dasharray="${length} ${circ-length}" stroke-dashoffset="${-offset}"></circle>`;
+        offset+=length;
+        return segment;
+    }).join('');
     const legend=coloredItems.map(x=>`<div class="stats-legend-row"><span class="stats-legend-dot" style="--legend-color:${x.color}"></span><span class="stats-legend-name">${escapeHtml(x.label)}</span><span class="stats-legend-value">${x.value}곡 · ${((x.value/total)*100).toFixed(1)}%</span></div>`).join('');
-    return `<div class="stats-donut-wrap"><div class="stats-donut" style="background:conic-gradient(${stops})"><div class="stats-donut-center"><strong>${total}</strong><span>곡</span></div></div><div class="stats-legend">${legend}</div></div>`;
+    return `<div class="stats-donut-wrap"><div class="stats-donut" aria-label="전체 노래 장르 비율"><svg class="stats-donut-svg" viewBox="0 0 170 170" role="img" aria-hidden="true"><g transform="rotate(-90 85 85)">${segments}</g></svg><div class="stats-donut-center"><strong>${total}</strong><span>곡</span></div></div><div class="stats-legend">${legend}</div></div>`;
 }
 function makeRecentSongCards(items){
     if(!items.length)return '<div class="stats-empty">최근 30일 기록이 없습니다.</div>';
