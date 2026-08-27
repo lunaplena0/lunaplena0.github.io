@@ -2019,8 +2019,7 @@
         .stats-top-song-count{font-size:11px;font-weight:800;color:#0369a1;white-space:nowrap;}
         @media(max-width:700px){.stats-chart-grid{grid-template-columns:1fr}.stats-chart-card.full{grid-column:auto}.stats-donut-wrap{flex-direction:column;align-items:stretch}.stats-donut{margin:0 auto}.stats-bar-row{grid-template-columns:90px 1fr 42px}.stats-dashboard-box{width:94vw!important;}}
 
-        .data-check-grid{display:grid;grid-template-columns:1fr;gap:10px}.data-check-grid section{border:1px solid #e2e8f0;border-radius:10px;background:#f8fafc;padding:12px}.data-check-grid h4{margin:0 0 8px;font-size:13px;color:#0369a1}.data-check-grid ul{margin:0;padding-left:18px;max-height:180px;overflow:auto;font-size:12px;line-height:1.7}.data-check-grid small{color:#64748b}
-        @media(min-width:769px){.data-check-grid{grid-template-columns:1fr 1fr}}
+        .data-check-grid{display:grid;grid-template-columns:1fr!important;gap:10px}.data-check-grid section{border:1px solid #e2e8f0;border-radius:10px;background:#f8fafc;padding:12px}.data-check-grid h4{margin:0 0 8px;font-size:13px;color:#0369a1}.data-check-grid ul{margin:0;padding-left:18px;max-height:180px;overflow:auto;font-size:12px;line-height:1.7}.data-check-grid small{color:#64748b}
 
 /* === 공통 모바일 팝업 안전영역 + 상세필터 커스텀 드롭다운 === */
 .detail-filter-select-native{position:absolute!important;width:1px!important;height:1px!important;opacity:0!important;pointer-events:none!important;overflow:hidden!important;}
@@ -2318,7 +2317,7 @@
                 <div class="edit-form-field full"><label class="edit-form-label">노래 기록</label><textarea id="bulkSongInput" class="edit-form-input" style="min-height:260px;resize:vertical;font-family:inherit;line-height:1.7" placeholder="00:47:17 🎵 홀씨 - 아이유 (IU)
 00:51:34 🎵 Auburn - 데이먼스 이어
 00:57:31 🎵 가을밤에 든 생각 - 잔나비"></textarea></div>
-                <div class="edit-form-field full"><div style="font-size:12px;color:#64748b;line-height:1.6">제목과 가수명이 <b>노래통계에 등록된 노래와 정확히 일치</b>하는 경우에만 기록됩니다. 🎸가 붙은 줄은 해당 노래의 <b>기타</b> 태그에 🎸가 기록됩니다. 입력한 날짜가 해당 노래의 기록 날짜로 저장됩니다.</div></div>
+                <div class="edit-form-field full"><div style="font-size:12px;color:#64748b;line-height:1.6">제목과 가수명이 <b>등록곡에서 먼저 검색되고, 없으면 미등록곡에서도 정확히 검색</b>됩니다. 미등록곡에서 찾으면 자동으로 등록곡으로 이동한 뒤 기록됩니다. 🎸가 붙은 줄은 해당 노래의 <b>기타</b> 태그에 🎸가 기록됩니다. 입력한 날짜가 해당 노래의 기록 날짜로 저장됩니다.</div></div>
             </div>
             <div id="bulkSongResult" style="margin-top:12px;max-height:220px;overflow:auto;font-size:12px"></div>
             <div class="modal-actions" style="margin-top:14px;"><button class="modal-btn modal-btn-close" onclick="applyBulkSongInput()">입력 및 저장</button><button class="modal-btn modal-btn-refresh" onclick="closeBulkSongInputModal()">취소</button></div>
@@ -2967,31 +2966,45 @@ function addEditDateRow(date="",time=""){
             if(!date){result.innerHTML='<div style="color:#dc2626;font-weight:700">방송 날짜를 YYYY-MM-DD 형식으로 입력해주세요.</div>';return;}
             const lines=raw.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
             const registered=Array.isArray(fansongStatsData.registeredSongs)?fansongStatsData.registeredSongs:[];
-            const outcomes=[]; const seen=new Set(); let added=0,duplicate=0,unmatched=0,invalid=0;
+            const unregistered=Array.isArray(fansongStatsData.unregisteredSongs)?fansongStatsData.unregisteredSongs:[];
+            const outcomes=[]; const seen=new Set(); let registeredAdded=0,unregisteredMoved=0,duplicate=0,unmatched=0,invalid=0;
             lines.forEach((line,i)=>{
                 const m=line.match(/^(\d{1,2}:\d{2}:\d{2})\s+(.*)$/);
                 if(!m){invalid++;outcomes.push(`<div style="color:#dc2626">${i+1}. 형식 오류 · ${escapeHtml(line)}</div>`);return;}
                 let rest=m[2].trim(), guitar=rest.includes('🎸'); rest=rest.replace(/🎸/g,'').trim(); rest=rest.replace(/^🎵\s*/,'');
                 const dash=rest.indexOf(' - '); if(dash<0){invalid++;outcomes.push(`<div style="color:#dc2626">${i+1}. 제목/가수 구분 실패 · ${escapeHtml(line)}</div>`);return;}
                 const title=rest.slice(0,dash).trim(), artist=rest.slice(dash+3).trim();
-                const key=`${date}|${m[1]}|${title}|${artist}|${guitar?'기타':''}`;
-                if(seen.has(key)){duplicate++;return;} seen.add(key);
-                const matches=registered.filter(s=>String(s.title||'').trim()===title&&String(s.artist||'').trim()===artist);
-                if(matches.length!==1){unmatched++;outcomes.push(`<div style="color:#b45309">${i+1}. 미일치 · ${escapeHtml(title)} - ${escapeHtml(artist)}${matches.length>1?' (동일 제목/가수 중복)':''}</div>`);return;}
-                const song=matches[0]; song.dateTimes=Array.isArray(song.dateTimes)?song.dateTimes:[];
-                if(song.dateTimes.some(dt=>String(dt.date||'')===date&&String(dt.time||'')===m[1])){duplicate++;return;}
+                const recordKey=`${date}|${m[1]}|${title}|${artist}|${guitar?'기타':''}`;
+                if(seen.has(recordKey)){duplicate++;return;} seen.add(recordKey);
+                const matchSong=(list)=>list.filter(s=>String(s.title||'').trim()===title&&String(s.artist||'').trim()===artist);
+                let matches=matchSong(registered), song=null, source='registered';
+                if(matches.length===1){song=matches[0];}
+                else if(matches.length>1){unmatched++;outcomes.push(`<div style="color:#b45309">${i+1}. 미일치 · ${escapeHtml(title)} - ${escapeHtml(artist)} (등록곡 동일 제목/가수 중복)</div>`);return;}
+                else{
+                    matches=matchSong(unregistered);
+                    if(matches.length===1){
+                        song=matches[0]; source='unregistered';
+                        const idx=unregistered.indexOf(song); if(idx>=0)unregistered.splice(idx,1);
+                        registered.push(song); unregisteredMoved++;
+                    }else if(matches.length>1){unmatched++;outcomes.push(`<div style="color:#b45309">${i+1}. 미일치 · ${escapeHtml(title)} - ${escapeHtml(artist)} (미등록곡 동일 제목/가수 중복)</div>`);return;}
+                    else{unmatched++;outcomes.push(`<div style="color:#b45309">${i+1}. 미등록곡에도 없음 · ${escapeHtml(title)} - ${escapeHtml(artist)}</div>`);return;}
+                }
+                song.dateTimes=Array.isArray(song.dateTimes)?song.dateTimes:[];
+                if(song.dateTimes.some(dt=>String(dt.date||'')===date&&String(dt.time||'')===m[1])){duplicate++; if(source==='unregistered'){/* 이동만 된 경우에도 기록은 이미 등록돼 있음 */} return;}
                 song.dateTimes.push({date,time:m[1]});
                 if(guitar) song.limit='기타';
-                added++;
+                if(source==='registered')registeredAdded++;
             });
             fansongStatsData.registeredSongs=registered;
-            allSongs=[];const map=new Map();[...registered,...(fansongStatsData.unregisteredSongs||[])].forEach(song=>{const k=songIdentity(song);if(!map.has(k))map.set(k,cloneSongForStats(song,song.dateTimes||[]));});allSongs=[...map.values()];
-            updateFilteredAndSorted();renderAllSongs();enqueueSongServerSave();
+            fansongStatsData.unregisteredSongs=unregistered;
+            allSongs=[];const map=new Map();[...registered,...unregistered].forEach(song=>{const k=songIdentity(song);if(!map.has(k))map.set(k,cloneSongForStats(song,song.dateTimes||[]));});allSongs=[...map.values()];
+            updateFilteredAndSorted();renderAllSongs();renderUnregisteredSongs();enqueueSongServerSave();
             const sections=[];
-            if(added)sections.push(`<div style="color:#15803d"><b>입력 완료 ${added}곡</b></div>`);
-            if(duplicate)sections.push(`<div style="color:#64748b"><b>중복 제외 ${duplicate}건</b></div>`);
-            if(unmatched)sections.push(`<div style="margin-top:8px;font-weight:700;color:#b45309">일치하지 않는 곡 ${unmatched}개</div>`);
-            if(invalid)sections.push(`<div style="margin-top:8px;font-weight:700;color:#dc2626">오류 ${invalid}개</div>`);
+            sections.push(`<div style="color:#15803d"><b>등록곡 ${registeredAdded}곡 성공</b></div>`);
+            sections.push(`<div style="color:#15803d"><b>미등록곡 ${unregisteredMoved}곡 성공</b></div>`);
+            if(duplicate)sections.push(`<div style="color:#64748b"><b>중복 ${duplicate}건 제외</b></div>`);
+            if(unmatched)sections.push(`<div style="margin-top:8px;font-weight:700;color:#b45309">실패 ${unmatched}개</div>`);
+            if(invalid)sections.push(`<div style="margin-top:8px;font-weight:700;color:#dc2626">형식 오류 ${invalid}개</div>`);
             const detail=outcomes.length?`<div style="margin-top:8px;padding:8px;background:#f8fafc;border-radius:8px">${outcomes.join('')}</div>`:'';
             result.innerHTML=sections.join('')+detail||'<div>입력할 데이터가 없습니다.</div>';
         }
