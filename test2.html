@@ -2739,17 +2739,6 @@ function addEditDateRow(date="",time=""){
             if(editor.contains(r.commonAncestorContainer)) noticeSavedRange=r.cloneRange();
         }
 
-        function getNoticeStyleInfo(node) {
-            if (!node || node.nodeType !== Node.ELEMENT_NODE) return "";
-            const tag = node.tagName.toLowerCase();
-            const style = (node.getAttribute("style") || "").toLowerCase().replace(/\s+/g, "");
-            if (tag === "s" || tag === "strike" || style.includes("text-decoration:line-through")) return "strikeThrough";
-            if (tag === "u" || style.includes("text-decoration:underline")) return "underline";
-            if (tag === "i" || style.includes("font-style:italic")) return "italic";
-            if (tag === "b" || tag === "strong" || /font-weight:(?:bold|700)/.test(style)) return "bold";
-            return "";
-        }
-
         function applyNoticeFormat(command) {
             const editor = document.getElementById("noticeEditTextarea");
             if (!editor || !isSongAuthenticated || !noticeSavedRange) return;
@@ -2822,37 +2811,6 @@ function addEditDateRow(date="",time=""){
             if(!raw){el.textContent="공지사항이 없습니다.";return;}
             const hasFormatting=/<(?:b|i|u|s|strike|span)(?:\s|>)/i.test(raw);
             el.innerHTML=hasFormatting?sanitizeNoticeHtml(raw).replace(/\n/g,"<br>"):plainNoticeToHtml(raw);
-        }
-        function openNoticeEditModal(){
-            if(!isSongAuthenticated){openSongAuthModal();return;}
-            const editor=document.getElementById("noticeEditTextarea"); if(!editor)return;
-            noticeEditOriginalText=normalizeNoticeText(currentNoticeText||"");
-            const raw=noticeEditOriginalText;
-            editor.innerHTML=/<(?:b|i|u|s|strike|span)(?:\s|>)/i.test(raw)?sanitizeNoticeHtml(raw).replace(/\n/g,"<br>"):plainNoticeToHtml(raw);
-            noticeSavedRange=null;
-            editor.onmouseup=rememberNoticeSelection;
-            editor.onkeyup=rememberNoticeSelection;
-            editor.oninput=rememberNoticeSelection;
-            editor.onkeydown=function(event){
-                if(event.key==="Enter"){
-                    event.preventDefault();
-                    event.stopPropagation();
-                    const sel=window.getSelection();
-                    if(!sel || !sel.rangeCount) return;
-                    const range=sel.getRangeAt(0);
-                    if(!editor.contains(range.commonAncestorContainer)) return;
-                    range.deleteContents();
-                    const br=document.createElement("br");
-                    range.insertNode(br);
-                    const caret=document.createRange();
-                    caret.setStartAfter(br);
-                    caret.collapse(true);
-                    sel.removeAllRanges();
-                    sel.addRange(caret);
-                    noticeSavedRange=caret.cloneRange();
-                }
-            };
-            noticeEditModal.classList.add("active");
         }
         function closeNoticeEditModal(){
             const editor=document.getElementById("noticeEditTextarea");
