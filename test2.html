@@ -2925,7 +2925,26 @@ function closeRecommendModal() { document.getElementById("recommendModal").class
             const menu=document.createElement('div'); menu.className='custom-select-menu custom-select-menu-portal'; menu.dataset.owner=root.id;
             options.forEach(o=>{
                 const b=document.createElement('button'); b.type='button'; b.className='custom-select-option'+(String(o.value)===String(selected.value)?' selected':''); b.textContent=o.label;
-                b.onclick=(ev)=>{ev.stopPropagation();native.value=o.value;root.classList.remove('open');menu.style.display='none';onSelect?.(o.value);};
+                b.onclick=(ev)=>{
+    ev.stopPropagation();
+
+    // 실제 select 값 변경
+    native.value=o.value;
+
+    // ★ 화면에 표시되는 선택값도 즉시 변경
+    trigger.textContent=o.label;
+
+    // ★ 선택된 항목 표시 갱신
+    menu.querySelectorAll('.custom-select-option')
+        .forEach(option=>option.classList.remove('selected'));
+
+    b.classList.add('selected');
+
+    root.classList.remove('open');
+    menu.style.display='none';
+
+    onSelect?.(o.value);
+};
                 menu.appendChild(b);
             });
             document.body.appendChild(menu);
