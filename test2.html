@@ -2324,7 +2324,7 @@
             document.getElementById("editSongLimit").value = song.limit || "";
             document.getElementById("editSongEtc").value = song.etc || "";
             const box=document.getElementById("editSongDates"); box.innerHTML="";
-            (song.dateTimes||[]).forEach(dt=>addEditDateRow(dt.date,dt.time));
+            normalizeSongDateTimes(song.dateTimes).forEach(dt=>addEditDateRow(dt.date,dt.time));
             if(!box.children.length)addEditDateRow();
             songEditModal.classList.add("active");
         }
@@ -2338,15 +2338,15 @@
 function addEditDateRow(date="",time=""){
     const box=document.getElementById("editSongDates"); if(!box)return;
     const row=document.createElement("div"); row.className="stats-date-row";
-    const safeDate=String(date||'').trim();
+    const normalized=normalizeSongDateTime({date,time});
+    const safeDate=normalized.date, safeTime=normalized.time;
     const dateOptions=getVodDateOptions(safeDate);
-    row.innerHTML=`<div class="stats-edit-date-wrap"><select class="stats-edit-date detail-filter-select-native" aria-label="등록된 VOD 날짜">${dateOptions||'<option value="">등록된 VOD 날짜 없음</option>'}</select><div class="custom-select stats-edit-date-custom"></div></div><input class="edit-form-input stats-edit-time" type="text" placeholder="예: 01:23:45" value="${String(time||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;')}"><button type="button" class="stats-date-remove">×</button>`;
+    row.innerHTML=`<div class="stats-edit-date-wrap"><select class="stats-edit-date detail-filter-select-native" aria-label="등록된 VOD 날짜">${dateOptions||'<option value="">등록된 VOD 날짜 없음</option>'}</select><div class="custom-select stats-edit-date-custom"></div></div><input class="edit-form-input stats-edit-time" type="text" placeholder="예: 01:23:45" value="${escapeHtml(safeTime)}"><button type="button" class="stats-date-remove">×</button>`;
     const nativeDate=row.querySelector('.stats-edit-date'); nativeDate.value=safeDate;
     renderCustomSelectElement(row.querySelector('.stats-edit-date-custom'),nativeDate,[...nativeDate.options].map(o=>({value:o.value,label:o.textContent})),safeDate,v=>{nativeDate.value=v;});
     row.querySelector('.stats-date-remove').onclick=()=>row.remove();
     box.appendChild(row);
 }
-
         function closeSongEditModal() {
             editingSongIndex = -1;
             songEditModal.classList.remove("active");
@@ -2356,15 +2356,30 @@ function addEditDateRow(date="",time=""){
             return `${String(song?.title || '').trim().toLowerCase()}_${String(song?.artist || '').trim().toLowerCase()}_${String(song?.limit || '').trim().toLowerCase()}`;
         }
 
+        function normalizeSongDateTime(value){
+            if(value && typeof value === 'object') return {date:String(value.date||'').trim(),time:String(value.time||'').trim()};
+            const raw=String(value||'').trim();
+            const m=raw.match(/^(\d{4}-\d{2}-\d{2}(?:\(\d+\))?)(?:\s+(\d{1,2}:\d{2}(?::\d{2})?))?$/);
+            return m?{date:m[1],time:m[2]||''}:{date:raw,time:''};
+        }
+        function normalizeSongDateTimes(values){
+            const result=[];
+            (Array.isArray(values)?values:[]).forEach(value=>{
+                const item=normalizeSongDateTime(value);
+                if(item.date && !result.some(x=>x.date===item.date&&x.time===item.time)) result.push(item);
+            });
+            return result;
+        }
+        function songDateBase(date){return String(date||'').trim().replace(/\(\d+\)$/,'');}
         function cloneSongForStats(song, dateTimes = []) {
-            return { title:song.title||"", artist:song.artist||"", limit:song.limit||"", genre:song.genre||"", etc:song.etc||"", dateTimes:Array.isArray(dateTimes)?dateTimes:[] };
+            return { title:song.title||"", artist:song.artist||"", limit:song.limit||"", genre:song.genre||"", etc:song.etc||"", dateTimes:normalizeSongDateTimes(dateTimes) };
         }
 
         function updateRegisteredSongForCurrentSong(oldSong, newSong) {
             const sources=[fansongStatsData.registeredSongs,fansongStatsData.unregisteredSongs];
             for(const list of sources){
                 const index=Array.isArray(list)?list.findIndex(song=>songIdentity(song)===songIdentity(oldSong)):-1;
-                if(index>=0){ list[index]=cloneSongForStats(newSong,Array.isArray(list[index].dateTimes)?list[index].dateTimes:[]); return; }
+                if(index>=0){ list[index]=cloneSongForStats(newSong,normalizeSongDateTimes(list[index].dateTimes)); return; }
             }
             fansongStatsData.registeredSongs.push(cloneSongForStats(newSong,[]));
         }
@@ -2418,7 +2433,12 @@ function addEditDateRow(date="",time=""){
             const title=document.getElementById("editSongTitle").value.trim(); if(!title){showToastMessage("노래 제목을 입력해주세요.");return;}
             const dateRows=[...document.querySelectorAll('#editSongDates .stats-date-row')];
             const dateTimes=[];
-            for(const row of dateRows){const date=row.querySelector('.stats-edit-date')?.value||'';const time=row.querySelector('.stats-edit-time')?.value.trim()||'';if(!date){showToastMessage('등록된 VOD 날짜를 선택해주세요.');return;}if(!dateTimes.some(x=>x.date===date&&x.time===time))dateTimes.push({date,time});}
+            for(const row of dateRows){
+                const date=String(row.querySelector('.stats-edit-date')?.value||'').trim();
+                const time=String(row.querySelector('.stats-edit-time')?.value||'').trim();
+                if(!date){showToastMessage('등록된 VOD 날짜를 선택해주세요.');return;}
+                if(!dateTimes.some(x=>x.date===date&&x.time===time))dateTimes.push({date,time});
+            }
             const newSong={...song,title,artist:document.getElementById("editSongArtist").value.trim(),genre:document.getElementById("editSongGenre").value.trim(),limit:document.getElementById("editSongLimit").value.trim(),etc:document.getElementById("editSongEtc").value.trim(),dateTimes};
             updateRegisteredSongForCurrentSong(oldSong,newSong);
             allSongs[editingSongIndex]=newSong; closeSongEditModal();updateFilteredAndSorted();renderAllSongs();animateNumber('animSongCount',allSongs.length);animateNumber('animPlayCount',allSongs.reduce((n,s)=>n+(s.dateTimes||[]).length,0));enqueueSongServerSave();showToastMessage("노래 정보와 날짜 기록을 저장했습니다.");
@@ -2458,7 +2478,7 @@ function addEditDateRow(date="",time=""){
             if(!(fansongStatsData.registeredSongs||[]).some(x=>songIdentity(x)===songIdentity(copy))) fansongStatsData.registeredSongs.push(copy);
             fansongStatsData.unregisteredSongs.splice(index,1);
             selectedUnregisteredKey='';
-            allSongs=[];const map=new Map();[...(fansongStatsData.registeredSongs||[]),...(fansongStatsData.unregisteredSongs||[])].forEach(s=>{const k=songIdentity(s);if(!map.has(k))map.set(k,cloneSongForStats(s,s.dateTimes||[]));});allSongs=[...map.values()];
+            allSongs=[];const map=new Map();[...(fansongStatsData.registeredSongs||[]),...(fansongStatsData.unregisteredSongs||[])].forEach(s=>{const k=songIdentity(s);if(!map.has(k))map.set(k,cloneSongForStats(s,normalizeSongDateTimes(s.dateTimes)));});allSongs=[...map.values()];
             updateFilteredAndSorted();renderAllSongs();renderUnregisteredSongs();animateNumber('animSongCount',allSongs.length);animateNumber('animPlayCount',allSongs.reduce((n,s)=>n+(s.dateTimes||[]).length,0));enqueueSongServerSave();showToastMessage(`'${song.title||"노래"}'를 등록된 노래로 이동했습니다.`);
         }
         function openSongAddModal(){if(!isSongAuthenticated){openSongAuthModal();return;}["addSongTitle","addSongArtist","addSongGenre","addSongLimit","addSongEtc"].forEach(id=>{document.getElementById(id).value="";});selectedUnregisteredKey="";renderUnregisteredSongs();setupSongAddAutocompletes();songAddModal.classList.add("active");setTimeout(()=>document.getElementById("addSongTitle")?.focus(),50);}
@@ -2484,7 +2504,7 @@ function addEditDateRow(date="",time=""){
             const map=new Map();
             [...(fansongStatsData.registeredSongs||[]),...(fansongStatsData.unregisteredSongs||[])].forEach(song=>{
                 const key=songIdentity(song);
-                if(!map.has(key))map.set(key,cloneSongForStats(song,song.dateTimes||[]));
+                if(!map.has(key))map.set(key,cloneSongForStats(song,normalizeSongDateTimes(song.dateTimes)));
             });
             allSongs=[...map.values()];
             selectedUnregisteredKey='';
@@ -2561,14 +2581,11 @@ function addEditDateRow(date="",time=""){
                 }
 
                 if(!Array.isArray(song.dateTimes))song.dateTimes=[];
-                const exists=song.dateTimes.some(x=>{
-                    const value=typeof x==='string'?x:String(x?.date||'');
-                    return value===date || (time && value===`${date} ${time}`);
-                });
+                const exists=normalizeSongDateTimes(song.dateTimes).some(x=>x.date===date&&x.time===time);
                 if(exists){duplicateCount++;return;}
 
                 // 날짜/시간 데이터만 추가하고 곡의 등록 상태는 그대로 유지한다.
-                song.dateTimes.push(time?`${date} ${time}`:date);
+                song.dateTimes.push({date,time});
                 if(guitar){
                     const etc=String(song.etc||'');
                     if(!etc.includes('🎸'))song.etc=(etc?etc+' ':'')+'🎸';
@@ -2585,7 +2602,7 @@ function addEditDateRow(date="",time=""){
             const map=new Map();
             [...registered,...unregistered].forEach(song=>{
                 const k=songIdentity(song);
-                if(!map.has(k))map.set(k,cloneSongForStats(song,song.dateTimes||[]));
+                if(!map.has(k))map.set(k,cloneSongForStats(song,normalizeSongDateTimes(song.dateTimes)));
             });
             allSongs=[...map.values()];
             updateFilteredAndSorted();
@@ -2967,7 +2984,7 @@ function closeRecommendModal() { document.getElementById("recommendModal").class
             const select = document.getElementById('recentFilterSelect');
             if (!select) return;
             const current = currentRecentFilter;
-            const dates = allSongs.flatMap(song => (song.dateTimes || []).map(dt => parseDateString(dt.date)).filter(Boolean));
+            const dates = allSongs.flatMap(song => (song.dateTimes || []).map(dt => parseDateString(songDateBase(normalizeSongDateTime(dt).date))).filter(Boolean));
             const now = new Date();
             const maxSpan = dates.length ? Math.max(0, Math.ceil((now - new Date(Math.min(...dates.map(d => d.getTime())))) / 86400000)) : 0;
             const base = [7, 30, 90, 180, 365, 730];
@@ -2993,7 +3010,7 @@ function closeRecommendModal() { document.getElementById("recommendModal").class
         function refreshMonthFilterOptions() {
             const select=document.getElementById('monthFilterSelect'); if(!select)return;
             const months=new Set();
-            allSongs.forEach(song=>(song.dateTimes||[]).forEach(dt=>{const d=parseDateString(dt.date);if(d)months.add(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`);}));
+            allSongs.forEach(song=>(song.dateTimes||[]).forEach(dt=>{const d=parseDateString(songDateBase(normalizeSongDateTime(dt).date));if(d)months.add(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`);}));
             const sorted=[...months].sort((a,b)=>b.localeCompare(a));
             select.innerHTML='<option value="전체">전체 날짜</option>'+sorted.map(m=>{const [y,mo]=m.split('-');return `<option value="${m}">${y}년 ${Number(mo)}월</option>`}).join('');
             select.value=months.has(currentMonthFilter)?currentMonthFilter:'전체';
@@ -3206,9 +3223,9 @@ function closeRecommendModal() { document.getElementById("recommendModal").class
                 const map=new Map();
                 [...fansongStatsData.registeredSongs,...fansongStatsData.unregisteredSongs].forEach(stat=>{
                     const key=songIdentity(stat);
-                    const copy=cloneSongForStats(stat,Array.isArray(stat.dateTimes)?stat.dateTimes:[]);
+                    const copy=cloneSongForStats(stat,normalizeSongDateTimes(stat.dateTimes));
                     if(!map.has(key))map.set(key,copy);
-                    else{const old=map.get(key); const dates=[...(old.dateTimes||[])]; (copy.dateTimes||[]).forEach(dt=>{if(!dates.some(x=>JSON.stringify(x)===JSON.stringify(dt)))dates.push(dt)}); old.dateTimes=dates;}
+                    else{const old=map.get(key); const dates=[...(old.dateTimes||[])]; (normalizeSongDateTimes(copy.dateTimes)).forEach(dt=>{if(!normalizeSongDateTimes(dates).some(x=>x.date===dt.date&&x.time===dt.time))dates.push(dt)}); old.dateTimes=dates;}
                 });
                 allSongs=[...map.values()];
                 document.getElementById("statsSummary").innerHTML=`총 노래 : <span id="animSongCount">0</span>곡 · 총 기록 : <span id="animPlayCount">0</span>회`;
@@ -3364,7 +3381,7 @@ function closeRecommendModal() { document.getElementById("recommendModal").class
                 if (currentRegistrationFilter === '등록' && !isRegisteredSong) return false;
                 if (currentRegistrationFilter === '미등록' && isRegisteredSong) return false;
                 if (currentMonthFilter !== '전체') {
-                    const hasMonth = (song.dateTimes||[]).some(dt => { const d=parseDateString(dt.date); return d && `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`===currentMonthFilter; });
+                    const hasMonth = (song.dateTimes||[]).some(dt => { const d=parseDateString(songDateBase(normalizeSongDateTime(dt).date)); return d && `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`===currentMonthFilter; });
                     if (!hasMonth) return false;
                 }
                 const isGuitarVersion = l.includes('기타');
@@ -3376,7 +3393,7 @@ function closeRecommendModal() { document.getElementById("recommendModal").class
                 if (currentRecentFilter !== '전체') {
                     const daysLimit = parseInt(currentRecentFilter, 10);
                     dateTimes.forEach(dt => {
-                        const songDate = parseDateString(dt.date);
+                        const songDate = parseDateString(songDateBase(normalizeSongDateTime(dt).date));
                         if (songDate) {
                             const nowDateOnly = new Date(now.getFullYear(), now.getMonth(), now.getDate());
                             const songDateOnly = new Date(songDate.getFullYear(), songDate.getMonth(), songDate.getDate());
@@ -3395,7 +3412,7 @@ function closeRecommendModal() { document.getElementById("recommendModal").class
                     const daysLimit = parseInt(currentRecentFilter, 10);
                     let hasRecentPlay = false;
                     dateTimes.forEach(dt => {
-                        const songDate = parseDateString(dt.date);
+                        const songDate = parseDateString(songDateBase(normalizeSongDateTime(dt).date));
                         if (songDate) {
                             const diffDays = (now.getTime() - songDate.getTime()) / (1000 * 3600 * 24);
                             if (diffDays >= 0 && diffDays <= daysLimit) hasRecentPlay = true;
@@ -3461,18 +3478,27 @@ function closeRecommendModal() { document.getElementById("recommendModal").class
                 let timestampsHTML = '';
                 if (song.dateTimes && song.dateTimes.length > 0) {
                     timestampsHTML = '<div class="timestamp-container">' + (etcVal !== '' ? `<div class="song-etc-expanded">${etcBadge}</div>` : '');
-                    song.dateTimes.forEach(dt => {
-                        const rawDate = String(dt.date || "").trim();
+                    normalizeSongDateTimes(song.dateTimes).sort((a,b)=>{
+                        const ad=parseDateString(songDateBase(a.date)), bd=parseDateString(songDateBase(b.date));
+                        const diff=(bd?bd.getTime():0)-(ad?ad.getTime():0);
+                        if(diff)return diff;
+                        const ae=Number((a.date.match(/\((\d+)\)$/)||[])[1]||0), be=Number((b.date.match(/\((\d+)\)$/)||[])[1]||0);
+                        if(be!==ae)return be-ae;
+                        return timeToSeconds(b.time)-timeToSeconds(a.time);
+                    }).forEach(dt => {
+                        const normalizedDT=normalizeSongDateTime(dt);
+                        const rawDate=normalizedDT.date;
+                        const rawTime=normalizedDT.time;
                         // 방송 회차가 붙은 날짜는 같은 회차의 VOD와 정확히 매칭합니다.
-                        const vodUrl = vodMap[rawDate] || "#";
+                        const vodUrl = vodMap[rawDate] || vodMap[songDateBase(rawDate)] || "#";
                         const separator = vodUrl.includes("?") ? "&" : "?";
-                        const finalLink = vodUrl !== "#" ? `${vodUrl}${separator}change_second=${timeToSeconds(dt.time)}` : "#";
-                        const cleanDate = (rawDate || "").replace(/\(\d+\)$/, "") || "날짜없음";
+                        const finalLink = vodUrl !== "#" ? `${vodUrl}${separator}change_second=${timeToSeconds(rawTime)}` : "#";
+                        const cleanDate = rawDate || "날짜없음";
 
                         let isHighlighted = false;
                         if (currentRecentFilter !== '전체') {
                             const daysLimit = parseInt(currentRecentFilter, 10);
-                            const songDate = parseDateString(dt.date);
+                            const songDate = parseDateString(songDateBase(normalizeSongDateTime(dt).date));
                             if (songDate) {
                                 const nowDateOnly = new Date(now.getFullYear(), now.getMonth(), now.getDate());
                                 const songDateOnly = new Date(songDate.getFullYear(), songDate.getMonth(), songDate.getDate());
@@ -3599,7 +3625,7 @@ function openSongStatsDashboard(){
     const artistItems=Object.entries(artistMap).map(([label,value])=>({label,value})).filter(x=>x.value>0).sort((a,b)=>b.value-a.value||a.label.localeCompare(b.label,'ko')).slice(0,5);
     const now=new Date();now.setHours(23,59,59,999);const cutoff=new Date(now);cutoff.setDate(cutoff.getDate()-29);cutoff.setHours(0,0,0,0);
     function recentTop(list){
-        const rows=list.map(s=>{let n=0;(s.dateTimes||[]).forEach(dt=>{const d=parseStatsDate(dt.date);if(d&&d>=cutoff&&d<=now)n++;});return {title:s.title||'제목없음',artist:s.artist||'',value:n};}).filter(x=>x.value>0);if(!rows.length)return [];
+        const rows=list.map(s=>{let n=0;(s.dateTimes||[]).forEach(dt=>{const d=parseStatsDate(songDateBase(normalizeSongDateTime(dt).date));if(d&&d>=cutoff&&d<=now)n++;});return {title:s.title||'제목없음',artist:s.artist||'',value:n};}).filter(x=>x.value>0);if(!rows.length)return [];
         const max=Math.max(...rows.map(x=>x.value));return rows.filter(x=>x.value===max).sort((a,b)=>String(a.title).localeCompare(String(b.title),'ko'));
     }
     const recentReg=recentTop(registered), recentUnreg=recentTop(unregistered);
