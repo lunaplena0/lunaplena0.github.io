@@ -131,39 +131,42 @@
  </h3><button class="modal-close-btn" onclick="closeSiteInfoModal()" aria-label="페이지 안내사항 닫기">✕</button></div><div class="notice-modal-content"><p class="site-info-intro"><strong>바다비 팬 제작 노래책은 팬이 직접 만든 비공식 팬 사이트입니다.</strong><br>바다비 공식 사이트나 공식 운영 채널이 아니며, 팬들을 위해 노래 목록과 관련 정보를 편하게 볼 수 있도록 만든 팬 사이트입니다.</p><ul class="site-info-list"><li><strong>노래 목록이나 사이트 내용에 수정하거나 추가했으면 하는 내용</strong>이 있다면 팬카페를 통해 알려주세요.</li><li><strong>관리자 로그인</strong>을 사용하는 경우, 다음에 다시 방문했을 때 로그인 상태를 유지할 수 있도록 로그인에 필요한 정보가 사용자의 브라우저에 저장될 수 있습니다.</li><li>로그인 보안을 위해 <strong>Cloudflare Turnstile</strong>을 사용하여 자동 프로그램이나 봇에 의한 비정상적인 로그인 시도를 확인합니다.</li><li>반복적인 로그인 실패를 막기 위해 브라우저에 <strong>개인을 직접 알아볼 수 없는 임의의 식별값</strong>이 만들어질 수 있습니다. 이 값은 이름이나 연락처 등을 확인하기 위한 것이 아니며, <strong>로그인 제한을 위해 IP 주소를 별도의 식별값으로 저장하는 방식은 사용하지 않습니다.</strong></li><li>관리자 로그인에 사용하는 <strong>비밀번호 자체는 공개된 사이트에 저장하지 않습니다.</strong> 로그인에 성공하면 비밀번호 대신 별도의 보안 토큰을 사용하여 로그인 상태를 유지합니다.</li><li>사이트의 안정적인 운영과 보안을 위해 <strong>Cloudflare 등의 서비스</strong>를 이용하며, 사이트를 이용하는 과정에서 접속·보안·서비스 운영에 필요한 정보가 해당 서비스의 정책에 따라 처리될 수 있습니다.</li><li>사이트의 기능이나 내용은 운영 상황에 따라 <strong>별도의 안내 없이 변경되거나 수정될 수 있습니다.</strong></li></ul></div></div></div>
 
  <script>
-(function SongbookApp(){
-
         const WORKER_URL = "https://badabi-api.dalkkumli054.workers.dev/";
+        const TURNSTILE_SITE_KEY = "0x4AAAAAAEbQ0YWNiL_WiyKR";
+        let songTurnstileToken = "";
+        let songTurnstileWidgetId = null;
+
         const SONG_LIST_URL = WORKER_URL + "?type=songlist&t=";
         const STATS_API_URL = WORKER_URL + "?type=fansongstats&t=";
-        const TURNSTILE_SITE_KEY = "0x4AAAAAAEbQ0YWNiL_WiyKR";
-        // =============================
-        // APP STATE — single source of truth
-        // =============================
-        const state = {
-            turnstile: { token: "", widgetId: null },
-            songs: { all: [], filtered: [], sorted: [], vodMap: {} },
-            filters: { genre: "전체", count: "전체", recent: "전체", month: "전체" },
-            auth: {
-                authenticated: false,
-                sessionToken: localStorage.getItem("badabi_session") || "",
-                rateLimitId: localStorage.getItem("badabi_rate_limit_id") || ""
-            },
-            editor: { index: -1, selectedUnregisteredKey: "" },
-            persistence: { queue: Promise.resolve(), locallyMutating: false },
-            notice: { text: "", originalText: "" },
-            recommendation: { enabled: false, dailyDismissed: false },
-            stats: { vodSources: [], registeredSongs: [], unregisteredSongs: [] },
-            ui: { toastTimer: null }
-        };
 
-        if (!state.auth.rateLimitId) {
-            const bytes = new Uint8Array(32);
-            crypto.getRandomValues(bytes);
-            state.auth.rateLimitId = Array.from(bytes, b => b.toString(16).padStart(2, "0")).join("");
-            localStorage.setItem("badabi_rate_limit_id", state.auth.rateLimitId);
+        let allSongs = [];
+        let filteredSongs = [];
+        let sortedSongs = [];
+        let vodMap = {};
+        let currentFilter = '전체';
+        let currentCountFilter = '전체';
+        let currentRecentFilter = '전체';
+        let currentMonthFilter = '전체';
+        let toastTimer = null;
+
+        let isSongAuthenticated = false;
+        let songSessionToken = localStorage.getItem("badabi_session") || "";
+        let rateLimitId = localStorage.getItem("badabi_rate_limit_id") || "";
+        if (!rateLimitId) {
+            const rateBytes = new Uint8Array(32);
+            crypto.getRandomValues(rateBytes);
+            rateLimitId = Array.from(rateBytes, byte => byte.toString(16).padStart(2, "0")).join("");
+            localStorage.setItem("badabi_rate_limit_id", rateLimitId);
         }
-
+        let editingSongIndex = -1;
+        let songSaveQueue = Promise.resolve();
+        let isSongLocallyMutating = false;
+        let currentNoticeText = "";
+        let noticeEditOriginalText = "";
+        let recommendationPopupEnabled = false;
+        let dailyRecommendDismissed = false;
+        let fansongStatsData = { vodSources: [], registeredSongs: [], unregisteredSongs: [] };
+        let selectedUnregisteredKey = "";
         const songAddModal = document.getElementById("songAddModal");
         const noticeEditModal = document.getElementById("noticeEditModal");
 
@@ -172,7 +175,6 @@
         const songEditModal = document.getElementById("songEditModal");
         const songAuthBtn = document.getElementById("songTitleLoginTrigger");
 
-        // ===== DOM / utility =====
         function timeToSeconds(timeStr) {
             if (!timeStr) return 0;
             const parts = timeStr.split(":").map(Number);
@@ -197,8 +199,8 @@
             const toast = document.getElementById("toastMessage");
             toast.textContent = customText;
             toast.classList.add("show");
-            if (state.ui.toastTimer) clearTimeout(state.ui.toastTimer);
-            state.ui.toastTimer = setTimeout(() => { toast.classList.remove("show"); }, 2000);
+            if (toastTimer) clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => { toast.classList.remove("show"); }, 2000);
         }
 
         function copySongInfo(title, artist, event) {
@@ -211,7 +213,7 @@
 
         async function openSongAuthModal() {
             await restoreSongAuthentication();
-            if (state.auth.authenticated) {
+            if (isSongAuthenticated) {
                 songAuthModalContent.innerHTML = `
                     <div class="song-logout-card">
                         <div class="song-logout-icon">
@@ -276,14 +278,14 @@
         }
 
         function onSongTurnstileSuccess(token) {
-            state.turnstile.token = typeof token === "string" ? token : "";
+            songTurnstileToken = typeof token === "string" ? token : "";
         }
 
         function resetSongTurnstile() {
-            state.turnstile.token = "";
-            if (window.turnstile && state.turnstile.widgetId !== null) {
+            songTurnstileToken = "";
+            if (window.turnstile && songTurnstileWidgetId !== null) {
                 try {
-                    window.turnstile.reset(state.turnstile.widgetId);
+                    window.turnstile.reset(songTurnstileWidgetId);
                 } catch (error) {
                     console.warn("Turnstile 초기화 실패");
                 }
@@ -295,15 +297,15 @@
             const container = document.getElementById("songTurnstileWidget");
             if (!container || !TURNSTILE_SITE_KEY || TURNSTILE_SITE_KEY === "YOUR_TURNSTILE_SITE_KEY") return;
 
-            state.turnstile.token = "";
+            songTurnstileToken = "";
 
             try {
-                if (state.turnstile.widgetId !== null) {
-                    window.turnstile.remove(state.turnstile.widgetId);
-                    state.turnstile.widgetId = null;
+                if (songTurnstileWidgetId !== null) {
+                    window.turnstile.remove(songTurnstileWidgetId);
+                    songTurnstileWidgetId = null;
                 }
 
-                state.turnstile.widgetId = window.turnstile.render(container, {
+                songTurnstileWidgetId = window.turnstile.render(container, {
                     sitekey: TURNSTILE_SITE_KEY,
                     callback: onSongTurnstileSuccess,
                     "expired-callback": resetSongTurnstile,
@@ -334,7 +336,7 @@
 
         function closeSongAuthModal() {
             songAuthModal.classList.remove("active");
-            if (!state.auth.authenticated) resetSongTurnstile();
+            if (!isSongAuthenticated) resetSongTurnstile();
         }
 
         function toggleSongPasswordVisibility() {
@@ -351,7 +353,7 @@
                 return;
             }
 
-            if (!state.turnstile.token) {
+            if (!songTurnstileToken) {
                 showToastMessage("보안 인증을 완료해주세요.");
                 return;
             }
@@ -362,8 +364,8 @@
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
                         password,
-                        turnstileToken: state.turnstile.token,
-                        rateLimitId: state.auth.rateLimitId,
+                        turnstileToken: songTurnstileToken,
+                        rateLimitId,
                         action: "verify"
                     })
                 });
@@ -374,12 +376,12 @@
                     throw new Error(data.error || "인증 실패");
                 }
 
-                state.auth.sessionToken = data.sessionToken;
-                localStorage.setItem("badabi_session", state.auth.sessionToken);
+                songSessionToken = data.sessionToken;
+                localStorage.setItem("badabi_session", songSessionToken);
                 localStorage.removeItem("badabi_song_auth_password");
 
-                state.auth.authenticated = true;
-                state.turnstile.token = "";
+                isSongAuthenticated = true;
+                songTurnstileToken = "";
                 updateSongAuthUI();
                 closeSongAuthModal();
                 showToastMessage("성공적으로 로그인되었습니다!");
@@ -395,8 +397,8 @@
         }
 
         function logoutSongAuth() {
-            state.auth.authenticated = false;
-            state.auth.sessionToken = "";
+            isSongAuthenticated = false;
+            songSessionToken = "";
             localStorage.removeItem("badabi_session");
             localStorage.removeItem("badabi_song_auth_password");
             resetSongTurnstile();
@@ -406,11 +408,11 @@
         }
 
         async function restoreSongAuthentication() {
-            const token = localStorage.getItem("badabi_session") || state.auth.sessionToken || "";
+            const token = localStorage.getItem("badabi_session") || songSessionToken || "";
 
             if (!token) {
-                state.auth.authenticated = false;
-                state.auth.sessionToken = "";
+                isSongAuthenticated = false;
+                songSessionToken = "";
                 updateSongAuthUI();
                 return false;
             }
@@ -431,15 +433,15 @@
                     throw new Error("saved session rejected");
                 }
 
-                state.auth.sessionToken = token;
-                state.auth.authenticated = true;
+                songSessionToken = token;
+                isSongAuthenticated = true;
                 localStorage.removeItem("badabi_song_auth_password");
                 updateSongAuthUI();
                 return true;
             } catch (error) {
                 console.warn("저장된 관리자 세션이 만료되었거나 유효하지 않습니다.");
-                state.auth.sessionToken = "";
-                state.auth.authenticated = false;
+                songSessionToken = "";
+                isSongAuthenticated = false;
                 localStorage.removeItem("badabi_session");
                 localStorage.removeItem("badabi_song_auth_password");
                 updateSongAuthUI();
@@ -448,11 +450,11 @@
         }
 
         function updateSongAuthUI() {
-            document.body.classList.toggle("authenticated-mode", state.auth.authenticated);
+            document.body.classList.toggle("authenticated-mode", isSongAuthenticated);
 
             if (songAuthBtn) {
-                songAuthBtn.classList.toggle("authenticated", state.auth.authenticated);
-                songAuthBtn.title = state.auth.authenticated
+                songAuthBtn.classList.toggle("authenticated", isSongAuthenticated);
+                songAuthBtn.title = isSongAuthenticated
                     ? "노래책 관리자 모드 - 클릭하여 관리"
                     : "노래책 로그인 / 인증";
             }
@@ -465,16 +467,15 @@
             }
         }
 
-        // ===== Song editing / persistence =====
         function openSongEditModal(index) {
-            if (!state.auth.authenticated) {
+            if (!isSongAuthenticated) {
                 openSongAuthModal();
                 return;
             }
 
-            state.editor.index = state.songs.all.indexOf(state.songs.sorted[index]);
-            const song = state.songs.sorted[index];
-            if (!song || state.editor.index < 0) return;
+            editingSongIndex = allSongs.indexOf(sortedSongs[index]);
+            const song = sortedSongs[index];
+            if (!song || editingSongIndex < 0) return;
 
             document.getElementById("editSongTitle").value = song.title || "";
             document.getElementById("editSongArtist").value = song.artist || "";
@@ -486,7 +487,7 @@
         }
 
         function closeSongEditModal() {
-            state.editor.index = -1;
+            editingSongIndex = -1;
             songEditModal.classList.remove("active");
         }
 
@@ -499,28 +500,28 @@
         }
 
         function getEditableSongContent() {
-            return state.songs.all.map(song => { const copy={...song}; delete copy.dateTimes; return copy; });
+            return allSongs.map(song => { const copy={...song}; delete copy.dateTimes; return copy; });
         }
 
         function updateRegisteredSongForCurrentSong(oldSong, newSong) {
-            const registered = Array.isArray(state.stats.registeredSongs) ? state.stats.registeredSongs : [];
+            const registered = Array.isArray(fansongStatsData.registeredSongs) ? fansongStatsData.registeredSongs : [];
             const index = registered.findIndex(song => songIdentity(song) === songIdentity(oldSong));
             if (index >= 0) registered[index] = cloneSongForStats(newSong, registered[index].dateTimes || []);
             else registered.push(cloneSongForStats(newSong, []));
         }
 
         function addSongToRegisteredStats(song, dateTimes=[]) {
-            const registered = Array.isArray(state.stats.registeredSongs) ? state.stats.registeredSongs : [];
+            const registered = Array.isArray(fansongStatsData.registeredSongs) ? fansongStatsData.registeredSongs : [];
             if (!registered.some(item => songIdentity(item) === songIdentity(song))) registered.push(cloneSongForStats(song,dateTimes));
         }
 
         function removeFromUnregisteredStats(song) {
-            const list = Array.isArray(state.stats.unregisteredSongs) ? state.stats.unregisteredSongs : [];
-            state.stats.unregisteredSongs = list.filter(item => songIdentity(item) !== songIdentity(song));
+            const list = Array.isArray(fansongStatsData.unregisteredSongs) ? fansongStatsData.unregisteredSongs : [];
+            fansongStatsData.unregisteredSongs = list.filter(item => songIdentity(item) !== songIdentity(song));
         }
 
         async function saveWorkerFile(fileType, content) {
-            if (!state.auth.sessionToken || !state.auth.authenticated) {
+            if (!songSessionToken || !isSongAuthenticated) {
                 throw new Error("로그인 세션이 없습니다. 다시 로그인해주세요.");
             }
 
@@ -528,7 +529,7 @@
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    sessionToken: state.auth.sessionToken,
+                    sessionToken: songSessionToken,
                     action: "save",
                     fileType,
                     content
@@ -538,8 +539,8 @@
             const data = await response.json().catch(() => ({}));
 
             if (response.status === 401) {
-                state.auth.authenticated = false;
-                state.auth.sessionToken = "";
+                isSongAuthenticated = false;
+                songSessionToken = "";
                 localStorage.removeItem("badabi_session");
                 updateSongAuthUI();
                 throw new Error("로그인 세션이 만료되었습니다. 다시 로그인해주세요.");
@@ -553,14 +554,14 @@
         }
 
         function enqueueSongListOnlySave() {
-            state.persistence.locallyMutating = true;
-            state.persistence.queue = state.persistence.queue.then(async () => {
-                if (!state.auth.authenticated || !state.auth.sessionToken) {
+            isSongLocallyMutating = true;
+            songSaveQueue = songSaveQueue.then(async () => {
+                if (!isSongAuthenticated || !songSessionToken) {
                     throw new Error("로그인 세션이 만료되었습니다. 다시 로그인해주세요.");
                 }
                 const songListContent = {
-                    notice: state.notice.text || "",
-                    recommendationPopupEnabled: !!state.recommendation.enabled,
+                    notice: currentNoticeText || "",
+                    recommendationPopupEnabled: !!recommendationPopupEnabled,
                     songs: getEditableSongContent()
                 };
                 await saveWorkerFile("songlist", songListContent);
@@ -568,26 +569,26 @@
                 console.error("노래책 저장 실패:", error);
                 showToastMessage(error.message || "노래책 서버 저장에 실패했습니다.");
             }).finally(() => {
-                setTimeout(() => { state.persistence.locallyMutating = false; }, 1000);
+                setTimeout(() => { isSongLocallyMutating = false; }, 1000);
             });
         }
 
         function enqueueSongServerSave() {
-            state.persistence.locallyMutating = true;
-            state.persistence.queue = state.persistence.queue.then(async () => {
-                if (!state.auth.authenticated || !state.auth.sessionToken) {
+            isSongLocallyMutating = true;
+            songSaveQueue = songSaveQueue.then(async () => {
+                if (!isSongAuthenticated || !songSessionToken) {
                     throw new Error("로그인 세션이 만료되었습니다. 다시 로그인해주세요.");
                 }
 
                 const songListContent = {
-                    notice: state.notice.text || "",
-                    recommendationPopupEnabled: !!state.recommendation.enabled,
+                    notice: currentNoticeText || "",
+                    recommendationPopupEnabled: !!recommendationPopupEnabled,
                     songs: getEditableSongContent()
                 };
                 const statsContent = {
-                    vodSources: Array.isArray(state.stats.vodSources) ? state.stats.vodSources : [],
-                    registeredSongs: Array.isArray(state.stats.registeredSongs) ? state.stats.registeredSongs : [],
-                    unregisteredSongs: Array.isArray(state.stats.unregisteredSongs) ? state.stats.unregisteredSongs : []
+                    vodSources: Array.isArray(fansongStatsData.vodSources) ? fansongStatsData.vodSources : [],
+                    registeredSongs: Array.isArray(fansongStatsData.registeredSongs) ? fansongStatsData.registeredSongs : [],
+                    unregisteredSongs: Array.isArray(fansongStatsData.unregisteredSongs) ? fansongStatsData.unregisteredSongs : []
                 };
 
                 await saveWorkerFile("songlist", songListContent);
@@ -596,13 +597,13 @@
                 console.error("노래책/팬송 통계 저장 실패:", error);
                 showToastMessage(error.message || "서버 저장에 실패했습니다.");
             }).finally(() => {
-                setTimeout(() => { state.persistence.locallyMutating = false; }, 1000);
+                setTimeout(() => { isSongLocallyMutating = false; }, 1000);
             });
         }
 
         function saveEditingSong() {
-            if (!state.auth.authenticated || state.editor.index < 0) return;
-            const song=state.songs.all[state.editor.index]; if(!song) return;
+            if (!isSongAuthenticated || editingSongIndex < 0) return;
+            const song=allSongs[editingSongIndex]; if(!song) return;
             const oldSong={...song};
             const title=document.getElementById("editSongTitle").value.trim(); if(!title){showToastMessage("노래 제목을 입력해주세요.");return}
             song.title=title; song.artist=document.getElementById("editSongArtist").value.trim(); song.genre=document.getElementById("editSongGenre").value.trim(); song.limit=document.getElementById("editSongLimit").value.trim(); song.etc=document.getElementById("editSongEtc").value.trim();
@@ -611,18 +612,18 @@
         }
 
         function deleteEditingSong() {
-            if (!state.auth.authenticated || state.editor.index < 0) return;
+            if (!isSongAuthenticated || editingSongIndex < 0) return;
 
-            const song = state.songs.all[state.editor.index];
+            const song = allSongs[editingSongIndex];
             if (!song) return;
 
             const title = song.title || "이 노래";
             if (!confirm(`'${title}'을(를) 노래책에서 삭제하시겠습니까?`)) return;
 
-            state.songs.all.splice(state.editor.index, 1);
+            allSongs.splice(editingSongIndex, 1);
 
-            const registered = Array.isArray(state.stats.registeredSongs)
-                ? state.stats.registeredSongs
+            const registered = Array.isArray(fansongStatsData.registeredSongs)
+                ? fansongStatsData.registeredSongs
                 : [];
             const registeredIndex = registered.findIndex(item => songIdentity(item) === songIdentity(song));
 
@@ -634,8 +635,8 @@
                 const dateTimes = Array.isArray(statsSong.dateTimes) ? statsSong.dateTimes : [];
 
                 if (dateTimes.length > 0) {
-                     const unregistered = Array.isArray(state.stats.unregisteredSongs)
-                        ? state.stats.unregisteredSongs
+                     const unregistered = Array.isArray(fansongStatsData.unregisteredSongs)
+                        ? fansongStatsData.unregisteredSongs
                         : [];
 
                     const existingIndex = unregistered.findIndex(item => songIdentity(item) === songIdentity(statsSong));
@@ -663,7 +664,7 @@
                         unregistered.push(preservedSong);
                     }
 
-                    state.stats.unregisteredSongs = unregistered;
+                    fansongStatsData.unregisteredSongs = unregistered;
                     registered.splice(registeredIndex, 1);
                     movedToUnregistered = true;
                 } else {
@@ -676,7 +677,7 @@
             updateFilteredAndSorted();
             renderAllSongs();
             renderUnregisteredSongs();
-            animateNumber("animSongCount", state.songs.all.length);
+            animateNumber("animSongCount", allSongs.length);
             enqueueSongServerSave();
 
             if (movedToUnregistered) {
@@ -688,9 +689,8 @@
             }
         }
 
-        // ===== Song add / autocomplete =====
         function getUniqueSongValues(key) {
-            const values=new Map(); (Array.isArray(state.songs.all)?state.songs.all:[]).forEach(song=>{const v=String(song?.[key]??"").trim();if(v&&!values.has(v.toLocaleLowerCase()))values.set(v.toLocaleLowerCase(),v)}); return [...values.values()].sort((a,b)=>a.localeCompare(b,"ko"));
+            const values=new Map(); (Array.isArray(allSongs)?allSongs:[]).forEach(song=>{const v=String(song?.[key]??"").trim();if(v&&!values.has(v.toLocaleLowerCase()))values.set(v.toLocaleLowerCase(),v)}); return [...values.values()].sort((a,b)=>a.localeCompare(b,"ko"));
         }
         function setupSongAutocomplete(inputId,listId,key){
             const input=document.getElementById(inputId), list=document.getElementById(listId); if(!input||!list||input.dataset.autocompleteReady==="true")return; input.dataset.autocompleteReady="true";
@@ -699,22 +699,21 @@
         }
         function setupSongAddAutocompletes(){setupSongAutocomplete("addSongArtist","addSongArtistSuggestions","artist");setupSongAutocomplete("addSongGenre","addSongGenreSuggestions","genre")}
         function renderUnregisteredSongs(){
-            const c=document.getElementById("unregisteredSongList"); if(!c)return; const list=Array.isArray(state.stats.unregisteredSongs)?state.stats.unregisteredSongs:[]; c.innerHTML="";
+            const c=document.getElementById("unregisteredSongList"); if(!c)return; const list=Array.isArray(fansongStatsData.unregisteredSongs)?fansongStatsData.unregisteredSongs:[]; c.innerHTML="";
             if(!list.length){const e=document.createElement("div");e.className="song-autocomplete-empty";e.textContent="현재 노래책에 등록되지 않은 곡이 없습니다.";c.appendChild(e);return}
             list.forEach(song=>{const b=document.createElement("button");b.type="button";b.className="song-unregistered-item";const m=document.createElement("span");m.className="song-unregistered-main";const t=document.createElement("span");t.className="song-unregistered-song";t.textContent=song.title||"제목없음";const meta=document.createElement("span");meta.className="song-unregistered-meta";meta.textContent=`${song.artist||"아티스트 미상"}${song.genre?` · ${song.genre}`:""}${song.limit?` · ${song.limit}`:""}`;m.append(t,meta);const n=document.createElement("span");n.className="song-unregistered-count";n.textContent=`${Array.isArray(song.dateTimes)?song.dateTimes.length:0}회`;b.append(m,n);b.onclick=()=>selectUnregisteredSong(song);c.appendChild(b)});
         }
-        function selectUnregisteredSong(song){state.editor.selectedUnregisteredKey=songIdentity(song);document.getElementById("addSongTitle").value=song.title||"";document.getElementById("addSongArtist").value=song.artist||"";document.getElementById("addSongGenre").value=song.genre||"";document.getElementById("addSongLimit").value=song.limit||"";document.getElementById("addSongEtc").value=song.etc||"";showToastMessage("팬송 통계의 미등록 곡 정보를 불러왔습니다.")}
-        function openSongAddModal(){if(!state.auth.authenticated){openSongAuthModal();return}["addSongTitle","addSongArtist","addSongGenre","addSongLimit","addSongEtc"].forEach(id=>{document.getElementById(id).value=""});state.editor.selectedUnregisteredKey="";renderUnregisteredSongs();setupSongAddAutocompletes();songAddModal.classList.add("active");setTimeout(()=>document.getElementById("addSongTitle")?.focus(),50)}
+        function selectUnregisteredSong(song){selectedUnregisteredKey=songIdentity(song);document.getElementById("addSongTitle").value=song.title||"";document.getElementById("addSongArtist").value=song.artist||"";document.getElementById("addSongGenre").value=song.genre||"";document.getElementById("addSongLimit").value=song.limit||"";document.getElementById("addSongEtc").value=song.etc||"";showToastMessage("팬송 통계의 미등록 곡 정보를 불러왔습니다.")}
+        function openSongAddModal(){if(!isSongAuthenticated){openSongAuthModal();return}["addSongTitle","addSongArtist","addSongGenre","addSongLimit","addSongEtc"].forEach(id=>{document.getElementById(id).value=""});selectedUnregisteredKey="";renderUnregisteredSongs();setupSongAddAutocompletes();songAddModal.classList.add("active");setTimeout(()=>document.getElementById("addSongTitle")?.focus(),50)}
         function closeSongAddModal(){songAddModal.classList.remove("active")}
         function addNewSong(){
-            if(!state.auth.authenticated)return; const title=document.getElementById("addSongTitle").value.trim(), artist=document.getElementById("addSongArtist").value.trim(); if(!title||!artist){showToastMessage("노래 제목과 가수를 입력해주세요.");return}
+            if(!isSongAuthenticated)return; const title=document.getElementById("addSongTitle").value.trim(), artist=document.getElementById("addSongArtist").value.trim(); if(!title||!artist){showToastMessage("노래 제목과 가수를 입력해주세요.");return}
             const newSong={title,artist,genre:document.getElementById("addSongGenre").value.trim(),limit:document.getElementById("addSongLimit").value.trim(),etc:document.getElementById("addSongEtc").value.trim(),dateTimes:[]};
-            const unregistered=Array.isArray(state.stats.unregisteredSongs)?state.stats.unregisteredSongs:[]; const selected=unregistered.find(x=>songIdentity(x)===state.editor.selectedUnregisteredKey)||unregistered.find(x=>songIdentity(x)===songIdentity(newSong)); const dt=selected&&Array.isArray(selected.dateTimes)?selected.dateTimes:[];
-            state.songs.all.push(newSong); addSongToRegisteredStats(newSong,dt); if(selected)removeFromUnregisteredStats(selected);
-            closeSongAddModal();updateFilteredAndSorted();renderAllSongs();animateNumber("animSongCount",state.songs.all.length);enqueueSongServerSave();showToastMessage(selected?"미등록 곡을 노래책과 팬송 통계에 등록했습니다.":"노래책과 팬송 통계에 노래를 추가했습니다.");
+            const unregistered=Array.isArray(fansongStatsData.unregisteredSongs)?fansongStatsData.unregisteredSongs:[]; const selected=unregistered.find(x=>songIdentity(x)===selectedUnregisteredKey)||unregistered.find(x=>songIdentity(x)===songIdentity(newSong)); const dt=selected&&Array.isArray(selected.dateTimes)?selected.dateTimes:[];
+            allSongs.push(newSong); addSongToRegisteredStats(newSong,dt); if(selected)removeFromUnregisteredStats(selected);
+            closeSongAddModal();updateFilteredAndSorted();renderAllSongs();animateNumber("animSongCount",allSongs.length);enqueueSongServerSave();showToastMessage(selected?"미등록 곡을 노래책과 팬송 통계에 등록했습니다.":"노래책과 팬송 통계에 노래를 추가했습니다.");
         }
 
-        // ===== Notice =====
         function normalizeNoticeText(value) {
             if (value == null) return "";
             let text = String(value);
@@ -791,7 +790,7 @@
         }
 function applyNoticeFormat(command) {
             const editor = document.getElementById("noticeEditTextarea");
-            if (!editor || !state.auth.authenticated || !noticeSavedRange) return;
+            if (!editor || !isSongAuthenticated || !noticeSavedRange) return;
 
             const allowedCommands = ["bold", "italic", "underline", "strikeThrough"];
             if (!allowedCommands.includes(command)) return;
@@ -859,12 +858,12 @@ function plainNoticeToHtml(value){
             el.innerHTML=hasFormatting?sanitizeNoticeHtml(raw).replace(/\n/g,"<br>"):plainNoticeToHtml(raw);
         }
         function openNoticeEditModal(){
-            if(!state.auth.authenticated){openSongAuthModal();return}
+            if(!isSongAuthenticated){openSongAuthModal();return}
             const editor=document.getElementById("noticeEditTextarea"); if(!editor)return;
-            state.notice.originalText=normalizeNoticeText(state.notice.text||"");
+            noticeEditOriginalText=normalizeNoticeText(currentNoticeText||"");
             const recommendCheckbox=document.getElementById("recommendPopupEnabled");
-            if(recommendCheckbox) recommendCheckbox.checked=!!state.recommendation.enabled;
-            const raw=state.notice.originalText;
+            if(recommendCheckbox) recommendCheckbox.checked=!!recommendationPopupEnabled;
+            const raw=noticeEditOriginalText;
             editor.innerHTML=/<(?:b|i|u|s|strike|span)(?:\s|>)/i.test(raw)?sanitizeNoticeHtml(raw).replace(/\n/g,"<br>"):plainNoticeToHtml(raw);
             noticeSavedRange=null;
             editor.onmouseup=rememberNoticeSelection;
@@ -895,27 +894,27 @@ function plainNoticeToHtml(value){
             const editor=document.getElementById("noticeEditTextarea");
             if(editor) editor.innerHTML="";
             noticeSavedRange=null;
-            state.notice.originalText="";
+            noticeEditOriginalText="";
             noticeEditModal.classList.remove("active");
         }
         function cancelNoticeEdit(){
-            state.notice.text=state.notice.originalText||"";
+            currentNoticeText=noticeEditOriginalText||"";
             const recommendCheckbox=document.getElementById("recommendPopupEnabled");
-            if(recommendCheckbox) recommendCheckbox.checked=!!state.recommendation.enabled;
+            if(recommendCheckbox) recommendCheckbox.checked=!!recommendationPopupEnabled;
             closeNoticeEditModal();
-            renderNoticeContent(state.notice.text||"공지사항이 없습니다.");
+            renderNoticeContent(currentNoticeText||"공지사항이 없습니다.");
         }
         function saveNoticeEdit(){
-            if(!state.auth.authenticated)return;
+            if(!isSongAuthenticated)return;
             const editor=document.getElementById("noticeEditTextarea");
             if(!editor)return;
 
-            state.notice.text=serializeNoticeForStorage(editor);
+            currentNoticeText=serializeNoticeForStorage(editor);
             const recommendCheckbox=document.getElementById("recommendPopupEnabled");
-            state.recommendation.enabled=!!recommendCheckbox?.checked;
-            state.recommendation.dailyDismissed = false;
+            recommendationPopupEnabled=!!recommendCheckbox?.checked;
+            dailyRecommendDismissed = false;
 
-            renderNoticeContent(state.notice.text);
+            renderNoticeContent(currentNoticeText);
             closeNoticeEditModal();
             renderDailyRecommendations();
             enqueueSongListOnlySave();
@@ -999,11 +998,11 @@ function plainNoticeToHtml(value){
 function openRecommendModal() { generateRecommendations(); document.getElementById("recommendModal").classList.add("active"); }
         function closeRecommendModal() { document.getElementById("recommendModal").classList.remove("active"); }
         function openNoticeModal(){
-            if (state.auth.authenticated) {
+            if (isSongAuthenticated) {
                 openNoticeEditModal();
                 return;
             }
-            renderNoticeContent(state.notice.text);
+            renderNoticeContent(currentNoticeText);
             document.getElementById("noticeModal").classList.add("active");
         }
         function closeNoticeModal() { document.getElementById("noticeModal").classList.remove("active"); }
@@ -1019,18 +1018,17 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
         function renderCustomSelectElement(root,native,options,selectedValue,onSelect){if(!root||!native)return;document.querySelectorAll('.custom-select-menu.custom-select-menu-portal[data-owner="'+root.id+'"]').forEach(m=>m.remove());const old=root.querySelector('.custom-select-menu');if(old)old.remove();root.className='custom-select';root.innerHTML='';const trigger=document.createElement('button');trigger.type='button';trigger.className='custom-select-trigger';const selected=options.find(o=>String(o.value)===String(selectedValue))||options[0]||{value:'',label:'선택 없음'};trigger.textContent=selected.label;const menu=document.createElement('div');menu.className='custom-select-menu custom-select-menu-portal';menu.dataset.owner=root.id;options.forEach(o=>{const b=document.createElement('button');b.type='button';b.className='custom-select-option'+(String(o.value)===String(selected.value)?' selected':'');b.textContent=o.label;b.onclick=ev=>{ev.stopPropagation();if(root.dataset.disabled==='true'){showToastMessage('0회를 선택하면 날짜 설정을 선택할 수 없습니다.');root.classList.remove('open');menu.style.display='none';return}native.value=o.value;trigger.textContent=o.label;menu.querySelectorAll('.custom-select-option').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');root.classList.remove('open');menu.style.display='none';onSelect?.(o.value)};menu.appendChild(b)});document.body.appendChild(menu);trigger.onclick=ev=>{ev.stopPropagation();if(root.dataset.disabled==='true'){showToastMessage('0회를 선택하면 날짜 설정을 선택할 수 없습니다.');return}const was=root.classList.contains('open');closeAllCustomSelects(root);root.classList.toggle('open',!was);if(!was)requestAnimationFrame(()=>positionCustomSelectMenu(root,menu));else menu.style.display='none'};root.appendChild(trigger)}
         function renderCustomSelect(customId,nativeId,options,selectedValue,onSelect){renderCustomSelectElement(document.getElementById(customId),document.getElementById(nativeId),options,selectedValue,onSelect)}
         function syncCustomFilterSelects(){const c=document.getElementById('countFilterSelect');if(c)renderCustomSelect('countFilterCustom','countFilterSelect',[...c.options].map(o=>({value:o.value,label:o.textContent})),c.value,v=>selectCountFilter(v));const r=document.getElementById('recentFilterSelect');if(r)renderCustomSelect('recentFilterCustom','recentFilterSelect',[...r.options].map(o=>({value:o.value,label:o.textContent})),r.value,v=>selectRecentFilter(v));const m=document.getElementById('monthFilterSelect');if(m)renderCustomSelect('monthFilterCustom','monthFilterSelect',[...m.options].map(o=>({value:o.value,label:o.textContent})),m.value,v=>selectMonthFilter(v))}
-        // ===== Filters =====
-        function updateDateFilterAvailability(){const disabled=state.filters.count==='0';['recentFilterSelect','monthFilterSelect'].forEach(nativeId=>{const native=document.getElementById(nativeId);const custom=document.getElementById(nativeId.replace('Select','Custom'));if(native)native.disabled=disabled;if(custom){custom.dataset.disabled=disabled?'true':'false';custom.querySelector('.custom-select-trigger')?.setAttribute('aria-disabled',disabled?'true':'false');custom.classList.toggle('disabled',disabled);if(disabled){custom.classList.remove('open');document.querySelectorAll('.custom-select-menu-portal[data-owner=\"'+custom.id+'\"]').forEach(m=>m.style.display='none')}}})}
-        function getMaxSongPlayCount(){return state.songs.all.reduce((max,song)=>Math.max(max,Array.isArray(song.dateTimes)?song.dateTimes.length:0),0)}
-        function refreshCountFilterOptions(){const select=document.getElementById('countFilterSelect');if(!select)return;const current=state.filters.count,max=getMaxSongPlayCount(),frag=document.createDocumentFragment();const all=document.createElement('option');all.value='전체';all.textContent='전체 횟수';frag.appendChild(all);for(let i=0;i<=max;i++){const o=document.createElement('option');o.value=String(i);o.textContent=i===0?'0회 (안 불러본 곡)':`${i}회`;frag.appendChild(o)}select.replaceChildren(frag);select.value=current!=='전체'&&Number(current)<=max?current:'전체';if(select.value==='전체'&&current!=='전체')state.filters.count='전체'}
-        function refreshRecentFilterOptions(){const select=document.getElementById('recentFilterSelect');if(!select)return;const current=state.filters.recent,dates=state.songs.all.flatMap(song=>(song.dateTimes||[]).map(dt=>parseDateString(dt.date)).filter(Boolean));const now=new Date();now.setHours(23,59,59,999);const maxSpan=dates.length?Math.max(0,Math.ceil((now-new Date(Math.min(...dates.map(d=>d.getTime()))))/86400000)):0;const periods=[7,14,30,60,90,180];if(maxSpan>=365)for(let d=365;d<=maxSpan;d+=365)periods.push(d);const unique=[...new Set(periods)],frag=document.createDocumentFragment(),all=document.createElement('option');all.value='전체';all.textContent='전체기간';frag.appendChild(all);unique.forEach(days=>{const o=document.createElement('option');o.value=String(days);o.textContent=`최근 ${days>=365?(days%365===0?`${days/365}년`:`${days}일`):`${days}일`} 이내`;frag.appendChild(o)});select.replaceChildren(frag);select.value=unique.includes(Number(current))?current:'전체';if(select.value==='전체'&&current!=='전체')state.filters.recent='전체'}
-        function refreshMonthFilterOptions(){const select=document.getElementById('monthFilterSelect');if(!select)return;const current=state.filters.month,months=new Set();state.songs.all.forEach(song=>(song.dateTimes||[]).forEach(dt=>{const d=parseDateString(dt.date);if(d)months.add(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`)}));const sorted=[...months].sort((a,b)=>b.localeCompare(a));select.innerHTML='<option value="전체">전체 날짜</option>'+sorted.map(m=>{const[y,mo]=m.split('-');return `<option value="${m}">${y}년 ${Number(mo)}월</option>`}).join('');select.value=months.has(current)?current:'전체';if(select.value==='전체'&&current!=='전체')state.filters.month='전체'}
+        function updateDateFilterAvailability(){const disabled=currentCountFilter==='0';['recentFilterSelect','monthFilterSelect'].forEach(nativeId=>{const native=document.getElementById(nativeId);const custom=document.getElementById(nativeId.replace('Select','Custom'));if(native)native.disabled=disabled;if(custom){custom.dataset.disabled=disabled?'true':'false';custom.querySelector('.custom-select-trigger')?.setAttribute('aria-disabled',disabled?'true':'false');custom.classList.toggle('disabled',disabled);if(disabled){custom.classList.remove('open');document.querySelectorAll('.custom-select-menu-portal[data-owner=\"'+custom.id+'\"]').forEach(m=>m.style.display='none')}}})}
+        function getMaxSongPlayCount(){return allSongs.reduce((max,song)=>Math.max(max,Array.isArray(song.dateTimes)?song.dateTimes.length:0),0)}
+        function refreshCountFilterOptions(){const select=document.getElementById('countFilterSelect');if(!select)return;const current=currentCountFilter,max=getMaxSongPlayCount(),frag=document.createDocumentFragment();const all=document.createElement('option');all.value='전체';all.textContent='전체 횟수';frag.appendChild(all);for(let i=0;i<=max;i++){const o=document.createElement('option');o.value=String(i);o.textContent=i===0?'0회 (안 불러본 곡)':`${i}회`;frag.appendChild(o)}select.replaceChildren(frag);select.value=current!=='전체'&&Number(current)<=max?current:'전체';if(select.value==='전체'&&current!=='전체')currentCountFilter='전체'}
+        function refreshRecentFilterOptions(){const select=document.getElementById('recentFilterSelect');if(!select)return;const current=currentRecentFilter,dates=allSongs.flatMap(song=>(song.dateTimes||[]).map(dt=>parseDateString(dt.date)).filter(Boolean));const now=new Date();now.setHours(23,59,59,999);const maxSpan=dates.length?Math.max(0,Math.ceil((now-new Date(Math.min(...dates.map(d=>d.getTime()))))/86400000)):0;const periods=[7,14,30,60,90,180];if(maxSpan>=365)for(let d=365;d<=maxSpan;d+=365)periods.push(d);const unique=[...new Set(periods)],frag=document.createDocumentFragment(),all=document.createElement('option');all.value='전체';all.textContent='전체기간';frag.appendChild(all);unique.forEach(days=>{const o=document.createElement('option');o.value=String(days);o.textContent=`최근 ${days>=365?(days%365===0?`${days/365}년`:`${days}일`):`${days}일`} 이내`;frag.appendChild(o)});select.replaceChildren(frag);select.value=unique.includes(Number(current))?current:'전체';if(select.value==='전체'&&current!=='전체')currentRecentFilter='전체'}
+        function refreshMonthFilterOptions(){const select=document.getElementById('monthFilterSelect');if(!select)return;const current=currentMonthFilter,months=new Set();allSongs.forEach(song=>(song.dateTimes||[]).forEach(dt=>{const d=parseDateString(dt.date);if(d)months.add(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`)}));const sorted=[...months].sort((a,b)=>b.localeCompare(a));select.innerHTML='<option value="전체">전체 날짜</option>'+sorted.map(m=>{const[y,mo]=m.split('-');return `<option value="${m}">${y}년 ${Number(mo)}월</option>`}).join('');select.value=months.has(current)?current:'전체';if(select.value==='전체'&&current!=='전체')currentMonthFilter='전체'}
         function syncDetailFilterSelects(){refreshCountFilterOptions();refreshRecentFilterOptions();refreshMonthFilterOptions();syncCustomFilterSelects()}
         function selectCountFilter(countType){
-            state.filters.count=countType||'전체';
-            if(state.filters.count==='0'){
-                state.filters.recent='전체';
-                state.filters.month='전체';
+            currentCountFilter=countType||'전체';
+            if(currentCountFilter==='0'){
+                currentRecentFilter='전체';
+                currentMonthFilter='전체';
                 showToastMessage('0회를 선택하면 날짜 설정이 초기화됩니다.');
             }
             refreshCountFilterOptions();
@@ -1042,10 +1040,10 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
             updateFilteredAndSorted();
             renderAllSongs();
         }
-        function selectRecentFilter(daysType){if(state.filters.count==='0'){showToastMessage('0회를 선택하면 날짜 설정을 선택할 수 없습니다.');return}state.filters.recent=daysType||'전체';if(state.filters.recent!=='전체')state.filters.month='전체';refreshRecentFilterOptions();refreshMonthFilterOptions();syncCustomFilterSelects();updateDateFilterAvailability();updateFilterButtonState();updateFilteredAndSorted();renderAllSongs()}
-        function selectMonthFilter(month){if(state.filters.count==='0'){showToastMessage('0회를 선택하면 날짜 설정을 선택할 수 없습니다.');return}state.filters.month=month||'전체';if(state.filters.month!=='전체')state.filters.recent='전체';refreshRecentFilterOptions();refreshMonthFilterOptions();syncCustomFilterSelects();updateDateFilterAvailability();updateFilterButtonState();updateFilteredAndSorted();renderAllSongs()}
-        function resetDetailedFilters(){state.filters.count='전체';state.filters.recent='전체';state.filters.month='전체';syncDetailFilterSelects();updateDateFilterAvailability();updateFilterButtonState();updateFilteredAndSorted();renderAllSongs()}
-        function updateFilterButtonState(){const filterBtn=document.getElementById('integratedFilterBtn');if(!filterBtn)return;const hasActive=state.filters.count!=='전체'||state.filters.recent!=='전체'||state.filters.month!=='전체';const iconHtml=`<svg class="filter-icon-svg" viewBox="0 0 24 24"><line x1="4" y1="6" x2="20" y2="6"></line><circle cx="10" cy="6" r="3" fill="${hasActive?'white':'#0369a1'}"></circle><line x1="4" y1="12" x2="20" y2="12"></line><circle cx="16" cy="12" r="3" fill="${hasActive?'white':'#0369a1'}"></circle><line x1="4" y1="18" x2="20" y2="18"></line><circle cx="8" cy="18" r="3" fill="${hasActive?'white':'#0369a1'}"></circle></svg>`;filterBtn.classList.toggle('active-filter',hasActive);filterBtn.innerHTML=iconHtml}
+        function selectRecentFilter(daysType){if(currentCountFilter==='0'){showToastMessage('0회를 선택하면 날짜 설정을 선택할 수 없습니다.');return}currentRecentFilter=daysType||'전체';if(currentRecentFilter!=='전체')currentMonthFilter='전체';refreshRecentFilterOptions();refreshMonthFilterOptions();syncCustomFilterSelects();updateDateFilterAvailability();updateFilterButtonState();updateFilteredAndSorted();renderAllSongs()}
+        function selectMonthFilter(month){if(currentCountFilter==='0'){showToastMessage('0회를 선택하면 날짜 설정을 선택할 수 없습니다.');return}currentMonthFilter=month||'전체';if(currentMonthFilter!=='전체')currentRecentFilter='전체';refreshRecentFilterOptions();refreshMonthFilterOptions();syncCustomFilterSelects();updateDateFilterAvailability();updateFilterButtonState();updateFilteredAndSorted();renderAllSongs()}
+        function resetDetailedFilters(){currentCountFilter='전체';currentRecentFilter='전체';currentMonthFilter='전체';syncDetailFilterSelects();updateDateFilterAvailability();updateFilterButtonState();updateFilteredAndSorted();renderAllSongs()}
+        function updateFilterButtonState(){const filterBtn=document.getElementById('integratedFilterBtn');if(!filterBtn)return;const hasActive=currentCountFilter!=='전체'||currentRecentFilter!=='전체'||currentMonthFilter!=='전체';const iconHtml=`<svg class="filter-icon-svg" viewBox="0 0 24 24"><line x1="4" y1="6" x2="20" y2="6"></line><circle cx="10" cy="6" r="3" fill="${hasActive?'white':'#0369a1'}"></circle><line x1="4" y1="12" x2="20" y2="12"></line><circle cx="16" cy="12" r="3" fill="${hasActive?'white':'#0369a1'}"></circle><line x1="4" y1="18" x2="20" y2="18"></line><circle cx="8" cy="18" r="3" fill="${hasActive?'white':'#0369a1'}"></circle></svg>`;filterBtn.classList.toggle('active-filter',hasActive);filterBtn.innerHTML=iconHtml}
 
         function setupSongTitleMarquees(container, scrollRoot = null) {
             if (window.innerWidth > 768 || !container) return;
@@ -1081,7 +1079,6 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
             });
         }
 
-        // ===== Recommendations =====
         function getDailyRecommendationSeed() {
             // 모든 사용자에게 동일하게 한국시간(KST, UTC+9) 기준 날짜를 적용
             const now = new Date();
@@ -1099,7 +1096,7 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
         }
 
         function getDailyRecommendations() {
-            const pool = (Array.isArray(state.songs.all) ? state.songs.all : []).filter(song =>
+            const pool = (Array.isArray(allSongs) ? allSongs : []).filter(song =>
                 Array.isArray(song.dateTimes) && song.dateTimes.length > 0
             );
             if (!pool.length) return [];
@@ -1133,7 +1130,7 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
         function openDailyRecommendedSong(song, index) {
             const dt = getDailyRecommendedDate(song, index);
             if (!dt) return;
-            const vodUrl = state.songs.vodMap[dt.date];
+            const vodUrl = vodMap[dt.date];
             if (!vodUrl) {
                 showToastMessage("해당 노래의 영상 주소를 찾을 수 없습니다.");
                 return;
@@ -1154,7 +1151,7 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
             if (event) event.stopPropagation();
             const popup = document.getElementById("dailyRecommendPopup");
             if (!popup) return;
-            state.recommendation.dailyDismissed = true;
+            dailyRecommendDismissed = true;
             popup.classList.remove("active", "minimized");
         }
 
@@ -1164,7 +1161,7 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
             const dateEl = document.getElementById("dailyRecommendDate");
             if (!popup || !container) return;
 
-            if (!state.recommendation.enabled || state.recommendation.dailyDismissed) {
+            if (!recommendationPopupEnabled || dailyRecommendDismissed) {
                 popup.classList.remove("active");
                 return;
             }
@@ -1231,17 +1228,17 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
             const container = document.getElementById("recommendListContainer");
             const titleEl = document.getElementById("modalTitleText");
             container.innerHTML = "";
-            if (!state.songs.all.length) return;
+            if (!allSongs.length) return;
 
-            let targetPool = state.songs.all.filter(song => (!song.dateTimes || song.dateTimes.length === 0));
+            let targetPool = allSongs.filter(song => (!song.dateTimes || song.dateTimes.length === 0));
             let poolTypeMsg = "안 불러본 노래 추천";
 
             if (!targetPool.length) {
-                targetPool = state.songs.all.filter(song => (song.dateTimes && song.dateTimes.length === 1));
+                targetPool = allSongs.filter(song => (song.dateTimes && song.dateTimes.length === 1));
                 poolTypeMsg = "1번만 불렀던 노래 추천";
             }
             if (!targetPool.length) {
-                targetPool = [...state.songs.all];
+                targetPool = [...allSongs];
                 poolTypeMsg = "랜덤 추천 곡";
             }
 
@@ -1312,21 +1309,21 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
         }
 
         async function loadData(){
-            if(state.persistence.locallyMutating)return; const container=document.getElementById("songContainer");
+            if(isSongLocallyMutating)return; const container=document.getElementById("songContainer");
             try{
                 const timestamp=Date.now(); const [songListRes,statsRes]=await Promise.all([fetch(SONG_LIST_URL+timestamp),fetch(STATS_API_URL+timestamp)]); if(!songListRes.ok||!statsRes.ok)throw new Error();
                 const songListData=await songListRes.json(); const statsData=await statsRes.json();
-                state.notice.text=normalizeNoticeText(songListData.notice||"");
-                state.recommendation.enabled=!!songListData.recommendationPopupEnabled;
-                state.recommendation.dailyDismissed = false;
+                currentNoticeText=normalizeNoticeText(songListData.notice||"");
+                recommendationPopupEnabled=!!songListData.recommendationPopupEnabled;
+                dailyRecommendDismissed = false;
                 const recommendCheckbox=document.getElementById("recommendPopupEnabled");
-                if(recommendCheckbox) recommendCheckbox.checked=state.recommendation.enabled;
-                renderNoticeContent(state.notice.text||"공지사항이 없습니다.");
-                state.stats={vodSources:Array.isArray(statsData.vodSources)?statsData.vodSources:[],registeredSongs:Array.isArray(statsData.registeredSongs)?statsData.registeredSongs:[],unregisteredSongs:Array.isArray(statsData.unregisteredSongs)?statsData.unregisteredSongs:[]};
-                state.songs.vodMap={}; state.stats.vodSources.forEach(v=>{state.songs.vodMap[v.date]=v.url});
-                const statsMap={}; state.stats.registeredSongs.forEach(stat=>{statsMap[songIdentity(stat)]=stat.dateTimes||[]});
-                state.songs.all=(songListData.songs||[]).map(song=>({...song,dateTimes:statsMap[songIdentity(song)]||[]}));
-                document.getElementById("statsSummary").innerHTML=`총 노래 : <span id="animSongCount">0</span>곡`; animateNumber("animSongCount",state.songs.all.length); setupFilterButtons();refreshCountFilterOptions();refreshRecentFilterOptions();refreshMonthFilterOptions();syncCustomFilterSelects();updateDateFilterAvailability();updateFilterButtonState();updateFilteredAndSorted();renderAllSongs();renderDailyRecommendations();updateSongAuthUI();
+                if(recommendCheckbox) recommendCheckbox.checked=recommendationPopupEnabled;
+                renderNoticeContent(currentNoticeText||"공지사항이 없습니다.");
+                fansongStatsData={vodSources:Array.isArray(statsData.vodSources)?statsData.vodSources:[],registeredSongs:Array.isArray(statsData.registeredSongs)?statsData.registeredSongs:[],unregisteredSongs:Array.isArray(statsData.unregisteredSongs)?statsData.unregisteredSongs:[]};
+                vodMap={}; fansongStatsData.vodSources.forEach(v=>{vodMap[v.date]=v.url});
+                const statsMap={}; fansongStatsData.registeredSongs.forEach(stat=>{statsMap[songIdentity(stat)]=stat.dateTimes||[]});
+                allSongs=(songListData.songs||[]).map(song=>({...song,dateTimes:statsMap[songIdentity(song)]||[]}));
+                document.getElementById("statsSummary").innerHTML=`총 노래 : <span id="animSongCount">0</span>곡`; animateNumber("animSongCount",allSongs.length); setupFilterButtons();refreshCountFilterOptions();refreshRecentFilterOptions();refreshMonthFilterOptions();syncCustomFilterSelects();updateDateFilterAvailability();updateFilterButtonState();updateFilteredAndSorted();renderAllSongs();renderDailyRecommendations();updateSongAuthUI();
             }catch(err){console.error("노래책 데이터 로드 실패:",err);container.innerHTML='<p class="no-result" style="color:#ef4444;">데이터 로드 실패</p>'}
         }
 
@@ -1341,7 +1338,7 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
                     }
                     document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
                     btn.classList.add('active');
-                    state.filters.genre = filter;
+                    currentFilter = filter;
                     updateFilteredAndSorted();
                     renderAllSongs();
                 };
@@ -1361,7 +1358,7 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
 
         function getOtherGenres() {
             const map = new Map();
-            state.songs.all.forEach(song => {
+            allSongs.forEach(song => {
                 if (isMainQuickGenre(song)) return;
                 const genre = String(song.genre || '').trim();
                 if (!genre) return;
@@ -1385,7 +1382,7 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
                     btn.type = 'button';
                     btn.className = 'other-genre-option';
                     btn.textContent = genre;
-                    if (state.filters.genre === `장르:${genre}`) btn.classList.add('active');
+                    if (currentFilter === `장르:${genre}`) btn.classList.add('active');
                     btn.onclick = () => selectOtherGenre(genre);
                     list.appendChild(btn);
                 });
@@ -1398,7 +1395,7 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
         }
 
         function selectOtherGenre(genre) {
-            state.filters.genre = `장르:${genre}`;
+            currentFilter = `장르:${genre}`;
             document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
             const otherBtn = document.getElementById('otherGenreFilterBtn');
             if (otherBtn) otherBtn.classList.add('active');
@@ -1411,7 +1408,7 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
             const btn = document.getElementById('otherGenreFilterBtn');
             if (!btn) return;
 
-            const hasOtherGenre = state.songs.all.some(song => {
+            const hasOtherGenre = allSongs.some(song => {
                 const genre = String(song.genre || '').toLowerCase().trim();
                 const limit = String(song.limit || '').toLowerCase();
 
@@ -1427,8 +1424,8 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
 
             btn.classList.toggle('visible', hasOtherGenre);
 
-            if (!hasOtherGenre && state.filters.genre === '그 외') {
-                state.filters.genre = '전체';
+            if (!hasOtherGenre && currentFilter === '그 외') {
+                currentFilter = '전체';
                 document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
                 const allBtn = document.querySelector('.filter-btn[data-filter="전체"]');
                 if (allBtn) allBtn.classList.add('active');
@@ -1439,7 +1436,7 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
             const keyword = document.getElementById("searchInput").value.toLowerCase().trim();
             const now = new Date();
 
-            state.songs.filtered = state.songs.all.filter(song => {
+            filteredSongs = allSongs.filter(song => {
                 const title = song.title || '';
                 const artist = song.artist || '';
                 const genre = song.genre || '';
@@ -1452,15 +1449,15 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
                 const g = genre.toLowerCase();
                 const l = limit.toLowerCase();
                 let matchesGenre = true;
-                if (state.filters.genre === '기타연주') matchesGenre = l.includes('기타');
-                else if (state.filters.genre === 'k팝') matchesGenre = g.includes('k') || g.includes('가요');
-                else if (state.filters.genre === 'j팝') matchesGenre = g.includes('j') || g.includes('일본');
-                else if (state.filters.genre === '팝') matchesGenre = (g.includes('팝') || g.includes('pop')) && !g.includes('k') && !g.includes('j');
-                 else if (state.filters.genre.startsWith('장르:')) {
-                     const selectedGenre = state.filters.genre.slice(3).trim().toLowerCase();
+                if (currentFilter === '기타연주') matchesGenre = l.includes('기타');
+                else if (currentFilter === 'k팝') matchesGenre = g.includes('k') || g.includes('가요');
+                else if (currentFilter === 'j팝') matchesGenre = g.includes('j') || g.includes('일본');
+                else if (currentFilter === '팝') matchesGenre = (g.includes('팝') || g.includes('pop')) && !g.includes('k') && !g.includes('j');
+                 else if (currentFilter.startsWith('장르:')) {
+                     const selectedGenre = currentFilter.slice(3).trim().toLowerCase();
                      matchesGenre = g === selectedGenre;
                  }
-                 else if (state.filters.genre === '그 외') {
+                 else if (currentFilter === '그 외') {
                      const isKpop = g.includes('k') || g.includes('가요');
                      const isJpop = g.includes('j') || g.includes('일본');
                      const isPop = (g.includes('팝') || g.includes('pop')) && !isKpop && !isJpop;
@@ -1473,12 +1470,12 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
                 const matchesDateFilter = (dt) => {
                     const songDate = parseDateString(dt.date);
                     if (!songDate) return false;
-                    if (state.filters.month !== '전체') {
-                        const [year, month] = state.filters.month.split('-').map(Number);
+                    if (currentMonthFilter !== '전체') {
+                        const [year, month] = currentMonthFilter.split('-').map(Number);
                         return songDate.getFullYear() === year && songDate.getMonth() + 1 === month;
                     }
-                    if (state.filters.recent !== '전체') {
-                        const daysLimit = parseInt(state.filters.recent, 10);
+                    if (currentRecentFilter !== '전체') {
+                        const daysLimit = parseInt(currentRecentFilter, 10);
                         const nowDateOnly = new Date(now.getFullYear(), now.getMonth(), now.getDate());
                         const songDateOnly = new Date(songDate.getFullYear(), songDate.getMonth(), songDate.getDate());
                         const diffDays = (nowDateOnly - songDateOnly) / 86400000;
@@ -1486,14 +1483,14 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
                     }
                     return true;
                 };
-                const hasDateFilter = state.filters.month !== '전체' || state.filters.recent !== '전체';
+                const hasDateFilter = currentMonthFilter !== '전체' || currentRecentFilter !== '전체';
                 const playCountToCheck = hasDateFilter ? dateTimes.filter(matchesDateFilter).length : dateTimes.length;
-                if (state.filters.count !== '전체' && playCountToCheck !== Number(state.filters.count)) return false;
-                if (hasDateFilter && state.filters.count === '전체' && playCountToCheck === 0) return false;
+                if (currentCountFilter !== '전체' && playCountToCheck !== Number(currentCountFilter)) return false;
+                if (hasDateFilter && currentCountFilter === '전체' && playCountToCheck === 0) return false;
                 return true;
             });
 
-            state.songs.sorted = [...state.songs.filtered].sort((a, b) => {
+            sortedSongs = [...filteredSongs].sort((a, b) => {
                 const artistA = (a.artist || '아티스트 미상').trim();
                 const artistB = (b.artist || '아티스트 미상').trim();
                 const artistCompare = artistA.localeCompare(artistB, 'ko', { sensitivity: 'base' });
@@ -1516,7 +1513,7 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
             const container = document.getElementById("songContainer");
             container.innerHTML = "";
 
-            if (state.songs.sorted.length === 0) {
+            if (sortedSongs.length === 0) {
                 container.innerHTML = '<p class="no-result">검색 결과가 없습니다.</p>';
                 return;
             }
@@ -1525,7 +1522,7 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
             const fragment = document.createDocumentFragment();
             const now = new Date();
 
-            state.songs.sorted.forEach((song, sortedIndex) => {
+            sortedSongs.forEach((song, sortedIndex) => {
                 const currentArtist = song.artist || '아티스트 미상';
                 if (currentArtist !== lastArtist) {
                     lastArtist = currentArtist;
@@ -1566,13 +1563,13 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
                 if (song.dateTimes && song.dateTimes.length > 0) {
                     timestampsHTML = '<div class="timestamp-container">';
                     song.dateTimes.forEach(dt => {
-                        const vodUrl = state.songs.vodMap[dt.date] || "#";
+                        const vodUrl = vodMap[dt.date] || "#";
                         const finalLink = vodUrl !== "#" ? `${vodUrl}?change_second=${timeToSeconds(dt.time)}` : "#";
                         const cleanDate = dt.date.replace(/\(.*?\)/g, "").trim();
 
                         let isHighlighted = false;
-                        if (state.filters.recent !== '전체') {
-                            const daysLimit = parseInt(state.filters.recent, 10);
+                        if (currentRecentFilter !== '전체') {
+                            const daysLimit = parseInt(currentRecentFilter, 10);
                             const songDate = parseDateString(dt.date);
                             if (songDate) {
                                 const nowDateOnly = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -1622,7 +1619,7 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
                             ${etcBadge}
                             ${genreBadge}
                             ${countBadge}
-                            ${state.auth.authenticated ? `<button class="song-edit-btn" onclick="event.stopPropagation(); openSongEditModal(${sortedIndex})" title="노래 수정">✎ 수정</button>` : ""}
+                            ${isSongAuthenticated ? `<button class="song-edit-btn" onclick="event.stopPropagation(); openSongEditModal(${sortedIndex})" title="노래 수정">✎ 수정</button>` : ""}
                         </div>
                     </div>
                     ${timestampsHTML}
@@ -1648,114 +1645,7 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
                 if (modal && modal.classList.contains("active")) closeSiteInfoModal();
             }
         });
-    
-        // =============================
-        // PUBLIC UI FACADE
-        // =============================
-        const PublicAPI = {
-            timeToSeconds,
-            parseDateString,
-            toggleSongCard,
-            showToastMessage,
-            copySongInfo,
-            openSongAuthModal,
-            onSongTurnstileSuccess,
-            resetSongTurnstile,
-            renderSongTurnstile,
-            waitForSongTurnstile,
-            closeSongAuthModal,
-            toggleSongPasswordVisibility,
-            verifySongPassword,
-            logoutSongAuth,
-            restoreSongAuthentication,
-            updateSongAuthUI,
-            openSongEditModal,
-            closeSongEditModal,
-            songIdentity,
-            cloneSongForStats,
-            getEditableSongContent,
-            updateRegisteredSongForCurrentSong,
-            addSongToRegisteredStats,
-            removeFromUnregisteredStats,
-            saveWorkerFile,
-            enqueueSongListOnlySave,
-            enqueueSongServerSave,
-            saveEditingSong,
-            deleteEditingSong,
-            getUniqueSongValues,
-            setupSongAutocomplete,
-            setupSongAddAutocompletes,
-            renderUnregisteredSongs,
-            selectUnregisteredSong,
-            openSongAddModal,
-            closeSongAddModal,
-            addNewSong,
-            normalizeNoticeText,
-            sanitizeNoticeHtml,
-            rememberNoticeSelection,
-            getNoticeStyleInfo,
-            applyNoticeFormat,
-            plainNoticeToHtml,
-            renderNoticeContent,
-            openNoticeEditModal,
-            closeNoticeEditModal,
-            cancelNoticeEdit,
-            saveNoticeEdit,
-            serializeNoticeForStorage,
-            openRecommendModal,
-            closeRecommendModal,
-            openNoticeModal,
-            closeNoticeModal,
-            openSiteInfoModal,
-            closeSiteInfoModal,
-            openFilterModal,
-            closeFilterModal,
-            closeAllCustomSelects,
-            positionCustomSelectMenu,
-            renderCustomSelectElement,
-            renderCustomSelect,
-            syncCustomFilterSelects,
-            updateDateFilterAvailability,
-            getMaxSongPlayCount,
-            refreshCountFilterOptions,
-            refreshRecentFilterOptions,
-            refreshMonthFilterOptions,
-            syncDetailFilterSelects,
-            selectCountFilter,
-            selectRecentFilter,
-            selectMonthFilter,
-            resetDetailedFilters,
-            updateFilterButtonState,
-            setupFilterButtons,
-            isMainQuickGenre,
-            getOtherGenres,
-            openOtherGenreModal,
-            closeOtherGenreModal,
-            selectOtherGenre,
-            updateOtherGenreButtonVisibility,
-            updateFilteredAndSorted,
-            getDailyRecommendationSeed,
-            dailyHash,
-            getDailyRecommendations,
-            getDailyRecommendedDate,
-            escapeHtml,
-            openDailyRecommendedSong,
-            toggleDailyRecommendMinimize,
-            closeDailyRecommendPopup,
-            renderDailyRecommendations,
-            generateRecommendations,
-            animateNumber,
-            loadData,
-            renderAllSongs,
-            setupSongTitleMarquees,
-            onSearchInput,
-            triggerSearch
-        };
-        Object.assign(window, PublicAPI);
-
-
-})();
-</script>
+    </script>
  <footer style="text-align:center;padding:5px 10px;color:#b3cde0;font-size:11px;border-top:1px solid rgba(0,229,255,.12);margin-top:5px;width:100%;box-sizing:border-box;">
         <p style="margin:0;opacity:.8;line-height:1.6;word-break:keep-all;overflow-wrap:break-word;">
             <strong style="display:block;margin-bottom:5px;color:#03045e;font-size:12px;">바다비 팬 제작 노래책</strong>
