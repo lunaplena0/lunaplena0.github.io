@@ -134,6 +134,8 @@
 (function SongbookApp(){
 
         const WORKER_URL = "https://badabi-api.dalkkumli054.workers.dev/";
+        const SONG_LIST_URL = WORKER_URL + "?type=songlist&t=";
+        const STATS_API_URL = WORKER_URL + "?type=fansongstats&t=";
         const TURNSTILE_SITE_KEY = "0x4AAAAAAEbQ0YWNiL_WiyKR";
         // =============================
         // APP STATE — single source of truth
@@ -1315,7 +1317,7 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
                 const timestamp=Date.now(); const [songListRes,statsRes]=await Promise.all([fetch(SONG_LIST_URL+timestamp),fetch(STATS_API_URL+timestamp)]); if(!songListRes.ok||!statsRes.ok)throw new Error();
                 const songListData=await songListRes.json(); const statsData=await statsRes.json();
                 state.notice.text=normalizeNoticeText(songListData.notice||"");
-                state.recommendation.enabled=!!songListData.state.recommendation.enabled;
+                state.recommendation.enabled=!!songListData.recommendationPopupEnabled;
                 state.recommendation.dailyDismissed = false;
                 const recommendCheckbox=document.getElementById("recommendPopupEnabled");
                 if(recommendCheckbox) recommendCheckbox.checked=state.recommendation.enabled;
