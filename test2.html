@@ -1731,6 +1731,34 @@
     print-color-adjust:exact !important;
     min-width:8px !important;
 }
+@media (max-width:768px){
+
+    .stats-chart-card:first-child{
+        color-scheme:light !important;
+        -webkit-color-adjust:exact !important;
+        color-adjust:exact !important;
+    }
+
+    .stats-chart-card:first-child .stats-bar-track{
+        background:#F1F5F9 !important;
+        background-color:#F1F5F9 !important;
+        background-image:none !important;
+        color-scheme:light !important;
+    }
+
+    .stats-chart-card:first-child .stats-bar-fill{
+        background:#78A9D6 !important;
+        background-color:#78A9D6 !important;
+        background-image:none !important;
+        opacity:1 !important;
+        filter:none !important;
+        mix-blend-mode:normal !important;
+        forced-color-adjust:none !important;
+        -webkit-print-color-adjust:exact !important;
+        print-color-adjust:exact !important;
+        color-scheme:light !important;
+    }
+}
 </style>
 </head>
 <body>
@@ -3712,34 +3740,17 @@ function makeStatsBars(items,max){
 
     return '<div class="stats-bars">'+items.map(x=>{
         const percent=(x.value/max)*100;
-        const width=Math.max(0.8,percent);
 
         return `
             <div class="stats-bar-row">
-                <div class="stats-bar-label"
-                     title="${escapeHtml(x.label)}">
+                <div class="stats-bar-label" title="${escapeHtml(x.label)}">
                     ${escapeHtml(x.label)}
                 </div>
-
                 <div class="stats-bar-track">
                     <div class="stats-bar-fill"
-                         style="
-                            width:${width}%;
-                            background:#78A9D6 !important;
-                            background-color:#78A9D6 !important;
-                            background-image:none !important;
-                            opacity:1 !important;
-                            filter:none !important;
-                            forced-color-adjust:none !important;
-                            -webkit-print-color-adjust:exact !important;
-                            print-color-adjust:exact !important;
-                        ">
-                    </div>
+                         style="width:${percent}%;"></div>
                 </div>
-
-                <div class="stats-bar-value">
-                    ${x.value}회
-                </div>
+                <div class="stats-bar-value">${x.value}회</div>
             </div>
         `;
     }).join('')+'</div>';
