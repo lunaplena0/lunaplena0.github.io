@@ -563,9 +563,9 @@ function timeToSeconds(timeStr) {
         function updateSongAuthUI() {
             document.body.classList.toggle("authenticated-mode", state.isSongAuthenticated);
 
-            if (songAuthBtn) {
-                songAuthBtn.classList.toggle("authenticated", state.isSongAuthenticated);
-                songAuthBtn.title = state.isSongAuthenticated
+            if (dom.songAuthBtn) {
+                dom.songAuthBtn.classList.toggle("authenticated", state.isSongAuthenticated);
+                dom.songAuthBtn.title = state.isSongAuthenticated
                     ? "노래책 관리자 모드 - 클릭하여 관리"
                     : "노래책 로그인 / 인증";
             }
@@ -1557,7 +1557,7 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
                 return true;
             });
 
-            state.sortedSongs = [...filteredSongs].sort((a, b) => {
+            state.sortedSongs = [...state.filteredSongs].sort((a, b) => {
                 const artistA = (a.artist || '아티스트 미상').trim();
                 const artistB = (b.artist || '아티스트 미상').trim();
                 const artistCompare = artistA.localeCompare(artistB, 'ko', { sensitivity: 'base' });
@@ -1702,10 +1702,6 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
         function onSearchInput() { updateFilteredAndSorted(); renderAllSongs(); }
         function triggerSearch() { updateFilteredAndSorted(); renderAllSongs(); }
 
-        restoreSongAuthentication().finally(() => {
-            loadData();
-        });
-
         document.addEventListener("keydown", function(event) {
             if (event.key === "Escape") {
                 const modal = document.getElementById("siteInfoModal");
@@ -1748,9 +1744,10 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
   window.saveNoticeSelection = rememberNoticeSelection;
 
   // Initialization is deliberately last: every dependency above is defined first.
-  restoreSongAuthentication();
   setupSongAddAutocompletes();
-  loadData();
+  restoreSongAuthentication().finally(() => {
+    loadData();
+  });
 })();
 
 </script>
