@@ -63,7 +63,7 @@ body.authenticated-mode .admin-toolbar{display:flex}
 .song-list{display:flex;flex-direction:column;gap:6px;width:100%}
 .song-card{background:var(--surface);border:1px solid var(--border-soft);box-shadow:var(--shadow);overflow:hidden;transition:border-color .2s,box-shadow .2s;width:100%;border-radius:9px}
 .song-card:hover{border-color:var(--border);box-shadow:var(--shadow-hover)}
-.song-summary{display:flex;align-items:center;gap:12px;min-height:46px;padding:6px 11px;cursor:pointer;overflow:hidden}
+.song-summary{display:flex;align-items:center;gap:17px;min-height:46px;padding:6px 11px;cursor:pointer;overflow:hidden}
 .song-info{display:flex;align-items:center;gap:10px;min-width:0;flex:1;padding-left:2px}
 .song-title-wrap{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}
 .song-title-line{display:flex;align-items:center;min-height:18px;min-width:0;width:100%}
@@ -232,7 +232,7 @@ body.authenticated-mode .edit-song-btn{display:inline-flex;align-items:center;ga
   .page-title{font-size:20px;gap:6px}.page-title-icon{width:20px;height:20px}
   .filter-row{gap:5px}.filter-tags{gap:4px}.filter-btn{height:30px;padding:0 7px;font-size:11.5px;border-radius:8px}
   .song-title{font-size:13.5px}.song-artist{font-size:11px;margin-top:3px}
-  .song-summary{min-height:44px;padding:4px 7px}.song-info{padding-left:2px}
+  .song-summary{min-height:44px;padding:4px 7px;gap:12px}.song-info{padding-left:2px}
   .badges{max-width:42%}.badge-limit{min-height:17px;padding:1px 4px;margin-right:2px;border-radius:6px;font-size:.68em}
   .date-filter-grid{grid-template-columns:1fr}.other-genre-box{max-height:calc(100dvh - 24px)}.other-genre-list{grid-template-columns:1fr}
   .filter-box{width:94%;max-width:none;padding:16px}.filter-grid{gap:14px}
@@ -1090,13 +1090,16 @@ body.authenticated-mode .edit-song-btn{display:inline-flex;align-items:center;ga
   }
 
   function replaceOptions(select, options, current) {
-    select.replaceChildren(...options.map(([value,label])=>{const o=document.createElement("option");o.value=value;o.textContent=label;return o;}));
-    select.value = options.some(([v])=>String(v)===String(current)) ? current : "전체";
-    if(select.value==="전체" && current!=="전체"){
-      if(select.id==="countFilter") state.view.countFilter="전체";
-      if(select.id==="recentFilter") state.view.recentFilter="전체";
-      if(select.id==="monthFilter") state.view.monthFilter="전체";
-    }
+    if(!select) return;
+    select.replaceChildren(...options.map(([value,label])=>{
+      const o=document.createElement("option");
+      o.value=value;
+      o.textContent=label;
+      return o;
+    }));
+
+    const exists=options.some(([v])=>String(v)===String(current));
+    select.value=exists ? current : "전체";
   }
 
   function renderCustomSelect(id,nativeId,options,selected,onSelect) {
@@ -1156,12 +1159,12 @@ body.authenticated-mode .edit-song-btn{display:inline-flex;align-items:center;ga
   }
 
   function selectCount(value) {
-    const next = value || "전체";
-    state.view.countFilter = next;
+    const next=value || "전체";
+    state.view.countFilter=next;
 
-    if(next === "0"){
-      state.view.recentFilter = "전체";
-      state.view.monthFilter = "전체";
+    if(next==="0"){
+      state.view.recentFilter="전체";
+      state.view.monthFilter="전체";
       rebuildFilterOptions();
       applyFilters();
       renderSongs();
@@ -1174,14 +1177,19 @@ body.authenticated-mode .edit-song-btn{display:inline-flex;align-items:center;ga
     renderSongs();
   }
   function selectRecent(value) {
-    state.view.recentFilter = value || "전체";
+    const previousCount=state.view.countFilter;
+    state.view.recentFilter=value || "전체";
     rebuildFilterOptions();
+    state.view.countFilter=previousCount;
     applyFilters();
     renderSongs();
   }
+
   function selectMonth(value) {
-    state.view.monthFilter = value || "전체";
+    const previousCount=state.view.countFilter;
+    state.view.monthFilter=value || "전체";
     rebuildFilterOptions();
+    state.view.countFilter=previousCount;
     applyFilters();
     renderSongs();
   }
