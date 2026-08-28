@@ -1590,25 +1590,62 @@
             box-sizing:border-box;
         }
 
-/* PC 노래 추가 팝업: 버튼 영역을 내용 흐름에 배치 */
+/* PC 노래 추가 팝업: 미등록 목록 왼쪽 / 입력 영역 오른쪽 */
 @media (min-width:769px){
     #songAddModal .filter-modal-box{
+        width:92% !important;
+        max-width:760px !important;
         height:auto !important;
         max-height:85vh !important;
-        overflow-y:auto !important;
-        overflow-x:hidden !important;
-        display:block !important;
+        overflow:visible !important;
+        display:flex !important;
+        flex-direction:column !important;
         box-sizing:border-box !important;
     }
+
     #songAddModal .song-add-form{
-        display:block !important;
+        display:grid !important;
+        grid-template-columns:minmax(220px, 0.9fr) minmax(0, 1.5fr) !important;
+        gap:14px 18px !important;
         height:auto !important;
         max-height:none !important;
         overflow:visible !important;
         flex:none !important;
         min-height:0 !important;
         box-sizing:border-box !important;
+        align-items:start !important;
     }
+
+    #songAddModal .song-unregistered-section{
+        grid-column:1 !important;
+        grid-row:1 / span 5 !important;
+        width:100% !important;
+        min-width:0 !important;
+        box-sizing:border-box !important;
+        margin:0 !important;
+    }
+
+    #songAddModal .song-add-form > .edit-form-field{
+        grid-column:2 !important;
+        min-width:0 !important;
+        width:100% !important;
+    }
+
+    #songAddModal .song-add-form > .edit-form-field.full{
+        grid-column:2 !important;
+    }
+
+    #songAddModal .song-autocomplete-wrap{
+        width:100% !important;
+        min-width:0 !important;
+    }
+
+    #songAddModal .song-unregistered-list{
+        max-height:360px !important;
+        overflow-y:auto !important;
+        overflow-x:hidden !important;
+    }
+
     #songAddModal .modal-actions.song-add-actions{
         position:static !important;
         inset:auto !important;
@@ -1626,10 +1663,34 @@
         grid-template-columns:1fr 1fr 1fr !important;
         gap:8px !important;
     }
+
     #songAddModal .modal-actions.song-add-actions .modal-btn{
         width:100% !important;
         min-height:38px !important;
         box-sizing:border-box !important;
+    }
+}
+
+/* 모바일 노래 추가: 기존 세로형 유지 */
+@media (max-width:768px){
+    #songAddModal .song-add-form{
+        display:grid !important;
+        grid-template-columns:1fr !important;
+        gap:10px !important;
+    }
+
+    #songAddModal .song-add-form > .edit-form-field,
+    #songAddModal .song-add-form > .edit-form-field.full{
+        grid-column:1 !important;
+    }
+
+    #songAddModal .song-unregistered-section{
+        grid-column:1 !important;
+        grid-row:auto !important;
+    }
+
+    #songAddModal .song-unregistered-list{
+        max-height:180px !important;
     }
 }
 </style>
