@@ -1467,7 +1467,7 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
         }
 
         function updateFilteredAndSorted() {
-            const keyword = document.getElementById("searchInput").value.toLowerCase().trim();
+            const keyword = document.getElementById("searchInput").value.toLowerCase().replace(/\s+/g, '');
             const now = new Date();
 
             filteredSongs = allSongs.filter(song => {
@@ -1477,7 +1477,8 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
                 const limit = song.limit || '';
                 const etc = song.etc || '';
 
-                const matchesKeyword = title.toLowerCase().includes(keyword) || artist.toLowerCase().includes(keyword) || genre.toLowerCase().includes(keyword) || limit.toLowerCase().includes(keyword) || etc.toLowerCase().includes(keyword);
+                const normalizeSearchText = (text) => String(text || '').toLowerCase().replace(/\s+/g, '');
+                const matchesKeyword = normalizeSearchText(title).includes(keyword) || normalizeSearchText(artist).includes(keyword) || normalizeSearchText(genre).includes(keyword) || normalizeSearchText(limit).includes(keyword) || normalizeSearchText(etc).includes(keyword);
                 if (!matchesKeyword) return false;
 
                 const g = genre.toLowerCase();
