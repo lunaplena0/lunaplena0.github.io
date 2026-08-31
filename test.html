@@ -1603,14 +1603,23 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
                         const cleanDate = dt.date.replace(/\(.*?\)/g, "").trim();
 
                         let isHighlighted = false;
-                        if (currentRecentFilter !== '전체') {
-                            const daysLimit = parseInt(currentRecentFilter, 10);
-                            const songDate = parseDateString(dt.date);
-                            if (songDate) {
+                        const songDate = parseDateString(dt.date);
+
+                        if (songDate) {
+                            if (currentRecentFilter !== '전체') {
+                                const daysLimit = parseInt(currentRecentFilter, 10);
                                 const nowDateOnly = new Date(now.getFullYear(), now.getMonth(), now.getDate());
                                 const songDateOnly = new Date(songDate.getFullYear(), songDate.getMonth(), songDate.getDate());
                                 const diffDays = (nowDateOnly - songDateOnly) / (1000 * 3600 * 24);
                                 if (diffDays >= 0 && diffDays <= daysLimit) isHighlighted = true;
+                            } else if (currentMonthFilter !== '전체') {
+                                const [year, month] = currentMonthFilter.split('-').map(Number);
+                                if (
+                                    songDate.getFullYear() === year &&
+                                    songDate.getMonth() + 1 === month
+                                ) {
+                                    isHighlighted = true;
+                                }
                             }
                         }
 
