@@ -119,23 +119,7 @@
 }
 </style>
 
-<style>@media (min-width:769px){#siteInfoModal .notice-modal-box{width:min(680px,calc(100vw - 48px));max-width:680px}#siteInfoModal .site-info-intro{font-size:12px;line-height:1.65}}
-/* PC: 기존 노래 카드 구조/위치는 유지하고 글자 잘림만 방지하도록 높이를 아주 조금 확보 */
-@media (min-width:769px){
-  .song-summary-row{
-    min-height:48px !important;
-  }
-  .song-text-viewport{
-    max-height:36px !important;
-  }
-  .song-text-marquee .song-title{
-    line-height:1.2 !important;
-  }
-  .song-text-marquee .song-artist{
-    line-height:1.15 !important;
-  }
-}
-</style>
+<style>@media (min-width:769px){#siteInfoModal .notice-modal-box{width:min(680px,calc(100vw - 48px));max-width:680px}#siteInfoModal .site-info-intro{font-size:12px;line-height:1.65}}</style>
 
 </head><body><div class="main-container"><div class="header-row"><div class="title-summary-box"><h1 class="page-title"><button class="song-title-login-trigger" id="songTitleLoginTrigger" onclick="openSongAuthModal()" title="노래책 로그인 / 인증" aria-label="노래책 로그인 / 인증"><svg class="page-title-svg" viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg></button>
  바다비 노래책
@@ -1497,7 +1481,8 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
         }
 
         function updateFilteredAndSorted() {
-            const keyword = document.getElementById("searchInput").value.toLowerCase().replace(/\s+/g, '');
+            const normalizeSearchText = (text) => String(text || '').toLowerCase().replace(/\s+/g, '');
+            const keyword = normalizeSearchText(document.getElementById("searchInput").value);
             const now = new Date();
 
             filteredSongs = allSongs.filter(song => {
@@ -1508,9 +1493,13 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
                 const etc = song.etc || '';
                 const pronunciation = songPronunciationMap[String(title).trim()] || '';
 
-                const normalizeSearchText = (text) => String(text || '').toLowerCase().replace(/\s+/g, '');
-                const matchesKeyword = !keyword || normalizeSearchText(title).includes(keyword) || normalizeSearchText(artist).includes(keyword) || normalizeSearchText(genre).includes(keyword) || normalizeSearchText(limit).includes(keyword) || normalizeSearchText(etc).includes(keyword) || normalizeSearchText(pronunciation).includes(keyword);
-                if (!matchesKeyword) return false;
+                // 검색어가 있을 때만 검색 조건을 적용합니다.
+                // 제목/발음/가수/장르/제한/기타 중 하나라도 포함되면 검색 결과에 표시합니다.
+                if (keyword) {
+                    const searchFields = [title, pronunciation, artist, genre, limit, etc];
+                    const matchesKeyword = searchFields.some(value => normalizeSearchText(value).includes(keyword));
+                    if (!matchesKeyword) return false;
+                }
 
                 const g = genre.toLowerCase();
                 const l = limit.toLowerCase();
@@ -1519,16 +1508,16 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
                 else if (currentFilter === 'k팝') matchesGenre = g.includes('k') || g.includes('가요');
                 else if (currentFilter === 'j팝') matchesGenre = g.includes('j') || g.includes('일본');
                 else if (currentFilter === '팝') matchesGenre = (g.includes('팝') || g.includes('pop')) && !g.includes('k') && !g.includes('j');
-                 else if (currentFilter.startsWith('장르:')) {
-                     const selectedGenre = currentFilter.slice(3).trim().toLowerCase();
-                     matchesGenre = g === selectedGenre;
-                 }
-                 else if (currentFilter === '그 외') {
-                     const isKpop = g.includes('k') || g.includes('가요');
-                     const isJpop = g.includes('j') || g.includes('일본');
-                     const isPop = (g.includes('팝') || g.includes('pop')) && !isKpop && !isJpop;
-                     matchesGenre = l.includes('기타') ? false : (g !== '' && !isKpop && !isJpop && !isPop);
-                 }
+                else if (currentFilter.startsWith('장르:')) {
+                    const selectedGenre = currentFilter.slice(3).trim().toLowerCase();
+                    matchesGenre = g === selectedGenre;
+                }
+                else if (currentFilter === '그 외') {
+                    const isKpop = g.includes('k') || g.includes('가요');
+                    const isJpop = g.includes('j') || g.includes('일본');
+                    const isPop = (g.includes('팝') || g.includes('pop')) && !isKpop && !isJpop;
+                    matchesGenre = l.includes('기타') ? false : (g !== '' && !isKpop && !isJpop && !isPop);
+                }
 
                 if (!matchesGenre) return false;
 
@@ -1556,33 +1545,37 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
                 return true;
             });
 
-            const searchRank = (song) => {
+            // 검색어가 있을 때만 검색어와의 일치 정도를 우선합니다.
+            // 0: 제목 정확히 일치
+            // 1: 발음 정확히 일치
+            // 2: 가수 정확히 일치
+            // 3: 기타 필드 정확히 일치
+            // 10~13: 부분 일치
+            const getSearchRank = (song) => {
                 if (!keyword) return 0;
 
-                const title = normalizeSearchText(song.title || '');
-                const artist = normalizeSearchText(song.artist || '');
+                const title = normalizeSearchText(song.title);
+                const artist = normalizeSearchText(song.artist);
                 const pronunciation = normalizeSearchText(songPronunciationMap[String(song.title || '').trim()] || '');
-                const genre = normalizeSearchText(song.genre || '');
-                const limit = normalizeSearchText(song.limit || '');
-                const etc = normalizeSearchText(song.etc || '');
+                const genre = normalizeSearchText(song.genre);
+                const limit = normalizeSearchText(song.limit);
+                const etc = normalizeSearchText(song.etc);
 
-                // 검색어와 정확히 일치하는 항목을 가장 먼저 표시합니다.
                 if (title === keyword) return 0;
                 if (pronunciation === keyword) return 1;
                 if (artist === keyword) return 2;
                 if (genre === keyword || limit === keyword || etc === keyword) return 3;
 
-                // 정확히 일치하지 않으면 기존처럼 제목/가수/기타 검색 결과를 표시합니다.
                 if (title.includes(keyword)) return 10;
                 if (pronunciation.includes(keyword)) return 11;
                 if (artist.includes(keyword)) return 12;
                 if (genre.includes(keyword) || limit.includes(keyword) || etc.includes(keyword)) return 13;
-                return 20;
+                return 99;
             };
 
             sortedSongs = [...filteredSongs].sort((a, b) => {
-                const rankA = searchRank(a);
-                const rankB = searchRank(b);
+                const rankA = getSearchRank(a);
+                const rankB = getSearchRank(b);
                 if (rankA !== rankB) return rankA - rankB;
 
                 const artistA = (a.artist || '아티스트 미상').trim();
