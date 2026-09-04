@@ -164,7 +164,7 @@
 
         const SONG_LIST_URL = WORKER_URL + "?type=songlist&t=";
         const STATS_API_URL = WORKER_URL + "?type=fansongstats&t=";
-        const SONG_PRONUNCIATION_URL = WORKER_URL + "?type=songPronunciation&t=";
+        const SONG_PRONUNCIATION_URL = "songPronunciation.json?t=";
         let songPronunciationMap = {};
 
         let allSongs = [];
@@ -1556,7 +1556,35 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
                 return true;
             });
 
+            const searchRank = (song) => {
+                if (!keyword) return 0;
+
+                const title = normalizeSearchText(song.title || '');
+                const artist = normalizeSearchText(song.artist || '');
+                const pronunciation = normalizeSearchText(songPronunciationMap[String(song.title || '').trim()] || '');
+                const genre = normalizeSearchText(song.genre || '');
+                const limit = normalizeSearchText(song.limit || '');
+                const etc = normalizeSearchText(song.etc || '');
+
+                // 검색어와 정확히 일치하는 항목을 가장 먼저 표시합니다.
+                if (title === keyword) return 0;
+                if (pronunciation === keyword) return 1;
+                if (artist === keyword) return 2;
+                if (genre === keyword || limit === keyword || etc === keyword) return 3;
+
+                // 정확히 일치하지 않으면 기존처럼 제목/가수/기타 검색 결과를 표시합니다.
+                if (title.includes(keyword)) return 10;
+                if (pronunciation.includes(keyword)) return 11;
+                if (artist.includes(keyword)) return 12;
+                if (genre.includes(keyword) || limit.includes(keyword) || etc.includes(keyword)) return 13;
+                return 20;
+            };
+
             sortedSongs = [...filteredSongs].sort((a, b) => {
+                const rankA = searchRank(a);
+                const rankB = searchRank(b);
+                if (rankA !== rankB) return rankA - rankB;
+
                 const artistA = (a.artist || '아티스트 미상').trim();
                 const artistB = (b.artist || '아티스트 미상').trim();
                 const artistCompare = artistA.localeCompare(artistB, 'ko', { sensitivity: 'base' });
