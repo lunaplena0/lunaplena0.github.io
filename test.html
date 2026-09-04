@@ -1351,8 +1351,8 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
                 .replace(/[\\s\\u200B\\u200C\\u200D\\uFEFF]+/g, "");
         }
 
-        function getSongPronunciation(title){
-            const key=normalizeSearchText(title);
+        function getPronunciation(text){
+            const key=normalizeSearchText(text);
             return key ? (songPronunciationMap[key] || "") : "";
         }
 
@@ -1512,15 +1512,17 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
                 const genre = song.genre || '';
                 const limit = song.limit || '';
                 const etc = song.etc || '';
-                const pronunciation = getSongPronunciation(title);
+                const titlePronunciation = getPronunciation(title);
+                const artistPronunciation = getPronunciation(artist);
 
                 const matchesKeyword = !keyword
                     || normalizeSearchText(title).includes(keyword)
+                    || normalizeSearchText(titlePronunciation).includes(keyword)
                     || normalizeSearchText(artist).includes(keyword)
+                    || normalizeSearchText(artistPronunciation).includes(keyword)
                     || normalizeSearchText(genre).includes(keyword)
                     || normalizeSearchText(limit).includes(keyword)
-                    || normalizeSearchText(etc).includes(keyword)
-                    || normalizeSearchText(pronunciation).includes(keyword);
+                    || normalizeSearchText(etc).includes(keyword);
                 if (!matchesKeyword) return false;
 
                 const g = genre.toLowerCase();
@@ -1571,23 +1573,26 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
                 if (!keyword) return 0;
 
                 const title = normalizeSearchText(song.title);
-                const pronunciation = normalizeSearchText(getSongPronunciation(song.title));
+                const titlePronunciation = normalizeSearchText(getPronunciation(song.title));
                 const artist = normalizeSearchText(song.artist);
+                const artistPronunciation = normalizeSearchText(getPronunciation(song.artist));
                 const genre = normalizeSearchText(song.genre);
                 const limit = normalizeSearchText(song.limit);
                 const etc = normalizeSearchText(song.etc);
 
                 if (title === keyword) return 0;
-                if (pronunciation === keyword) return 1;
+                if (titlePronunciation === keyword) return 1;
                 if (artist === keyword) return 2;
-                if (genre === keyword || limit === keyword || etc === keyword) return 3;
+                if (artistPronunciation === keyword) return 3;
+                if (genre === keyword || limit === keyword || etc === keyword) return 4;
 
                 if (title.includes(keyword)) return 10;
-                if (pronunciation.includes(keyword)) return 11;
+                if (titlePronunciation.includes(keyword)) return 11;
                 if (artist.includes(keyword)) return 12;
-                if (genre.includes(keyword) || limit.includes(keyword) || etc.includes(keyword)) return 13;
+                if (artistPronunciation.includes(keyword)) return 13;
+                if (genre.includes(keyword) || limit.includes(keyword) || etc.includes(keyword)) return 14;
 
-                return 14;
+                return 15;
             };
 
             sortedSongs = [...filteredSongs].sort((a, b) => {
