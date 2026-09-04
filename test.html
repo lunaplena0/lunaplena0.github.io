@@ -148,7 +148,7 @@
 
         const SONG_LIST_URL = WORKER_URL + "?type=songlist&t=";
         const STATS_API_URL = WORKER_URL + "?type=fansongstats&t=";
-        const SONG_PRONUNCIATION_URL = "songPronunciation.json?t=";
+        const SONG_PRONUNCIATION_URL = WORKER_URL + "?type=songPronunciation&t=";
         let songPronunciationMap = {};
 
         let allSongs = [];
@@ -1345,24 +1345,31 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
         }
 
         function normalizeSearchText(text){
-            return String(text ?? "").normalize("NFC").toLowerCase().replace(/[\s\u200B\u200C\u200D\uFEFF]+/g, "");
+            return String(text ?? "")
+                .normalize("NFC")
+                .toLowerCase()
+                .replace(/[\\s\\u200B\\u200C\\u200D\\uFEFF]+/g, "");
         }
 
         function getSongPronunciation(title){
-            const key = normalizeSearchText(title);
+            const key=normalizeSearchText(title);
             return key ? (songPronunciationMap[key] || "") : "";
         }
 
         async function loadSongPronunciation(){
             try{
                 const response=await fetch(SONG_PRONUNCIATION_URL+Date.now(),{cache:"no-store"});
-                if(!response.ok) throw new Error("발음 검색 데이터를 불러오지 못했습니다.");
+                if(!response.ok)throw new Error("발음 검색 데이터를 불러오지 못했습니다.");
+
                 const data=await response.json();
                 songPronunciationMap={};
-                if(data && typeof data==="object" && !Array.isArray(data)){
-                    Object.entries(data).forEach(([title, pronunciation])=>{
+
+                if(data&&typeof data==="object"&&!Array.isArray(data)){
+                    Object.entries(data).forEach(([title,pronunciation])=>{
                         const key=normalizeSearchText(title);
-                        if(key && pronunciation != null) songPronunciationMap[key]=String(pronunciation);
+                        if(key&&pronunciation!=null){
+                            songPronunciationMap[key]=String(pronunciation);
+                        }
                     });
                 }
             }catch(error){
@@ -1506,7 +1513,14 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
                 const limit = song.limit || '';
                 const etc = song.etc || '';
                 const pronunciation = getSongPronunciation(title);
-                const matchesKeyword = !keyword || normalizeSearchText(title).includes(keyword) || normalizeSearchText(artist).includes(keyword) || normalizeSearchText(genre).includes(keyword) || normalizeSearchText(limit).includes(keyword) || normalizeSearchText(etc).includes(keyword) || normalizeSearchText(pronunciation).includes(keyword);
+
+                const matchesKeyword = !keyword
+                    || normalizeSearchText(title).includes(keyword)
+                    || normalizeSearchText(artist).includes(keyword)
+                    || normalizeSearchText(genre).includes(keyword)
+                    || normalizeSearchText(limit).includes(keyword)
+                    || normalizeSearchText(etc).includes(keyword)
+                    || normalizeSearchText(pronunciation).includes(keyword);
                 if (!matchesKeyword) return false;
 
                 const g = genre.toLowerCase();
@@ -1553,28 +1567,34 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
                 return true;
             });
 
-            if (keyword) {
-                const getSearchRank = (song) => {
-                    const title = normalizeSearchText(song.title);
-                    const artist = normalizeSearchText(song.artist);
-                    const pronunciation = normalizeSearchText(getSongPronunciation(song.title));
-                    const genre = normalizeSearchText(song.genre);
-                    const limit = normalizeSearchText(song.limit);
-                    const etc = normalizeSearchText(song.etc);
-                    if (title === keyword) return 0;
-                    if (pronunciation === keyword) return 1;
-                    if (artist === keyword) return 2;
-                    if (genre === keyword || limit === keyword || etc === keyword) return 3;
-                    if (title.includes(keyword)) return 10;
-                    if (pronunciation.includes(keyword)) return 11;
-                    if (artist.includes(keyword)) return 12;
-                    return 13;
-                };
-                filteredSongs.forEach((song, index) => song.__searchRank = getSearchRank(song));
-            }
+            const getSearchRank = (song) => {
+                if (!keyword) return 0;
+
+                const title = normalizeSearchText(song.title);
+                const pronunciation = normalizeSearchText(getSongPronunciation(song.title));
+                const artist = normalizeSearchText(song.artist);
+                const genre = normalizeSearchText(song.genre);
+                const limit = normalizeSearchText(song.limit);
+                const etc = normalizeSearchText(song.etc);
+
+                if (title === keyword) return 0;
+                if (pronunciation === keyword) return 1;
+                if (artist === keyword) return 2;
+                if (genre === keyword || limit === keyword || etc === keyword) return 3;
+
+                if (title.includes(keyword)) return 10;
+                if (pronunciation.includes(keyword)) return 11;
+                if (artist.includes(keyword)) return 12;
+                if (genre.includes(keyword) || limit.includes(keyword) || etc.includes(keyword)) return 13;
+
+                return 14;
+            };
 
             sortedSongs = [...filteredSongs].sort((a, b) => {
-                if (keyword && a.__searchRank !== b.__searchRank) return a.__searchRank - b.__searchRank;
+                const rankA = getSearchRank(a);
+                const rankB = getSearchRank(b);
+                if (rankA !== rankB) return rankA - rankB;
+
                 const artistA = (a.artist || '아티스트 미상').trim();
                 const artistB = (b.artist || '아티스트 미상').trim();
                 const artistCompare = artistA.localeCompare(artistB, 'ko', { sensitivity: 'base' });
@@ -1591,7 +1611,6 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
 
                 return 0;
             });
-            if (keyword) filteredSongs.forEach(song => { delete song.__searchRank; });
         }
 
         function renderAllSongs() {
