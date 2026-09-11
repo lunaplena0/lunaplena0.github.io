@@ -1486,15 +1486,15 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
             const container=document.getElementById("songContainer");
 
             try{
-                // 노래 목록을 먼저 화면에 표시하고, 느릴 수 있는 통계 데이터는 뒤에서 반영합니다.
-                const [songListRes, statsPromise] = await Promise.all([
-                    fetch(SONG_LIST_URL,{cache:"default"}),
-                    fetch(STATS_API_URL,{cache:"default"})
-                ]);
+                // 노래 목록과 통계 요청은 동시에 시작하되, 첫 화면은 노래 목록만 기다립니다.
+                // 통계 응답 때문에 초기 화면이 늦어지거나 전체 목록이 다시 그려지지 않도록 합니다.
+                const songListPromise=fetch(SONG_LIST_URL,{cache:"default"});
+                const statsPromise=fetch(STATS_API_URL,{cache:"default"});
 
+                const songListRes=await songListPromise;
                 if(!songListRes.ok) throw new Error("노래 목록을 불러오지 못했습니다.");
 
-                const songListData = await songListRes.json();
+                const songListData=await songListRes.json();
 
                 currentNoticeText=normalizeNoticeText(songListData.notice||"");
                 recommendationPopupEnabled=!!songListData.recommendationPopupEnabled;
@@ -1504,7 +1504,7 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
                 if(recommendCheckbox) recommendCheckbox.checked=recommendationPopupEnabled;
                 renderNoticeContent(currentNoticeText||"공지사항이 없습니다.");
 
-                // 통계 응답을 기다리지 않고 우선 노래 카드만 렌더링합니다.
+                // 노래 목록만 먼저 표시합니다. 통계가 없어도 카드 자체는 정상적으로 표시됩니다.
                 allSongs=(songListData.songs||[]).map(song=>({...song,dateTimes:[]}));
                 document.getElementById("statsSummary").innerHTML=`총 노래 : <span id="animSongCount">0</span>곡`;
                 animateNumber("animSongCount",allSongs.length);
@@ -1520,7 +1520,7 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
                 renderAllSongs();
                 isSongDataLoaded=true;
 
-                // 통계가 도착하면 날짜/횟수만 반영합니다.
+                // 통계는 백그라운드에서 받아 기존 카드의 횟수/날짜 정보만 갱신합니다.
                 try{
                     const statsRes=await statsPromise;
                     if(!statsRes.ok) throw new Error("팬송 통계 데이터를 불러오지 못했습니다.");
@@ -1535,15 +1535,16 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
                     vodMap={};
                     fansongStatsData.vodSources.forEach(v=>{vodMap[v.date]=v.url});
 
-                    const statsMap={};
+                    const statsMap=new Map();
                     fansongStatsData.registeredSongs.forEach(stat=>{
-                        statsMap[songIdentity(stat)]=Array.isArray(stat.dateTimes)?stat.dateTimes:[];
+                        statsMap.set(songIdentity(stat),Array.isArray(stat.dateTimes)?stat.dateTimes:[]);
                     });
 
-                    allSongs=(songListData.songs||[]).map(song=>({
-                        ...song,
-                        dateTimes:statsMap[songIdentity(song)]||[]
-                    }));
+                    // allSongs 객체 자체를 유지하고 dateTimes만 교체합니다.
+                    // 따라서 현재 화면의 카드/스크롤 위치/열린 상태가 유지됩니다.
+                    allSongs.forEach(song=>{
+                        song.dateTimes=statsMap.get(songIdentity(song))||[];
+                    });
 
                     refreshCountFilterOptions();
                     refreshRecentFilterOptions();
@@ -1552,27 +1553,50 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
                     updateDateFilterAvailability();
                     updateFilterButtonState();
                     updateFilteredAndSorted();
-                    renderAllSongs();
+                    refreshVisibleSongStats();
                 }catch(statsError){
                     console.warn("팬송 통계 데이터 로드 실패:",statsError);
                 }
 
                 // 발음 검색은 첫 화면 렌더링 이후 유휴 시간에 로드합니다.
-                const loadPronunciationWhenIdle = () => loadSongPronunciation();
+                const loadPronunciationWhenIdle=()=>loadSongPronunciation();
                 if("requestIdleCallback" in window){
                     requestIdleCallback(loadPronunciationWhenIdle,{timeout:1500});
                 }else{
                     setTimeout(loadPronunciationWhenIdle,0);
                 }
 
-                requestAnimationFrame(() => {
-                    requestAnimationFrame(() => renderDailyRecommendations());
+                requestAnimationFrame(()=>{
+                    requestAnimationFrame(()=>renderDailyRecommendations());
                 });
-
             }catch(err){
                 console.error("노래책 데이터 로드 실패:",err);
                 container.innerHTML='<p class="no-result" style="color:#ef4444;">데이터 로드 실패</p>';
             }
+        }
+
+        function refreshVisibleSongStats(){
+            const container=document.getElementById("songContainer");
+            if(!container)return;
+
+            container.querySelectorAll(".song-card").forEach(card=>{
+                const song=card._songData;
+                if(!song)return;
+
+                const countBadge=card.querySelector(".badge-count");
+                if(countBadge){
+                    countBadge.textContent=`${Array.isArray(song.dateTimes)?song.dateTimes.length:0}회`;
+                }
+
+                // 이미 펼쳐져 있던 카드는 통계 도착 후 날짜 목록만 갱신합니다.
+                if(card.classList.contains("expanded")){
+                    const timestampContainer=card.querySelector(".timestamp-container");
+                    if(timestampContainer){
+                        renderSongTimestamps(timestampContainer,song);
+                        timestampContainer.dataset.rendered="true";
+                    }
+                }
+            });
         }
 
         function setupFilterButtons() {
@@ -1821,6 +1845,7 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
 
                 const card = document.createElement("div");
                 card.className = "song-card animate-fade-in";
+                card._songData = song;
                 card.onclick = (e) => {
                     if (e.target.tagName === 'A' || e.target.closest('a')) return;
                     toggleSongCard(card, song);
