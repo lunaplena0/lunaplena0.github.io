@@ -34,8 +34,17 @@ async function loadCryNoteSettingsData() {
 
 async function saveCryNoteSettings() {
     const statusEl = document.getElementById('crynote-status');
-    const password = document.getElementById('admin-password').value.trim();
-    if (!password) return;
+
+    let sessionToken = localStorage.getItem("badabi_session") || "";
+    if (!sessionToken && typeof adminSessionToken !== "undefined") {
+        sessionToken = adminSessionToken || "";
+    }
+
+    if (!sessionToken) {
+        statusEl.textContent = "로그인 정보가 유실되었습니다. 다시 로그인해주세요.";
+        statusEl.style.color = "#ef4444";
+        return;
+    }
 
     const notes = [];
     document.querySelectorAll('#crynote-rows-container .menu-item-row').forEach(row => {
@@ -43,19 +52,45 @@ async function saveCryNoteSettings() {
         const description = row.querySelector('.crynote-desc-input').value.trim();
         const time = row.querySelector('.crynote-time-input').value.trim();
         const url = row.querySelector('.crynote-url-input').value.trim();
-        if (date || description || time || url) notes.push({ date, description, time, url });
+
+        if (date || description || time || url) {
+            notes.push({ date, description, time, url });
+        }
     });
 
     try {
         const response = await fetch(WORKER_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ password, fileType: "fancrynote", content: { notes } })
+            body: JSON.stringify({
+                sessionToken: sessionToken,
+                action: "save",
+                fileType: "fancrynote",
+                content: { notes }
+            })
         });
+
         if (response.ok) {
+            localStorage.setItem("badabi_session", sessionToken);
+
+            if (typeof adminSessionToken !== "undefined") {
+                adminSessionToken = sessionToken;
+            }
+
             statusEl.textContent = "성공적으로 저장되었습니다!";
             statusEl.style.color = "#10b981";
-        } else { throw new Error("저장 실패"); }
+        } else if (response.status === 401) {
+            localStorage.removeItem("badabi_session");
+
+            if (typeof adminSessionToken !== "undefined") {
+                adminSessionToken = "";
+            }
+
+            throw new Error("로그인 정보가 유효하지 않습니다. 다시 로그인해주세요.");
+        } else {
+            const errText = await response.text();
+            throw new Error(errText || "저장 실패");
+        }
     } catch (err) {
         statusEl.textContent = "저장 오류: " + err.message;
         statusEl.style.color = "#ef4444";
