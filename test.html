@@ -211,6 +211,7 @@
         let noticeEditOriginalText = "";
         let recommendationPopupEnabled = false;
         let dailyRecommendDismissed = false;
+        let isSongDataLoaded = false;
         let fansongStatsData = { vodSources: [], registeredSongs: [], unregisteredSongs: [] };
         let selectedUnregisteredKey = "";
         const songAddModal = document.getElementById("songAddModal");
@@ -527,11 +528,14 @@
                     : "노래책 로그인 / 인증";
             }
 
-            if (typeof updateFilteredAndSorted === "function") {
-                try { updateFilteredAndSorted(); } catch (e) {}
-            }
-            if (typeof renderAllSongs === "function") {
-                try { renderAllSongs(); } catch (e) {}
+            // 초기 데이터 로딩 전에는 인증 상태 변경 때문에 빈 목록을 다시 렌더링하지 않습니다.
+            if (isSongDataLoaded) {
+                if (typeof updateFilteredAndSorted === "function") {
+                    try { updateFilteredAndSorted(); } catch (e) {}
+                }
+                if (typeof renderAllSongs === "function") {
+                    try { renderAllSongs(); } catch (e) {}
+                }
             }
         }
 
@@ -1391,7 +1395,7 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
 
         async function loadSongPronunciation(){
             try{
-                const response=await fetch(SONG_PRONUNCIATION_URL+Date.now(),{cache:"no-store"});
+                const response=await fetch(SONG_PRONUNCIATION_URL,{cache:"default"});
                 if(!response.ok)throw new Error("발음 검색 데이터를 불러오지 못했습니다.");
 
                 const data=await response.json();
@@ -1426,7 +1430,20 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
                 vodMap={}; fansongStatsData.vodSources.forEach(v=>{vodMap[v.date]=v.url});
                 const statsMap={}; fansongStatsData.registeredSongs.forEach(stat=>{statsMap[songIdentity(stat)]=stat.dateTimes||[]});
                 allSongs=(songListData.songs||[]).map(song=>({...song,dateTimes:statsMap[songIdentity(song)]||[]}));
-                document.getElementById("statsSummary").innerHTML=`총 노래 : <span id="animSongCount">0</span>곡`; animateNumber("animSongCount",allSongs.length); setupFilterButtons();refreshCountFilterOptions();refreshRecentFilterOptions();refreshMonthFilterOptions();syncCustomFilterSelects();updateDateFilterAvailability();updateFilterButtonState();updateFilteredAndSorted();renderAllSongs();renderDailyRecommendations();updateSongAuthUI();
+                document.getElementById("statsSummary").innerHTML=`총 노래 : <span id="animSongCount">0</span>곡`;
+                animateNumber("animSongCount",allSongs.length);
+                setupFilterButtons();
+                refreshCountFilterOptions();
+                refreshRecentFilterOptions();
+                refreshMonthFilterOptions();
+                syncCustomFilterSelects();
+                updateDateFilterAvailability();
+                updateFilterButtonState();
+                updateFilteredAndSorted();
+                renderAllSongs();
+                isSongDataLoaded = true;
+                renderDailyRecommendations();
+                updateSongAuthUI();
             }catch(err){console.error("노래책 데이터 로드 실패:",err);container.innerHTML='<p class="no-result" style="color:#ef4444;">데이터 로드 실패</p>'}
         }
 
@@ -1786,10 +1803,11 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
         function onSearchInput() { updateFilteredAndSorted(); renderAllSongs(); }
         function triggerSearch() { updateFilteredAndSorted(); renderAllSongs(); }
 
-        restoreSongAuthentication().finally(async () => {
-            await loadSongPronunciation();
-            loadData();
-        });
+        // 초기 화면을 막지 않도록 인증 확인/발음 데이터 로드/노래 데이터 로드를 병렬 처리
+        // 발음 JSON이 늦게 도착해도 노래 목록은 먼저 표시되며, 발음 데이터가 준비되면 검색에 즉시 반영됩니다.
+        restoreSongAuthentication();
+        loadSongPronunciation();
+        loadData();
 
         document.addEventListener("keydown", function(event) {
             if (event.key === "Escape") {
