@@ -301,57 +301,152 @@ function showSongStatsSettings() {
     document.getElementById('panel-songstats').style.display = 'block';
     loadSongStatsSettingsData();
 }
-// 📌 데이터 백업 다운로드 기능 (10개 파일 일괄 다운로드)
+// 📌 전체 데이터 JSON 백업 다운로드
 async function downloadDataBackup() {
-    if (!confirm("현재 서버에 저장된 모든 데이터 파일들을 JSON 파일로 백업 다운로드하시겠습니까?")) {
+    if (!confirm("현재 서버에 저장된 모든 데이터 파일을 각각 JSON으로 백업하고, 날짜별 폴더에 저장하시겠습니까?")) {
         return;
     }
 
-    const targets = [
-        { type: 'profile', filename: 'profile_backup.json' },
-        { type: 'links', filename: 'links_backup.json' },
-        { type: 'songlist', filename: 'songlist_backup.json' },
-        { type: 'mainpage', filename: 'mainpage_backup.json' },
-        { type: 'fanmainpages', filename: 'fanmainpages_backup.json' },
-        { type: 'fanstartpage', filename: 'fanstartpage_backup.json' },
-        { type: 'fancrynote', filename: 'fancrynote_backup.json' },
-        { type: 'fancalenar', filename: 'fancalenar_backup.json' },
-        { type: 'fanvodlist', filename: 'fanvodlist_backup.json' },
-        { type: 'fansongstats', filename: 'fansongstats_backup.json' }
+    // 현재 Worker에 등록된 전체 데이터 타입
+    const dataTypes = [
+        "profile",
+        "links",
+        "songlist",
+        "mainpage",
+        "fanmainpages",
+        "fanstartpage",
+        "fancrynote",
+        "fancalenar",
+        "fanvodlist",
+        "fansongstats",
+        "widget",
+        "talk"
     ];
 
-    let successCount = 0;
-    const timestamp = new Date().getTime();
+    // 한국 시간 기준으로 날짜 폴더명을 만듭니다.
+    const dateString = new Intl.DateTimeFormat("en-CA", {
+        timeZone: "Asia/Seoul",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit"
+    }).format(new Date());
 
-    for (const item of targets) {
+    // 브라우저의 폴더 쓰기 기능을 사용합니다.
+    // 지원 브라우저에서는 사용자가 선택한 위치에 YYYY-MM-DD 폴더를 자동 생성합니다.
+    if (window.showDirectoryPicker) {
         try {
-            const res = await fetch(`${WORKER_URL}?type=${item.type}&t=${timestamp}`);
-            if (!res.ok) throw new Error("네트워크 응답 오류");
-            const data = await res.json();
+            const parentDirectory = await window.showDirectoryPicker({
+                mode: "readwrite"
+            });
 
-            const jsonStr = JSON.stringify(data, null, 2);
-            const blob = new Blob([jsonStr], { type: "application/json;charset=utf-8;" });
-            const url = URL.createObjectURL(blob);
-            
-            const link = document.createElement("a");
-            link.href = url;
-            link.download = item.filename;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
+            const backupDirectory = await parentDirectory.getDirectoryHandle(dateString, {
+                create: true
+            });
 
-            successCount++;
-            // 브라우저가 다중 다운로드를 안정적으로 처리할 수 있도록 짧은 딜레이 부여
-            await new Promise(resolve => setTimeout(resolve, 300));
+            let successCount = 0;
+            let failCount = 0;
+            const timestamp = Date.now();
+
+            for (const type of dataTypes) {
+                try {
+                    const res = await fetch(
+                        `${WORKER_URL}?type=${encodeURIComponent(type)}&t=${timestamp}`,
+                        { cache: "no-store" }
+                    );
+
+                    if (!res.ok) {
+                        throw new Error(`HTTP ${res.status}`);
+                    }
+
+                    const data = await res.json();
+                    const fileHandle = await backupDirectory.getFileHandle(`${type}.json`, {
+                        create: true
+                    });
+                    const writable = await fileHandle.createWritable();
+
+                    await writable.write(JSON.stringify(data, null, 2));
+                    await writable.close();
+
+                    successCount++;
+                } catch (err) {
+                    console.error(`⚠️ ${type} 백업 실패:`, err);
+                    failCount++;
+                }
+            }
+
+            if (successCount === 0) {
+                alert("데이터 백업 중 오류가 발생했습니다. 서버 연결 또는 폴더 권한을 확인해주세요.");
+                return;
+            }
+
+            if (failCount === 0) {
+                alert(`전체 데이터 백업이 완료되었습니다.\n저장 폴더: ${dateString}\n총 ${successCount}개 파일`);
+            } else {
+                alert(`데이터 백업이 완료되었습니다.\n저장 폴더: ${dateString}\n성공: ${successCount}개 / 실패: ${failCount}개`);
+            }
+
+            return;
         } catch (err) {
-            console.error(`⚠️ ${item.type} 백업 실패:`, err);
+            // 사용자가 폴더 선택을 취소한 경우에는 아무 작업도 하지 않습니다.
+            if (err && err.name === "AbortError") {
+                return;
+            }
+
+            console.error("폴더 백업 저장 실패:", err);
+            alert("폴더에 직접 저장할 수 없습니다. 브라우저가 폴더 저장 기능을 지원하지 않을 수 있습니다.");
+            return;
         }
     }
 
-    if (successCount > 0) {
-        alert(`총 ${successCount}개의 파일 백업 다운로드가 완료되었습니다!`);
+    // File System Access API를 지원하지 않는 브라우저용 fallback
+    // 이 경우 브라우저가 각 JSON 파일을 개별 다운로드합니다.
+    const timestamp = Date.now();
+    let successCount = 0;
+    let failCount = 0;
+
+    for (const type of dataTypes) {
+        try {
+            const res = await fetch(
+                `${WORKER_URL}?type=${encodeURIComponent(type)}&t=${timestamp}`,
+                { cache: "no-store" }
+            );
+
+            if (!res.ok) {
+                throw new Error(`HTTP ${res.status}`);
+            }
+
+            const data = await res.json();
+            const jsonStr = JSON.stringify(data, null, 2);
+            const blob = new Blob([jsonStr], {
+                type: "application/json;charset=utf-8;"
+            });
+
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+
+            link.href = url;
+            link.download = `${type}.json`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+            successCount++;
+
+            // 브라우저의 다중 다운로드 차단을 줄이기 위한 짧은 간격
+            await new Promise(resolve => setTimeout(resolve, 300));
+        } catch (err) {
+            console.error(`⚠️ ${type} 백업 실패:`, err);
+            failCount++;
+        }
+    }
+
+    if (successCount === 0) {
+        alert("데이터 백업 중 오류가 발생했습니다. 서버 연결을 확인해주세요.");
+    } else if (failCount === 0) {
+        alert(`전체 데이터 백업이 완료되었습니다.\n총 ${successCount}개 파일`);
     } else {
-        alert("데이터 다운로드 중 오류가 발생했습니다. 브라우저 설정을 확인해주세요.");
+        alert(`데이터 백업이 완료되었습니다.\n성공: ${successCount}개 / 실패: ${failCount}개`);
     }
 }
