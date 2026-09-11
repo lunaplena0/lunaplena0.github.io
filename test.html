@@ -1455,7 +1455,6 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
         }
 
         async function loadData(){
-            const loadStart = performance.now();
             if(isSongLocallyMutating)return; const container=document.getElementById("songContainer");
             try{
                 const timestamp=Date.now();
@@ -1480,11 +1479,6 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
                 setupFilterButtons();refreshCountFilterOptions();refreshRecentFilterOptions();refreshMonthFilterOptions();syncCustomFilterSelects();updateDateFilterAvailability();updateFilterButtonState();updateFilteredAndSorted();
                 updateSongAuthUI(false);
                 renderAllSongs();
-                console.log(
-                    "[노래책] 첫 노래 목록 표시:",
-                    Math.round(performance.now() - loadStart),
-                    "ms"
-                );
                 isSongDataLoaded=true;
                 syncSongAuthCardButtons();
 
@@ -1501,21 +1495,9 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
                     refreshCountFilterOptions();refreshRecentFilterOptions();refreshMonthFilterOptions();syncCustomFilterSelects();updateDateFilterAvailability();
                     // 전체 목록을 다시 렌더링하지 않고 기존 카드의 횟수와 부른 기록 링크만 갱신합니다.
                     refreshRenderedSongStats();
-                    console.log(
-                        "[노래책] 통계/VOD 반영 완료:",
-                        Math.round(performance.now() - loadStart),
-                        "ms"
-                    );
                 }catch(statsError){console.warn("팬송 통계 데이터 로드 실패:",statsError)}
 
-                requestAnimationFrame(()=>{requestAnimationFrame(()=>{
-                    renderDailyRecommendations();
-                    console.log(
-                        "[노래책] 전체 초기화 완료:",
-                        Math.round(performance.now() - loadStart),
-                        "ms"
-                    );
-                })});
+                requestAnimationFrame(()=>{requestAnimationFrame(()=>renderDailyRecommendations())});
             }catch(err){console.error("노래책 데이터 로드 실패:",err);container.innerHTML='<p class="no-result" style="color:#ef4444;">데이터 로드 실패</p>'}
         }
         function setupFilterButtons() {
