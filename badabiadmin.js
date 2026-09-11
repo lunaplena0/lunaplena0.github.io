@@ -7,6 +7,58 @@ let adminSessionToken = localStorage.getItem("badabi_session") || "";
 let adminUserRole = "";
 let rateLimitId = localStorage.getItem("badabi_rate_limit_id") || "";
 
+/*
+ * 관리자 저장 요청에도 노래책과 동일한 badabi_session 세션 토큰을 사용합니다.
+ * 기존 저장 함수가 sessionToken을 누락하더라도 여기서 보완하여
+ * "로그인 정보가 유실되었습니다" 문제가 발생하지 않도록 합니다.
+ */
+const nativeAdminFetch = window.fetch.bind(window);
+window.fetch = async function(input, init) {
+    try {
+        const requestUrl = typeof input === "string" ? input : (input && input.url) || "";
+        const method = String((init && init.method) || (input && input.method) || "GET").toUpperCase();
+
+        if (method === "POST" && requestUrl.startsWith(WORKER_URL)) {
+            const headers = new Headers((init && init.headers) || (input && input.headers) || {});
+            const contentType = headers.get("Content-Type") || headers.get("content-type") || "";
+
+            if (contentType.toLowerCase().includes("application/json") && init && typeof init.body === "string") {
+                try {
+                    const bodyData = JSON.parse(init.body);
+
+                    if (bodyData && bodyData.action === "save" && !bodyData.sessionToken) {
+                        const savedToken = localStorage.getItem("badabi_session") || adminSessionToken || "";
+                        if (savedToken) {
+                            adminSessionToken = savedToken;
+                            bodyData.sessionToken = savedToken;
+                            init = { ...init, body: JSON.stringify(bodyData) };
+                        }
+                    }
+                } catch (e) {
+                    // JSON이 아닌 기존 요청은 그대로 통과시킵니다.
+                }
+            }
+        }
+    } catch (e) {
+        console.warn("관리자 세션 요청 보완 실패:", e);
+    }
+
+    const response = await nativeAdminFetch(input, init);
+
+    if (response.status === 401) {
+        try {
+            const requestUrl = typeof input === "string" ? input : (input && input.url) || "";
+            if (requestUrl.startsWith(WORKER_URL)) {
+                adminSessionToken = "";
+                adminUserRole = "";
+                localStorage.removeItem("badabi_session");
+            }
+        } catch (e) {}
+    }
+
+    return response;
+};
+
 /* 노래책과 동일한 브라우저 식별값 생성 방식 */
 if (!rateLimitId) {
     const rateBytes = new Uint8Array(32);
@@ -145,6 +197,7 @@ async function restoreAdminAuthentication() {
 
         adminSessionToken = token;
         adminUserRole = data.role || "";
+        localStorage.setItem("badabi_session", adminSessionToken);
 
         document.getElementById("login-section").style.display = "none";
         document.getElementById("admin-app-container").style.display = "block";
