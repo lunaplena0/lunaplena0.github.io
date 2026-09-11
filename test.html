@@ -211,7 +211,6 @@
         let noticeEditOriginalText = "";
         let recommendationPopupEnabled = false;
         let dailyRecommendDismissed = false;
-        let isSongDataLoaded = false;
         let fansongStatsData = { vodSources: [], registeredSongs: [], unregisteredSongs: [] };
         let selectedUnregisteredKey = "";
         const songAddModal = document.getElementById("songAddModal");
@@ -473,6 +472,8 @@
             showToastMessage("로그아웃되었습니다.");
         }
 
+        let isSongDataLoaded = false;
+
         async function restoreSongAuthentication() {
             const token = localStorage.getItem("badabi_session") || songSessionToken || "";
 
@@ -480,7 +481,7 @@
                 isSongAuthenticated = false;
                 songSessionToken = "";
                 songUserRole = "";
-                updateSongAuthUI();
+                updateSongAuthUI(isSongDataLoaded);
                 return false;
             }
 
@@ -504,7 +505,7 @@
                 songUserRole = data.role || "";
                 isSongAuthenticated = true;
                 localStorage.removeItem("badabi_song_auth_password");
-                updateSongAuthUI();
+                updateSongAuthUI(isSongDataLoaded);
                 return true;
             } catch (error) {
                 console.warn("저장된 관리자 세션이 만료되었거나 유효하지 않습니다.");
@@ -513,12 +514,12 @@
                 isSongAuthenticated = false;
                 localStorage.removeItem("badabi_session");
                 localStorage.removeItem("badabi_song_auth_password");
-                updateSongAuthUI();
+                updateSongAuthUI(isSongDataLoaded);
                 return false;
             }
         }
 
-        function updateSongAuthUI() {
+        function updateSongAuthUI(renderSongs = true) {
             document.body.classList.toggle("authenticated-mode", isSongAuthenticated);
 
             if (songAuthBtn) {
@@ -528,14 +529,13 @@
                     : "노래책 로그인 / 인증";
             }
 
-            // 초기 데이터 로딩 전에는 인증 상태 변경 때문에 빈 목록을 다시 렌더링하지 않습니다.
-            if (isSongDataLoaded) {
-                if (typeof updateFilteredAndSorted === "function") {
-                    try { updateFilteredAndSorted(); } catch (e) {}
-                }
-                if (typeof renderAllSongs === "function") {
-                    try { renderAllSongs(); } catch (e) {}
-                }
+            if (!renderSongs) return;
+
+            if (typeof updateFilteredAndSorted === "function") {
+                try { updateFilteredAndSorted(); } catch (e) {}
+            }
+            if (typeof renderAllSongs === "function") {
+                try { renderAllSongs(); } catch (e) {}
             }
         }
 
@@ -1395,7 +1395,7 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
 
         async function loadSongPronunciation(){
             try{
-                const response=await fetch(SONG_PRONUNCIATION_URL,{cache:"default"});
+                const response=await fetch(SONG_PRONUNCIATION_URL+Date.now(),{cache:"no-store"});
                 if(!response.ok)throw new Error("발음 검색 데이터를 불러오지 못했습니다.");
 
                 const data=await response.json();
@@ -1430,20 +1430,18 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
                 vodMap={}; fansongStatsData.vodSources.forEach(v=>{vodMap[v.date]=v.url});
                 const statsMap={}; fansongStatsData.registeredSongs.forEach(stat=>{statsMap[songIdentity(stat)]=stat.dateTimes||[]});
                 allSongs=(songListData.songs||[]).map(song=>({...song,dateTimes:statsMap[songIdentity(song)]||[]}));
-                document.getElementById("statsSummary").innerHTML=`총 노래 : <span id="animSongCount">0</span>곡`;
-                animateNumber("animSongCount",allSongs.length);
-                setupFilterButtons();
-                refreshCountFilterOptions();
-                refreshRecentFilterOptions();
-                refreshMonthFilterOptions();
-                syncCustomFilterSelects();
-                updateDateFilterAvailability();
-                updateFilterButtonState();
-                updateFilteredAndSorted();
+                document.getElementById("statsSummary").innerHTML=`총 노래 : <span id="animSongCount">0</span>곡`; animateNumber("animSongCount",allSongs.length); setupFilterButtons();refreshCountFilterOptions();refreshRecentFilterOptions();refreshMonthFilterOptions();syncCustomFilterSelects();updateDateFilterAvailability();updateFilterButtonState();updateFilteredAndSorted();
+
+                // 첫 화면의 노래 목록을 한 번만 렌더링합니다.
+                // 인증 복원과 동시에 진행되므로 인증 결과가 늦게 도착해도 중복 렌더링하지 않습니다.
+                updateSongAuthUI(false);
                 renderAllSongs();
                 isSongDataLoaded = true;
-                renderDailyRecommendations();
-                updateSongAuthUI();
+
+                // 추천 팝업은 첫 화면 표시를 막을 필요가 없는 부가 UI이므로 첫 paint 뒤 처리합니다.
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => renderDailyRecommendations());
+                });
             }catch(err){console.error("노래책 데이터 로드 실패:",err);container.innerHTML='<p class="no-result" style="color:#ef4444;">데이터 로드 실패</p>'}
         }
 
@@ -1803,8 +1801,8 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
         function onSearchInput() { updateFilteredAndSorted(); renderAllSongs(); }
         function triggerSearch() { updateFilteredAndSorted(); renderAllSongs(); }
 
-        // 초기 화면을 막지 않도록 인증 확인/발음 데이터 로드/노래 데이터 로드를 병렬 처리
-        // 발음 JSON이 늦게 도착해도 노래 목록은 먼저 표시되며, 발음 데이터가 준비되면 검색에 즉시 반영됩니다.
+        // 초기 로딩 병목 방지: 서로 의존하지 않는 3개 작업을 동시에 시작합니다.
+        // 인증 완료를 기다린 뒤 데이터/발음 데이터를 가져오던 기존 순차 구조를 제거합니다.
         restoreSongAuthentication();
         loadSongPronunciation();
         loadData();
