@@ -7,6 +7,17 @@ let adminSessionToken = localStorage.getItem("badabi_session") || "";
 let adminUserRole = "";
 let rateLimitId = localStorage.getItem("badabi_rate_limit_id") || "";
 
+// 기존 관리자 페이지의 저장 함수가 사용하는 전역 인증 상태와 연결
+function syncAdminAuthGlobals() {
+    window.adminSessionToken = adminSessionToken;
+    window.sessionToken = adminSessionToken;
+    window.adminUserRole = adminUserRole;
+    window.isAdminAuthenticated = !!adminSessionToken;
+    window.adminAuthenticated = !!adminSessionToken;
+}
+
+syncAdminAuthGlobals();
+
 /*
  * 관리자 저장 요청에도 노래책과 동일한 badabi_session 세션 토큰을 사용합니다.
  * 기존 저장 함수가 sessionToken을 누락하더라도 여기서 보완하여
@@ -26,11 +37,12 @@ window.fetch = async function(input, init) {
                 try {
                     const bodyData = JSON.parse(init.body);
 
-                    if (bodyData && bodyData.action === "save" && !bodyData.sessionToken) {
-                        const savedToken = localStorage.getItem("badabi_session") || adminSessionToken || "";
+                    if (bodyData && String(bodyData.action || "").toLowerCase() === "save") {
+                        const savedToken = localStorage.getItem("badabi_session") || adminSessionToken || window.adminSessionToken || window.sessionToken || "";
                         if (savedToken) {
                             adminSessionToken = savedToken;
                             bodyData.sessionToken = savedToken;
+                            syncAdminAuthGlobals();
                             init = { ...init, body: JSON.stringify(bodyData) };
                         }
                     }
@@ -159,6 +171,22 @@ function renderAdminTurnstile() {
     }
 }
 
+/* 기존 저장 함수가 직접 호출할 수 있는 관리자 세션 확인 함수 */
+window.getAdminSessionToken = function() {
+    const savedToken = localStorage.getItem("badabi_session") || adminSessionToken || window.adminSessionToken || window.sessionToken || "";
+    if (savedToken) {
+        adminSessionToken = savedToken;
+        syncAdminAuthGlobals();
+    }
+    return adminSessionToken;
+};
+
+window.ensureAdminSession = async function() {
+    const token = window.getAdminSessionToken();
+    if (token) return true;
+    return await restoreAdminAuthentication();
+};
+
 /* 기존 로그인 화면이 준비된 뒤 Turnstile을 표시 */
 async function prepareAdminLogin() {
     try {
@@ -198,6 +226,7 @@ async function restoreAdminAuthentication() {
         adminSessionToken = token;
         adminUserRole = data.role || "";
         localStorage.setItem("badabi_session", adminSessionToken);
+        syncAdminAuthGlobals();
 
         document.getElementById("login-section").style.display = "none";
         document.getElementById("admin-app-container").style.display = "block";
@@ -208,6 +237,7 @@ async function restoreAdminAuthentication() {
         adminSessionToken = "";
         adminUserRole = "";
         localStorage.removeItem("badabi_session");
+        syncAdminAuthGlobals();
         return false;
     }
 }
@@ -252,6 +282,7 @@ async function verifyAndLoad() {
 
         adminSessionToken = data.sessionToken;
         adminUserRole = data.role || "";
+        syncAdminAuthGlobals();
 
         localStorage.setItem("badabi_session", adminSessionToken);
         localStorage.removeItem("badabi_song_auth_password");
@@ -281,6 +312,7 @@ async function verifyAndLoad() {
 function logoutAdminAuthentication() {
     adminSessionToken = "";
     adminUserRole = "";
+    syncAdminAuthGlobals();
     localStorage.removeItem("badabi_session");
     localStorage.removeItem("badabi_song_auth_password");
     resetAdminTurnstile();
