@@ -481,7 +481,8 @@
                 isSongAuthenticated = false;
                 songSessionToken = "";
                 songUserRole = "";
-                updateSongAuthUI(isSongDataLoaded);
+                updateSongAuthUI(false);
+                if (isSongDataLoaded) syncSongAuthCardButtons();
                 return false;
             }
 
@@ -505,7 +506,8 @@
                 songUserRole = data.role || "";
                 isSongAuthenticated = true;
                 localStorage.removeItem("badabi_song_auth_password");
-                updateSongAuthUI(isSongDataLoaded);
+                updateSongAuthUI(false);
+                if (isSongDataLoaded) syncSongAuthCardButtons();
                 return true;
             } catch (error) {
                 console.warn("저장된 관리자 세션이 만료되었거나 유효하지 않습니다.");
@@ -514,9 +516,46 @@
                 isSongAuthenticated = false;
                 localStorage.removeItem("badabi_session");
                 localStorage.removeItem("badabi_song_auth_password");
-                updateSongAuthUI(isSongDataLoaded);
+                updateSongAuthUI(false);
+                if (isSongDataLoaded) syncSongAuthCardButtons();
                 return false;
             }
+        }
+
+        function syncSongAuthCardButtons() {
+            const container = document.getElementById("songContainer");
+            if (!container) return;
+
+            container.querySelectorAll(".song-card").forEach(card => {
+                const badges = card.querySelector(".song-badges");
+                if (!badges) return;
+
+                const existingButton = badges.querySelector(".song-edit-btn");
+
+                if (!isSongAuthenticated) {
+                    if (existingButton) existingButton.remove();
+                    return;
+                }
+
+                if (existingButton) return;
+
+                const key = card.dataset.songKey || "";
+                const song = allSongs.find(item => songIdentity(item) === key);
+                if (!song) return;
+
+                const sortedIndex = sortedSongs.indexOf(song);
+                if (sortedIndex < 0) return;
+
+                const editButton = document.createElement("button");
+                editButton.className = "song-edit-btn";
+                editButton.title = "노래 수정";
+                editButton.textContent = "✎ 수정";
+                editButton.onclick = (event) => {
+                    event.stopPropagation();
+                    openSongEditModal(sortedIndex);
+                };
+                badges.appendChild(editButton);
+            });
         }
 
         function updateSongAuthUI(renderSongs = true) {
@@ -1441,6 +1480,7 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
                 updateSongAuthUI(false);
                 renderAllSongs();
                 isSongDataLoaded=true;
+                syncSongAuthCardButtons();
 
                 // 통계는 뒤에서 받아 기존 데이터에 반영합니다. 전체 목록은 다시 렌더링하지 않습니다.
                 try{
