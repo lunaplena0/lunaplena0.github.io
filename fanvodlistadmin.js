@@ -320,8 +320,17 @@ async function loadVodListSettingsData() {
 
 async function saveVodListSettings() {
     const statusEl = document.getElementById('vodlist-status');
-    const password = document.getElementById('admin-password').value.trim();
-    if (!password) {
+
+    // 관리자 로그인 세션 토큰 확인
+    let sessionToken = localStorage.getItem("badabi_session") || "";
+
+    // adminjs에서 유지하고 있는 세션도 확인
+    if (!sessionToken && typeof adminSessionToken !== "undefined") {
+        sessionToken = adminSessionToken || "";
+    }
+
+    // 세션이 없다면 저장하지 않음
+    if (!sessionToken) {
         statusEl.textContent = "로그인 정보가 유실되었습니다. 다시 로그인해주세요.";
         statusEl.style.color = "#ef4444";
         return;
@@ -362,11 +371,11 @@ async function saveVodListSettings() {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                password: password,
-                fileType: "fanvodlist",
-                content: { vods }
-            })
-        });
+    sessionToken: sessionToken,
+    action: "save",
+    fileType: "fanvodlist",
+    content: { vods }
+})
 
         if (response.ok) {
             statusEl.textContent = "성공적으로 저장되었습니다!";
