@@ -1453,13 +1453,8 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
                     allSongs.forEach(song=>{song.dateTimes=statsMap[songIdentity(song)]||[]});
                     updateFilteredAndSorted();
                     refreshCountFilterOptions();refreshRecentFilterOptions();refreshMonthFilterOptions();syncCustomFilterSelects();updateDateFilterAvailability();
-                    // 화면 전체를 다시 만들지 않고 현재 카드의 횟수만 갱신합니다.
-                    container.querySelectorAll(".song-card").forEach((card,index)=>{
-                        const song=sortedSongs[index];
-                        if(!song)return;
-                        const countBadge=card.querySelector(".badge-count");
-                        if(countBadge)countBadge.textContent=`${Array.isArray(song.dateTimes)?song.dateTimes.length:0}회`;
-                    });
+                    // 전체 목록을 다시 렌더링하지 않고 기존 카드의 횟수와 부른 기록 링크만 갱신합니다.
+                    refreshRenderedSongStats();
                 }catch(statsError){console.warn("팬송 통계 데이터 로드 실패:",statsError)}
 
                 requestAnimationFrame(()=>{requestAnimationFrame(()=>renderDailyRecommendations())});
@@ -1686,6 +1681,62 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
             });
         }
 
+        function buildTimestampsHTML(song) {
+            const dateTimes = Array.isArray(song?.dateTimes) ? song.dateTimes : [];
+            if (!dateTimes.length) {
+                return '<div class="timestamp-container" style="padding: 10px 16px; font-size: 13px; color: #64748b;">부른 기록이 없습니다.</div>';
+            }
+
+            const now = new Date();
+            let html = '<div class="timestamp-container">';
+            dateTimes.forEach(dt => {
+                const vodUrl = vodMap[dt.date] || "#";
+                const finalLink = vodUrl !== "#" ? `${vodUrl}?change_second=${timeToSeconds(dt.time)}` : "#";
+                const cleanDate = dt.date.replace(/\(.*?\)/g, "").trim();
+                let isHighlighted = false;
+                const songDate = parseDateString(dt.date);
+
+                if (songDate) {
+                    if (currentRecentFilter !== '전체') {
+                        const daysLimit = parseInt(currentRecentFilter, 10);
+                        const nowDateOnly = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                        const songDateOnly = new Date(songDate.getFullYear(), songDate.getMonth(), songDate.getDate());
+                        const diffDays = (nowDateOnly - songDateOnly) / (1000 * 3600 * 24);
+                        if (diffDays >= 0 && diffDays <= daysLimit) isHighlighted = true;
+                    } else if (currentMonthFilter !== '전체') {
+                        const [year, month] = currentMonthFilter.split('-').map(Number);
+                        if (songDate.getFullYear() === year && songDate.getMonth() + 1 === month) isHighlighted = true;
+                    }
+                }
+
+                const btnClass = isHighlighted ? "timestamp-btn highlighted-date" : "timestamp-btn";
+                html += `
+                    <a href="${finalLink}" target="_blank" rel="noopener noreferrer" class="${btnClass}" onclick="event.stopPropagation();">
+                        ${cleanDate}
+                        <svg class="timestamp-icon-svg" viewBox="0 0 24 24">
+                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                            <polyline points="15 3 21 3 21 9"></polyline>
+                            <line x1="10" y1="14" x2="21" y2="3"></line>
+                        </svg>
+                    </a>`;
+            });
+            return html + '</div>';
+        }
+
+        function refreshRenderedSongStats() {
+            const container = document.getElementById("songContainer");
+            if (!container) return;
+            container.querySelectorAll(".song-card").forEach(card => {
+                const key = card.dataset.songKey || "";
+                const song = allSongs.find(item => songIdentity(item) === key);
+                if (!song) return;
+                const countBadge = card.querySelector(".badge-count");
+                if (countBadge) countBadge.textContent = `${Array.isArray(song.dateTimes) ? song.dateTimes.length : 0}회`;
+                const timestampContainer = card.querySelector(".timestamp-container");
+                if (timestampContainer) timestampContainer.outerHTML = buildTimestampsHTML(song);
+            });
+        }
+
         function renderAllSongs() {
             const container = document.getElementById("songContainer");
             container.innerHTML = "";
@@ -1711,6 +1762,7 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
 
                 const card = document.createElement("div");
                 card.className = "song-card animate-fade-in";
+                card.dataset.songKey = songIdentity(song);
                 card.onclick = (e) => {
                     if (e.target.tagName === 'A' || e.target.closest('a')) return;
                     toggleSongCard(card);
@@ -1736,52 +1788,7 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
                 let etcVal = song.etc || '';
                 let etcBadge = etcVal !== "" ? `<span class="badge" style="background-color: #f1f5f9; color: #475569; border: 1px solid #cbd5e1;">${etcVal}</span>` : "";
 
-                let timestampsHTML = '';
-                if (song.dateTimes && song.dateTimes.length > 0) {
-                    timestampsHTML = '<div class="timestamp-container">';
-                    song.dateTimes.forEach(dt => {
-                        const vodUrl = vodMap[dt.date] || "#";
-                        const finalLink = vodUrl !== "#" ? `${vodUrl}?change_second=${timeToSeconds(dt.time)}` : "#";
-                        const cleanDate = dt.date.replace(/\(.*?\)/g, "").trim();
-
-                        let isHighlighted = false;
-                        const songDate = parseDateString(dt.date);
-
-                        if (songDate) {
-                            if (currentRecentFilter !== '전체') {
-                                const daysLimit = parseInt(currentRecentFilter, 10);
-                                const nowDateOnly = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-                                const songDateOnly = new Date(songDate.getFullYear(), songDate.getMonth(), songDate.getDate());
-                                const diffDays = (nowDateOnly - songDateOnly) / (1000 * 3600 * 24);
-                                if (diffDays >= 0 && diffDays <= daysLimit) isHighlighted = true;
-                            } else if (currentMonthFilter !== '전체') {
-                                const [year, month] = currentMonthFilter.split('-').map(Number);
-                                if (
-                                    songDate.getFullYear() === year &&
-                                    songDate.getMonth() + 1 === month
-                                ) {
-                                    isHighlighted = true;
-                                }
-                            }
-                        }
-
-                        const btnClass = isHighlighted ? "timestamp-btn highlighted-date" : "timestamp-btn";
-
-                        timestampsHTML += `
-                            <a href="${finalLink}" target="_blank" rel="noopener noreferrer" class="${btnClass}" onclick="event.stopPropagation();">
-                                ${cleanDate}
-                                <svg class="timestamp-icon-svg" viewBox="0 0 24 24">
-                                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-                                    <polyline points="15 3 21 3 21 9"></polyline>
-                                    <line x1="10" y1="14" x2="21" y2="3"></line>
-                                </svg>
-                            </a>
-                        `;
-                    });
-                    timestampsHTML += '</div>';
-                } else {
-                    timestampsHTML = '<div class="timestamp-container" style="padding: 10px 16px; font-size: 13px; color: #64748b;">부른 기록이 없습니다.</div>';
-                }
+                const timestampsHTML = buildTimestampsHTML(song);
 
                 const safeTitle = (song.title || '').replace(/'/g, "\\'");
                 const safeArtist = (song.artist || '').replace(/'/g, "\\'");
