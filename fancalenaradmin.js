@@ -192,8 +192,17 @@ function applySelectedMonth() {
 
 async function saveCalendarSettings() {
     const statusEl = document.getElementById('calendar-status');
-    const password = document.getElementById('admin-password').value.trim();
-    if (!password) {
+
+    // 관리자 로그인 세션 토큰 확인
+    let sessionToken = localStorage.getItem("badabi_session") || "";
+
+    // adminjs에서 유지하고 있는 세션도 확인
+    if (!sessionToken && typeof adminSessionToken !== "undefined") {
+        sessionToken = adminSessionToken || "";
+    }
+
+    // 세션이 없다면 저장하지 않음
+    if (!sessionToken) {
         statusEl.textContent = "로그인 정보가 유실되었습니다. 다시 로그인해주세요.";
         statusEl.style.color = "#ef4444";
         return;
@@ -207,19 +216,46 @@ async function saveCalendarSettings() {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                password: password,
+                sessionToken: sessionToken,
+                action: "save",
                 fileType: "fancalenar",
                 content: { notes: allEvents }
             })
         });
 
+        const data = await response.json().catch(() => ({}));
+
+        // 세션이 만료된 경우
+        if (response.status === 401) {
+            localStorage.removeItem("badabi_session");
+
+            if (typeof adminSessionToken !== "undefined") {
+                adminSessionToken = "";
+            }
+
+            if (typeof adminUserRole !== "undefined") {
+                adminUserRole = "";
+            }
+
+            statusEl.textContent = "로그인 세션이 만료되었습니다. 다시 로그인해주세요.";
+            statusEl.style.color = "#ef4444";
+            return;
+        }
+
         if (response.ok) {
+            // 현재 사용 중인 세션을 다시 유지
+            localStorage.setItem("badabi_session", sessionToken);
+
+            if (typeof adminSessionToken !== "undefined") {
+                adminSessionToken = sessionToken;
+            }
+
             statusEl.textContent = "성공적으로 저장되었습니다!";
             statusEl.style.color = "#10b981";
         } else {
-            const errText = await response.text();
-            throw new Error(errText || "저장 실패");
+            throw new Error(data.error || "저장 실패");
         }
+
     } catch (err) {
         statusEl.textContent = "저장 오류: " + err.message;
         statusEl.style.color = "#ef4444";
