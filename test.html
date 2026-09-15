@@ -481,8 +481,7 @@
                 isSongAuthenticated = false;
                 songSessionToken = "";
                 songUserRole = "";
-                updateSongAuthUI(false);
-                if (isSongDataLoaded) syncSongAuthCardButtons();
+                updateSongAuthUI(isSongDataLoaded);
                 return false;
             }
 
@@ -506,8 +505,7 @@
                 songUserRole = data.role || "";
                 isSongAuthenticated = true;
                 localStorage.removeItem("badabi_song_auth_password");
-                updateSongAuthUI(false);
-                if (isSongDataLoaded) syncSongAuthCardButtons();
+                updateSongAuthUI(isSongDataLoaded);
                 return true;
             } catch (error) {
                 console.warn("저장된 관리자 세션이 만료되었거나 유효하지 않습니다.");
@@ -516,46 +514,9 @@
                 isSongAuthenticated = false;
                 localStorage.removeItem("badabi_session");
                 localStorage.removeItem("badabi_song_auth_password");
-                updateSongAuthUI(false);
-                if (isSongDataLoaded) syncSongAuthCardButtons();
+                updateSongAuthUI(isSongDataLoaded);
                 return false;
             }
-        }
-
-        function syncSongAuthCardButtons() {
-            const container = document.getElementById("songContainer");
-            if (!container) return;
-
-            container.querySelectorAll(".song-card").forEach(card => {
-                const badges = card.querySelector(".song-badges");
-                if (!badges) return;
-
-                const existingButton = badges.querySelector(".song-edit-btn");
-
-                if (!isSongAuthenticated) {
-                    if (existingButton) existingButton.remove();
-                    return;
-                }
-
-                if (existingButton) return;
-
-                const key = card.dataset.songKey || "";
-                const song = allSongs.find(item => songIdentity(item) === key);
-                if (!song) return;
-
-                const sortedIndex = sortedSongs.indexOf(song);
-                if (sortedIndex < 0) return;
-
-                const editButton = document.createElement("button");
-                editButton.className = "song-edit-btn";
-                editButton.title = "노래 수정";
-                editButton.textContent = "✎ 수정";
-                editButton.onclick = (event) => {
-                    event.stopPropagation();
-                    openSongEditModal(sortedIndex);
-                };
-                badges.appendChild(editButton);
-            });
         }
 
         function updateSongAuthUI(renderSongs = true) {
@@ -1420,12 +1381,12 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
             requestAnimationFrame(update);
         }
 
-        function normalizeSearchText(text){
-            return String(text ?? "")
-                .normalize("NFC")
-                .toLowerCase()
-                .replace(/[\\s\\u200B\\u200C\\u200D\\uFEFF]+/g, "");
-        }
+        function normalizeSearchText(text) {
+    return String(text ?? "")
+        .normalize("NFC")
+        .toLowerCase()
+        .replace(/[\s\u200B\u200C\u200D\uFEFF]+/g, "");
+}
 
         function getPronunciation(text){
             const key=normalizeSearchText(text);
@@ -1457,49 +1418,33 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
         async function loadData(){
             if(isSongLocallyMutating)return; const container=document.getElementById("songContainer");
             try{
-                const timestamp=Date.now();
-                // 두 요청은 동시에 시작하되 첫 화면은 노래 목록만 기다립니다.
-                const songListPromise=fetch(SONG_LIST_URL+timestamp);
-                const statsPromise=fetch(STATS_API_URL+timestamp);
-                const songListRes=await songListPromise;
-                if(!songListRes.ok)throw new Error("노래 목록을 불러오지 못했습니다.");
-                const songListData=await songListRes.json();
-
+                const timestamp=Date.now(); const [songListRes,statsRes]=await Promise.all([fetch(SONG_LIST_URL+timestamp),fetch(STATS_API_URL+timestamp)]); if(!songListRes.ok||!statsRes.ok)throw new Error();
+                const songListData=await songListRes.json(); const statsData=await statsRes.json();
                 currentNoticeText=normalizeNoticeText(songListData.notice||"");
                 recommendationPopupEnabled=!!songListData.recommendationPopupEnabled;
-                dailyRecommendDismissed=false;
+                dailyRecommendDismissed = false;
                 const recommendCheckbox=document.getElementById("recommendPopupEnabled");
-                if(recommendCheckbox)recommendCheckbox.checked=recommendationPopupEnabled;
+                if(recommendCheckbox) recommendCheckbox.checked=recommendationPopupEnabled;
                 renderNoticeContent(currentNoticeText||"공지사항이 없습니다.");
+                fansongStatsData={vodSources:Array.isArray(statsData.vodSources)?statsData.vodSources:[],registeredSongs:Array.isArray(statsData.registeredSongs)?statsData.registeredSongs:[],unregisteredSongs:Array.isArray(statsData.unregisteredSongs)?statsData.unregisteredSongs:[]};
+                vodMap={}; fansongStatsData.vodSources.forEach(v=>{vodMap[v.date]=v.url});
+                const statsMap={}; fansongStatsData.registeredSongs.forEach(stat=>{statsMap[songIdentity(stat)]=stat.dateTimes||[]});
+                allSongs=(songListData.songs||[]).map(song=>({...song,dateTimes:statsMap[songIdentity(song)]||[]}));
+                document.getElementById("statsSummary").innerHTML=`총 노래 : <span id="animSongCount">0</span>곡`; animateNumber("animSongCount",allSongs.length); setupFilterButtons();refreshCountFilterOptions();refreshRecentFilterOptions();refreshMonthFilterOptions();syncCustomFilterSelects();updateDateFilterAvailability();updateFilterButtonState();updateFilteredAndSorted();
 
-                // 통계 데이터를 기다리지 않고 기존 목록 구조 그대로 먼저 렌더링합니다.
-                allSongs=(songListData.songs||[]).map(song=>({...song,dateTimes:[]}));
-                document.getElementById("statsSummary").innerHTML=`총 노래 : <span id="animSongCount">0</span>곡`;
-                animateNumber("animSongCount",allSongs.length);
-                setupFilterButtons();refreshCountFilterOptions();refreshRecentFilterOptions();refreshMonthFilterOptions();syncCustomFilterSelects();updateDateFilterAvailability();updateFilterButtonState();updateFilteredAndSorted();
+                // 첫 화면의 노래 목록을 한 번만 렌더링합니다.
+                // 인증 복원과 동시에 진행되므로 인증 결과가 늦게 도착해도 중복 렌더링하지 않습니다.
                 updateSongAuthUI(false);
                 renderAllSongs();
-                isSongDataLoaded=true;
-                syncSongAuthCardButtons();
+                isSongDataLoaded = true;
 
-                // 통계는 뒤에서 받아 기존 데이터에 반영합니다. 전체 목록은 다시 렌더링하지 않습니다.
-                try{
-                    const statsRes=await statsPromise;
-                    if(!statsRes.ok)throw new Error("팬송 통계 데이터를 불러오지 못했습니다.");
-                    const statsData=await statsRes.json();
-                    fansongStatsData={vodSources:Array.isArray(statsData.vodSources)?statsData.vodSources:[],registeredSongs:Array.isArray(statsData.registeredSongs)?statsData.registeredSongs:[],unregisteredSongs:Array.isArray(statsData.unregisteredSongs)?statsData.unregisteredSongs:[]};
-                    vodMap={}; fansongStatsData.vodSources.forEach(v=>{vodMap[v.date]=v.url});
-                    const statsMap={}; fansongStatsData.registeredSongs.forEach(stat=>{statsMap[songIdentity(stat)]=Array.isArray(stat.dateTimes)?stat.dateTimes:[]});
-                    allSongs.forEach(song=>{song.dateTimes=statsMap[songIdentity(song)]||[]});
-                    updateFilteredAndSorted();
-                    refreshCountFilterOptions();refreshRecentFilterOptions();refreshMonthFilterOptions();syncCustomFilterSelects();updateDateFilterAvailability();
-                    // 전체 목록을 다시 렌더링하지 않고 기존 카드의 횟수와 부른 기록 링크만 갱신합니다.
-                    refreshRenderedSongStats();
-                }catch(statsError){console.warn("팬송 통계 데이터 로드 실패:",statsError)}
-
-                requestAnimationFrame(()=>{requestAnimationFrame(()=>renderDailyRecommendations())});
+                // 추천 팝업은 첫 화면 표시를 막을 필요가 없는 부가 UI이므로 첫 paint 뒤 처리합니다.
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => renderDailyRecommendations());
+                });
             }catch(err){console.error("노래책 데이터 로드 실패:",err);container.innerHTML='<p class="no-result" style="color:#ef4444;">데이터 로드 실패</p>'}
         }
+
         function setupFilterButtons() {
             updateOtherGenreButtonVisibility();
             document.querySelectorAll('.filter-btn').forEach(btn => {
@@ -1721,62 +1666,6 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
             });
         }
 
-        function buildTimestampsHTML(song) {
-            const dateTimes = Array.isArray(song?.dateTimes) ? song.dateTimes : [];
-            if (!dateTimes.length) {
-                return '<div class="timestamp-container" style="padding: 10px 16px; font-size: 13px; color: #64748b;">부른 기록이 없습니다.</div>';
-            }
-
-            const now = new Date();
-            let html = '<div class="timestamp-container">';
-            dateTimes.forEach(dt => {
-                const vodUrl = vodMap[dt.date] || "#";
-                const finalLink = vodUrl !== "#" ? `${vodUrl}?change_second=${timeToSeconds(dt.time)}` : "#";
-                const cleanDate = dt.date.replace(/\(.*?\)/g, "").trim();
-                let isHighlighted = false;
-                const songDate = parseDateString(dt.date);
-
-                if (songDate) {
-                    if (currentRecentFilter !== '전체') {
-                        const daysLimit = parseInt(currentRecentFilter, 10);
-                        const nowDateOnly = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-                        const songDateOnly = new Date(songDate.getFullYear(), songDate.getMonth(), songDate.getDate());
-                        const diffDays = (nowDateOnly - songDateOnly) / (1000 * 3600 * 24);
-                        if (diffDays >= 0 && diffDays <= daysLimit) isHighlighted = true;
-                    } else if (currentMonthFilter !== '전체') {
-                        const [year, month] = currentMonthFilter.split('-').map(Number);
-                        if (songDate.getFullYear() === year && songDate.getMonth() + 1 === month) isHighlighted = true;
-                    }
-                }
-
-                const btnClass = isHighlighted ? "timestamp-btn highlighted-date" : "timestamp-btn";
-                html += `
-                    <a href="${finalLink}" target="_blank" rel="noopener noreferrer" class="${btnClass}" onclick="event.stopPropagation();">
-                        ${cleanDate}
-                        <svg class="timestamp-icon-svg" viewBox="0 0 24 24">
-                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-                            <polyline points="15 3 21 3 21 9"></polyline>
-                            <line x1="10" y1="14" x2="21" y2="3"></line>
-                        </svg>
-                    </a>`;
-            });
-            return html + '</div>';
-        }
-
-        function refreshRenderedSongStats() {
-            const container = document.getElementById("songContainer");
-            if (!container) return;
-            container.querySelectorAll(".song-card").forEach(card => {
-                const key = card.dataset.songKey || "";
-                const song = allSongs.find(item => songIdentity(item) === key);
-                if (!song) return;
-                const countBadge = card.querySelector(".badge-count");
-                if (countBadge) countBadge.textContent = `${Array.isArray(song.dateTimes) ? song.dateTimes.length : 0}회`;
-                const timestampContainer = card.querySelector(".timestamp-container");
-                if (timestampContainer) timestampContainer.outerHTML = buildTimestampsHTML(song);
-            });
-        }
-
         function renderAllSongs() {
             const container = document.getElementById("songContainer");
             container.innerHTML = "";
@@ -1802,7 +1691,6 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
 
                 const card = document.createElement("div");
                 card.className = "song-card animate-fade-in";
-                card.dataset.songKey = songIdentity(song);
                 card.onclick = (e) => {
                     if (e.target.tagName === 'A' || e.target.closest('a')) return;
                     toggleSongCard(card);
@@ -1828,7 +1716,52 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
                 let etcVal = song.etc || '';
                 let etcBadge = etcVal !== "" ? `<span class="badge" style="background-color: #f1f5f9; color: #475569; border: 1px solid #cbd5e1;">${etcVal}</span>` : "";
 
-                const timestampsHTML = buildTimestampsHTML(song);
+                let timestampsHTML = '';
+                if (song.dateTimes && song.dateTimes.length > 0) {
+                    timestampsHTML = '<div class="timestamp-container">';
+                    song.dateTimes.forEach(dt => {
+                        const vodUrl = vodMap[dt.date] || "#";
+                        const finalLink = vodUrl !== "#" ? `${vodUrl}?change_second=${timeToSeconds(dt.time)}` : "#";
+                        const cleanDate = dt.date.replace(/\(.*?\)/g, "").trim();
+
+                        let isHighlighted = false;
+                        const songDate = parseDateString(dt.date);
+
+                        if (songDate) {
+                            if (currentRecentFilter !== '전체') {
+                                const daysLimit = parseInt(currentRecentFilter, 10);
+                                const nowDateOnly = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                                const songDateOnly = new Date(songDate.getFullYear(), songDate.getMonth(), songDate.getDate());
+                                const diffDays = (nowDateOnly - songDateOnly) / (1000 * 3600 * 24);
+                                if (diffDays >= 0 && diffDays <= daysLimit) isHighlighted = true;
+                            } else if (currentMonthFilter !== '전체') {
+                                const [year, month] = currentMonthFilter.split('-').map(Number);
+                                if (
+                                    songDate.getFullYear() === year &&
+                                    songDate.getMonth() + 1 === month
+                                ) {
+                                    isHighlighted = true;
+                                }
+                            }
+                        }
+
+                        const btnClass = isHighlighted ? "timestamp-btn highlighted-date" : "timestamp-btn";
+
+                        timestampsHTML += `
+                            <a href="${finalLink}" target="_blank" rel="noopener noreferrer" class="${btnClass}" onclick="event.stopPropagation();">
+                                ${cleanDate}
+                                <svg class="timestamp-icon-svg" viewBox="0 0 24 24">
+                                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                                    <polyline points="15 3 21 3 21 9"></polyline>
+                                    <line x1="10" y1="14" x2="21" y2="3"></line>
+                                </svg>
+                            </a>
+                        `;
+                    });
+                    timestampsHTML += '</div>';
+                } else {
+                    timestampsHTML = '<div class="timestamp-container" style="padding: 10px 16px; font-size: 13px; color: #64748b;">부른 기록이 없습니다.</div>';
+                }
 
                 const safeTitle = (song.title || '').replace(/'/g, "\\'");
                 const safeArtist = (song.artist || '').replace(/'/g, "\\'");
