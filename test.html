@@ -1662,8 +1662,9 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
                     return true;
                 };
                 const hasDateFilter = currentMonthFilter !== '전체' || currentRecentFilter !== '전체';
+                // 날짜 설정이 함께 선택되면, 부른 횟수도 해당 날짜 범위 안에서만 계산합니다.
                 const playCountToCheck = hasDateFilter ? dateTimes.filter(matchesDateFilter).length : dateTimes.length;
-                if (excludeZeroCount && dateTimes.length === 0) return false;
+                if (excludeZeroCount && playCountToCheck === 0) return false;
                 if (currentCountFilter !== '전체') {
                     const countValue=Number(currentCountFilterValue);
                     if(currentCountFilterOperator==='=' && playCountToCheck!==countValue) return false;
@@ -1785,25 +1786,45 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
                         const songDate = parseDateString(dt.date);
 
                         if (songDate) {
+                            const matchesCurrentDateFilter = (date) => {
+                                if (currentMonthFilter !== '전체') {
+                                    const [year, month] = currentMonthFilter.split('-').map(Number);
+                                    return date.getFullYear() === year && date.getMonth() + 1 === month;
+                                }
+                                if (currentRecentFilter !== '전체') {
+                                    const daysLimit = parseInt(currentRecentFilter, 10);
+                                    const nowDateOnly = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                                    const songDateOnly = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+                                    const diffDays = (nowDateOnly - songDateOnly) / (1000 * 3600 * 24);
+                                    return diffDays >= 0 && diffDays <= daysLimit;
+                                }
+                                return true;
+                            };
+
+                            const songDateTimes = Array.isArray(song.dateTimes) ? song.dateTimes : [];
+                            const countScope = (currentMonthFilter !== '전체' || currentRecentFilter !== '전체')
+                                ? songDateTimes.filter(item => {
+                                    const d = parseDateString(item.date);
+                                    return d && matchesCurrentDateFilter(d);
+                                })
+                                : songDateTimes;
+                            const scopedCount = countScope.length;
+
                             if (currentCountFilter !== '전체') {
-                                const totalCount = Array.isArray(song.dateTimes) ? song.dateTimes.length : 0;
                                 const countValue = Number(currentCountFilterValue);
-                                const countMatches = currentCountFilterOperator === '>=' ? totalCount >= countValue : currentCountFilterOperator === '<=' ? totalCount <= countValue : totalCount === countValue;
-                                if (countMatches && (!excludeZeroCount || totalCount > 0)) isHighlighted = true;
-                            }
-                            if (currentRecentFilter !== '전체') {
-                                const daysLimit = parseInt(currentRecentFilter, 10);
-                                const nowDateOnly = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-                                const songDateOnly = new Date(songDate.getFullYear(), songDate.getMonth(), songDate.getDate());
-                                const diffDays = (nowDateOnly - songDateOnly) / (1000 * 3600 * 24);
-                                if (diffDays >= 0 && diffDays <= daysLimit) isHighlighted = true;
-                            } else if (currentMonthFilter !== '전체') {
-                                const [year, month] = currentMonthFilter.split('-').map(Number);
-                                if (
-                                    songDate.getFullYear() === year &&
-                                    songDate.getMonth() + 1 === month
-                                ) {
+                                const countMatches = currentCountFilterOperator === '>='
+                                    ? scopedCount >= countValue
+                                    : currentCountFilterOperator === '<='
+                                        ? scopedCount <= countValue
+                                        : scopedCount === countValue;
+                                if (countMatches && (!excludeZeroCount || scopedCount > 0) && matchesCurrentDateFilter(songDate)) {
                                     isHighlighted = true;
+                                }
+                            }
+
+                            if (currentCountFilter === '전체') {
+                                if (currentRecentFilter !== '전체' || currentMonthFilter !== '전체') {
+                                    if (matchesCurrentDateFilter(songDate)) isHighlighted = true;
                                 }
                             }
                         }
