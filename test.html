@@ -1910,10 +1910,12 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
                     const pronunciationKey = normalizeSearchText(getPronunciation(title));
                     if (titleKey.includes(keyword) || pronunciationKey.includes(keyword)) {
                         if (!seenTitles.has(titleKey)) {
-                            let rank = 3;
+                            let rank = 5;
                             if (titleKey === keyword) rank = 0;
-                            else if (titleKey.startsWith(keyword)) rank = 1;
-                            else if (pronunciationKey.startsWith(keyword)) rank = 2;
+                            else if (pronunciationKey === keyword) rank = 1;
+                            else if (titleKey.startsWith(keyword)) rank = 2;
+                            else if (pronunciationKey.startsWith(keyword)) rank = 3;
+                            else if (titleKey.includes(keyword)) rank = 4;
                             matches.push({ type: "노래", value: title, rank, sortValue: title });
                             seenTitles.add(titleKey);
                         }
@@ -1924,10 +1926,12 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
                     const artistKey = normalizeSearchText(artist);
                     const artistPronunciationKey = normalizeSearchText(getPronunciation(artist));
                     if ((artistKey.includes(keyword) || artistPronunciationKey.includes(keyword)) && !seenArtists.has(artistKey)) {
-                        let rank = 3;
+                        let rank = 5;
                         if (artistKey === keyword) rank = 0;
-                        else if (artistKey.startsWith(keyword)) rank = 1;
-                        else if (artistPronunciationKey.startsWith(keyword)) rank = 2;
+                        else if (artistPronunciationKey === keyword) rank = 1;
+                        else if (artistKey.startsWith(keyword)) rank = 2;
+                        else if (artistPronunciationKey.startsWith(keyword)) rank = 3;
+                        else if (artistKey.includes(keyword)) rank = 4;
                         matches.push({ type: "가수", value: artist, rank, sortValue: artist });
                         seenArtists.add(artistKey);
                     }
