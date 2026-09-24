@@ -132,6 +132,8 @@
         .count-filter-options{display:grid;grid-template-columns:minmax(0,1fr) minmax(92px,.72fr);gap:7px;align-items:center}
         .count-filter-options>.custom-select{min-width:0}
         .count-filter-operator-custom{min-width:0}
+        .count-filter-exclude-zero{grid-column:1 / -1;display:flex;align-items:center;gap:6px;margin-top:2px;color:#475569;font-size:12px;font-weight:600;cursor:pointer;user-select:none}
+        .count-filter-exclude-zero input{width:15px;height:15px;margin:0;accent-color:#0ea5e9;cursor:pointer}
         @media(max-width:768px){.count-filter-options{grid-template-columns:minmax(0,1fr) minmax(92px,.72fr)}}
 
         .search-clear-btn{
@@ -192,6 +194,7 @@
 <option value="<=">이하 (≤)</option>
 </select>
 <div class="custom-select count-filter-operator-custom" id="countFilterOperatorCustom"></div>
+<label class="count-filter-exclude-zero"><input type="checkbox" id="excludeZeroCountCheck"><span>0회 미포함</span></label>
 </div></div><div class="filter-section filter-date-combined-section"><h4 class="filter-section-title"><svg class="btn-icon-svg" viewBox="0 0 24 24" style="width: 14px; height: 14px;"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M7 3v4M17 3v4M3 10h18"></path></svg>날짜 설정</h4><div class="filter-options filter-date-combined-options"><div class="filter-date-choice"><span>최근 부른 기간</span><select id="recentFilterSelect" class="detail-filter-select-native" aria-hidden="true" tabindex="-1"><option value="전체">전체기간</option></select><div class="custom-select" id="recentFilterCustom"></div></div><div class="filter-date-choice"><span>월별 선택</span><select id="monthFilterSelect" class="detail-filter-select-native" aria-hidden="true" tabindex="-1"><option value="전체">전체 날짜</option></select><div class="custom-select" id="monthFilterCustom"></div></div></div></div></div><div class="modal-actions"><button class="modal-btn modal-btn-refresh" type="button" onclick="resetDetailedFilters()">초기화</button><button class="modal-btn modal-btn-close" onclick="closeFilterModal()">확인</button></div></div></div><div class="modal-overlay" id="otherGenreModal"><div class="filter-modal-box other-genre-modal-box"><div class="modal-header"><h3 class="modal-title">그 외 장르 선택</h3><button class="modal-close-btn" onclick="closeOtherGenreModal()">✕</button></div><div class="other-genre-list" id="otherGenreList"></div><div class="modal-actions"><button class="modal-btn modal-btn-refresh" onclick="closeOtherGenreModal()">닫기</button></div></div></div><div class="modal-overlay" id="recommendModal"><div class="modal-box"><div class="modal-header"><h3 class="modal-title" id="modalTitleText"><svg class="btn-icon-svg" viewBox="0 0 24 24" style="width: 18px; height: 18px;"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>
  오늘의 추천 곡
  </h3><button class="modal-close-btn" onclick="closeRecommendModal()">✕</button></div><div class="recommend-list" id="recommendListContainer"></div><div class="modal-actions"><button class="modal-btn modal-btn-refresh" onclick="generateRecommendations()"><svg class="btn-icon-svg" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
@@ -224,6 +227,7 @@
         let currentCountFilter = '전체';
         let currentCountFilterOperator = '=';
         let currentCountFilterValue = '';
+        let excludeZeroCount = false;
         let currentRecentFilter = '전체';
         let currentMonthFilter = '전체';
         let toastTimer = null;
@@ -1127,7 +1131,7 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
         function syncCustomFilterSelects(){const c=document.getElementById('countFilterSelect');if(c)renderCustomSelect('countFilterCustom','countFilterSelect',[...c.options].map(o=>({value:o.value,label:o.textContent})),c.value,v=>selectCountFilter(v));const op=document.getElementById('countFilterOperatorSelect');if(op)renderCustomSelect('countFilterOperatorCustom','countFilterOperatorSelect',[...op.options].map(o=>({value:o.value,label:o.textContent})),op.value,v=>selectCountFilterOperator(v));const r=document.getElementById('recentFilterSelect');if(r)renderCustomSelect('recentFilterCustom','recentFilterSelect',[...r.options].map(o=>({value:o.value,label:o.textContent})),r.value,v=>selectRecentFilter(v));const m=document.getElementById('monthFilterSelect');if(m)renderCustomSelect('monthFilterCustom','monthFilterSelect',[...m.options].map(o=>({value:o.value,label:o.textContent})),m.value,v=>selectMonthFilter(v))}
         function updateDateFilterAvailability(){const disabled=currentCountFilter!=='전체' && Number(currentCountFilterValue)===0;['recentFilterSelect','monthFilterSelect'].forEach(nativeId=>{const native=document.getElementById(nativeId);const custom=document.getElementById(nativeId.replace('Select','Custom'));if(native)native.disabled=disabled;if(custom){custom.dataset.disabled=disabled?'true':'false';custom.querySelector('.custom-select-trigger')?.setAttribute('aria-disabled',disabled?'true':'false');custom.classList.toggle('disabled',disabled);if(disabled){custom.classList.remove('open');document.querySelectorAll('.custom-select-menu-portal[data-owner="'+custom.id+'"]').forEach(m=>m.style.display='none')}}})}
         function getMaxSongPlayCount(){return allSongs.reduce((max,song)=>Math.max(max,Array.isArray(song.dateTimes)?song.dateTimes.length:0),0)}
-        function refreshCountFilterOptions(){const select=document.getElementById('countFilterSelect');if(select){const current=currentCountFilterValue===''?'전체':currentCountFilterValue,max=getMaxSongPlayCount(),frag=document.createDocumentFragment(),all=document.createElement('option');all.value='전체';all.textContent='전체 횟수';frag.appendChild(all);for(let i=0;i<=max;i++){const o=document.createElement('option');o.value=String(i);o.textContent=i===0?'0회 (안 불러본 곡)':`${i}회`;frag.appendChild(o)}select.replaceChildren(frag);select.value=current!=='전체'&&Number(current)<=max?current:'전체';if(select.value==='전체'&&current!=='전체')currentCountFilter='전체';if(select.value==='전체'&&current==='전체'){currentCountFilterValue=''}}const op=document.getElementById('countFilterOperatorSelect');if(op)op.value=['=','>=','<='].includes(currentCountFilterOperator)?currentCountFilterOperator:'='}
+        function refreshCountFilterOptions(){const zeroCheck=document.getElementById('excludeZeroCountCheck');if(zeroCheck)zeroCheck.checked=excludeZeroCount;const select=document.getElementById('countFilterSelect');if(select){const current=currentCountFilterValue===''?'전체':currentCountFilterValue,max=getMaxSongPlayCount(),frag=document.createDocumentFragment(),all=document.createElement('option');all.value='전체';all.textContent='전체 횟수';frag.appendChild(all);for(let i=0;i<=max;i++){const o=document.createElement('option');o.value=String(i);o.textContent=i===0?'0회 (안 불러본 곡)':`${i}회`;frag.appendChild(o)}select.replaceChildren(frag);select.value=current!=='전체'&&Number(current)<=max?current:'전체';if(select.value==='전체'&&current!=='전체')currentCountFilter='전체';if(select.value==='전체'&&current==='전체'){currentCountFilterValue=''}}const op=document.getElementById('countFilterOperatorSelect');if(op)op.value=['=','>=','<='].includes(currentCountFilterOperator)?currentCountFilterOperator:'='}
         function selectCountFilterOperator(operator){currentCountFilterOperator=['=','>=','<='].includes(operator)?operator:'=';if(currentCountFilterValue===''){currentCountFilter='전체'}else{currentCountFilter=`${currentCountFilterOperator}${currentCountFilterValue}`;if(Number(currentCountFilterValue)===0){currentRecentFilter='전체';currentMonthFilter='전체'}}refreshCountFilterOptions();refreshRecentFilterOptions();refreshMonthFilterOptions();syncCustomFilterSelects();updateDateFilterAvailability();updateFilterButtonState();updateFilteredAndSorted();renderAllSongs()}
         function selectCountFilter(countType){currentCountFilterValue=countType==='전체'?'':String(countType);currentCountFilter=countType==='전체'?'전체':`${currentCountFilterOperator}${countType}`;if(countType!=='전체'&&Number(countType)===0){currentRecentFilter='전체';currentMonthFilter='전체';showToastMessage('0회를 선택하면 날짜 설정이 초기화됩니다.')}refreshCountFilterOptions();refreshRecentFilterOptions();refreshMonthFilterOptions();syncCustomFilterSelects();updateDateFilterAvailability();updateFilterButtonState();updateFilteredAndSorted();renderAllSongs()}
         function refreshRecentFilterOptions(){const select=document.getElementById('recentFilterSelect');if(!select)return;const current=currentRecentFilter,dates=allSongs.flatMap(song=>(song.dateTimes||[]).map(dt=>parseDateString(dt.date)).filter(Boolean));const now=new Date();now.setHours(23,59,59,999);const maxSpan=dates.length?Math.max(0,Math.ceil((now-new Date(Math.min(...dates.map(d=>d.getTime()))))/86400000)):0;const periods=[7,14,30,60,90,180];if(maxSpan>=365)for(let d=365;d<=maxSpan;d+=365)periods.push(d);const unique=[...new Set(periods)],frag=document.createDocumentFragment(),all=document.createElement('option');all.value='전체';all.textContent='전체기간';frag.appendChild(all);unique.forEach(days=>{const o=document.createElement('option');o.value=String(days);o.textContent=`최근 ${days>=365?(days%365===0?`${days/365}년`:`${days}일`):`${days}일`} 이내`;frag.appendChild(o)});select.replaceChildren(frag);select.value=unique.includes(Number(current))?current:'전체';if(select.value==='전체'&&current!=='전체')currentRecentFilter='전체'}
@@ -1135,8 +1139,8 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
         function syncDetailFilterSelects(){refreshCountFilterOptions();refreshRecentFilterOptions();refreshMonthFilterOptions();syncCustomFilterSelects()}
         function selectRecentFilter(daysType){if(currentCountFilter!=='전체'&&Number(currentCountFilterValue)===0){showToastMessage('0회를 선택하면 날짜 설정을 선택할 수 없습니다.');return}currentRecentFilter=daysType||'전체';if(currentRecentFilter!=='전체')currentMonthFilter='전체';refreshRecentFilterOptions();refreshMonthFilterOptions();syncCustomFilterSelects();updateDateFilterAvailability();updateFilterButtonState();updateFilteredAndSorted();renderAllSongs()}
         function selectMonthFilter(month){if(currentCountFilter!=='전체'&&Number(currentCountFilterValue)===0){showToastMessage('0회를 선택하면 날짜 설정을 선택할 수 없습니다.');return}currentMonthFilter=month||'전체';if(currentMonthFilter!=='전체')currentRecentFilter='전체';refreshRecentFilterOptions();refreshMonthFilterOptions();syncCustomFilterSelects();updateDateFilterAvailability();updateFilterButtonState();updateFilteredAndSorted();renderAllSongs()}
-        function resetDetailedFilters(){currentCountFilter='전체';currentCountFilterOperator='=';currentCountFilterValue='';currentRecentFilter='전체';currentMonthFilter='전체';syncDetailFilterSelects();updateDateFilterAvailability();updateFilterButtonState();updateFilteredAndSorted();renderAllSongs()}
-        function updateFilterButtonState(){const filterBtn=document.getElementById('integratedFilterBtn');if(!filterBtn)return;const hasActive=currentCountFilter!=='전체'||currentRecentFilter!=='전체'||currentMonthFilter!=='전체';const iconHtml=`<svg class="filter-icon-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16l-6.5 7.2V18l-3 1v-6.8L4 5Z" fill="${hasActive?'white':'none'}" stroke="${hasActive?'white':'#0369a1'}" stroke-width="2" stroke-linejoin="round"></path></svg>`;filterBtn.classList.toggle('active-filter',hasActive);filterBtn.innerHTML=iconHtml}
+        function resetDetailedFilters(){currentCountFilter='전체';currentCountFilterOperator='=';currentCountFilterValue='';excludeZeroCount=false;currentRecentFilter='전체';currentMonthFilter='전체';syncDetailFilterSelects();updateDateFilterAvailability();updateFilterButtonState();updateFilteredAndSorted();renderAllSongs()}
+        function updateFilterButtonState(){const filterBtn=document.getElementById('integratedFilterBtn');if(!filterBtn)return;const hasActive=currentCountFilter!=='전체'||excludeZeroCount||currentRecentFilter!=='전체'||currentMonthFilter!=='전체';const iconHtml=`<svg class="filter-icon-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16l-6.5 7.2V18l-3 1v-6.8L4 5Z" fill="${hasActive?'white':'none'}" stroke="${hasActive?'white':'#0369a1'}" stroke-width="2" stroke-linejoin="round"></path></svg>`;filterBtn.classList.toggle('active-filter',hasActive);filterBtn.innerHTML=iconHtml}
 
         function setupSongTitleMarquees(container, scrollRoot = null) {
             if (window.innerWidth > 768 || !container) return;
@@ -1654,6 +1658,7 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
                 };
                 const hasDateFilter = currentMonthFilter !== '전체' || currentRecentFilter !== '전체';
                 const playCountToCheck = hasDateFilter ? dateTimes.filter(matchesDateFilter).length : dateTimes.length;
+                if (excludeZeroCount && dateTimes.length === 0) return false;
                 if (currentCountFilter !== '전체') {
                     const countValue=Number(currentCountFilterValue);
                     if(currentCountFilterOperator==='=' && playCountToCheck!==countValue) return false;
@@ -1775,6 +1780,12 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
                         const songDate = parseDateString(dt.date);
 
                         if (songDate) {
+                            if (currentCountFilter !== '전체') {
+                                const totalCount = Array.isArray(song.dateTimes) ? song.dateTimes.length : 0;
+                                const countValue = Number(currentCountFilterValue);
+                                const countMatches = currentCountFilterOperator === '>=' ? totalCount >= countValue : currentCountFilterOperator === '<=' ? totalCount <= countValue : totalCount === countValue;
+                                if (countMatches && (!excludeZeroCount || totalCount > 0)) isHighlighted = true;
+                            }
                             if (currentRecentFilter !== '전체') {
                                 const daysLimit = parseInt(currentRecentFilter, 10);
                                 const nowDateOnly = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -1958,7 +1969,19 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
         loadSongPronunciation();
         loadData();
 
-        document.addEventListener("keydown", function(event) {
+(function(){
+            const zeroCheck=document.getElementById("excludeZeroCountCheck");
+            if(zeroCheck){
+                zeroCheck.addEventListener("change",()=>{
+                    excludeZeroCount=zeroCheck.checked;
+                    updateFilterButtonState();
+                    updateFilteredAndSorted();
+                    renderAllSongs();
+                });
+            }
+        })();
+
+                document.addEventListener("keydown", function(event) {
             if (event.key === "Escape") {
                 const modal = document.getElementById("siteInfoModal");
                 if (modal && modal.classList.contains("active")) closeSiteInfoModal();
