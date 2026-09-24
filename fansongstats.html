@@ -2467,7 +2467,13 @@ function addEditDateRow(date="",time=""){
             const sources=[fansongStatsData.registeredSongs,fansongStatsData.unregisteredSongs];
             for(const list of sources){
                 const index=Array.isArray(list)?list.findIndex(song=>songIdentity(song)===songIdentity(oldSong)):-1;
-                if(index>=0){ list[index]=cloneSongForStats(newSong,normalizeSongDateTimes(list[index].dateTimes)); return; }
+                if(index>=0){
+    list[index]=cloneSongForStats(
+        newSong,
+        normalizeSongDateTimes(newSong.dateTimes)
+    );
+    return;
+}
             }
             fansongStatsData.registeredSongs.push(cloneSongForStats(newSong,[]));
         }
