@@ -1889,10 +1889,7 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
             localStorage.setItem("badabi_song_autocomplete_enabled", String(songAutocompleteEnabled));
 
             const list = document.getElementById("songAutocompleteList");
-            if (!songAutocompleteEnabled && list) {
-                list.classList.remove("active");
-                list.innerHTML = "";
-            } else if (songAutocompleteEnabled) {
+            if (list) {
                 renderSongAutocomplete();
             }
         }
@@ -1935,12 +1932,6 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
 
             const rawKeyword = String(input.value || "").trim();
             const keyword = normalizeSearchText(rawKeyword);
-
-            if (!songAutocompleteEnabled) {
-                list.innerHTML = "";
-                list.classList.remove("active");
-                return;
-            }
 
             if (!keyword) {
                 list.innerHTML = "";
@@ -1997,15 +1988,14 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
             });
 
             const limitedMatches = matches.slice(0, 8);
-            if (!limitedMatches.length) {
-                list.innerHTML = "";
-                list.classList.remove("active");
-                return;
-            }
 
             const fragment = document.createDocumentFragment();
+            // 검색어가 입력되어 있으면 자동완성 사용 여부는 항상 표시합니다.
+            // OFF 상태에서도 이 영역을 통해 다시 ON으로 바꿀 수 있어야 합니다.
             fragment.appendChild(renderSongAutocompleteToggle());
-            limitedMatches.forEach(({ type, value }) => {
+
+            if (songAutocompleteEnabled) {
+                limitedMatches.forEach(({ type, value }) => {
                 const button = document.createElement("button");
                 button.type = "button";
                 button.className = "song-autocomplete-item";
@@ -2031,8 +2021,9 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
                     renderAllSongs();
                     input.focus();
                 });
-                fragment.appendChild(button);
-            });
+                    fragment.appendChild(button);
+                });
+            }
 
             list.innerHTML = "";
             list.appendChild(fragment);
