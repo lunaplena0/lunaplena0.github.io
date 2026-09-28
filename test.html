@@ -1481,7 +1481,10 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
                 vodMap={}; fansongStatsData.vodSources.forEach(v=>{vodMap[v.date]=v.url});
                 const statsMap={}; fansongStatsData.registeredSongs.forEach(stat=>{statsMap[songIdentity(stat)]=stat.dateTimes||[]});
                 allSongs=(songListData.songs||[]).map(song=>({...song,dateTimes:statsMap[songIdentity(song)]||[]}));
-                document.getElementById("statsSummary").innerHTML=`총 노래 : <span id="animSongCount">0</span>곡`; animateNumber("animSongCount",allSongs.length); setupFilterButtons();refreshCountFilterOptions();refreshRecentFilterOptions();refreshMonthFilterOptions();syncCustomFilterSelects();updateDateFilterAvailability();updateFilterButtonState();updateFilteredAndSorted();
+                document.getElementById("statsSummary").innerHTML=`노래 <span id="animSongCount">0</span>곡 · 가수 <span id="animArtistCount">0</span>명`;
+                const uniqueArtists = new Set(allSongs.map(song => String(song?.artist || "").trim()).filter(Boolean));
+                animateNumber("animSongCount", allSongs.length);
+                animateNumber("animArtistCount", uniqueArtists.size); setupFilterButtons();refreshCountFilterOptions();refreshRecentFilterOptions();refreshMonthFilterOptions();syncCustomFilterSelects();updateDateFilterAvailability();updateFilterButtonState();updateFilteredAndSorted();
 
                 // 첫 화면의 노래 목록을 한 번만 렌더링합니다.
                 // 인증 복원과 동시에 진행되므로 인증 결과가 늦게 도착해도 중복 렌더링하지 않습니다.
