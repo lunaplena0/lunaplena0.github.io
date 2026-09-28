@@ -1990,9 +1990,6 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
             const limitedMatches = matches.slice(0, 8);
 
             const fragment = document.createDocumentFragment();
-            // 검색어가 입력되어 있으면 자동완성 사용 여부는 항상 표시합니다.
-            // OFF 상태에서도 이 영역을 통해 다시 ON으로 바꿀 수 있어야 합니다.
-            fragment.appendChild(renderSongAutocompleteToggle());
 
             if (songAutocompleteEnabled) {
                 limitedMatches.forEach(({ type, value }) => {
@@ -2024,6 +2021,10 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
                     fragment.appendChild(button);
                 });
             }
+
+            // 추천 단어 목록 아래에 자동완성 사용 여부를 표시합니다.
+            // OFF 상태에서도 이 영역을 통해 다시 ON으로 바꿀 수 있어야 합니다.
+            fragment.appendChild(renderSongAutocompleteToggle());
 
             list.innerHTML = "";
             list.appendChild(fragment);
