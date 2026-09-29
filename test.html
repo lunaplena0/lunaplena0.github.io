@@ -977,12 +977,30 @@
         function selectUnregisteredSong(song){selectedUnregisteredKey=songIdentity(song);document.getElementById("addSongTitle").value=song.title||"";document.getElementById("addSongArtist").value=song.artist||"";document.getElementById("addSongGenre").value=song.genre||"";document.getElementById("addSongLimit").value=song.limit||"";document.getElementById("addSongEtc").value=song.etc||"";showToastMessage("팬송 통계의 미등록 곡 정보를 불러왔습니다.")}
         function openSongManageModal(){
             if(!isSongAuthenticated){openSongAuthModal();return}
-            songManageModal.classList.add("active");
+            const modal=document.getElementById("songManageModal");
+            if(!modal)return;
+            // 관리 팝업을 열 때 이전에 보던 화면 상태가 남지 않도록 먼저 모두 초기화합니다.
+            modal.classList.add("active");
+            const views=modal.querySelectorAll(".song-manage-view");
+            views.forEach(el=>{
+                el.classList.remove("active");
+                el.setAttribute("aria-hidden","true");
+                el.style.display="none";
+            });
+            modal.querySelectorAll(".song-manage-nav").forEach(btn=>btn.classList.remove("active"));
+            // 관리 팝업의 최초 화면은 항상 노래 추가입니다.
             showSongManageView("add");
         }
         function closeSongManageModal(){
-            songManageModal.classList.remove("active");
-            document.querySelectorAll("#songManageModal .song-manage-view").forEach(el=>el.classList.remove("active"));
+            const modal=document.getElementById("songManageModal");
+            if(!modal)return;
+            modal.classList.remove("active");
+            modal.querySelectorAll(".song-manage-view").forEach(el=>{
+                el.classList.remove("active");
+                el.setAttribute("aria-hidden","true");
+                el.style.display="none";
+            });
+            modal.querySelectorAll(".song-manage-nav").forEach(btn=>btn.classList.remove("active"));
         }
         function showSongManageView(view){
             const targetId=view==="home"?"songManageHome":view==="json"?"songManageJson":view==="excel"?"songManageExcel":view==="artist"?"songManageArtist":view==="searchdata"?"songManageSearchData":"songAddModal";
@@ -990,18 +1008,32 @@
             const target=document.getElementById(targetId);
             if(!modal||!target)return;
             modal.classList.add("active");
-            const views=modal.querySelectorAll(".song-manage-view");
-            views.forEach(el=>{
+
+            // class뿐 아니라 display도 직접 지정해 다른 팝업의 CSS가 끼어들어도
+            // 이전 관리 화면이 남거나 엉뚱한 화면이 보이지 않도록 합니다.
+            modal.querySelectorAll(".song-manage-view").forEach(el=>{
                 const active=el===target;
                 el.classList.toggle("active",active);
                 el.setAttribute("aria-hidden",active?"false":"true");
+                el.style.display=active?"block":"none";
             });
-            modal.querySelectorAll(".song-manage-nav").forEach(btn=>btn.classList.toggle("active",btn.getAttribute("data-manage-view")===view));
+            modal.querySelectorAll(".song-manage-nav").forEach(btn=>{
+                btn.classList.toggle("active",btn.getAttribute("data-manage-view")===view);
+            });
+
             if(view==="artist")setupBulkArtistEditor();
             if(view==="searchdata"){
                 const q=document.getElementById("searchDataQuery");
                 if(q&&!q.dataset.ready){q.dataset.ready="true";q.addEventListener("input",renderSearchDataList)}
                 renderSearchDataList();
+            }
+            if(view==="add"){
+                const section=modal.querySelector("#songAddModal .song-unregistered-section");
+                if(section){
+                    section.classList.add("collapsed");
+                    const toggle=section.querySelector(".song-unregistered-header");
+                    if(toggle)toggle.setAttribute("aria-expanded","false");
+                }
             }
             requestAnimationFrame(()=>{
                 const content=modal.querySelector(".song-manage-content");
