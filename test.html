@@ -1015,7 +1015,7 @@
                 const active=el===target;
                 el.classList.toggle("active",active);
                 el.setAttribute("aria-hidden",active?"false":"true");
-                el.style.display=active?"block":"none";
+                el.style.display=active?(el.id==="songManageSearchData"?"flex":"block"):"none";
             });
             modal.querySelectorAll(".song-manage-nav").forEach(btn=>{
                 btn.classList.toggle("active",btn.getAttribute("data-manage-view")===view);
@@ -1028,7 +1028,8 @@
                 renderSearchDataList();
             }
             if(view==="add"){
-                const section=modal.querySelector("#songAddModal .song-unregistered-section");
+                renderUnregisteredSongs();
+                const section=modal.querySelector("#songManageModal #songAddModal .song-unregistered-section");
                 if(section){
                     section.classList.add("collapsed");
                     const toggle=section.querySelector(".song-unregistered-header");
