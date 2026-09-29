@@ -879,8 +879,53 @@
          function downloadCurrentJson(type){if(!isSongAuthenticated){openSongAuthModal();return}let content,filename;if(type==="songlist"){filename="songlist.json";content={notice:currentNoticeText||"",recommendationPopupEnabled:!!recommendationPopupEnabled,songs:getEditableSongContent()};}else if(type==="fansongstats"){filename="fansongstats.json";content={vodSources:Array.isArray(fansongStatsData.vodSources)?fansongStatsData.vodSources:[],registeredSongs:Array.isArray(fansongStatsData.registeredSongs)?fansongStatsData.registeredSongs:[],unregisteredSongs:Array.isArray(fansongStatsData.unregisteredSongs)?fansongStatsData.unregisteredSongs:[]};}else if(type==="songPronunciation"){filename="songPronunciation.json";content=songPronunciationMap||{};}else{return}downloadBlobFile(new Blob([JSON.stringify(content,null,2)],{type:"application/json;charset=utf-8"}),filename);showToastMessage(`${filename} 파일을 다운로드했습니다.`)}
          function downloadSongJsonBackup(){if(!isSongAuthenticated){openSongAuthModal();return}showSongManageView("json")}
          function downloadSongExcel(){if(!isSongAuthenticated){openSongAuthModal();return}showSongManageView("excel")}
-         function downloadSongExcelFile(){if(!isSongAuthenticated){openSongAuthModal();return}const songlistJson={notice:currentNoticeText||"",recommendationPopupEnabled:!!recommendationPopupEnabled,songs:getEditableSongContent()};const esc=v=>String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");let html=`<meta charset="UTF-8"><style>table{border-collapse:collapse;font-family:Arial,sans-serif}th,td{border:1px solid #cbd5e1;padding:7px 9px}td{mso-number-format:"\@"}.notice{font-weight:700;background:#f0f9ff}.meta{font-weight:700;background:#f8fafc}th{background:#e0f2fe;font-weight:700}</style><table><tbody><tr><td colspan="5" class="notice">${esc(songlistJson.notice)}</td></tr><tr><td class="meta">${esc(songlistJson.recommendationPopupEnabled)}</td><td colspan="4"></td></tr><tr><th>title</th><th>artist</th><th>genre</th><th>limit</th><th>etc</th></tr>`;songlistJson.songs.forEach(song=>{html+=`<tr><td>${esc(song.title)}</td><td>${esc(song.artist)}</td><td>${esc(song.genre)}</td><td>${esc(song.limit)}</td><td>${esc(song.etc)}</td></tr>`});html+=`</tbody></table>`;downloadBlobFile(new Blob(["\ufeff",html],{type:"application/vnd.ms-excel;charset=utf-8"}),"songlist.xls");showToastMessage("songlist.json 기준 엑셀 파일을 다운로드했습니다.")}
-         function openSongAddModal(){if(!isSongAuthenticated){openSongAuthModal();return}if(!songManageModal.classList.contains("active"))songManageModal.classList.add("active");["addSongTitle","addSongArtist","addSongGenre","addSongLimit","addSongEtc"].forEach(id=>{document.getElementById(id).value=""});selectedUnregisteredKey="";renderUnregisteredSongs();setupSongAddAutocompletes();showSongManageView("add");setTimeout(()=>document.getElementById("addSongTitle")?.focus(),50)}
+         function downloadSongExcelFile(){
+            if(!isSongAuthenticated){openSongAuthModal();return}
+            const songlistJson={notice:currentNoticeText||"",recommendationPopupEnabled:!!recommendationPopupEnabled,songs:getEditableSongContent()};
+            const xmlEscape=value=>String(value??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&apos;");
+            const cell=(ref,value,style="")=>`<c r="${ref}"${style?` s="${style}"`:""} t="inlineStr"><is><t xml:space="preserve">${xmlEscape(value)}</t></is></c>`;
+            const rows=[];
+            rows.push(`<row r="1">${cell("A1",songlistJson.notice,"1")}</row>`);
+            rows.push(`<row r="2">${cell("A2",songlistJson.recommendationPopupEnabled,"2")}</row>`);
+            rows.push(`<row r="3">${cell("A3","title","3")}${cell("B3","artist","3")}${cell("C3","genre","3")}${cell("D3","limit","3")}${cell("E3","etc","3")}</row>`);
+            songlistJson.songs.forEach((song,index)=>{
+                const r=index+4;
+                rows.push(`<row r="${r}">${cell(`A${r}`,song.title)}${cell(`B${r}`,song.artist)}${cell(`C${r}`,song.genre)}${cell(`D${r}`,song.limit)}${cell(`E${r}`,song.etc)}</row>`);
+            });
+            const sheet=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><dimension ref="A1:E${Math.max(3,songlistJson.songs.length+3)}"/><sheetViews><sheetView workbookViewId="0"/></sheetViews><sheetFormatPr defaultRowHeight="20"/><cols><col min="1" max="1" width="28" customWidth="1"/><col min="2" max="2" width="22" customWidth="1"/><col min="3" max="3" width="16" customWidth="1"/><col min="4" max="4" width="16" customWidth="1"/><col min="5" max="5" width="32" customWidth="1"/></cols><sheetData>${rows.join("")}</sheetData><mergeCells count="1"><mergeCell ref="A1:E1"/></mergeCells><autoFilter ref="A3:E${Math.max(3,songlistJson.songs.length+3)}"/></worksheet>`;
+            const styles=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="2"><font><sz val="11"/><name val="맑은 고딕"/></font><font><b/><sz val="11"/><name val="맑은 고딕"/></font></fonts><fills count="3"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="EAF6FF"/><bgColor indexed="64"/></patternFill></fill></fills><borders count="2"><border/><border><left style="thin"/><right style="thin"/><top style="thin"/><bottom style="thin"/></border></borders><cellStyleXfs count="1"><xf/></cellStyleXfs><cellXfs count="4"><xf/><xf fontId="1" fillId="2" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/><xf fontId="1" borderId="1" applyFont="1" applyBorder="1"/><xf fontId="1" fillId="2" borderId="1" applyFont="1" applyFill="1" applyBorder="1"/></cellXfs></styleSheet>`;
+            const workbook=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="songlist" sheetId="1" r:id="rId1"/></sheets></workbook>`;
+            const contentTypes=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>`;
+            const rootRels=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>`;
+            const workbookRels=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`;
+            const files=[
+                ["[Content_Types].xml",contentTypes],
+                ["_rels/.rels",rootRels],
+                ["xl/workbook.xml",workbook],
+                ["xl/_rels/workbook.xml.rels",workbookRels],
+                ["xl/worksheets/sheet1.xml",sheet],
+                ["xl/styles.xml",styles]
+            ];
+            const crcTable=(()=>{const table=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=(c&1)?(0xEDB88320^(c>>>1)):(c>>>1);table[n]=c>>>0}return table})();
+            const crc32=bytes=>{let c=0xFFFFFFFF;for(const b of bytes)c=crcTable[(c^b)&255]^(c>>>8);return (c^0xFFFFFFFF)>>>0};
+            const u16=n=>new Uint8Array([n&255,(n>>>8)&255]);
+            const u32=n=>new Uint8Array([n&255,(n>>>8)&255,(n>>>16)&255,(n>>>24)&255]);
+            const concatBytes=parts=>{let total=parts.reduce((n,p)=>n+p.length,0),out=new Uint8Array(total),pos=0;parts.forEach(p=>{out.set(p,pos);pos+=p.length});return out};
+            const encoder=new TextEncoder();
+            const zipParts=[];const central=[];let offset=0;
+            files.forEach(([name,content])=>{
+                const nameBytes=encoder.encode(name),data=encoder.encode(content),crc=crc32(data);
+                const local=concatBytes([new Uint8Array([0x50,0x4b,0x03,0x04]),u16(20),u16(0),u16(0),u16(0),u16(0),u32(crc),u32(data.length),u32(data.length),u16(nameBytes.length),u16(0),nameBytes,data]);
+                zipParts.push(local);
+                const centralEntry=concatBytes([new Uint8Array([0x50,0x4b,0x01,0x02]),u16(20),u16(20),u16(0),u16(0),u16(0),u16(0),u32(crc),u32(data.length),u32(data.length),u16(nameBytes.length),u16(0),u16(0),u16(0),u16(0),u32(0),u32(offset),nameBytes]);
+                central.push(centralEntry);offset+=local.length;
+            });
+            const centralData=concatBytes(central),end=concatBytes([new Uint8Array([0x50,0x4b,0x05,0x06]),u16(0),u16(0),u16(files.length),u16(files.length),u32(centralData.length),u32(offset),u16(0)]);
+            const xlsx=concatBytes([...zipParts,centralData,end]);
+            downloadBlobFile(new Blob([xlsx],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}),"songlist.xlsx");
+            showToastMessage("songlist.json 기준 엑셀 파일을 다운로드했습니다.");
+        }
+        function openSongAddModal(){if(!isSongAuthenticated){openSongAuthModal();return}if(!songManageModal.classList.contains("active"))songManageModal.classList.add("active");["addSongTitle","addSongArtist","addSongGenre","addSongLimit","addSongEtc"].forEach(id=>{document.getElementById(id).value=""});selectedUnregisteredKey="";renderUnregisteredSongs();setupSongAddAutocompletes();showSongManageView("add");setTimeout(()=>document.getElementById("addSongTitle")?.focus(),50)}
         function closeSongAddModal(){showSongManageView("home")}
 function addNewSong(){
             if(!isSongAuthenticated)return; const title=document.getElementById("addSongTitle").value.trim(), artist=document.getElementById("addSongArtist").value.trim(); if(!title||!artist){showToastMessage("노래 제목과 가수를 입력해주세요.");return}
