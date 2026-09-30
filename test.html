@@ -131,33 +131,45 @@
 </style>
 
 <style>
-/* PC 오른쪽 여백용 배경 일러스트 - 1254x1254 정사각형 기준 */
-@media (min-width:841px){
-    body{
-        position:relative;
+@media (min-width: 841px) {
+    body::after {
+        content: "";
+        position: fixed;
+        z-index: 0;
+
+        top: 50%;
+        right: 0;
+
+        width: min(32vw, 470px);
+        aspect-ratio: 3 / 4;
+
+        transform: translateY(-50%);
+
+        background-image: url("Background.png");
+        background-repeat: no-repeat;
+        background-position: center center;
+        background-size: contain;
+
+        opacity: 0.72;
+        pointer-events: none;
+
+        -webkit-mask-image: linear-gradient(
+            to right,
+            transparent 0%,
+            rgba(0,0,0,0.5) 15%,
+            #000 32%
+        );
+        mask-image: linear-gradient(
+            to right,
+            transparent 0%,
+            rgba(0,0,0,0.5) 15%,
+            #000 32%
+        );
     }
 
-    body::after{
-        content:"";
-        position:fixed;
-        top:0;
-        right:0;
-        bottom:0;
-        width:max(0px, calc((100vw - 840px) / 2));
-        background-image:url("Background.png");
-        background-repeat:no-repeat;
-        background-position:right 12px bottom 56px;
-        background-size:min(82%, 430px) auto;
-        opacity:.72;
-        pointer-events:none;
-        z-index:0;
-        -webkit-mask-image:linear-gradient(to right, transparent 0%, rgba(0,0,0,.18) 12%, #000 34%, #000 100%);
-        mask-image:linear-gradient(to right, transparent 0%, rgba(0,0,0,.18) 12%, #000 34%, #000 100%);
-    }
-
-    .main-container{
-        position:relative;
-        z-index:1;
+    .main-container {
+        position: relative;
+        z-index: 1;
     }
 }
 </style>
