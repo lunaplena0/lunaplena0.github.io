@@ -1304,6 +1304,8 @@ footer {
         font-size: 9px;
     }
 }
+
+.inline-edit-button{border:1px solid #bae6fd;background:#fff;color:#0369a1;border-radius:8px;padding:5px 10px;font-size:10px;font-weight:800;cursor:pointer;white-space:nowrap}.inline-edit-button:hover{background:#f0f9ff;border-color:#7dd3fc}.auth-edit-control{display:none}body.authenticated-mode .auth-edit-control{display:inline-flex}.profile-content{position:relative}.inline-editor{margin-top:12px;padding:14px;border:1px solid #dbeafe;border-radius:14px;background:#f8fbff}.inline-editor-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.inline-editor-grid label{display:flex;flex-direction:column;gap:5px;color:#0369a1;font-size:11px;font-weight:800}.inline-editor-grid .full{grid-column:1 / -1}.inline-editor-help{font-size:10px;color:#94a3b8;font-weight:500}.inline-editor-actions{display:flex;justify-content:flex-end;gap:7px;margin-top:10px}.timeline-editor-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;color:#0369a1;font-size:11px}.timeline-editor-head span{color:#94a3b8;font-weight:500}.timeline-edit-row{display:grid;grid-template-columns:28px 105px minmax(110px,1fr) minmax(120px,1.3fr) minmax(130px,1.3fr) 28px 28px;gap:6px;align-items:center;margin-bottom:6px}.timeline-edit-row .admin-input{min-width:0}.timeline-row-button{width:28px;height:32px;border:1px solid #cbd5e1;background:#fff;border-radius:8px;cursor:pointer;font-weight:900;color:#0369a1}.timeline-row-button.add{color:#059669}.timeline-row-button.remove{color:#dc2626}@media(max-width:700px){.inline-editor-grid{grid-template-columns:1fr}.inline-editor-grid .full{grid-column:auto}.timeline-editor-head{align-items:flex-start;flex-direction:column}.timeline-edit-row{grid-template-columns:24px 1fr 1fr 28px 28px}.timeline-edit-row .admin-timeline-description,.timeline-edit-row .admin-timeline-url{grid-column:2 / -1}.timeline-edit-row .timeline-row-number{grid-row:1 / span 2}.timeline-edit-row .timeline-row-button{grid-row:1}.timeline-edit-row .timeline-row-button.remove{grid-column:5}}
 </style>
 </head>
 
@@ -1384,6 +1386,19 @@ footer {
 
                     </div>
 
+                    <button type="button" class="inline-edit-button auth-edit-control" id="profileEditButton" style="display:none;">수정</button>
+
+                </div>
+
+                <div class="inline-editor" id="profileEditor" style="display:none;">
+                    <div class="inline-editor-grid">
+                        <label>닉네임<input id="editProfileName" class="admin-input"></label>
+                        <label>프로필 메시지<input id="editProfileMessage" class="admin-input"></label>
+                        <label class="full">태그<input id="editProfileTags" class="admin-input" placeholder="쉼표로 구분"></label>
+                        <label class="full">프로필 사진<input type="file" id="editProfileImageFile" accept="image/*" class="admin-input"><span class="inline-editor-help">이미지는 GitHub에 업로드한 뒤 자동으로 프로필에 적용됩니다.</span></label>
+                    </div>
+                    <div class="inline-editor-actions"><button type="button" class="admin-action-button" id="profileEditCancel">취소</button><button type="button" class="admin-action-button primary" id="profileEditSave">저장</button></div>
+                    <div class="admin-status" id="profileEditStatus"></div>
                 </div>
 
             </section>
@@ -1497,6 +1512,7 @@ footer {
                         <span class="section-more">
                             최근 방송
                         </span>
+                        <button type="button" class="inline-edit-button auth-edit-control" id="timelineEditButton" style="display:none;">수정</button>
 
                     </div>
 
@@ -1517,6 +1533,13 @@ footer {
 
                         </div>
 
+                    </div>
+
+                    <div class="inline-editor" id="timelineEditor" style="display:none;">
+                        <div class="timeline-editor-head"><strong>타임라인 편집</strong><span>+ 버튼으로 추가하고 − 버튼으로 제거할 수 있습니다.</span></div>
+                        <div id="inlineTimelineRows"></div>
+                        <div class="inline-editor-actions"><button type="button" class="admin-action-button" id="timelineEditCancel">취소</button><button type="button" class="admin-action-button primary" id="timelineEditSave">저장</button></div>
+                        <div class="admin-status" id="timelineEditStatus"></div>
                     </div>
 
                 </section>
@@ -1560,14 +1583,7 @@ footer {
 
 
                     <div class="vod-recommend-card" id="vodRecommendCard">
-                        <div class="vod-list" id="vodRecommendList">
-                            <a href="#" class="vod-item" target="_blank" rel="noopener"><span class="vod-number">01</span><span class="vod-info"><span class="vod-title">오늘 방송 다시보기</span><span class="vod-date">2026.10.01 방송</span></span><span class="vod-arrow">→</span></a>
-                            <a href="#" class="vod-item" target="_blank" rel="noopener"><span class="vod-number">02</span><span class="vod-info"><span class="vod-title">노래 방송 다시보기</span><span class="vod-date">2026.09.30 방송</span></span><span class="vod-arrow">→</span></a>
-                            <a href="#" class="vod-item" target="_blank" rel="noopener"><span class="vod-number">03</span><span class="vod-info"><span class="vod-title">소통 방송 다시보기</span><span class="vod-date">2026.09.29 방송</span></span><span class="vod-arrow">→</span></a>
-                            <a href="#" class="vod-item" target="_blank" rel="noopener"><span class="vod-number">04</span><span class="vod-info"><span class="vod-title">신청곡 방송 다시보기</span><span class="vod-date">2026.09.28 방송</span></span><span class="vod-arrow">→</span></a>
-                            <a href="#" class="vod-item" target="_blank" rel="noopener"><span class="vod-number">05</span><span class="vod-info"><span class="vod-title">기타연주 방송 다시보기</span><span class="vod-date">2026.09.27 방송</span></span><span class="vod-arrow">→</span></a>
-                            <a href="#" class="vod-item" target="_blank" rel="noopener"><span class="vod-number">06</span><span class="vod-info"><span class="vod-title">주말 방송 다시보기</span><span class="vod-date">2026.09.26 방송</span></span><span class="vod-arrow">→</span></a>
-                        </div>
+                        <div class="vod-list" id="vodRecommendList"></div>
                     </div>
 
                 </section>
@@ -1602,178 +1618,7 @@ footer {
 
                     <div class="song-recommend-card">
 
-                        <div class="song-recommend-list">
-
-
-                            <a
-                                href="#"
-                                class="song-recommend-item"
-                            >
-
-                                <span class="song-number">
-                                    01
-                                </span>
-
-                                <span class="song-info">
-
-                                    <span class="song-title">
-                                        Love wins all
-                                    </span>
-
-                                    <span class="song-artist">
-                                        아이유 (IU)
-                                    </span>
-
-                                </span>
-
-                                <span class="song-arrow">
-                                    →
-                                </span>
-
-                            </a>
-
-
-                            <a
-                                href="#"
-                                class="song-recommend-item"
-                            >
-
-                                <span class="song-number">
-                                    02
-                                </span>
-
-                                <span class="song-info">
-
-                                    <span class="song-title">
-                                        Everything
-                                    </span>
-
-                                    <span class="song-artist">
-                                        검정치마
-                                    </span>
-
-                                </span>
-
-                                <span class="song-arrow">
-                                    →
-                                </span>
-
-                            </a>
-
-
-                            <a
-                                href="#"
-                                class="song-recommend-item"
-                            >
-
-                                <span class="song-number">
-                                    03
-                                </span>
-
-                                <span class="song-info">
-
-                                    <span class="song-title">
-                                        밤양갱
-                                    </span>
-
-                                    <span class="song-artist">
-                                        비비 (BIBI)
-                                    </span>
-
-                                </span>
-
-                                <span class="song-arrow">
-                                    →
-                                </span>
-
-                            </a>
-
-
-                            <a
-                                href="#"
-                                class="song-recommend-item"
-                            >
-
-                                <span class="song-number">
-                                    04
-                                </span>
-
-                                <span class="song-info">
-
-                                    <span class="song-title">
-                                        홀씨
-                                    </span>
-
-                                    <span class="song-artist">
-                                        아이유 (IU)
-                                    </span>
-
-                                </span>
-
-                                <span class="song-arrow">
-                                    →
-                                </span>
-
-                            </a>
-
-
-                            <a
-                                href="#"
-                                class="song-recommend-item"
-                            >
-
-                                <span class="song-number">
-                                    05
-                                </span>
-
-                                <span class="song-info">
-
-                                    <span class="song-title">
-                                        Love Lee
-                                    </span>
-
-                                    <span class="song-artist">
-                                        AKMU
-                                    </span>
-
-                                </span>
-
-                                <span class="song-arrow">
-                                    →
-                                </span>
-
-                            </a>
-
-
-                            <a
-                                href="#"
-                                class="song-recommend-item"
-                            >
-
-                                <span class="song-number">
-                                    06
-                                </span>
-
-                                <span class="song-info">
-
-                                    <span class="song-title">
-                                        Ditto
-                                    </span>
-
-                                    <span class="song-artist">
-                                        NewJeans
-                                    </span>
-
-                                </span>
-
-                                <span class="song-arrow">
-                                    →
-                                </span>
-
-                            </a>
-
-
-                        </div>
+                        <div class="song-recommend-list"></div>
 
                     </div>
 
@@ -1788,7 +1633,7 @@ footer {
 
 
 
-    <!-- 관리자 로그인 / 편집 -->
+    <!-- 관리자 로그인 -->
     <div class="admin-modal" id="adminModal" aria-hidden="true">
         <div class="admin-panel" role="dialog" aria-modal="true" aria-labelledby="adminPanelTitle">
             <div class="admin-panel-header">
@@ -1796,21 +1641,11 @@ footer {
                 <button type="button" class="admin-close" id="adminCloseButton" aria-label="닫기">×</button>
             </div>
             <div id="adminLoginView" class="admin-login-body">
-                <p>노래책과 동일한 관리자 로그인 방식을 사용합니다. 비밀번호는 저장하지 않고 로그인 세션만 유지합니다.</p>
+                <p>로그인 상태는 브라우저에 보안 세션 토큰으로 유지됩니다.</p>
                 <input type="password" id="adminPassword" class="admin-input" autocomplete="current-password" placeholder="관리자 비밀번호">
                 <div id="adminTurnstile" class="admin-turnstile"></div>
                 <div class="admin-login-actions"><button type="button" class="admin-action-button primary" id="adminLoginButton">로그인</button></div>
                 <div class="admin-status" id="adminLoginStatus"></div>
-            </div>
-            <div id="adminEditorView" class="admin-editor-body" style="display:none;">
-                <div class="admin-section"><h3>프로필</h3><div class="admin-row"><span class="admin-row-number">01</span><input class="admin-input" id="adminProfileName" placeholder="프로필 닉네임"><input class="admin-input" id="adminProfileMessage" placeholder="프로필 메시지"><input class="admin-input" id="adminProfileImage" placeholder="프로필 사진 URL"></div><div class="admin-row" style="grid-template-columns:25px minmax(0,1fr);"><span class="admin-row-number">02</span><input class="admin-input" id="adminProfileTags" placeholder="태그 (쉼표로 구분)"></div></div>
-                <div class="admin-section"><h3>방송 타임라인</h3><div id="adminTimelineRows"></div></div>
-                <div class="admin-editor-actions">
-                    <button type="button" class="admin-action-button danger" id="adminLogoutButton">로그아웃</button>
-                    <button type="button" class="admin-action-button" id="adminCancelButton">닫기</button>
-                    <button type="button" class="admin-action-button primary" id="adminSaveButton">저장</button>
-                </div>
-                <div class="admin-status" id="adminEditorStatus"></div>
             </div>
         </div>
     </div>
@@ -1870,7 +1705,7 @@ footer {
 
 
 /* ============================================================
-   관리자 로그인 / 아카이브 편집
+   관리자 로그인 / fanstartpage 편집
 ============================================================ */
 const ADMIN_WORKER_URL = "https://badabi-api.dalkkumli054.workers.dev/";
 const ADMIN_TURNSTILE_SITE_KEY = "0x4AAAAAAEbQ0YWNiL_WiyKR";
@@ -1879,74 +1714,46 @@ let adminUserRole = "";
 let adminTurnstileToken = "";
 let adminTurnstileWidgetId = null;
 let isAdminAuthenticated = false;
-
 const FANSTARTPAGE_URL = ADMIN_WORKER_URL + "?type=fanstartpage&t=";
-let fanStartPageData = {
-    profileNickname: "",
-    profileMessage: "",
-    profileImage: "",
-    tags: [],
-    timeline: []
-};
-
+const FANVODLIST_URL = ADMIN_WORKER_URL + "?type=fanvodlist&t=";
+let fanStartPageData = {profileNickname:"",profileMessage:"",profileImage:"",tags:[],timeline:[]};
 function adminEsc(v){const d=document.createElement("div");d.textContent=String(v??"");return d.innerHTML;}
-function updateAdminButton(){const b=document.getElementById("adminButton");if(!b)return;b.classList.toggle("authenticated",isAdminAuthenticated);b.textContent=isAdminAuthenticated?"관리":"관리자";}
-function adminOpenModal(){const m=document.getElementById("adminModal");if(!m)return;m.classList.add("active");m.setAttribute("aria-hidden","false");isAdminAuthenticated?showAdminEditor():showAdminLogin();}
+function updateAdminButton(){const b=document.getElementById("adminButton");if(!b)return;b.classList.toggle("authenticated",isAdminAuthenticated);b.textContent=isAdminAuthenticated?"관리 중":"관리자";document.querySelectorAll(".auth-edit-control").forEach(x=>x.style.display=isAdminAuthenticated?"inline-flex":"none");}
+function adminOpenModal(){if(isAdminAuthenticated){updateAdminButton();return;}const m=document.getElementById("adminModal");if(!m)return;m.classList.add("active");m.setAttribute("aria-hidden","false");renderAdminTurnstile();}
 function adminCloseModal(){const m=document.getElementById("adminModal");if(!m)return;m.classList.remove("active");m.setAttribute("aria-hidden","true");}
-function showAdminLogin(){document.getElementById("adminPanelTitle").textContent="관리자 로그인";document.getElementById("adminLoginView").style.display="block";document.getElementById("adminEditorView").style.display="none";document.getElementById("adminLoginStatus").textContent="";setTimeout(renderAdminTurnstile,0);}
-function showAdminEditor(){document.getElementById("adminPanelTitle").textContent="팬 아카이브 관리";document.getElementById("adminLoginView").style.display="none";document.getElementById("adminEditorView").style.display="block";renderAdminEditor();updateAdminButton();}
 function loadTurnstileScript(){if(window.turnstile)return Promise.resolve();if(window.__badabiTurnstilePromise)return window.__badabiTurnstilePromise;window.__badabiTurnstilePromise=new Promise((resolve,reject)=>{const e=document.querySelector('script[data-badabi-turnstile="1"]');if(e){e.addEventListener("load",resolve,{once:true});e.addEventListener("error",reject,{once:true});return;}const s=document.createElement("script");s.src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";s.async=true;s.defer=true;s.dataset.badabiTurnstile="1";s.onload=resolve;s.onerror=reject;document.head.appendChild(s);});return window.__badabiTurnstilePromise;}
 function resetAdminTurnstile(){adminTurnstileToken="";if(window.turnstile&&adminTurnstileWidgetId!==null){try{window.turnstile.reset(adminTurnstileWidgetId);}catch(_){}}}
-async function renderAdminTurnstile(){const c=document.getElementById("adminTurnstile");if(!c||document.getElementById("adminLoginView").style.display==="none")return;try{await loadTurnstileScript();if(!window.turnstile)return;if(adminTurnstileWidgetId!==null){try{window.turnstile.remove(adminTurnstileWidgetId);}catch(_){}}c.innerHTML="";adminTurnstileWidgetId=window.turnstile.render(c,{sitekey:ADMIN_TURNSTILE_SITE_KEY,callback:t=>adminTurnstileToken=t||"","expired-callback":resetAdminTurnstile,"timeout-callback":resetAdminTurnstile,theme:"auto"});}catch(e){console.error("Turnstile 렌더링 실패:",e);}}
+async function renderAdminTurnstile(){const c=document.getElementById("adminTurnstile");if(!c)return;try{await loadTurnstileScript();if(!window.turnstile)return;if(adminTurnstileWidgetId!==null){try{window.turnstile.remove(adminTurnstileWidgetId);}catch(_){}}c.innerHTML="";adminTurnstileWidgetId=window.turnstile.render(c,{sitekey:ADMIN_TURNSTILE_SITE_KEY,callback:t=>adminTurnstileToken=t||"","expired-callback":resetAdminTurnstile,"timeout-callback":resetAdminTurnstile,theme:"auto"});}catch(e){console.error("Turnstile 렌더링 실패:",e);}}
 function rateLimitId(){let id=localStorage.getItem("badabi_rate_limit_id")||"";if(id)return id;const b=new Uint8Array(32);crypto.getRandomValues(b);id=Array.from(b,x=>x.toString(16).padStart(2,"0")).join("");localStorage.setItem("badabi_rate_limit_id",id);return id;}
-async function adminLogin(){const input=document.getElementById("adminPassword"),status=document.getElementById("adminLoginStatus"),password=input?.value||"";if(!password){status.textContent="비밀번호를 입력해주세요.";status.style.color="#ef4444";return;}if(!adminTurnstileToken){status.textContent="보안 인증을 완료해주세요.";status.style.color="#ef4444";return;}status.textContent="확인 중...";status.style.color="#0284c7";try{const r=await fetch(ADMIN_WORKER_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({password,turnstileToken:adminTurnstileToken,rateLimitId:rateLimitId(),action:"verify"})});const d=await r.json().catch(()=>({}));if(!r.ok||!d.success||!d.sessionToken)throw new Error(d.error||"인증 실패");adminSessionToken=d.sessionToken;adminUserRole=d.role||"";isAdminAuthenticated=true;localStorage.setItem("badabi_session",adminSessionToken);input.value="";resetAdminTurnstile();await loadFanStartPageData();showAdminEditor();}catch(e){status.textContent=e.message||"로그인에 실패했습니다. 다시 시도해주세요.";status.style.color="#ef4444";resetAdminTurnstile();if(input){input.value="";input.focus();}}}
+async function adminLogin(){const input=document.getElementById("adminPassword"),status=document.getElementById("adminLoginStatus"),password=input?.value||"";if(!password){status.textContent="비밀번호를 입력해주세요.";status.style.color="#ef4444";return;}if(!adminTurnstileToken){status.textContent="보안 인증을 완료해주세요.";status.style.color="#ef4444";return;}status.textContent="확인 중...";status.style.color="#0284c7";try{const r=await fetch(ADMIN_WORKER_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({password,turnstileToken:adminTurnstileToken,rateLimitId:rateLimitId(),action:"verify"})});const d=await r.json().catch(()=>({}));if(!r.ok||!d.success||!d.sessionToken)throw new Error(d.error||"인증 실패");adminSessionToken=d.sessionToken;adminUserRole=d.role||"";isAdminAuthenticated=true;localStorage.setItem("badabi_session",adminSessionToken);input.value="";resetAdminTurnstile();adminCloseModal();updateAdminButton();await loadFanStartPageData();await loadFanVodRecommendations();}catch(e){status.textContent=e.message||"로그인에 실패했습니다. 다시 시도해주세요.";status.style.color="#ef4444";resetAdminTurnstile();if(input){input.value="";input.focus();}}}
 async function restoreAdminAuthentication(){const token=localStorage.getItem("badabi_session")||adminSessionToken||"";if(!token){updateAdminButton();return false;}try{const r=await fetch(ADMIN_WORKER_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({sessionToken:token,action:"verify"})});const d=await r.json().catch(()=>({}));if(!r.ok||!d.success||!d.role)throw new Error();adminSessionToken=token;adminUserRole=d.role||"";isAdminAuthenticated=true;updateAdminButton();return true;}catch(_){adminSessionToken="";adminUserRole="";isAdminAuthenticated=false;localStorage.removeItem("badabi_session");updateAdminButton();return false;}}
-function logoutAdmin(){isAdminAuthenticated=false;adminSessionToken="";adminUserRole="";localStorage.removeItem("badabi_session");resetAdminTurnstile();updateAdminButton();adminCloseModal();}
-function normalizeFanStartPageData(data){
-    const source=data&&typeof data==="object"?data:{};
-    const profile=source.profile&&typeof source.profile==="object"?source.profile:{};
-    const nickname=source.profileNickname ?? source.profileName ?? profile.nickname ?? profile.name ?? "";
-    const message=source.profileMessage ?? profile.message ?? "";
-    const image=source.profileImage ?? profile.image ?? profile.imageUrl ?? "";
-    const rawTags=source.tags ?? profile.tags ?? [];
-    const tags=Array.isArray(rawTags)?rawTags.map(x=>String(x??"").trim()).filter(Boolean):String(rawTags||"").split(",").map(x=>x.trim()).filter(Boolean);
-    const timeline=Array.isArray(source.timeline)?source.timeline:[];
-    return {profileNickname:String(nickname),profileMessage:String(message),profileImage:String(image),tags,timeline:timeline.map(x=>({date:String(x?.date??""),title:String(x?.title??""),description:String(x?.description??""),url:String(x?.url??"")}))};
-}
-function renderFanStartPage(){
-    const image=document.getElementById("profileImage"),name=document.getElementById("profileName"),message=document.getElementById("profileMessage"),tags=document.getElementById("profileTags"),list=document.getElementById("timelineList");
-    if(image){image.src=fanStartPageData.profileImage||"";image.style.display=fanStartPageData.profileImage?"":"none";image.alt=fanStartPageData.profileNickname?`${fanStartPageData.profileNickname} 프로필`:"프로필";}
-    if(name)name.textContent=fanStartPageData.profileNickname;
-    if(message)message.textContent=fanStartPageData.profileMessage;
-    if(tags)tags.innerHTML=fanStartPageData.tags.map(tag=>`<span class="profile-tag">${adminEsc(tag)}</span>`).join("");
-    if(list){list.innerHTML=fanStartPageData.timeline.map(item=>{const url=/^https?:\/\//i.test(item.url)?item.url:"";const inner=`<span class="timeline-point"></span><div class="timeline-date">${adminEsc(item.date)}</div><div class="timeline-title">${adminEsc(item.title)}</div><div class="timeline-description">${adminEsc(item.description)}</div>`;return url?`<a href="${adminEsc(url)}" target="_blank" rel="noopener noreferrer" class="timeline-item" style="display:block;text-decoration:none;color:inherit;">${inner}</a>`:`<div class="timeline-item">${inner}</div>`;}).join("");}
-}
-function renderAdminEditor(){
-    document.getElementById("adminProfileName").value=fanStartPageData.profileNickname;
-    document.getElementById("adminProfileMessage").value=fanStartPageData.profileMessage;
-    document.getElementById("adminProfileImage").value=fanStartPageData.profileImage;
-    document.getElementById("adminProfileTags").value=fanStartPageData.tags.join(", ");
-    const tr=document.getElementById("adminTimelineRows");
-    const rows=fanStartPageData.timeline.length<8?[...fanStartPageData.timeline,...Array.from({length:8-fanStartPageData.timeline.length},()=>({date:"",title:"",description:"",url:""}))]:fanStartPageData.timeline;
-    if(tr)tr.innerHTML=rows.map((x,i)=>`<div class="admin-row timeline-row"><span class="admin-row-number">${String(i+1).padStart(2,"0")}</span><input class="admin-input admin-timeline-date" data-index="${i}" value="${adminEsc(x.date)}" placeholder="날짜"><input class="admin-input admin-timeline-title" data-index="${i}" value="${adminEsc(x.title)}" placeholder="제목"><input class="admin-input admin-timeline-description" data-index="${i}" value="${adminEsc(x.description)}" placeholder="설명"><input class="admin-input admin-timeline-url" data-index="${i}" value="${adminEsc(x.url)}" placeholder="링크 (선택)"></div>`).join("");
-}
-function collectFanStartPageData(){
-    const rows=Array.from(document.querySelectorAll(".admin-timeline-date")).map((el,i)=>({date:el.value.trim(),title:document.querySelector(`.admin-timeline-title[data-index="${i}"]`)?.value.trim()||"",description:document.querySelector(`.admin-timeline-description[data-index="${i}"]`)?.value.trim()||"",url:document.querySelector(`.admin-timeline-url[data-index="${i}"]`)?.value.trim()||""}));
-    return {profileNickname:document.getElementById("adminProfileName")?.value.trim()||"",profileMessage:document.getElementById("adminProfileMessage")?.value.trim()||"",profileImage:document.getElementById("adminProfileImage")?.value.trim()||"",tags:(document.getElementById("adminProfileTags")?.value||"").split(",").map(x=>x.trim()).filter(Boolean),timeline:rows};
-}
-async function loadFanStartPageData(){try{const response=await fetch(FANSTARTPAGE_URL+Date.now(),{cache:"no-store"});if(!response.ok)throw new Error(`fanstartpage 요청 실패: ${response.status}`);fanStartPageData=normalizeFanStartPageData(await response.json());renderFanStartPage();}catch(error){console.error("fanstartpage.json 불러오기 실패:",error);fanStartPageData=normalizeFanStartPageData({});renderFanStartPage();}}
-async function saveFanStartPageData(next){
-    if(!adminSessionToken||!isAdminAuthenticated)throw new Error("로그인 세션이 없습니다. 다시 로그인해주세요.");
-    const response=await fetch(ADMIN_WORKER_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({sessionToken:adminSessionToken,action:"save",fileType:"fanstartpage",content:JSON.stringify(next,null,2)})});
-    const data=await response.json().catch(()=>({}));
-    if(response.status===401){isAdminAuthenticated=false;adminSessionToken="";adminUserRole="";localStorage.removeItem("badabi_session");updateAdminButton();throw new Error("로그인 세션이 만료되었습니다. 다시 로그인해주세요.");}
-    if(!response.ok)throw new Error(data.error||"fanstartpage 서버 저장 실패");
-    fanStartPageData=normalizeFanStartPageData(next);renderFanStartPage();
-}
-async function adminSave(){const status=document.getElementById("adminEditorStatus"),button=document.getElementById("adminSaveButton"),next=collectFanStartPageData();button.disabled=true;status.textContent="저장 중...";status.style.color="#0284c7";try{await saveFanStartPageData(next);status.textContent="저장되었습니다.";status.style.color="#0284c7";}catch(e){status.textContent=e.message||"저장에 실패했습니다.";status.style.color="#ef4444";}finally{button.disabled=false;}}
-document.getElementById("adminButton")?.addEventListener("click",adminOpenModal);document.getElementById("adminCloseButton")?.addEventListener("click",adminCloseModal);document.getElementById("adminCancelButton")?.addEventListener("click",adminCloseModal);document.getElementById("adminLoginButton")?.addEventListener("click",adminLogin);document.getElementById("adminSaveButton")?.addEventListener("click",adminSave);document.getElementById("adminLogoutButton")?.addEventListener("click",logoutAdmin);document.getElementById("adminModal")?.addEventListener("click",e=>{if(e.target.id==="adminModal")adminCloseModal();});document.getElementById("adminPassword")?.addEventListener("keydown",e=>{if(e.key==="Enter")adminLogin();});
+function logoutAdmin(){isAdminAuthenticated=false;adminSessionToken="";adminUserRole="";localStorage.removeItem("badabi_session");resetAdminTurnstile();updateAdminButton();closeInlineEditors();}
+function normalizeFanStartPageData(data){const source=data&&typeof data==="object"?data:{};const profile=source.profile&&typeof source.profile==="object"?source.profile:{};const nickname=source.profileNickname??source.profileName??profile.nickname??profile.name??"";const message=source.profileMessage??profile.message??"";const image=source.profileImage??profile.image??profile.imageUrl??"";const rawTags=source.tags??profile.tags??[];const tags=Array.isArray(rawTags)?rawTags.map(x=>String(x??"").trim()).filter(Boolean):String(rawTags||"").split(",").map(x=>x.trim()).filter(Boolean);const timeline=Array.isArray(source.timeline)?source.timeline:[];return{profileNickname:String(nickname),profileMessage:String(message),profileImage:String(image),tags,timeline:timeline.map(x=>({date:String(x?.date??""),title:String(x?.title??""),description:String(x?.description??""),url:String(x?.url??"")}))};}
+function renderFanStartPage(){const image=document.getElementById("profileImage"),name=document.getElementById("profileName"),message=document.getElementById("profileMessage"),tags=document.getElementById("profileTags"),list=document.getElementById("timelineList");if(image){image.src=fanStartPageData.profileImage||"";image.style.display=fanStartPageData.profileImage?"":"none";}if(name)name.textContent=fanStartPageData.profileNickname;if(message)message.textContent=fanStartPageData.profileMessage;if(tags)tags.innerHTML=fanStartPageData.tags.map(tag=>`<span class="profile-tag">${adminEsc(tag)}</span>`).join("");if(list){list.innerHTML=fanStartPageData.timeline.filter(x=>x.date||x.title||x.description||x.url).map(item=>{const url=/^https?:\/\//i.test(item.url)?item.url:"";const inner=`<span class="timeline-point"></span><div class="timeline-date">${adminEsc(item.date)}</div><div class="timeline-title">${adminEsc(item.title)}</div><div class="timeline-description">${adminEsc(item.description)}</div>`;return url?`<a href="${adminEsc(url)}" target="_blank" rel="noopener noreferrer" class="timeline-item" style="display:block;text-decoration:none;color:inherit;">${inner}</a>`:`<div class="timeline-item">${inner}</div>`;}).join("");}}
+async function loadFanStartPageData(){try{const r=await fetch(FANSTARTPAGE_URL+Date.now(),{cache:"no-store"});if(!r.ok)throw new Error();fanStartPageData=normalizeFanStartPageData(await r.json());renderFanStartPage();}catch(e){console.error("fanstartpage.json 불러오기 실패:",e);fanStartPageData=normalizeFanStartPageData({});renderFanStartPage();}}
+async function saveFanStartPageData(next){if(!adminSessionToken||!isAdminAuthenticated)throw new Error("로그인 세션이 없습니다. 다시 로그인해주세요.");const r=await fetch(ADMIN_WORKER_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({sessionToken:adminSessionToken,action:"save",fileType:"fanstartpage",content:next})});const d=await r.json().catch(()=>({}));if(r.status===401){logoutAdmin();throw new Error("로그인 세션이 만료되었습니다. 다시 로그인해주세요.");}if(!r.ok)throw new Error(d.error||"fanstartpage 서버 저장 실패");fanStartPageData=normalizeFanStartPageData(next);renderFanStartPage();}
+async function uploadProfileImage(file){if(!file) return "";const status=document.getElementById("profileEditStatus");if(file.size>8*1024*1024)throw new Error("프로필 사진은 8MB 이하만 업로드할 수 있습니다.");const base64=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result).split(",")[1]||"");reader.onerror=reject;reader.readAsDataURL(file);});const r=await fetch(ADMIN_WORKER_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({sessionToken:adminSessionToken,action:"upload_image",filename:file.name,filedata:base64})});const d=await r.json().catch(()=>({}));if(r.status===401){logoutAdmin();throw new Error("로그인 세션이 만료되었습니다. 다시 로그인해주세요.");}if(!r.ok||!d.success||!d.url)throw new Error(d.error||"GitHub 이미지 업로드 실패");return d.url;}
+function openProfileEditor(){if(!isAdminAuthenticated)return;document.getElementById("editProfileName").value=fanStartPageData.profileNickname;document.getElementById("editProfileMessage").value=fanStartPageData.profileMessage;document.getElementById("editProfileTags").value=fanStartPageData.tags.join(", ");document.getElementById("editProfileImageFile").value="";document.getElementById("profileEditor").style.display="block";document.getElementById("profileEditStatus").textContent="";}
+function closeProfileEditor(){document.getElementById("profileEditor").style.display="none";}
+async function saveProfileEditor(){const status=document.getElementById("profileEditStatus"),file=document.getElementById("editProfileImageFile").files[0],button=document.getElementById("profileEditSave");button.disabled=true;try{status.textContent="저장 중...";let image=fanStartPageData.profileImage;if(file){status.textContent="GitHub에 이미지 업로드 중...";image=await uploadProfileImage(file);}const next={...fanStartPageData,profileNickname:document.getElementById("editProfileName").value.trim(),profileMessage:document.getElementById("editProfileMessage").value.trim(),profileImage:image,tags:document.getElementById("editProfileTags").value.split(",").map(x=>x.trim()).filter(Boolean)};await saveFanStartPageData(next);status.textContent="저장되었습니다.";setTimeout(closeProfileEditor,300);}catch(e){status.textContent=e.message||"저장 실패";status.style.color="#ef4444";}finally{button.disabled=false;}}
+function timelineRowHtml(x,i){return `<div class="timeline-edit-row"><span class="timeline-row-number">${String(i+1).padStart(2,"0")}</span><input class="admin-input admin-timeline-date" value="${adminEsc(x.date)}" placeholder="날짜"><input class="admin-input admin-timeline-title" value="${adminEsc(x.title)}" placeholder="제목"><input class="admin-input admin-timeline-description" value="${adminEsc(x.description)}" placeholder="설명"><input class="admin-input admin-timeline-url" value="${adminEsc(x.url)}" placeholder="링크 (선택)"><button type="button" class="timeline-row-button add" onclick="addTimelineRow(this)">+</button><button type="button" class="timeline-row-button remove" onclick="removeTimelineRow(this)">−</button></div>`;}
+function renderInlineTimelineEditor(){const box=document.getElementById("inlineTimelineRows");if(!box)return;const rows=fanStartPageData.timeline.length?fanStartPageData.timeline:[{date:"",title:"",description:"",url:""}];box.innerHTML=rows.map(timelineRowHtml).join("");}
+function addTimelineRow(btn){const box=document.getElementById("inlineTimelineRows"),row=btn.closest(".timeline-edit-row");const nr={date:"",title:"",description:"",url:""};row.insertAdjacentHTML("afterend",timelineRowHtml(nr,box.children.length));refreshTimelineRowNumbers();}
+function removeTimelineRow(btn){const box=document.getElementById("inlineTimelineRows");if(box.children.length<=1){box.innerHTML=timelineRowHtml({date:"",title:"",description:"",url:""},0);return;}btn.closest(".timeline-edit-row").remove();refreshTimelineRowNumbers();}
+function refreshTimelineRowNumbers(){document.querySelectorAll("#inlineTimelineRows .timeline-edit-row").forEach((r,i)=>{const n=r.querySelector(".timeline-row-number");if(n)n.textContent=String(i+1).padStart(2,"0");});}
+function openTimelineEditor(){if(!isAdminAuthenticated)return;renderInlineTimelineEditor();document.getElementById("timelineEditor").style.display="block";document.getElementById("timelineEditStatus").textContent="";}
+function closeTimelineEditor(){document.getElementById("timelineEditor").style.display="none";}
+async function saveTimelineEditor(){const status=document.getElementById("timelineEditStatus"),button=document.getElementById("timelineEditSave");button.disabled=true;try{const rows=Array.from(document.querySelectorAll("#inlineTimelineRows .timeline-edit-row")).map(r=>({date:r.querySelector(".admin-timeline-date")?.value.trim()||"",title:r.querySelector(".admin-timeline-title")?.value.trim()||"",description:r.querySelector(".admin-timeline-description")?.value.trim()||"",url:r.querySelector(".admin-timeline-url")?.value.trim()||""})).filter(x=>x.date||x.title||x.description||x.url);await saveFanStartPageData({...fanStartPageData,timeline:rows});status.textContent="저장되었습니다.";setTimeout(closeTimelineEditor,300);}catch(e){status.textContent=e.message||"저장 실패";status.style.color="#ef4444";}finally{button.disabled=false;}}
+function closeInlineEditors(){closeProfileEditor();closeTimelineEditor();}
+document.getElementById("adminButton")?.addEventListener("click",adminOpenModal);document.getElementById("adminCloseButton")?.addEventListener("click",adminCloseModal);document.getElementById("adminLoginButton")?.addEventListener("click",adminLogin);document.getElementById("adminPassword")?.addEventListener("keydown",e=>{if(e.key==="Enter")adminLogin();});document.getElementById("adminModal")?.addEventListener("click",e=>{if(e.target.id==="adminModal")adminCloseModal();});document.getElementById("profileEditButton")?.addEventListener("click",openProfileEditor);document.getElementById("profileEditCancel")?.addEventListener("click",closeProfileEditor);document.getElementById("profileEditSave")?.addEventListener("click",saveProfileEditor);document.getElementById("timelineEditButton")?.addEventListener("click",openTimelineEditor);document.getElementById("timelineEditCancel")?.addEventListener("click",closeTimelineEditor);document.getElementById("timelineEditSave")?.addEventListener("click",saveTimelineEditor);
 
-loadFanStartPageData();
+/* ============================================================
+   오늘의 VOD 추천 — fanvodlist.json 연결
+============================================================ */
+let fanVodRecommendationData=[];
+function renderFanVodRecommendations(){const list=document.getElementById("vodRecommendList");if(!list)return;list.innerHTML=fanVodRecommendationData.slice(0,6).map((v,i)=>{const title=adminEsc(v.title||"제목 없음"),date=adminEsc(v.date||"");const url=/^https?:\/\//i.test(v.url)?v.url:"#";return `<a href="${adminEsc(url)}" class="vod-item" target="_blank" rel="noopener"><span class="vod-number">${String(i+1).padStart(2,"0")}</span><span class="vod-info"><span class="vod-title">${title}</span><span class="vod-date">${date}</span></span><span class="vod-arrow">→</span></a>`;}).join("");}
+async function loadFanVodRecommendations(){try{const r=await fetch(FANVODLIST_URL+Date.now(),{cache:"no-store"});if(!r.ok)throw new Error();const data=await r.json();const vods=Array.isArray(data.vods)?data.vods:[];fanVodRecommendationData=vods.map(v=>({title:String(v.title||"").trim(),date:String(v.date||"").trim(),url:String(v.link||v.url||"").trim()})).filter(v=>v.title||v.url);renderFanVodRecommendations();}catch(e){console.error("fanvodlist.json 불러오기 실패:",e);fanVodRecommendationData=[];renderFanVodRecommendations();}}
+loadFanVodRecommendations();
 
 /* ============================================================
    오늘의 노래 추천 — fansongstats.json 연결
@@ -1962,6 +1769,7 @@ async function loadFanSongRecommendations(){try{const response=await fetch(FANSO
 function scheduleFanSongMidnightRefresh(){const now=new Date();const parts=new Intl.DateTimeFormat("en-US",{timeZone:"Asia/Seoul",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false}).formatToParts(now);const get=k=>Number(parts.find(x=>x.type===k)?.value||0);const next=new Date(now.getTime()+((24*60*60)-(get("hour")*3600+get("minute")*60+get("second")))*1000+50);setTimeout(async()=>{await loadFanSongRecommendations();scheduleFanSongMidnightRefresh();},Math.max(1000,next-now));}
 loadFanSongRecommendations();
 scheduleFanSongMidnightRefresh();
+restoreAdminAuthentication();
 
 /*
  * ============================================================
