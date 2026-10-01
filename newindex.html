@@ -1922,7 +1922,7 @@ footer {
  * ============================================================
  */
 
-const CALENDAR_DATA_URL = "fancalenar.json";
+const CALENDAR_DATA_URL = "fancalenar.json?t=";
 const CALENDAR_MIN_DATE = new Date(2026, 3, 20);
 const CALENDAR_TODAY = new Date();
 const CALENDAR_MAX_DATE = new Date(
@@ -2083,10 +2083,8 @@ function calendarRender() {
 
 async function loadCalendarData() {
     try {
-        const response = await fetch(`${CALENDAR_DATA_URL}?t=${Date.now()}`, {
-            cache: "no-store"
-        });
-
+        const timestamp = Date.now();
+        const response = await fetch(CALENDAR_DATA_URL + timestamp);
         if (!response.ok) {
             throw new Error(`달력 데이터 요청 실패: ${response.status}`);
         }
