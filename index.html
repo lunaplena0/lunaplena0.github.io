@@ -1027,6 +1027,14 @@ main {
 .admin-input:focus { border-color:#7dd3fc; box-shadow:0 0 0 3px rgba(14,165,233,.08); }
 .admin-turnstile { min-height:65px; margin-top:12px; }
 .admin-login-actions,.admin-editor-actions { display:flex; justify-content:flex-end; gap:8px; margin-top:14px; }
+.admin-modal .admin-panel{display:flex;flex-direction:column;max-height:min(88vh,900px)}
+.admin-modal .admin-login-body{overflow-y:auto;flex:1 1 auto}
+.admin-modal .admin-login-actions{margin-top:16px;padding-top:12px;border-top:1px solid #eef2f7}
+#editProfileImageFile{display:flex;align-items:center;height:42px;padding:7px 10px;line-height:1.2}
+#editProfileImageFile::file-selector-button{margin-right:10px;vertical-align:middle}
+.timeline-edit-row{grid-template-columns:28px minmax(120px,1fr) minmax(240px,3fr) 28px 28px}
+.timeline-edit-row .admin-timeline-title{min-width:0}
+
 .admin-action-button { min-height:38px; padding:0 13px; border:1px solid #dbe5ef; border-radius:9px; background:#fff; color:#475569; font-size:12px; font-weight:800; cursor:pointer; }
 .admin-action-button.primary { border-color:#0284c7; background:#0284c7; color:#fff; }
 .admin-action-button.danger { border-color:#fecaca; color:#dc2626; }
@@ -1066,7 +1074,24 @@ main {
 .timeline-editor-head span{display:none}
 .calendar-edit-modal-backdrop{position:fixed;inset:0;z-index:1200;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(15,23,42,.42);backdrop-filter:blur(6px)}
 .calendar-edit-modal-backdrop.active{display:flex}
-.calendar-edit-modal{width:min(720px,100%);max-height:88vh;display:flex;flex-direction:column;overflow:hidden;border:1px solid #e4edf5;border-radius:20px;background:#fff;box-shadow:0 20px 60px rgba(15,23,42,.18)}
+.calendar-edit-modal{width:min(760px,100%);max-height:92vh;display:flex;flex-direction:column;overflow:hidden;border:1px solid #e4edf5;border-radius:20px;background:#fff;box-shadow:0 20px 60px rgba(15,23,42,.18)}
+.calendar-edit-calendar-wrap{padding:16px;overflow:auto;min-height:0;flex:1 1 auto}
+.calendar-edit-calendar{width:100%;border-collapse:collapse;table-layout:fixed}
+.calendar-edit-calendar th{height:30px;color:#94a3b8;font-size:11px}
+.calendar-edit-calendar td{height:58px;padding:5px;vertical-align:top;border-top:1px solid #f1f5f9;cursor:pointer}
+.calendar-edit-calendar td:hover{background:#f8fcff}
+.calendar-edit-calendar td.selected{background:#f0f9ff;box-shadow:inset 0 0 0 2px #7dd3fc}
+.calendar-edit-calendar .calendar-day{display:inline-flex;width:23px;height:23px;align-items:center;justify-content:center;border-radius:7px}
+.calendar-edit-calendar td.today .calendar-day{background:#0ea5e9;color:#fff;font-weight:800}
+.calendar-edit-calendar .calendar-edit-event{display:block;margin-top:3px;padding:2px 4px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;border-radius:5px;background:#f0f9ff;color:#0284c7;font-size:9px;font-weight:700}
+.calendar-edit-selected{margin-top:12px;padding:14px;border:1px solid #dbeafe;border-radius:14px;background:#f8fbff}
+.calendar-edit-selected-title{margin:0 0 9px;color:#1e293b;font-size:13px;font-weight:800}
+.calendar-edit-selected-row{display:grid;grid-template-columns:minmax(0,1fr) 34px 34px;gap:7px;align-items:center}
+.calendar-edit-selected-row+.calendar-edit-selected-row{margin-top:7px}
+.calendar-edit-add{width:34px;height:34px;border:1px solid #bae6fd;border-radius:8px;background:#fff;color:#059669;font-weight:900;cursor:pointer}
+.calendar-edit-remove{width:34px;height:34px;border:1px solid #fecaca;border-radius:8px;background:#fff;color:#dc2626;font-weight:900;cursor:pointer}
+.calendar-edit-empty{color:#94a3b8;font-size:11px}
+
 .calendar-edit-modal-header{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid #eef2f7;flex:0 0 auto}
 .calendar-edit-modal-header h2{margin:0;color:#1e293b;font-size:16px}
 .calendar-edit-rows-wrap{flex:1 1 auto;min-height:0;overflow:auto;padding:16px}
@@ -1076,7 +1101,7 @@ main {
 .calendar-edit-row .admin-input{min-width:0}
 .calendar-edit-footer{flex:0 0 auto;padding:12px 16px;border-top:1px solid #eef2f7;background:#fff}
 .calendar-edit-footer .inline-editor-actions{width:100%!important;padding:0;display:flex;justify-content:flex-end}
-@media(max-width:600px){.calendar-edit-head,.calendar-edit-row{grid-template-columns:100px minmax(0,1fr) 30px 30px}.profile-day-count{font-size:9px}.timeline-edit-row{grid-template-columns:24px minmax(90px,1fr) minmax(120px,1.5fr) 28px 28px}}
+@media(max-width:600px){.profile-day-count{font-size:9px}.timeline-edit-row{grid-template-columns:24px minmax(90px,1fr) minmax(150px,2fr) 28px 28px}.calendar-edit-selected-row{grid-template-columns:minmax(0,1fr) 32px 32px}.calendar-edit-calendar td{height:52px;padding:3px}}
 @media(max-width:430px){.profile-day-count{font-size:8px}}
 
 /* =========================================================
@@ -1726,11 +1751,22 @@ footer {
             <h2 id="calendarEditModalTitle">월간 일정 편집</h2>
             <button type="button" class="calendar-modal-close" id="calendarEditClose" aria-label="닫기">×</button>
         </div>
-        <div class="calendar-edit-rows-wrap">
-            <div class="calendar-edit-head">
-                <span>날짜</span><span>제목</span><span></span><span></span>
+        <div class="calendar-edit-calendar-wrap">
+            <div class="month-header">
+                <div class="month-title" id="calendar-edit-month-title">2026년 10월</div>
+                <div class="month-control">
+                    <button class="month-button" type="button" id="calendar-edit-prev" aria-label="이전 달">‹</button>
+                    <button class="month-button" type="button" id="calendar-edit-next" aria-label="다음 달">›</button>
+                </div>
             </div>
-            <div id="calendarEditRows"></div>
+            <table class="calendar-edit-calendar">
+                <thead><tr><th>일</th><th>월</th><th>화</th><th>수</th><th>목</th><th>금</th><th>토</th></tr></thead>
+                <tbody id="calendarEditBody"></tbody>
+            </table>
+            <div class="calendar-edit-selected" id="calendarEditSelected">
+                <p class="calendar-edit-selected-title" id="calendarEditSelectedTitle">날짜를 선택해주세요.</p>
+                <div id="calendarEditSelectedRows"></div>
+            </div>
         </div>
         <div class="calendar-edit-footer">
             <div class="admin-status" id="calendarEditStatus"></div>
@@ -1808,69 +1844,79 @@ document.getElementById("adminButton")?.addEventListener("click",adminOpenModal)
 /* ============================================================
    월간 일정 관리자 편집 — fancalenar.json
 ============================================================ */
+let calendarEditNotes=[];
+let calendarEditDate=new Date();
+calendarEditDate=new Date(calendarEditDate.getFullYear(),calendarEditDate.getMonth(),1);
+let calendarEditSelectedKey="";
 async function saveCalendarData(nextNotes){
     if(!adminSessionToken||!isAdminAuthenticated)throw new Error("로그인 세션이 없습니다. 다시 로그인해주세요.");
-    const r=await fetch(ADMIN_WORKER_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({
-        sessionToken:adminSessionToken,action:"save",fileType:"fancalenar",content:{notes:nextNotes}
-    })});
+    const r=await fetch(ADMIN_WORKER_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({sessionToken:adminSessionToken,action:"save",fileType:"fancalenar",content:{notes:nextNotes}})});
     const d=await r.json().catch(()=>({}));
     if(r.status===401){logoutAdmin();throw new Error("로그인 세션이 만료되었습니다. 다시 로그인해주세요.");}
     if(!r.ok)throw new Error(d.error||"fancalenar 서버 저장 실패");
     calendarNotes=nextNotes;
     calendarRender();
 }
-function calendarEditRowHtml(note,i){
-    return `<div class="calendar-edit-row">
-        <input class="admin-input calendar-edit-date" value="${calendarEscapeHtml(note?.date||"")}" placeholder="2026-10-01">
-        <input class="admin-input calendar-edit-title" value="${calendarEscapeHtml(note?.title||"")}" placeholder="일정 제목">
-        <button type="button" class="timeline-row-button add" onclick="addCalendarEditRow(this)">+</button>
-        <button type="button" class="timeline-row-button remove" onclick="removeCalendarEditRow(this)">−</button>
-    </div>`;
+function calendarEditRender(){
+    const body=document.getElementById("calendarEditBody"),title=document.getElementById("calendar-edit-month-title");
+    if(!body)return;
+    const y=calendarEditDate.getFullYear(),m=calendarEditDate.getMonth(),first=new Date(y,m,1),last=new Date(y,m+1,0).getDate(),offset=first.getDay();
+    title.textContent=`${y}년 ${m+1}월`;
+    let html="",day=1;
+    for(let w=0;w<6;w++){
+        html+="<tr>";
+        for(let wd=0;wd<7;wd++){
+            const idx=w*7+wd;
+            if(idx<offset||day>last){html+="<td></td>";continue;}
+            const key=calendarDateKey(new Date(y,m,day));
+            const notes=calendarEditNotes.filter(n=>String(n.date||"")===key);
+            const today=new Date();today.setHours(0,0,0,0);
+            const cls=[calendarSameDay(new Date(y,m,day),today)?"today":"",key===calendarEditSelectedKey?"selected":""].filter(Boolean).join(" ");
+            const ev=notes.slice(0,2).map(n=>`<span class="calendar-edit-event">${calendarEscapeHtml(n.title||"일정")}</span>`).join("");
+            const count=notes.length>2?`<span class="calendar-edit-event">+${notes.length-2}개</span>`:"";
+            html+=`<td class="${cls}" data-edit-date="${key}"><span class="calendar-day">${day}</span>${ev}${count}</td>`;
+            day++;
+        }
+        html+="</tr>";if(day>last)break;
+    }
+    body.innerHTML=html;
+    body.querySelectorAll("td[data-edit-date]").forEach(td=>td.addEventListener("click",()=>calendarEditSelectDate(td.dataset.editDate)));
+    document.getElementById("calendar-edit-prev").disabled=calendarSameMonth(calendarEditDate,CALENDAR_MIN_DATE);
+    document.getElementById("calendar-edit-next").disabled=calendarSameMonth(calendarEditDate,CALENDAR_MAX_DATE);
+    calendarEditRenderSelected();
 }
-function renderCalendarEditor(){
-    const box=document.getElementById("calendarEditRows");if(!box)return;
-    const rows=calendarNotes.length?calendarNotes:[{date:"",title:""}];
-    box.innerHTML=rows.map(calendarEditRowHtml).join("");
-}
-function addCalendarEditRow(btn){
-    const box=document.getElementById("calendarEditRows"),row=btn.closest(".calendar-edit-row");
-    row.insertAdjacentHTML("afterend",calendarEditRowHtml({date:"",title:""},box.children.length));
-}
-function removeCalendarEditRow(btn){
-    const box=document.getElementById("calendarEditRows");
-    if(box.children.length<=1){box.innerHTML=calendarEditRowHtml({date:"",title:""},0);return;}
-    btn.closest(".calendar-edit-row").remove();
+function calendarEditSelectDate(key){calendarEditSelectedKey=key;calendarEditRender();}
+function calendarEditRenderSelected(){
+    const title=document.getElementById("calendarEditSelectedTitle"),box=document.getElementById("calendarEditSelectedRows");
+    if(!title||!box)return;
+    if(!calendarEditSelectedKey){title.textContent="날짜를 선택해주세요.";box.innerHTML="";return;}
+    const d=new Date(`${calendarEditSelectedKey}T00:00:00`);title.textContent=`${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일 일정`;
+    const rows=calendarEditNotes.map((n,i)=>({n,i})).filter(x=>String(x.n.date||"")===calendarEditSelectedKey);
+    if(!rows.length){box.innerHTML=`<div class="calendar-edit-selected-row"><input class="admin-input calendar-selected-title" placeholder="일정 제목"><button type="button" class="calendar-edit-add" data-action="add">+</button><button type="button" class="calendar-edit-remove" data-action="remove" disabled>−</button></div>`;}
+    else box.innerHTML=rows.map(x=>`<div class="calendar-edit-selected-row" data-index="${x.i}"><input class="admin-input calendar-selected-title" value="${calendarEscapeHtml(x.n.title||"")}" placeholder="일정 제목"><button type="button" class="calendar-edit-add" data-action="add">+</button><button type="button" class="calendar-edit-remove" data-action="remove">−</button></div>`).join("");
+    box.querySelectorAll(".calendar-edit-selected-row").forEach(row=>{
+        const idx=row.dataset.index;
+        row.querySelector(".calendar-selected-title")?.addEventListener("input",e=>{if(idx!==undefined)calendarEditNotes[Number(idx)].title=e.target.value;});
+        row.querySelector('[data-action="add"]')?.addEventListener("click",()=>{calendarEditNotes.push({date:calendarEditSelectedKey,title:""});calendarEditRender();});
+        row.querySelector('[data-action="remove"]')?.addEventListener("click",()=>{if(idx!==undefined){calendarEditNotes.splice(Number(idx),1);calendarEditRender();}});
+    });
 }
 function openCalendarEditor(){
     if(!isAdminAuthenticated)return;
-    renderCalendarEditor();
-    const modal=document.getElementById("calendarEditModal");
-    modal.classList.add("active");modal.setAttribute("aria-hidden","false");
-    document.getElementById("calendarEditStatus").textContent="";
+    calendarEditNotes=calendarNotes.map(n=>({...n}));
+    calendarEditDate=new Date(calendarCurrentDate.getFullYear(),calendarCurrentDate.getMonth(),1);
+    calendarEditSelectedKey="";
+    const modal=document.getElementById("calendarEditModal");modal.classList.add("active");modal.setAttribute("aria-hidden","false");
+    document.getElementById("calendarEditStatus").textContent="";calendarEditRender();
 }
-function closeCalendarEditor(){
-    const modal=document.getElementById("calendarEditModal");
-    modal.classList.remove("active");modal.setAttribute("aria-hidden","true");
-}
+function closeCalendarEditor(){const modal=document.getElementById("calendarEditModal");modal.classList.remove("active");modal.setAttribute("aria-hidden","true");}
 async function saveCalendarEditor(){
-    const status=document.getElementById("calendarEditStatus"),button=document.getElementById("calendarEditSave");
-    button.disabled=true;
-    try{
-        status.textContent="저장 중...";
-        const rows=Array.from(document.querySelectorAll("#calendarEditRows .calendar-edit-row")).map((r,i)=>{
-            const original=calendarNotes[i]&&typeof calendarNotes[i]==="object"?calendarNotes[i]:{};
-            return {
-                ...original,
-                date:r.querySelector(".calendar-edit-date")?.value.trim()||"",
-                title:r.querySelector(".calendar-edit-title")?.value.trim()||""
-            };
-        }).filter(x=>x.date||x.title);
-        await saveCalendarData(rows);
-        status.textContent="저장되었습니다.";
-        setTimeout(closeCalendarEditor,300);
-    }catch(e){status.textContent=e.message||"저장 실패";status.style.color="#ef4444";}
-    finally{button.disabled=false;}
+    const status=document.getElementById("calendarEditStatus"),button=document.getElementById("calendarEditSave");button.disabled=true;
+    try{status.textContent="저장 중...";const rows=calendarEditNotes.filter(x=>String(x.date||"").trim()||String(x.title||"").trim()).map(x=>({...x,date:String(x.date||"").trim(),title:String(x.title||"").trim()}));await saveCalendarData(rows);status.textContent="저장되었습니다.";setTimeout(closeCalendarEditor,300);}catch(e){status.textContent=e.message||"저장 실패";status.style.color="#ef4444";}finally{button.disabled=false;}
 }
+document.getElementById("calendar-edit-prev")?.addEventListener("click",()=>{if(calendarEditDate.getMonth()===0)calendarEditDate=new Date(calendarEditDate.getFullYear()-1,11,1);else calendarEditDate=new Date(calendarEditDate.getFullYear(),calendarEditDate.getMonth()-1,1);calendarEditRender();});
+document.getElementById("calendar-edit-next")?.addEventListener("click",()=>{if(calendarEditDate.getMonth()===11)calendarEditDate=new Date(calendarEditDate.getFullYear()+1,0,1);else calendarEditDate=new Date(calendarEditDate.getFullYear(),calendarEditDate.getMonth()+1,1);calendarEditRender();});
+
 /* ============================================================
    오늘의 VOD 추천 — fanvodlist.json 연결
 ============================================================ */
