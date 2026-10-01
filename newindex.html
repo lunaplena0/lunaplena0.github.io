@@ -550,6 +550,131 @@ main {
 }
 
 
+.calendar-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(15, 23, 42, 0.38);
+}
+
+.calendar-modal-backdrop.open {
+    display: flex;
+}
+
+.calendar-modal {
+    width: min(440px, 100%);
+    max-height: min(620px, 90vh);
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+    border-radius: 18px;
+    background: #ffffff;
+    box-shadow: 0 20px 50px rgba(15, 23, 42, 0.18);
+}
+
+.calendar-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 18px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.calendar-modal-title {
+    margin: 0;
+    color: #0f172a;
+    font-size: 16px;
+    font-weight: 800;
+}
+
+.calendar-modal-close {
+    width: 30px;
+    height: 30px;
+    border: 0;
+    border-radius: 9px;
+    background: #f8fafc;
+    color: #64748b;
+    font-size: 18px;
+    cursor: pointer;
+}
+
+.calendar-modal-list {
+    max-height: calc(min(620px, 90vh) - 70px);
+    overflow-y: auto;
+    padding: 12px;
+}
+
+.calendar-modal-item {
+    padding: 13px;
+    border: 1px solid #e2e8f0;
+    border-radius: 13px;
+    background: #f8fafc;
+}
+
+.calendar-modal-item + .calendar-modal-item {
+    margin-top: 9px;
+}
+
+.calendar-modal-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-bottom: 7px;
+}
+
+.calendar-modal-badge {
+    padding: 3px 7px;
+    border-radius: 6px;
+    background: #e0f2fe;
+    color: #0284c7;
+    font-size: 9px;
+    font-weight: 800;
+}
+
+.calendar-modal-event-title {
+    margin: 0;
+    color: #0f172a;
+    font-size: 13px;
+    font-weight: 800;
+    line-height: 1.5;
+    word-break: keep-all;
+}
+
+.calendar-modal-category {
+    margin: 6px 0 0;
+    color: #64748b;
+    font-size: 10px;
+    line-height: 1.4;
+}
+
+.calendar-modal-link {
+    display: inline-flex;
+    margin-top: 10px;
+    padding: 7px 10px;
+    border-radius: 8px;
+    background: #0ea5e9;
+    color: #ffffff;
+    font-size: 10px;
+    font-weight: 800;
+    text-decoration: none;
+}
+
+@media (max-width: 430px) {
+    .calendar-modal-backdrop {
+        padding: 12px;
+    }
+
+    .calendar-modal {
+        border-radius: 15px;
+    }
+}
+
+
+
+
 /* =========================================================
    방송 타임라인
 ========================================================= */
@@ -1857,6 +1982,17 @@ footer {
 </div>
 
 
+
+<div class="calendar-modal-backdrop" id="calendar-modal-backdrop" aria-hidden="true">
+    <div class="calendar-modal" role="dialog" aria-modal="true" aria-labelledby="calendar-modal-title">
+        <div class="calendar-modal-header">
+            <h3 class="calendar-modal-title" id="calendar-modal-title"></h3>
+            <button class="calendar-modal-close" id="calendar-modal-close" type="button" aria-label="닫기">×</button>
+        </div>
+        <div class="calendar-modal-list" id="calendar-modal-list"></div>
+    </div>
+</div>
+
 <script>
 
 /*
@@ -1915,12 +2051,22 @@ async function restoreAdminAuthentication(){const token=localStorage.getItem("ba
 function logoutAdmin(){isAdminAuthenticated=false;adminSessionToken="";adminUserRole="";localStorage.removeItem("badabi_session");resetAdminTurnstile();updateAdminButton();adminCloseModal();}
 function renderAdminEditor(){const vr=document.getElementById("adminVodRows"),sr=document.getElementById("adminSongRows"),tr=document.getElementById("adminTimelineRows");if(!vr||!sr||!tr)return;vr.innerHTML=archiveData.vods.slice(0,6).map((x,i)=>`<div class="admin-row"><span class="admin-row-number">${String(i+1).padStart(2,"0")}</span><input class="admin-input admin-vod-title" data-index="${i}" value="${adminEsc(x.title)}" placeholder="VOD 제목"><input class="admin-input admin-vod-date" data-index="${i}" value="${adminEsc(x.date)}" placeholder="날짜 / 방송"><input class="admin-input admin-vod-url" data-index="${i}" value="${adminEsc(x.url)}" placeholder="VOD 링크"></div>`).join("");sr.innerHTML=archiveData.songs.slice(0,6).map((x,i)=>`<div class="admin-row"><span class="admin-row-number">${String(i+1).padStart(2,"0")}</span><input class="admin-input admin-song-title" data-index="${i}" value="${adminEsc(x.title)}" placeholder="노래 제목"><input class="admin-input admin-song-artist" data-index="${i}" value="${adminEsc(x.artist)}" placeholder="가수"><input class="admin-input admin-song-url" data-index="${i}" value="${adminEsc(x.url)}" placeholder="노래 링크"></div>`).join("");tr.innerHTML=archiveData.timeline.slice(0,8).map((x,i)=>`<div class="admin-row timeline-row"><span class="admin-row-number">${String(i+1).padStart(2,"0")}</span><input class="admin-input admin-timeline-date" data-index="${i}" value="${adminEsc(x.date)}" placeholder="날짜"><input class="admin-input admin-timeline-title" data-index="${i}" value="${adminEsc(x.title)}" placeholder="제목"><input class="admin-input admin-timeline-description" data-index="${i}" value="${adminEsc(x.description)}" placeholder="설명"></div>`).join("");}
 function collectAdminData(){return{vods:Array.from({length:6},(_,i)=>({title:document.querySelector(`.admin-vod-title[data-index="${i}"]`)?.value.trim()||"",date:document.querySelector(`.admin-vod-date[data-index="${i}"]`)?.value.trim()||"",url:document.querySelector(`.admin-vod-url[data-index="${i}"]`)?.value.trim()||"#"})),songs:Array.from({length:6},(_,i)=>({title:document.querySelector(`.admin-song-title[data-index="${i}"]`)?.value.trim()||"",artist:document.querySelector(`.admin-song-artist[data-index="${i}"]`)?.value.trim()||"",url:document.querySelector(`.admin-song-url[data-index="${i}"]`)?.value.trim()||"#"})),timeline:Array.from({length:8},(_,i)=>({date:document.querySelector(`.admin-timeline-date[data-index="${i}"]`)?.value.trim()||"",title:document.querySelector(`.admin-timeline-title[data-index="${i}"]`)?.value.trim()||"",description:document.querySelector(`.admin-timeline-description[data-index="${i}"]`)?.value.trim()||""}))};}
-function renderArchiveData(){const v=document.getElementById("vodRecommendList");if(v)v.innerHTML=archiveData.vods.slice(0,6).map((x,i)=>`<a href="${adminEsc(x.url||"#")}" class="vod-item" target="_blank" rel="noopener"><span class="vod-number">${String(i+1).padStart(2,"0")}</span><span class="vod-info"><span class="vod-title">${adminEsc(x.title)}</span><span class="vod-date">${adminEsc(x.date)}</span></span><span class="vod-arrow">→</span></a>`).join("");const sl=document.querySelector(".song-recommend-list");if(sl)sl.innerHTML=archiveData.songs.slice(0,6).map((x,i)=>`<a href="${adminEsc(x.url||"#")}" class="song-recommend-item" target="_blank" rel="noopener"><span class="song-number">${String(i+1).padStart(2,"0")}</span><span class="song-info"><span class="song-title">${adminEsc(x.title)}</span><span class="song-artist">${adminEsc(x.artist)}</span></span><span class="song-arrow">→</span></a>`).join("");const t=document.querySelector(".timeline");if(t)t.innerHTML=archiveData.timeline.slice(0,8).map(x=>`<div class="timeline-item"><span class="timeline-point"></span><div class="timeline-date">${adminEsc(x.date)}</div><div class="timeline-title">${adminEsc(x.title)}</div><div class="timeline-description">${adminEsc(x.description)}</div></div>`).join("");}
-async function loadArchiveData(){try{const r=await fetch("fanarchive.json?t="+Date.now(),{cache:"no-store"});if(!r.ok)throw new Error();const d=await r.json();archiveData={vods:Array.isArray(d.vods)?d.vods.slice(0,6):defaultArchiveData.vods,songs:Array.isArray(d.songs)?d.songs.slice(0,6):defaultArchiveData.songs,timeline:Array.isArray(d.timeline)?d.timeline.slice(0,8):defaultArchiveData.timeline};}catch(_){archiveData=JSON.parse(JSON.stringify(defaultArchiveData));}renderArchiveData();}
-async function saveArchiveData(){if(!isAdminAuthenticated||!adminSessionToken)throw new Error("로그인 세션이 없습니다. 다시 로그인해주세요.");const r=await fetch(ADMIN_WORKER_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({sessionToken:adminSessionToken,action:"save",fileType:"fanarchive",content:collectAdminData()})});const d=await r.json().catch(()=>({}));if(r.status===401){logoutAdmin();throw new Error("로그인 세션이 만료되었습니다. 다시 로그인해주세요.");}if(!r.ok)throw new Error(d.error||"아카이브 서버 저장에 실패했습니다.");return d;}
+function renderArchiveData(){const v=document.getElementById("vodRecommendList");if(v)v.innerHTML=archiveData.vods.slice(0,6).map((x,i)=>`<a href="${adminEsc(x.url||"#")}" class="vod-item" target="_blank" rel="noopener"><span class="vod-number">${String(i+1).padStart(2,"0")}</span><span class="vod-info"><span class="vod-title">${adminEsc(x.title)}</span><span class="vod-date">${adminEsc(x.date)}</span></span><span class="vod-arrow">→</span></a>`).join("");const t=document.querySelector(".timeline");if(t)t.innerHTML=archiveData.timeline.slice(0,8).map(x=>`<div class="timeline-item"><span class="timeline-point"></span><div class="timeline-date">${adminEsc(x.date)}</div><div class="timeline-title">${adminEsc(x.title)}</div><div class="timeline-description">${adminEsc(x.description)}</div></div>`).join("");}
+async function loadArchiveData(){archiveData=JSON.parse(JSON.stringify(defaultArchiveData));renderArchiveData();}
+async function saveArchiveData(){throw new Error("아카이브 전용 저장 데이터는 사용하지 않습니다.");}
 async function adminSave(){const status=document.getElementById("adminEditorStatus"),button=document.getElementById("adminSaveButton"),next=collectAdminData();button.disabled=true;status.textContent="저장 중...";status.style.color="#0284c7";try{await saveArchiveData();archiveData=next;renderArchiveData();status.textContent="저장되었습니다.";}catch(e){status.textContent=e.message||"저장에 실패했습니다.";status.style.color="#ef4444";}finally{button.disabled=false;}}
 document.getElementById("adminButton")?.addEventListener("click",adminOpenModal);document.getElementById("adminCloseButton")?.addEventListener("click",adminCloseModal);document.getElementById("adminCancelButton")?.addEventListener("click",adminCloseModal);document.getElementById("adminLoginButton")?.addEventListener("click",adminLogin);document.getElementById("adminSaveButton")?.addEventListener("click",adminSave);document.getElementById("adminLogoutButton")?.addEventListener("click",logoutAdmin);document.getElementById("adminModal")?.addEventListener("click",e=>{if(e.target.id==="adminModal")adminCloseModal();});document.getElementById("adminPassword")?.addEventListener("keydown",e=>{if(e.key==="Enter")adminLogin();});
 loadArchiveData();
+
+/* ============================================================
+   오늘의 노래 추천 — fansongstats.json 연결
+============================================================ */
+const FANSONG_STATS_URL = ADMIN_WORKER_URL + "?type=fansongstats&t=";
+let fanSongRecommendationData = [];
+function fanSongRecommendationDateValue(value){if(!value)return 0;const date=Date.parse(String(value).trim().replace(/\./g,"-"));return Number.isFinite(date)?date:0;}
+function renderFanSongRecommendations(){const list=document.querySelector(".song-recommend-list");if(!list)return;list.innerHTML=fanSongRecommendationData.slice(0,6).map((song,index)=>{const title=adminEsc(song.title||"제목 없음"),artist=adminEsc(song.artist||"아티스트 미상");return `<a href="#" class="song-recommend-item"><span class="song-number">${String(index+1).padStart(2,"0")}</span><span class="song-info"><span class="song-title">${title}</span><span class="song-artist">${artist}</span></span><span class="song-arrow">→</span></a>`;}).join("");}
+async function loadFanSongRecommendations(){try{const response=await fetch(FANSONG_STATS_URL+Date.now(),{cache:"no-store"});if(!response.ok)throw new Error(`fansongstats 요청 실패: ${response.status}`);const data=await response.json();const registered=Array.isArray(data.registeredSongs)?data.registeredSongs:[];fanSongRecommendationData=registered.filter(song=>song&&String(song.title||"").trim()).map(song=>{const dateTimes=Array.isArray(song.dateTimes)?song.dateTimes:[];const latest=dateTimes.reduce((max,item)=>Math.max(max,fanSongRecommendationDateValue(item?.date||item?.datetime||item)),0);return {...song,__latest:latest,__count:dateTimes.length};}).sort((a,b)=>b.__latest-a.__latest||b.__count-a.__count||String(a.title).localeCompare(String(b.title),"ko")).slice(0,6);renderFanSongRecommendations();}catch(error){console.error("fansongstats.json 불러오기 실패:",error);fanSongRecommendationData=[];renderFanSongRecommendations();}}
+loadFanSongRecommendations();
 restoreAdminAuthentication();
 
 /*
@@ -1929,7 +2075,7 @@ restoreAdminAuthentication();
  * ============================================================
  */
 
-const CALENDAR_DATA_URL = "fancalenar.json?t=";
+const CALENDAR_DATA_URL = "https://badabi-api.dalkkumli054.workers.dev/?type=fancalenar&t=";
 const CALENDAR_MIN_DATE = new Date(2026, 3, 20);
 const CALENDAR_TODAY = new Date();
 const CALENDAR_MAX_DATE = new Date(
@@ -2030,39 +2176,60 @@ function calendarRender() {
             const notes = noteMap.get(key) || [];
             const isToday = calendarSameDay(cellDate, today);
             const isBeforeStart = cellDate < CALENDAR_MIN_DATE;
+            const isFuture = cellDate > today;
+            const hasNotes = notes.length > 0;
 
             let eventHtml = "";
 
             if (!isBeforeStart) {
-                if (notes.length > 0) {
-                    // 같은 날짜에 여러 기록이 있으면 첫 기록을 표시하고, 나머지는 +N으로 표시합니다.
+                if (hasNotes) {
+                    // 여러 일정이 있는 경우 날짜 옆에 전체 일정 개수를 표시합니다.
                     const firstNote = notes[0];
                     const title = firstNote.title || firstNote.type || "일정";
-                    const extraCount = notes.length - 1;
-                    const suffix = extraCount > 0 ? ` +${extraCount}` : "";
+                    const countHtml = notes.length > 1
+                        ? `<span class="calendar-count">+${notes.length}</span>`
+                        : "";
 
                     eventHtml = `
                         <span class="calendar-event" title="${calendarEscapeHtml(title)}">
-                            ${calendarEscapeHtml(title)}${suffix}
+                            ${calendarEscapeHtml(title)}
                         </span>
+                    `;
+
+                    html += `
+                        <td class="${isToday ? "today" : ""} has-calendar-notes" data-calendar-date="${key}" role="button" tabindex="0">
+                            <span class="calendar-day-wrap">
+                                <span class="calendar-day">${day}</span>
+                                ${countHtml}
+                            </span>
+                            ${eventHtml}
+                        </td>
                     `;
                 } else if (isToday) {
                     eventHtml = `
                         <span class="calendar-event">🌊 미정</span>
                     `;
-                } else {
+                } else if (!isFuture) {
                     eventHtml = `
                         <span class="calendar-event">🌊 휴방</span>
                     `;
                 }
-            }
 
-            html += `
-                <td class="${isToday ? "today" : ""}">
-                    <span class="calendar-day">${day}</span>
-                    ${eventHtml}
-                </td>
-            `;
+                if (!hasNotes) {
+                    html += `
+                        <td class="${isToday ? "today" : ""}">
+                            <span class="calendar-day">${day}</span>
+                            ${eventHtml}
+                        </td>
+                    `;
+                }
+            } else {
+                html += `
+                    <td class="${isToday ? "today" : ""}">
+                        <span class="calendar-day">${day}</span>
+                    </td>
+                `;
+            }
 
             day++;
         }
@@ -2088,6 +2255,51 @@ function calendarRender() {
     }
 }
 
+function calendarOpenModal(dateKey) {
+    const modalBackdrop = document.getElementById("calendar-modal-backdrop");
+    const modalTitle = document.getElementById("calendar-modal-title");
+    const modalList = document.getElementById("calendar-modal-list");
+    if (!modalBackdrop || !modalTitle || !modalList) return;
+
+    const notes = calendarBuildNoteMap().get(dateKey) || [];
+    if (!notes.length) return;
+
+    const date = new Date(`${dateKey}T00:00:00`);
+    modalTitle.textContent = `${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일 일정`;
+
+    modalList.innerHTML = notes.map(note => {
+        const time = note.time && note.time !== "-" ? note.time : "시간 미정";
+        const type = note.type || "일정";
+        const title = note.title || type;
+        const category = note.category && note.category !== "-" ? note.category : "";
+        const url = typeof note.url === "string" ? note.url.trim() : "";
+        const hasLink = /^https?:\/\//i.test(url);
+
+        return `
+            <div class="calendar-modal-item">
+                <div class="calendar-modal-meta">
+                    <span class="calendar-modal-badge">${calendarEscapeHtml(time)}</span>
+                    <span class="calendar-modal-badge">${calendarEscapeHtml(type)}</span>
+                </div>
+                <p class="calendar-modal-event-title">${calendarEscapeHtml(title)}</p>
+                ${category ? `<p class="calendar-modal-category">${calendarEscapeHtml(category)}</p>` : ""}
+                ${hasLink ? `<a class="calendar-modal-link" href="${calendarEscapeHtml(url)}" target="_blank" rel="noopener noreferrer">일정 링크 이동 →</a>` : ""}
+            </div>
+        `;
+    }).join("");
+
+    modalBackdrop.classList.add("open");
+    modalBackdrop.setAttribute("aria-hidden", "false");
+}
+
+function calendarCloseModal() {
+    const modalBackdrop = document.getElementById("calendar-modal-backdrop");
+    if (!modalBackdrop) return;
+
+    modalBackdrop.classList.remove("open");
+    modalBackdrop.setAttribute("aria-hidden", "true");
+}
+
 async function loadCalendarData() {
     try {
         const timestamp = Date.now();
@@ -2100,11 +2312,44 @@ async function loadCalendarData() {
         calendarNotes = Array.isArray(data.notes) ? data.notes : [];
         calendarRender();
     } catch (error) {
-        console.error("fancalenar.json 불러오기 실패:", error);
+        console.error("Cloudflare Worker에서 fancalenar 데이터 불러오기 실패:", error);
         calendarNotes = [];
         calendarRender();
     }
 }
+
+calendarBody.addEventListener("click", event => {
+    const cell = event.target.closest("td.has-calendar-notes");
+    if (!cell || !calendarBody.contains(cell)) return;
+    calendarOpenModal(cell.dataset.calendarDate);
+});
+
+calendarBody.addEventListener("keydown", event => {
+    if (event.key !== "Enter" && event.key !== " ") return;
+
+    const cell = event.target.closest("td.has-calendar-notes");
+    if (!cell || !calendarBody.contains(cell)) return;
+
+    event.preventDefault();
+    calendarOpenModal(cell.dataset.calendarDate);
+});
+
+const calendarModalBackdrop = document.getElementById("calendar-modal-backdrop");
+const calendarModalClose = document.getElementById("calendar-modal-close");
+
+if (calendarModalClose) {
+    calendarModalClose.addEventListener("click", calendarCloseModal);
+}
+
+if (calendarModalBackdrop) {
+    calendarModalBackdrop.addEventListener("click", event => {
+        if (event.target === calendarModalBackdrop) calendarCloseModal();
+    });
+}
+
+document.addEventListener("keydown", event => {
+    if (event.key === "Escape") calendarCloseModal();
+});
 
 monthButtons.forEach((button, index) => {
     button.addEventListener("click", () => {
@@ -2129,6 +2374,7 @@ monthButtons.forEach((button, index) => {
 
 calendarRender();
 loadCalendarData();
+
 
 </script>
 
