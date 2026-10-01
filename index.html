@@ -1258,7 +1258,22 @@ footer {
     }
 }
 
-.inline-edit-button{border:1px solid #bae6fd;background:#fff;color:#0369a1;border-radius:8px;padding:5px 10px;font-size:10px;font-weight:800;cursor:pointer;white-space:nowrap}.inline-edit-button:hover{background:#f0f9ff;border-color:#7dd3fc}.auth-edit-control{display:none}body.authenticated-mode .auth-edit-control{display:inline-flex}.profile-content{position:relative}
+.inline-edit-button{
+    border:1px solid #bae6fd;
+    background:#fff;
+    color:#0369a1;
+    border-radius:8px;
+    padding:6px 12px; /* 패딩을 보완하여 클릭 영역 개선 */
+    font-size:11px;
+    font-weight:800;
+    cursor:pointer;
+    white-space:nowrap;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+}
+.inline-edit-button:hover{background:#f0f9ff;border-color:#7dd3fc}
+.auth-edit-control{display:none}body.authenticated-mode .auth-edit-control{display:inline-flex}.profile-content{position:relative}
 
 /* 프로필 수정 버튼 위치 조정 (오른쪽 끝 상단) */
 .profile-card {
@@ -1266,8 +1281,18 @@ footer {
 }
 #profileEditButton {
     position: absolute;
-    top: 24px;
-    right: 24px;
+    top: 20px;
+    right: 20px;
+    z-index: 10;
+}
+
+/* 프로필 사진 파일 선택 인풋 수직 가운데 정렬 보정 */
+#editProfileImageFile {
+    display: flex;
+    align-items: center;
+    padding-top: 6px;
+    padding-bottom: 6px;
+    line-height: normal;
 }
 
 .inline-editor{
@@ -2253,43 +2278,6 @@ function calendarRender() {
     }
 
     calendarBody.innerHTML = html;
-}
-
-function calendarOpenModal(dateKey) {
-    const modalBackdrop = document.getElementById("calendar-modal-backdrop");
-    const modalTitle = document.getElementById("calendar-modal-title");
-    const modalList = document.getElementById("calendar-modal-list");
-    if (!modalBackdrop || !modalTitle || !modalList) return;
-
-    const notes = calendarBuildNoteMap().get(dateKey) || [];
-    if (!notes.length) return;
-
-    const date = new Date(`${dateKey}T00:00:00`);
-    modalTitle.textContent = `${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일 일정`;
-
-    modalList.innerHTML = notes.map(note => {
-        const time = note.time && note.time !== "-" ? note.time : "시간 미정";
-        const type = note.type || "일정";
-        const title = note.title || type;
-        const category = note.category && note.category !== "-" ? note.category : "";
-        const url = typeof note.url === "string" ? note.url.trim() : "";
-        const hasLink = /^https?:\/\//i.test(url);
-
-        return `
-            <div class="calendar-modal-item">
-                <div class="calendar-modal-meta">
-                    <span class="calendar-modal-badge">${calendarEscapeHtml(time)}</span>
-                    <span class="calendar-modal-badge">${calendarEscapeHtml(type)}</span>
-                </div>
-                <p class="calendar-modal-event-title">${calendarEscapeHtml(title)}</p>
-                ${category ? `<p class="calendar-modal-category">${calendarEscapeHtml(category)}</p>` : ""}
-                ${hasLink ? `<a class="calendar-modal-link" href="${calendarEscapeHtml(url)}" target="_blank" rel="noopener noreferrer">일정 링크 이동 →</a>` : ""}
-            </div>
-        `;
-    }).join("");
-
-    modalBackdrop.classList.add("open");
-    modalBackdrop.setAttribute("aria-hidden", "false");
 }
 
 function calendarOpenModal(dateKey) {
