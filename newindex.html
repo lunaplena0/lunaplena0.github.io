@@ -749,7 +749,6 @@ main {
 
 .timeline::-webkit-scrollbar-thumb {
     background: #cbd5e1;
-
     border-radius: 10px;
 }
 
@@ -759,7 +758,6 @@ main {
 
 .timeline-item {
     position: relative;
-
     padding-bottom: 19px;
 }
 
@@ -844,6 +842,7 @@ main {
 
 /* =========================================================
    오늘의 VOD
+   썸네일 제거 → VOD 목록
 ========================================================= */
 
 .vod-recommend-card {
@@ -860,119 +859,99 @@ main {
         0 6px 24px rgba(30, 64, 175, 0.04);
 }
 
-.vod-thumbnail {
-    position: relative;
+.vod-body {
+    padding: 12px 16px;
+}
 
-    width: 100%;
+.vod-list {
+    display: flex;
+    flex-direction: column;
+}
 
-    aspect-ratio: 16 / 9;
+.vod-item {
+    display: flex;
+    align-items: center;
+
+    gap: 12px;
+
+    min-height: 55px;
+
+    padding: 8px 4px;
+
+    border-bottom: 1px solid #f1f5f9;
+
+    transition:
+        background 0.2s ease,
+        padding 0.2s ease;
+}
+
+.vod-item:last-child {
+    border-bottom: 0;
+}
+
+.vod-item:hover {
+    padding-left: 8px;
+    padding-right: 8px;
+
+    background: #f8fcff;
+
+    border-radius: 10px;
+}
+
+.vod-number {
+    width: 25px;
+
+    flex: 0 0 25px;
+
+    color: #bae6fd;
+
+    font-size: 15px;
+    font-weight: 800;
+
+    text-align: center;
+}
+
+.vod-info {
+    min-width: 0;
+
+    flex: 1;
+}
+
+.vod-item-title {
+    display: block;
 
     overflow: hidden;
 
-    background: #e0f2fe;
-}
-
-.vod-thumbnail img {
-    width: 100%;
-    height: 100%;
-
-    display: block;
-
-    object-fit: cover;
-
-    transition: transform 0.3s ease;
-}
-
-.vod-recommend-card:hover .vod-thumbnail img {
-    transform: scale(1.025);
-}
-
-.vod-badge {
-    position: absolute;
-
-    left: 10px;
-    top: 10px;
-
-    padding: 4px 7px;
-
-    border-radius: 6px;
-
-    background: rgba(15, 23, 42, 0.72);
-    color: #ffffff;
-
-    font-size: 9px;
-    font-weight: 700;
-}
-
-.vod-play {
-    position: absolute;
-
-    left: 50%;
-    top: 50%;
-
-    transform: translate(-50%, -50%);
-
-    width: 38px;
-    height: 38px;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    border-radius: 50%;
-
-    background: rgba(255, 255, 255, 0.92);
-    color: #0284c7;
-
-    font-size: 14px;
-
-    box-shadow:
-        0 5px 18px rgba(15, 23, 42, 0.15);
-}
-
-.vod-body {
-    padding: 14px 16px;
-}
-
-.vod-label {
-    color: #0ea5e9;
-
-    font-size: 9px;
-    font-weight: 800;
-}
-
-.vod-title {
-    margin-top: 5px;
-
     color: #1e293b;
 
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 800;
+
+    white-space: nowrap;
+    text-overflow: ellipsis;
 }
 
-.vod-description {
-    margin-top: 4px;
+.vod-item-meta {
+    display: block;
+
+    margin-top: 3px;
+
+    overflow: hidden;
 
     color: #94a3b8;
 
     font-size: 10px;
-    line-height: 1.5;
+
+    white-space: nowrap;
+    text-overflow: ellipsis;
 }
 
-.vod-meta {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-
-    margin-top: 10px;
-
-    padding-top: 9px;
-
-    border-top: 1px solid #f1f5f9;
+.vod-arrow {
+    flex: 0 0 auto;
 
     color: #94a3b8;
 
-    font-size: 9px;
+    font-size: 11px;
 }
 
 
@@ -982,6 +961,7 @@ main {
 
 .song-recommend-card {
     padding: 12px 16px;
+
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -1393,10 +1373,6 @@ footer {
         gap: 17px;
     }
 
-    .vod-thumbnail {
-        aspect-ratio: 16 / 9;
-    }
-
 
     /* Footer */
 
@@ -1460,6 +1436,18 @@ footer {
         font-size: 8px;
     }
 
+    .vod-item {
+        min-height: 51px;
+    }
+
+    .vod-item-title {
+        font-size: 12px;
+    }
+
+    .vod-item-meta {
+        font-size: 9px;
+    }
+
     .song-recommend-item {
         min-height: 51px;
     }
@@ -1516,17 +1504,44 @@ footer {
             </a>
 
             <nav class="top-nav" aria-label="주요 링크">
-                <a href="https://www.sooplive.com/station/bababi" target="_blank" rel="noopener">방송국</a>
-                <a href="https://cafe.naver.com/soopbadabi" target="_blank" rel="noopener">팬카페</a>
-                <a href="https://youtube.com/channel/UCUcnsZ-VzanQT6NSMJ_JlCQ?si=kMa8AhcVNcQ6FyYE" target="_blank" rel="noopener">유튜브</a>
-                <a href="songlist.html">노래책</a>
-                <a href="vod.html">VOD정보</a>
+
+                <a
+                    href="https://www.sooplive.com/station/bababi"
+                    target="_blank"
+                    rel="noopener"
+                >
+                    방송국
+                </a>
+
+                <a
+                    href="https://cafe.naver.com/soopbadabi"
+                    target="_blank"
+                    rel="noopener"
+                >
+                    팬카페
+                </a>
+
+                <a
+                    href="https://youtube.com/channel/UCUcnsZ-VzanQT6NSMJ_JlCQ?si=kMa8AhcVNcQ6FyYE"
+                    target="_blank"
+                    rel="noopener"
+                >
+                    유튜브
+                </a>
+
+                <a href="songlist.html">
+                    노래책
+                </a>
+
+                <a href="vod.html">
+                    VOD정보
+                </a>
+
             </nav>
 
         </div>
 
     </header>
-
 
 
     <!-- =========================================================
@@ -1579,7 +1594,6 @@ footer {
             </section>
 
 
-
             <!-- =================================================
                  월간 일정 + 방송 타임라인
             ================================================== -->
@@ -1597,14 +1611,19 @@ footer {
                     <div class="section-header">
 
                         <div class="section-title-wrap">
+
                             <span class="section-dot"></span>
 
                             <h2 class="section-title">
                                 월간 일정
                             </h2>
+
                         </div>
 
-                        <span class="section-more" id="calendar-section-month">
+                        <span
+                            class="section-more"
+                            id="calendar-section-month"
+                        >
                             2026년 10월
                         </span>
 
@@ -1615,7 +1634,10 @@ footer {
 
                         <div class="month-header">
 
-                            <div class="month-title" id="calendar-month-title">
+                            <div
+                                class="month-title"
+                                id="calendar-month-title"
+                            >
                                 2026년 10월
                             </div>
 
@@ -1645,6 +1667,7 @@ footer {
                         <table class="calendar">
 
                             <thead>
+
                                 <tr>
                                     <th>일</th>
                                     <th>월</th>
@@ -1654,6 +1677,7 @@ footer {
                                     <th>금</th>
                                     <th>토</th>
                                 </tr>
+
                             </thead>
 
                             <tbody id="calendar-body">
@@ -1666,7 +1690,6 @@ footer {
                 </section>
 
 
-
                 <!-- 방송 타임라인 -->
 
                 <section
@@ -1677,6 +1700,7 @@ footer {
                     <div class="section-header">
 
                         <div class="section-title-wrap">
+
                             <span class="section-dot"></span>
 
                             <h2 class="section-title">
@@ -1702,6 +1726,7 @@ footer {
 
 
                                 <div class="timeline-item">
+
                                     <span class="timeline-point"></span>
 
                                     <div class="timeline-date">
@@ -1715,10 +1740,12 @@ footer {
                                     <div class="timeline-description">
                                         소통 & 노래 방송
                                     </div>
+
                                 </div>
 
 
                                 <div class="timeline-item">
+
                                     <span class="timeline-point"></span>
 
                                     <div class="timeline-date">
@@ -1732,10 +1759,12 @@ footer {
                                     <div class="timeline-description">
                                         노래와 함께하는 방송
                                     </div>
+
                                 </div>
 
 
                                 <div class="timeline-item">
+
                                     <span class="timeline-point"></span>
 
                                     <div class="timeline-date">
@@ -1749,10 +1778,12 @@ footer {
                                     <div class="timeline-description">
                                         팬들과 이야기하는 시간
                                     </div>
+
                                 </div>
 
 
                                 <div class="timeline-item">
+
                                     <span class="timeline-point"></span>
 
                                     <div class="timeline-date">
@@ -1766,10 +1797,12 @@ footer {
                                     <div class="timeline-description">
                                         신청곡 중심 방송
                                     </div>
+
                                 </div>
 
 
                                 <div class="timeline-item">
+
                                     <span class="timeline-point"></span>
 
                                     <div class="timeline-date">
@@ -1783,10 +1816,12 @@ footer {
                                     <div class="timeline-description">
                                         소통 및 노래 방송
                                     </div>
+
                                 </div>
 
 
                                 <div class="timeline-item">
+
                                     <span class="timeline-point"></span>
 
                                     <div class="timeline-date">
@@ -1800,10 +1835,12 @@ footer {
                                     <div class="timeline-description">
                                         기타연주 노래 및 소통
                                     </div>
+
                                 </div>
 
 
                                 <div class="timeline-item">
+
                                     <span class="timeline-point"></span>
 
                                     <div class="timeline-date">
@@ -1817,10 +1854,12 @@ footer {
                                     <div class="timeline-description">
                                         신청곡과 함께하는 방송
                                     </div>
+
                                 </div>
 
 
                                 <div class="timeline-item">
+
                                     <span class="timeline-point"></span>
 
                                     <div class="timeline-date">
@@ -1834,6 +1873,7 @@ footer {
                                     <div class="timeline-description">
                                         팬들과 이야기하는 시간
                                     </div>
+
                                 </div>
 
 
@@ -1846,7 +1886,6 @@ footer {
                 </section>
 
             </div>
-
 
 
             <!-- =================================================
@@ -1869,6 +1908,7 @@ footer {
                     <div class="section-header">
 
                         <div class="section-title-wrap">
+
                             <span class="section-dot"></span>
 
                             <h2 class="section-title">
@@ -1884,63 +1924,170 @@ footer {
                     </div>
 
 
-                    <a
-                        href="#"
-                        class="vod-recommend-card"
-                        target="_blank"
-                        rel="noopener"
-                    >
-
-                        <div class="vod-thumbnail">
-
-                            <img
-                                src="https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=1200&q=80"
-                                alt="오늘의 VOD"
-                            >
-
-                            <span class="vod-badge">
-                                📺 VOD
-                            </span>
-
-                            <span class="vod-play">
-                                ▶
-                            </span>
-
-                        </div>
-
+                    <div class="vod-recommend-card">
 
                         <div class="vod-body">
 
-                            <div class="vod-label">
-                                오늘의 추천 VOD
-                            </div>
+                            <div class="vod-list">
 
-                            <div class="vod-title">
-                                오늘 방송 다시보기
-                            </div>
 
-                            <div class="vod-description">
-                                오늘 방송에서 기억에 남았던 장면을 다시 만나보세요.
-                            </div>
+                                <a
+                                    href="#"
+                                    class="vod-item"
+                                    target="_blank"
+                                    rel="noopener"
+                                >
 
-                            <div class="vod-meta">
+                                    <span class="vod-number">
+                                        01
+                                    </span>
 
-                                <span>
-                                    2026.10.01 방송
-                                </span>
+                                    <span class="vod-info">
 
-                                <span>
-                                    VOD 보기 →
-                                </span>
+                                        <span class="vod-item-title">
+                                            오늘 방송 다시보기
+                                        </span>
+
+                                        <span class="vod-item-meta">
+                                            2026.10.01 · VOD 보기
+                                        </span>
+
+                                    </span>
+
+                                    <span class="vod-arrow">
+                                        →
+                                    </span>
+
+                                </a>
+
+
+                                <a
+                                    href="#"
+                                    class="vod-item"
+                                    target="_blank"
+                                    rel="noopener"
+                                >
+
+                                    <span class="vod-number">
+                                        02
+                                    </span>
+
+                                    <span class="vod-info">
+
+                                        <span class="vod-item-title">
+                                            어제 방송 다시보기
+                                        </span>
+
+                                        <span class="vod-item-meta">
+                                            2026.09.30 · VOD 보기
+                                        </span>
+
+                                    </span>
+
+                                    <span class="vod-arrow">
+                                        →
+                                    </span>
+
+                                </a>
+
+
+                                <a
+                                    href="#"
+                                    class="vod-item"
+                                    target="_blank"
+                                    rel="noopener"
+                                >
+
+                                    <span class="vod-number">
+                                        03
+                                    </span>
+
+                                    <span class="vod-info">
+
+                                        <span class="vod-item-title">
+                                            노래 방송 다시보기
+                                        </span>
+
+                                        <span class="vod-item-meta">
+                                            2026.09.29 · VOD 보기
+                                        </span>
+
+                                    </span>
+
+                                    <span class="vod-arrow">
+                                        →
+                                    </span>
+
+                                </a>
+
+
+                                <a
+                                    href="#"
+                                    class="vod-item"
+                                    target="_blank"
+                                    rel="noopener"
+                                >
+
+                                    <span class="vod-number">
+                                        04
+                                    </span>
+
+                                    <span class="vod-info">
+
+                                        <span class="vod-item-title">
+                                            소통 방송 다시보기
+                                        </span>
+
+                                        <span class="vod-item-meta">
+                                            2026.09.28 · VOD 보기
+                                        </span>
+
+                                    </span>
+
+                                    <span class="vod-arrow">
+                                        →
+                                    </span>
+
+                                </a>
+
+
+                                <a
+                                    href="#"
+                                    class="vod-item"
+                                    target="_blank"
+                                    rel="noopener"
+                                >
+
+                                    <span class="vod-number">
+                                        05
+                                    </span>
+
+                                    <span class="vod-info">
+
+                                        <span class="vod-item-title">
+                                            기타연주 방송 다시보기
+                                        </span>
+
+                                        <span class="vod-item-meta">
+                                            2026.09.27 · VOD 보기
+                                        </span>
+
+                                    </span>
+
+                                    <span class="vod-arrow">
+                                        →
+                                    </span>
+
+                                </a>
+
 
                             </div>
 
                         </div>
 
-                    </a>
+                    </div>
 
                 </section>
-
 
 
                 <!-- =================================================
@@ -1955,6 +2102,7 @@ footer {
                     <div class="section-header">
 
                         <div class="section-title-wrap">
+
                             <span class="section-dot"></span>
 
                             <h2 class="section-title">
@@ -2157,7 +2305,6 @@ footer {
     </main>
 
 
-
     <!-- =========================================================
          Footer
     ========================================================== -->
@@ -2171,6 +2318,7 @@ footer {
             </span>
 
             <span>
+
                 팬 제작 아카이브 · 비공식 팬사이트
 
                 <button
@@ -2180,6 +2328,7 @@ footer {
                 >
                     개인정보 처리 방침
                 </button>
+
             </span>
 
         </div>
@@ -2199,6 +2348,7 @@ footer {
     id="privacy-modal-backdrop"
     aria-hidden="true"
 >
+
     <div
         class="privacy-modal"
         role="dialog"
@@ -2232,6 +2382,7 @@ footer {
         </div>
 
     </div>
+
 </div>
 
 
@@ -2244,6 +2395,7 @@ footer {
     id="calendar-modal-backdrop"
     aria-hidden="true"
 >
+
     <div
         class="calendar-modal"
         role="dialog"
@@ -2275,6 +2427,7 @@ footer {
         ></div>
 
     </div>
+
 </div>
 
 
@@ -2303,54 +2456,82 @@ footer {
  * ============================================================
  */
 
-const CALENDAR_DATA_URL = "https://badabi-api.dalkkumli054.workers.dev/?type=fancalenar&t=";
-const CALENDAR_MIN_DATE = new Date(2026, 3, 20);
-const CALENDAR_TODAY = new Date();
+const CALENDAR_DATA_URL =
+    "https://badabi-api.dalkkumli054.workers.dev/?type=fancalenar&t=";
 
-const CALENDAR_MAX_DATE = new Date(
-    CALENDAR_TODAY.getFullYear(),
-    CALENDAR_TODAY.getMonth(),
-    1
-);
+const CALENDAR_MIN_DATE =
+    new Date(2026, 3, 20);
+
+const CALENDAR_TODAY =
+    new Date();
+
+const CALENDAR_MAX_DATE =
+    new Date(
+        CALENDAR_TODAY.getFullYear(),
+        CALENDAR_TODAY.getMonth(),
+        1
+    );
 
 let calendarNotes = [];
 
-let calendarCurrentDate = new Date(
-    Math.max(
-        CALENDAR_TODAY.getTime(),
-        CALENDAR_MIN_DATE.getTime()
-    )
-);
+let calendarCurrentDate =
+    new Date(
+        Math.max(
+            CALENDAR_TODAY.getTime(),
+            CALENDAR_MIN_DATE.getTime()
+        )
+    );
 
-calendarCurrentDate = new Date(
-    calendarCurrentDate.getFullYear(),
-    calendarCurrentDate.getMonth(),
-    1
-);
+calendarCurrentDate =
+    new Date(
+        calendarCurrentDate.getFullYear(),
+        calendarCurrentDate.getMonth(),
+        1
+    );
+
 
 const calendarBody =
-    document.getElementById("calendar-body");
+    document.getElementById(
+        "calendar-body"
+    );
 
 const calendarMonthTitle =
-    document.getElementById("calendar-month-title");
+    document.getElementById(
+        "calendar-month-title"
+    );
 
 const calendarSectionMonth =
-    document.getElementById("calendar-section-month");
+    document.getElementById(
+        "calendar-section-month"
+    );
 
 const monthButtons =
-    document.querySelectorAll(".month-button");
+    document.querySelectorAll(
+        ".month-button"
+    );
 
 
 function calendarDateKey(date) {
-    const y = date.getFullYear();
-    const m = String(date.getMonth() + 1).padStart(2, "0");
-    const d = String(date.getDate()).padStart(2, "0");
+
+    const y =
+        date.getFullYear();
+
+    const m =
+        String(
+            date.getMonth() + 1
+        ).padStart(2, "0");
+
+    const d =
+        String(
+            date.getDate()
+        ).padStart(2, "0");
 
     return `${y}-${m}-${d}`;
 }
 
 
 function calendarMonthKey(date) {
+
     return `${date.getFullYear()}-${String(
         date.getMonth() + 1
     ).padStart(2, "0")}`;
@@ -2358,20 +2539,30 @@ function calendarMonthKey(date) {
 
 
 function calendarSameDay(a, b) {
-    return calendarDateKey(a) === calendarDateKey(b);
+
+    return (
+        calendarDateKey(a) ===
+        calendarDateKey(b)
+    );
 }
 
 
 function calendarSameMonth(a, b) {
-    return calendarMonthKey(a) === calendarMonthKey(b);
+
+    return (
+        calendarMonthKey(a) ===
+        calendarMonthKey(b)
+    );
 }
 
 
 function calendarEscapeHtml(value) {
 
-    const div = document.createElement("div");
+    const div =
+        document.createElement("div");
 
-    div.textContent = String(value ?? "");
+    div.textContent =
+        String(value ?? "");
 
     return div.innerHTML;
 }
@@ -2379,13 +2570,20 @@ function calendarEscapeHtml(value) {
 
 function calendarBuildNoteMap() {
 
-    const map = new Map();
+    const map =
+        new Map();
 
     calendarNotes.forEach(note => {
 
-        if (!note || !note.date) return;
+        if (
+            !note ||
+            !note.date
+        ) {
+            return;
+        }
 
-        const key = String(note.date).trim();
+        const key =
+            String(note.date).trim();
 
         if (!map.has(key)) {
             map.set(key, []);
@@ -2401,7 +2599,9 @@ function calendarBuildNoteMap() {
 
 function calendarRender() {
 
-    if (!calendarBody) return;
+    if (!calendarBody) {
+        return;
+    }
 
     const year =
         calendarCurrentDate.getFullYear();
@@ -2410,10 +2610,18 @@ function calendarRender() {
         calendarCurrentDate.getMonth();
 
     const firstDay =
-        new Date(year, month, 1);
+        new Date(
+            year,
+            month,
+            1
+        );
 
     const lastDate =
-        new Date(year, month + 1, 0).getDate();
+        new Date(
+            year,
+            month + 1,
+            0
+        ).getDate();
 
     const firstWeekday =
         firstDay.getDay();
@@ -2421,9 +2629,15 @@ function calendarRender() {
     const noteMap =
         calendarBuildNoteMap();
 
-    const today = new Date();
+    const today =
+        new Date();
 
-    today.setHours(0, 0, 0, 0);
+    today.setHours(
+        0,
+        0,
+        0,
+        0
+    );
 
     calendarMonthTitle.textContent =
         `${year}년 ${month + 1}월`;
@@ -2435,7 +2649,11 @@ function calendarRender() {
     let day = 1;
 
 
-    for (let week = 0; week < 6; week++) {
+    for (
+        let week = 0;
+        week < 6;
+        week++
+    ) {
 
         html += "<tr>";
 
@@ -2462,19 +2680,29 @@ function calendarRender() {
 
 
             const cellDate =
-                new Date(year, month, day);
+                new Date(
+                    year,
+                    month,
+                    day
+                );
 
             const key =
-                calendarDateKey(cellDate);
+                calendarDateKey(
+                    cellDate
+                );
 
             const notes =
                 noteMap.get(key) || [];
 
             const isToday =
-                calendarSameDay(cellDate, today);
+                calendarSameDay(
+                    cellDate,
+                    today
+                );
 
             const isBeforeStart =
-                cellDate < CALENDAR_MIN_DATE;
+                cellDate <
+                CALENDAR_MIN_DATE;
 
             const isFuture =
                 cellDate > today;
@@ -2500,7 +2728,11 @@ function calendarRender() {
 
                     const countHtml =
                         notes.length > 1
-                            ? `<span class="calendar-count">+${notes.length}</span>`
+                            ? `
+                                <span class="calendar-count">
+                                    +${notes.length}
+                                </span>
+                              `
                             : "";
 
 
@@ -2599,7 +2831,8 @@ function calendarRender() {
     }
 
 
-    calendarBody.innerHTML = html;
+    calendarBody.innerHTML =
+        html;
 
 
     const isAtMin =
@@ -2617,7 +2850,8 @@ function calendarRender() {
 
     if (monthButtons[0]) {
 
-        monthButtons[0].disabled = isAtMin;
+        monthButtons[0].disabled =
+            isAtMin;
 
         monthButtons[0].setAttribute(
             "aria-disabled",
@@ -2628,7 +2862,8 @@ function calendarRender() {
 
     if (monthButtons[1]) {
 
-        monthButtons[1].disabled = isAtMax;
+        monthButtons[1].disabled =
+            isAtMax;
 
         monthButtons[1].setAttribute(
             "aria-disabled",
@@ -2666,14 +2901,19 @@ function calendarOpenModal(dateKey) {
 
 
     const notes =
-        calendarBuildNoteMap().get(dateKey) || [];
+        calendarBuildNoteMap()
+            .get(dateKey) || [];
 
 
-    if (!notes.length) return;
+    if (!notes.length) {
+        return;
+    }
 
 
     const date =
-        new Date(`${dateKey}T00:00:00`);
+        new Date(
+            `${dateKey}T00:00:00`
+        );
 
 
     modalTitle.textContent =
@@ -2694,10 +2934,12 @@ function calendarOpenModal(dateKey) {
                     : "시간 미정";
 
             const type =
-                note.type || "일정";
+                note.type ||
+                "일정";
 
             const title =
-                note.title || type;
+                note.title ||
+                type;
 
             const category =
                 note.category &&
@@ -2711,7 +2953,9 @@ function calendarOpenModal(dateKey) {
                     : "";
 
             const hasLink =
-                /^https?:\/\//i.test(url);
+                /^https?:\/\//i.test(
+                    url
+                );
 
 
             return `
@@ -2764,7 +3008,9 @@ function calendarOpenModal(dateKey) {
         }).join("");
 
 
-    modalBackdrop.classList.add("open");
+    modalBackdrop.classList.add(
+        "open"
+    );
 
     modalBackdrop.setAttribute(
         "aria-hidden",
@@ -2781,10 +3027,14 @@ function calendarCloseModal() {
         );
 
 
-    if (!modalBackdrop) return;
+    if (!modalBackdrop) {
+        return;
+    }
 
 
-    modalBackdrop.classList.remove("open");
+    modalBackdrop.classList.remove(
+        "open"
+    );
 
     modalBackdrop.setAttribute(
         "aria-hidden",
@@ -2802,7 +3052,8 @@ async function loadCalendarData() {
 
         const response =
             await fetch(
-                CALENDAR_DATA_URL + timestamp
+                CALENDAR_DATA_URL +
+                timestamp
             );
 
 
@@ -3022,7 +3273,9 @@ const privacyModalClose =
 
 function privacyOpenModal() {
 
-    if (!privacyModalBackdrop) return;
+    if (!privacyModalBackdrop) {
+        return;
+    }
 
 
     privacyModalBackdrop.classList.add(
@@ -3039,7 +3292,9 @@ function privacyOpenModal() {
 
 function privacyCloseModal() {
 
-    if (!privacyModalBackdrop) return;
+    if (!privacyModalBackdrop) {
+        return;
+    }
 
 
     privacyModalBackdrop.classList.remove(
