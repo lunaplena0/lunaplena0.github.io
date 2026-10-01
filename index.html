@@ -943,8 +943,7 @@ main {
 /* =========================================================
    관리자
 ========================================================= */
-.admin-button { margin-left: 8px; padding: 7px 10px; border: 1px solid #bae6fd; border-radius: 9px; background: #f0f9ff; color: #0284c7; font-size: 11px; font-weight: 800; cursor: pointer; }
-.admin-button.authenticated { background: #0284c7; color: #fff; border-color: #0284c7; }
+.admin-button { display: none !important; }
 .admin-modal { position: fixed; inset: 0; z-index: 1000; display: none; align-items: center; justify-content: center; padding: 18px; background: rgba(15,23,42,.42); backdrop-filter: blur(6px); }
 .admin-modal.active { display: flex; }
 .admin-panel { width: min(920px,100%); max-height: min(88vh,900px); overflow: hidden; border: 1px solid #e4edf5; border-radius: 22px; background: #fff; box-shadow: 0 20px 60px rgba(15,23,42,.18); }
@@ -1110,6 +1109,8 @@ footer {
 .footer-title {
     color: #64748b;
     font-weight: 800;
+    cursor: pointer;
+    user-select: none;
 }
 
 
@@ -1255,10 +1256,6 @@ footer {
 
             <a href="#" class="brand">
 
-                <span class="brand-icon">
-                    🌊
-                </span>
-
                 <span class="brand-text">
                     바다비 팬 아카이브
                 </span>
@@ -1272,8 +1269,6 @@ footer {
                 <a href="songlist.html">노래책</a>
                 <a href="vod.html">VOD정보</a>
             </nav>
-
-            <button type="button" class="admin-button" id="adminButton">관리자</button>
 
         </div>
 
@@ -1600,7 +1595,7 @@ footer {
 
         <div class="container footer-inner">
 
-            <span class="footer-title">
+            <span class="footer-title" id="secretAdminTrigger">
                 바다비 팬 아카이브
             </span>
 
@@ -1687,8 +1682,22 @@ const FANVODLIST_URL = ADMIN_WORKER_URL + "?type=fanvodlist&t=";
 let fanStartPageData = {profileNickname:"",profileMessage:"",profileImage:"",tags:[],timeline:[]};
 
 function adminEsc(v){const d=document.createElement("div");d.textContent=String(v??"");return d.innerHTML;}
-function updateAdminButton(){const b=document.getElementById("adminButton");if(!b)return;b.classList.toggle("authenticated",isAdminAuthenticated);b.textContent=isAdminAuthenticated?"관리 중":"관리자";document.querySelectorAll(".auth-edit-control").forEach(x=>x.style.display=isAdminAuthenticated?"inline-flex":"none");}
-function adminOpenModal(){if(isAdminAuthenticated){updateAdminButton();return;}const m=document.getElementById("adminModal");if(!m)return;m.classList.add("active");m.setAttribute("aria-hidden","false");renderAdminTurnstile();}
+function updateAdminButton(){
+    document.querySelectorAll(".auth-edit-control").forEach(x=>x.style.display=isAdminAuthenticated?"inline-flex":"none");
+}
+function adminOpenModal(){
+    if(isAdminAuthenticated){
+        if(confirm("로그아웃 하시겠습니까?")){
+            logoutAdmin();
+        }
+        return;
+    }
+    const m=document.getElementById("adminModal");
+    if(!m)return;
+    m.classList.add("active");
+    m.setAttribute("aria-hidden","false");
+    renderAdminTurnstile();
+}
 function adminCloseModal(){const m=document.getElementById("adminModal");if(!m)return;m.classList.remove("active");m.setAttribute("aria-hidden","true");}
 function loadTurnstileScript(){if(window.turnstile)return Promise.resolve();if(window.__badabiTurnstilePromise)return window.__badabiTurnstilePromise;window.__badabiTurnstilePromise=new Promise((resolve,reject)=>{const e=document.querySelector('script[data-badabi-turnstile="1"]');if(e){e.addEventListener("load",resolve,{once:true});e.addEventListener("error",reject,{once:true});return;}const s=document.createElement("script");s.src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";s.async=true;s.defer=true;s.dataset.badabiTurnstile="1";s.onload=resolve;s.onerror=reject;document.head.appendChild(s);});return window.__badabiTurnstilePromise;}
 function resetAdminTurnstile(){adminTurnstileToken="";if(window.turnstile&&adminTurnstileWidgetId!==null){try{window.turnstile.reset(adminTurnstileWidgetId);}catch(_){}}}
@@ -1696,7 +1705,7 @@ async function renderAdminTurnstile(){const c=document.getElementById("adminTurn
 function rateLimitId(){let id=localStorage.getItem("badabi_rate_limit_id")||"";if(id)return id;const b=new Uint8Array(32);crypto.getRandomValues(b);id=Array.from(b,x=>x.toString(16).padStart(2,"0")).join("");localStorage.setItem("badabi_rate_limit_id",id);return id;}
 async function adminLogin(){const input=document.getElementById("adminPassword"),status=document.getElementById("adminLoginStatus"),password=input?.value||"";if(!password){status.textContent="비밀번호를 입력해주세요.";status.style.color="#ef4444";return;}if(!adminTurnstileToken){status.textContent="보안 인증을 완료해주세요.";status.style.color="#ef4444";return;}status.textContent="확인 중...";status.style.color="#0284c7";try{const r=await fetch(ADMIN_WORKER_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({password,turnstileToken:adminTurnstileToken,rateLimitId:rateLimitId(),action:"verify"})});const d=await r.json().catch(()=>({}));if(!r.ok||!d.success||!d.sessionToken)throw new Error(d.error||"인증 실패");adminSessionToken=d.sessionToken;adminUserRole=d.role||"";isAdminAuthenticated=true;localStorage.setItem("badabi_session",adminSessionToken);input.value="";resetAdminTurnstile();adminCloseModal();updateAdminButton();await loadFanStartPageData();await loadFanVodRecommendations();}catch(e){status.textContent=e.message||"로그인에 실패했습니다. 다시 시도해주세요.";status.style.color="#ef4444";resetAdminTurnstile();if(input){input.value="";input.focus();}}}
 async function restoreAdminAuthentication(){const token=localStorage.getItem("badabi_session")||adminSessionToken||"";if(!token){updateAdminButton();return false;}try{const r=await fetch(ADMIN_WORKER_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({sessionToken:token,action:"verify"})});const d=await r.json().catch(()=>({}));if(!r.ok||!d.success||!d.role)throw new Error();adminSessionToken=token;adminUserRole=d.role||"";isAdminAuthenticated=true;updateAdminButton();return true;}catch(_){adminSessionToken="";adminUserRole="";isAdminAuthenticated=false;localStorage.removeItem("badabi_session");updateAdminButton();return false;}}
-function logoutAdmin(){isAdminAuthenticated=false;adminSessionToken="";adminUserRole="";localStorage.removeItem("badabi_session");resetAdminTurnstile();updateAdminButton();closeInlineEditors();}
+function logoutAdmin(){isAdminAuthenticated=false;adminSessionToken="";adminUserRole="";localStorage.removeItem("badabi_session");resetAdminTurnstile();updateAdminButton();closeInlineEditors();alert("성공적으로 로그아웃되었습니다.");}
 function normalizeFanStartPageData(data){const source=data&&typeof data==="object"?data:{};const profile=source.profile&&typeof source.profile==="object"?source.profile:{};const nickname=source.profileNickname??source.profileName??profile.nickname??profile.name??"";const message=source.profileMessage??profile.message??"";const image=source.profileImage??profile.image??profile.imageUrl??"";const rawTags=source.tags??profile.tags??[];const tags=Array.isArray(rawTags)?rawTags.map(x=>String(x??"").trim()).filter(Boolean):String(rawTags||"").split(",").map(x=>x.trim()).filter(Boolean);const timeline=Array.isArray(source.timeline)?source.timeline:[];return{profileNickname:String(nickname),profileMessage:String(message),profileImage:String(image),tags,timeline:timeline.map(x=>({date:String(x?.date??""),title:String(x?.title??""),description:String(x?.description??""),url:String(x?.url??"")}))};}
 function getProfileDayCount(){const start=new Date(2026,3,20);const today=new Date();start.setHours(0,0,0,0);today.setHours(0,0,0,0);return Math.max(0,Math.floor((today-start)/86400000)+1);}
 function renderFanStartPage(){const image=document.getElementById("profileImage"),name=document.getElementById("profileName"),dayCount=document.getElementById("profileDayCount"),message=document.getElementById("profileMessage"),tags=document.getElementById("profileTags"),list=document.getElementById("timelineList");if(image){image.src=fanStartPageData.profileImage||"";image.style.display=fanStartPageData.profileImage?"":"none";}if(name)name.textContent=fanStartPageData.profileNickname;if(dayCount)dayCount.textContent=`+${String(getProfileDayCount()).padStart(3,"0")}일`;if(message)message.textContent=fanStartPageData.profileMessage;if(tags)tags.innerHTML=fanStartPageData.tags.map(tag=>`<span class="profile-tag">${adminEsc(tag)}</span>`).join("");if(list){list.innerHTML=fanStartPageData.timeline.filter(x=>x.date||x.title||x.description||x.url).map(item=>{const url=/^https?:\/\//i.test(item.url)?item.url:"";const inner=`<span class="timeline-point"></span><div class="timeline-date">${adminEsc(item.date)}</div><div class="timeline-title">${adminEsc(item.title)}</div>`;return url?`<a href="${adminEsc(url)}" target="_blank" rel="noopener noreferrer" class="timeline-item" style="display:block;text-decoration:none;color:inherit;">${inner}</a>`:`<div class="timeline-item">${inner}</div>`;}).join("");}}
@@ -1716,7 +1725,7 @@ function closeTimelineEditor(){const editor=document.getElementById("timelineEdi
 async function saveTimelineEditor(){const button=document.getElementById("timelineEditSaveFooter");button.disabled=true;try{const rows=Array.from(document.querySelectorAll("#inlineTimelineRows .timeline-edit-row")).map(r=>({date:r.querySelector(".admin-timeline-date")?.value.trim()||"",title:r.querySelector(".admin-timeline-title")?.value.trim()||""})).filter(x=>x.date||x.title);await saveFanStartPageData({...fanStartPageData,timeline:rows});setTimeout(closeTimelineEditor,300);}catch(e){alert(e.message||"저장 실패");}finally{button.disabled=false;}}
 function closeInlineEditors(){closeProfileEditor();closeTimelineEditor();}
 
-document.getElementById("adminButton")?.addEventListener("click",adminOpenModal);
+document.getElementById("secretAdminTrigger")?.addEventListener("click",adminOpenModal);
 document.getElementById("adminCloseButton")?.addEventListener("click",adminCloseModal);
 document.getElementById("adminLoginButton")?.addEventListener("click",adminLogin);
 document.getElementById("adminPassword")?.addEventListener("keydown",e=>{if(e.key==="Enter")adminLogin();});
@@ -2107,9 +2116,9 @@ function calendarRender() {
                         </td>
                     `;
                 } else if (isToday) {
-                    eventHtml = `<span class="calendar-event">🌊 미정</span>`;
+                    eventHtml = `<span class="calendar-event">미정</span>`;
                 } else if (!isFuture) {
-                    eventHtml = `<span class="calendar-event">🌊 휴방</span>`;
+                    eventHtml = `<span class="calendar-event">휴방</span>`;
                 }
 
                 if (!hasNotes) {
