@@ -1918,10 +1918,14 @@ document.getElementById("calendarEditCancel")?.addEventListener("click",closeCal
 document.getElementById("calendarEditSave")?.addEventListener("click",saveCalendarEditor);
 document.getElementById("calendarEditAdd")?.addEventListener("click",calendarEditorAddRow);
 document.getElementById("calendarEditPrevMonth")?.addEventListener("click",()=>{
+    // 월을 이동하기 전에 현재 날짜의 입력값을 임시 저장
+    calendarEditorCommitSelectedDate();
     calendarEditCurrentDate=new Date(calendarEditCurrentDate.getFullYear(),calendarEditCurrentDate.getMonth()-1,1);
     calendarEditorMonthRender();
 });
 document.getElementById("calendarEditNextMonth")?.addEventListener("click",()=>{
+    // 월을 이동하기 전에 현재 날짜의 입력값을 임시 저장
+    calendarEditorCommitSelectedDate();
     calendarEditCurrentDate=new Date(calendarEditCurrentDate.getFullYear(),calendarEditCurrentDate.getMonth()+1,1);
     calendarEditorMonthRender();
 });
@@ -1956,11 +1960,50 @@ function calendarEditorMonthKey(date){
 }
 let calendarEditCurrentDate = null;
 let calendarEditSelectedKey = "";
+let calendarEditDraftNotes = [];
 
 function calendarEditorGetNotes(dateKey){
-    return calendarNotes
+    return calendarEditDraftNotes
         .map((note,index)=>({note,index}))
         .filter(x=>String(x.note?.date||"").trim()===dateKey);
+}
+
+/* 현재 선택 날짜의 입력값을 임시 편집 데이터에 반영 */
+function calendarEditorCommitSelectedDate(){
+    if(!calendarEditSelectedKey)return;
+
+    const rows=Array.from(document.querySelectorAll("#calendarEditRows .calendar-editor-event-row"));
+    const nextRows=[];
+
+    rows.forEach(row=>{
+        let rawTitle=row.querySelector(".calendar-edit-title")?.value.trim()||"";
+
+        // 일정 제목 앞에 자동으로 🌊가 붙도록 처리 (이미 있으면 중복 방지)
+        if(rawTitle && !rawTitle.startsWith("🌊")){
+            rawTitle="🌊 "+rawTitle;
+        }
+
+        const value={
+            date:calendarEditSelectedKey,
+            time:row.querySelector(".calendar-edit-time")?.value.trim()||"",
+            type:row.querySelector(".calendar-edit-type")?.value.trim()||"",
+            title:rawTitle,
+            category:row.querySelector(".calendar-edit-category")?.value.trim()||"",
+            url:row.querySelector(".calendar-edit-url")?.value.trim()||""
+        };
+
+        // 모든 입력칸이 비어 있는 새 행은 저장하지 않음
+        if(value.title||value.type||value.category||value.time||value.url){
+            nextRows.push(value);
+        }
+    });
+
+    // 기존 선택 날짜 데이터를 통째로 교체하여
+    // 추가/수정/삭제가 모두 정확하게 임시 데이터에 반영되도록 함
+    calendarEditDraftNotes=calendarEditDraftNotes.filter(note=>
+        String(note?.date||"").trim()!==calendarEditSelectedKey
+    );
+    calendarEditDraftNotes.push(...nextRows);
 }
 
 function calendarEditorMonthRender(){
@@ -2068,6 +2111,9 @@ function calendarEditorSelectedRender(){
 }
 
 function calendarEditorSelectDate(dateKey){
+    // 다른 날짜로 이동하기 전에 현재 입력 중인 내용을 임시 저장
+    calendarEditorCommitSelectedDate();
+
     calendarEditSelectedKey=dateKey;
     calendarEditorMonthRender();
     calendarEditorSelectedRender();
@@ -2084,38 +2130,21 @@ function calendarEditorAddRow(){
 }
 
 function calendarEditorCollect(){
-    const next=calendarNotes.map(x=>({...x}));
-    const rows=Array.from(document.querySelectorAll("#calendarEditRows .calendar-editor-event-row"));
-    rows.forEach(row=>{
-        const idx=Number(row.dataset.calendarSourceIndex);
-        let rawTitle = row.querySelector(".calendar-edit-title")?.value.trim()||"";
-        
-        // 일정 제목 앞에 자동으로 🌊가 붙도록 처리 (이미 있으면 중복 방지)
-        if (rawTitle && !rawTitle.startsWith("🌊")) {
-            rawTitle = "🌊 " + rawTitle;
-        }
+    // 마지막으로 선택한 날짜의 입력값까지 임시 데이터에 반영
+    calendarEditorCommitSelectedDate();
 
-        const value={
-            date:calendarEditSelectedKey,
-            time:row.querySelector(".calendar-edit-time")?.value.trim()||"",
-            type:row.querySelector(".calendar-edit-type")?.value.trim()||"",
-            title:rawTitle,
-            category:row.querySelector(".calendar-edit-category")?.value.trim()||"",
-            url:row.querySelector(".calendar-edit-url")?.value.trim()||""
-        };
-        if(idx>=0) next[idx]=value;
-        else next.push(value);
-    });
-
-    const keptIndexes=new Set(rows.map(r=>Number(r.dataset.calendarSourceIndex)).filter(Number.isInteger));
-    for(let i=next.length-1;i>=0;i--){
-        if(String(next[i]?.date||"")===calendarEditSelectedKey && !keptIndexes.has(i))next.splice(i,1);
-    }
-    return next.filter(x=>x.date||x.title||x.type||x.category||x.time||x.url);
+    return calendarEditDraftNotes.filter(x=>
+        x && (x.date||x.title||x.type||x.category||x.time||x.url)
+    );
 }
 
 function openCalendarEditor(){
     if(!isAdminAuthenticated)return;
+
+    // 편집창에서만 사용하는 임시 데이터 복사본 생성
+    // 저장 버튼을 누르기 전에는 실제 calendarNotes를 변경하지 않음
+    calendarEditDraftNotes=calendarNotes.map(x=>({...x}));
+
     calendarEditCurrentDate=new Date(calendarCurrentDate);
     calendarEditCurrentDate=new Date(calendarEditCurrentDate.getFullYear(),calendarEditCurrentDate.getMonth(),1);
     calendarEditSelectedKey="";
@@ -2132,6 +2161,10 @@ function closeCalendarEditor(){
     const modal=document.getElementById("calendarEditModal");
     modal.classList.remove("active");
     modal.setAttribute("aria-hidden","true");
+
+    // 취소/닫기 시 임시 편집값 폐기
+    calendarEditDraftNotes=[];
+    calendarEditSelectedKey="";
 }
 
 async function saveCalendarEditor(){
@@ -2141,6 +2174,8 @@ async function saveCalendarEditor(){
     try{
         status.textContent="저장 중...";
         status.style.color="#0284c7";
+
+        // 현재 날짜의 입력값까지 포함한 전체 편집 데이터를 저장
         const next=calendarEditorCollect();
         await saveCalendarData(next);
         status.textContent="저장되었습니다.";
@@ -2271,7 +2306,7 @@ calendarCurrentDate = new Date(calendarCurrentDate.getFullYear(), calendarCurren
 const calendarBody = document.getElementById("calendar-body");
 const calendarMonthTitle = document.getElementById("calendar-month-title");
 const calendarSectionMonth = document.getElementById("calendar-section-month");
-const monthButtons = document.querySelectorAll(".month-button");
+const monthButtons = document.querySelectorAll("#schedule .month-button");
 
 function calendarDateKey(date) {
     const y = date.getFullYear();
