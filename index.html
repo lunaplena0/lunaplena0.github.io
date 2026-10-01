@@ -1260,24 +1260,14 @@ footer {
 
 .inline-edit-button{border:1px solid #bae6fd;background:#fff;color:#0369a1;border-radius:8px;padding:5px 10px;font-size:10px;font-weight:800;cursor:pointer;white-space:nowrap}.inline-edit-button:hover{background:#f0f9ff;border-color:#7dd3fc}.auth-edit-control{display:none}body.authenticated-mode .auth-edit-control{display:inline-flex}.profile-content{position:relative}
 
-/* 프로필 카드 헤더 레이아웃 (수정 버튼이 정상적으로 눌리도록 위치 고정 해제 및 자연스러운 배치 적용) */
+/* 프로필 수정 버튼 위치 조정 (오른쪽 끝 상단) */
 .profile-card {
     position: relative;
 }
-.profile-card .section-header-actions,
-.profile-card-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
 #profileEditButton {
-    position: static; /* 기존 absolute 강제 배치 제거로 클릭 영역 오류 해결 */
-    margin-left: auto;
-}
-
-.profile-card > .section-header {
-    margin-bottom: 12px;
+    position: absolute;
+    top: 24px;
+    right: 24px;
 }
 
 .inline-editor{
@@ -1347,13 +1337,7 @@ footer {
 
             <section class="profile-card">
 
-                <div class="section-header" style="margin-bottom: 16px;">
-                    <div class="section-title-wrap">
-                        <span class="section-dot"></span>
-                        <h2 class="section-title">프로필 정보</h2>
-                    </div>
-                    <button type="button" class="inline-edit-button auth-edit-control" id="profileEditButton" style="display:none;">수정</button>
-                </div>
+                <button type="button" class="inline-edit-button auth-edit-control" id="profileEditButton" style="display:none;">수정</button>
 
                 <div class="profile-content">
 
@@ -1383,14 +1367,10 @@ footer {
                             <button type="button" class="editor-modal-close" id="profileEditClose" aria-label="닫기">×</button>
                         </div>
                         <div class="editor-modal-body" style="padding:18px;">
-                            <label style="display:block;margin-bottom:12px;">닉네임<input id="editProfileName" class="admin-input" style="margin-top:4px;"></label>
-                            <label style="display:block;margin-bottom:12px;">프로필 메시지<input id="editProfileMessage" class="admin-input" style="margin-top:4px;"></label>
-                            <label style="display:block;margin-bottom:12px;">태그<input id="editProfileTags" class="admin-input" placeholder="쉼표로 구분" style="margin-top:4px;"></label>
-                            <!-- 프로필 사진 파일 선택 영역 수직 가운데 정렬 및 패딩 보정 -->
-                            <label style="display:flex; flex-direction:column; justify-content:center; align-items:stretch;">
-                                <span style="font-size:12px; font-weight:700; color:#475569; margin-bottom:4px;">프로필 사진</span>
-                                <input type="file" id="editProfileImageFile" accept="image/*" class="admin-input" style="display:flex; align-items:center; padding: 6px 14px; height: 44px; line-height: normal;">
-                            </label>
+                            <label style="display:block;margin-bottom:10px;">닉네임<input id="editProfileName" class="admin-input" style="margin-top:4px;"></label>
+                            <label style="display:block;margin-bottom:10px;">프로필 메시지<input id="editProfileMessage" class="admin-input" style="margin-top:4px;"></label>
+                            <label style="display:block;margin-bottom:10px;">태그<input id="editProfileTags" class="admin-input" placeholder="쉼표로 구분" style="margin-top:4px;"></label>
+                            <label style="display:block;">프로필 사진<input type="file" id="editProfileImageFile" accept="image/*" class="admin-input" style="margin-top:4px;"></label>
                         </div>
                         <div class="editor-modal-footer">
                             <div class="admin-status" id="profileEditStatus"></div>
@@ -2273,6 +2253,43 @@ function calendarRender() {
     }
 
     calendarBody.innerHTML = html;
+}
+
+function calendarOpenModal(dateKey) {
+    const modalBackdrop = document.getElementById("calendar-modal-backdrop");
+    const modalTitle = document.getElementById("calendar-modal-title");
+    const modalList = document.getElementById("calendar-modal-list");
+    if (!modalBackdrop || !modalTitle || !modalList) return;
+
+    const notes = calendarBuildNoteMap().get(dateKey) || [];
+    if (!notes.length) return;
+
+    const date = new Date(`${dateKey}T00:00:00`);
+    modalTitle.textContent = `${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일 일정`;
+
+    modalList.innerHTML = notes.map(note => {
+        const time = note.time && note.time !== "-" ? note.time : "시간 미정";
+        const type = note.type || "일정";
+        const title = note.title || type;
+        const category = note.category && note.category !== "-" ? note.category : "";
+        const url = typeof note.url === "string" ? note.url.trim() : "";
+        const hasLink = /^https?:\/\//i.test(url);
+
+        return `
+            <div class="calendar-modal-item">
+                <div class="calendar-modal-meta">
+                    <span class="calendar-modal-badge">${calendarEscapeHtml(time)}</span>
+                    <span class="calendar-modal-badge">${calendarEscapeHtml(type)}</span>
+                </div>
+                <p class="calendar-modal-event-title">${calendarEscapeHtml(title)}</p>
+                ${category ? `<p class="calendar-modal-category">${calendarEscapeHtml(category)}</p>` : ""}
+                ${hasLink ? `<a class="calendar-modal-link" href="${calendarEscapeHtml(url)}" target="_blank" rel="noopener noreferrer">일정 링크 이동 →</a>` : ""}
+            </div>
+        `;
+    }).join("");
+
+    modalBackdrop.classList.add("open");
+    modalBackdrop.setAttribute("aria-hidden", "false");
 }
 
 function calendarOpenModal(dateKey) {
