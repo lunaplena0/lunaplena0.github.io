@@ -549,6 +549,155 @@ main {
     font-weight: 700;
 }
 
+.calendar-day-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+}
+
+.calendar-count {
+    color: #94a3b8;
+    font-size: 8px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.calendar td.has-calendar-notes {
+    cursor: pointer;
+}
+
+.calendar td.has-calendar-notes:hover .calendar-day {
+    background: #e0f2fe;
+    color: #0284c7;
+}
+
+.calendar td.today.has-calendar-notes:hover .calendar-day {
+    background: #0284c7;
+    color: #ffffff;
+}
+
+.calendar-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(15, 23, 42, 0.38);
+}
+
+.calendar-modal-backdrop.open {
+    display: flex;
+}
+
+.calendar-modal {
+    width: min(440px, 100%);
+    max-height: min(620px, 90vh);
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+    border-radius: 18px;
+    background: #ffffff;
+    box-shadow: 0 20px 50px rgba(15, 23, 42, 0.18);
+}
+
+.calendar-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 18px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.calendar-modal-title {
+    margin: 0;
+    color: #0f172a;
+    font-size: 16px;
+    font-weight: 800;
+}
+
+.calendar-modal-close {
+    width: 30px;
+    height: 30px;
+    border: 0;
+    border-radius: 9px;
+    background: #f8fafc;
+    color: #64748b;
+    font-size: 18px;
+    cursor: pointer;
+}
+
+.calendar-modal-list {
+    max-height: calc(min(620px, 90vh) - 70px);
+    overflow-y: auto;
+    padding: 12px;
+}
+
+.calendar-modal-item {
+    padding: 13px;
+    border: 1px solid #e2e8f0;
+    border-radius: 13px;
+    background: #f8fafc;
+}
+
+.calendar-modal-item + .calendar-modal-item {
+    margin-top: 9px;
+}
+
+.calendar-modal-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-bottom: 7px;
+}
+
+.calendar-modal-badge {
+    padding: 3px 7px;
+    border-radius: 6px;
+    background: #e0f2fe;
+    color: #0284c7;
+    font-size: 9px;
+    font-weight: 800;
+}
+
+.calendar-modal-event-title {
+    margin: 0;
+    color: #0f172a;
+    font-size: 13px;
+    font-weight: 800;
+    line-height: 1.5;
+    word-break: keep-all;
+}
+
+.calendar-modal-category {
+    margin: 6px 0 0;
+    color: #64748b;
+    font-size: 10px;
+    line-height: 1.4;
+}
+
+.calendar-modal-link {
+    display: inline-flex;
+    margin-top: 10px;
+    padding: 7px 10px;
+    border-radius: 8px;
+    background: #0ea5e9;
+    color: #ffffff;
+    font-size: 10px;
+    font-weight: 800;
+    text-decoration: none;
+}
+
+@media (max-width: 430px) {
+    .calendar-modal-backdrop {
+        padding: 12px;
+    }
+
+    .calendar-modal {
+        border-radius: 15px;
+    }
+}
+
 
 /* =========================================================
    방송 타임라인
@@ -1897,6 +2046,17 @@ footer {
 </div>
 
 
+<div class="calendar-modal-backdrop" id="calendar-modal-backdrop" aria-hidden="true">
+    <div class="calendar-modal" role="dialog" aria-modal="true" aria-labelledby="calendar-modal-title">
+        <div class="calendar-modal-header">
+            <h3 class="calendar-modal-title" id="calendar-modal-title"></h3>
+            <button class="calendar-modal-close" id="calendar-modal-close" type="button" aria-label="닫기">×</button>
+        </div>
+        <div class="calendar-modal-list" id="calendar-modal-list"></div>
+    </div>
+</div>
+
+
 <script>
 
 /*
@@ -2023,39 +2183,60 @@ function calendarRender() {
             const notes = noteMap.get(key) || [];
             const isToday = calendarSameDay(cellDate, today);
             const isBeforeStart = cellDate < CALENDAR_MIN_DATE;
+            const isFuture = cellDate > today;
+            const hasNotes = notes.length > 0;
 
             let eventHtml = "";
 
             if (!isBeforeStart) {
-                if (notes.length > 0) {
-                    // 같은 날짜에 여러 기록이 있으면 첫 기록을 표시하고, 나머지는 +N으로 표시합니다.
+                if (hasNotes) {
+                    // 여러 일정이 있는 경우 날짜 옆에 전체 일정 개수를 표시합니다.
                     const firstNote = notes[0];
                     const title = firstNote.title || firstNote.type || "일정";
-                    const extraCount = notes.length - 1;
-                    const suffix = extraCount > 0 ? ` +${extraCount}` : "";
+                    const countHtml = notes.length > 1
+                        ? `<span class="calendar-count">+${notes.length}</span>`
+                        : "";
 
                     eventHtml = `
                         <span class="calendar-event" title="${calendarEscapeHtml(title)}">
-                            ${calendarEscapeHtml(title)}${suffix}
+                            ${calendarEscapeHtml(title)}
                         </span>
+                    `;
+
+                    html += `
+                        <td class="${isToday ? "today" : ""} has-calendar-notes" data-calendar-date="${key}" role="button" tabindex="0">
+                            <span class="calendar-day-wrap">
+                                <span class="calendar-day">${day}</span>
+                                ${countHtml}
+                            </span>
+                            ${eventHtml}
+                        </td>
                     `;
                 } else if (isToday) {
                     eventHtml = `
                         <span class="calendar-event">🌊 미정</span>
                     `;
-                } else if (cellDate < today) { 
+                } else if (!isFuture) {
                     eventHtml = `
                         <span class="calendar-event">🌊 휴방</span>
                     `;
                 }
-            }
 
-            html += `
-                <td class="${isToday ? "today" : ""}">
-                    <span class="calendar-day">${day}</span>
-                    ${eventHtml}
-                </td>
-            `;
+                if (!hasNotes) {
+                    html += `
+                        <td class="${isToday ? "today" : ""}">
+                            <span class="calendar-day">${day}</span>
+                            ${eventHtml}
+                        </td>
+                    `;
+                }
+            } else {
+                html += `
+                    <td class="${isToday ? "today" : ""}">
+                        <span class="calendar-day">${day}</span>
+                    </td>
+                `;
+            }
 
             day++;
         }
@@ -2081,6 +2262,51 @@ function calendarRender() {
     }
 }
 
+function calendarOpenModal(dateKey) {
+    const modalBackdrop = document.getElementById("calendar-modal-backdrop");
+    const modalTitle = document.getElementById("calendar-modal-title");
+    const modalList = document.getElementById("calendar-modal-list");
+    if (!modalBackdrop || !modalTitle || !modalList) return;
+
+    const notes = calendarBuildNoteMap().get(dateKey) || [];
+    if (!notes.length) return;
+
+    const date = new Date(`${dateKey}T00:00:00`);
+    modalTitle.textContent = `${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일 일정`;
+
+    modalList.innerHTML = notes.map(note => {
+        const time = note.time && note.time !== "-" ? note.time : "시간 미정";
+        const type = note.type || "일정";
+        const title = note.title || type;
+        const category = note.category && note.category !== "-" ? note.category : "";
+        const url = typeof note.url === "string" ? note.url.trim() : "";
+        const hasLink = /^https?:\/\//i.test(url);
+
+        return `
+            <div class="calendar-modal-item">
+                <div class="calendar-modal-meta">
+                    <span class="calendar-modal-badge">${calendarEscapeHtml(time)}</span>
+                    <span class="calendar-modal-badge">${calendarEscapeHtml(type)}</span>
+                </div>
+                <p class="calendar-modal-event-title">${calendarEscapeHtml(title)}</p>
+                ${category ? `<p class="calendar-modal-category">${calendarEscapeHtml(category)}</p>` : ""}
+                ${hasLink ? `<a class="calendar-modal-link" href="${calendarEscapeHtml(url)}" target="_blank" rel="noopener noreferrer">일정 링크 이동 →</a>` : ""}
+            </div>
+        `;
+    }).join("");
+
+    modalBackdrop.classList.add("open");
+    modalBackdrop.setAttribute("aria-hidden", "false");
+}
+
+function calendarCloseModal() {
+    const modalBackdrop = document.getElementById("calendar-modal-backdrop");
+    if (!modalBackdrop) return;
+
+    modalBackdrop.classList.remove("open");
+    modalBackdrop.setAttribute("aria-hidden", "true");
+}
+
 async function loadCalendarData() {
     try {
         const timestamp = Date.now();
@@ -2093,11 +2319,44 @@ async function loadCalendarData() {
         calendarNotes = Array.isArray(data.notes) ? data.notes : [];
         calendarRender();
     } catch (error) {
-        console.error("fancalenar.json 불러오기 실패:", error);
+        console.error("Cloudflare Worker에서 fancalenar 데이터 불러오기 실패:", error);
         calendarNotes = [];
         calendarRender();
     }
 }
+
+calendarBody.addEventListener("click", event => {
+    const cell = event.target.closest("td.has-calendar-notes");
+    if (!cell || !calendarBody.contains(cell)) return;
+    calendarOpenModal(cell.dataset.calendarDate);
+});
+
+calendarBody.addEventListener("keydown", event => {
+    if (event.key !== "Enter" && event.key !== " ") return;
+
+    const cell = event.target.closest("td.has-calendar-notes");
+    if (!cell || !calendarBody.contains(cell)) return;
+
+    event.preventDefault();
+    calendarOpenModal(cell.dataset.calendarDate);
+});
+
+const calendarModalBackdrop = document.getElementById("calendar-modal-backdrop");
+const calendarModalClose = document.getElementById("calendar-modal-close");
+
+if (calendarModalClose) {
+    calendarModalClose.addEventListener("click", calendarCloseModal);
+}
+
+if (calendarModalBackdrop) {
+    calendarModalBackdrop.addEventListener("click", event => {
+        if (event.target === calendarModalBackdrop) calendarCloseModal();
+    });
+}
+
+document.addEventListener("keydown", event => {
+    if (event.key === "Escape") calendarCloseModal();
+});
 
 monthButtons.forEach((button, index) => {
     button.addEventListener("click", () => {
