@@ -1978,8 +1978,10 @@ function calendarEditorCommitSelectedDate(){
     rows.forEach(row=>{
         let rawTitle=row.querySelector(".calendar-edit-title")?.value.trim()||"";
 
-        // 일정 제목 앞에 자동으로 🌊가 붙도록 처리 (이미 있으면 중복 방지)
-        if(rawTitle && !rawTitle.startsWith("🌊")){
+        // 일정 제목 앞의 아이콘은 입력한 값을 그대로 사용한다.
+        // 🌊 방송 / 🌧️ 휴방 등 원하는 아이콘을 직접 입력할 수 있다.
+        // 아이콘을 입력하지 않은 경우에는 기본값으로 🌊를 붙인다.
+        if(rawTitle && !/^(🌊|🌧️)\s*/.test(rawTitle)){
             rawTitle="🌊 "+rawTitle;
         }
 
@@ -2408,9 +2410,9 @@ function calendarRender() {
                         </td>
                     `;
                 } else if (isToday) {
-                    eventHtml = `<span class="calendar-event">🌊 미정</span>`;
+                    eventHtml = `<span class="calendar-event">미정</span>`;
                 } else if (!isFuture) {
-                    eventHtml = `<span class="calendar-event">🌧️ 휴방</span>`;
+                    eventHtml = `<span class="calendar-event">휴방</span>`;
                 }
 
                 if (!hasNotes) {
