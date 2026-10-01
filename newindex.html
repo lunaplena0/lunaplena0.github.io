@@ -1324,7 +1324,7 @@ footer {
                             </h2>
                         </div>
 
-                        <span class="section-more">
+                        <span class="section-more" id="calendar-section-month">
                             2026년 10월
                         </span>
 
@@ -1335,7 +1335,7 @@ footer {
 
                         <div class="month-header">
 
-                            <div class="month-title">
+                            <div class="month-title" id="calendar-month-title">
                                 2026년 10월
                             </div>
 
@@ -1376,71 +1376,7 @@ footer {
                                 </tr>
                             </thead>
 
-                            <tbody>
-
-                                <tr>
-                                    <td></td>
-                                    <td></td>
-                                    <td></td>
-                                    <td></td>
-
-                                    <td>
-                                        <span class="calendar-day">1</span>
-                                    </td>
-
-                                    <td>
-                                        <span class="calendar-day">2</span>
-                                    </td>
-
-                                    <td>
-                                        <span class="calendar-day">3</span>
-                                    </td>
-                                </tr>
-
-
-                                <tr>
-                                    <td><span class="calendar-day">4</span></td>
-                                    <td><span class="calendar-day">5</span></td>
-                                    <td><span class="calendar-day">6</span></td>
-                                    <td><span class="calendar-day">7</span></td>
-                                    <td><span class="calendar-day">8</span></td>
-                                    <td><span class="calendar-day">9</span></td>
-                                    <td><span class="calendar-day">10</span></td>
-                                </tr>
-
-
-                                <tr>
-                                    <td><span class="calendar-day">11</span></td>
-                                    <td><span class="calendar-day">12</span></td>
-                                    <td><span class="calendar-day">13</span></td>
-                                    <td><span class="calendar-day">14</span></td>
-                                    <td><span class="calendar-day">15</span></td>
-                                    <td><span class="calendar-day">16</span></td>
-                                    <td><span class="calendar-day">17</span></td>
-                                </tr>
-
-
-                                <tr>
-                                    <td><span class="calendar-day">18</span></td>
-                                    <td><span class="calendar-day">19</span></td>
-                                    <td><span class="calendar-day">20</span></td>
-                                    <td><span class="calendar-day">21</span></td>
-                                    <td><span class="calendar-day">22</span></td>
-                                    <td><span class="calendar-day">23</span></td>
-                                    <td><span class="calendar-day">24</span></td>
-                                </tr>
-
-
-                                <tr>
-                                    <td><span class="calendar-day">25</span></td>
-                                    <td><span class="calendar-day">26</span></td>
-                                    <td><span class="calendar-day">27</span></td>
-                                    <td><span class="calendar-day">28</span></td>
-                                    <td><span class="calendar-day">29</span></td>
-                                    <td><span class="calendar-day">30</span></td>
-                                    <td><span class="calendar-day">31</span></td>
-                                </tr>
-
+                            <tbody id="calendar-body">
                             </tbody>
 
                         </table>
@@ -1982,24 +1918,212 @@ footer {
 
 /*
  * ============================================================
- * 월간 일정 버튼
+ * 월간 일정 — fancalenar.json 연결
  * ============================================================
  */
 
-const monthButtons =
-    document.querySelectorAll(".month-button");
+const CALENDAR_DATA_URL = "fancalenar.json";
+const CALENDAR_MIN_DATE = new Date(2026, 3, 20);
+const CALENDAR_TODAY = new Date();
+const CALENDAR_MAX_DATE = new Date(
+    CALENDAR_TODAY.getFullYear(),
+    CALENDAR_TODAY.getMonth(),
+    1
+);
 
-monthButtons.forEach(button => {
+let calendarNotes = [];
+let calendarCurrentDate = new Date(
+    Math.max(
+        CALENDAR_TODAY.getTime(),
+        CALENDAR_MIN_DATE.getTime()
+    )
+);
+calendarCurrentDate = new Date(
+    calendarCurrentDate.getFullYear(),
+    calendarCurrentDate.getMonth(),
+    1
+);
 
-    button.addEventListener("click", () => {
+const calendarBody = document.getElementById("calendar-body");
+const calendarMonthTitle = document.getElementById("calendar-month-title");
+const calendarSectionMonth = document.getElementById("calendar-section-month");
+const monthButtons = document.querySelectorAll(".month-button");
 
-        /*
-         * 추후 월간 일정 데이터 연결
-         */
+function calendarDateKey(date) {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, "0");
+    const d = String(date.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
+}
 
+function calendarMonthKey(date) {
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+}
+
+function calendarSameDay(a, b) {
+    return calendarDateKey(a) === calendarDateKey(b);
+}
+
+function calendarSameMonth(a, b) {
+    return calendarMonthKey(a) === calendarMonthKey(b);
+}
+
+function calendarEscapeHtml(value) {
+    const div = document.createElement("div");
+    div.textContent = String(value ?? "");
+    return div.innerHTML;
+}
+
+function calendarBuildNoteMap() {
+    const map = new Map();
+
+    calendarNotes.forEach(note => {
+        if (!note || !note.date) return;
+
+        const key = String(note.date).trim();
+        if (!map.has(key)) map.set(key, []);
+        map.get(key).push(note);
     });
 
+    return map;
+}
+
+function calendarRender() {
+    if (!calendarBody) return;
+
+    const year = calendarCurrentDate.getFullYear();
+    const month = calendarCurrentDate.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDate = new Date(year, month + 1, 0).getDate();
+    const firstWeekday = firstDay.getDay();
+    const noteMap = calendarBuildNoteMap();
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    calendarMonthTitle.textContent = `${year}년 ${month + 1}월`;
+    calendarSectionMonth.textContent = `${year}년 ${month + 1}월`;
+
+    let html = "";
+    let day = 1;
+
+    for (let week = 0; week < 6; week++) {
+        html += "<tr>";
+
+        for (let weekday = 0; weekday < 7; weekday++) {
+            const cellIndex = week * 7 + weekday;
+
+            if (cellIndex < firstWeekday || day > lastDate) {
+                html += "<td></td>";
+                continue;
+            }
+
+            const cellDate = new Date(year, month, day);
+            const key = calendarDateKey(cellDate);
+            const notes = noteMap.get(key) || [];
+            const isToday = calendarSameDay(cellDate, today);
+            const isBeforeStart = cellDate < CALENDAR_MIN_DATE;
+
+            let eventHtml = "";
+
+            if (!isBeforeStart) {
+                if (notes.length > 0) {
+                    // 같은 날짜에 여러 기록이 있으면 첫 기록을 표시하고, 나머지는 +N으로 표시합니다.
+                    const firstNote = notes[0];
+                    const title = firstNote.title || firstNote.type || "일정";
+                    const extraCount = notes.length - 1;
+                    const suffix = extraCount > 0 ? ` +${extraCount}` : "";
+
+                    eventHtml = `
+                        <span class="calendar-event" title="${calendarEscapeHtml(title)}">
+                            ${calendarEscapeHtml(title)}${suffix}
+                        </span>
+                    `;
+                } else if (isToday) {
+                    eventHtml = `
+                        <span class="calendar-event">🌊 미정</span>
+                    `;
+                } else {
+                    eventHtml = `
+                        <span class="calendar-event">🌊 휴방</span>
+                    `;
+                }
+            }
+
+            html += `
+                <td class="${isToday ? "today" : ""}">
+                    <span class="calendar-day">${day}</span>
+                    ${eventHtml}
+                </td>
+            `;
+
+            day++;
+        }
+
+        html += "</tr>";
+
+        if (day > lastDate) break;
+    }
+
+    calendarBody.innerHTML = html;
+
+    const isAtMin = calendarSameMonth(calendarCurrentDate, CALENDAR_MIN_DATE);
+    const isAtMax = calendarSameMonth(calendarCurrentDate, CALENDAR_MAX_DATE);
+
+    if (monthButtons[0]) {
+        monthButtons[0].disabled = isAtMin;
+        monthButtons[0].setAttribute("aria-disabled", String(isAtMin));
+    }
+
+    if (monthButtons[1]) {
+        monthButtons[1].disabled = isAtMax;
+        monthButtons[1].setAttribute("aria-disabled", String(isAtMax));
+    }
+}
+
+async function loadCalendarData() {
+    try {
+        const response = await fetch(`${CALENDAR_DATA_URL}?t=${Date.now()}`, {
+            cache: "no-store"
+        });
+
+        if (!response.ok) {
+            throw new Error(`달력 데이터 요청 실패: ${response.status}`);
+        }
+
+        const data = await response.json();
+        calendarNotes = Array.isArray(data.notes) ? data.notes : [];
+        calendarRender();
+    } catch (error) {
+        console.error("fancalenar.json 불러오기 실패:", error);
+        calendarNotes = [];
+        calendarRender();
+    }
+}
+
+monthButtons.forEach((button, index) => {
+    button.addEventListener("click", () => {
+        const nextMonth = new Date(
+            calendarCurrentDate.getFullYear(),
+            calendarCurrentDate.getMonth() + (index === 0 ? -1 : 1),
+            1
+        );
+
+        if (nextMonth < new Date(
+            CALENDAR_MIN_DATE.getFullYear(),
+            CALENDAR_MIN_DATE.getMonth(),
+            1
+        )) return;
+
+        if (nextMonth > CALENDAR_MAX_DATE) return;
+
+        calendarCurrentDate = nextMonth;
+        calendarRender();
+    });
 });
+
+calendarRender();
+loadCalendarData();
 
 </script>
 
