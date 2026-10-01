@@ -1446,6 +1446,7 @@ footer {
                         </div>
 
                         <div class="section-header-actions">
+                            <span class="section-more" id="calendar-section-month">2026년 10월</span>
                             <button type="button" class="inline-edit-button auth-edit-control" id="calendarEditButton" style="display:none;">수정</button>
                         </div>
 
@@ -2161,6 +2162,7 @@ let fanSongRecommendationData = [];
 let fanSongRecommendationSource = [];
 function fanSongKstDateKey(date=new Date()){return new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Seoul",year:"numeric",month:"2-digit",day:"2-digit"}).format(date);}
 function fanSongSeedHash(text){let h=2166136261;for(let i=0;i<text.length;i++){h^=text.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;}
+function setupRecommendationMarquees(root=document){root.querySelectorAll?.(".marquee-viewport")?.forEach(view=>{const track=view.querySelector(".marquee-track");if(!track)return;view.classList.remove("is-overflow");view.style.removeProperty("--marquee-distance");requestAnimationFrame(()=>{const distance=Math.max(0,track.scrollWidth-view.clientWidth);if(distance>1){view.style.setProperty("--marquee-distance",distance+"px");view.classList.add("is-overflow");}});});}
 function renderFanSongRecommendations(){const list=document.querySelector(".song-recommend-list");if(!list)return;list.innerHTML=fanSongRecommendationData.slice(0,3).map((song,index)=>{const title=adminEsc(song.title||"제목 없음"),artist=adminEsc(song.artist||"아티스트 미상");return `<a href="#" class="song-recommend-item"><span class="song-number">${String(index+1).padStart(2,"0")}</span><span class="song-info"><span class="marquee-viewport song-title"><span class="marquee-track">${title}</span></span><span class="marquee-viewport song-artist"><span class="marquee-track">${artist}</span></span></span><span class="song-arrow">→</span></a>`;}).join("");setupRecommendationMarquees(list);}
 function applyDailyFanSongRecommendations(){const day=fanSongKstDateKey();fanSongRecommendationData=fanSongRecommendationSource.slice().sort((a,b)=>fanSongSeedHash(day+"|"+String(a.title)+"|"+String(a.artist))-fanSongSeedHash(day+"|"+String(b.title)+"|"+String(b.artist))).slice(0,3);renderFanSongRecommendations();}
 async function loadFanSongRecommendations(){try{const response=await fetch(FANSONG_STATS_URL+Date.now(),{cache:"no-store"});if(!response.ok)throw new Error();const data=await response.json();const registered=Array.isArray(data.registeredSongs)?data.registeredSongs:[];fanSongRecommendationSource=registered.filter(song=>song&&String(song.title||"").trim()).map(song=>({title:String(song.title||"").trim(),artist:String(song.artist||"").trim()}));applyDailyFanSongRecommendations();}catch(error){fanSongRecommendationSource=[];fanSongRecommendationData=[];renderFanSongRecommendations();}}
