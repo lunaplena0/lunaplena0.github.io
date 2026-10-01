@@ -405,6 +405,2610 @@ main {
 
 
 /* =========================================================
+   월간 일정
+========================================================= */
+
+.schedule-card {
+    min-height: 400px;
+    height: auto;
+
+    padding: 20px;
+
+    overflow: hidden;
+}
+
+.month-header {
+    height: 38px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    margin-bottom: 12px;
+}
+
+.month-title {
+    color: #1e293b;
+
+    font-size: 17px;
+    font-weight: 800;
+}
+
+.month-control {
+    display: flex;
+    gap: 5px;
+}
+
+.month-button {
+    width: 30px;
+    height: 30px;
+
+    border: 1px solid #e2e8f0;
+    border-radius: 9px;
+
+    background: #ffffff;
+    color: #64748b;
+
+    cursor: pointer;
+
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease;
+}
+
+.month-button:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+}
+
+
+/* 달력 전체 크기 고정 */
+
+.calendar {
+    width: 100%;
+    height: auto;
+
+    border-collapse: collapse;
+    border-spacing: 0;
+
+    table-layout: fixed;
+}
+
+.calendar thead {
+    height: 30px;
+}
+
+.calendar tbody tr {
+    height: 64px;
+}
+
+.calendar th {
+    width: 14.2857%;
+    height: 30px;
+
+    padding: 0;
+
+    color: #94a3b8;
+
+    font-size: 11px;
+    font-weight: 700;
+
+    text-align: center;
+}
+
+.calendar td {
+    width: 14.2857%;
+    height: 64px;
+
+    padding: 5px;
+
+    vertical-align: top;
+
+    border-top: 1px solid #f1f5f9;
+
+    color: #64748b;
+
+    font-size: 11px;
+}
+
+.calendar-day {
+    display: inline-flex;
+
+    width: 23px;
+    height: 23px;
+
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 7px;
+}
+
+.calendar td.today .calendar-day {
+    background: #0ea5e9;
+    color: #ffffff;
+
+    font-weight: 800;
+}
+
+.calendar-event {
+    display: block;
+
+    margin-top: 3px;
+    padding: 2px 4px;
+
+    overflow: hidden;
+
+    white-space: nowrap;
+    text-overflow: ellipsis;
+
+    border-radius: 5px;
+
+    background: #f0f9ff;
+    color: #0284c7;
+
+    font-size: 9px;
+    font-weight: 700;
+}
+
+
+.calendar-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(15, 23, 42, 0.38);
+}
+
+.calendar-modal-backdrop.open {
+    display: flex;
+}
+
+.calendar-modal {
+    width: min(440px, 100%);
+    max-height: min(620px, 90vh);
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+    border-radius: 18px;
+    background: #ffffff;
+    box-shadow: 0 20px 50px rgba(15, 23, 42, 0.18);
+}
+
+.calendar-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 18px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.calendar-modal-title {
+    margin: 0;
+    color: #0f172a;
+    font-size: 16px;
+    font-weight: 800;
+}
+
+.calendar-modal-close {
+    width: 30px;
+    height: 30px;
+    border: 0;
+    border-radius: 9px;
+    background: #f8fafc;
+    color: #64748b;
+    font-size: 18px;
+    cursor: pointer;
+}
+
+.calendar-modal-list {
+    max-height: calc(min(620px, 90vh) - 70px);
+    overflow-y: auto;
+    padding: 12px;
+}
+
+.calendar-modal-item {
+    padding: 13px;
+    border: 1px solid #e2e8f0;
+    border-radius: 13px;
+    background: #f8fafc;
+}
+
+.calendar-modal-item + .calendar-modal-item {
+    margin-top: 9px;
+}
+
+.calendar-modal-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-bottom: 7px;
+}
+
+.calendar-modal-badge {
+    padding: 3px 7px;
+    border-radius: 6px;
+    background: #e0f2fe;
+    color: #0284c7;
+    font-size: 9px;
+    font-weight: 800;
+}
+
+.calendar-modal-event-title {
+    margin: 0;
+    color: #0f172a;
+    font-size: 13px;
+    font-weight: 800;
+    line-height: 1.5;
+    word-break: keep-all;
+}
+
+.calendar-modal-category {
+    margin: 6px 0 0;
+    color: #64748b;
+    font-size: 10px;
+    line-height: 1.4;
+}
+
+.calendar-modal-link {
+    display: inline-flex;
+    margin-top: 10px;
+    padding: 7px 10px;
+    border-radius: 8px;
+    background: #0ea5e9;
+    color: #ffffff;
+    font-size: 10px;
+    font-weight: 800;
+    text-decoration: none;
+}
+
+@media (max-width: 430px) {
+    .calendar-modal-backdrop {
+        padding: 12px;
+    }
+
+    .calendar-modal {
+        border-radius: 15px;
+    }
+}
+
+
+
+
+/* =========================================================
+   방송 타임라인
+========================================================= */
+
+.timeline-card {
+    height: 400px;
+
+    padding: 20px;
+
+    overflow: hidden;
+}
+
+.timeline-wrap {
+    position: relative;
+    height: 325px;
+    overflow: hidden;
+}
+
+.timeline-line {
+    position: absolute;
+    left: 19px;
+    top: 7px;
+    bottom: 7px;
+    width: 1px;
+    background: #dbeafe;
+    z-index: 0;
+    pointer-events: none;
+}
+
+.timeline {
+    position: relative;
+    height: 325px;
+    margin-left: 0;
+    padding-left: 40px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
+}
+
+.timeline::-webkit-scrollbar {
+    width: 6px;
+}
+
+.timeline::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.timeline::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+
+    border-radius: 10px;
+}
+
+.timeline::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+.timeline-item {
+    position: relative;
+
+    padding-bottom: 19px;
+}
+
+.timeline-item:last-child {
+    padding-bottom: 0;
+}
+
+.timeline-point {
+    position: absolute;
+
+    left: -25px;
+    top: 4px;
+
+    /* 세로줄 중심과 정확히 맞춤 */
+    z-index: 1;
+
+    width: 9px;
+    height: 9px;
+
+    border-radius: 50%;
+
+    background: #0ea5e9;
+
+    box-shadow:
+        0 0 0 4px #e0f2fe;
+}
+
+.timeline-date {
+    color: #94a3b8;
+
+    font-size: 10px;
+    font-weight: 700;
+}
+
+.timeline-title {
+    margin-top: 4px;
+
+    color: #334155;
+
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.timeline-description {
+    margin-top: 3px;
+
+    color: #94a3b8;
+
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+
+/* =========================================================
+   추천 영역
+   순서: VOD → 노래
+========================================================= */
+
+.recommend-grid {
+    display: grid;
+
+    grid-template-columns: 1fr 1fr;
+
+    gap: 22px;
+
+    align-items: stretch;
+}
+
+.recommend-grid > .section {
+    display: flex;
+    flex-direction: column;
+}
+
+.recommend-grid > .section > .vod-recommend-card,
+.recommend-grid > .section > .song-recommend-card {
+    flex: 1;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+
+/* =========================================================
+   오늘의 VOD
+========================================================= */
+
+.vod-recommend-card {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid #e4edf5;
+    border-radius: 20px;
+    background: #ffffff;
+    box-shadow: 0 6px 24px rgba(30, 64, 175, 0.04);
+}
+
+.vod-list {
+    display: flex;
+    flex-direction: column;
+    padding: 12px 16px;
+}
+
+.vod-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 55px;
+    padding: 8px 4px;
+    border-bottom: 1px solid #f1f5f9;
+    transition: background 0.2s ease, padding 0.2s ease;
+}
+
+.vod-item:last-child { border-bottom: 0; }
+
+.vod-item:hover {
+    padding-left: 8px;
+    padding-right: 8px;
+    background: #f8fcff;
+    border-radius: 10px;
+}
+
+.vod-number {
+    width: 25px;
+    flex: 0 0 25px;
+    color: #bae6fd;
+    font-size: 15px;
+    font-weight: 800;
+    text-align: center;
+}
+
+.vod-info { min-width: 0; flex: 1; }
+
+.vod-title {
+    display: block;
+    overflow: hidden;
+    color: #1e293b;
+    font-size: 13px;
+    font-weight: 800;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.vod-date {
+    display: block;
+    margin-top: 3px;
+    overflow: hidden;
+    color: #94a3b8;
+    font-size: 10px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.vod-arrow { flex: 0 0 auto; color: #94a3b8; font-size: 11px; }
+
+
+/* =========================================================
+   오늘의 노래
+========================================================= */
+
+.song-recommend-card {
+    padding: 12px 16px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    border: 1px solid #e4edf5;
+    border-radius: 20px;
+
+    background: #ffffff;
+
+    box-shadow:
+        0 6px 24px rgba(30, 64, 175, 0.04);
+}
+
+.song-recommend-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.song-recommend-item {
+    display: flex;
+    align-items: center;
+
+    gap: 12px;
+
+    min-height: 55px;
+
+    padding: 8px 4px;
+
+    border-bottom: 1px solid #f1f5f9;
+
+    transition:
+        background 0.2s ease,
+        padding 0.2s ease;
+}
+
+.song-recommend-item:last-child {
+    border-bottom: 0;
+}
+
+.song-recommend-item:hover {
+    padding-left: 8px;
+    padding-right: 8px;
+
+    background: #f8fcff;
+
+    border-radius: 10px;
+}
+
+
+/* 긴 제목/가수명은 카드 안에서 좌우로 이동하여 전체 표시 */
+.marquee-viewport{display:block;min-width:0;overflow:hidden;white-space:nowrap}
+.marquee-track{display:inline-block;white-space:nowrap;transform:translateX(0)}
+.marquee-viewport.is-overflow .marquee-track{animation:recommendMarquee 7s ease-in-out infinite alternate;will-change:transform;padding-right:40px}
+@keyframes recommendMarquee{0%,18%{transform:translateX(0)}82%,100%{transform:translateX(calc(-1 * var(--marquee-distance, 0px)))}}
+
+.song-number {
+    width: 25px;
+
+    flex: 0 0 25px;
+
+    color: #bae6fd;
+
+    font-size: 15px;
+    font-weight: 800;
+
+    text-align: center;
+}
+
+.song-info {
+    min-width: 0;
+
+    flex: 1;
+}
+
+.song-title {
+    display: block;
+
+    overflow: hidden;
+
+    color: #1e293b;
+
+    font-size: 13px;
+    font-weight: 800;
+
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.song-artist {
+    display: block;
+
+    margin-top: 3px;
+
+    overflow: hidden;
+
+    color: #94a3b8;
+
+    font-size: 10px;
+
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.song-arrow {
+    flex: 0 0 auto;
+
+    color: #94a3b8;
+
+    font-size: 11px;
+}
+
+
+/* =========================================================
+   관리자
+========================================================= */
+.admin-button { margin-left: 8px; padding: 7px 10px; border: 1px solid #bae6fd; border-radius: 9px; background: #f0f9ff; color: #0284c7; font-size: 11px; font-weight: 800; cursor: pointer; }
+.admin-button.authenticated { background: #0284c7; color: #fff; border-color: #0284c7; }
+.admin-modal { position: fixed; inset: 0; z-index: 1000; display: none; align-items: center; justify-content: center; padding: 18px; background: rgba(15,23,42,.42); backdrop-filter: blur(6px); }
+.admin-modal.active { display: flex; }
+.admin-panel { width: min(920px,100%); max-height: min(88vh,900px); overflow: hidden; border: 1px solid #e4edf5; border-radius: 22px; background: #fff; box-shadow: 0 20px 60px rgba(15,23,42,.18); }
+.admin-panel-header { display:flex; align-items:center; justify-content:space-between; padding:16px 18px; border-bottom:1px solid #eef2f7; }
+.admin-panel-title { margin:0; color:#1e293b; font-size:16px; font-weight:800; }
+.admin-close { width:32px; height:32px; border:0; border-radius:9px; background:#f8fafc; color:#64748b; cursor:pointer; }
+.admin-login-body { padding:24px; }
+.admin-login-body p { margin:0 0 14px; color:#64748b; font-size:12px; line-height:1.6; }
+.admin-input { width:100%; height:42px; padding:0 12px; border:1px solid #dbe5ef; border-radius:10px; outline:none; color:#1e293b; background:#fff; font-size:13px; }
+.admin-input:focus { border-color:#7dd3fc; box-shadow:0 0 0 3px rgba(14,165,233,.08); }
+.admin-turnstile { min-height:65px; margin-top:12px; }
+.admin-login-actions,.admin-editor-actions { display:flex; justify-content:flex-end; gap:8px; margin-top:14px; }
+.admin-action-button { min-height:38px; padding:0 13px; border:1px solid #dbe5ef; border-radius:9px; background:#fff; color:#475569; font-size:12px; font-weight:800; cursor:pointer; }
+.admin-action-button.primary { border-color:#0284c7; background:#0284c7; color:#fff; }
+.admin-action-button.danger { border-color:#fecaca; color:#dc2626; }
+.admin-editor-body { max-height:calc(min(88vh,900px) - 70px); overflow-y:auto; padding:18px; }
+.admin-section { padding:16px; border:1px solid #e7eef5; border-radius:16px; background:#fbfdff; }
+.admin-section + .admin-section { margin-top:12px; }
+.admin-section h3 { margin:0 0 10px; color:#1e293b; font-size:13px; }
+.admin-row { display:grid; grid-template-columns:25px minmax(0,1fr) minmax(0,1fr) minmax(0,1fr); gap:8px; align-items:center; margin-top:7px; }
+.admin-row.timeline-row { grid-template-columns:25px 125px minmax(0,1fr) minmax(0,1fr); }
+.admin-row:first-of-type { margin-top:0; }
+.admin-row-number { color:#0ea5e9; font-size:11px; font-weight:800; text-align:center; }
+.admin-status { margin-top:10px; min-height:18px; color:#64748b; font-size:11px; }
+@media (max-width:800px) {
+ .admin-button { margin-left:3px; padding:6px 7px; font-size:9px; }
+ .admin-panel { border-radius:18px; }
+ .admin-row,.admin-row.timeline-row { grid-template-columns:22px 1fr; }
+ .admin-row .admin-input { grid-column:2; }
+}
+
+/* 관리자/팝업 보정 */
+.section-header-actions{display:flex;align-items:center;gap:7px}
+.profile-name{display:flex;align-items:baseline;gap:7px;min-width:0}
+.profile-day-count{color:#94a3b8;font-size:10px;font-weight:700;white-space:nowrap}
+.inline-editor{overflow:auto}
+.inline-editor-grid{max-height:calc(88vh - 130px);overflow:auto;padding-bottom:70px}
+.inline-editor-actions{position:static!important;margin:0!important}
+.inline-editor .admin-status{position:static!important;width:auto!important;text-align:left!important;margin:0!important}
+.inline-editor{flex-direction:column}
+.inline-editor-grid{flex:0 1 auto}
+.inline-editor-actions{width:min(680px,100%)!important;padding:12px 0 0;background:#fff}
+.inline-editor[id="timelineEditor"]{padding-bottom:18px}
+.inline-editor[id="timelineEditor"] .timeline-editor-head,
+.inline-editor[id="timelineEditor"] #inlineTimelineRows{flex-shrink:0}
+.inline-editor[id="timelineEditor"] #inlineTimelineRows{max-height:calc(88vh - 180px)}
+.inline-editor[id="timelineEditor"] .inline-editor-actions{bottom:auto!important}
+.timeline-edit-row{grid-template-columns:28px minmax(140px,180px) minmax(180px,1fr) 28px 28px}
+.timeline-editor-head span{display:none}
+
+/* =========================================================
+   모든 관리자 수정 팝업 공통 디자인
+========================================================= */
+.editor-modal-backdrop{
+    position:fixed; inset:0; z-index:1200;
+    display:none; align-items:center; justify-content:center;
+    padding:18px;
+    background:rgba(15,23,42,.42);
+    backdrop-filter:blur(6px);
+    -webkit-backdrop-filter:blur(6px);
+}
+.editor-modal-backdrop.active{display:flex}
+.editor-modal{
+    width:min(720px,100%);
+    max-height:min(88vh,900px);
+    display:flex; flex-direction:column;
+    overflow:hidden;
+    border:1px solid #e4edf5;
+    border-radius:22px;
+    background:#fff;
+    box-shadow:0 20px 60px rgba(15,23,42,.18);
+}
+.editor-modal-header{
+    flex:0 0 auto;
+    display:flex; align-items:center; justify-content:space-between;
+    gap:12px;
+    padding:16px 20px;
+    border-bottom:1px solid #eef2f7;
+}
+.editor-modal-title{margin:0;color:#1e293b;font-size:16px;font-weight:800}
+.editor-modal-close{
+    width:32px;height:32px;flex:0 0 32px;
+    border:0;border-radius:9px;background:#f8fafc;color:#64748b;
+    cursor:pointer;font-size:18px;line-height:1;
+}
+.editor-modal-close:hover{background:#f1f5f9;color:#334155}
+.editor-modal-footer{
+    flex:0 0 auto;
+    display:flex;align-items:center;justify-content:space-between;gap:12px;
+    min-height:50px;padding:7px 16px;
+    border-top:1px solid #eef2f7;background:#fff;
+}
+.editor-modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-left:auto}
+.editor-modal .admin-status{margin:0;min-height:18px;font-size:11px;color:#64748b}
+.editor-modal .admin-input{height:40px}
+#profileEditor input[type="file"]{
+    height:40px;
+    box-sizing:border-box;
+    display:flex;
+    align-items:center;
+    padding:6px 10px;
+    line-height:26px;
+}
+#profileEditor input[type="file"]::file-selector-button{
+    margin-right:8px;
+    vertical-align:middle;
+}
+
+
+/* 프로필 / 타임라인도 같은 모달 프레임 사용 */
+#profileEditor,#timelineEditor{
+    flex-direction:column;
+}
+#profileEditor .inline-editor-grid,
+#timelineEditor #inlineTimelineRows,
+#timelineEditor .timeline-editor-head{
+    width:min(680px,100%);
+}
+#profileEditor .inline-editor-grid{
+    margin:auto;
+    padding:20px;
+    border:1px solid #e7eef5;
+    border-radius:16px;
+    background:#fbfdff;
+}
+#profileEditor .inline-editor-actions,
+#timelineEditor .inline-editor-actions{
+    position:static!important;
+    width:min(680px,100%)!important;
+    padding:12px 0 0!important;
+    margin:0 auto!important;
+    border:0!important;
+    background:transparent!important;
+}
+#profileEditor .admin-status,
+#timelineEditor .admin-status{
+    position:static!important;
+    width:min(680px,100%)!important;
+    margin:0 auto!important;
+    text-align:left!important;
+}
+#timelineEditor .timeline-editor-head{margin:0 auto 10px}
+#timelineEditor #inlineTimelineRows{
+    max-height:calc(88vh - 180px);
+    overflow:auto;
+    padding:14px;
+    border:1px solid #e7eef5;
+    border-radius:16px;
+    background:#fbfdff;
+}
+
+/* 월간 일정 편집: 실제 메인 달력과 같은 달력에서 날짜를 선택 */
+.calendar-editor-content{
+    flex:1 1 auto; min-height:0; overflow:auto;
+    padding:18px 20px 20px;
+}
+.calendar-editor-monthbar{
+    display:flex;align-items:center;justify-content:center;gap:14px;
+    margin-bottom:12px;color:#1e293b;
+}
+.calendar-editor-monthbar strong{min-width:120px;text-align:center;font-size:15px}
+.calendar-editor-grid{margin:0}
+.calendar-editor-grid th{height:30px}
+.calendar-editor-grid td{
+    height:58px;padding:5px;vertical-align:top;cursor:pointer;
+    transition:background .15s ease,box-shadow .15s ease;
+}
+.calendar-editor-grid td.calendar-editor-empty{cursor:default}
+.calendar-editor-grid td.calendar-editor-day:hover{background:#f8fcff}
+.calendar-editor-grid td.selected{
+    background:#eff9ff;
+    box-shadow:inset 0 0 0 2px #7dd3fc;
+}
+.calendar-editor-marker{
+    display:block;margin-top:3px;padding:2px 4px;
+    overflow:hidden;white-space:nowrap;text-overflow:ellipsis;
+    border-radius:5px;background:#f0f9ff;color:#0284c7;
+    font-size:9px;font-weight:700;
+}
+.calendar-editor-count{
+    display:inline-flex;align-items:center;justify-content:center;
+    min-width:16px;height:16px;margin-left:3px;padding:0 4px;
+    border-radius:8px;background:#dbeafe;color:#0369a1;
+    font-size:8px;font-weight:800;
+}
+.calendar-editor-selected{
+    margin-top:16px;padding:15px;
+    border:1px solid #e2e8f0;border-radius:16px;background:#fbfdff;
+}
+.calendar-editor-selected-head{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    margin-bottom:12px;
+}
+.calendar-editor-label{
+    display:block;margin-bottom:3px;color:#94a3b8;font-size:10px;font-weight:700;
+}
+.calendar-editor-selected-head strong{color:#1e293b;font-size:14px}
+.calendar-editor-event-row{
+    display:grid;
+    grid-template-columns:95px 95px minmax(110px,1fr) minmax(120px,1.2fr) 30px;
+    gap:7px;align-items:center;
+    padding:10px;
+    border:1px solid #e2e8f0;border-radius:12px;background:#fff;
+}
+.calendar-editor-event-row + .calendar-editor-event-row{margin-top:8px}
+.calendar-editor-remove{
+    width:30px;height:32px;border:1px solid #fecaca;border-radius:8px;
+    background:#fff;color:#dc2626;font-weight:900;cursor:pointer;
+}
+.calendar-editor-remove:hover{background:#fff1f2}
+.calendar-editor-no-data{
+    padding:14px;text-align:center;color:#94a3b8;font-size:11px;
+    border:1px dashed #cbd5e1;border-radius:10px;background:#fff;
+}
+@media(max-width:700px){
+    .editor-modal-backdrop{padding:10px}
+    .editor-modal{max-height:94vh;border-radius:18px}
+    .editor-modal-header{padding:14px 16px}
+    .editor-modal-footer{min-height:46px;padding:7px 12px}
+    .calendar-editor-content{padding:14px}
+    .calendar-editor-grid td{height:52px;padding:3px}
+    .calendar-editor-event-row{grid-template-columns:1fr 1fr}
+    .calendar-editor-remove{grid-column:2;justify-self:end}
+    .calendar-editor-selected-head{align-items:flex-start;flex-direction:column}
+    .calendar-editor-selected-head .admin-action-button{width:100%}
+}
+@media(max-width:430px){
+    .editor-modal-footer{align-items:stretch;flex-direction:column}
+    .editor-modal-actions{width:100%;margin-left:0}
+    .editor-modal-actions .admin-action-button{flex:1}
+}
+
+/* =========================================================
+   Footer
+========================================================= */
+
+footer {
+    padding: 28px 0 35px;
+
+    border-top: 1px solid #e7eef5;
+
+    background: #ffffff;
+}
+
+.footer-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    color: #94a3b8;
+
+    font-size: 11px;
+}
+
+.footer-title {
+    color: #64748b;
+
+    font-weight: 800;
+}
+
+
+/* =========================================================
+   모바일
+========================================================= */
+
+@media (max-width: 800px) {
+
+    .container {
+        width: min(
+            calc(100% - 22px),
+            680px
+        );
+    }
+
+    .top-header-inner {
+        height: 60px;
+    }
+
+    .brand-text {
+        font-size: 15px;
+    }
+
+    .top-nav {
+        gap: 1px;
+    }
+
+    .top-nav a {
+        padding: 7px 5px;
+        font-size: 10px;
+    }
+
+    main {
+        padding-top: 18px;
+    }
+
+
+    /* 프로필 */
+
+    .profile-card {
+        padding: 22px;
+        border-radius: 20px;
+    }
+
+    .profile-content {
+        align-items: flex-start;
+        gap: 16px;
+    }
+
+    .profile-image {
+        width: 82px;
+        height: 82px;
+
+        flex-basis: 82px;
+
+        border-radius: 21px;
+    }
+
+    .profile-name {
+        font-size: 22px;
+    }
+
+    .profile-message {
+        margin-top: 7px;
+        font-size: 12px;
+    }
+
+    .profile-sub {
+        margin-top: 9px;
+    }
+
+
+    /* 바로가기 */
+
+    .quick-links {
+        grid-template-columns: repeat(2, 1fr);
+
+        gap: 9px;
+
+        margin-top: 12px;
+    }
+
+    .quick-link {
+        min-height: 65px;
+
+        padding: 11px;
+
+        border-radius: 14px;
+    }
+
+    .quick-icon {
+        width: 34px;
+        height: 34px;
+
+        flex-basis: 34px;
+
+        border-radius: 10px;
+
+        font-size: 15px;
+    }
+
+    .quick-title {
+        font-size: 12px;
+    }
+
+    .quick-description {
+        font-size: 10px;
+    }
+
+
+    /* 섹션 */
+
+    .section {
+        margin-top: 17px;
+    }
+
+    .section-title {
+        font-size: 15px;
+    }
+
+
+    /* 일정 + 타임라인 */
+
+    .content-grid {
+        grid-template-columns: 1fr;
+        gap: 17px;
+    }
+
+    .schedule-card {
+        min-height: 390px;
+        height: auto;
+    }
+
+    .timeline-card {
+        height: 390px;
+    }
+
+    .schedule-card,
+    .timeline-card {
+        padding: 16px;
+    }
+
+    .calendar {
+        height: auto;
+    }
+
+    .calendar tbody tr {
+        height: 58px;
+    }
+
+    .calendar td {
+        height: 58px;
+    }
+
+   .timeline {
+        height: 315px;
+    }
+
+
+    /* 추천 */
+
+    .recommend-grid {
+        grid-template-columns: 1fr;
+        gap: 17px;
+    }
+
+
+
+    /* Footer */
+
+    .footer-inner {
+        flex-direction: column;
+
+        gap: 7px;
+
+        text-align: center;
+    }
+}
+
+
+/* =========================================================
+   작은 모바일
+========================================================= */
+
+@media (max-width: 430px) {
+
+    .profile-content {
+        gap: 13px;
+    }
+
+    .profile-image {
+        width: 70px;
+        height: 70px;
+
+        flex-basis: 70px;
+
+        border-radius: 18px;
+    }
+
+    .profile-name {
+        font-size: 20px;
+    }
+
+    .profile-message {
+        font-size: 11px;
+    }
+
+    .profile-tag {
+        padding: 4px 7px;
+        font-size: 9px;
+    }
+
+    .calendar td {
+        height: 54px;
+        padding: 3px;
+    }
+
+    .calendar tbody tr {
+        height: 54px;
+    }
+
+    .calendar-day {
+        width: 20px;
+        height: 20px;
+    }
+
+    .calendar-event {
+        font-size: 8px;
+    }
+
+    .song-recommend-item {
+        min-height: 51px;
+    }
+
+    .song-title {
+        font-size: 12px;
+    }
+
+    .song-artist {
+        font-size: 9px;
+    }
+}
+
+.inline-edit-button{border:1px solid #bae6fd;background:#fff;color:#0369a1;border-radius:8px;padding:5px 10px;font-size:10px;font-weight:800;cursor:pointer;white-space:nowrap}.inline-edit-button:hover{background:#f0f9ff;border-color:#7dd3fc}.auth-edit-control{display:none}body.authenticated-mode .auth-edit-control{display:inline-flex}.profile-content{position:relative}.inline-editor{position:fixed;inset:0;z-index:1100;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(15,23,42,.42);backdrop-filter:blur(6px);margin:0;border:0;border-radius:0;background-color:rgba(15,23,42,.42)}.inline-editor::before{content:""}.inline-editor > *{position:relative}.inline-editor-grid{width:min(680px,100%);padding:18px;border:1px solid #dbeafe;border-radius:16px;background:#f8fbff;box-shadow:0 16px 50px rgba(15,23,42,.16);display:grid;grid-template-columns:1fr 1fr;gap:10px}.inline-editor-actions,.inline-editor .admin-status{width:min(680px,100%);position:absolute;bottom:18px;z-index:2}.inline-editor-actions{justify-content:flex-end}.inline-editor .admin-status{bottom:58px;text-align:right}.inline-editor[id="timelineEditor"]{flex-direction:column}.inline-editor[id="timelineEditor"] .timeline-editor-head,.inline-editor[id="timelineEditor"] #inlineTimelineRows{width:min(900px,100%)}.inline-editor[id="timelineEditor"] #inlineTimelineRows{max-height:65vh;overflow:auto;padding:14px;border:1px solid #dbeafe;border-radius:16px;background:#f8fbff}.inline-editor[id="timelineEditor"] .timeline-editor-head{padding:0 4px;color:#fff}.inline-editor[id="timelineEditor"] .timeline-editor-head span{color:#e0f2fe}.inline-editor[id="timelineEditor"] .inline-editor-actions{bottom:18px}.inline-editor[id="timelineEditor"] .admin-status{bottom:58px}.inline-editor-grid label{min-width:0}.inline-editor-grid label{display:flex;flex-direction:column;gap:5px;color:#0369a1;font-size:11px;font-weight:800}.inline-editor-grid .full{grid-column:1 / -1}.inline-editor-help{font-size:10px;color:#94a3b8;font-weight:500}.inline-editor-actions{display:flex;justify-content:flex-end;gap:7px;margin-top:10px;padding:12px 16px;border-top:1px solid #eef2f7;background:#fff;width:100%;box-sizing:border-box}.inline-editor[id="profileEditor"] .inline-editor-actions,.inline-editor[id="timelineEditor"] .inline-editor-actions{margin-top:0}.inline-editor[id="profileEditor"] .admin-status,.inline-editor[id="timelineEditor"] .admin-status{bottom:64px;right:16px;width:auto;text-align:right}.timeline-editor-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;color:#0369a1;font-size:11px}.timeline-editor-head span{color:#94a3b8;font-weight:500}.timeline-edit-row{display:grid;grid-template-columns:30px 105px minmax(240px,1fr) 30px;gap:7px;align-items:center;margin-bottom:7px}.timeline-edit-row .admin-input{min-width:0}.timeline-row-button{width:28px;height:32px;border:1px solid #cbd5e1;background:#fff;border-radius:8px;cursor:pointer;font-weight:900;color:#0369a1}.timeline-row-button.add{color:#059669}.timeline-row-button.remove{color:#dc2626}@media(max-width:700px){.inline-editor-grid{grid-template-columns:1fr}.inline-editor-grid .full{grid-column:auto}.timeline-editor-head{align-items:flex-start;flex-direction:column}.timeline-edit-row{grid-template-columns:24px minmax(0,1fr) 28px}.timeline-edit-row .admin-timeline-date{grid-column:2}.timeline-edit-row .admin-timeline-title{grid-column:2}.timeline-edit-row .timeline-row-number{grid-column:1;grid-row:1 / span 2}.timeline-edit-row .timeline-row-button.remove{grid-column:3;grid-row:1}}
+
+/* 공통 수정 팝업 최종 보정 */
+.inline-editor{
+    position:fixed!important; inset:0!important; z-index:1200!important;
+    display:none; align-items:center; justify-content:center;
+    padding:18px!important; margin:0!important;
+    border:0!important; border-radius:0!important;
+    background:rgba(15,23,42,.42)!important;
+}
+.inline-editor[aria-hidden="false"]{display:flex!important}
+
+
+
+#timelineEditAddFooter{
+    margin-right:auto;
+}
+#timelineEditAddFooter:hover{
+    background:#f0fdf4;
+    border-color:#86efac;
+}
+
+#profileEditor .inline-editor-actions,#profileEditor .admin-status,
+#timelineEditor .inline-editor-actions,#timelineEditor .admin-status{display:none!important}
+.editor-modal-profile,.editor-modal-timeline{width:min(680px,100%)}
+
+</style>
+</head>
+
+
+<body>
+
+<div class="site">
+
+
+    <!-- =========================================================
+         상단 헤더
+    ========================================================== -->
+
+    <header class="top-header">
+
+        <div class="container top-header-inner">
+
+            <a href="#" class="brand">
+
+                <span class="brand-icon">
+                    🌊
+                </span>
+
+                <span class="brand-text">
+                    바다비 팬 아카이브
+                </span>
+
+            </a>
+
+            <nav class="top-nav" aria-label="주요 링크">
+                <a href="https://www.sooplive.com/station/bababi" target="_blank" rel="noopener">방송국</a>
+                <a href="https://cafe.naver.com/soopbadabi" target="_blank" rel="noopener">팬카페</a>
+                <a href="https://youtube.com/channel/UCUcnsZ-VzanQT6NSMJ_JlCQ?si=kMa8AhcVNcQ6FyYE" target="_blank" rel="noopener">유튜브</a>
+                <a href="songlist.html">노래책</a>
+                <a href="vod.html">VOD정보</a>
+            </nav>
+
+            <button type="button" class="admin-button" id="adminButton">관리자</button>
+
+        </div>
+
+    </header>
+
+
+
+    <!-- =========================================================
+         메인
+    ========================================================== -->
+
+    <main>
+
+        <div class="container">
+
+
+            <!-- =================================================
+                 프로필
+            ================================================== -->
+
+            <section class="profile-card">
+
+                <div class="profile-content">
+
+                    <img
+                        class="profile-image"
+                        id="profileImage"
+                        src=""
+                        alt="바다비 프로필"
+                    >
+
+                    <div class="profile-info">
+
+                        <h1 class="profile-name"><span id="profileName"></span><span class="profile-day-count" id="profileDayCount"></span></h1>
+
+                        <p class="profile-message" id="profileMessage"></p>
+
+                        <div class="profile-sub" id="profileTags"></div>
+
+                    </div>
+
+                    <button type="button" class="inline-edit-button auth-edit-control" id="profileEditButton" style="display:none;">수정</button>
+
+                </div>
+
+                <div class="editor-modal-backdrop inline-editor" id="profileEditor" style="display:none;">
+                    <div class="editor-modal editor-modal-profile">
+                        <div class="editor-modal-header">
+                            <h2 class="editor-modal-title">프로필 수정</h2>
+                            <button type="button" class="editor-modal-close" id="profileEditClose" aria-label="닫기">×</button>
+                        </div>
+                        <div class="editor-modal-body">
+                    <div class="inline-editor-grid">
+                        <label>닉네임<input id="editProfileName" class="admin-input"></label>
+                        <label>프로필 메시지<input id="editProfileMessage" class="admin-input"></label>
+                        <label class="full">태그<input id="editProfileTags" class="admin-input" placeholder="쉼표로 구분"></label>
+                        <label class="full">프로필 사진<input type="file" id="editProfileImageFile" accept="image/*" class="admin-input"><span class="inline-editor-help">이미지는 GitHub에 업로드한 뒤 자동으로 프로필에 적용됩니다.</span></label>
+                    </div>
+                    <div class="inline-editor-actions"><button type="button" class="admin-action-button" id="profileEditCancel">취소</button><button type="button" class="admin-action-button primary" id="profileEditSave">저장</button></div>
+                    <div class="admin-status" id="profileEditStatus"></div>
+                        </div>
+                        <div class="editor-modal-footer">
+                            <div class="editor-modal-actions">
+                                <button type="button" class="admin-action-button" id="profileEditCancelFooter">취소</button>
+                                <button type="button" class="admin-action-button primary" id="profileEditSaveFooter">저장</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </section>
+
+
+
+            <!-- =================================================
+                 월간 일정 + 방송 타임라인
+            ================================================== -->
+
+            <div class="content-grid">
+
+
+                <!-- 월간 일정 -->
+
+                <section
+                    class="section"
+                    id="schedule"
+                >
+
+                    <div class="section-header">
+
+                        <div class="section-title-wrap">
+                            <span class="section-dot"></span>
+
+                            <h2 class="section-title">
+                                월간 일정
+                            </h2>
+                        </div>
+
+                        <div class="section-header-actions">
+                            <span class="section-more" id="calendar-section-month">2026년 10월</span>
+                            <button type="button" class="inline-edit-button auth-edit-control" id="calendarEditButton" style="display:none;">수정</button>
+                        </div>
+
+                    </div>
+
+
+                    <div class="card schedule-card">
+
+                        <div class="month-header">
+
+                            <div class="month-title" id="calendar-month-title">
+                                2026년 10월
+                            </div>
+
+                            <div class="month-control">
+
+                                <button
+                                    class="month-button"
+                                    type="button"
+                                    aria-label="이전 달"
+                                >
+                                    ‹
+                                </button>
+
+                                <button
+                                    class="month-button"
+                                    type="button"
+                                    aria-label="다음 달"
+                                >
+                                    ›
+                                </button>
+
+                            </div>
+
+                        </div>
+
+
+                        <table class="calendar">
+
+                            <thead>
+                                <tr>
+                                    <th>일</th>
+                                    <th>월</th>
+                                    <th>화</th>
+                                    <th>수</th>
+                                    <th>목</th>
+                                    <th>금</th>
+                                    <th>토</th>
+                                </tr>
+                            </thead>
+
+                            <tbody id="calendar-body">
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                </section>
+
+
+
+                <!-- 방송 타임라인 -->
+
+                <section
+                    class="section"
+                    id="timeline"
+                >
+
+                    <div class="section-header">
+
+                        <div class="section-title-wrap">
+                            <span class="section-dot"></span>
+
+                            <h2 class="section-title">
+                                방송 타임라인
+                            </h2>
+                        </div>
+
+                        <button type="button" class="inline-edit-button auth-edit-control" id="timelineEditButton" style="display:none;">수정</button>
+
+                    </div>
+
+
+                    <div class="card timeline-card">
+
+                        <div class="timeline-wrap">
+
+                            <span class="timeline-line"></span>
+
+                            <div class="timeline">
+
+
+                            <div id="timelineList"></div>
+
+
+                        </div>
+
+                        </div>
+
+                    </div>
+
+                    <div class="editor-modal-backdrop inline-editor" id="timelineEditor" style="display:none;">
+                    <div class="editor-modal editor-modal-timeline">
+                        <div class="editor-modal-header">
+                            <h2 class="editor-modal-title">방송 타임라인 수정</h2>
+                            <button type="button" class="editor-modal-close" id="timelineEditClose" aria-label="닫기">×</button>
+                        </div>
+                        <div class="editor-modal-body">
+                        <div class="timeline-editor-head"><strong>타임라인 편집</strong><span></span></div>
+                        <div id="inlineTimelineRows"></div>
+                        <div class="inline-editor-actions"><button type="button" class="admin-action-button" id="timelineEditCancel">취소</button><button type="button" class="admin-action-button primary" id="timelineEditSave">저장</button></div>
+                        <div class="admin-status" id="timelineEditStatus"></div>
+                        </div>
+                        <div class="editor-modal-footer">
+                            <button type="button" class="admin-action-button" id="timelineEditAddFooter">+ 타임라인 추가</button>
+                            <div class="editor-modal-actions">
+                                <button type="button" class="admin-action-button" id="timelineEditCancelFooter">취소</button>
+                                <button type="button" class="admin-action-button primary" id="timelineEditSaveFooter">저장</button>
+                            </div>
+                        </div>
+                    </div>
+                    </div>
+
+                </section>
+
+            </div>
+
+
+
+            <!-- =================================================
+                 오늘의 추천
+                 VOD → 노래 순서
+            ================================================== -->
+
+            <div class="recommend-grid">
+
+
+                <!-- =================================================
+                     오늘의 VOD 추천
+                ================================================== -->
+
+                <section
+                    class="section"
+                    id="vod"
+                >
+
+                    <div class="section-header">
+
+                        <div class="section-title-wrap">
+                            <span class="section-dot"></span>
+
+                            <h2 class="section-title">
+                                오늘의 VOD 추천
+                            </h2>
+                        </div>
+
+
+
+                    </div>
+
+
+                    <div class="vod-recommend-card" id="vodRecommendCard">
+                        <div class="vod-list" id="vodRecommendList"></div>
+                    </div>
+
+                </section>
+
+
+
+                <!-- =================================================
+                     오늘의 노래 추천
+                ================================================== -->
+
+                <section
+                    class="section"
+                    id="song"
+                >
+
+                    <div class="section-header">
+
+                        <div class="section-title-wrap">
+                            <span class="section-dot"></span>
+
+                            <h2 class="section-title">
+                                오늘의 노래 추천
+                            </h2>
+                        </div>
+
+
+
+                    </div>
+
+
+                    <div class="song-recommend-card">
+
+                        <div class="song-recommend-list"></div>
+
+                    </div>
+
+                </section>
+
+
+            </div>
+
+        </div>
+
+    </main>
+
+
+
+    <!-- 관리자 로그인 -->
+    <div class="admin-modal" id="adminModal" aria-hidden="true">
+        <div class="admin-panel" role="dialog" aria-modal="true" aria-labelledby="adminPanelTitle">
+            <div class="admin-panel-header">
+                <h2 class="admin-panel-title" id="adminPanelTitle">관리자 로그인</h2>
+                <button type="button" class="admin-close" id="adminCloseButton" aria-label="닫기">×</button>
+            </div>
+            <div id="adminLoginView" class="admin-login-body">
+                <p>로그인 상태는 브라우저에 보안 세션 토큰으로 유지됩니다.</p>
+                <input type="password" id="adminPassword" class="admin-input" autocomplete="current-password" placeholder="관리자 비밀번호">
+                <div id="adminTurnstile" class="admin-turnstile"></div>
+                <div class="admin-login-actions"><button type="button" class="admin-action-button primary" id="adminLoginButton">로그인</button></div>
+                <div class="admin-status" id="adminLoginStatus"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- =========================================================
+         Footer
+    ========================================================== -->
+
+    <footer>
+
+        <div class="container footer-inner">
+
+            <span class="footer-title">
+                바다비 팬 아카이브
+            </span>
+
+            <span>
+                팬 제작 아카이브 · 비공식 팬사이트
+            </span>
+
+        </div>
+
+    </footer>
+
+
+</div>
+
+
+
+<div class="calendar-modal-backdrop" id="calendar-modal-backdrop" aria-hidden="true">
+    <div class="calendar-modal" role="dialog" aria-modal="true" aria-labelledby="calendar-modal-title">
+        <div class="calendar-modal-header">
+            <h3 class="calendar-modal-title" id="calendar-modal-title"></h3>
+            <button class="calendar-modal-close" id="calendar-modal-close" type="button" aria-label="닫기">×</button>
+        </div>
+        <div class="calendar-modal-list" id="calendar-modal-list"></div>
+    </div>
+</div>
+
+<!-- 월간 일정 편집 -->
+<div class="editor-modal-backdrop calendar-edit-modal-backdrop" id="calendarEditModal" aria-hidden="true">
+    <div class="editor-modal calendar-edit-modal" role="dialog" aria-modal="true" aria-labelledby="calendarEditModalTitle">
+        <div class="editor-modal-header">
+            <h2 class="editor-modal-title" id="calendarEditModalTitle">월간 일정 편집</h2>
+            <button type="button" class="editor-modal-close" id="calendarEditClose" aria-label="닫기">×</button>
+        </div>
+
+        <div class="calendar-editor-content">
+            <div class="calendar-editor-monthbar">
+                <button type="button" class="month-button" id="calendarEditPrevMonth" aria-label="이전 달">‹</button>
+                <strong id="calendarEditMonthTitle"></strong>
+                <button type="button" class="month-button" id="calendarEditNextMonth" aria-label="다음 달">›</button>
+            </div>
+
+            <table class="calendar calendar-editor-grid">
+                <thead>
+                    <tr><th>일</th><th>월</th><th>화</th><th>수</th><th>목</th><th>금</th><th>토</th></tr>
+                </thead>
+                <tbody id="calendarEditBody"></tbody>
+            </table>
+
+            <div class="calendar-editor-selected" id="calendarEditorSelected">
+                <div class="calendar-editor-selected-head">
+                    <div>
+                        <span class="calendar-editor-label">선택한 날짜</span>
+                        <strong id="calendarEditSelectedDate">날짜를 선택해주세요</strong>
+                    </div>
+                    <button type="button" class="admin-action-button primary" id="calendarEditAdd">+ 일정 추가</button>
+                </div>
+                <div id="calendarEditRows"></div>
+            </div>
+        </div>
+
+        <div class="editor-modal-footer">
+            <div class="admin-status" id="calendarEditStatus"></div>
+            <div class="editor-modal-actions">
+                <button type="button" class="admin-action-button" id="calendarEditCancel">취소</button>
+                <button type="button" class="admin-action-button primary" id="calendarEditSave">저장</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+
+/*
+ * ============================================================
+ * 데이터 연결 영역
+ * ============================================================
+ *
+ * 추후 JSON / API와 연결하여 아래 데이터를 자동으로
+ * 불러오도록 확장할 수 있습니다.
+ *
+ * 1. 프로필
+ * 2. 방송국 / 팬카페 / YouTube / 노래책 링크
+ * 3. 월간 일정
+ * 4. 방송 타임라인
+ * 5. 오늘의 노래 추천
+ * 6. 오늘의 VOD 추천
+ */
+
+
+/* ============================================================
+   관리자 로그인 / fanstartpage 편집
+============================================================ */
+const ADMIN_WORKER_URL = "https://badabi-api.dalkkumli054.workers.dev/";
+const ADMIN_TURNSTILE_SITE_KEY = "0x4AAAAAAEbQ0YWNiL_WiyKR";
+let adminSessionToken = localStorage.getItem("badabi_session") || "";
+let adminUserRole = "";
+let adminTurnstileToken = "";
+let adminTurnstileWidgetId = null;
+let isAdminAuthenticated = false;
+const FANSTARTPAGE_URL = ADMIN_WORKER_URL + "?type=fanstartpage&t=";
+const FANVODLIST_URL = ADMIN_WORKER_URL + "?type=fanvodlist&t=";
+let fanStartPageData = {profileNickname:"",profileMessage:"",profileImage:"",tags:[],timeline:[]};
+function adminEsc(v){const d=document.createElement("div");d.textContent=String(v??"");return d.innerHTML;}
+function updateAdminButton(){const b=document.getElementById("adminButton");if(!b)return;b.classList.toggle("authenticated",isAdminAuthenticated);b.textContent=isAdminAuthenticated?"관리 중":"관리자";document.querySelectorAll(".auth-edit-control").forEach(x=>x.style.display=isAdminAuthenticated?"inline-flex":"none");}
+function adminOpenModal(){if(isAdminAuthenticated){updateAdminButton();return;}const m=document.getElementById("adminModal");if(!m)return;m.classList.add("active");m.setAttribute("aria-hidden","false");renderAdminTurnstile();}
+function adminCloseModal(){const m=document.getElementById("adminModal");if(!m)return;m.classList.remove("active");m.setAttribute("aria-hidden","true");}
+function loadTurnstileScript(){if(window.turnstile)return Promise.resolve();if(window.__badabiTurnstilePromise)return window.__badabiTurnstilePromise;window.__badabiTurnstilePromise=new Promise((resolve,reject)=>{const e=document.querySelector('script[data-badabi-turnstile="1"]');if(e){e.addEventListener("load",resolve,{once:true});e.addEventListener("error",reject,{once:true});return;}const s=document.createElement("script");s.src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";s.async=true;s.defer=true;s.dataset.badabiTurnstile="1";s.onload=resolve;s.onerror=reject;document.head.appendChild(s);});return window.__badabiTurnstilePromise;}
+function resetAdminTurnstile(){adminTurnstileToken="";if(window.turnstile&&adminTurnstileWidgetId!==null){try{window.turnstile.reset(adminTurnstileWidgetId);}catch(_){}}}
+async function renderAdminTurnstile(){const c=document.getElementById("adminTurnstile");if(!c)return;try{await loadTurnstileScript();if(!window.turnstile)return;if(adminTurnstileWidgetId!==null){try{window.turnstile.remove(adminTurnstileWidgetId);}catch(_){}}c.innerHTML="";adminTurnstileWidgetId=window.turnstile.render(c,{sitekey:ADMIN_TURNSTILE_SITE_KEY,callback:t=>adminTurnstileToken=t||"","expired-callback":resetAdminTurnstile,"timeout-callback":resetAdminTurnstile,theme:"auto"});}catch(e){console.error("Turnstile 렌더링 실패:",e);}}
+function rateLimitId(){let id=localStorage.getItem("badabi_rate_limit_id")||"";if(id)return id;const b=new Uint8Array(32);crypto.getRandomValues(b);id=Array.from(b,x=>x.toString(16).padStart(2,"0")).join("");localStorage.setItem("badabi_rate_limit_id",id);return id;}
+async function adminLogin(){const input=document.getElementById("adminPassword"),status=document.getElementById("adminLoginStatus"),password=input?.value||"";if(!password){status.textContent="비밀번호를 입력해주세요.";status.style.color="#ef4444";return;}if(!adminTurnstileToken){status.textContent="보안 인증을 완료해주세요.";status.style.color="#ef4444";return;}status.textContent="확인 중...";status.style.color="#0284c7";try{const r=await fetch(ADMIN_WORKER_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({password,turnstileToken:adminTurnstileToken,rateLimitId:rateLimitId(),action:"verify"})});const d=await r.json().catch(()=>({}));if(!r.ok||!d.success||!d.sessionToken)throw new Error(d.error||"인증 실패");adminSessionToken=d.sessionToken;adminUserRole=d.role||"";isAdminAuthenticated=true;localStorage.setItem("badabi_session",adminSessionToken);input.value="";resetAdminTurnstile();adminCloseModal();updateAdminButton();await loadFanStartPageData();await loadFanVodRecommendations();}catch(e){status.textContent=e.message||"로그인에 실패했습니다. 다시 시도해주세요.";status.style.color="#ef4444";resetAdminTurnstile();if(input){input.value="";input.focus();}}}
+async function restoreAdminAuthentication(){const token=localStorage.getItem("badabi_session")||adminSessionToken||"";if(!token){updateAdminButton();return false;}try{const r=await fetch(ADMIN_WORKER_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({sessionToken:token,action:"verify"})});const d=await r.json().catch(()=>({}));if(!r.ok||!d.success||!d.role)throw new Error();adminSessionToken=token;adminUserRole=d.role||"";isAdminAuthenticated=true;updateAdminButton();return true;}catch(_){adminSessionToken="";adminUserRole="";isAdminAuthenticated=false;localStorage.removeItem("badabi_session");updateAdminButton();return false;}}
+function logoutAdmin(){isAdminAuthenticated=false;adminSessionToken="";adminUserRole="";localStorage.removeItem("badabi_session");resetAdminTurnstile();updateAdminButton();closeInlineEditors();}
+function normalizeFanStartPageData(data){const source=data&&typeof data==="object"?data:{};const profile=source.profile&&typeof source.profile==="object"?source.profile:{};const nickname=source.profileNickname??source.profileName??profile.nickname??profile.name??"";const message=source.profileMessage??profile.message??"";const image=source.profileImage??profile.image??profile.imageUrl??"";const rawTags=source.tags??profile.tags??[];const tags=Array.isArray(rawTags)?rawTags.map(x=>String(x??"").trim()).filter(Boolean):String(rawTags||"").split(",").map(x=>x.trim()).filter(Boolean);const timeline=Array.isArray(source.timeline)?source.timeline:[];return{profileNickname:String(nickname),profileMessage:String(message),profileImage:String(image),tags,timeline:timeline.map(x=>({date:String(x?.date??""),title:String(x?.title??""),description:String(x?.description??""),url:String(x?.url??"")}))};}
+function getProfileDayCount(){const start=new Date(2026,3,20);const today=new Date();start.setHours(0,0,0,0);today.setHours(0,0,0,0);return Math.max(0,Math.floor((today-start)/86400000)+1);}
+function renderFanStartPage(){const image=document.getElementById("profileImage"),name=document.getElementById("profileName"),dayCount=document.getElementById("profileDayCount"),message=document.getElementById("profileMessage"),tags=document.getElementById("profileTags"),list=document.getElementById("timelineList");if(image){image.src=fanStartPageData.profileImage||"";image.style.display=fanStartPageData.profileImage?"":"none";}if(name)name.textContent=fanStartPageData.profileNickname;if(dayCount)dayCount.textContent=`+${String(getProfileDayCount()).padStart(3,"0")}일`;if(message)message.textContent=fanStartPageData.profileMessage;if(tags)tags.innerHTML=fanStartPageData.tags.map(tag=>`<span class="profile-tag">${adminEsc(tag)}</span>`).join("");if(list){list.innerHTML=fanStartPageData.timeline.filter(x=>x.date||x.title||x.description||x.url).map(item=>{const url=/^https?:\/\//i.test(item.url)?item.url:"";const inner=`<span class="timeline-point"></span><div class="timeline-date">${adminEsc(item.date)}</div><div class="timeline-title">${adminEsc(item.title)}</div>`;return url?`<a href="${adminEsc(url)}" target="_blank" rel="noopener noreferrer" class="timeline-item" style="display:block;text-decoration:none;color:inherit;">${inner}</a>`:`<div class="timeline-item">${inner}</div>`;}).join("");}}
+async function loadFanStartPageData(){try{const r=await fetch(FANSTARTPAGE_URL+Date.now(),{cache:"no-store"});if(!r.ok)throw new Error();fanStartPageData=normalizeFanStartPageData(await r.json());renderFanStartPage();}catch(e){console.error("fanstartpage.json 불러오기 실패:",e);fanStartPageData=normalizeFanStartPageData({});renderFanStartPage();}}
+async function saveFanStartPageData(next){if(!adminSessionToken||!isAdminAuthenticated)throw new Error("로그인 세션이 없습니다. 다시 로그인해주세요.");const r=await fetch(ADMIN_WORKER_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({sessionToken:adminSessionToken,action:"save",fileType:"fanstartpage",content:next})});const d=await r.json().catch(()=>({}));if(r.status===401){logoutAdmin();throw new Error("로그인 세션이 만료되었습니다. 다시 로그인해주세요.");}if(!r.ok)throw new Error(d.error||"fanstartpage 서버 저장 실패");fanStartPageData=normalizeFanStartPageData(next);renderFanStartPage();}
+async function uploadProfileImage(file){if(!file) return "";const status=document.getElementById("profileEditStatus");if(file.size>8*1024*1024)throw new Error("프로필 사진은 8MB 이하만 업로드할 수 있습니다.");const base64=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result).split(",")[1]||"");reader.onerror=reject;reader.readAsDataURL(file);});const r=await fetch(ADMIN_WORKER_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({sessionToken:adminSessionToken,action:"upload_image",filename:file.name,filedata:base64})});const d=await r.json().catch(()=>({}));if(r.status===401){logoutAdmin();throw new Error("로그인 세션이 만료되었습니다. 다시 로그인해주세요.");}if(!r.ok||!d.success||!d.url)throw new Error(d.error||"GitHub 이미지 업로드 실패");return d.url;}
+function openProfileEditor(){if(!isAdminAuthenticated)return;document.getElementById("editProfileName").value=fanStartPageData.profileNickname;document.getElementById("editProfileMessage").value=fanStartPageData.profileMessage;document.getElementById("editProfileTags").value=fanStartPageData.tags.join(", ");document.getElementById("editProfileImageFile").value="";const editor=document.getElementById("profileEditor");editor.classList.add("active");editor.setAttribute("aria-hidden","false");document.getElementById("profileEditStatus").textContent="";}
+function closeProfileEditor(){const editor=document.getElementById("profileEditor");editor.classList.remove("active");editor.setAttribute("aria-hidden","true");}
+async function saveProfileEditor(){const status=document.getElementById("profileEditStatus"),file=document.getElementById("editProfileImageFile").files[0],button=document.getElementById("profileEditSave");button.disabled=true;try{status.textContent="저장 중...";let image=fanStartPageData.profileImage;if(file){status.textContent="GitHub에 이미지 업로드 중...";image=await uploadProfileImage(file);}const next={...fanStartPageData,profileNickname:document.getElementById("editProfileName").value.trim(),profileMessage:document.getElementById("editProfileMessage").value.trim(),profileImage:image,tags:document.getElementById("editProfileTags").value.split(",").map(x=>x.trim()).filter(Boolean)};await saveFanStartPageData(next);status.textContent="저장되었습니다.";setTimeout(closeProfileEditor,300);}catch(e){status.textContent=e.message||"저장 실패";status.style.color="#ef4444";}finally{button.disabled=false;}}
+function timelineRowHtml(x,i){return `<div class="timeline-edit-row"><span class="timeline-row-number">${String(i+1).padStart(2,"0")}</span><input class="admin-input admin-timeline-date" value="${adminEsc(x.date)}" placeholder="날짜"><input class="admin-input admin-timeline-title" value="${adminEsc(x.title)}" placeholder="제목"><button type="button" class="timeline-row-button remove" onclick="removeTimelineRow(this)" title="이 타임라인 삭제">−</button></div>`;}
+function renderInlineTimelineEditor(){const box=document.getElementById("inlineTimelineRows");if(!box)return;const rows=fanStartPageData.timeline.length?fanStartPageData.timeline:[{date:"",title:""}];box.innerHTML=rows.map(timelineRowHtml).join("");}
+function addTimelineRow(){const box=document.getElementById("inlineTimelineRows");if(!box)return;const nr={date:"",title:""};box.insertAdjacentHTML("beforeend",timelineRowHtml(nr,box.children.length));refreshTimelineRowNumbers();const last=box.lastElementChild?.querySelector(".admin-timeline-title");last?.focus();}
+function removeTimelineRow(btn){const box=document.getElementById("inlineTimelineRows");if(box.children.length<=1){box.innerHTML=timelineRowHtml({date:"",title:""},0);return;}btn.closest(".timeline-edit-row").remove();refreshTimelineRowNumbers();}
+function refreshTimelineRowNumbers(){document.querySelectorAll("#inlineTimelineRows .timeline-edit-row").forEach((r,i)=>{const n=r.querySelector(".timeline-row-number");if(n)n.textContent=String(i+1).padStart(2,"0");});}
+function openTimelineEditor(){if(!isAdminAuthenticated)return;renderInlineTimelineEditor();const editor=document.getElementById("timelineEditor");editor.classList.add("active");editor.setAttribute("aria-hidden","false");document.getElementById("timelineEditStatus").textContent="";}
+function closeTimelineEditor(){const editor=document.getElementById("timelineEditor");editor.classList.remove("active");editor.setAttribute("aria-hidden","true");}
+async function saveTimelineEditor(){const status=document.getElementById("timelineEditStatus"),button=document.getElementById("timelineEditSave");button.disabled=true;try{const rows=Array.from(document.querySelectorAll("#inlineTimelineRows .timeline-edit-row")).map(r=>({date:r.querySelector(".admin-timeline-date")?.value.trim()||"",title:r.querySelector(".admin-timeline-title")?.value.trim()||""})).filter(x=>x.date||x.title);await saveFanStartPageData({...fanStartPageData,timeline:rows});status.textContent="저장되었습니다.";setTimeout(closeTimelineEditor,300);}catch(e){status.textContent=e.message||"저장 실패";status.style.color="#ef4444";}finally{button.disabled=false;}}
+function closeInlineEditors(){closeProfileEditor();closeTimelineEditor();}
+document.getElementById("adminButton")?.addEventListener("click",adminOpenModal);document.getElementById("adminCloseButton")?.addEventListener("click",adminCloseModal);document.getElementById("adminLoginButton")?.addEventListener("click",adminLogin);document.getElementById("adminPassword")?.addEventListener("keydown",e=>{if(e.key==="Enter")adminLogin();});document.getElementById("adminModal")?.addEventListener("click",e=>{if(e.target.id==="adminModal")adminCloseModal();});document.getElementById("profileEditor")?.addEventListener("click",e=>{if(e.target.id==="profileEditor")closeProfileEditor();});document.getElementById("timelineEditor")?.addEventListener("click",e=>{if(e.target.id==="timelineEditor")closeTimelineEditor();});document.getElementById("profileEditButton")?.addEventListener("click",openProfileEditor);
+document.getElementById("profileEditClose")?.addEventListener("click",closeProfileEditor);
+document.getElementById("profileEditCancelFooter")?.addEventListener("click",closeProfileEditor);
+document.getElementById("profileEditSaveFooter")?.addEventListener("click",saveProfileEditor);
+document.getElementById("timelineEditClose")?.addEventListener("click",closeTimelineEditor);
+document.getElementById("timelineEditCancelFooter")?.addEventListener("click",closeTimelineEditor);
+document.getElementById("timelineEditSaveFooter")?.addEventListener("click",saveTimelineEditor);
+document.getElementById("timelineEditAddFooter")?.addEventListener("click",addTimelineRow);document.getElementById("profileEditCancel")?.addEventListener("click",closeProfileEditor);document.getElementById("profileEditSave")?.addEventListener("click",saveProfileEditor);document.getElementById("timelineEditButton")?.addEventListener("click",openTimelineEditor);document.getElementById("timelineEditCancel")?.addEventListener("click",closeTimelineEditor);document.getElementById("timelineEditSave")?.addEventListener("click",saveTimelineEditor);document.getElementById("calendarEditButton")?.addEventListener("click",openCalendarEditor);
+document.getElementById("calendarEditClose")?.addEventListener("click",closeCalendarEditor);
+document.getElementById("calendarEditCancel")?.addEventListener("click",closeCalendarEditor);
+document.getElementById("calendarEditSave")?.addEventListener("click",saveCalendarEditor);
+document.getElementById("calendarEditAdd")?.addEventListener("click",calendarEditorAddRow);
+document.getElementById("calendarEditPrevMonth")?.addEventListener("click",()=>{
+    calendarEditCurrentDate=new Date(calendarEditCurrentDate.getFullYear(),calendarEditCurrentDate.getMonth()-1,1);
+    calendarEditorMonthRender();
+});
+document.getElementById("calendarEditNextMonth")?.addEventListener("click",()=>{
+    calendarEditCurrentDate=new Date(calendarEditCurrentDate.getFullYear(),calendarEditCurrentDate.getMonth()+1,1);
+    calendarEditorMonthRender();
+});
+document.getElementById("calendarEditBody")?.addEventListener("click",e=>{
+    const cell=e.target.closest("[data-calendar-edit-date]");
+    if(cell)calendarEditorSelectDate(cell.dataset.calendarEditDate);
+});
+document.getElementById("calendarEditBody")?.addEventListener("keydown",e=>{
+    if(e.key!=="Enter"&&e.key!==" ")return;
+    const cell=e.target.closest("[data-calendar-edit-date]");
+    if(!cell)return;
+    e.preventDefault();
+    calendarEditorSelectDate(cell.dataset.calendarEditDate);
+});
+document.getElementById("calendarEditRows")?.addEventListener("click",e=>{
+    const remove=e.target.closest(".calendar-editor-remove");
+    if(remove)remove.closest(".calendar-editor-event-row")?.remove();
+});
+document.getElementById("calendarEditModal")?.addEventListener("click",e=>{
+    if(e.target.id==="calendarEditModal")closeCalendarEditor();
+});
+
+/* ============================================================
+   월간 일정 관리자 편집 — fancalenar.json
+============================================================ */
+async function saveCalendarData(nextNotes){
+    if(!adminSessionToken||!isAdminAuthenticated)throw new Error("로그인 세션이 없습니다. 다시 로그인해주세요.");
+    const r=await fetch(ADMIN_WORKER_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({
+        sessionToken:adminSessionToken,action:"save",fileType:"fancalenar",content:{notes:nextNotes}
+    })});
+    const d=await r.json().catch(()=>({}));
+    if(r.status===401){logoutAdmin();throw new Error("로그인 세션이 만료되었습니다. 다시 로그인해주세요.");}
+    if(!r.ok)throw new Error(d.error||"fancalenar 서버 저장 실패");
+    calendarNotes=nextNotes;
+    calendarRender();
+}
+function calendarEditorMonthKey(date){
+    return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,"0")}`;
+}
+let calendarEditCurrentDate = null;
+let calendarEditSelectedKey = "";
+
+function calendarEditorGetNotes(dateKey){
+    return calendarNotes
+        .map((note,index)=>({note,index}))
+        .filter(x=>String(x.note?.date||"").trim()===dateKey);
+}
+
+function calendarEditorMonthRender(){
+    const body=document.getElementById("calendarEditBody");
+    const title=document.getElementById("calendarEditMonthTitle");
+    if(!body||!title)return;
+
+    const year=calendarEditCurrentDate.getFullYear();
+    const month=calendarEditCurrentDate.getMonth();
+    const firstDay=new Date(year,month,1);
+    const lastDate=new Date(year,month+1,0).getDate();
+    const firstWeekday=firstDay.getDay();
+
+    title.textContent=`${year}년 ${month+1}월`;
+
+    let html="";
+    let day=1;
+    for(let week=0;week<6;week++){
+        html+="<tr>";
+        for(let weekday=0;weekday<7;weekday++){
+            const cellIndex=week*7+weekday;
+            if(cellIndex<firstWeekday||day>lastDate){
+                html+='<td class="calendar-editor-empty"></td>';
+                continue;
+            }
+            const date=new Date(year,month,day);
+            const key=calendarDateKey(date);
+            const entries=calendarEditorGetNotes(key);
+            const first=entries[0]?.note;
+            const titleText=first?.title||first?.type||"일정";
+            const marker=entries.length
+                ? `<span class="calendar-editor-marker">${calendarEscapeHtml(titleText)}</span>`
+                : "";
+            const count=entries.length>1
+                ? `<span class="calendar-editor-count">+${entries.length}</span>`:"";
+            const selected=calendarEditSelectedKey===key?" selected":"";
+            const today=calendarSameDay(date,new Date())?" today":"";
+            html+=`<td class="calendar-editor-day${selected}" data-calendar-edit-date="${key}" role="button" tabindex="0">
+                <span class="calendar-day">${day}</span>${count}${marker}
+            </td>`;
+            day++;
+        }
+        html+="</tr>";
+        if(day>lastDate)break;
+    }
+    body.innerHTML=html;
+
+    const minKey=calendarMonthKey(CALENDAR_MIN_DATE);
+    const maxKey=calendarMonthKey(CALENDAR_MAX_DATE);
+    const curKey=calendarEditorMonthKey(calendarEditCurrentDate);
+    const prev=document.getElementById("calendarEditPrevMonth");
+    const next=document.getElementById("calendarEditNextMonth");
+    if(prev)prev.disabled=curKey<=minKey;
+    if(next)next.disabled=curKey>=maxKey;
+}
+
+function calendarEditorRowHtml(note={},sourceIndex=-1){
+    return `<div class="calendar-editor-event-row" data-calendar-source-index="${sourceIndex}">
+        <input class="admin-input calendar-edit-time" value="${calendarEscapeHtml(note.time||"")}" placeholder="시간" type="time">
+        <input class="admin-input calendar-edit-type" value="${calendarEscapeHtml(note.type||"")}" placeholder="타입">
+        <input class="admin-input calendar-edit-title" value="${calendarEscapeHtml(note.title||"")}" placeholder="일정 제목">
+        <input class="admin-input calendar-edit-category" value="${calendarEscapeHtml(note.category||"")}" placeholder="카테고리">
+        <button type="button" class="calendar-editor-remove" title="이 일정 삭제">−</button>
+        <input class="admin-input calendar-edit-url" value="${calendarEscapeHtml(note.url||"")}" placeholder="일정 주소 (선택)" type="url">
+    </div>`;
+}
+
+function calendarEditorSelectedRender(){
+    const rows=document.getElementById("calendarEditRows");
+    const title=document.getElementById("calendarEditSelectedDate");
+    const add=document.getElementById("calendarEditAdd");
+    if(!rows||!title)return;
+
+    if(!calendarEditSelectedKey){
+        title.textContent="날짜를 선택해주세요";
+        rows.innerHTML='<div class="calendar-editor-no-data">달력에서 수정할 날짜를 선택해주세요.</div>';
+        if(add)add.disabled=true;
+        return;
+    }
+
+    const date=new Date(`${calendarEditSelectedKey}T00:00:00`);
+    title.textContent=`${date.getFullYear()}년 ${date.getMonth()+1}월 ${date.getDate()}일`;
+    if(add)add.disabled=false;
+
+    const entries=calendarEditorGetNotes(calendarEditSelectedKey);
+    rows.innerHTML=entries.length
+        ? entries.map(x=>calendarEditorRowHtml(x.note,x.index)).join("")
+        : '<div class="calendar-editor-no-data">등록된 일정이 없습니다. '+`<strong>+ 일정 추가</strong>`+' 버튼으로 추가할 수 있습니다.</div>';
+}
+
+function calendarEditorSelectDate(dateKey){
+    calendarEditSelectedKey=dateKey;
+    calendarEditorMonthRender();
+    calendarEditorSelectedRender();
+}
+
+function calendarEditorAddRow(){
+    if(!calendarEditSelectedKey)return;
+    const rows=document.getElementById("calendarEditRows");
+    if(!rows)return;
+    const empty=rows.querySelector(".calendar-editor-no-data");
+    if(empty)rows.innerHTML="";
+    rows.insertAdjacentHTML("beforeend",calendarEditorRowHtml({date:calendarEditSelectedKey,time:"",type:"",title:"",category:"",url:""},-1));
+    rows.lastElementChild?.querySelector(".calendar-edit-title")?.focus();
+}
+
+function calendarEditorCollect(){
+    const next=calendarNotes.map(x=>({...x}));
+    const rows=Array.from(document.querySelectorAll("#calendarEditRows .calendar-editor-event-row"));
+    rows.forEach(row=>{
+        const idx=Number(row.dataset.calendarSourceIndex);
+        const value={
+            date:calendarEditSelectedKey,
+            time:row.querySelector(".calendar-edit-time")?.value.trim()||"",
+            type:row.querySelector(".calendar-edit-type")?.value.trim()||"",
+            title:row.querySelector(".calendar-edit-title")?.value.trim()||"",
+            category:row.querySelector(".calendar-edit-category")?.value.trim()||"",
+            url:row.querySelector(".calendar-edit-url")?.value.trim()||""
+        };
+        if(idx>=0) next[idx]=value;
+        else next.push(value);
+    });
+
+    // 선택한 날짜의 기존 일정 중 현재 화면에서 삭제된 항목 제거
+    const keptIndexes=new Set(rows.map(r=>Number(r.dataset.calendarSourceIndex)).filter(Number.isInteger));
+    for(let i=next.length-1;i>=0;i--){
+        if(String(next[i]?.date||"")===calendarEditSelectedKey && !keptIndexes.has(i))next.splice(i,1);
+    }
+    return next.filter(x=>x.date||x.title||x.type||x.category||x.time||x.url);
+}
+
+function openCalendarEditor(){
+    if(!isAdminAuthenticated)return;
+    calendarEditCurrentDate=new Date(calendarCurrentDate);
+    calendarEditCurrentDate=new Date(calendarEditCurrentDate.getFullYear(),calendarEditCurrentDate.getMonth(),1);
+    calendarEditSelectedKey="";
+    calendarEditorMonthRender();
+    calendarEditorSelectedRender();
+    const modal=document.getElementById("calendarEditModal");
+    modal.classList.add("active");
+    modal.setAttribute("aria-hidden","false");
+    document.getElementById("calendarEditStatus").textContent="";
+    document.getElementById("calendarEditStatus").style.color="#64748b";
+}
+
+function closeCalendarEditor(){
+    const modal=document.getElementById("calendarEditModal");
+    modal.classList.remove("active");
+    modal.setAttribute("aria-hidden","true");
+}
+
+async function saveCalendarEditor(){
+    const status=document.getElementById("calendarEditStatus");
+    const button=document.getElementById("calendarEditSave");
+    button.disabled=true;
+    try{
+        status.textContent="저장 중...";
+        status.style.color="#0284c7";
+        const next=calendarEditorCollect();
+        await saveCalendarData(next);
+        status.textContent="저장되었습니다.";
+        status.style.color="#059669";
+        setTimeout(closeCalendarEditor,350);
+    }catch(e){
+        status.textContent=e.message||"저장 실패";
+        status.style.color="#ef4444";
+    }finally{
+        button.disabled=false;
+    }
+}
+
+/* ============================================================
+   오늘의 VOD 추천 — fanvodlist.json 연결
+============================================================ */
+let fanVodRecommendationData=[];
+function fanVodKstDateKey(date=new Date()){return new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Seoul",year:"numeric",month:"2-digit",day:"2-digit"}).format(date);}
+function fanVodSeedHash(text){let h=2166136261;for(let i=0;i<text.length;i++){h^=text.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;}
+function renderFanVodRecommendations(){const list=document.getElementById("vodRecommendList");if(!list)return;list.innerHTML=fanVodRecommendationData.slice(0,6).map((v,i)=>{const title=adminEsc(v.title||"제목 없음"),date=adminEsc(v.date||"");const url=/^https?:\/\//i.test(v.url)?v.url:"#";return `<a href="${adminEsc(url)}" class="vod-item" target="_blank" rel="noopener"><span class="vod-number">${String(i+1).padStart(2,"0")}</span><span class="vod-info"><span class="marquee-viewport vod-title"><span class="marquee-track">${title}</span></span><span class="marquee-viewport vod-date"><span class="marquee-track">${date}</span></span></span><span class="vod-arrow">→</span></a>`;}).join("");setupRecommendationMarquees(list);}
+async function loadFanVodRecommendations(){try{const r=await fetch(FANVODLIST_URL+Date.now(),{cache:"no-store"});if(!r.ok)throw new Error();const data=await r.json();const vods=Array.isArray(data.vods)?data.vods:[];const source=vods.map(v=>({title:String(v.title||"").trim(),date:String(v.date||"").trim(),url:String(v.link||v.url||"").trim()})).filter(v=>v.title||v.url);const day=fanVodKstDateKey();fanVodRecommendationData=source.slice().sort((a,b)=>fanVodSeedHash(day+"|"+a.title+"|"+a.date+"|"+a.url)-fanVodSeedHash(day+"|"+b.title+"|"+b.date+"|"+b.url)).slice(0,6);renderFanVodRecommendations();}catch(e){console.error("fanvodlist.json 불러오기 실패:",e);fanVodRecommendationData=[];renderFanVodRecommendations();}}
+function scheduleFanVodMidnightRefresh(){const now=new Date();const parts=new Intl.DateTimeFormat("en-US",{timeZone:"Asia/Seoul",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false}).formatToParts(now);const get=k=>Number(parts.find(x=>x.type===k)?.value||0);const remain=(24*60*60)-(get("hour")*3600+get("minute")*60+get("second"));const next=new Date(now.getTime()+(remain*1000)+50);setTimeout(async()=>{await loadFanVodRecommendations();scheduleFanVodMidnightRefresh();},Math.max(1000,next-now));}
+loadFanVodRecommendations();
+scheduleFanVodMidnightRefresh();
+
+/* ============================================================
+   오늘의 노래 추천 — fansongstats.json 연결
+============================================================ */
+const FANSONG_STATS_URL = ADMIN_WORKER_URL + "?type=fansongstats&t=";
+let fanSongRecommendationData = [];
+let fanSongRecommendationSource = [];
+function fanSongKstDateKey(date=new Date()){return new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Seoul",year:"numeric",month:"2-digit",day:"2-digit"}).format(date);}
+function fanSongSeedHash(text){let h=2166136261;for(let i=0;i<text.length;i++){h^=text.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;}
+function setupRecommendationMarquees(root=document){root.querySelectorAll?.(".marquee-viewport")?.forEach(view=>{const track=view.querySelector(".marquee-track");if(!track)return;view.classList.remove("is-overflow");view.style.removeProperty("--marquee-distance");requestAnimationFrame(()=>{const distance=Math.max(0,track.scrollWidth-view.clientWidth);if(distance>1){view.style.setProperty("--marquee-distance",distance+"px");view.classList.add("is-overflow");}});});}
+function renderFanSongRecommendations(){const list=document.querySelector(".song-recommend-list");if(!list)return;list.innerHTML=fanSongRecommendationData.slice(0,6).map((song,index)=>{const title=adminEsc(song.title||"제목 없음"),artist=adminEsc(song.artist||"아티스트 미상");return `<a href="#" class="song-recommend-item"><span class="song-number">${String(index+1).padStart(2,"0")}</span><span class="song-info"><span class="marquee-viewport song-title"><span class="marquee-track">${title}</span></span><span class="marquee-viewport song-artist"><span class="marquee-track">${artist}</span></span></span><span class="song-arrow">→</span></a>`;}).join("");setupRecommendationMarquees(list);}
+function applyDailyFanSongRecommendations(){const day=fanSongKstDateKey();fanSongRecommendationData=fanSongRecommendationSource.slice().sort((a,b)=>fanSongSeedHash(day+"|"+String(a.title)+"|"+String(a.artist))-fanSongSeedHash(day+"|"+String(b.title)+"|"+String(b.artist))).slice(0,6);renderFanSongRecommendations();}
+async function loadFanSongRecommendations(){try{const response=await fetch(FANSONG_STATS_URL+Date.now(),{cache:"no-store"});if(!response.ok)throw new Error(`fansongstats 요청 실패: ${response.status}`);const data=await response.json();const registered=Array.isArray(data.registeredSongs)?data.registeredSongs:[];fanSongRecommendationSource=registered.filter(song=>song&&String(song.title||"").trim()).map(song=>({title:String(song.title||"").trim(),artist:String(song.artist||"").trim()}));applyDailyFanSongRecommendations();}catch(error){console.error("fansongstats.json 불러오기 실패:",error);fanSongRecommendationSource=[];fanSongRecommendationData=[];renderFanSongRecommendations();}}
+function scheduleFanSongMidnightRefresh(){const now=new Date();const parts=new Intl.DateTimeFormat("en-US",{timeZone:"Asia/Seoul",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false}).formatToParts(now);const get=k=>Number(parts.find(x=>x.type===k)?.value||0);const next=new Date(now.getTime()+((24*60*60)-(get("hour")*3600+get("minute")*60+get("second")))*1000+50);setTimeout(async()=>{await loadFanSongRecommendations();scheduleFanSongMidnightRefresh();},Math.max(1000,next-now));}
+loadFanStartPageData();
+loadFanSongRecommendations();
+scheduleFanSongMidnightRefresh();
+restoreAdminAuthentication();
+window.addEventListener("resize",()=>setupRecommendationMarquees(document));
+
+/*
+ * ============================================================
+ * 월간 일정 — fancalenar.json 연결
+ * ============================================================
+ */
+
+const CALENDAR_DATA_URL = "https://badabi-api.dalkkumli054.workers.dev/?type=fancalenar&t=";
+const CALENDAR_MIN_DATE = new Date(2026, 3, 20);
+const CALENDAR_TODAY = new Date();
+const CALENDAR_MAX_DATE = new Date(
+    CALENDAR_TODAY.getFullYear(),
+    CALENDAR_TODAY.getMonth(),
+    1
+);
+
+let calendarNotes = [];
+let calendarCurrentDate = new Date(
+    Math.max(
+        CALENDAR_TODAY.getTime(),
+        CALENDAR_MIN_DATE.getTime()
+    )
+);
+calendarCurrentDate = new Date(
+    calendarCurrentDate.getFullYear(),
+    calendarCurrentDate.getMonth(),
+    1
+);
+
+const calendarBody = document.getElementById("calendar-body");
+const calendarMonthTitle = document.getElementById("calendar-month-title");
+const calendarSectionMonth = document.getElementById("calendar-section-month");
+const monthButtons = document.querySelectorAll(".month-button");
+
+function calendarDateKey(date) {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, "0");
+    const d = String(date.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
+}
+
+function calendarMonthKey(date) {
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+}
+
+function calendarSameDay(a, b) {
+    return calendarDateKey(a) === calendarDateKey(b);
+}
+
+function calendarSameMonth(a, b) {
+    return calendarMonthKey(a) === calendarMonthKey(b);
+}
+
+function calendarEscapeHtml(value) {
+    const div = document.createElement("div");
+    div.textContent = String(value ?? "");
+    return div.innerHTML;
+}
+
+function calendarBuildNoteMap() {
+    const map = new Map();
+
+    calendarNotes.forEach(note => {
+        if (!note || !note.date) return;
+
+        const key = String(note.date).trim();
+        if (!map.has(key)) map.set(key, []);
+        map.get(key).push(note);
+    });
+
+    return map;
+}
+
+function calendarRender() {
+    if (!calendarBody) return;
+
+    const year = calendarCurrentDate.getFullYear();
+    const month = calendarCurrentDate.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDate = new Date(year, month + 1, 0).getDate();
+    const firstWeekday = firstDay.getDay();
+    const noteMap = calendarBuildNoteMap();
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    calendarMonthTitle.textContent = `${year}년 ${month + 1}월`;
+    calendarSectionMonth.textContent = `${year}년 ${month + 1}월`;
+
+    let html = "";
+    let day = 1;
+
+    for (let week = 0; week < 6; week++) {
+        html += "<tr>";
+
+        for (let weekday = 0; weekday < 7; weekday++) {
+            const cellIndex = week * 7 + weekday;
+
+            if (cellIndex < firstWeekday || day > lastDate) {
+                html += "<td></td>";
+                continue;
+            }
+
+            const cellDate = new Date(year, month, day);
+            const key = calendarDateKey(cellDate);
+            const notes = noteMap.get(key) || [];
+            const isToday = calendarSameDay(cellDate, today);
+            const isBeforeStart = cellDate < CALENDAR_MIN_DATE;
+            const isFuture = cellDate > today;
+            const hasNotes = notes.length > 0;
+
+            let eventHtml = "";
+
+            if (!isBeforeStart) {
+                if (hasNotes) {
+                    // 여러 일정이 있는 경우 날짜 옆에 전체 일정 개수를 표시합니다.
+                    const firstNote = notes[0];
+                    const title = firstNote.title || firstNote.type || "일정";
+                    const countHtml = notes.length > 1
+                        ? `<span class="calendar-count">+${notes.length}</span>`
+                        : "";
+
+                    eventHtml = `
+                        <span class="calendar-event" title="${calendarEscapeHtml(title)}">
+                            ${calendarEscapeHtml(title)}
+                        </span>
+                    `;
+
+                    html += `
+                        <td class="${isToday ? "today" : ""} has-calendar-notes" data-calendar-date="${key}" role="button" tabindex="0">
+                            <span class="calendar-day-wrap">
+                                <span class="calendar-day">${day}</span>
+                                ${countHtml}
+                            </span>
+                            ${eventHtml}
+                        </td>
+                    `;
+                } else if (isToday) {
+                    eventHtml = `
+                        <span class="calendar-event">🌊 미정</span>
+                    `;
+                } else if (!isFuture) {
+                    eventHtml = `
+                        <span class="calendar-event">🌊 휴방</span>
+                    `;
+                }
+
+                if (!hasNotes) {
+                    html += `
+                        <td class="${isToday ? "today" : ""}">
+                            <span class="calendar-day">${day}</span>
+                            ${eventHtml}
+                        </td>
+                    `;
+                }
+            } else {
+                html += `
+                    <td class="${isToday ? "today" : ""}">
+                        <span class="calendar-day">${day}</span>
+                    </td>
+                `;
+            }
+
+            day++;
+        }
+
+        html += "</tr>";
+
+        if (day > lastDate) break;
+    }
+
+    calendarBody.innerHTML = html;
+
+    const isAtMin = calendarSameMonth(calendarCurrentDate, CALENDAR_MIN_DATE);
+    const isAtMax = calendarSameMonth(calendarCurrentDate, CALENDAR_MAX_DATE);
+
+    if (monthButtons[0]) {
+        monthButtons[0].disabled = isAtMin;
+        monthButtons[0].setAttribute("aria-disabled", String(isAtMin));
+    }
+
+    if (monthButtons[1]) {
+        monthButtons[1].disabled = isAtMax;
+        monthButtons[1].setAttribute("aria-disabled", String(isAtMax));
+    }
+}
+
+function calendarOpenModal(dateKey) {
+    const modalBackdrop = document.getElementById("calendar-modal-backdrop");
+    const modalTitle = document.getElementById("calendar-modal-title");
+    const modalList = document.getElementById("calendar-modal-list");
+    if (!modalBackdrop || !modalTitle || !modalList) return;
+
+    const notes = calendarBuildNoteMap().get(dateKey) || [];
+    if (!notes.length) return;
+
+    const date = new Date(`${dateKey}T00:00:00`);
+    modalTitle.textContent = `${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일 일정`;
+
+    modalList.innerHTML = notes.map(note => {
+        const time = note.time && note.time !== "-" ? note.time : "시간 미정";
+        const type = note.type || "일정";
+        const title = note.title || type;
+        const category = note.category && note.category !== "-" ? note.category : "";
+        const url = typeof note.url === "string" ? note.url.trim() : "";
+        const hasLink = /^https?:\/\//i.test(url);
+
+        return `
+            <div class="calendar-modal-item">
+                <div class="calendar-modal-meta">
+                    <span class="calendar-modal-badge">${calendarEscapeHtml(time)}</span>
+                    <span class="calendar-modal-badge">${calendarEscapeHtml(type)}</span>
+                </div>
+                <p class="calendar-modal-event-title">${calendarEscapeHtml(title)}</p>
+                ${category ? `<p class="calendar-modal-category">${calendarEscapeHtml(category)}</p>` : ""}
+                ${hasLink ? `<a class="calendar-modal-link" href="${calendarEscapeHtml(url)}" target="_blank" rel="noopener noreferrer">일정 링크 이동 →</a>` : ""}
+            </div>
+        `;
+    }).join("");
+
+    modalBackdrop.classList.add("open");
+    modalBackdrop.setAttribute("aria-hidden", "false");
+}
+
+function calendarCloseModal() {
+    const modalBackdrop = document.getElementById("calendar-modal-backdrop");
+    if (!modalBackdrop) return;
+
+    modalBackdrop.classList.remove("open");
+    modalBackdrop.setAttribute("aria-hidden", "true");
+}
+
+async function loadCalendarData() {
+    try {
+        const timestamp = Date.now();
+        const response = await fetch(CALENDAR_DATA_URL + timestamp);
+        if (!response.ok) {
+            throw new Error(`달력 데이터 요청 실패: ${response.status}`);
+        }
+
+        const data = await response.json();
+        calendarNotes = Array.isArray(data.notes) ? data.notes : [];
+        calendarRender();
+    } catch (error) {
+        console.error("Cloudflare Worker에서 fancalenar 데이터 불러오기 실패:", error);
+        calendarNotes = [];
+        calendarRender();
+    }
+}
+
+calendarBody.addEventListener("click", event => {
+    const cell = event.target.closest("td.has-calendar-notes");
+    if (!cell || !calendarBody.contains(cell)) return;
+    calendarOpenModal(cell.dataset.calendarDate);
+});
+
+calendarBody.addEventListener("keydown", event => {
+    if (event.key !== "Enter" && event.key !== " ") return;
+
+    const cell = event.target.closest("td.has-calendar-notes");
+    if (!cell || !calendarBody.contains(cell)) return;
+
+    event.preventDefault();
+    calendarOpenModal(cell.dataset.calendarDate);
+});
+
+const calendarModalBackdrop = document.getElementById("calendar-modal-backdrop");
+const calendarModalClose = document.getElementById("calendar-modal-close");
+
+if (calendarModalClose) {
+    calendarModalClose.addEventListener("click", calendarCloseModal);
+}
+
+if (calendarModalBackdrop) {
+    calendarModalBackdrop.addEventListener("click", event => {
+        if (event.target === calendarModalBackdrop) calendarCloseModal();
+    });
+}
+
+document.addEventListener("keydown", event => {
+    if (event.key === "Escape") calendarCloseModal();
+});
+
+monthButtons.forEach((button, index) => {
+    button.addEventListener("click", () => {
+        const nextMonth = new Date(
+            calendarCurrentDate.getFullYear(),
+            calendarCurrentDate.getMonth() + (index === 0 ? -1 : 1),
+            1<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>바다비 팬 아카이브</title>
+<meta name="description" content="바다비 팬 아카이브">
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    margin: 0;
+    background: #f7fbff;
+    color: #334155;
+    font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        "Noto Sans KR",
+        sans-serif;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+button {
+    font: inherit;
+}
+
+img {
+    max-width: 100%;
+}
+
+.site {
+    width: 100%;
+    min-height: 100vh;
+}
+
+.container {
+    width: min(1180px, calc(100% - 32px));
+    margin: 0 auto;
+}
+
+
+/* =========================================================
+   상단 헤더
+========================================================= */
+
+.top-header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+
+    border-bottom: 1px solid #e7eef5;
+}
+
+.top-header-inner {
+    height: 68px;
+
+    display: flex;
+    align-items: center;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    font-weight: 800;
+    color: #0f172a;
+}
+
+.brand-icon {
+    width: 34px;
+    height: 34px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 11px;
+
+    background: #e0f2fe;
+    color: #0284c7;
+
+    font-size: 17px;
+}
+
+.brand-text {
+    font-size: 17px;
+}
+
+.top-nav {
+    margin-left: auto;
+
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.top-nav a {
+    padding: 8px 11px;
+
+    border-radius: 9px;
+
+    color: #64748b;
+
+    font-size: 12px;
+    font-weight: 700;
+
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.top-nav a:hover {
+    background: #f0f9ff;
+    color: #0284c7;
+}
+
+
+/* =========================================================
+   메인
+========================================================= */
+
+main {
+    padding: 34px 0 70px;
+}
+
+
+/* =========================================================
+   프로필
+========================================================= */
+
+.profile-card {
+    position: relative;
+    overflow: hidden;
+
+    padding: 32px;
+
+    border: 1px solid #e4edf5;
+    border-radius: 24px;
+
+    background: #ffffff;
+
+    box-shadow:
+        0 8px 30px rgba(30, 64, 175, 0.05);
+}
+
+.profile-card::before {
+    content: "";
+
+    position: absolute;
+    top: -100px;
+    right: -80px;
+
+    width: 300px;
+    height: 300px;
+
+    border-radius: 50%;
+
+    background: #e0f2fe;
+    opacity: 0.55;
+}
+
+.profile-content {
+    position: relative;
+    z-index: 1;
+
+    display: flex;
+    align-items: center;
+    gap: 25px;
+}
+
+.profile-image {
+    width: 112px;
+    height: 112px;
+
+    flex: 0 0 112px;
+
+    object-fit: cover;
+
+    border-radius: 28px;
+
+    background: #e0f2fe;
+    border: 4px solid #ffffff;
+
+    box-shadow:
+        0 5px 18px rgba(14, 165, 233, 0.18);
+}
+
+.profile-info {
+    min-width: 0;
+}
+
+.profile-name {
+    margin: 0;
+
+    color: #0f172a;
+
+    font-size: 28px;
+    line-height: 1.2;
+    font-weight: 800;
+}
+
+.profile-message {
+    margin: 10px 0 0;
+
+    color: #64748b;
+
+    font-size: 14px;
+    line-height: 1.7;
+}
+
+.profile-sub {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 7px;
+
+    margin-top: 13px;
+}
+
+.profile-tag {
+    padding: 5px 9px;
+
+    border-radius: 8px;
+
+    background: #f0f9ff;
+    color: #0284c7;
+
+    font-size: 11px;
+    font-weight: 700;
+}
+
+
+/* =========================================================
+   바로가기
+========================================================= */
+
+.quick-links {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+
+    margin-top: 18px;
+}
+
+.quick-link {
+    min-height: 76px;
+
+    display: flex;
+    align-items: center;
+    gap: 13px;
+
+    padding: 15px 17px;
+
+    border: 1px solid #e4edf5;
+    border-radius: 17px;
+
+    background: #ffffff;
+
+    transition:
+        transform 0.2s ease,
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.quick-link:hover {
+    transform: translateY(-2px);
+
+    border-color: #bae6fd;
+
+    box-shadow:
+        0 8px 22px rgba(14, 165, 233, 0.08);
+}
+
+.quick-icon {
+    width: 40px;
+    height: 40px;
+
+    flex: 0 0 40px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 12px;
+
+    background: #f0f9ff;
+    color: #0284c7;
+
+    font-size: 18px;
+}
+
+.quick-text {
+    min-width: 0;
+}
+
+.quick-title {
+    display: block;
+
+    color: #1e293b;
+
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.quick-description {
+    display: block;
+
+    margin-top: 3px;
+
+    color: #94a3b8;
+
+    font-size: 11px;
+}
+
+
+/* =========================================================
+   섹션
+========================================================= */
+
+.section {
+    margin-top: 22px;
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    margin-bottom: 12px;
+}
+
+.section-title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.section-dot {
+    width: 8px;
+    height: 8px;
+
+    border-radius: 50%;
+
+    background: #0ea5e9;
+}
+
+.section-title {
+    margin: 0;
+
+    color: #1e293b;
+
+    font-size: 17px;
+    font-weight: 800;
+}
+
+.section-more {
+    color: #94a3b8;
+
+    font-size: 12px;
+    font-weight: 600;
+}
+
+
+/* =========================================================
+   월간 일정 + 타임라인
+========================================================= */
+
+.content-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 22px;
+
+    align-items: stretch;
+}
+
+
+/* =========================================================
+   공통 카드
+========================================================= */
+
+.card {
+    border: 1px solid #e4edf5;
+    border-radius: 20px;
+
+    background: #ffffff;
+
+    box-shadow:
+        0 6px 24px rgba(30, 64, 175, 0.04);
+}
+
+
+/* =========================================================
    월간 일정 (최대 6주 높이 고정)
 ========================================================= */
 
@@ -2226,6 +4830,29 @@ monthButtons.forEach((button, index) => {
 
 calendarRender();
 loadCalendarData();
+</script>
+
+</body>
+</html>
+        );
+
+        if (nextMonth < new Date(
+            CALENDAR_MIN_DATE.getFullYear(),
+            CALENDAR_MIN_DATE.getMonth(),
+            1
+        )) return;
+
+        if (nextMonth > CALENDAR_MAX_DATE) return;
+
+        calendarCurrentDate = nextMonth;
+        calendarRender();
+    });
+});
+
+calendarRender();
+loadCalendarData();
+
+
 </script>
 
 </body>
