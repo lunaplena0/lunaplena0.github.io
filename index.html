@@ -1068,7 +1068,6 @@ main {
 }
 .calendar-editor-selected-head strong{color:#1e293b;font-size:14px}
 
-/* 각 일정 항목별 레이아웃 변경: 첫 줄(시간, 타입/카테고리), 제목 줄, 주소 줄 개별 분리 */
 .calendar-editor-event-row{
     display:flex;
     flex-direction:column;
@@ -1097,11 +1096,11 @@ main {
 
 
 /* =========================================================
-   Footer
+   Footer (요청에 따라 패딩을 줄여 높이 축소)
 ========================================================= */
 
 footer {
-    padding: 28px 0 35px;
+    padding: 14px 0 16px;
     border-top: 1px solid #e7eef5;
     background: #ffffff;
 }
@@ -1595,6 +1594,23 @@ footer {
         </div>
     </div>
 
+    <!-- 로그아웃 확인 전용 모달 (추가됨) -->
+    <div class="admin-modal" id="logoutConfirmModal" aria-hidden="true">
+        <div class="admin-panel" role="dialog" aria-modal="true" aria-labelledby="logoutConfirmTitle" style="width: min(400px, 100%);">
+            <div class="admin-panel-header">
+                <h2 class="admin-panel-title" id="logoutConfirmTitle">로그아웃 확인</h2>
+                <button type="button" class="admin-close" id="logoutConfirmCloseButton" aria-label="닫기">×</button>
+            </div>
+            <div class="admin-login-body" style="text-align: center; padding: 28px 24px;">
+                <p style="margin-bottom: 0; color: #1e293b; font-weight: 700; font-size: 14px;">정말 로그아웃 하시겠습니까?</p>
+                <div style="display: flex; justify-content: center; gap: 8px; margin-top: 22px;">
+                    <button type="button" class="admin-action-button" id="logoutCancelButton" style="flex: 1;">취소</button>
+                    <button type="button" class="admin-action-button primary danger" id="logoutConfirmButton" style="flex: 1; border-color: #fecaca; background: #dc2626; color: #fff;">로그아웃</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- =========================================================
          Footer
     ========================================================== -->
@@ -1695,8 +1711,11 @@ function updateAdminButton(){
 }
 function adminOpenModal(){
     if(isAdminAuthenticated){
-        if(confirm("로그아웃 하시겠습니까?")){
-            logoutAdmin();
+        // 기존 브라우저 confirm 대신 커스텀 로그아웃 팝업 열기
+        const logoutModal = document.getElementById("logoutConfirmModal");
+        if(logoutModal){
+            logoutModal.classList.add("active");
+            logoutModal.setAttribute("aria-hidden", "false");
         }
         return;
     }
@@ -1707,13 +1726,20 @@ function adminOpenModal(){
     renderAdminTurnstile();
 }
 function adminCloseModal(){const m=document.getElementById("adminModal");if(!m)return;m.classList.remove("active");m.setAttribute("aria-hidden","true");}
+function closeLogoutConfirmModal(){
+    const logoutModal = document.getElementById("logoutConfirmModal");
+    if(logoutModal){
+        logoutModal.classList.remove("active");
+        logoutModal.setAttribute("aria-hidden", "true");
+    }
+}
 function loadTurnstileScript(){if(window.turnstile)return Promise.resolve();if(window.__badabiTurnstilePromise)return window.__badabiTurnstilePromise;window.__badabiTurnstilePromise=new Promise((resolve,reject)=>{const e=document.querySelector('script[data-badabi-turnstile="1"]');if(e){e.addEventListener("load",resolve,{once:true});e.addEventListener("error",reject,{once:true});return;}const s=document.createElement("script");s.src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";s.async=true;s.defer=true;s.dataset.badabiTurnstile="1";s.onload=resolve;s.onerror=reject;document.head.appendChild(s);});return window.__badabiTurnstilePromise;}
 function resetAdminTurnstile(){adminTurnstileToken="";if(window.turnstile&&adminTurnstileWidgetId!==null){try{window.turnstile.reset(adminTurnstileWidgetId);}catch(_){}}}
 async function renderAdminTurnstile(){const c=document.getElementById("adminTurnstile");if(!c)return;try{await loadTurnstileScript();if(!window.turnstile)return;if(adminTurnstileWidgetId!==null){try{window.turnstile.remove(adminTurnstileWidgetId);}catch(_){}}c.innerHTML="";adminTurnstileWidgetId=window.turnstile.render(c,{sitekey:ADMIN_TURNSTILE_SITE_KEY,callback:t=>adminTurnstileToken=t||"","expired-callback":resetAdminTurnstile,"timeout-callback":resetAdminTurnstile,theme:"auto"});}catch(e){console.error("Turnstile 렌더링 실패:",e);}}
 function rateLimitId(){let id=localStorage.getItem("badabi_rate_limit_id")||"";if(id)return id;const b=new Uint8Array(32);crypto.getRandomValues(b);id=Array.from(b,x=>x.toString(16).padStart(2,"0")).join("");localStorage.setItem("badabi_rate_limit_id",id);return id;}
 async function adminLogin(){const input=document.getElementById("adminPassword"),status=document.getElementById("adminLoginStatus"),password=input?.value||"";if(!password){status.textContent="비밀번호를 입력해주세요.";status.style.color="#ef4444";return;}if(!adminTurnstileToken){status.textContent="보안 인증을 완료해주세요.";status.style.color="#ef4444";return;}status.textContent="확인 중...";status.style.color="#0284c7";try{const r=await fetch(ADMIN_WORKER_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({password,turnstileToken:adminTurnstileToken,rateLimitId:rateLimitId(),action:"verify"})});const d=await r.json().catch(()=>({}));if(!r.ok||!d.success||!d.sessionToken)throw new Error(d.error||"인증 실패");adminSessionToken=d.sessionToken;adminUserRole=d.role||"";isAdminAuthenticated=true;localStorage.setItem("badabi_session",adminSessionToken);input.value="";resetAdminTurnstile();adminCloseModal();updateAdminButton();await loadFanStartPageData();await loadFanVodRecommendations();}catch(e){status.textContent=e.message||"로그인에 실패했습니다. 다시 시도해주세요.";status.style.color="#ef4444";resetAdminTurnstile();if(input){input.value="";input.focus();}}}
 async function restoreAdminAuthentication(){const token=localStorage.getItem("badabi_session")||adminSessionToken||"";if(!token){updateAdminButton();return false;}try{const r=await fetch(ADMIN_WORKER_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({sessionToken:token,action:"verify"})});const d=await r.json().catch(()=>({}));if(!r.ok||!d.success||!d.role)throw new Error();adminSessionToken=token;adminUserRole=d.role||"";isAdminAuthenticated=true;updateAdminButton();return true;}catch(_){adminSessionToken="";adminUserRole="";isAdminAuthenticated=false;localStorage.removeItem("badabi_session");updateAdminButton();return false;}}
-function logoutAdmin(){isAdminAuthenticated=false;adminSessionToken="";adminUserRole="";localStorage.removeItem("badabi_session");resetAdminTurnstile();updateAdminButton();closeInlineEditors();alert("성공적으로 로그아웃되었습니다.");}
+function logoutAdmin(){isAdminAuthenticated=false;adminSessionToken="";adminUserRole="";localStorage.removeItem("badabi_session");resetAdminTurnstile();updateAdminButton();closeInlineEditors();closeLogoutConfirmModal();alert("성공적으로 로그아웃되었습니다.");}
 function normalizeFanStartPageData(data){const source=data&&typeof data==="object"?data:{};const profile=source.profile&&typeof source.profile==="object"?source.profile:{};const nickname=source.profileNickname??source.profileName??profile.nickname??profile.name??"";const message=source.profileMessage??profile.message??"";const image=source.profileImage??profile.image??profile.imageUrl??"";const rawTags=source.tags??profile.tags??[];const tags=Array.isArray(rawTags)?rawTags.map(x=>String(x??"").trim()).filter(Boolean):String(rawTags||"").split(",").map(x=>x.trim()).filter(Boolean);const timeline=Array.isArray(source.timeline)?source.timeline:[];return{profileNickname:String(nickname),profileMessage:String(message),profileImage:String(image),tags,timeline:timeline.map(x=>({date:String(x?.date??""),title:String(x?.title??""),description:String(x?.description??""),url:String(x?.url??"")}))};}
 function getProfileDayCount(){const start=new Date(2026,3,20);const today=new Date();start.setHours(0,0,0,0);today.setHours(0,0,0,0);return Math.max(0,Math.floor((today-start)/86400000)+1);}
 function renderFanStartPage(){const image=document.getElementById("profileImage"),name=document.getElementById("profileName"),dayCount=document.getElementById("profileDayCount"),message=document.getElementById("profileMessage"),tags=document.getElementById("profileTags"),list=document.getElementById("timelineList");if(image){image.src=fanStartPageData.profileImage||"";image.style.display=fanStartPageData.profileImage?"":"none";}if(name)name.textContent=fanStartPageData.profileNickname;if(dayCount)dayCount.textContent=`+${String(getProfileDayCount()).padStart(3,"0")}일`;if(message)message.textContent=fanStartPageData.profileMessage;if(tags)tags.innerHTML=fanStartPageData.tags.map(tag=>`<span class="profile-tag">${adminEsc(tag)}</span>`).join("");if(list){list.innerHTML=fanStartPageData.timeline.filter(x=>x.date||x.title||x.description||x.url).map(item=>{const url=/^https?:\/\//i.test(item.url)?item.url:"";const inner=`<span class="timeline-point"></span><div class="timeline-date">${adminEsc(item.date)}</div><div class="timeline-title">${adminEsc(item.title)}</div>`;return url?`<a href="${adminEsc(url)}" target="_blank" rel="noopener noreferrer" class="timeline-item" style="display:block;text-decoration:none;color:inherit;">${inner}</a>`:`<div class="timeline-item">${inner}</div>`;}).join("");}}
@@ -1738,6 +1764,15 @@ document.getElementById("adminCloseButton")?.addEventListener("click",adminClose
 document.getElementById("adminLoginButton")?.addEventListener("click",adminLogin);
 document.getElementById("adminPassword")?.addEventListener("keydown",e=>{if(e.key==="Enter")adminLogin();});
 document.getElementById("adminModal")?.addEventListener("click",e=>{if(e.target.id==="adminModal")adminCloseModal();});
+
+/* 로그아웃 모달 이벤트 연결 */
+document.getElementById("logoutConfirmCloseButton")?.addEventListener("click", closeLogoutConfirmModal);
+document.getElementById("logoutCancelButton")?.addEventListener("click", closeLogoutConfirmModal);
+document.getElementById("logoutConfirmButton")?.addEventListener("click", logoutAdmin);
+document.getElementById("logoutConfirmModal")?.addEventListener("click", e => {
+    if(e.target.id === "logoutConfirmModal") closeLogoutConfirmModal();
+});
+
 document.getElementById("profileEditor")?.addEventListener("click",e=>{if(e.target.id==="profileEditor")closeProfileEditor();});
 document.getElementById("timelineEditor")?.addEventListener("click",e=>{if(e.target.id==="timelineEditor")closeTimelineEditor();});
 document.getElementById("profileEditButton")?.addEventListener("click",openProfileEditor);
@@ -1846,7 +1881,6 @@ function calendarEditorMonthRender(){
     body.innerHTML=html;
 }
 
-// 기존 등록된 타입 목록 추출 (미리보기/자동완성용)
 function getExistingTypesList(){
     const typesSet = new Set();
     calendarNotes.forEach(n => {
