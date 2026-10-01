@@ -799,7 +799,7 @@ main {
 .vod-list {
     display: flex;
     flex-direction: column;
-    padding: 12px 16px;
+    padding: 8px 16px; /* 패딩을 줄여 크기 축소 */
     min-width: 0;
 }
 
@@ -807,8 +807,8 @@ main {
     display: flex;
     align-items: center;
     gap: 10px;
-    min-height: 55px;
-    padding: 8px 4px;
+    min-height: 44px; /* 높이를 줄여 크기 축소 */
+    padding: 6px 4px;
     border-bottom: 1px solid #f1f5f9;
     transition: background 0.2s ease, padding 0.2s ease;
     min-width: 0;
@@ -846,7 +846,7 @@ main {
 
 .vod-date {
     display: block;
-    margin-top: 3px;
+    margin-top: 2px;
     overflow: hidden;
     color: #94a3b8;
     font-size: 10px;
@@ -862,7 +862,7 @@ main {
 ========================================================= */
 
 .song-recommend-card {
-    padding: 12px 16px;
+    padding: 8px 16px; /* 패딩을 줄여 크기 축소 */
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -884,8 +884,8 @@ main {
     display: flex;
     align-items: center;
     gap: 12px;
-    min-height: 55px;
-    padding: 8px 4px;
+    min-height: 44px; /* 높이를 줄여 크기 축소 */
+    padding: 6px 4px;
     border-bottom: 1px solid #f1f5f9;
     transition: background 0.2s ease, padding 0.2s ease;
     min-width: 0; /* 좌우 레이아웃이 화면을 넘기지 않게 고정 */
@@ -933,7 +933,7 @@ main {
 
 .song-artist {
     display: block;
-    margin-top: 3px;
+    margin-top: 2px;
     overflow: hidden;
     color: #94a3b8;
     font-size: 10px;
@@ -2082,8 +2082,8 @@ async function saveCalendarEditor(){
 let fanVodRecommendationData=[];
 function fanVodKstDateKey(date=new Date()){return new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Seoul",year:"numeric",month:"2-digit",day:"2-digit"}).format(date);}
 function fanVodSeedHash(text){let h=2166136261;for(let i=0;i<text.length;i++){h^=text.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;}
-function renderFanVodRecommendations(){const list=document.getElementById("vodRecommendList");if(!list)return;list.innerHTML=fanVodRecommendationData.slice(0,6).map((v,i)=>{const title=adminEsc(v.title||"제목 없음"),date=adminEsc(v.date||"");const url=/^https?:\/\//i.test(v.url)?v.url:"#";return `<a href="${adminEsc(url)}" class="vod-item" target="_blank" rel="noopener"><span class="vod-number">${String(i+1).padStart(2,"0")}</span><span class="vod-info"><span class="marquee-viewport vod-title"><span class="marquee-track">${title}</span></span><span class="marquee-viewport vod-date"><span class="marquee-track">${date}</span></span></span><span class="vod-arrow">→</span></a>`;}).join("");setupRecommendationMarquees(list);}
-async function loadFanVodRecommendations(){try{const r=await fetch(FANVODLIST_URL+Date.now(),{cache:"no-store"});if(!r.ok)throw new Error();const data=await r.json();const vods=Array.isArray(data.vods)?data.vods:[];const source=vods.map(v=>({title:String(v.title||"").trim(),date:String(v.date||"").trim(),url:String(v.link||v.url||"").trim()})).filter(v=>v.title||v.url);const day=fanVodKstDateKey();fanVodRecommendationData=source.slice().sort((a,b)=>fanVodSeedHash(day+"|"+a.title+"|"+a.date+"|"+a.url)-fanVodSeedHash(day+"|"+b.title+"|"+b.date+"|"+b.url)).slice(0,6);renderFanVodRecommendations();}catch(e){console.error("fanvodlist.json 불러오기 실패:",e);fanVodRecommendationData=[];renderFanVodRecommendations();}}
+function renderFanVodRecommendations(){const list=document.getElementById("vodRecommendList");if(!list)return;list.innerHTML=fanVodRecommendationData.slice(0,3).map((v,i)=>{const title=adminEsc(v.title||"제목 없음"),date=adminEsc(v.date||"");const url=/^https?:\/\//i.test(v.url)?v.url:"#";return `<a href="${adminEsc(url)}" class="vod-item" target="_blank" rel="noopener"><span class="vod-number">${String(i+1).padStart(2,"0")}</span><span class="vod-info"><span class="marquee-viewport vod-title"><span class="marquee-track">${title}</span></span><span class="marquee-viewport vod-date"><span class="marquee-track">${date}</span></span></span><span class="vod-arrow">→</span></a>`;}).join("");setupRecommendationMarquees(list);}
+async function loadFanVodRecommendations(){try{const r=await fetch(FANVODLIST_URL+Date.now(),{cache:"no-store"});if(!r.ok)throw new Error();const data=await r.json();const vods=Array.isArray(data.vods)?data.vods:[];const source=vods.map(v=>({title:String(v.title||"").trim(),date:String(v.date||"").trim(),url:String(v.link||v.url||"").trim()})).filter(v=>v.title||v.url);const day=fanVodKstDateKey();fanVodRecommendationData=source.slice().sort((a,b)=>fanVodSeedHash(day+"|"+a.title+"|"+a.date+"|"+a.url)-fanVodSeedHash(day+"|"+b.title+"|"+b.date+"|"+b.url)).slice(0,3);renderFanVodRecommendations();}catch(e){console.error("fanvodlist.json 불러오기 실패:",e);fanVodRecommendationData=[];renderFanVodRecommendations();}}
 loadFanVodRecommendations();
 
 const FANSONG_STATS_URL = ADMIN_WORKER_URL + "?type=fansongstats&t=";
@@ -2092,8 +2092,8 @@ let fanSongRecommendationSource = [];
 function fanSongKstDateKey(date=new Date()){return new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Seoul",year:"numeric",month:"2-digit",day:"2-digit"}).format(date);}
 function fanSongSeedHash(text){let h=2166136261;for(let i=0;i<text.length;i++){h^=text.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;}
 function setupRecommendationMarquees(root=document){root.querySelectorAll?.(".marquee-viewport")?.forEach(view=>{const track=view.querySelector(".marquee-track");if(!track)return;view.classList.remove("is-overflow");view.style.removeProperty("--marquee-distance");requestAnimationFrame(()=>{const distance=Math.max(0,track.scrollWidth-view.clientWidth);if(distance>1){view.style.setProperty("--marquee-distance",distance+"px");view.classList.add("is-overflow");}});});}
-function renderFanSongRecommendations(){const list=document.querySelector(".song-recommend-list");if(!list)return;list.innerHTML=fanSongRecommendationData.slice(0,6).map((song,index)=>{const title=adminEsc(song.title||"제목 없음"),artist=adminEsc(song.artist||"아티스트 미상");return `<a href="#" class="song-recommend-item"><span class="song-number">${String(index+1).padStart(2,"0")}</span><span class="song-info"><span class="marquee-viewport song-title"><span class="marquee-track">${title}</span></span><span class="marquee-viewport song-artist"><span class="marquee-track">${artist}</span></span></span><span class="song-arrow">→</span></a>`;}).join("");setupRecommendationMarquees(list);}
-function applyDailyFanSongRecommendations(){const day=fanSongKstDateKey();fanSongRecommendationData=fanSongRecommendationSource.slice().sort((a,b)=>fanSongSeedHash(day+"|"+String(a.title)+"|"+String(a.artist))-fanSongSeedHash(day+"|"+String(b.title)+"|"+String(b.artist))).slice(0,6);renderFanSongRecommendations();}
+function renderFanSongRecommendations(){const list=document.querySelector(".song-recommend-list");if(!list)return;list.innerHTML=fanSongRecommendationData.slice(0,3).map((song,index)=>{const title=adminEsc(song.title||"제목 없음"),artist=adminEsc(song.artist||"아티스트 미상");return `<a href="#" class="song-recommend-item"><span class="song-number">${String(index+1).padStart(2,"0")}</span><span class="song-info"><span class="marquee-viewport song-title"><span class="marquee-track">${title}</span></span><span class="marquee-viewport song-artist"><span class="marquee-track">${artist}</span></span></span><span class="song-arrow">→</span></a>`;}).join("");setupRecommendationMarquees(list);}
+function applyDailyFanSongRecommendations(){const day=fanSongKstDateKey();fanSongRecommendationData=fanSongRecommendationSource.slice().sort((a,b)=>fanSongSeedHash(day+"|"+String(a.title)+"|"+String(a.artist))-fanSongSeedHash(day+"|"+String(b.title)+"|"+String(b.artist))).slice(0,3);renderFanSongRecommendations();}
 async function loadFanSongRecommendations(){try{const response=await fetch(FANSONG_STATS_URL+Date.now(),{cache:"no-store"});if(!response.ok)throw new Error();const data=await response.json();const registered=Array.isArray(data.registeredSongs)?data.registeredSongs:[];fanSongRecommendationSource=registered.filter(song=>song&&String(song.title||"").trim()).map(song=>({title:String(song.title||"").trim(),artist:String(song.artist||"").trim()}));applyDailyFanSongRecommendations();}catch(error){fanSongRecommendationSource=[];fanSongRecommendationData=[];renderFanSongRecommendations();}}
 loadFanStartPageData();
 loadFanSongRecommendations();
