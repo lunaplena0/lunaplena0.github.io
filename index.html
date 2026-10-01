@@ -2086,6 +2086,7 @@ function calendarEditorAddRow(){
 function calendarEditorCollect(){
     const next=calendarNotes.map(x=>({...x}));
     const rows=Array.from(document.querySelectorAll("#calendarEditRows .calendar-editor-event-row"));
+    
     rows.forEach(row=>{
         const idx=Number(row.dataset.calendarSourceIndex);
         let rawTitle = row.querySelector(".calendar-edit-title")?.value.trim()||"";
@@ -2103,6 +2104,7 @@ function calendarEditorCollect(){
             category:row.querySelector(".calendar-edit-category")?.value.trim()||"",
             url:row.querySelector(".calendar-edit-url")?.value.trim()||""
         };
+        
         if(idx>=0) next[idx]=value;
         else next.push(value);
     });
@@ -2154,6 +2156,10 @@ async function saveCalendarEditor(){
     }
 }
 
+// 저장 버튼에 함수 연결 보장
+document.getElementById("calendarEditSave")?.removeEventListener("click", saveCalendarEditor);
+document.getElementById("calendarEditSave")?.addEventListener("click", saveCalendarEditor);
+
 /* ============================================================
    오늘의 VOD / 노래 추천 및 달력 기본 로직
 ============================================================ */
@@ -2171,7 +2177,6 @@ let fanSongRecommendationSource = [];
 function fanSongKstDateKey(date=new Date()){return new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Seoul",year:"numeric",month:"2-digit",day:"2-digit"}).format(date);}
 function fanSongSeedHash(text){let h=2166136261;for(let i=0;i<text.length;i++){h^=text.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;}
 
-// 시간(HH:MM:SS 또는 MM:SS)을 초(Seconds)로 변환하는 함수
 function timeToSeconds(timeStr) {
     if (!timeStr) return 0;
     const parts = timeStr.split(":").map(Number);
