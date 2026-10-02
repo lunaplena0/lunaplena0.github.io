@@ -497,9 +497,6 @@
             background: transparent;
             box-shadow: none;
         }
-.footer-title:hover {
-            color: #0284c7;
-        }
 
 
 
@@ -619,14 +616,15 @@
         .admin-recommend-badge {
             display: inline-flex;
             align-items: center;
-            margin-top: 7px;
-            padding: 4px 8px;
-            border: 1px solid #fde68a;
+            min-height: 25px;
+            padding: 3px 9px;
+            border: 1px solid #dbeafe;
             border-radius: 7px;
-            color: #a16207;
-            background: #fef9c3;
-            font-size: 10px;
+            color: #0284c7;
+            background: #f8fafc;
+            font-size: 11px;
             font-weight: 800;
+            white-space: nowrap;
         }
 
         .vod-description {
@@ -2011,11 +2009,6 @@
                                 </div>
                             </div>
 
-                            <!-- 관리자용 추천 표시 -->
-                            ${isAdminAuthenticated && vod.todayRecommend ? `
-                                <div class="admin-recommend-badge">오늘의 VOD 추천</div>
-                            ` : ""}
-
                             <!-- 2행: 제목 -->
                             <h2 class="vod-title">
                                 ${escapeHTML(vod.title)}
@@ -2028,10 +2021,13 @@
                                 </div>
                             ` : ""}
 
-                            <!-- 4행: 태그 + VOD 이동 -->
+                            <!-- 4행: 태그 + 오늘의 VOD 추천 + VOD 이동 -->
                             <div class="vod-bottom-row">
                                 <div class="vod-tags">
                                     ${createTagsHTML(vod.tags)}
+                                    ${isAdminAuthenticated && vod.todayRecommend ? `
+                                        <span class="admin-recommend-badge">오늘의 VOD 추천 설정완료</span>
+                                    ` : ""}
                                 </div>
 
                                 ${vod.url && vod.url !== "#" ? `
