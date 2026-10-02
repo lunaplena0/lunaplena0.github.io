@@ -2287,6 +2287,10 @@ async function loadFanSongRecommendations(){
             if(!song || !song.title) return;
             const title = String(song.title || "").trim();
             const artist = String(song.artist || "").trim();
+            
+            // 💡 [수정] 아티스트가 "?" 이거나 "동요"인 경우 추천 목록 소스에서 제외
+            if (artist === "?" || artist === "동요") return;
+
             const dateTimes = Array.isArray(song.dateTimes) ? song.dateTimes : [];
 
             if (dateTimes.length > 0) {
