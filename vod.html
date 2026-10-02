@@ -817,7 +817,7 @@
         </div>
 
         <h1>
-            임시로 디자인만 잡혀있는 상태입니다 현재 아무런 기능이 없습니다.
+            방송 다시보기와 팬이 정리한 VOD 정보를 모아두는 공간입니다.
         </h1>
 
         <p>
@@ -1011,201 +1011,132 @@
 <script>
 
     /* =========================================================
-       임시 VOD 데이터
-
-       tags:
-       여러 개의 태그를 넣을 수 있음
-
-       예:
-       ["소통", "노래"]
-       ["게임", "소통"]
-       ["대회", "게임"]
+       VOD DATA — Worker에서 fanvodlist.json 불러오기
     ========================================================= */
 
-    const VOD_DATA = [
+    const WORKER_URL =
+        "https://badabi-api.dalkkumli054.workers.dev/";
+
+    const FANVODLIST_URL =
+        WORKER_URL + "?type=fanvodlist&t=";
+
+    let VOD_DATA = [];
+
+
+    async function loadVODData() {
+
+        vodList.innerHTML = `
+            <div class="empty-state">
+                <strong>VOD 정보를 불러오는 중입니다.</strong>
+                <span>잠시만 기다려주세요.</span>
+            </div>
+        `;
+
+        try {
+
+            const response =
+                await fetch(
+                    FANVODLIST_URL + Date.now(),
+                    {
+                        cache: "no-store"
+                    }
+                );
+
+            if (!response.ok) {
+                throw new Error("VOD 데이터 요청 실패");
+            }
+
+            const data =
+                await response.json();
+
+            const vods =
+                Array.isArray(data)
+                    ? data
+                    : Array.isArray(data?.vods)
+                        ? data.vods
+                        : Array.isArray(data?.content?.vods)
+                            ? data.content.vods
+                            : [];
+
+            /*
+             * fanvodlist.json의 원본 구조:
+             * date / title / link / duration /
+             * subPlus / adult / description / category
+             *
+             * 현재 VOD 페이지가 사용하는 구조로만 변환합니다.
+             * 원본 JSON 자체는 변경하지 않습니다.
+             */
+            VOD_DATA =
+                vods.map((vod, index) => {
+
+                    const tags =
+                        String(vod.category || "")
+                            .split(",")
+                            .map(tag => tag.trim())
+                            .filter(Boolean);
+
+                    return {
+                        id:
+                            String(vod.link || "")
+                                .trim() ||
+                            `${String(vod.date || "vod")}-${index}`,
+
+                        date:
+                            String(vod.date || "").trim(),
+
+                        title:
+                            String(vod.title || "제목 없음").trim(),
+
+                        url:
+                            String(vod.link || vod.url || "").trim(),
+
+                        duration:
+                            String(vod.duration || "").trim(),
+
+                        subscribed:
+                            String(vod.subPlus || "").toUpperCase() === "Y",
+
+                        adultVerified:
+                            String(vod.adult || "").toUpperCase() === "Y",
+
+                        tags,
+
+                        /*
+                         * 현재 상세 팝업의 "타임라인" 영역은
+                         * fanvodlist.json의 description을 표시합니다.
+                         */
+                        timeline:
+                            String(vod.description || "").trim()
+                    };
+
+                });
+
+            createMonthOptions();
+            createTagOptions();
+            renderVODList();
+
+        } catch (error) {
 
-        {
-            id: "20261001-001",
+            console.error(
+                "fanvodlist.json 불러오기 실패:",
+                error
+            );
 
-            date: "2026-10-01",
+            VOD_DATA = [];
 
-            title: "2026.10.01 방송 다시보기",
+            resultCount.textContent =
+                "VOD 0개";
 
-            url: "#",
+            vodList.innerHTML = `
+                <div class="empty-state">
+                    <strong>VOD 정보를 불러오지 못했습니다.</strong>
+                    <span>잠시 후 다시 시도해주세요.</span>
+                </div>
+            `;
 
-            subscribed: true,
-
-            adultVerified: false,
-
-            tags: [
-                "소통",
-                "노래"
-            ],
-
-            timeline:
-`00:00 방송 시작
-
-00:10 팬들과 소통
-
-00:30 노래 방송
-
-※ 현재 내용은 임시 데이터입니다.`
-        },
-
-
-        {
-            id: "20260930-001",
-
-            date: "2026-09-30",
-
-            title: "2026.09.30 방송 다시보기",
-
-            url: "#",
-
-            subscribed: true,
-
-            adultVerified: false,
-
-            tags: [
-                "소통",
-                "ASMR"
-            ],
-
-            timeline:
-`00:00 방송 시작
-
-00:15 소통
-
-00:40 ASMR
-
-※ 현재 내용은 임시 데이터입니다.`
-        },
-
-
-        {
-            id: "20260928-001",
-
-            date: "2026-09-28",
-
-            title: "2026.09.28 방송 다시보기",
-
-            url: "#",
-
-            subscribed: false,
-
-            adultVerified: true,
-
-            tags: [
-                "노래",
-                "기타노래"
-            ],
-
-            timeline:
-`00:00 방송 시작
-
-00:20 노래
-
-01:05 기타연주 노래
-
-성인 인증이 필요한 VOD입니다.
-
-※ 현재 내용은 임시 데이터입니다.`
-        },
-
-
-        {
-            id: "20260925-001",
-
-            date: "2026-09-25",
-
-            title: "2026.09.25 방송 다시보기",
-
-            url: "#",
-
-            subscribed: true,
-
-            adultVerified: false,
-
-            tags: [
-                "소통",
-                "게임"
-            ],
-
-            timeline:
-`00:00 방송 시작
-
-00:20 소통
-
-00:50 게임
-
-주말 방송입니다.`
-        },
-
-
-        {
-            id: "20260920-001",
-
-            date: "2026-09-20",
-
-            title: "2026.09.20 대회 방송",
-
-            url: "#",
-
-            subscribed: false,
-
-            adultVerified: false,
-
-            tags: [
-                "대회",
-                "게임",
-                "소통"
-            ],
-
-            timeline:
-`00:00 방송 시작
-
-00:15 대회 준비
-
-00:30 대회 진행
-
-01:40 결과 확인
-
-02:00 팬들과 소통`
-        },
-
-
-        {
-            id: "20260918-001",
-
-            date: "2026-09-18",
-
-            title: "2026.09.18 기타연주 노래 방송",
-
-            url: "#",
-
-            subscribed: true,
-
-            adultVerified: false,
-
-            tags: [
-                "노래",
-                "기타노래",
-                "소통"
-            ],
-
-            timeline:
-`00:00 방송 시작
-
-00:10 소통
-
-00:30 기타연주 노래
-
-01:20 기타연주 노래
-
-02:00 방송 종료`
         }
 
-    ];
+    }
 
 
     /* =========================================================
@@ -1826,13 +1757,7 @@
     /* =========================================================
        INITIALIZE
     ========================================================= */
-
-    createMonthOptions();
-
-    createTagOptions();
-
-    renderVODList();
-
+    loadVODData();
 </script>
 
 </body>
