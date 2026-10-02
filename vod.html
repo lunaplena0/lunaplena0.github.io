@@ -752,7 +752,12 @@
         .admin-field-full { grid-column:1 / -1; }
         .admin-check-row { display:flex; flex-direction:row; align-items:center; gap:9px; padding:11px 12px; border:1px solid #e2e8f0; border-radius:10px; background:#f8fafc; color:#475569; font-size:13px; font-weight:800; cursor:pointer; }
         .admin-check-row input { width:17px; height:17px; margin:0; accent-color:#0ea5e9; }
-        .admin-edit-actions { display:flex; justify-content:flex-end; gap:8px; margin-top:18px; }
+        .admin-edit-actions { display:flex; justify-content:space-between; gap:8px; margin-top:18px; }
+        .admin-edit-actions-right { display:flex; justify-content:flex-end; gap:8px; margin-left:auto; }
+        .admin-modal-delete-button { min-height:40px; padding:0 13px; border:1px solid #fecaca; border-radius:10px; color:#dc2626; background:#fff1f2; font-size:13px; font-weight:800; cursor:pointer; }
+        .admin-modal-delete-button:hover { background:#ffe4e6; border-color:#fda4af; }
+        .admin-archive-login { border:0; background:none; text-align:left; cursor:pointer; }
+        .admin-archive-login:hover { opacity:.82; }
         @media(max-width:720px){ .admin-edit-grid{grid-template-columns:1fr}.admin-field-full{grid-column:auto}.admin-modal{padding:22px 18px;border-radius:17px}.main-nav{overflow-x:auto} }
     </style>
 </head>
@@ -765,19 +770,11 @@
     <div class="header-inner">
 
         <a href="index.html" class="brand">
-            <span class="brand-wave">🌊</span>
             <span>바다비 팬 아카이브</span>
         </a>
 
         <nav class="main-nav">
-
-            <a href="https://www.sooplive.com/station/bababi" target="_blank" rel="noopener">방송국</a>
-            <a href="https://cafe.naver.com/soopbadabi" target="_blank" rel="noopener">팬카페</a>
-            <a href="https://youtube.com/channel/UCUcnsZ-VzanQT6NSMJ_JlCQ?si=kMa8AhcVNcQ6FyYE" target="_blank" rel="noopener">유튜브</a>
-            <a href="songlist.html">노래책</a>
             <a href="vod.html" class="active">VOD정보</a>
-            <button type="button" class="admin-login-button" id="admin-login-button">관리자</button>
-
         </nav>
 
     </div>
@@ -789,9 +786,9 @@
 
     <section class="page-heading">
 
-        <div class="eyebrow">
+        <button type="button" class="eyebrow admin-archive-login" id="admin-login-button">
             VOD ARCHIVE
-        </div>
+        </button>
 
         <h1>
             방송 다시보기와 팬이 정리한 VOD 정보를 모아두는 공간입니다.
@@ -927,8 +924,11 @@
             <label class="admin-check-row admin-field-full"><input type="checkbox" id="edit-vod-today-recommend"><span>오늘의 VOD 추천</span></label>
         </div>
         <div class="admin-edit-actions">
-            <button type="button" id="vod-edit-cancel" class="admin-secondary-button">취소</button>
-            <button type="button" id="vod-edit-save" class="admin-primary-button">저장</button>
+            <button type="button" id="vod-edit-delete" class="admin-modal-delete-button" hidden>삭제</button>
+            <div class="admin-edit-actions-right">
+                <button type="button" id="vod-edit-cancel" class="admin-secondary-button">취소</button>
+                <button type="button" id="vod-edit-save" class="admin-primary-button">저장</button>
+            </div>
         </div>
         <div id="vod-edit-status" class="admin-status"></div>
     </div>
@@ -1109,6 +1109,7 @@
     const vodEditClose = document.getElementById("vod-edit-close");
     const vodEditCancel = document.getElementById("vod-edit-cancel");
     const vodEditSave = document.getElementById("vod-edit-save");
+    const vodEditDelete = document.getElementById("vod-edit-delete");
     const vodEditStatus = document.getElementById("vod-edit-status");
     const vodAdminToolbar = document.getElementById("vod-admin-toolbar");
     const vodAddButton = document.getElementById("vod-add-button");
@@ -1193,9 +1194,8 @@
 
     function updateAdminAuthUI() {
         adminLoginButton.classList.toggle("authenticated", isAdminAuthenticated);
-        adminLoginButton.textContent = isAdminAuthenticated
-            ? `${getAdminRoleName(adminUserRole)} · 로그아웃`
-            : "관리자";
+        adminLoginButton.textContent = "VOD ARCHIVE";
+        adminLoginButton.setAttribute("aria-label", isAdminAuthenticated ? "관리자 로그아웃" : "관리자 로그인");
         vodAdminToolbar.hidden = !(isAdminAuthenticated && adminUserRole === "admin");
         renderVODList();
     }
@@ -1273,6 +1273,7 @@
         vodEditStatus.textContent = "";
         vodEditBackdrop.querySelector(".admin-modal-title").textContent = "VOD 추가";
         vodEditBackdrop.querySelector(".admin-modal-subtitle").textContent = "새 VOD 정보를 입력합니다.";
+        vodEditDelete.hidden = true;
         editVodDate.readOnly = false;
         editVodTitle.readOnly = false;
         if (!document.getElementById("edit-vod-link")) {
@@ -1306,6 +1307,7 @@
         vodEditBackdrop.querySelector(".admin-modal-subtitle").textContent = "영상 설명과 오늘의 VOD 추천 여부를 설정합니다.";
         editVodDate.readOnly = true;
         editVodTitle.readOnly = true;
+        vodEditDelete.hidden = false;
         vodEditStatus.textContent = "";
         vodEditBackdrop.classList.add("show");
         vodEditBackdrop.setAttribute("aria-hidden", "false");
@@ -1316,6 +1318,7 @@
         vodEditBackdrop.setAttribute("aria-hidden", "true");
         editingVodId = "";
         isAddingVod = false;
+        vodEditDelete.hidden = true;
     }
 
     async function saveFanVodList() {
@@ -1790,7 +1793,6 @@
 
                             ${isAdminAuthenticated && adminUserRole === "admin" ? `
                                 <button type="button" class="admin-edit-button" data-edit-id="${escapeHTML(vod.id)}">편집</button>
-                                <button type="button" class="admin-delete-button" data-delete-id="${escapeHTML(vod.id)}">삭제</button>
                             ` : ""}
 
                         </div>
@@ -1816,13 +1818,6 @@
             event.stopPropagation();
             openVODEditModal(editButton.dataset.editId);
             return;
-        }
-
-        const deleteButton = event.target.closest(".admin-delete-button");
-        if (deleteButton) {
-            event.preventDefault();
-            event.stopPropagation();
-            deleteVOD(deleteButton.dataset.deleteId);
         }
     });
 
@@ -1867,6 +1862,12 @@
     vodEditClose.addEventListener("click", closeVODEditModal);
     vodEditCancel.addEventListener("click", closeVODEditModal);
     vodEditSave.addEventListener("click", saveVODEdit);
+    vodEditDelete.addEventListener("click", async () => {
+        if (!editingVodId || isAddingVod) return;
+        const id = editingVodId;
+        closeVODEditModal();
+        await deleteVOD(id);
+    });
     vodAddButton.addEventListener("click", openVODAddModal);
     vodEditBackdrop.addEventListener("click", event => { if (event.target === vodEditBackdrop) closeVODEditModal(); });
 
