@@ -905,8 +905,8 @@ main {
 
 .marquee-viewport{display:block;min-width:0;overflow:hidden;white-space:nowrap}
 .marquee-track{display:inline-block;white-space:nowrap;transform:translateX(0)}
-.marquee-viewport.is-overflow .marquee-track{animation:recommendMarquee 7s ease-in-out infinite alternate;will-change:transform;padding-right:40px}
-@keyframes recommendMarquee{0%,18%{transform:translateX(0)}82%,100%{transform:translateX(calc(-1 * var(--marquee-distance, 0px)))}}
+.marquee-viewport.is-overflow .marquee-track{animation:recommendMarquee 7s linear infinite;will-change:transform;padding-right:40px}
+@keyframes recommendMarquee{0%,15%{transform:translateX(0)}85%,100%{transform:translateX(calc(-1 * var(--marquee-distance, 0px)))}}
 
 .song-number {
     width: 25px;
@@ -2282,6 +2282,21 @@ async function loadFanSongRecommendations(){
                 });
             }
         });
+
+        // 같은 노래가 여러 날짜에 기록되어 있어도 추천 후보에는 한 번만 넣는다.
+        // 제목 + 가수를 기준으로 같은 곡을 하나로 묶고, 처음 발견된 링크 하나만 사용한다.
+        const uniqueSongs = new Map();
+        fanSongRecommendationSource.forEach(song => {
+            const normalizeSongKey = value => String(value || "")
+                .toLowerCase()
+                .replace(/[\\s\\p{P}\\p{S}]+/gu, "");
+
+            const key = `${normalizeSongKey(song.title)}|${normalizeSongKey(song.artist)}`;
+            if (!uniqueSongs.has(key)) {
+                uniqueSongs.set(key, song);
+            }
+        });
+        fanSongRecommendationSource = Array.from(uniqueSongs.values());
 
         applyDailyFanSongRecommendations();
     }catch(error){
