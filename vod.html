@@ -472,17 +472,32 @@
         }
 
         .footer-title {
+            appearance: none;
+            -webkit-appearance: none;
+            display: inline;
+            margin: 0;
+            padding: 0;
+            border: 0;
+            outline: 0;
+            border-radius: 0;
+            background: transparent;
             color: #64748b;
+            font-family: inherit;
+            font-size: 11px;
+            line-height: 1.5;
             font-weight: 800;
             cursor: pointer;
             user-select: none;
-            border: 0;
-            background: transparent;
-            padding: 0;
-            font: inherit;
+            text-align: left;
         }
 
-        .footer-title:hover {
+        .footer-title:hover,
+        .footer-title:focus {
+            color: #64748b;
+            background: transparent;
+            box-shadow: none;
+        }
+.footer-title:hover {
             color: #0284c7;
         }
 
@@ -908,6 +923,66 @@
             .vod-admin-auth-backdrop .admin-auth-modal,
             .vod-admin-logout-backdrop .admin-logout-modal {
                 border-radius: 17px;
+            }
+        }
+
+    
+        /* =========================================================
+           VOD 목록 구조
+           날짜 + 해당 상태
+           제목
+           설명
+           태그
+        ========================================================= */
+        .vod-meta-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-height: 20px;
+        }
+
+        .vod-meta-row .vod-date {
+            margin: 0;
+            flex: 0 0 auto;
+        }
+
+        .vod-meta-row .vod-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin: 0;
+        }
+
+        .vod-meta-row .status-item {
+            display: inline-flex;
+            align-items: center;
+            white-space: nowrap;
+        }
+
+        .vod-title {
+            margin-top: 7px;
+        }
+
+        .vod-description {
+            margin-top: 5px;
+        }
+
+        .vod-bottom-row {
+            margin-top: 9px;
+        }
+
+        @media (max-width: 720px) {
+            .vod-meta-row {
+                gap: 7px;
+                flex-wrap: wrap;
+            }
+
+            .vod-meta-row .vod-status {
+                gap: 5px;
+            }
+
+            .vod-bottom-row {
+                margin-top: 8px;
             }
         }
 
@@ -1768,51 +1843,27 @@
 
         let html = "";
 
-
-        /* 구독+전용 */
+        /* 날짜와 함께 상단 메타 영역에 들어갈 상태값.
+           구독+는 해당되는 경우에만 표시하고,
+           성인 인증도 해당되는 경우에만 표시합니다. */
 
         if (vod.subscribed) {
-
             html += `
                 <span class="status-item subscription">
-                    ✓ 구독+전용
+                    ✓ 구독+ 전용
                 </span>
             `;
-
-        } else {
-
-            html += `
-                <span class="status-item">
-                    ○ 일반 VOD
-                </span>
-            `;
-
         }
 
-
-        /* 성인 인증 */
-
         if (vod.adultVerified) {
-
             html += `
                 <span class="status-item adult">
                     ✓ 성인 인증
                 </span>
             `;
-
-        } else {
-
-            html += `
-                <span class="status-item">
-                    ○ 성인 인증 없음
-                </span>
-            `;
-
         }
 
-
         return html;
-
     }
 
 
@@ -1949,35 +2000,35 @@
 
                         <div class="vod-card-main">
 
-                            <div class="vod-date">
-                                ${escapeHTML(
-                                    formatDate(vod.date)
-                                )}
+                            <!-- 1행: 날짜 + 해당되는 상태만 표시 -->
+                            <div class="vod-meta-row">
+                                <div class="vod-date">
+                                    ${escapeHTML(formatDate(vod.date))}
+                                </div>
+
+                                <div class="vod-status">
+                                    ${createStatusHTML(vod)}
+                                </div>
                             </div>
 
+                            <!-- 관리자용 추천 표시 -->
+                            ${isAdminAuthenticated && vod.todayRecommend ? `
+                                <div class="admin-recommend-badge">오늘의 VOD 추천</div>
+                            ` : ""}
 
+                            <!-- 2행: 제목 -->
                             <h2 class="vod-title">
                                 ${escapeHTML(vod.title)}
                             </h2>
 
+                            <!-- 3행: 설명 -->
                             ${vod.description ? `
                                 <div class="vod-description">
                                     ${escapeHTML(vod.description)}
                                 </div>
                             ` : ""}
 
-                            ${isAdminAuthenticated && vod.todayRecommend ? `
-                                <div class="admin-recommend-badge">오늘의 VOD 추천</div>
-                            ` : ""}
-
-
-                            <!-- 구독 + 성인 인증 -->
-
-                            <div class="vod-status">
-                                ${createStatusHTML(vod)}
-                            </div>
-
-
+                            <!-- 4행: 태그 + VOD 이동 -->
                             <div class="vod-bottom-row">
                                 <div class="vod-tags">
                                     ${createTagsHTML(vod.tags)}
