@@ -778,6 +778,38 @@
             }
         }
 
+        .modal-tags {
+            align-items: center;
+        }
+
+        .vod-card-main {
+            position: relative;
+        }
+
+        .vod-description {
+            margin-top: 4px;
+            color: #94a3b8;
+            font-size: 11px;
+            line-height: 1.5;
+            font-weight: 500;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 2;
+            word-break: keep-all;
+        }
+
+        .admin-edit-button {
+            position: absolute;
+            top: 0;
+            right: 0;
+            margin-top: 0;
+        }
+
+        .admin-edit-button + * {
+            margin-top: 0;
+        }
+
         .admin-login-button {
             padding: 8px 11px;
             border: 1px solid #bae6fd;
@@ -832,17 +864,12 @@
 
         <nav class="main-nav">
 
-            <a href="index.html">
-                메인
-            </a>
-
-            <a href="vod.html" class="active">
-                VOD정보
-            </a>
-
-            <button type="button" class="admin-login-button" id="admin-login-button">
-                관리자
-            </button>
+            <a href="https://www.sooplive.com/station/bababi" target="_blank" rel="noopener">방송국</a>
+            <a href="https://cafe.naver.com/soopbadabi" target="_blank" rel="noopener">팬카페</a>
+            <a href="https://youtube.com/channel/UCUcnsZ-VzanQT6NSMJ_JlCQ?si=kMa8AhcVNcQ6FyYE" target="_blank" rel="noopener">유튜브</a>
+            <a href="songlist.html">노래책</a>
+            <a href="vod.html" class="active">VOD정보</a>
+            <button type="button" class="admin-login-button" id="admin-login-button">관리자</button>
 
         </nav>
 
@@ -1876,6 +1903,12 @@
                                 ${escapeHTML(vod.title)}
                             </h2>
 
+                            ${vod.description ? `
+                                <div class="vod-description">
+                                    ${escapeHTML(vod.description)}
+                                </div>
+                            ` : ""}
+
 
                             <!-- 구독 + 성인 인증 -->
 
@@ -1919,6 +1952,8 @@
                 card.addEventListener(
                     "keydown",
                     event => {
+
+                        if (event.target.closest(".admin-edit-button")) return;
 
                         if (
                             event.key === "Enter" ||
@@ -2062,6 +2097,15 @@
     /* =========================================================
        EVENTS
     ========================================================= */
+
+    vodList.addEventListener("click", event => {
+        const editButton = event.target.closest(".admin-edit-button");
+        if (!editButton) return;
+        event.preventDefault();
+        event.stopPropagation();
+        openVODEditModal(editButton.dataset.editId);
+    });
+
 
     vodSearch.addEventListener(
         "input",
