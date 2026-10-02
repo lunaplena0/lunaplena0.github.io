@@ -732,7 +732,20 @@
         .admin-delete-button:hover { background:#ffe4e6; border-color:#fda4af; }
         .admin-modal-backdrop { position:fixed; inset:0; z-index:3000; display:none; align-items:center; justify-content:center; padding:20px; background:rgba(15,23,42,.48); backdrop-filter:blur(4px); }
         .admin-modal-backdrop.show { display:flex; }
-        .admin-modal { position:relative; width:min(520px,100%); max-height:calc(100vh - 40px); overflow:auto; padding:26px; border-radius:20px; background:#fff; box-shadow:0 24px 70px rgba(15,23,42,.22); }
+        .admin-modal { position:relative; width:min(520px,100%); max-height:calc(100vh - 40px); overflow:auto; padding:30px; border:1px solid rgba(14,165,233,.12); border-radius:22px; background:#fff; box-shadow:0 28px 80px rgba(15,23,42,.24); }
+        .admin-auth-modal { width:min(440px,100%); padding:30px; }
+        .admin-auth-hero { display:flex; align-items:center; gap:14px; margin-bottom:18px; padding:14px; border:1px solid #e0f2fe; border-radius:15px; background:linear-gradient(135deg,#f0f9ff,#f8fafc); }
+        .admin-auth-icon { display:flex; align-items:center; justify-content:center; flex:0 0 46px; width:46px; height:46px; border-radius:13px; background:#0ea5e9; color:#fff; font-size:22px; box-shadow:0 8px 18px rgba(14,165,233,.2); }
+        .admin-auth-hero-title { color:#0f172a; font-size:14px; font-weight:850; }
+        .admin-auth-hero-text { margin-top:3px; color:#64748b; font-size:11px; line-height:1.5; }
+        .admin-auth-label { display:block; margin:0 0 7px; color:#475569; font-size:12px; font-weight:800; }
+        .admin-auth-submit { width:100%; margin-top:2px; min-height:44px; }
+        .admin-auth-status { text-align:center; }
+        .admin-logout-modal { width:min(420px,100%); text-align:center; }
+        .admin-logout-icon { display:flex; align-items:center; justify-content:center; width:52px; height:52px; margin:0 auto 14px; border-radius:15px; background:#f0f9ff; color:#0284c7; font-size:23px; }
+        .admin-logout-actions { display:flex; justify-content:center; gap:8px; margin-top:20px; }
+        .admin-toast { position:fixed; left:50%; bottom:26px; z-index:5000; transform:translate(-50%,16px); opacity:0; pointer-events:none; min-width:180px; max-width:calc(100vw - 32px); padding:12px 16px; border:1px solid rgba(14,165,233,.18); border-radius:12px; background:rgba(15,23,42,.94); color:#fff; box-shadow:0 12px 35px rgba(15,23,42,.22); font-size:13px; font-weight:800; text-align:center; transition:opacity .22s ease, transform .22s ease; }
+        .admin-toast.show { opacity:1; transform:translate(-50%,0); }
         .admin-edit-modal { width:min(650px,100%); }
         .admin-modal-close { position:absolute; top:16px; right:16px; width:34px; height:34px; border:0; border-radius:9px; background:#f8fafc; color:#64748b; font-size:21px; cursor:pointer; }
         .admin-modal-title { margin-right:40px; color:#0f172a; font-size:20px; font-weight:850; }
@@ -894,19 +907,42 @@
      ADMIN LOGIN
 ========================= -->
 <div class="admin-modal-backdrop" id="admin-auth-backdrop" aria-hidden="true">
-    <div class="admin-modal" role="dialog" aria-modal="true">
+    <div class="admin-modal admin-auth-modal" role="dialog" aria-modal="true" aria-labelledby="admin-auth-title">
         <button type="button" class="admin-modal-close" id="admin-auth-close" aria-label="닫기">×</button>
+        <div class="admin-auth-hero">
+            <div class="admin-auth-icon">▣</div>
+            <div>
+                <div class="admin-auth-hero-title" id="admin-auth-title">VOD ARCHIVE 관리자</div>
+                <div class="admin-auth-hero-text">VOD 정보를 관리하려면 관리자 인증이 필요합니다.</div>
+            </div>
+        </div>
         <div class="admin-modal-title">관리자 로그인</div>
         <div class="admin-modal-subtitle">노래책과 동일한 관리자 인증을 사용합니다.</div>
+        <label class="admin-auth-label" for="vod-admin-password">관리자 패스워드</label>
         <div id="vod-turnstile" class="admin-turnstile"></div>
         <div class="admin-password-row">
-            <input type="password" id="vod-admin-password" class="admin-input" placeholder="관리자 패스워드" autocomplete="current-password">
+            <input type="password" id="vod-admin-password" class="admin-input" placeholder="패스워드를 입력해주세요" autocomplete="current-password">
             <button type="button" id="admin-password-toggle" class="admin-action-button">보기</button>
         </div>
-        <button type="button" id="admin-login-submit" class="admin-primary-button">로그인</button>
-        <div id="admin-login-status" class="admin-status"></div>
+        <button type="button" id="admin-login-submit" class="admin-primary-button admin-auth-submit">로그인</button>
+        <div id="admin-login-status" class="admin-status admin-auth-status"></div>
     </div>
 </div>
+
+<div class="admin-modal-backdrop" id="admin-logout-backdrop" aria-hidden="true">
+    <div class="admin-modal admin-logout-modal" role="dialog" aria-modal="true" aria-labelledby="admin-logout-title">
+        <button type="button" class="admin-modal-close" id="admin-logout-close" aria-label="닫기">×</button>
+        <div class="admin-logout-icon">↪</div>
+        <div class="admin-modal-title" id="admin-logout-title">로그아웃할까요?</div>
+        <div class="admin-modal-subtitle">현재 관리자 로그인 상태가 종료됩니다.</div>
+        <div class="admin-logout-actions">
+            <button type="button" id="admin-logout-cancel" class="admin-secondary-button">취소</button>
+            <button type="button" id="admin-logout-confirm" class="admin-primary-button">로그아웃</button>
+        </div>
+    </div>
+</div>
+
+<div class="admin-toast" id="admin-toast" role="status" aria-live="polite"></div>
 
 <!-- =========================
      VOD ADMIN EDIT
@@ -1100,6 +1136,11 @@
     const adminLoginButton = document.getElementById("admin-login-button");
     const adminAuthBackdrop = document.getElementById("admin-auth-backdrop");
     const adminAuthClose = document.getElementById("admin-auth-close");
+    const adminLogoutBackdrop = document.getElementById("admin-logout-backdrop");
+    const adminLogoutClose = document.getElementById("admin-logout-close");
+    const adminLogoutCancel = document.getElementById("admin-logout-cancel");
+    const adminLogoutConfirm = document.getElementById("admin-logout-confirm");
+    const adminToast = document.getElementById("admin-toast");
     const adminPasswordInput = document.getElementById("vod-admin-password");
     const adminPasswordToggle = document.getElementById("admin-password-toggle");
     const adminLoginSubmit = document.getElementById("admin-login-submit");
@@ -1175,7 +1216,7 @@
 
     function openAdminAuthModal() {
         if (isAdminAuthenticated) {
-            logoutAdmin();
+            openAdminLogoutModal();
             return;
         }
         adminLoginStatus.textContent = "";
@@ -1190,6 +1231,23 @@
         adminAuthBackdrop.classList.remove("show");
         adminAuthBackdrop.setAttribute("aria-hidden", "true");
         if (!isAdminAuthenticated) resetTurnstile();
+    }
+
+    function openAdminLogoutModal() {
+        adminLogoutBackdrop.classList.add("show");
+        adminLogoutBackdrop.setAttribute("aria-hidden", "false");
+    }
+
+    function closeAdminLogoutModal() {
+        adminLogoutBackdrop.classList.remove("show");
+        adminLogoutBackdrop.setAttribute("aria-hidden", "true");
+    }
+
+    function showAdminToast(message) {
+        adminToast.textContent = message;
+        adminToast.classList.add("show");
+        clearTimeout(showAdminToast.timer);
+        showAdminToast.timer = setTimeout(() => adminToast.classList.remove("show"), 2200);
     }
 
     function updateAdminAuthUI() {
@@ -1257,8 +1315,10 @@
         localStorage.removeItem("badabi_session");
         resetTurnstile();
         closeAdminAuthModal();
+        closeAdminLogoutModal();
         closeVODEditModal();
         updateAdminAuthUI();
+        showAdminToast("로그아웃되었습니다.");
     }
 
     function openVODAddModal() {
@@ -1845,6 +1905,7 @@
         event => {
             if (event.key !== "Escape") return;
             if (adminAuthBackdrop.classList.contains("show")) closeAdminAuthModal();
+            if (adminLogoutBackdrop.classList.contains("show")) closeAdminLogoutModal();
             if (vodEditBackdrop.classList.contains("show")) closeVODEditModal();
         }
     );
@@ -1852,6 +1913,10 @@
     adminLoginButton.addEventListener("click", openAdminAuthModal);
     adminAuthClose.addEventListener("click", closeAdminAuthModal);
     adminAuthBackdrop.addEventListener("click", event => { if (event.target === adminAuthBackdrop) closeAdminAuthModal(); });
+    adminLogoutClose.addEventListener("click", closeAdminLogoutModal);
+    adminLogoutCancel.addEventListener("click", closeAdminLogoutModal);
+    adminLogoutConfirm.addEventListener("click", logoutAdmin);
+    adminLogoutBackdrop.addEventListener("click", event => { if (event.target === adminLogoutBackdrop) closeAdminLogoutModal(); });
     adminPasswordToggle.addEventListener("click", () => {
         const visible = adminPasswordInput.type === "password";
         adminPasswordInput.type = visible ? "text" : "password";
