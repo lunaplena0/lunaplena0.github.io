@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 
     <title>VOD - 바다비 팬 아카이브</title>
 
@@ -776,6 +777,44 @@
                 font-size: 19px;
             }
         }
+
+        .admin-login-button {
+            padding: 8px 11px;
+            border: 1px solid #bae6fd;
+            border-radius: 9px;
+            color: #0284c7;
+            background: #f0f9ff;
+            font-size: 12px;
+            font-weight: 800;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .admin-login-button.authenticated { color:#047857; background:#ecfdf5; border-color:#a7f3d0; }
+        .admin-edit-button { margin-top:12px; padding:8px 12px; border:1px solid #bae6fd; border-radius:9px; color:#0284c7; background:#f0f9ff; font-size:12px; font-weight:800; cursor:pointer; }
+        .admin-modal-backdrop { position:fixed; inset:0; z-index:3000; display:none; align-items:center; justify-content:center; padding:20px; background:rgba(15,23,42,.48); backdrop-filter:blur(4px); }
+        .admin-modal-backdrop.show { display:flex; }
+        .admin-modal { position:relative; width:min(520px,100%); max-height:calc(100vh - 40px); overflow:auto; padding:26px; border-radius:20px; background:#fff; box-shadow:0 24px 70px rgba(15,23,42,.22); }
+        .admin-edit-modal { width:min(650px,100%); }
+        .admin-modal-close { position:absolute; top:16px; right:16px; width:34px; height:34px; border:0; border-radius:9px; background:#f8fafc; color:#64748b; font-size:21px; cursor:pointer; }
+        .admin-modal-title { margin-right:40px; color:#0f172a; font-size:20px; font-weight:850; }
+        .admin-modal-subtitle { margin:6px 0 18px; color:#94a3b8; font-size:12px; line-height:1.6; }
+        .admin-turnstile { min-height:65px; margin-bottom:8px; }
+        .admin-password-row { display:flex; gap:7px; margin-bottom:10px; }
+        .admin-input { width:100%; min-width:0; height:42px; padding:0 12px; border:1px solid #e2e8f0; border-radius:10px; outline:none; color:#334155; background:#f8fafc; font-size:13px; }
+        .admin-textarea { height:auto; min-height:92px; padding:11px 12px; resize:vertical; line-height:1.65; }
+        .admin-input:focus { border-color:#7dd3fc; background:#fff; }
+        .admin-action-button,.admin-primary-button,.admin-secondary-button { min-height:42px; padding:0 14px; border-radius:10px; font-size:13px; font-weight:800; cursor:pointer; }
+        .admin-action-button,.admin-secondary-button { border:1px solid #e2e8f0; color:#64748b; background:#f8fafc; }
+        .admin-primary-button { border:1px solid #0ea5e9; color:#fff; background:#0ea5e9; }
+        .admin-status { min-height:20px; margin-top:10px; color:#ef4444; font-size:12px; line-height:1.5; }
+        .admin-edit-grid { display:grid; grid-template-columns:1fr 1fr; gap:13px; }
+        .admin-field { display:flex; flex-direction:column; gap:6px; }
+        .admin-field > span { color:#475569; font-size:12px; font-weight:800; }
+        .admin-field-full { grid-column:1 / -1; }
+        .admin-check-row { display:flex; flex-direction:row; align-items:center; gap:9px; padding:11px 12px; border:1px solid #e2e8f0; border-radius:10px; background:#f8fafc; color:#475569; font-size:13px; font-weight:800; cursor:pointer; }
+        .admin-check-row input { width:17px; height:17px; margin:0; accent-color:#0ea5e9; }
+        .admin-edit-actions { display:flex; justify-content:flex-end; gap:8px; margin-top:18px; }
+        @media(max-width:720px){ .admin-edit-grid{grid-template-columns:1fr}.admin-field-full{grid-column:auto}.admin-modal{padding:22px 18px;border-radius:17px}.main-nav{overflow-x:auto} }
     </style>
 </head>
 
@@ -801,6 +840,10 @@
                 VOD정보
             </a>
 
+            <button type="button" class="admin-login-button" id="admin-login-button">
+                관리자
+            </button>
+
         </nav>
 
     </div>
@@ -821,7 +864,7 @@
         </h1>
 
         <p>
-            방송 다시보기와 팬이 정리한 타임라인을 모아두는 공간입니다.
+            방송 다시보기와 팬이 정리한 VOD 정보를 모아두는 공간입니다.
         </p>
 
     </section>
@@ -967,6 +1010,22 @@
         ></div>
 
 
+        <!-- 영상 설명 -->
+
+        <div class="modal-section">
+
+            <div class="modal-section-title">
+                영상 설명
+            </div>
+
+            <p
+                class="organized-content"
+                id="modal-description"
+            ></p>
+
+        </div>
+
+
         <!-- 타임라인 -->
 
         <div class="modal-section">
@@ -1008,6 +1067,47 @@
 </div>
 
 
+<!-- =========================
+     ADMIN LOGIN
+========================= -->
+<div class="admin-modal-backdrop" id="admin-auth-backdrop" aria-hidden="true">
+    <div class="admin-modal" role="dialog" aria-modal="true">
+        <button type="button" class="admin-modal-close" id="admin-auth-close" aria-label="닫기">×</button>
+        <div class="admin-modal-title">관리자 로그인</div>
+        <div class="admin-modal-subtitle">노래책과 동일한 관리자 인증을 사용합니다.</div>
+        <div id="vod-turnstile" class="admin-turnstile"></div>
+        <div class="admin-password-row">
+            <input type="password" id="vod-admin-password" class="admin-input" placeholder="관리자 패스워드" autocomplete="current-password">
+            <button type="button" id="admin-password-toggle" class="admin-action-button">보기</button>
+        </div>
+        <button type="button" id="admin-login-submit" class="admin-primary-button">로그인</button>
+        <div id="admin-login-status" class="admin-status"></div>
+    </div>
+</div>
+
+<!-- =========================
+     VOD ADMIN EDIT
+========================= -->
+<div class="admin-modal-backdrop" id="vod-edit-backdrop" aria-hidden="true">
+    <div class="admin-modal admin-edit-modal" role="dialog" aria-modal="true">
+        <button type="button" class="admin-modal-close" id="vod-edit-close" aria-label="닫기">×</button>
+        <div class="admin-modal-title">VOD 관리</div>
+        <div class="admin-modal-subtitle">영상 설명과 타임라인을 분리해서 저장하고, 오늘의 VOD 추천 여부를 설정합니다.</div>
+        <div class="admin-edit-grid">
+            <label class="admin-field"><span>날짜</span><input id="edit-vod-date" class="admin-input" readonly></label>
+            <label class="admin-field"><span>제목</span><input id="edit-vod-title" class="admin-input" readonly></label>
+            <label class="admin-field admin-field-full"><span>영상 설명</span><textarea id="edit-vod-description" class="admin-input admin-textarea" rows="3"></textarea></label>
+            <label class="admin-field admin-field-full"><span>타임라인</span><textarea id="edit-vod-timeline" class="admin-input admin-textarea" rows="7" placeholder="예: 00:00 방송 시작 / 01:23 노래... "></textarea></label>
+            <label class="admin-check-row admin-field-full"><input type="checkbox" id="edit-vod-today-recommend"><span>오늘의 VOD 추천</span></label>
+        </div>
+        <div class="admin-edit-actions">
+            <button type="button" id="vod-edit-cancel" class="admin-secondary-button">취소</button>
+            <button type="button" id="vod-edit-save" class="admin-primary-button">저장</button>
+        </div>
+        <div id="vod-edit-status" class="admin-status"></div>
+    </div>
+</div>
+
 <script>
 
     /* =========================================================
@@ -1019,6 +1119,9 @@
 
     const FANVODLIST_URL =
         WORKER_URL + "?type=fanvodlist&t=";
+
+    const TURNSTILE_SITE_KEY =
+        "0x4AAAAAAEbQ0YWNiL_WiyKR";
 
     let VOD_DATA = [];
 
@@ -1059,12 +1162,13 @@
                             : [];
 
             /*
-             * fanvodlist.json의 원본 구조:
+             * fanvodlist.json 구조:
              * date / title / link / duration /
              * subPlus / adult / description / category
+             * + timeline / todayRecommend
              *
-             * 현재 VOD 페이지가 사용하는 구조로만 변환합니다.
-             * 원본 JSON 자체는 변경하지 않습니다.
+             * description은 영상의 간단한 설명입니다.
+             * timeline은 관리자 편집으로 별도 저장합니다.
              */
             VOD_DATA =
                 vods.map((vod, index) => {
@@ -1101,12 +1205,19 @@
 
                         tags,
 
-                        /*
-                         * 현재 상세 팝업의 "타임라인" 영역은
-                         * fanvodlist.json의 description을 표시합니다.
-                         */
+                        description:
+                            String(vod.description || "").trim(),
+
                         timeline:
-                            String(vod.description || "").trim()
+                            String(vod.timeline || "").trim(),
+
+                        todayRecommend:
+                            vod.todayRecommend === true ||
+                            String(vod.todayRecommend || "").toUpperCase() === "Y" ||
+                            String(vod.todayRecommend || "").toLowerCase() === "TRUE",
+
+                        raw:
+                            { ...vod }
                     };
 
                 });
@@ -1177,12 +1288,257 @@
     const modalTags =
         document.getElementById("modal-tags");
 
+    const modalDescription =
+        document.getElementById("modal-description");
+
     const modalContent =
         document.getElementById("modal-content");
 
     const modalLink =
         document.getElementById("modal-link");
 
+
+    /* =========================================================
+       ADMIN AUTH / EDITOR
+    ========================================================= */
+
+    const adminLoginButton = document.getElementById("admin-login-button");
+    const adminAuthBackdrop = document.getElementById("admin-auth-backdrop");
+    const adminAuthClose = document.getElementById("admin-auth-close");
+    const adminPasswordInput = document.getElementById("vod-admin-password");
+    const adminPasswordToggle = document.getElementById("admin-password-toggle");
+    const adminLoginSubmit = document.getElementById("admin-login-submit");
+    const adminLoginStatus = document.getElementById("admin-login-status");
+    const vodTurnstile = document.getElementById("vod-turnstile");
+    const vodEditBackdrop = document.getElementById("vod-edit-backdrop");
+    const vodEditClose = document.getElementById("vod-edit-close");
+    const vodEditCancel = document.getElementById("vod-edit-cancel");
+    const vodEditSave = document.getElementById("vod-edit-save");
+    const vodEditStatus = document.getElementById("vod-edit-status");
+    const editVodDate = document.getElementById("edit-vod-date");
+    const editVodTitle = document.getElementById("edit-vod-title");
+    const editVodDescription = document.getElementById("edit-vod-description");
+    const editVodTimeline = document.getElementById("edit-vod-timeline");
+    const editVodTodayRecommend = document.getElementById("edit-vod-today-recommend");
+
+    let isAdminAuthenticated = false;
+    let adminSessionToken = localStorage.getItem("badabi_session") || "";
+    let adminUserRole = "";
+    let turnstileToken = "";
+    let turnstileWidgetId = null;
+    let editingVodId = "";
+
+    function getRateLimitId() {
+        let id = localStorage.getItem("badabi_rate_limit_id");
+        if (id) return id;
+        const bytes = new Uint8Array(32);
+        crypto.getRandomValues(bytes);
+        id = Array.from(bytes, b => b.toString(16).padStart(2, "0")).join("");
+        localStorage.setItem("badabi_rate_limit_id", id);
+        return id;
+    }
+
+    function getAdminRoleName(role) {
+        return role === "admin" ? "총괄관리자" : role === "sub_admin" ? "테스트관리자" : "관리자";
+    }
+
+    function resetTurnstile() {
+        turnstileToken = "";
+        if (window.turnstile && turnstileWidgetId !== null) {
+            try { window.turnstile.reset(turnstileWidgetId); } catch (_) {}
+        }
+    }
+
+    function renderTurnstile() {
+        if (!window.turnstile || !vodTurnstile) return;
+        try {
+            if (turnstileWidgetId !== null) window.turnstile.remove(turnstileWidgetId);
+            turnstileWidgetId = window.turnstile.render(vodTurnstile, {
+                sitekey: TURNSTILE_SITE_KEY,
+                callback: token => { turnstileToken = token || ""; },
+                "expired-callback": resetTurnstile,
+                "timeout-callback": resetTurnstile,
+                theme: "auto"
+            });
+        } catch (error) {
+            console.error("Turnstile 렌더링 실패:", error);
+        }
+    }
+
+    function waitForTurnstile() {
+        if (window.turnstile) { renderTurnstile(); return; }
+        let count = 0;
+        const timer = setInterval(() => {
+            if (window.turnstile) { clearInterval(timer); renderTurnstile(); }
+            else if (++count >= 50) clearInterval(timer);
+        }, 100);
+    }
+
+    function openAdminAuthModal() {
+        if (isAdminAuthenticated) {
+            logoutAdmin();
+            return;
+        }
+        adminLoginStatus.textContent = "";
+        adminPasswordInput.value = "";
+        adminAuthBackdrop.classList.add("show");
+        adminAuthBackdrop.setAttribute("aria-hidden", "false");
+        waitForTurnstile();
+        setTimeout(() => adminPasswordInput.focus(), 50);
+    }
+
+    function closeAdminAuthModal() {
+        adminAuthBackdrop.classList.remove("show");
+        adminAuthBackdrop.setAttribute("aria-hidden", "true");
+        if (!isAdminAuthenticated) resetTurnstile();
+    }
+
+    function updateAdminAuthUI() {
+        adminLoginButton.classList.toggle("authenticated", isAdminAuthenticated);
+        adminLoginButton.textContent = isAdminAuthenticated
+            ? `${getAdminRoleName(adminUserRole)} · 로그아웃`
+            : "관리자";
+        renderVODList();
+    }
+
+    async function verifyAdminPassword() {
+        const password = adminPasswordInput.value.trim();
+        if (!password) { adminLoginStatus.textContent = "패스워드를 입력해주세요."; return; }
+        if (!turnstileToken) { adminLoginStatus.textContent = "보안 인증을 완료해주세요."; return; }
+        adminLoginStatus.style.color = "#0284c7";
+        adminLoginStatus.textContent = "확인 중...";
+        try {
+            const response = await fetch(WORKER_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ password, turnstileToken, rateLimitId: getRateLimitId(), action: "verify" })
+            });
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok || !data.success || !data.sessionToken) throw new Error(data.error || "인증 실패");
+            adminSessionToken = data.sessionToken;
+            adminUserRole = data.role || "";
+            isAdminAuthenticated = true;
+            localStorage.setItem("badabi_session", adminSessionToken);
+            resetTurnstile();
+            closeAdminAuthModal();
+            updateAdminAuthUI();
+        } catch (error) {
+            adminLoginStatus.style.color = "#ef4444";
+            adminLoginStatus.textContent = error.message || "로그인에 실패했습니다.";
+            resetTurnstile();
+            adminPasswordInput.value = "";
+        }
+    }
+
+    async function restoreAdminAuthentication() {
+        if (!adminSessionToken) { updateAdminAuthUI(); return; }
+        try {
+            const response = await fetch(WORKER_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ sessionToken: adminSessionToken, action: "verify" })
+            });
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok || !data.success || !data.role) throw new Error();
+            adminUserRole = data.role;
+            isAdminAuthenticated = true;
+        } catch (_) {
+            adminSessionToken = "";
+            adminUserRole = "";
+            isAdminAuthenticated = false;
+            localStorage.removeItem("badabi_session");
+        }
+        updateAdminAuthUI();
+    }
+
+    function logoutAdmin() {
+        isAdminAuthenticated = false;
+        adminSessionToken = "";
+        adminUserRole = "";
+        localStorage.removeItem("badabi_session");
+        resetTurnstile();
+        closeAdminAuthModal();
+        closeVODEditModal();
+        updateAdminAuthUI();
+    }
+
+    function openVODEditModal(id) {
+        if (!isAdminAuthenticated) { openAdminAuthModal(); return; }
+        if (adminUserRole !== "admin") {
+            alert("현재 Worker 권한 설정에서는 테스트관리자는 VOD를 수정할 수 없습니다.");
+            return;
+        }
+        const vod = VOD_DATA.find(item => item.id === id);
+        if (!vod) return;
+        editingVodId = id;
+        editVodDate.value = vod.date || "";
+        editVodTitle.value = vod.title || "";
+        editVodDescription.value = vod.description || "";
+        editVodTimeline.value = vod.timeline || "";
+        editVodTodayRecommend.checked = !!vod.todayRecommend;
+        vodEditStatus.textContent = "";
+        vodEditBackdrop.classList.add("show");
+        vodEditBackdrop.setAttribute("aria-hidden", "false");
+    }
+
+    function closeVODEditModal() {
+        vodEditBackdrop.classList.remove("show");
+        vodEditBackdrop.setAttribute("aria-hidden", "true");
+        editingVodId = "";
+    }
+
+    async function saveFanVodList() {
+        if (!isAdminAuthenticated || !adminSessionToken) throw new Error("로그인 세션이 없습니다. 다시 로그인해주세요.");
+        if (adminUserRole !== "admin") throw new Error("총괄관리자만 VOD 정보를 저장할 수 있습니다.");
+        const vods = VOD_DATA.map(vod => ({
+            ...(vod.raw || {}),
+            date: vod.date,
+            title: vod.title,
+            link: vod.url,
+            duration: vod.duration,
+            subPlus: vod.subscribed ? "Y" : "N",
+            adult: vod.adultVerified ? "Y" : "N",
+            description: vod.description || "",
+            category: Array.isArray(vod.tags) ? vod.tags.join(", ") : "",
+            timeline: vod.timeline || "",
+            todayRecommend: !!vod.todayRecommend
+        }));
+        const response = await fetch(WORKER_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ sessionToken: adminSessionToken, action: "save", fileType: "fanvodlist", content: { vods } })
+        });
+        const data = await response.json().catch(() => ({}));
+        if (response.status === 401) {
+            logoutAdmin();
+            throw new Error("로그인 세션이 만료되었습니다. 다시 로그인해주세요.");
+        }
+        if (!response.ok) throw new Error(data.error || "VOD 저장에 실패했습니다.");
+    }
+
+    async function saveVODEdit() {
+        if (adminUserRole !== "admin") return;
+        const vod = VOD_DATA.find(item => item.id === editingVodId);
+        if (!vod) return;
+        vod.description = editVodDescription.value.trim();
+        vod.timeline = editVodTimeline.value.trim();
+        vod.todayRecommend = editVodTodayRecommend.checked;
+        vodEditSave.disabled = true;
+        vodEditStatus.style.color = "#0284c7";
+        vodEditStatus.textContent = "저장 중...";
+        try {
+            await saveFanVodList();
+            vodEditStatus.style.color = "#059669";
+            vodEditStatus.textContent = "저장되었습니다.";
+            renderVODList();
+            setTimeout(closeVODEditModal, 400);
+        } catch (error) {
+            vodEditStatus.style.color = "#ef4444";
+            vodEditStatus.textContent = error.message || "저장에 실패했습니다.";
+        } finally {
+            vodEditSave.disabled = false;
+        }
+    }
 
     /* =========================================================
        UTILITY
@@ -1534,6 +1890,10 @@
                                 ${createTagsHTML(vod.tags)}
                             </div>
 
+                            ${isAdminAuthenticated && adminUserRole === "admin" ? `
+                                <button type="button" class="admin-edit-button" data-edit-id="${escapeHTML(vod.id)}">편집</button>
+                            ` : ""}
+
                         </div>
 
                     </article>
@@ -1549,10 +1909,9 @@
 
                 card.addEventListener(
                     "click",
-                    () => {
-                        openVODModal(
-                            card.dataset.id
-                        );
+                    event => {
+                        if (event.target.closest(".admin-edit-button")) return;
+                        openVODModal(card.dataset.id);
                     }
                 );
 
@@ -1615,9 +1974,14 @@
             createTagsHTML(vod.tags);
 
 
+        modalDescription.textContent =
+            vod.description ||
+            "등록된 영상 설명이 없습니다.";
+
+
         modalContent.textContent =
             vod.timeline ||
-            "정리된 타임라인이 없습니다.";
+            "등록된 타임라인이 없습니다.";
 
 
         /* 공식 VOD */
@@ -1740,24 +2104,34 @@
     document.addEventListener(
         "keydown",
         event => {
-
-            if (
-                event.key === "Escape" &&
-                modalBackdrop.classList.contains(
-                    "show"
-                )
-            ) {
-                closeVODModal();
-            }
-
+            if (event.key !== "Escape") return;
+            if (modalBackdrop.classList.contains("show")) closeVODModal();
+            if (adminAuthBackdrop.classList.contains("show")) closeAdminAuthModal();
+            if (vodEditBackdrop.classList.contains("show")) closeVODEditModal();
         }
     );
+
+    adminLoginButton.addEventListener("click", openAdminAuthModal);
+    adminAuthClose.addEventListener("click", closeAdminAuthModal);
+    adminAuthBackdrop.addEventListener("click", event => { if (event.target === adminAuthBackdrop) closeAdminAuthModal(); });
+    adminPasswordToggle.addEventListener("click", () => {
+        const visible = adminPasswordInput.type === "password";
+        adminPasswordInput.type = visible ? "text" : "password";
+        adminPasswordToggle.textContent = visible ? "숨기기" : "보기";
+    });
+    adminLoginSubmit.addEventListener("click", verifyAdminPassword);
+    adminPasswordInput.addEventListener("keydown", event => { if (event.key === "Enter") verifyAdminPassword(); });
+    vodEditClose.addEventListener("click", closeVODEditModal);
+    vodEditCancel.addEventListener("click", closeVODEditModal);
+    vodEditSave.addEventListener("click", saveVODEdit);
+    vodEditBackdrop.addEventListener("click", event => { if (event.target === vodEditBackdrop) closeVODEditModal(); });
 
 
     /* =========================================================
        INITIALIZE
     ========================================================= */
     loadVODData();
+    restoreAdminAuthentication();
 </script>
 
 </body>
