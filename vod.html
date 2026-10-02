@@ -660,6 +660,14 @@
             cursor: default;
         }
 
+        .modal-link-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px;
+        }
+
+
 
         /* =========================
            FOOTER
@@ -847,6 +855,8 @@
         }
         .admin-login-button.authenticated { color:#047857; background:#ecfdf5; border-color:#a7f3d0; }
         .admin-edit-button { margin-top:12px; padding:8px 12px; border:1px solid #bae6fd; border-radius:9px; color:#0284c7; background:#f0f9ff; font-size:12px; font-weight:800; cursor:pointer; }
+        .vod-direct-link { margin-top:12px; margin-left:6px; display:inline-flex; align-items:center; justify-content:center; min-height:34px; padding:0 12px; border:1px solid #0ea5e9; border-radius:9px; color:#ffffff; background:#0ea5e9; font-size:12px; font-weight:800; cursor:pointer; }
+        .vod-direct-link:hover { background:#0284c7; border-color:#0284c7; }
         .admin-modal-backdrop { position:fixed; inset:0; z-index:3000; display:none; align-items:center; justify-content:center; padding:20px; background:rgba(15,23,42,.48); backdrop-filter:blur(4px); }
         .admin-modal-backdrop.show { display:flex; }
         .admin-modal { position:relative; width:min(520px,100%); max-height:calc(100vh - 40px); overflow:auto; padding:26px; border-radius:20px; background:#fff; box-shadow:0 24px 70px rgba(15,23,42,.22); }
@@ -1066,22 +1076,6 @@
         ></div>
 
 
-        <!-- 타임라인 -->
-
-        <div class="modal-section">
-
-            <div class="modal-section-title">
-                타임라인
-            </div>
-
-            <p
-                class="organized-content"
-                id="modal-content"
-            ></p>
-
-        </div>
-
-
         <!-- 공식 VOD -->
 
         <div class="modal-section">
@@ -1090,15 +1084,26 @@
                 공식 VOD
             </div>
 
-            <a
-                id="modal-link"
-                class="official-link"
-                href="#"
-                target="_blank"
-                rel="noopener noreferrer"
-            >
-                VOD 보러가기
-            </a>
+            <div class="modal-link-row">
+                <a
+                    id="modal-link"
+                    class="official-link"
+                    href="#"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    VOD 보러가기
+                </a>
+                <a
+                    id="modal-direct-link"
+                    class="official-link"
+                    href="#"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    해당 VOD로 이동
+                </a>
+            </div>
 
         </div>
 
@@ -1132,13 +1137,12 @@
     <div class="admin-modal admin-edit-modal" role="dialog" aria-modal="true">
         <button type="button" class="admin-modal-close" id="vod-edit-close" aria-label="닫기">×</button>
         <div class="admin-modal-title">VOD 관리</div>
-        <div class="admin-modal-subtitle">영상 설명과 타임라인을 분리해서 저장하고, 오늘의 VOD 추천 여부를 설정합니다.</div>
+        <div class="admin-modal-subtitle">영상 설명과 오늘의 VOD 추천 여부를 설정합니다.</div>
         <div class="admin-edit-grid">
             <label class="admin-field"><span>날짜</span><input id="edit-vod-date" class="admin-input" readonly></label>
             <label class="admin-field"><span>제목</span><input id="edit-vod-title" class="admin-input" readonly></label>
             <label class="admin-field admin-field-full"><span>태그</span><input id="edit-vod-tags" class="admin-input" placeholder="예: 소통, 노래, 게임"></label>
             <label class="admin-field admin-field-full"><span>영상 설명</span><textarea id="edit-vod-description" class="admin-input admin-textarea" rows="3"></textarea></label>
-            <label class="admin-field admin-field-full"><span>타임라인</span><textarea id="edit-vod-timeline" class="admin-input admin-textarea" rows="7" placeholder="예: 00:00 방송 시작 / 01:23 노래... "></textarea></label>
             <label class="admin-check-row admin-field-full"><input type="checkbox" id="edit-vod-today-recommend"><span>오늘의 VOD 추천</span></label>
         </div>
         <div class="admin-edit-actions">
@@ -1332,11 +1336,12 @@
     const modalDescription =
         document.getElementById("modal-description");
 
-    const modalContent =
-        document.getElementById("modal-content");
-
     const modalLink =
         document.getElementById("modal-link");
+
+
+    const modalDirectLink =
+        document.getElementById("modal-direct-link");
 
 
     /* =========================================================
@@ -1360,7 +1365,6 @@
     const editVodTitle = document.getElementById("edit-vod-title");
     const editVodTags = document.getElementById("edit-vod-tags");
     const editVodDescription = document.getElementById("edit-vod-description");
-    const editVodTimeline = document.getElementById("edit-vod-timeline");
     const editVodTodayRecommend = document.getElementById("edit-vod-today-recommend");
 
     let isAdminAuthenticated = false;
@@ -1517,7 +1521,6 @@
         editVodTitle.value = vod.title || "";
         editVodTags.value = Array.isArray(vod.tags) ? vod.tags.join(", ") : "";
         editVodDescription.value = vod.description || "";
-        editVodTimeline.value = vod.timeline || "";
         editVodTodayRecommend.checked = !!vod.todayRecommend;
         vodEditStatus.textContent = "";
         vodEditBackdrop.classList.add("show");
@@ -1533,19 +1536,22 @@
     async function saveFanVodList() {
         if (!isAdminAuthenticated || !adminSessionToken) throw new Error("로그인 세션이 없습니다. 다시 로그인해주세요.");
         if (adminUserRole !== "admin") throw new Error("총괄관리자만 VOD 정보를 저장할 수 있습니다.");
-        const vods = VOD_DATA.map(vod => ({
-            ...(vod.raw || {}),
-            date: vod.date,
-            title: vod.title,
-            link: vod.url,
-            duration: vod.duration,
-            subPlus: vod.subscribed ? "Y" : "N",
-            adult: vod.adultVerified ? "Y" : "N",
-            description: vod.description || "",
-            category: Array.isArray(vod.tags) ? vod.tags.join(", ") : "",
-            timeline: vod.timeline || "",
-            todayRecommend: !!vod.todayRecommend
-        }));
+        const vods = VOD_DATA.map(vod => {
+            const { timeline, ...rawWithoutTimeline } = vod.raw || {};
+
+            return {
+                ...rawWithoutTimeline,
+                date: vod.date,
+                title: vod.title,
+                link: vod.url,
+                duration: vod.duration,
+                subPlus: vod.subscribed ? "Y" : "N",
+                adult: vod.adultVerified ? "Y" : "N",
+                description: vod.description || "",
+                category: Array.isArray(vod.tags) ? vod.tags.join(", ") : "",
+                todayRecommend: !!vod.todayRecommend
+            };
+        });
         const response = await fetch(WORKER_URL, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -1568,7 +1574,6 @@
             .map(tag => tag.trim())
             .filter(Boolean);
         vod.description = editVodDescription.value.trim();
-        vod.timeline = editVodTimeline.value.trim();
         vod.todayRecommend = editVodTodayRecommend.checked;
         vodEditSave.disabled = true;
         vodEditStatus.style.color = "#0284c7";
@@ -1947,6 +1952,10 @@
                                 ${createTagsHTML(vod.tags)}
                             </div>
 
+                            ${vod.url && vod.url !== "#" ? `
+                                <a class="vod-direct-link" href="${escapeHTML(vod.url)}" target="_blank" rel="noopener noreferrer">해당 VOD로 이동</a>
+                            ` : ""}
+
                             ${isAdminAuthenticated && adminUserRole === "admin" ? `
                                 <button type="button" class="admin-edit-button" data-edit-id="${escapeHTML(vod.id)}">편집</button>
                             ` : ""}
@@ -1967,7 +1976,7 @@
                 card.addEventListener(
                     "click",
                     event => {
-                        if (event.target.closest(".admin-edit-button")) return;
+                        if (event.target.closest(".admin-edit-button, .vod-direct-link")) return;
                         openVODModal(card.dataset.id);
                     }
                 );
@@ -1977,7 +1986,7 @@
                     "keydown",
                     event => {
 
-                        if (event.target.closest(".admin-edit-button")) return;
+                        if (event.target.closest(".admin-edit-button, .vod-direct-link")) return;
 
                         if (
                             event.key === "Enter" ||
@@ -2038,10 +2047,6 @@
             "등록된 영상 설명이 없습니다.";
 
 
-        modalContent.textContent =
-            vod.timeline ||
-            "등록된 타임라인이 없습니다.";
-
 
         /* 공식 VOD */
 
@@ -2049,6 +2054,10 @@
             vod.url &&
             vod.url !== "#"
         ) {
+
+            modalDirectLink.href = vod.url;
+            modalDirectLink.classList.remove("disabled");
+            modalDirectLink.style.display = "inline-flex";
 
             modalLink.href =
                 vod.url;
@@ -2063,7 +2072,16 @@
             modalLink.target =
                 "_blank";
 
+            modalDirectLink.target =
+                "_blank";
+            modalDirectLink.textContent =
+                "해당 VOD로 이동";
+
         } else {
+
+            modalDirectLink.href = "#";
+            modalDirectLink.classList.add("disabled");
+            modalDirectLink.style.display = "none";
 
             modalLink.href =
                 "#";
