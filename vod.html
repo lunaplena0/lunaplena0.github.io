@@ -39,24 +39,26 @@
             text-decoration: none;
         }
 
-        /* =========================================================
-           상단 헤더 - 2번 파일과 동일
-        ========================================================= */
-        .site-header {
+        /* =========================
+           HEADER — 2번 파일 스타일
+        ========================= */
+        .container {
+            width: min(1180px, calc(100% - 32px));
+            margin: 0 auto;
+        }
+
+        .top-header {
             position: sticky;
             top: 0;
-            z-index: 100;
-
-            background: rgba(255, 255, 255, 0.92);
+            z-index: 1000;
+            background: rgba(255,255,255,.92);
             backdrop-filter: blur(14px);
             -webkit-backdrop-filter: blur(14px);
-
             border-bottom: 1px solid #e7eef5;
         }
 
-        .header-inner {
+        .top-header-inner {
             height: 68px;
-
             display: flex;
             align-items: center;
         }
@@ -65,40 +67,38 @@
             display: flex;
             align-items: center;
             gap: 10px;
-
             font-weight: 800;
             color: #0f172a;
+            flex-shrink: 0;
         }
 
         .brand-text {
             font-size: 17px;
         }
 
-        .main-nav {
+        .top-nav {
             margin-left: auto;
-
             display: flex;
             align-items: center;
             gap: 6px;
         }
 
-        .main-nav a {
+        .top-nav a {
             padding: 8px 11px;
-
             border-radius: 9px;
-
             color: #64748b;
-
             font-size: 12px;
             font-weight: 700;
-
-            transition: background 0.2s ease, color 0.2s ease;
+            transition: background .2s ease, color .2s ease;
         }
 
-        .main-nav a:hover {
+        .top-nav a:hover,
+        .top-nav a.active {
             background: #f0f9ff;
             color: #0284c7;
         }
+
+
 
         /* =========================
            MAIN
@@ -454,10 +454,9 @@
             font-size: 12px;
         }
 
-
-        /* =========================================================
-           FOOTER - 2번 파일과 동일
-        ========================================================= */
+        /* =========================
+           FOOTER — 2번 파일 스타일
+        ========================= */
         footer {
             padding: 14px 0 16px;
             border-top: 1px solid #e7eef5;
@@ -465,8 +464,6 @@
         }
 
         .footer-inner {
-            width: min(1000px, calc(100% - 32px));
-            margin: 0 auto;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -479,7 +476,17 @@
             font-weight: 800;
             cursor: pointer;
             user-select: none;
+            border: 0;
+            background: transparent;
+            padding: 0;
+            font: inherit;
         }
+
+        .footer-title:hover {
+            color: #0284c7;
+        }
+
+
 
         /* =========================
            MOBILE
@@ -745,219 +752,162 @@
         .admin-archive-login { border:0; background:none; text-align:left; cursor:pointer; }
         .admin-archive-login:hover { opacity:.82; }
         @media(max-width:720px){ .admin-edit-grid{grid-template-columns:1fr}.admin-field-full{grid-column:auto}.admin-modal{padding:22px 18px;border-radius:17px}.main-nav{overflow-x:auto} }
+    
         /* =========================================================
-           관리자 로그인/로그아웃 팝업 - 2번 파일과 동일
+           관리자 로그인/로그아웃 팝업 — 2번 파일 스타일
+           (VOD 편집 팝업의 기존 스타일은 그대로 유지)
         ========================================================= */
         .vod-admin-auth-backdrop,
         .vod-admin-logout-backdrop {
-            position: fixed;
-            inset: 0;
-            z-index: 3000;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            background: rgba(15,23,42,.48);
-            backdrop-filter: blur(4px);
-            -webkit-backdrop-filter: blur(4px);
+            z-index: 4000;
+            padding: 18px;
+            background: rgba(15,23,42,.42);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
         }
-        .vod-admin-auth-backdrop.show,
-        .vod-admin-logout-backdrop.show { display:flex; }
 
-        .vod-admin-auth-modal,
-        .vod-admin-logout-backdrop .admin-logout-modal {
-            position: relative;
-            width: min(440px,100%);
-            max-height: calc(100vh - 40px);
-            overflow: auto;
-            padding: 30px;
-            border: 1px solid rgba(14,165,233,.12);
-            border-radius: 22px;
-            background: #fff;
-            box-shadow: 0 28px 80px rgba(15,23,42,.24);
-        }
+        .vod-admin-auth-backdrop .admin-auth-modal,
         .vod-admin-logout-backdrop .admin-logout-modal {
             width: min(420px,100%);
-            text-align: center;
+            max-height: min(88vh,900px);
+            overflow: hidden;
+            padding: 0;
+            border: 1px solid #e4edf5;
+            border-radius: 22px;
+            background: #fff;
+            box-shadow: 0 20px 60px rgba(15,23,42,.18);
         }
-        .vod-admin-auth-modal .admin-modal-close,
-        .vod-admin-logout-backdrop .admin-modal-close {
-            position: absolute;
-            top: 16px;
-            right: 16px;
-            width: 34px;
-            height: 34px;
+
+        .vod-admin-logout-backdrop .admin-logout-modal {
+            width: min(380px,100%);
+        }
+
+        .vod-admin-auth-backdrop .admin-panel-header,
+        .vod-admin-logout-backdrop .admin-panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 22px;
+            border-bottom: 1px solid #eef2f7;
+        }
+
+        .vod-admin-auth-backdrop .admin-panel-title,
+        .vod-admin-logout-backdrop .admin-panel-title {
+            margin: 0;
+            color: #1e293b;
+            font-size: 16px;
+            font-weight: 800;
+        }
+
+        .vod-admin-auth-backdrop .admin-close,
+        .vod-admin-logout-backdrop .admin-close {
+            width: 32px;
+            height: 32px;
             border: 0;
             border-radius: 9px;
             background: #f8fafc;
             color: #64748b;
-            font-size: 21px;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        .vod-admin-auth-backdrop .admin-login-body,
+        .vod-admin-logout-backdrop .admin-login-body {
+            padding: 24px 22px;
+        }
+
+        .vod-admin-auth-backdrop .admin-login-body p {
+            margin: 0 0 16px;
+            color: #64748b;
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        .vod-admin-auth-backdrop .admin-auth-label {
+            display: block;
+            margin: 0 0 7px;
+            color: #475569;
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .vod-admin-auth-backdrop .admin-input {
+            width: 100%;
+            height: 42px;
+            padding: 0 14px;
+            border: 1px solid #dbe5ef;
+            border-radius: 12px;
+            outline: none;
+            color: #1e293b;
+            background: #fff;
+            font-size: 13px;
+        }
+
+        .vod-admin-auth-backdrop .admin-turnstile {
+            min-height: 65px;
+            margin-top: 14px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .vod-admin-auth-backdrop .admin-login-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        .vod-admin-auth-backdrop .admin-action-button,
+        .vod-admin-logout-backdrop .admin-action-button {
+            min-height: 40px;
+            padding: 0 16px;
+            border: 1px solid #dbe5ef;
+            border-radius: 11px;
+            background: #fff;
+            color: #475569;
+            font-size: 12px;
+            font-weight: 800;
             cursor: pointer;
         }
-        .vod-admin-auth-modal .admin-modal-close:hover,
-        .vod-admin-logout-backdrop .admin-modal-close:hover {
-            background:#f1f5f9;
-            color:#334155;
+
+        .vod-admin-auth-backdrop .admin-action-button.primary,
+        .vod-admin-logout-backdrop .admin-action-button.primary {
+            border-color: #0284c7;
+            background: #0284c7;
+            color: #fff;
         }
-        .admin-auth-hero {
-            display:flex;
-            align-items:center;
-            gap:14px;
-            margin-bottom:18px;
-            padding:14px;
-            border:1px solid #e0f2fe;
-            border-radius:15px;
-            background:linear-gradient(135deg,#f0f9ff,#f8fafc);
+
+        .vod-admin-logout-backdrop .admin-action-button.primary.danger {
+            border-color: #fecaca;
+            background: #fecaca;
+            color: #dc2626;
         }
-        .admin-auth-icon {
-            display:flex;
-            align-items:center;
-            justify-content:center;
-            flex:0 0 46px;
-            width:46px;
-            height:46px;
-            border-radius:13px;
-            background:#0ea5e9;
-            color:#fff;
-            font-size:22px;
-            box-shadow:0 8px 18px rgba(14,165,233,.2);
+
+        .vod-admin-auth-backdrop .admin-status {
+            margin-top: 12px;
+            min-height: 18px;
+            color: #64748b;
+            font-size: 11px;
+            text-align: center;
+            font-weight: 600;
         }
-        .admin-auth-hero-title { color:#0f172a; font-size:14px; font-weight:850; }
-        .vod-admin-auth-modal .admin-modal-title,
-        .vod-admin-logout-backdrop .admin-modal-title {
-            margin-right:40px;
-            color:#0f172a;
-            font-size:20px;
-            font-weight:850;
+
+        .vod-admin-logout-backdrop .admin-logout-actions {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 22px;
         }
-        .admin-modal-subtitle {
-            margin:6px 0 18px;
-            color:#94a3b8;
-            font-size:12px;
-            line-height:1.6;
+
+        .vod-admin-auth-backdrop.show,
+        .vod-admin-logout-backdrop.show {
+            display: flex;
         }
-        .admin-auth-label {
-            display:block;
-            margin:0 0 7px;
-            color:#475569;
-            font-size:12px;
-            font-weight:800;
-        }
-        .vod-admin-auth-modal .admin-password-row {
-            display:flex;
-            gap:7px;
-            margin-bottom:10px;
-        }
-        .vod-admin-auth-modal .admin-input {
-            width:100%;
-            min-width:0;
-            height:42px;
-            padding:0 12px;
-            border:1px solid #e2e8f0;
-            border-radius:10px;
-            outline:none;
-            color:#334155;
-            background:#f8fafc;
-            font-size:13px;
-        }
-        .vod-admin-auth-modal .admin-input:focus {
-            border-color:#7dd3fc;
-            background:#fff;
-        }
-        .vod-admin-auth-modal .admin-turnstile {
-            min-height:65px;
-            margin-bottom:8px;
-            margin-top:0;
-        }
-        .admin-auth-submit {
-            width:100%;
-            margin-top:2px;
-            min-height:44px;
-        }
-        .admin-primary-button,
-        .admin-secondary-button {
-            min-height:42px;
-            padding:0 14px;
-            border-radius:10px;
-            font-size:13px;
-            font-weight:800;
-            cursor:pointer;
-        }
-        .admin-secondary-button {
-            border:1px solid #e2e8f0;
-            color:#64748b;
-            background:#f8fafc;
-        }
-        .admin-primary-button {
-            border:1px solid #0ea5e9;
-            color:#fff;
-            background:#0ea5e9;
-        }
-        .admin-primary-button:hover { background:#0284c7; border-color:#0284c7; }
-        .admin-secondary-button:hover { background:#fff; border-color:#cbd5e1; }
-        .vod-admin-auth-modal .admin-status {
-            min-height:20px;
-            margin-top:10px;
-            color:#ef4444;
-            font-size:12px;
-            line-height:1.5;
-            text-align:center;
-        }
-        .admin-logout-icon {
-            display:flex;
-            align-items:center;
-            justify-content:center;
-            width:52px;
-            height:52px;
-            margin:0 auto 14px;
-            border-radius:15px;
-            background:#f0f9ff;
-            color:#0284c7;
-            font-size:23px;
-        }
-        .admin-logout-actions {
-            display:flex;
-            justify-content:center;
-            gap:8px;
-            margin-top:20px;
-        }
-        .admin-toast {
-            position:fixed;
-            left:50%;
-            bottom:26px;
-            z-index:5000;
-            transform:translate(-50%,16px);
-            opacity:0;
-            pointer-events:none;
-            min-width:180px;
-            max-width:calc(100vw - 32px);
-            padding:12px 16px;
-            border:1px solid rgba(14,165,233,.18);
-            border-radius:12px;
-            background:rgba(15,23,42,.94);
-            color:#fff;
-            box-shadow:0 12px 35px rgba(15,23,42,.22);
-            font-size:13px;
-            font-weight:800;
-            text-align:center;
-            transition:opacity .22s ease, transform .22s ease;
-        }
-        .admin-toast.show {
-            opacity:1;
-            transform:translate(-50%,0);
-        }
-        @media(max-width:720px){
-            .header-inner {
-                width: calc(100% - 22px);
-                height:60px;
-            }
-            .main-nav { gap:1px; }
-            .main-nav a { padding:7px 5px; font-size:10px; }
-            .footer-inner { width: calc(100% - 22px); }
-            .vod-admin-auth-modal,
+
+        @media (max-width: 700px) {
+            .vod-admin-auth-backdrop .admin-auth-modal,
             .vod-admin-logout-backdrop .admin-logout-modal {
-                padding:22px 18px;
-                border-radius:17px;
+                border-radius: 17px;
             }
         }
 
@@ -967,26 +917,20 @@
 
 <body>
 
-<header class="site-header">
-
-    <div class="header-inner">
-
+<header class="top-header">
+    <div class="container top-header-inner">
         <a href="index.html" class="brand">
-            <span class="brand-text">
-                바다비 팬 아카이브
-            </span>
+            <span class="brand-text">바다비 팬 아카이브</span>
         </a>
 
-        <nav class="main-nav" aria-label="주요 링크">
+        <nav class="top-nav" aria-label="주요 링크">
             <a href="https://www.sooplive.com/station/bababi" target="_blank" rel="noopener">방송국</a>
             <a href="https://cafe.naver.com/soopbadabi" target="_blank" rel="noopener">팬카페</a>
             <a href="https://youtube.com/channel/UCUcnsZ-VzanQT6NSMJ_JlCQ?si=kMa8AhcVNcQ6FyYE" target="_blank" rel="noopener">유튜브</a>
             <a href="songlist.html">노래책</a>
             <a href="vod.html" class="active">VOD정보</a>
         </nav>
-
     </div>
-
 </header>
 
 
@@ -1086,60 +1030,52 @@
 
 
 <footer>
-
-    <div class="footer-inner">
-        <span class="footer-title" id="secretAdminTrigger">
+    <div class="container footer-inner">
+        <button type="button" class="footer-title" id="secretAdminTrigger" aria-label="관리자 로그인">
             바다비 팬 아카이브
-        </span>
-
-        <span>
-            팬 제작 아카이브 · 비공식 팬사이트
-        </span>
+        </button>
+        <span>팬 제작 아카이브 · 비공식 팬사이트</span>
     </div>
-
 </footer>
 
 
-<!-- =========================================================
-     ADMIN LOGIN / LOGOUT - 2번 파일과 동일한 디자인
-========================================================= -->
+<!-- =========================
+     ADMIN LOGIN — 2번 파일 스타일
+========================= -->
 <div class="admin-modal-backdrop vod-admin-auth-backdrop" id="admin-auth-backdrop" aria-hidden="true">
-    <div class="admin-modal vod-admin-auth-modal" role="dialog" aria-modal="true" aria-labelledby="admin-auth-title">
-        <button type="button" class="admin-modal-close" id="admin-auth-close" aria-label="닫기">×</button>
-
-        <div class="admin-auth-hero">
-            <div class="admin-auth-icon">▣</div>
-            <div>
-                <div class="admin-auth-hero-title" id="admin-auth-title">VOD ARCHIVE 관리자</div>
-            </div>
+    <div class="admin-modal admin-auth-modal" role="dialog" aria-modal="true" aria-labelledby="admin-auth-title">
+        <div class="admin-panel-header">
+            <h2 class="admin-panel-title" id="admin-auth-title">관리자 로그인</h2>
+            <button type="button" class="admin-close" id="admin-auth-close" aria-label="닫기">×</button>
         </div>
 
-        <div class="admin-modal-title">관리자 로그인</div>
-        <div class="admin-modal-subtitle">노래책과 동일한 관리자 인증을 사용합니다.</div>
-
-        <label class="admin-auth-label" for="vod-admin-password">관리자 패스워드</label>
-        <div id="vod-turnstile" class="admin-turnstile"></div>
-
-        <div class="admin-password-row">
+        <div class="admin-login-body">
+            <p>로그인 상태는 브라우저에 보안 세션 토큰으로 유지됩니다.</p>
+            <label class="admin-auth-label" for="vod-admin-password">관리자 패스워드</label>
             <input type="password" id="vod-admin-password" class="admin-input" placeholder="패스워드를 입력해주세요" autocomplete="current-password">
-        </div>
+            <div id="vod-turnstile" class="admin-turnstile"></div>
 
-        <button type="button" id="admin-login-submit" class="admin-primary-button admin-auth-submit">로그인</button>
-        <div id="admin-login-status" class="admin-status admin-auth-status"></div>
+            <div class="admin-login-actions">
+                <button type="button" id="admin-login-submit" class="admin-action-button primary" style="width:100%;">로그인</button>
+            </div>
+            <div id="admin-login-status" class="admin-status admin-auth-status"></div>
+        </div>
     </div>
 </div>
 
 <div class="admin-modal-backdrop vod-admin-logout-backdrop" id="admin-logout-backdrop" aria-hidden="true">
     <div class="admin-modal admin-logout-modal" role="dialog" aria-modal="true" aria-labelledby="admin-logout-title">
-        <button type="button" class="admin-modal-close" id="admin-logout-close" aria-label="닫기">×</button>
+        <div class="admin-panel-header">
+            <h2 class="admin-panel-title" id="admin-logout-title">로그아웃 확인</h2>
+            <button type="button" class="admin-close" id="admin-logout-close" aria-label="닫기">×</button>
+        </div>
 
-        <div class="admin-logout-icon">↪</div>
-        <div class="admin-modal-title" id="admin-logout-title">로그아웃할까요?</div>
-        <div class="admin-modal-subtitle">현재 관리자 로그인 상태가 종료됩니다.</div>
-
-        <div class="admin-logout-actions">
-            <button type="button" id="admin-logout-cancel" class="admin-secondary-button">취소</button>
-            <button type="button" id="admin-logout-confirm" class="admin-primary-button">로그아웃</button>
+        <div class="admin-login-body" style="text-align:center; padding:28px 22px;">
+            <p style="margin-bottom:0; color:#1e293b; font-weight:700; font-size:14px;">정말 로그아웃 하시겠습니까?</p>
+            <div class="admin-logout-actions">
+                <button type="button" id="admin-logout-cancel" class="admin-action-button" style="flex:1;">취소</button>
+                <button type="button" id="admin-logout-confirm" class="admin-action-button primary danger" style="flex:1;">로그아웃</button>
+            </div>
         </div>
     </div>
 </div>
@@ -2112,6 +2048,9 @@
     );
 
     adminLoginButton.addEventListener("click", openAdminAuthModal);
+
+    // 2번 파일처럼 하단 "바다비 팬 아카이브"를 관리자 로그인 진입점으로 사용
+    document.getElementById("secretAdminTrigger")?.addEventListener("click", openAdminAuthModal);
     adminAuthClose.addEventListener("click", closeAdminAuthModal);
     adminAuthBackdrop.addEventListener("click", event => { if (event.target === adminAuthBackdrop) closeAdminAuthModal(); });
     adminLogoutClose.addEventListener("click", closeAdminLogoutModal);
