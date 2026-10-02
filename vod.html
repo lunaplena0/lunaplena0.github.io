@@ -419,6 +419,7 @@
         .vod-tags {
             display: flex;
             flex-wrap: wrap;
+            align-items: center;
 
             gap: 6px;
 
@@ -566,6 +567,15 @@
             word-break: keep-all;
         }
 
+        .modal-description {
+            margin: -10px 45px 16px 0;
+            color: #94a3b8;
+            font-size: 12px;
+            line-height: 1.55;
+            font-weight: 500;
+            word-break: keep-all;
+        }
+
         .modal-status {
             display: flex;
             flex-wrap: wrap;
@@ -580,6 +590,7 @@
         .modal-tags {
             display: flex;
             flex-wrap: wrap;
+            align-items: center;
 
             gap: 6px;
 
@@ -784,6 +795,19 @@
 
         .vod-card-main {
             position: relative;
+        }
+
+        .admin-recommend-badge {
+            display: inline-flex;
+            align-items: center;
+            margin-top: 7px;
+            padding: 4px 8px;
+            border: 1px solid #fde68a;
+            border-radius: 7px;
+            color: #a16207;
+            background: #fef9c3;
+            font-size: 10px;
+            font-weight: 800;
         }
 
         .vod-description {
@@ -1020,6 +1044,11 @@
             id="modal-title"
         ></h2>
 
+        <div
+            class="modal-description"
+            id="modal-description"
+        ></div>
+
 
         <!-- 구독 + 성인 인증 -->
 
@@ -1035,22 +1064,6 @@
             class="modal-tags"
             id="modal-tags"
         ></div>
-
-
-        <!-- 영상 설명 -->
-
-        <div class="modal-section">
-
-            <div class="modal-section-title">
-                영상 설명
-            </div>
-
-            <p
-                class="organized-content"
-                id="modal-description"
-            ></p>
-
-        </div>
 
 
         <!-- 타임라인 -->
@@ -1123,6 +1136,7 @@
         <div class="admin-edit-grid">
             <label class="admin-field"><span>날짜</span><input id="edit-vod-date" class="admin-input" readonly></label>
             <label class="admin-field"><span>제목</span><input id="edit-vod-title" class="admin-input" readonly></label>
+            <label class="admin-field admin-field-full"><span>태그</span><input id="edit-vod-tags" class="admin-input" placeholder="예: 소통, 노래, 게임"></label>
             <label class="admin-field admin-field-full"><span>영상 설명</span><textarea id="edit-vod-description" class="admin-input admin-textarea" rows="3"></textarea></label>
             <label class="admin-field admin-field-full"><span>타임라인</span><textarea id="edit-vod-timeline" class="admin-input admin-textarea" rows="7" placeholder="예: 00:00 방송 시작 / 01:23 노래... "></textarea></label>
             <label class="admin-check-row admin-field-full"><input type="checkbox" id="edit-vod-today-recommend"><span>오늘의 VOD 추천</span></label>
@@ -1344,6 +1358,7 @@
     const vodEditStatus = document.getElementById("vod-edit-status");
     const editVodDate = document.getElementById("edit-vod-date");
     const editVodTitle = document.getElementById("edit-vod-title");
+    const editVodTags = document.getElementById("edit-vod-tags");
     const editVodDescription = document.getElementById("edit-vod-description");
     const editVodTimeline = document.getElementById("edit-vod-timeline");
     const editVodTodayRecommend = document.getElementById("edit-vod-today-recommend");
@@ -1500,6 +1515,7 @@
         editingVodId = id;
         editVodDate.value = vod.date || "";
         editVodTitle.value = vod.title || "";
+        editVodTags.value = Array.isArray(vod.tags) ? vod.tags.join(", ") : "";
         editVodDescription.value = vod.description || "";
         editVodTimeline.value = vod.timeline || "";
         editVodTodayRecommend.checked = !!vod.todayRecommend;
@@ -1547,6 +1563,10 @@
         if (adminUserRole !== "admin") return;
         const vod = VOD_DATA.find(item => item.id === editingVodId);
         if (!vod) return;
+        vod.tags = editVodTags.value
+            .split(",")
+            .map(tag => tag.trim())
+            .filter(Boolean);
         vod.description = editVodDescription.value.trim();
         vod.timeline = editVodTimeline.value.trim();
         vod.todayRecommend = editVodTodayRecommend.checked;
@@ -1907,6 +1927,10 @@
                                 <div class="vod-description">
                                     ${escapeHTML(vod.description)}
                                 </div>
+                            ` : ""}
+
+                            ${isAdminAuthenticated && vod.todayRecommend ? `
+                                <div class="admin-recommend-badge">오늘의 VOD 추천</div>
                             ` : ""}
 
 
