@@ -905,8 +905,8 @@ main {
 
 .marquee-viewport{display:block;min-width:0;overflow:hidden;white-space:nowrap}
 .marquee-track{display:inline-block;white-space:nowrap;transform:translateX(0)}
-.marquee-viewport.is-overflow .marquee-track{animation:recommendMarquee 7s linear infinite;will-change:transform;padding-right:40px}
-@keyframes recommendMarquee{0%,15%{transform:translateX(0)}85%,100%{transform:translateX(calc(-1 * var(--marquee-distance, 0px)))}}
+.marquee-viewport.is-overflow .marquee-track{animation:recommendMarquee 7s ease-in-out infinite alternate;will-change:transform;padding-right:40px}
+@keyframes recommendMarquee{0%,18%{transform:translateX(0)}82%,100%{transform:translateX(calc(-1 * var(--marquee-distance, 0px)))}}
 
 .song-number {
     width: 25px;
@@ -2199,7 +2199,7 @@ let fanVodRecommendationData=[];
 function fanVodKstDateKey(date=new Date()){return new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Seoul",year:"numeric",month:"2-digit",day:"2-digit"}).format(date);}
 function fanVodSeedHash(text){let h=2166136261;for(let i=0;i<text.length;i++){h^=text.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;}
 function renderFanVodRecommendations(){const list=document.getElementById("vodRecommendList");if(!list)return;list.innerHTML=fanVodRecommendationData.slice(0,3).map((v,i)=>{const title=adminEsc(v.title||"제목 없음"),date=adminEsc(v.date||"");const url=/^https?:\/\//i.test(v.url)?v.url:"#";return `<a href="${adminEsc(url)}" class="vod-item" target="_blank" rel="noopener"><span class="vod-number">${String(i+1).padStart(2,"0")}</span><span class="vod-info"><span class="marquee-viewport vod-title"><span class="marquee-track">${title}</span></span><span class="marquee-viewport vod-date"><span class="marquee-track">${date}</span></span></span><span class="vod-arrow">→</span></a>`;}).join("");setupRecommendationMarquees(list);}
-async function loadFanVodRecommendations(){try{const r=await fetch(FANVODLIST_URL+Date.now(),{cache:"no-store"});if(!r.ok)throw new Error();const data=await r.json();const vods=Array.isArray(data.vods)?data.vods:[];const source=vods.map(v=>({title:String(v.title||"").trim(),date:String(v.date||"").trim(),url:String(v.link||v.url||"").trim()})).filter(v=>v.title||v.url);const day=fanVodKstDateKey();fanVodRecommendationData=source.slice().sort((a,b)=>fanVodSeedHash(day+"|"+a.title+"|"+a.date+"|"+a.url)-fanVodSeedHash(day+"|"+b.title+"|"+b.date+"|"+b.url)).slice(0,3);renderFanVodRecommendations();}catch(e){console.error("fanvodlist.json 불러오기 실패:",e);fanVodRecommendationData=[];renderFanVodRecommendations();}}
+async function loadFanVodRecommendations(){try{const r=await fetch(FANVODLIST_URL+Date.now(),{cache:"no-store"});if(!r.ok)throw new Error();const data=await r.json();const vods=Array.isArray(data.vods)?data.vods:[];const source=vods.map(v=>({title:String(v.title||"").trim(),date:String(v.date||"").trim(),url:String(v.link||v.url||"").trim(),todayRecommend:v.todayRecommend===true||String(v.todayRecommend||"").toUpperCase()==="Y"||String(v.todayRecommend||"").toLowerCase()==="TRUE"})).filter(v=>(v.title||v.url)&&v.todayRecommend);const day=fanVodKstDateKey();fanVodRecommendationData=source.slice().sort((a,b)=>fanVodSeedHash(day+"|"+a.title+"|"+a.date+"|"+a.url)-fanVodSeedHash(day+"|"+b.title+"|"+b.date+"|"+b.url)).slice(0,3);renderFanVodRecommendations();}catch(e){console.error("fanvodlist.json 불러오기 실패:",e);fanVodRecommendationData=[];renderFanVodRecommendations();}}
 loadFanVodRecommendations();
 
 const FANSONG_STATS_URL = ADMIN_WORKER_URL + "?type=fansongstats&t=";
@@ -2282,21 +2282,6 @@ async function loadFanSongRecommendations(){
                 });
             }
         });
-
-        // 같은 노래가 여러 날짜에 기록되어 있어도 추천 후보에는 한 번만 넣는다.
-        // 제목 + 가수를 기준으로 같은 곡을 하나로 묶고, 처음 발견된 링크 하나만 사용한다.
-        const uniqueSongs = new Map();
-        fanSongRecommendationSource.forEach(song => {
-            const normalizeSongKey = value => String(value || "")
-                .toLowerCase()
-                .replace(/[\\s\\p{P}\\p{S}]+/gu, "");
-
-            const key = `${normalizeSongKey(song.title)}|${normalizeSongKey(song.artist)}`;
-            if (!uniqueSongs.has(key)) {
-                uniqueSongs.set(key, song);
-            }
-        });
-        fanSongRecommendationSource = Array.from(uniqueSongs.values());
 
         applyDailyFanSongRecommendations();
     }catch(error){
