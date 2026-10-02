@@ -1,0 +1,2033 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>베스트 스트리머 계산기 | 바다비 아카이브</title>
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet"
+    >
+
+    <style>
+        :root {
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #1e293b;
+            --text-main: #0f172a;
+            --text-sub: #64748b;
+            --text-light: #94a3b8;
+
+            --accent: #0ea5e9;
+            --accent-dark: #0369a1;
+            --accent-light: #e0f2fe;
+            --accent-bg: #f0f9ff;
+
+            --border: #e2e8f0;
+            --border-dark: #cbd5e1;
+
+            --danger: #ef4444;
+            --danger-dark: #dc2626;
+            --danger-bg: #fef2f2;
+            --danger-border: #fecaca;
+
+            --warning: #f59e0b;
+            --warning-bg: #fffbeb;
+            --warning-border: #fde68a;
+
+            --radius: 12px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            margin: 0;
+            padding: 0;
+            background: var(--bg);
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+
+            background: var(--bg);
+            color: var(--text);
+
+            font-family:
+                "Noto Sans KR",
+                "Segoe UI",
+                Tahoma,
+                Geneva,
+                Verdana,
+                sans-serif;
+
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+        }
+
+        button,
+        input,
+        select {
+            font-family: inherit;
+        }
+
+        button {
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* =========================================
+           전체
+        ========================================= */
+
+        .page {
+            width: 100%;
+            max-width: 840px;
+            margin: 0 auto;
+            padding: 14px 16px 30px;
+        }
+
+        /* =========================================
+           상단
+        ========================================= */
+
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+
+            padding: 4px 0 16px;
+        }
+
+        .title-wrap {
+            min-width: 0;
+
+            padding-left: 14px;
+            border-left: 5px solid var(--accent);
+        }
+
+        .page-title {
+            margin: 0;
+
+            color: var(--text-main);
+            font-size: 21px;
+            font-weight: 800;
+            line-height: 1.35;
+            letter-spacing: -0.6px;
+        }
+
+        .page-description {
+            margin: 4px 0 0;
+
+            color: var(--text-sub);
+            font-size: 12px;
+            font-weight: 500;
+            line-height: 1.5;
+        }
+
+        .back-button {
+            flex-shrink: 0;
+
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+
+            min-height: 34px;
+            padding: 6px 11px;
+
+            border: 1px solid var(--border-dark);
+            border-radius: 9px;
+
+            background: #fff;
+            color: var(--accent-dark);
+
+            font-size: 12px;
+            font-weight: 700;
+
+            text-decoration: none;
+            white-space: nowrap;
+
+            cursor: pointer;
+
+            transition:
+                border-color .18s ease,
+                background .18s ease,
+                box-shadow .18s ease,
+                transform .12s ease;
+        }
+
+        .back-button:hover {
+            border-color: var(--accent);
+            background: #f8fdff;
+            box-shadow: 0 0 0 3px rgba(14, 165, 233, .10);
+        }
+
+        .back-button:active {
+            transform: scale(.97);
+        }
+
+        /* =========================================
+           메인 카드
+        ========================================= */
+
+        .calculator-card {
+            width: 100%;
+
+            padding: 18px;
+
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+
+            background: var(--card);
+
+            box-shadow:
+                0 1px 2px rgba(15, 23, 42, .025);
+        }
+
+        /* =========================================
+           섹션 제목
+        ========================================= */
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+
+            margin-bottom: 18px;
+            padding-bottom: 11px;
+
+            border-bottom: 1px solid var(--border);
+        }
+
+        .section-title {
+            margin: 0;
+
+            color: var(--accent-dark);
+            font-size: 15px;
+            font-weight: 800;
+            letter-spacing: -.2px;
+        }
+
+        .reset-button {
+            padding: 4px 6px;
+
+            border: 0;
+            border-radius: 6px;
+
+            background: transparent;
+            color: var(--text-light);
+
+            font-size: 11px;
+
+            cursor: pointer;
+
+            transition:
+                color .18s ease,
+                background .18s ease;
+        }
+
+        .reset-button:hover {
+            color: var(--accent-dark);
+            background: var(--accent-bg);
+        }
+
+        /* =========================================
+           입력 영역
+        ========================================= */
+
+        .input-section {
+            margin-bottom: 20px;
+        }
+
+        .input-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 11px;
+
+            margin-bottom: 14px;
+        }
+
+        .input-card {
+            min-width: 0;
+        }
+
+        .field-label {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 4px;
+
+            margin: 0 0 6px;
+
+            color: #475569;
+            font-size: 12px;
+            font-weight: 700;
+            line-height: 1.45;
+        }
+
+        .weight {
+            color: var(--accent);
+            font-size: 10px;
+            font-weight: 700;
+        }
+
+        .field-score {
+            color: var(--accent-dark);
+            font-size: 11px;
+            font-weight: 800;
+        }
+
+        .number-input,
+        .select-input {
+            width: 100%;
+            height: 41px;
+
+            padding: 0 11px;
+
+            border: 1px solid var(--border-dark);
+            border-radius: 9px;
+
+            outline: none;
+
+            background: #fff;
+            color: var(--text);
+
+            font-size: 13px;
+
+            transition:
+                border-color .18s ease,
+                box-shadow .18s ease;
+        }
+
+        .number-input::placeholder {
+            color: var(--text-light);
+        }
+
+        .number-input:hover,
+        .select-input:hover {
+            border-color: #94a3b8;
+        }
+
+        .number-input:focus,
+        .select-input:focus {
+            border-color: var(--accent);
+
+            box-shadow:
+                0 0 0 3px rgba(14, 165, 233, .11);
+        }
+
+        /* =========================================
+           3개월 조건
+        ========================================= */
+
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 11px;
+
+            margin-bottom: 14px;
+        }
+
+        .education-label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .external-link {
+            color: var(--accent-dark);
+            font-size: 10px;
+            font-weight: 700;
+
+            text-decoration: none;
+        }
+
+        .external-link:hover {
+            text-decoration: underline;
+        }
+
+        /* =========================================
+           체크박스 카드
+        ========================================= */
+
+        .check-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+
+            min-height: 52px;
+
+            margin-bottom: 10px;
+            padding: 10px 12px;
+
+            border: 1px solid var(--border);
+            border-radius: 10px;
+
+            background: #f8fafc;
+        }
+
+        .check-info {
+            min-width: 0;
+        }
+
+        .check-title {
+            margin: 0;
+
+            color: #475569;
+            font-size: 12px;
+            font-weight: 700;
+            line-height: 1.5;
+        }
+
+        .check-input-wrap {
+            flex-shrink: 0;
+        }
+
+        .checkbox {
+            appearance: none;
+            -webkit-appearance: none;
+
+            position: relative;
+
+            width: 19px;
+            height: 19px;
+
+            margin: 0;
+
+            border: 1px solid var(--border-dark);
+            border-radius: 5px;
+
+            background: #fff;
+
+            cursor: pointer;
+
+            transition:
+                border-color .15s ease,
+                background .15s ease;
+        }
+
+        .checkbox:checked {
+            border-color: var(--accent);
+            background: var(--accent);
+        }
+
+        .checkbox:checked::after {
+            content: "";
+
+            position: absolute;
+
+            left: 5px;
+            top: 2px;
+
+            width: 5px;
+            height: 9px;
+
+            border-right: 2px solid #fff;
+            border-bottom: 2px solid #fff;
+
+            transform: rotate(45deg);
+        }
+
+        /* =========================================
+           경고 이력
+        ========================================= */
+
+        .warning-card {
+            padding: 12px;
+
+            border: 1px solid var(--danger-border);
+            border-radius: 10px;
+
+            background: var(--danger-bg);
+        }
+
+        .warning-title {
+            margin: 0 0 9px;
+
+            color: var(--danger-dark);
+            font-size: 12px;
+            font-weight: 700;
+            line-height: 1.5;
+        }
+
+        .warning-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .warning-left {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+        }
+
+        .warning-count {
+            width: 60px;
+            height: 34px;
+
+            padding: 0 7px;
+
+            border: 1px solid var(--danger-border);
+            border-radius: 7px;
+
+            outline: none;
+
+            background: #fff;
+            color: var(--text);
+
+            text-align: center;
+            font-size: 12px;
+        }
+
+        .warning-count:focus {
+            border-color: var(--danger);
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, .08);
+        }
+
+        .warning-unit {
+            color: var(--text-sub);
+            font-size: 11px;
+        }
+
+        .same-warning {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .same-warning span {
+            color: var(--text-sub);
+            font-size: 11px;
+        }
+
+        .warning-score {
+            color: var(--danger);
+            font-size: 12px;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        /* =========================================
+           구분선
+        ========================================= */
+
+        .divider {
+            height: 1px;
+
+            margin: 22px 0;
+
+            border: 0;
+
+            background: var(--border);
+        }
+
+        /* =========================================
+           추가 가산점
+        ========================================= */
+
+        .bonus-header {
+            margin-bottom: 14px;
+        }
+
+        .bonus-title {
+            margin: 0;
+
+            color: var(--accent-dark);
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        .bonus-subtitle {
+            margin: 3px 0 0;
+
+            color: var(--text-light);
+            font-size: 10px;
+        }
+
+        .bonus-list {
+            display: grid;
+            gap: 12px;
+        }
+
+        .bonus-field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .bonus-label {
+            color: #475569;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .expert-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+
+            min-height: 50px;
+
+            padding: 10px 12px;
+
+            border: 1px solid #dbeafe;
+            border-radius: 10px;
+
+            background: var(--accent-bg);
+        }
+
+        .expert-label {
+            color: var(--accent-dark);
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        /* =========================================
+           결과
+        ========================================= */
+
+        .result-card {
+            margin-top: 22px;
+            padding: 19px 16px;
+
+            border: 1px solid #dbeafe;
+            border-radius: 12px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #f0f9ff 0%,
+                    #ffffff 100%
+                );
+
+            text-align: center;
+
+            transition:
+                border-color .2s ease,
+                background .2s ease;
+        }
+
+        .result-label {
+            margin: 0 0 3px;
+
+            color: var(--text-sub);
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .total-score {
+            margin: 0;
+
+            color: var(--accent-dark);
+
+            font-size: 40px;
+            font-weight: 800;
+            line-height: 1.2;
+            letter-spacing: -1px;
+        }
+
+        .score-unit {
+            margin-left: 2px;
+
+            color: var(--text-sub);
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .progress-track {
+            width: 100%;
+            height: 9px;
+
+            margin-top: 11px;
+
+            overflow: hidden;
+
+            border-radius: 999px;
+
+            background: var(--accent-light);
+        }
+
+        .progress-fill {
+            width: 0;
+            height: 100%;
+
+            border-radius: inherit;
+
+            background: var(--accent);
+
+            transition: width .3s ease;
+        }
+
+        .result-message {
+            margin: 18px 0 0;
+
+            color: var(--text-sub);
+            font-size: 12px;
+            line-height: 1.7;
+        }
+
+        .result-message strong {
+            font-weight: 800;
+        }
+
+        .result-card.fail {
+            border-color: var(--danger-border);
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #fff7f7 0%,
+                    #ffffff 100%
+                );
+        }
+
+        .result-card.fail .total-score {
+            color: var(--danger-dark);
+        }
+
+        .result-card.pass {
+            border-color: #bae6fd;
+        }
+
+        .result-card.warning {
+            border-color: var(--warning-border);
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #fffbeb 0%,
+                    #ffffff 100%
+                );
+        }
+
+        .result-card.warning .total-score {
+            color: #d97706;
+        }
+
+        /* =========================================
+           안내 박스
+        ========================================= */
+
+        .notice {
+            margin-top: 14px;
+            padding: 10px 12px;
+
+            border: 1px solid var(--border);
+            border-radius: 9px;
+
+            background: #f8fafc;
+
+            color: var(--text-light);
+
+            font-size: 10px;
+            line-height: 1.65;
+        }
+
+        /* =========================================
+           푸터
+        ========================================= */
+
+        .footer {
+            margin-top: 17px;
+            padding: 18px 10px;
+
+            border-top: 1px solid var(--border);
+
+            text-align: center;
+
+            color: var(--text-light);
+            font-size: 10px;
+            line-height: 1.7;
+        }
+
+        .footer-title {
+            display: block;
+
+            margin-bottom: 4px;
+
+            color: var(--text-sub);
+
+            font-size: 11px;
+            font-weight: 800;
+        }
+
+        .footer p {
+            margin: 0;
+        }
+
+        /* =========================================
+           모바일
+        ========================================= */
+
+        @media (max-width: 700px) {
+
+            .page {
+                padding: 10px 10px 25px;
+            }
+
+            .page-header {
+                align-items: flex-start;
+                gap: 8px;
+            }
+
+            .title-wrap {
+                padding-left: 11px;
+                border-left-width: 4px;
+            }
+
+            .page-title {
+                font-size: 18px;
+            }
+
+            .page-description {
+                font-size: 10px;
+            }
+
+            .back-button {
+                min-height: 32px;
+                padding: 5px 8px;
+                font-size: 11px;
+            }
+
+            .calculator-card {
+                padding: 14px;
+            }
+
+            .input-row {
+                grid-template-columns: 1fr;
+                gap: 13px;
+            }
+
+            .two-column {
+                grid-template-columns: 1fr;
+                gap: 13px;
+            }
+
+            .check-card {
+                min-height: 50px;
+            }
+
+            .warning-content {
+                flex-wrap: wrap;
+            }
+
+            .same-warning {
+                margin-left: auto;
+            }
+
+            .total-score {
+                font-size: 35px;
+            }
+        }
+
+        @media (max-width: 430px) {
+
+            .page {
+                padding-left: 8px;
+                padding-right: 8px;
+            }
+
+            .page-header {
+                gap: 6px;
+            }
+
+            .page-title {
+                font-size: 17px;
+            }
+
+            .page-description {
+                font-size: 9.5px;
+            }
+
+            .back-button {
+                font-size: 10px;
+                padding: 5px 7px;
+            }
+
+            .calculator-card {
+                padding: 12px;
+            }
+
+            .section-title {
+                font-size: 14px;
+            }
+
+            .warning-content {
+                align-items: flex-start;
+            }
+
+            .same-warning {
+                margin-left: 0;
+            }
+
+            .warning-score {
+                margin-left: auto;
+            }
+
+            .total-score {
+                font-size: 33px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="page">
+
+    <!-- =========================
+         HEADER
+    ========================== -->
+
+    <header class="page-header">
+
+        <div class="title-wrap">
+            <h1 class="page-title">베스트 스트리머 계산기</h1>
+            <p class="page-description">
+                SOOP 베스트 스트리머 신청 조건과 예상 점수를 계산합니다.
+            </p>
+        </div>
+
+        <a href="index.html" class="back-button">
+            ← 메인으로
+        </a>
+
+    </header>
+
+
+    <!-- =========================
+         MAIN
+    ========================== -->
+
+    <main class="calculator-card">
+
+        <div class="section-header">
+
+            <h2 class="section-title">
+                상세 정보
+            </h2>
+
+            <button
+                type="button"
+                class="reset-button"
+                onclick="resetData()"
+            >
+                데이터 초기화
+            </button>
+
+        </div>
+
+
+        <!-- =========================
+             기본 점수
+        ========================== -->
+
+        <section class="input-section">
+
+            <div class="input-row">
+
+                <!-- 평균 동접 -->
+
+                <div class="input-card">
+
+                    <label
+                        class="field-label"
+                        for="score-viewer"
+                    >
+                        평균 동접
+                        <span class="weight">
+                            가중치 40%
+                        </span>
+                        <span
+                            class="field-score"
+                            id="val-viewer"
+                        >
+                            (0.0점)
+                        </span>
+                    </label>
+
+                    <input
+                        type="number"
+                        id="score-viewer"
+                        class="number-input"
+                        min="0"
+                        placeholder="평균 시청자 수"
+                        oninput="updateScores()"
+                    >
+
+                </div>
+
+
+                <!-- 애청자 -->
+
+                <div class="input-card">
+
+                    <label
+                        class="field-label"
+                        for="score-fan"
+                    >
+                        애청자 수
+                        <span class="weight">
+                            가중치 40%
+                        </span>
+                        <span
+                            class="field-score"
+                            id="val-fan"
+                        >
+                            (0.0점)
+                        </span>
+                    </label>
+
+                    <input
+                        type="number"
+                        id="score-fan"
+                        class="number-input"
+                        min="0"
+                        placeholder="애청자 수"
+                        oninput="updateScores()"
+                    >
+
+                </div>
+
+
+                <!-- 누적 방송시간 -->
+
+                <div class="input-card">
+
+                    <label
+                        class="field-label"
+                        for="score-time"
+                    >
+                        누적 방송 시간
+                        <span class="weight">
+                            가중치 20%
+                        </span>
+                        <span
+                            class="field-score"
+                            id="val-time"
+                        >
+                            (0.0점)
+                        </span>
+                    </label>
+
+                    <input
+                        type="number"
+                        id="score-time"
+                        class="number-input"
+                        min="0"
+                        placeholder="방송 시간"
+                        oninput="updateScores()"
+                    >
+
+                </div>
+
+            </div>
+
+
+            <!-- 최근 3개월 -->
+
+            <div class="two-column">
+
+                <div class="input-card">
+
+                    <label
+                        class="field-label"
+                        for="day-val"
+                    >
+                        최근 3개월 방송 일수
+                    </label>
+
+                    <input
+                        type="number"
+                        id="day-val"
+                        class="number-input"
+                        min="0"
+                        placeholder="방송 일수"
+                        oninput="updateScores()"
+                    >
+
+                </div>
+
+
+                <div class="input-card">
+
+                    <label
+                        class="field-label education-label"
+                        for="edu-val"
+                    >
+                        스트리머 교육
+
+                        <a
+                            href="https://bjedu.sooplive.com/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="external-link"
+                        >
+                            수강 →
+                        </a>
+                    </label>
+
+                    <input
+                        type="number"
+                        id="edu-val"
+                        class="number-input"
+                        min="0"
+                        placeholder="교육 수강 개수"
+                        oninput="updateScores()"
+                    >
+
+                </div>
+
+            </div>
+
+
+            <!-- 정지 기록 -->
+
+            <div class="check-card">
+
+                <div class="check-info">
+
+                    <p class="check-title">
+                        최근 3개월 정지 기록 없음
+
+                        <a
+                            href="https://member.sooplive.com/app/user_penalty.php?szWork=getPenalty"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="external-link"
+                        >
+                            확인 →
+                        </a>
+                    </p>
+
+                </div>
+
+                <div class="check-input-wrap">
+
+                    <input
+                        type="checkbox"
+                        id="punish-check"
+                        class="checkbox"
+                        onchange="updateScores()"
+                    >
+
+                </div>
+
+            </div>
+
+
+            <!-- 경고 -->
+
+            <div class="warning-card">
+
+                <p class="warning-title">
+
+                    최근 3개월 경고 이력
+                    <span>
+                        (2건부터 감점)
+                    </span>
+
+                    <a
+                        href="https://member.sooplive.com/app/user_penalty.php?szWork=getPenalty"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="external-link"
+                    >
+                        확인 →
+                    </a>
+
+                </p>
+
+
+                <div class="warning-content">
+
+                    <div class="warning-left">
+
+                        <input
+                            type="number"
+                            id="warn-count"
+                            class="warning-count"
+                            min="0"
+                            placeholder="0"
+                            oninput="updateScores()"
+                        >
+
+                        <span class="warning-unit">
+                            건
+                        </span>
+
+                    </div>
+
+
+                    <label class="same-warning">
+
+                        <input
+                            type="checkbox"
+                            id="warn-same"
+                            class="checkbox"
+                            onchange="updateScores()"
+                        >
+
+                        <span>
+                            동일 경고 포함
+                        </span>
+
+                    </label>
+
+
+                    <span
+                        id="val-warn"
+                        class="warning-score"
+                    >
+                        (0점)
+                    </span>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =========================
+             추가 가산점
+        ========================== -->
+
+        <hr class="divider">
+
+
+        <section>
+
+            <div class="bonus-header">
+
+                <h3 class="bonus-title">
+                    추가 가산점
+                </h3>
+
+                <p class="bonus-subtitle">
+                    최대 15점
+                </p>
+
+            </div>
+
+
+            <div class="bonus-list">
+
+                <!-- VOD -->
+
+                <div class="bonus-field">
+
+                    <label
+                        class="bonus-label"
+                        for="add-vod-count"
+                    >
+                        등록 VOD 개수
+                    </label>
+
+                    <select
+                        id="add-vod-count"
+                        class="select-input"
+                        onchange="updateScores()"
+                    >
+                        <option value="0">
+                            0개 (0점)
+                        </option>
+
+                        <option value="1">
+                            1~3개 (1점)
+                        </option>
+
+                        <option value="2">
+                            4~6개 (2점)
+                        </option>
+
+                        <option value="3">
+                            7~9개 (3점)
+                        </option>
+
+                        <option value="4">
+                            10~12개 (4점)
+                        </option>
+
+                        <option value="5">
+                            13개 이상 (5점)
+                        </option>
+                    </select>
+
+                </div>
+
+
+                <!-- 유지율 -->
+
+                <div class="bonus-field">
+
+                    <label
+                        class="bonus-label"
+                        for="add-vod-rate"
+                    >
+                        다시보기 유지율
+                    </label>
+
+                    <select
+                        id="add-vod-rate"
+                        class="select-input"
+                        onchange="updateScores()"
+                    >
+                        <option value="0">
+                            70% 미만 (0점)
+                        </option>
+
+                        <option value="1">
+                            70% 이상 (1점)
+                        </option>
+
+                        <option value="3">
+                            80% 이상 (3점)
+                        </option>
+
+                        <option value="5">
+                            90% 이상 (5점)
+                        </option>
+                    </select>
+
+                </div>
+
+
+                <!-- 전문 자격 -->
+
+                <div class="expert-card">
+
+                    <label
+                        class="expert-label"
+                        for="add-expert"
+                    >
+                        전문 자격 보유
+                        <span>
+                            (충족 시 5점)
+                        </span>
+                    </label>
+
+                    <input
+                        type="checkbox"
+                        id="add-expert"
+                        class="checkbox"
+                        onchange="updateScores()"
+                    >
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =========================
+             결과
+        ========================== -->
+
+        <section
+            class="result-card"
+            id="result-panel"
+        >
+
+            <p class="result-label">
+                나의 예상 점수
+            </p>
+
+            <p class="total-score">
+                <span id="total-score">0.0</span>
+                <span class="score-unit">점</span>
+            </p>
+
+
+            <div class="progress-track">
+
+                <div
+                    class="progress-fill"
+                    id="score-bar"
+                ></div>
+
+            </div>
+
+
+            <div
+                class="result-message"
+                id="result-desc"
+            >
+                지표를 입력해 주세요.
+            </div>
+
+        </section>
+
+
+        <!-- 안내 -->
+
+        <div class="notice">
+            ※ 이 계산기는 입력한 데이터를 기준으로 예상 점수를 계산하는 비공식 도구입니다.
+            실제 선발 결과 및 적용 기준과 차이가 있을 수 있습니다.
+        </div>
+
+    </main>
+
+
+    <!-- =========================
+         FOOTER
+    ========================== -->
+
+    <footer class="footer">
+
+        <strong class="footer-title">
+            바다비 비공식 팬 아카이브
+        </strong>
+
+        <p>
+            모든 권리는 원저작권자(바다비/SOOP)에게 있으며
+            요청 시 수정·삭제됩니다.<br>
+
+            비영리로 운영되며, 정보 갱신 시 데이터 반영에
+            차이가 있을 수 있습니다.
+        </p>
+
+    </footer>
+
+</div>
+
+
+<script>
+
+/* =========================================================
+   점수표
+========================================================= */
+
+const scoreTable = {
+
+    viewer: [
+        { limit: 1000, s: 100 },
+        { limit: 750, s: 98 },
+        { limit: 500, s: 96 },
+        { limit: 450, s: 94 },
+        { limit: 400, s: 92 },
+        { limit: 350, s: 90 },
+        { limit: 300, s: 88 },
+        { limit: 250, s: 86 },
+        { limit: 200, s: 84 },
+        { limit: 160, s: 82 },
+        { limit: 130, s: 80 },
+        { limit: 100, s: 78 },
+        { limit: 90, s: 76 },
+        { limit: 80, s: 74 },
+        { limit: 70, s: 72 },
+        { limit: 60, s: 70 },
+        { limit: 50, s: 68 },
+        { limit: 40, s: 66 },
+        { limit: 30, s: 64 },
+        { limit: 20, s: 62 },
+        { limit: 10, s: 60 }
+    ],
+
+    fan: [
+        { limit: 50000, s: 100 },
+        { limit: 40000, s: 98 },
+        { limit: 30000, s: 96 },
+        { limit: 20000, s: 94 },
+        { limit: 10000, s: 92 },
+        { limit: 9000, s: 90 },
+        { limit: 8000, s: 88 },
+        { limit: 7000, s: 86 },
+        { limit: 6000, s: 84 },
+        { limit: 5600, s: 82 },
+        { limit: 5200, s: 80 },
+        { limit: 4800, s: 78 },
+        { limit: 4400, s: 76 },
+        { limit: 4000, s: 74 },
+        { limit: 3600, s: 72 },
+        { limit: 3200, s: 70 },
+        { limit: 2800, s: 68 },
+        { limit: 2400, s: 66 },
+        { limit: 2000, s: 64 },
+        { limit: 1500, s: 62 },
+        { limit: 1000, s: 60 }
+    ],
+
+    time: [
+        { limit: 10000, s: 100 },
+        { limit: 9500, s: 98 },
+        { limit: 9000, s: 96 },
+        { limit: 8500, s: 94 },
+        { limit: 8000, s: 92 },
+        { limit: 7500, s: 90 },
+        { limit: 7000, s: 88 },
+        { limit: 6500, s: 86 },
+        { limit: 6000, s: 84 },
+        { limit: 5500, s: 82 },
+        { limit: 5000, s: 80 },
+        { limit: 4500, s: 78 },
+        { limit: 4000, s: 76 },
+        { limit: 3500, s: 74 },
+        { limit: 3000, s: 72 },
+        { limit: 2600, s: 70 },
+        { limit: 2200, s: 68 },
+        { limit: 1800, s: 66 },
+        { limit: 1400, s: 64 },
+        { limit: 1000, s: 62 },
+        { limit: 500, s: 60 },
+        { limit: 100, s: 50 }
+    ]
+
+};
+
+
+/* =========================================================
+   저장 데이터 초기화
+========================================================= */
+
+function resetData() {
+
+    const confirmed = confirm(
+        "입력한 모든 데이터를 삭제할까요?"
+    );
+
+    if (!confirmed) {
+        return;
+    }
+
+    localStorage.removeItem(
+        "badabi_calc_data"
+    );
+
+    location.reload();
+}
+
+
+/* =========================================================
+   점수 계산용 함수
+========================================================= */
+
+function getPoint(value, type) {
+
+    if (!value || value < 0) {
+        return 0;
+    }
+
+    const list = scoreTable[type];
+
+    for (const item of list) {
+
+        if (value >= item.limit) {
+            return item.s;
+        }
+
+    }
+
+    return 0;
+}
+
+
+/* =========================================================
+   저장
+========================================================= */
+
+function saveCurrentData() {
+
+    const data = {
+
+        viewer:
+            document.getElementById("score-viewer").value,
+
+        fan:
+            document.getElementById("score-fan").value,
+
+        time:
+            document.getElementById("score-time").value,
+
+        day:
+            document.getElementById("day-val").value,
+
+        edu:
+            document.getElementById("edu-val").value,
+
+        punish:
+            document.getElementById("punish-check").checked,
+
+        warnCount:
+            document.getElementById("warn-count").value,
+
+        warnSame:
+            document.getElementById("warn-same").checked,
+
+        vodCount:
+            document.getElementById("add-vod-count").value,
+
+        vodRate:
+            document.getElementById("add-vod-rate").value,
+
+        expert:
+            document.getElementById("add-expert").checked
+
+    };
+
+    localStorage.setItem(
+        "badabi_calc_data",
+        JSON.stringify(data)
+    );
+}
+
+
+/* =========================================================
+   불러오기
+========================================================= */
+
+function loadSavedData() {
+
+    const savedData =
+        localStorage.getItem("badabi_calc_data");
+
+    if (!savedData) {
+        return;
+    }
+
+    try {
+
+        const data =
+            JSON.parse(savedData);
+
+        document.getElementById(
+            "score-viewer"
+        ).value = data.viewer || "";
+
+        document.getElementById(
+            "score-fan"
+        ).value = data.fan || "";
+
+        document.getElementById(
+            "score-time"
+        ).value = data.time || "";
+
+        document.getElementById(
+            "day-val"
+        ).value = data.day || "";
+
+        document.getElementById(
+            "edu-val"
+        ).value = data.edu || "";
+
+        document.getElementById(
+            "punish-check"
+        ).checked = !!data.punish;
+
+        document.getElementById(
+            "warn-count"
+        ).value = data.warnCount || "";
+
+        document.getElementById(
+            "warn-same"
+        ).checked = !!data.warnSame;
+
+        document.getElementById(
+            "add-vod-count"
+        ).value = data.vodCount || "0";
+
+        document.getElementById(
+            "add-vod-rate"
+        ).value = data.vodRate || "0";
+
+        document.getElementById(
+            "add-expert"
+        ).checked = !!data.expert;
+
+    } catch (error) {
+
+        console.warn(
+            "저장된 계산기 데이터를 불러오지 못했습니다.",
+            error
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   계산
+========================================================= */
+
+function updateScores() {
+
+    /* -----------------------------------------
+       입력값
+    ----------------------------------------- */
+
+    const viewer =
+        parseInt(
+            document.getElementById(
+                "score-viewer"
+            ).value
+        ) || 0;
+
+    const fan =
+        parseInt(
+            document.getElementById(
+                "score-fan"
+            ).value
+        ) || 0;
+
+    const time =
+        parseInt(
+            document.getElementById(
+                "score-time"
+            ).value
+        ) || 0;
+
+    const day =
+        parseInt(
+            document.getElementById(
+                "day-val"
+            ).value
+        ) || 0;
+
+    const edu =
+        parseInt(
+            document.getElementById(
+                "edu-val"
+            ).value
+        ) || 0;
+
+    const noPunish =
+        document.getElementById(
+            "punish-check"
+        ).checked;
+
+    const warnCount =
+        parseInt(
+            document.getElementById(
+                "warn-count"
+            ).value
+        ) || 0;
+
+    const isWarnSame =
+        document.getElementById(
+            "warn-same"
+        ).checked;
+
+    const vodScore =
+        parseInt(
+            document.getElementById(
+                "add-vod-count"
+            ).value
+        ) || 0;
+
+    const rateScore =
+        parseInt(
+            document.getElementById(
+                "add-vod-rate"
+            ).value
+        ) || 0;
+
+    const expertScore =
+        document.getElementById(
+            "add-expert"
+        ).checked
+            ? 5
+            : 0;
+
+
+    /* -----------------------------------------
+       기본 점수
+    ----------------------------------------- */
+
+    const viewerPoint =
+        getPoint(
+            viewer,
+            "viewer"
+        );
+
+    const fanPoint =
+        getPoint(
+            fan,
+            "fan"
+        );
+
+    const timePoint =
+        getPoint(
+            time,
+            "time"
+        );
+
+
+    /* -----------------------------------------
+       가중치
+    ----------------------------------------- */
+
+    const viewerWeighted =
+        viewerPoint * 0.4;
+
+    const fanWeighted =
+        fanPoint * 0.4;
+
+    const timeWeighted =
+        timePoint * 0.2;
+
+
+    document.getElementById(
+        "val-viewer"
+    ).textContent =
+        `(${viewerWeighted.toFixed(1)}점)`;
+
+
+    document.getElementById(
+        "val-fan"
+    ).textContent =
+        `(${fanWeighted.toFixed(1)}점)`;
+
+
+    document.getElementById(
+        "val-time"
+    ).textContent =
+        `(${timeWeighted.toFixed(1)}점)`;
+
+
+    /* -----------------------------------------
+       경고 페널티
+    ----------------------------------------- */
+
+    let warnPenalty = 0;
+
+    if (
+        isWarnSame &&
+        warnCount >= 1
+    ) {
+
+        warnPenalty = -20;
+
+    } else if (
+        warnCount >= 2
+    ) {
+
+        warnPenalty =
+            -10 -
+            ((warnCount - 2) * 10);
+
+    }
+
+
+    document.getElementById(
+        "val-warn"
+    ).textContent =
+        `(${warnPenalty}점)`;
+
+
+    /* -----------------------------------------
+       최종 점수
+    ----------------------------------------- */
+
+    const finalTotal =
+        viewerWeighted +
+        fanWeighted +
+        timeWeighted +
+        vodScore +
+        rateScore +
+        expertScore +
+        warnPenalty;
+
+
+    const displayScore =
+        Math.max(
+            0,
+            finalTotal
+        ).toFixed(1);
+
+
+    document.getElementById(
+        "total-score"
+    ).textContent =
+        displayScore;
+
+
+    /* -----------------------------------------
+       기본 조건
+    ----------------------------------------- */
+
+    const failReasons = [];
+
+
+    if (time < 100) {
+        failReasons.push(
+            "방송 시간 100시간 미달"
+        );
+    }
+
+
+    if (fan < 500) {
+        failReasons.push(
+            "애청자 500명 미달"
+        );
+    }
+
+
+    if (day < 30) {
+        failReasons.push(
+            "방송 일수 30일 미달"
+        );
+    }
+
+
+    if (edu < 5) {
+        failReasons.push(
+            "교육 수강 5개 미달"
+        );
+    }
+
+
+    if (!noPunish) {
+        failReasons.push(
+            "정지 기록 체크 안됨"
+        );
+    }
+
+
+    /* -----------------------------------------
+       결과 패널
+    ----------------------------------------- */
+
+    const resultPanel =
+        document.getElementById(
+            "result-panel"
+        );
+
+    const resultDesc =
+        document.getElementById(
+            "result-desc"
+        );
+
+
+    resultPanel.className =
+        "result-card";
+
+
+    if (failReasons.length > 0) {
+
+        resultPanel.classList.add(
+            "fail"
+        );
+
+        resultDesc.innerHTML =
+            `<strong style="color:#dc2626;">
+                [신청 불가 - 기본 조건 미달]
+            </strong>
+            <br>
+            <span>
+                ${failReasons.join(", ")}
+            </span>`;
+
+    } else {
+
+        if (finalTotal >= 85) {
+
+            resultPanel.classList.add(
+                "pass"
+            );
+
+            resultDesc.innerHTML =
+                `<strong style="color:#0284c7;">
+                    [합격 안정권]
+                </strong>
+                <br>
+                75점을 크게 상회합니다.
+                선발 가능성이 매우 높습니다!`;
+
+        } else if (finalTotal >= 75) {
+
+            resultPanel.classList.add(
+                "pass"
+            );
+
+            resultDesc.innerHTML =
+                `<strong style="color:#0284c7;">
+                    [합격권 - 경합 예상]
+                </strong>
+                <br>
+                75점을 넘겼으나 인원 초과 시
+                상대평가가 중요해집니다.`;
+
+        } else {
+
+            resultPanel.classList.add(
+                "warning"
+            );
+
+            resultDesc.innerHTML =
+                `<strong style="color:#d97706;">
+                    [점수 미달 - 차순위 대기]
+                </strong>
+                <br>
+                75점 미만입니다.
+                신청 인원이 40명 미만일 경우에만
+                선발될 수 있습니다.`;
+
+        }
+
+    }
+
+
+    /* -----------------------------------------
+       프로그레스 바
+    ----------------------------------------- */
+
+    const progressBar =
+        document.getElementById(
+            "score-bar"
+        );
+
+
+    const progress =
+        Math.min(
+            (finalTotal / 100) * 100,
+            100
+        );
+
+
+    progressBar.style.width =
+        Math.max(
+            0,
+            progress
+        ) + "%";
+
+
+    /* -----------------------------------------
+       저장
+    ----------------------------------------- */
+
+    saveCurrentData();
+
+}
+
+
+/* =========================================================
+   초기화
+========================================================= */
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+        loadSavedData();
+
+        updateScores();
+
+    }
+);
+
+</script>
+
+</body>
+</html>
