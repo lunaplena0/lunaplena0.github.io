@@ -2240,16 +2240,28 @@ function renderFanSongRecommendations(){
 
 function applyDailyFanSongRecommendations(){
     const day=fanSongKstDateKey();
-    const sorted=fanSongRecommendationSource.slice().sort((a,b)=>fanSongSeedHash(day+"|"+String(a.title)+"|"+String(a.artist))-fanSongSeedHash(day+"|"+String(b.title)+"|"+String(b.artist)));
+    const sorted=fanSongRecommendationSource.slice().sort((a,b)=>fanSongSeedHash(day+"|"+String(a.title)+"|"+String(a.artist)+"|"+String(a.limit))-fanSongSeedHash(day+"|"+String(b.title)+"|"+String(b.artist)+"|"+String(b.limit)));
 
     // 다른 시간대에 같은 곡이 등록되어 있어도 제목이 같은 곡은 하루 추천에서 한 번만 표시한다.
-    // 기타 버전처럼 제목 자체가 다른 곡은 별개의 곡으로 취급한다.
-    const seenTitles=new Set();
+    // 단, JSON의 limit 값이 "기타"인 곡은 기타 버전으로 보고 같은 제목의 일반 버전과 별도로 취급한다.
+    const seenNormalTitles=new Set();
+    const seenGuitarTitles=new Set();
     fanSongRecommendationData=[];
+
     for(const song of sorted){
         const title=String(song.title||"").trim();
-        if(!title||seenTitles.has(title))continue;
-        seenTitles.add(title);
+        if(!title)continue;
+
+        const isGuitarVersion=String(song.limit||"").trim()==="기타";
+
+        if(isGuitarVersion){
+            if(seenGuitarTitles.has(title))continue;
+            seenGuitarTitles.add(title);
+        }else{
+            if(seenNormalTitles.has(title))continue;
+            seenNormalTitles.add(title);
+        }
+
         fanSongRecommendationData.push(song);
         if(fanSongRecommendationData.length>=3)break;
     }
@@ -2292,6 +2304,7 @@ async function loadFanSongRecommendations(){
                         fanSongRecommendationSource.push({
                             title: title,
                             artist: artist,
+                            limit: String(song.limit || "").trim(),
                             url: finalUrl
                         });
                     }
