@@ -1978,7 +1978,7 @@
             <div class="modal-header"><h3 class="modal-title">♫ 노래 한번에 입력</h3><button class="modal-close-btn" onclick="closeBulkSongInputModal()">✕</button></div>
             <div class="edit-form-grid">
                 <div class="edit-form-field full"><label class="edit-form-label">방송 날짜</label><input id="bulkSongDate" class="edit-form-input" type="text" inputmode="numeric" placeholder="YYYY-MM-DD 또는 YYYY-MM-DD(1)" aria-label="노래 한번에 입력 방송 날짜"></div>
-                <div class="edit-form-field full"><label class="edit-form-label">노래 기록</label><textarea id="bulkSongInput" class="edit-form-input" style="min-height:260px;resize:vertical;font-family:inherit;line-height:1.7" placeholder="00:47:17 🎵 홀씨 - 아이유 (IU)
+                <div class="edit-form-field full"><label class="edit-form-label" style="display:flex;align-items:center;justify-content:space-between;gap:10px;">노래 기록 <button type="button" id="bulkSongOrderToggle" class="modal-btn modal-btn-refresh" style="height:32px;min-width:128px;padding:0 10px;font-size:12px;flex:0 0 auto;" onclick="toggleBulkSongInputOrder()">가수 - 노래제목</button></label><textarea id="bulkSongInput" class="edit-form-input" style="min-height:260px;resize:vertical;font-family:inherit;line-height:1.7" placeholder="00:47:17 🎵 홀씨 - 아이유 (IU)
 00:51:34 🎵 Auburn - 데이먼스 이어
 00:57:31 🎵 가을밤에 든 생각 - 잔나비"></textarea></div>
                 <div class="edit-form-field full"><div style="font-size:12px;color:#64748b;line-height:1.6">제목과 가수명이 <b>노래통계에 등록된 노래와 정확히 일치</b>하는 경우에만 기록됩니다. 🎸가 붙은 줄은 해당 노래의 <b>기타</b> 태그에 🎸가 기록됩니다. 입력한 날짜가 해당 노래의 기록 날짜로 저장됩니다.</div></div>
@@ -2622,8 +2622,35 @@ function addEditDateRow(date="",time=""){
             const base=`${y}-${String(mo).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
             return m[4]?`${base}(${Number(m[4])})`:base;
         }
+        let bulkSongInputArtistFirst = false;
+
+        function updateBulkSongInputOrderUI(){
+            const btn=document.getElementById('bulkSongOrderToggle');
+            const input=document.getElementById('bulkSongInput');
+            if(!btn || !input)return;
+
+            if(bulkSongInputArtistFirst){
+                btn.textContent='노래제목 - 가수';
+                input.placeholder=`00:47:17 🎵 아이유 (IU) - 홀씨
+00:51:34 🎵 데이먼스 이어 - Auburn
+00:57:31 🎵 잔나비 - 가을밤에 든 생각`;
+            }else{
+                btn.textContent='가수 - 노래제목';
+                input.placeholder=`00:47:17 🎵 홀씨 - 아이유 (IU)
+00:51:34 🎵 Auburn - 데이먼스 이어
+00:57:31 🎵 가을밤에 든 생각 - 잔나비`;
+            }
+        }
+
+        function toggleBulkSongInputOrder(){
+            bulkSongInputArtistFirst=!bulkSongInputArtistFirst;
+            updateBulkSongInputOrderUI();
+        }
+
         function openBulkSongInputModal(){
             if(!isSongAuthenticated){openSongAuthModal();return;}
+            bulkSongInputArtistFirst=false;
+            updateBulkSongInputOrderUI();
             document.getElementById('bulkSongDate').value=localTodayString();
             document.getElementById('bulkSongInput').value='';
             document.getElementById('bulkSongResult').innerHTML='';
@@ -2652,7 +2679,12 @@ function addEditDateRow(date="",time=""){
             lines.forEach(line=>{
                 const m=line.match(/^(?:(\d{1,2}:\d{2}(?::\d{2})?)\s+)?(?:🎵\s*)?(.*?)\s*-\s*(.*?)(?:\s*(🎸))?$/);
                 if(!m){failed.push({line,reason:'입력 형식을 확인할 수 없습니다.'});return;}
-                const time=(m[1]||'').trim(), title=(m[2]||'').trim(), artist=(m[3]||'').trim(), guitar=!!m[4];
+                const time=(m[1]||'').trim();
+                const left=(m[2]||'').trim();
+                const right=(m[3]||'').trim();
+                const title=bulkSongInputArtistFirst?right:left;
+                const artist=bulkSongInputArtistFirst?left:right;
+                const guitar=!!m[4];
                 if(!title||!artist){failed.push({line,reason:'노래 제목 또는 가수가 없습니다.'});return;}
 
                 const duplicateKey=`${normalize(title)}|${normalize(artist)}|${date}|${time}|${guitar?'g':'n'}`;
