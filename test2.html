@@ -3839,9 +3839,35 @@ function renderStatsVodList(){
     const list=Array.isArray(fansongStatsData.vodSources)?fansongStatsData.vodSources:[];
     c.innerHTML=list.slice().sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))).map(v=>{
         const key=String(v.date||'');
-        return `<div class="stats-vod-row"><div class="stats-vod-info"><strong>${escapeHtml(key)}</strong><div>${escapeHtml(v.url||'')}</div></div><div class="stats-vod-actions"><button type="button" class="modal-btn modal-btn-refresh" onclick="editStatsVod(${JSON.stringify(key)})">수정</button><button type="button" class="modal-btn modal-btn-danger" onclick="deleteStatsVod(${JSON.stringify(key)})">삭제</button></div></div>`;
+        const encodedKey=encodeURIComponent(key);
+        return `<div class="stats-vod-row"><div class="stats-vod-info"><strong>${escapeHtml(key)}</strong><div>${escapeHtml(v.url||'')}</div></div><div class="stats-vod-actions"><button type="button" class="modal-btn modal-btn-refresh vod-edit-btn" data-vod-key="${encodedKey}">수정</button><button type="button" class="modal-btn modal-btn-danger vod-delete-btn" data-vod-key="${encodedKey}">삭제</button></div></div>`;
     }).join('')||'<div class="no-result">등록된 VOD가 없습니다.</div>';
 }
+
+function initVodListEvents(){
+    const c=document.getElementById('statsVodList');
+    if(!c || c.dataset.eventsBound==='1')return;
+    c.dataset.eventsBound='1';
+    c.addEventListener('click',function(event){
+        const editButton=event.target.closest('.vod-edit-btn');
+        if(editButton && c.contains(editButton)){
+            event.preventDefault();
+            event.stopPropagation();
+            const key=decodeURIComponent(editButton.dataset.vodKey||'');
+            editStatsVod(key);
+            return;
+        }
+        const deleteButton=event.target.closest('.vod-delete-btn');
+        if(deleteButton && c.contains(deleteButton)){
+            event.preventDefault();
+            event.stopPropagation();
+            const key=decodeURIComponent(deleteButton.dataset.vodKey||'');
+            deleteStatsVod(key);
+        }
+    });
+}
+initVodListEvents();
+
 function saveStatsVod(){
     if(!isSongAuthenticated){openSongAuthModal();return;}
     const d=document.getElementById('statsVodDate'), u=document.getElementById('statsVodUrl');
