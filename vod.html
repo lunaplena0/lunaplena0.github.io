@@ -1168,6 +1168,8 @@
             <label class="admin-field"><span>제목</span><input id="edit-vod-title" class="admin-input" readonly></label>
             <label class="admin-field admin-field-full"><span>태그</span><input id="edit-vod-tags" class="admin-input" placeholder="예: 소통, 노래, 게임"></label>
             <label class="admin-field admin-field-full"><span>영상 설명</span><textarea id="edit-vod-description" class="admin-input admin-textarea" rows="3"></textarea></label>
+            <label class="admin-check-row admin-field-full"><input type="checkbox" id="edit-vod-sub-plus"><span>구독+ 전용</span></label>
+            <label class="admin-check-row admin-field-full"><input type="checkbox" id="edit-vod-adult"><span>성인 인증 필요</span></label>
             <label class="admin-check-row admin-field-full"><input type="checkbox" id="edit-vod-today-recommend"><span>오늘의 VOD 추천</span></label>
         </div>
         <div class="admin-edit-actions">
@@ -1368,6 +1370,8 @@
     const editVodTitle = document.getElementById("edit-vod-title");
     const editVodTags = document.getElementById("edit-vod-tags");
     const editVodDescription = document.getElementById("edit-vod-description");
+    const editVodSubPlus = document.getElementById("edit-vod-sub-plus");
+    const editVodAdult = document.getElementById("edit-vod-adult");
     const editVodTodayRecommend = document.getElementById("edit-vod-today-recommend");
 
     let isAdminAuthenticated = false;
@@ -1539,6 +1543,8 @@
         editVodTitle.value = "";
         editVodTags.value = "";
         editVodDescription.value = "";
+        editVodSubPlus.checked = false;
+        editVodAdult.checked = false;
         editVodTodayRecommend.checked = false;
         vodEditStatus.textContent = "";
         vodEditBackdrop.querySelector(".admin-modal-title").textContent = "VOD 추가";
@@ -1571,10 +1577,12 @@
         editVodTitle.value = vod.title || "";
         editVodTags.value = Array.isArray(vod.tags) ? vod.tags.join(", ") : "";
         editVodDescription.value = vod.description || "";
+        editVodSubPlus.checked = !!vod.subscribed;
+        editVodAdult.checked = !!vod.adultVerified;
         editVodTodayRecommend.checked = !!vod.todayRecommend;
         if (document.getElementById("edit-vod-link")) document.getElementById("edit-vod-link").value = vod.url || "";
         vodEditBackdrop.querySelector(".admin-modal-title").textContent = "VOD 관리";
-        vodEditBackdrop.querySelector(".admin-modal-subtitle").textContent = "영상 설명과 오늘의 VOD 추천 여부를 설정합니다.";
+        vodEditBackdrop.querySelector(".admin-modal-subtitle").textContent = "영상 설명, 이용 제한 및 오늘의 VOD 추천 여부를 설정합니다.";
         editVodDate.readOnly = true;
         editVodTitle.readOnly = true;
         vodEditDelete.hidden = false;
@@ -1659,16 +1667,29 @@
                 VOD_DATA.push({
                     id: link || `${date}-${Date.now()}`,
                     date, title, url: link, duration: "",
-                    subscribed: false, adultVerified: false, tags,
+                    subscribed: editVodSubPlus.checked,
+                    adultVerified: editVodAdult.checked,
+                    tags,
                     description: editVodDescription.value.trim(),
                     todayRecommend: editVodTodayRecommend.checked,
-                    raw: { date, title, link, duration: "", subPlus: "N", adult: "N", description: editVodDescription.value.trim(), category: tags.join(", ") }
+                    raw: {
+                        date,
+                        title,
+                        link,
+                        duration: "",
+                        subPlus: editVodSubPlus.checked ? "Y" : "N",
+                        adult: editVodAdult.checked ? "Y" : "N",
+                        description: editVodDescription.value.trim(),
+                        category: tags.join(", ")
+                    }
                 });
             } else {
                 const vod = VOD_DATA.find(item => item.id === editingVodId);
                 if (!vod) return;
                 vod.tags = editVodTags.value.split(",").map(tag => tag.trim()).filter(Boolean);
                 vod.description = editVodDescription.value.trim();
+                vod.subscribed = editVodSubPlus.checked;
+                vod.adultVerified = editVodAdult.checked;
                 vod.todayRecommend = editVodTodayRecommend.checked;
             }
             await saveFanVodList();
