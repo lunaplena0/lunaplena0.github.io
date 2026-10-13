@@ -698,6 +698,19 @@
             justify-content:flex-end;
             margin-top:10px;
         }
+        .vod-admin-toolbar-actions {
+            display:flex;
+            flex-wrap:wrap;
+            justify-content:flex-end;
+            gap:8px;
+        }
+        .vod-admin-toolbar-actions .admin-secondary-button {
+            min-height:40px;
+        }
+        @media(max-width:720px) {
+            .vod-admin-toolbar-actions { width:100%; }
+            .vod-admin-toolbar-actions > button { flex:1; }
+        }
         .vod-add-button {
             min-height:40px;
             padding:0 14px;
@@ -1084,7 +1097,12 @@
         </div>
 
         <div class="vod-admin-toolbar" id="vod-admin-toolbar" hidden>
-            <button type="button" class="vod-add-button" id="vod-add-button">＋ VOD 추가</button>
+            <div class="vod-admin-toolbar-actions">
+                <button type="button" class="admin-secondary-button" id="vod-json-backup-button">JSON 백업하기</button>
+                <button type="button" class="admin-secondary-button" id="vod-json-replace-button">JSON 교체하기</button>
+                <button type="button" class="vod-add-button" id="vod-add-button">＋ VOD 추가</button>
+                <input type="file" id="vod-json-file-input" accept=".json,application/json" hidden>
+            </div>
         </div>
 
     </section>
@@ -1165,7 +1183,7 @@
         <div class="admin-modal-subtitle">영상 설명과 오늘의 VOD 추천 여부를 설정합니다.</div>
         <div class="admin-edit-grid">
             <label class="admin-field"><span>날짜</span><input id="edit-vod-date" class="admin-input" readonly></label>
-            <label class="admin-field"><span>제목</span><input id="edit-vod-title" class="admin-input" readonly></label>
+            <label class="admin-field"><span>제목</span><input id="edit-vod-title" class="admin-input" placeholder="VOD 제목을 입력해주세요"></label>
             <label class="admin-field admin-field-full"><span>태그</span><input id="edit-vod-tags" class="admin-input" placeholder="예: 소통, 노래, 게임"></label>
             <label class="admin-field admin-field-full"><span>영상 설명</span><textarea id="edit-vod-description" class="admin-input admin-textarea" rows="3"></textarea></label>
             <label class="admin-check-row admin-field-full"><input type="checkbox" id="edit-vod-sub-plus"><span>구독+ 전용</span></label>
@@ -1366,6 +1384,9 @@
     const vodEditStatus = document.getElementById("vod-edit-status");
     const vodAdminToolbar = document.getElementById("vod-admin-toolbar");
     const vodAddButton = document.getElementById("vod-add-button");
+    const vodJsonBackupButton = document.getElementById("vod-json-backup-button");
+    const vodJsonReplaceButton = document.getElementById("vod-json-replace-button");
+    const vodJsonFileInput = document.getElementById("vod-json-file-input");
     const editVodDate = document.getElementById("edit-vod-date");
     const editVodTitle = document.getElementById("edit-vod-title");
     const editVodTags = document.getElementById("edit-vod-tags");
@@ -1584,7 +1605,7 @@
         vodEditBackdrop.querySelector(".admin-modal-title").textContent = "VOD 관리";
         vodEditBackdrop.querySelector(".admin-modal-subtitle").textContent = "영상 설명, 이용 제한 및 오늘의 VOD 추천 여부를 설정합니다.";
         editVodDate.readOnly = true;
-        editVodTitle.readOnly = true;
+        editVodTitle.readOnly = false;
         vodEditDelete.hidden = false;
         vodEditStatus.textContent = "";
         vodEditBackdrop.classList.add("show");
@@ -1685,7 +1706,10 @@
                 });
             } else {
                 const vod = VOD_DATA.find(item => item.id === editingVodId);
-                if (!vod) return;
+                if (!vod) throw new Error("수정할 VOD를 찾을 수 없습니다.");
+                const title = editVodTitle.value.trim();
+                if (!title) throw new Error("VOD 제목을 입력해주세요.");
+                vod.title = title;
                 vod.tags = editVodTags.value.split(",").map(tag => tag.trim()).filter(Boolean);
                 vod.description = editVodDescription.value.trim();
                 vod.subscribed = editVodSubPlus.checked;
@@ -1705,6 +1729,110 @@
         } finally {
             vodEditSave.disabled = false;
         }
+    }
+
+    /* =========================================================
+       FANVODLIST JSON 백업 / 교체
+    ========================================================= */
+
+    function buildFanVodListJSON() {
+        const vods = VOD_DATA.map(vod => {
+            const { timeline, ...rawWithoutTimeline } = vod.raw || {};
+            return {
+                ...rawWithoutTimeline,
+                date: vod.date,
+                title: vod.title,
+                link: vod.url,
+                duration: vod.duration,
+                subPlus: vod.subscribed ? "Y" : "N",
+                adult: vod.adultVerified ? "Y" : "N",
+                description: vod.description || "",
+                category: Array.isArray(vod.tags) ? vod.tags.join(", ") : "",
+                todayRecommend: !!vod.todayRecommend
+            };
+        });
+        return { vods };
+    }
+
+    function backupFanVodListJSON() {
+        if (!isAdminAuthenticated || adminUserRole !== "admin") {
+            alert("총괄관리자 로그인 후 사용할 수 있습니다.");
+            return;
+        }
+        const content = JSON.stringify(buildFanVodListJSON(), null, 2);
+        const blob = new Blob([content], { type: "application/json;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement("a");
+        const today = new Date();
+        const date = [
+            today.getFullYear(),
+            String(today.getMonth() + 1).padStart(2, "0"),
+            String(today.getDate()).padStart(2, "0")
+        ].join("-");
+        anchor.href = url;
+        anchor.download = `fanvodlist_${date}.json`;
+        document.body.appendChild(anchor);
+        anchor.click();
+        anchor.remove();
+        URL.revokeObjectURL(url);
+        showAdminToast("VOD JSON 백업을 다운로드했습니다.");
+    }
+
+    async function replaceFanVodListJSON(file) {
+        if (!isAdminAuthenticated || !adminSessionToken || adminUserRole !== "admin") {
+            throw new Error("총괄관리자 로그인 후 사용할 수 있습니다.");
+        }
+        const text = await file.text();
+        let parsed;
+        try {
+            parsed = JSON.parse(text);
+        } catch (_) {
+            throw new Error("올바른 JSON 파일이 아닙니다.");
+        }
+
+        const vods = Array.isArray(parsed) ? parsed
+            : Array.isArray(parsed?.vods) ? parsed.vods
+            : Array.isArray(parsed?.content?.vods) ? parsed.content.vods
+            : null;
+
+        if (!vods) {
+            throw new Error('JSON 구조를 확인해주세요. {"vods": [...]} 형식이어야 합니다.');
+        }
+        const valid = vods.every(vod =>
+            vod && typeof vod === "object" && !Array.isArray(vod) &&
+            typeof vod.date === "string" &&
+            typeof vod.title === "string" &&
+            (typeof vod.link === "string" || typeof vod.url === "string")
+        );
+        if (!valid) {
+            throw new Error("각 VOD 항목에 date, title, link 또는 url 값이 있는지 확인해주세요.");
+        }
+
+        if (!confirm(`선택한 파일의 VOD 목록 ${vods.length}개로 서버 데이터를 전체 교체할까요?\n현재 서버 데이터는 덮어써지므로 먼저 백업하는 것을 권장합니다.`)) {
+            return;
+        }
+
+        const response = await fetch(WORKER_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                sessionToken: adminSessionToken,
+                action: "save",
+                fileType: "fanvodlist",
+                content: { vods }
+            })
+        });
+        const result = await response.json().catch(() => ({}));
+        if (response.status === 401) {
+            logoutAdmin();
+            throw new Error("로그인 세션이 만료되었습니다. 다시 로그인해주세요.");
+        }
+        if (!response.ok || result.success === false) {
+            throw new Error(result.error || "VOD JSON 교체에 실패했습니다.");
+        }
+
+        await loadVODData();
+        showAdminToast("VOD JSON을 교체했습니다.");
     }
 
     /* =========================================================
@@ -2137,6 +2265,25 @@
         await deleteVOD(id);
     });
     vodAddButton.addEventListener("click", openVODAddModal);
+    vodJsonBackupButton.addEventListener("click", backupFanVodListJSON);
+    vodJsonReplaceButton.addEventListener("click", () => {
+        if (!isAdminAuthenticated || adminUserRole !== "admin") {
+            alert("총괄관리자 로그인 후 사용할 수 있습니다.");
+            return;
+        }
+        vodJsonFileInput.value = "";
+        vodJsonFileInput.click();
+    });
+    vodJsonFileInput.addEventListener("change", async () => {
+        const file = vodJsonFileInput.files?.[0];
+        if (!file) return;
+        try {
+            await replaceFanVodListJSON(file);
+        } catch (error) {
+            console.error("VOD JSON 교체 실패:", error);
+            alert(error.message || "VOD JSON 교체에 실패했습니다.");
+        }
+    });
     vodEditBackdrop.addEventListener("click", event => { if (event.target === vodEditBackdrop) closeVODEditModal(); });
 
 
