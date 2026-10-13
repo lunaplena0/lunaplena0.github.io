@@ -1193,7 +1193,7 @@
             <section class="vod-stat-panel" aria-labelledby="vod-tag-stats-title">
                 <h3 id="vod-tag-stats-title">전체 영상 중 태그 비중</h3>
                 <div id="vod-tag-stats-content"></div>
-                <p class="vod-stats-footnote">태그별 비중은 해당 태그가 등록된 영상 수 ÷ 전체 영상 수입니다. 한 영상에 여러 태그가 붙을 수 있어 비중의 합계는 100%를 넘을 수 있습니다. 태그를 누르면 해당 태그의 영상만 볼 수 있습니다.</p>
+                <p class="vod-stats-footnote">태그 비중은 전체 태그 지정 수 중 해당 태그가 차지하는 비율입니다. 한 영상에 여러 태그가 있으면 태그마다 각각 집계하며, 중복 태그는 같은 영상 안에서 한 번만 계산합니다. 태그를 누르면 해당 태그의 영상만 볼 수 있습니다.</p>
             </section>
         </div>
     </section>
@@ -1379,6 +1379,12 @@
     let VOD_DATA = [];
 
 
+    function isEnabledFlag(value) {
+        if (value === true || value === 1) return true;
+        const normalized = String(value ?? "").trim().toLowerCase();
+        return ["y", "yes", "true", "1", "on"].includes(normalized);
+    }
+
     async function loadVODData() {
 
         vodList.innerHTML = `
@@ -1450,10 +1456,10 @@
                             String(vod.duration || "").trim(),
 
                         subscribed:
-                            String(vod.subPlus || "").toUpperCase() === "Y",
+                            isEnabledFlag(vod.subPlus),
 
                         adultVerified:
-                            String(vod.adult || "").toUpperCase() === "Y",
+                            isEnabledFlag(vod.adult),
 
                         tags,
 
@@ -2212,12 +2218,15 @@
         if (!typeContainer || !tagContainer) return;
 
         const total = VOD_DATA.length;
-        const adultCount = VOD_DATA.filter(vod => !!vod.adultVerified).length;
-        const subPlusCount = VOD_DATA.filter(vod => !vod.adultVerified && !!vod.subscribed).length;
+        // 성인 인증과 구독+는 동시에 설정될 수 있으므로 네 가지 조합으로 분류합니다.
+        const adultAndSubPlusCount = VOD_DATA.filter(vod => vod.adultVerified && vod.subscribed).length;
+        const adultOnlyCount = VOD_DATA.filter(vod => vod.adultVerified && !vod.subscribed).length;
+        const subPlusOnlyCount = VOD_DATA.filter(vod => !vod.adultVerified && vod.subscribed).length;
         const generalCount = VOD_DATA.filter(vod => !vod.adultVerified && !vod.subscribed).length;
         const typeRows = [
-            { label: "성인 인증(19금 방송)", count: adultCount, color: "#fb7185" },
-            { label: "구독+ 방송", count: subPlusCount, color: "#fbbf24" },
+            { label: "성인 인증 + 구독+", count: adultAndSubPlusCount, color: "#a78bfa" },
+            { label: "성인 인증 방송", count: adultOnlyCount, color: "#fb7185" },
+            { label: "구독+ 방송", count: subPlusOnlyCount, color: "#fbbf24" },
             { label: "일반 방송", count: generalCount, color: "#38bdf8" }
         ];
         let stop = 0;
@@ -2242,18 +2251,24 @@
             ${total === 0 ? '<div class="vod-stats-empty">집계할 VOD가 없습니다.</div>' : ''}
         `;
 
+        // 태그가 여러 개인 영상은 태그별로 각각 1회씩 계산합니다.
+        // 분모는 전체 영상 수가 아니라 전체 태그 지정 수이므로 태그 비중 합계가 100%가 됩니다.
         const tagCounts = new Map();
+        let totalTagAssignments = 0;
         VOD_DATA.forEach(vod => {
             const uniqueTags = new Set((Array.isArray(vod.tags) ? vod.tags : []).map(tag => String(tag).trim()).filter(Boolean));
-            uniqueTags.forEach(tag => tagCounts.set(tag, (tagCounts.get(tag) || 0) + 1));
+            uniqueTags.forEach(tag => {
+                tagCounts.set(tag, (tagCounts.get(tag) || 0) + 1);
+                totalTagAssignments++;
+            });
         });
         const tagRows = [...tagCounts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "ko"));
-        if (!tagRows.length || total === 0) {
+        if (!tagRows.length || total === 0 || totalTagAssignments === 0) {
             tagContainer.innerHTML = '<div class="vod-stats-empty">집계할 태그가 없습니다.</div>';
             return;
         }
         tagContainer.innerHTML = `<div class="vod-tag-stat-list">${tagRows.map(([tag, count]) => {
-            const percent = count / total * 100;
+            const percent = count / totalTagAssignments * 100;
             const barWidth = Math.min(100, percent);
             return `<button type="button" class="vod-tag-stat-row" data-stat-tag="${escapeHTML(tag)}" title="${escapeHTML(tag)} 태그 영상 보기"><span class="vod-tag-stat-name">#${escapeHTML(tag)}</span><span class="vod-tag-stat-track"><span class="vod-tag-stat-fill" style="display:block;width:${barWidth}%"></span></span><span class="vod-tag-stat-number"><strong>${percent.toFixed(1)}%</strong> · ${count}개</span></button>`;
         }).join("")}</div>`;
