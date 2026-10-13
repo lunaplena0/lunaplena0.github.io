@@ -1112,16 +1112,76 @@
         .vod-legend-copy { min-width: 0; }
         .vod-legend-label { color: #64748b; font-size: 12px; line-height: 1.45; }
         .vod-legend-value { margin-top: 2px; color: #1e293b; font-size: 13px; font-weight: 800; }
-        /* 태그 비중은 긴 리스트 대신 컴팩트한 타일 그리드로 표시 */
-        .vod-tag-stat-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 9px; }
-        .vod-tag-stat-row { display: flex; flex-direction: column; align-items: stretch; gap: 9px; min-width: 0; padding: 12px; border: 1px solid #e5edf5; border-radius: 13px; background: #fff; text-align: left; cursor: pointer; transition: border-color .15s ease, background .15s ease, transform .15s ease; }
-        .vod-tag-stat-row:hover { border-color: #7dd3fc; background: #f4fbff; transform: translateY(-1px); }
-        .vod-tag-stat-top { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
-        .vod-tag-stat-name { overflow: hidden; color: #475569; font-size: 12px; font-weight: 750; text-overflow: ellipsis; white-space: nowrap; }
-        .vod-tag-stat-number { flex-shrink: 0; color: #0284c7; font-size: 11px; font-weight: 800; white-space: nowrap; }
-        .vod-tag-stat-track { height: 6px; overflow: hidden; border-radius: 99px; background: #edf2f7; }
-        .vod-tag-stat-fill { height: 100%; min-width: 0; border-radius: inherit; background: linear-gradient(90deg, #7dd3fc, #38bdf8); }
-        .vod-tag-stat-count { color: #94a3b8; font-size: 11px; }
+       /* 태그 비중: 가로형 컴팩트 타일 */
+.vod-tag-stat-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.vod-tag-stat-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 6px 8px;
+    min-width: 0;
+    padding: 10px 11px;
+    border: 1px solid #e5edf5;
+    border-radius: 11px;
+    background: #fff;
+    text-align: left;
+    cursor: pointer;
+    transition: border-color .15s ease, background .15s ease;
+}
+
+.vod-tag-stat-row:hover {
+    border-color: #7dd3fc;
+    background: #f4fbff;
+}
+
+.vod-tag-stat-top {
+    display: contents;
+}
+
+.vod-tag-stat-name {
+    min-width: 0;
+    overflow: hidden;
+    color: #475569;
+    font-size: 12px;
+    font-weight: 750;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.vod-tag-stat-number {
+    color: #0284c7;
+    font-size: 11px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.vod-tag-stat-track {
+    grid-column: 1 / -1;
+    height: 5px;
+    overflow: hidden;
+    border-radius: 99px;
+    background: #edf2f7;
+}
+
+.vod-tag-stat-fill {
+    height: 100%;
+    min-width: 0;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #7dd3fc, #38bdf8);
+}
+
+.vod-tag-stat-count {
+    grid-column: 1 / -1;
+    color: #94a3b8;
+    font-size: 10px;
+    line-height: 1.2;
+}
+
         .vod-filter-control { display: flex; align-items: center; gap: 5px; min-width: 0; }
         .vod-filter-reset { flex-shrink: 0; height: 42px; padding: 0 10px; border: 1px solid #e2e8f0; border-radius: 11px; color: #64748b; background: #fff; font-size: 12px; font-weight: 700; cursor: pointer; transition: background .15s ease, border-color .15s ease; }
         .vod-filter-reset:hover { border-color: #bae6fd; color: #0369a1; background: #f0f9ff; }
@@ -1134,7 +1194,10 @@
             .vod-type-chart-wrap { gap: 18px; }
             .vod-type-donut { flex-basis: 124px; width: 124px; height: 124px; }
             .vod-type-donut::after { inset: 22px; }
-            .vod-tag-stat-row { grid-template-columns: minmax(64px, 92px) minmax(30px, 1fr) 68px; gap: 8px; }
+            .vod-tag-stat-row {
+    grid-template-columns: minmax(64px, 92px) minmax(30px, 1fr) 68px;
+    gap: 8px;
+}
         }
         @media (max-width: 380px) {
             .vod-type-chart-wrap { gap: 12px; }
@@ -1142,7 +1205,40 @@
             .vod-type-donut::after { inset: 19px; }
             .vod-type-donut-center strong { font-size: 19px; }
         }
+@media (max-width: 800px) {
+    .vod-filter-row {
+        flex-wrap: wrap;
+    }
 
+    .vod-filter-control {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .vod-filter-reset {
+        flex-shrink: 0;
+    }
+
+    .result-count {
+        margin-left: auto;
+    }
+
+    .vod-tag-stat-list {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 7px;
+    }
+
+    .vod-tag-stat-row {
+        padding: 9px;
+        gap: 5px 6px;
+    }
+}
+
+@media (max-width: 380px) {
+    .vod-tag-stat-list {
+        grid-template-columns: 1fr;
+    }
+}
 </style>
 </head>
 
@@ -1232,32 +1328,28 @@
 
 
         <!-- 날짜 + 태그 검색 -->
+<div class="vod-filter-row">
+    <div class="vod-filter-control">
+        <select id="vod-month" class="month-select" aria-label="날짜별 검색">
+            <option value="">전체 기간</option>
+        </select>
+    </div>
 
-        <div class="vod-filter-row">
+    <div class="vod-filter-control">
+        <select id="vod-tag" class="tag-select" aria-label="태그별 검색">
+            <option value="">전체 태그</option>
+        </select>
+    </div>
 
-            <div class="vod-filter-control">
-                <select id="vod-month" class="month-select" aria-label="날짜별 검색">
-                    <option value="">전체 기간</option>
-                </select>
-                <button type="button" class="vod-filter-reset" id="vod-month-reset" aria-label="날짜 검색 초기화">초기화</button>
-            </div>
+    <button
+        type="button"
+        class="vod-filter-reset"
+        id="vod-filter-reset"
+        aria-label="날짜 및 태그 필터 초기화"
+    >초기화</button>
 
-            <div class="vod-filter-control">
-                <select id="vod-tag" class="tag-select" aria-label="태그별 검색">
-                    <option value="">전체 태그</option>
-                </select>
-                <button type="button" class="vod-filter-reset" id="vod-tag-reset" aria-label="태그 검색 초기화">초기화</button>
-            </div>
-
-
-            <span
-                class="result-count"
-                id="result-count"
-            >
-                VOD 0개
-            </span>
-
-        </div>
+    <span class="result-count" id="result-count">VOD 0개</span>
+</div>
 
         <div class="vod-admin-toolbar" id="vod-admin-toolbar" hidden>
             <div class="vod-admin-toolbar-actions">
@@ -2481,17 +2573,11 @@
         "change",
         renderVODList
     );
-
-    document.getElementById("vod-month-reset")?.addEventListener("click", () => {
-        vodMonth.value = "";
-        renderVODList();
-    });
-
-    document.getElementById("vod-tag-reset")?.addEventListener("click", () => {
-        vodTag.value = "";
-        renderVODList();
-    });
-
+document.getElementById("vod-filter-reset")?.addEventListener("click", () => {
+    vodMonth.value = "";
+    vodTag.value = "";
+    renderVODList();
+});
 
     document.addEventListener(
         "keydown",
