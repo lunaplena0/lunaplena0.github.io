@@ -574,9 +574,12 @@
             .month-select,
             .tag-select {
                 flex: 1;
-
+                min-width: 0;
                 width: auto;
             }
+
+            .vod-filter-control { flex: 1; min-width: 0; }
+            .vod-filter-reset { padding: 0 8px; }
 
             .vod-card {
                 padding: 17px;
@@ -1109,14 +1112,19 @@
         .vod-legend-copy { min-width: 0; }
         .vod-legend-label { color: #64748b; font-size: 12px; line-height: 1.45; }
         .vod-legend-value { margin-top: 2px; color: #1e293b; font-size: 13px; font-weight: 800; }
-        .vod-tag-stat-list { display: flex; flex-direction: column; gap: 13px; }
-        .vod-tag-stat-row { display: grid; grid-template-columns: minmax(70px, 100px) minmax(40px, 1fr) 74px; gap: 10px; align-items: center; width: 100%; padding: 0; border: 0; background: transparent; text-align: left; cursor: pointer; }
-        .vod-tag-stat-row:hover .vod-tag-stat-name { color: #0284c7; }
-        .vod-tag-stat-name { overflow: hidden; color: #475569; font-size: 12px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
-        .vod-tag-stat-track { height: 9px; overflow: hidden; border-radius: 99px; background: #edf2f7; }
+        /* 태그 비중은 긴 리스트 대신 컴팩트한 타일 그리드로 표시 */
+        .vod-tag-stat-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 9px; }
+        .vod-tag-stat-row { display: flex; flex-direction: column; align-items: stretch; gap: 9px; min-width: 0; padding: 12px; border: 1px solid #e5edf5; border-radius: 13px; background: #fff; text-align: left; cursor: pointer; transition: border-color .15s ease, background .15s ease, transform .15s ease; }
+        .vod-tag-stat-row:hover { border-color: #7dd3fc; background: #f4fbff; transform: translateY(-1px); }
+        .vod-tag-stat-top { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+        .vod-tag-stat-name { overflow: hidden; color: #475569; font-size: 12px; font-weight: 750; text-overflow: ellipsis; white-space: nowrap; }
+        .vod-tag-stat-number { flex-shrink: 0; color: #0284c7; font-size: 11px; font-weight: 800; white-space: nowrap; }
+        .vod-tag-stat-track { height: 6px; overflow: hidden; border-radius: 99px; background: #edf2f7; }
         .vod-tag-stat-fill { height: 100%; min-width: 0; border-radius: inherit; background: linear-gradient(90deg, #7dd3fc, #38bdf8); }
-        .vod-tag-stat-number { color: #64748b; font-size: 11px; text-align: right; white-space: nowrap; }
-        .vod-tag-stat-number strong { color: #334155; font-size: 12px; }
+        .vod-tag-stat-count { color: #94a3b8; font-size: 11px; }
+        .vod-filter-control { display: flex; align-items: center; gap: 5px; min-width: 0; }
+        .vod-filter-reset { flex-shrink: 0; height: 42px; padding: 0 10px; border: 1px solid #e2e8f0; border-radius: 11px; color: #64748b; background: #fff; font-size: 12px; font-weight: 700; cursor: pointer; transition: background .15s ease, border-color .15s ease; }
+        .vod-filter-reset:hover { border-color: #bae6fd; color: #0369a1; background: #f0f9ff; }
         .vod-stats-empty { padding: 20px 8px; color: #94a3b8; font-size: 12px; text-align: center; }
         .vod-stats-footnote { margin: 13px 0 0; color: #94a3b8; font-size: 11px; line-height: 1.55; }
         @media (max-width: 800px) {
@@ -1227,24 +1235,19 @@
 
         <div class="vod-filter-row">
 
-            <select
-                id="vod-month"
-                class="month-select"
-            >
-                <option value="">
-                    전체 기간
-                </option>
-            </select>
+            <div class="vod-filter-control">
+                <select id="vod-month" class="month-select" aria-label="날짜별 검색">
+                    <option value="">전체 기간</option>
+                </select>
+                <button type="button" class="vod-filter-reset" id="vod-month-reset" aria-label="날짜 검색 초기화">초기화</button>
+            </div>
 
-
-            <select
-                id="vod-tag"
-                class="tag-select"
-            >
-                <option value="">
-                    전체 태그
-                </option>
-            </select>
+            <div class="vod-filter-control">
+                <select id="vod-tag" class="tag-select" aria-label="태그별 검색">
+                    <option value="">전체 태그</option>
+                </select>
+                <button type="button" class="vod-filter-reset" id="vod-tag-reset" aria-label="태그 검색 초기화">초기화</button>
+            </div>
 
 
             <span
@@ -2270,7 +2273,7 @@
         tagContainer.innerHTML = `<div class="vod-tag-stat-list">${tagRows.map(([tag, count]) => {
             const percent = count / totalTagAssignments * 100;
             const barWidth = Math.min(100, percent);
-            return `<button type="button" class="vod-tag-stat-row" data-stat-tag="${escapeHTML(tag)}" title="${escapeHTML(tag)} 태그 영상 보기"><span class="vod-tag-stat-name">#${escapeHTML(tag)}</span><span class="vod-tag-stat-track"><span class="vod-tag-stat-fill" style="display:block;width:${barWidth}%"></span></span><span class="vod-tag-stat-number"><strong>${percent.toFixed(1)}%</strong> · ${count}개</span></button>`;
+            return `<button type="button" class="vod-tag-stat-row" data-stat-tag="${escapeHTML(tag)}" title="${escapeHTML(tag)} 태그 영상 보기"><span class="vod-tag-stat-top"><span class="vod-tag-stat-name">#${escapeHTML(tag)}</span><span class="vod-tag-stat-number">${percent.toFixed(1)}%</span></span><span class="vod-tag-stat-track"><span class="vod-tag-stat-fill" style="display:block;width:${barWidth}%"></span></span><span class="vod-tag-stat-count">영상 ${count}개</span></button>`;
         }).join("")}</div>`;
     }
 
@@ -2478,6 +2481,16 @@
         "change",
         renderVODList
     );
+
+    document.getElementById("vod-month-reset")?.addEventListener("click", () => {
+        vodMonth.value = "";
+        renderVODList();
+    });
+
+    document.getElementById("vod-tag-reset")?.addEventListener("click", () => {
+        vodTag.value = "";
+        renderVODList();
+    });
 
 
     document.addEventListener(
