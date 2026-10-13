@@ -1079,6 +1079,62 @@
             }
         }
 
+
+
+        /* =========================
+           VOD STATISTICS
+        ========================= */
+        .vod-stats {
+            margin: 0 0 28px;
+            padding: 20px;
+            border: 1px solid #e2eaf3;
+            border-radius: 20px;
+            background: #fff;
+            box-shadow: 0 8px 26px rgba(30, 64, 100, .035);
+        }
+        .vod-stats-heading { margin-bottom: 16px; }
+        .vod-stats-heading h2 { margin: 0 0 5px; color: #1e293b; font-size: 18px; font-weight: 850; }
+        .vod-stats-heading p { margin: 0; color: #94a3b8; font-size: 12px; line-height: 1.6; }
+        .vod-stats-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px; }
+        .vod-stat-panel { min-width: 0; padding: 16px; border: 1px solid #edf2f7; border-radius: 15px; background: #fcfdff; }
+        .vod-stat-panel h3 { margin: 0 0 14px; color: #334155; font-size: 14px; font-weight: 800; }
+        .vod-type-chart-wrap { display: flex; align-items: center; justify-content: center; gap: 20px; }
+        .vod-type-donut { position: relative; flex: 0 0 142px; width: 142px; height: 142px; border-radius: 50%; background: #e2e8f0; }
+        .vod-type-donut::after { content: ""; position: absolute; inset: 25px; border-radius: 50%; background: #fff; }
+        .vod-type-donut-center { position: absolute; z-index: 1; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #64748b; font-size: 11px; }
+        .vod-type-donut-center strong { color: #1e293b; font-size: 22px; line-height: 1.3; }
+        .vod-type-legend { display: flex; flex-direction: column; gap: 12px; min-width: 0; flex: 1; }
+        .vod-legend-item { display: grid; grid-template-columns: 9px minmax(0, 1fr); gap: 8px; align-items: start; }
+        .vod-legend-dot { width: 9px; height: 9px; margin-top: 4px; border-radius: 3px; }
+        .vod-legend-copy { min-width: 0; }
+        .vod-legend-label { color: #64748b; font-size: 12px; line-height: 1.45; }
+        .vod-legend-value { margin-top: 2px; color: #1e293b; font-size: 13px; font-weight: 800; }
+        .vod-tag-stat-list { display: flex; flex-direction: column; gap: 13px; }
+        .vod-tag-stat-row { display: grid; grid-template-columns: minmax(70px, 100px) minmax(40px, 1fr) 74px; gap: 10px; align-items: center; width: 100%; padding: 0; border: 0; background: transparent; text-align: left; cursor: pointer; }
+        .vod-tag-stat-row:hover .vod-tag-stat-name { color: #0284c7; }
+        .vod-tag-stat-name { overflow: hidden; color: #475569; font-size: 12px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+        .vod-tag-stat-track { height: 9px; overflow: hidden; border-radius: 99px; background: #edf2f7; }
+        .vod-tag-stat-fill { height: 100%; min-width: 0; border-radius: inherit; background: linear-gradient(90deg, #7dd3fc, #38bdf8); }
+        .vod-tag-stat-number { color: #64748b; font-size: 11px; text-align: right; white-space: nowrap; }
+        .vod-tag-stat-number strong { color: #334155; font-size: 12px; }
+        .vod-stats-empty { padding: 20px 8px; color: #94a3b8; font-size: 12px; text-align: center; }
+        .vod-stats-footnote { margin: 13px 0 0; color: #94a3b8; font-size: 11px; line-height: 1.55; }
+        @media (max-width: 800px) {
+            .vod-stats { margin-bottom: 22px; padding: 15px; border-radius: 16px; }
+            .vod-stats-grid { grid-template-columns: 1fr; gap: 11px; }
+            .vod-stat-panel { padding: 14px; }
+            .vod-type-chart-wrap { gap: 18px; }
+            .vod-type-donut { flex-basis: 124px; width: 124px; height: 124px; }
+            .vod-type-donut::after { inset: 22px; }
+            .vod-tag-stat-row { grid-template-columns: minmax(64px, 92px) minmax(30px, 1fr) 68px; gap: 8px; }
+        }
+        @media (max-width: 380px) {
+            .vod-type-chart-wrap { gap: 12px; }
+            .vod-type-donut { flex-basis: 108px; width: 108px; height: 108px; }
+            .vod-type-donut::after { inset: 19px; }
+            .vod-type-donut-center strong { font-size: 19px; }
+        }
+
 </style>
 </head>
 
@@ -1118,6 +1174,28 @@
             방송  VOD 정보를 빠르게 확인하게 편하게 정리하여 모아두는 공간입니다.
         </p>
 
+    </section>
+
+
+
+
+    <!-- VOD STATISTICS -->
+    <section class="vod-stats" id="vod-stats" aria-label="VOD 통계">
+        <div class="vod-stats-heading">
+            <h2>VOD 아카이브 통계</h2>
+            <p>등록된 영상 정보를 기준으로 집계한 통계입니다.</p>
+        </div>
+        <div class="vod-stats-grid">
+            <section class="vod-stat-panel" aria-labelledby="vod-type-stats-title">
+                <h3 id="vod-type-stats-title">방송 유형별 비중</h3>
+                <div id="vod-type-stats-content"></div>
+            </section>
+            <section class="vod-stat-panel" aria-labelledby="vod-tag-stats-title">
+                <h3 id="vod-tag-stats-title">전체 영상 중 태그 비중</h3>
+                <div id="vod-tag-stats-content"></div>
+                <p class="vod-stats-footnote">태그별 비중은 해당 태그가 등록된 영상 수 ÷ 전체 영상 수입니다. 한 영상에 여러 태그가 붙을 수 있어 비중의 합계는 100%를 넘을 수 있습니다. 태그를 누르면 해당 태그의 영상만 볼 수 있습니다.</p>
+            </section>
+        </div>
     </section>
 
 
@@ -2123,11 +2201,83 @@
     }
 
 
+
+
+    /* =========================================================
+       VOD STATISTICS
+    ========================================================= */
+    function renderVODStats() {
+        const typeContainer = document.getElementById("vod-type-stats-content");
+        const tagContainer = document.getElementById("vod-tag-stats-content");
+        if (!typeContainer || !tagContainer) return;
+
+        const total = VOD_DATA.length;
+        const adultCount = VOD_DATA.filter(vod => !!vod.adultVerified).length;
+        const subPlusCount = VOD_DATA.filter(vod => !vod.adultVerified && !!vod.subscribed).length;
+        const generalCount = VOD_DATA.filter(vod => !vod.adultVerified && !vod.subscribed).length;
+        const typeRows = [
+            { label: "성인 인증(19금 방송)", count: adultCount, color: "#fb7185" },
+            { label: "구독+ 방송", count: subPlusCount, color: "#fbbf24" },
+            { label: "일반 방송", count: generalCount, color: "#38bdf8" }
+        ];
+        let stop = 0;
+        const gradientParts = typeRows.map(row => {
+            const start = stop;
+            stop += total ? row.count / total * 100 : 0;
+            return `${row.color} ${start}% ${stop}%`;
+        });
+        const typeGradient = total ? `conic-gradient(${gradientParts.join(", ")})` : "#e2e8f0";
+        typeContainer.innerHTML = `
+            <div class="vod-type-chart-wrap">
+                <div class="vod-type-donut" style="background:${typeGradient}" role="img" aria-label="방송 유형별 비중 도넛 차트">
+                    <div class="vod-type-donut-center"><strong>${total}</strong><span>전체 영상</span></div>
+                </div>
+                <div class="vod-type-legend">
+                    ${typeRows.map(row => {
+                        const percent = total ? (row.count / total * 100) : 0;
+                        return `<div class="vod-legend-item"><span class="vod-legend-dot" style="background:${row.color}"></span><div class="vod-legend-copy"><div class="vod-legend-label">${row.label}</div><div class="vod-legend-value">${row.count}개 · ${percent.toFixed(1)}%</div></div></div>`;
+                    }).join("")}
+                </div>
+            </div>
+            ${total === 0 ? '<div class="vod-stats-empty">집계할 VOD가 없습니다.</div>' : ''}
+        `;
+
+        const tagCounts = new Map();
+        VOD_DATA.forEach(vod => {
+            const uniqueTags = new Set((Array.isArray(vod.tags) ? vod.tags : []).map(tag => String(tag).trim()).filter(Boolean));
+            uniqueTags.forEach(tag => tagCounts.set(tag, (tagCounts.get(tag) || 0) + 1));
+        });
+        const tagRows = [...tagCounts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "ko"));
+        if (!tagRows.length || total === 0) {
+            tagContainer.innerHTML = '<div class="vod-stats-empty">집계할 태그가 없습니다.</div>';
+            return;
+        }
+        tagContainer.innerHTML = `<div class="vod-tag-stat-list">${tagRows.map(([tag, count]) => {
+            const percent = count / total * 100;
+            const barWidth = Math.min(100, percent);
+            return `<button type="button" class="vod-tag-stat-row" data-stat-tag="${escapeHTML(tag)}" title="${escapeHTML(tag)} 태그 영상 보기"><span class="vod-tag-stat-name">#${escapeHTML(tag)}</span><span class="vod-tag-stat-track"><span class="vod-tag-stat-fill" style="display:block;width:${barWidth}%"></span></span><span class="vod-tag-stat-number"><strong>${percent.toFixed(1)}%</strong> · ${count}개</span></button>`;
+        }).join("")}</div>`;
+    }
+
+    document.getElementById("vod-stats")?.addEventListener("click", event => {
+        const tagButton = event.target.closest("[data-stat-tag]");
+        if (!tagButton) return;
+        const tag = tagButton.getAttribute("data-stat-tag") || "";
+        const matchingOption = [...vodTag.options].find(option => option.value === tag);
+        if (!matchingOption) return;
+        vodTag.value = tag;
+        renderVODList();
+        document.getElementById("vod-list")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+
+
     /* =========================================================
        RENDER
     ========================================================= */
 
     function renderVODList() {
+
+        renderVODStats();
 
         const searchValue =
             normalizeSearch(
