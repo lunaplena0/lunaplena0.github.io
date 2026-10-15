@@ -1195,9 +1195,13 @@
             .vod-type-donut { flex-basis: 124px; width: 124px; height: 124px; }
             .vod-type-donut::after { inset: 22px; }
             .vod-tag-stat-row {
-    grid-template-columns: minmax(64px, 92px) minmax(30px, 1fr) 68px;
-    gap: 8px;
-}
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) auto;
+                gap: 7px 8px;
+                padding: 10px;
+            }
+            .vod-tag-stat-top { display: contents; }
+            .vod-tag-stat-track, .vod-tag-stat-count { grid-column: 1 / -1; }
         }
         @media (max-width: 380px) {
             .vod-type-chart-wrap { gap: 12px; }
@@ -1235,9 +1239,8 @@
 }
 
 @media (max-width: 380px) {
-    .vod-tag-stat-list {
-        grid-template-columns: 1fr;
-    }
+    .vod-tag-stat-list { grid-template-columns: 1fr; }
+    .vod-duration-stats { grid-template-columns: 1fr; }
 }
 </style>
 </head>
@@ -2307,22 +2310,41 @@
     /* =========================================================
        VOD STATISTICS
     ========================================================= */
+    function formatDurationAverage(seconds) {
+        if (!Number.isFinite(seconds) || seconds <= 0) return "데이터 없음";
+        const totalMinutes = Math.round(seconds / 60);
+        const hours = Math.floor(totalMinutes / 60);
+        const minutes = totalMinutes % 60;
+        return hours > 0 ? `${hours}시간 ${minutes}분` : `${minutes}분`;
+    }
+
+    function parseVODDuration(value) {
+        const text = String(value || "").trim();
+        if (!text) return 0;
+        // 지원 형식: HH:MM:SS, MM:SS, 초 단위 숫자
+        if (/^\d+(?:\.\d+)?$/.test(text)) return Math.max(0, Number(text));
+        const parts = text.split(":").map(Number);
+        if (!parts.length || parts.some(part => !Number.isFinite(part) || part < 0)) return 0;
+        if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
+        if (parts.length === 2) return parts[0] * 60 + parts[1];
+        return 0;
+    }
+
     function renderVODStats() {
         const typeContainer = document.getElementById("vod-type-stats-content");
         const tagContainer = document.getElementById("vod-tag-stats-content");
         if (!typeContainer || !tagContainer) return;
 
         const total = VOD_DATA.length;
-        // 성인 인증과 구독+는 동시에 설정될 수 있으므로 네 가지 조합으로 분류합니다.
         const adultAndSubPlusCount = VOD_DATA.filter(vod => vod.adultVerified && vod.subscribed).length;
         const adultOnlyCount = VOD_DATA.filter(vod => vod.adultVerified && !vod.subscribed).length;
         const subPlusOnlyCount = VOD_DATA.filter(vod => !vod.adultVerified && vod.subscribed).length;
         const generalCount = VOD_DATA.filter(vod => !vod.adultVerified && !vod.subscribed).length;
         const typeRows = [
-            { label: "성인 인증 + 구독+", count: adultAndSubPlusCount, color: "#a78bfa" },
-            { label: "성인 인증 방송", count: adultOnlyCount, color: "#fb7185" },
-            { label: "구독+ 방송", count: subPlusOnlyCount, color: "#fbbf24" },
-            { label: "일반 방송", count: generalCount, color: "#38bdf8" }
+            { label: '<span class="vod-type-badge adult">성인인증</span><span class="vod-type-plus">+</span><span class="vod-type-badge subscription">구독+</span>', count: adultAndSubPlusCount, color: "#a78bfa" },
+            { label: '<span class="vod-type-badge adult">성인인증</span>', count: adultOnlyCount, color: "#fb7185" },
+            { label: '<span class="vod-type-badge subscription">구독+</span>', count: subPlusOnlyCount, color: "#fbbf24" },
+            { label: '<span class="vod-type-badge general">일반</span>', count: generalCount, color: "#38bdf8" }
         ];
         let stop = 0;
         const gradientParts = typeRows.map(row => {
@@ -2331,6 +2353,34 @@
             return `${row.color} ${start}% ${stop}%`;
         });
         const typeGradient = total ? `conic-gradient(${gradientParts.join(", ")})` : "#e2e8f0";
+
+        const validDurations = VOD_DATA.map(vod => ({
+            vod,
+            seconds: parseVODDuration(vod.duration)
+        })).filter(item => item.seconds > 0);
+        const overallAverage = validDurations.length
+            ? validDurations.reduce((sum, item) => sum + item.seconds, 0) / validDurations.length
+            : 0;
+
+        const now = new Date();
+        now.setHours(23, 59, 59, 999);
+        const thirtyDaysAgo = new Date(now);
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 29);
+        thirtyDaysAgo.setHours(0, 0, 0, 0);
+        const recentItems = validDurations.filter(({ vod }) => {
+            const date = new Date(`${vod.date}T12:00:00`);
+            return !Number.isNaN(date.getTime()) && date >= thirtyDaysAgo && date <= now;
+        });
+        // 같은 날짜의 다시보기 여러 개는 해당 날짜 방송시간으로 합산한 뒤,
+        // 방송 기록이 있는 날짜 수로 나눠 평균 방송시간을 계산합니다.
+        const dailyTotals = new Map();
+        recentItems.forEach(({ vod, seconds }) => {
+            dailyTotals.set(vod.date, (dailyTotals.get(vod.date) || 0) + seconds);
+        });
+        const recentDailyAverage = dailyTotals.size
+            ? [...dailyTotals.values()].reduce((sum, seconds) => sum + seconds, 0) / dailyTotals.size
+            : 0;
+
         typeContainer.innerHTML = `
             <div class="vod-type-chart-wrap">
                 <div class="vod-type-donut" style="background:${typeGradient}" role="img" aria-label="방송 유형별 비중 도넛 차트">
@@ -2343,11 +2393,13 @@
                     }).join("")}
                 </div>
             </div>
+            <div class="vod-duration-stats">
+                <div class="vod-duration-card"><span>전체 다시보기 평균 시간</span><strong>${formatDurationAverage(overallAverage)}</strong><small>${validDurations.length}개 영상 기준</small></div>
+                <div class="vod-duration-card"><span>최근 30일 방송시간 평균</span><strong>${formatDurationAverage(recentDailyAverage)}</strong><small>${dailyTotals.size}일의 기록 기준</small></div>
+            </div>
             ${total === 0 ? '<div class="vod-stats-empty">집계할 VOD가 없습니다.</div>' : ''}
         `;
 
-        // 태그가 여러 개인 영상은 태그별로 각각 1회씩 계산합니다.
-        // 분모는 전체 영상 수가 아니라 전체 태그 지정 수이므로 태그 비중 합계가 100%가 됩니다.
         const tagCounts = new Map();
         let totalTagAssignments = 0;
         VOD_DATA.forEach(vod => {
