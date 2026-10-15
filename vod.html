@@ -961,6 +961,29 @@
             flex: 0 0 auto;
         }
 
+        .vod-duration-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            flex: 0 0 auto;
+            padding: 3px 7px;
+            border: 1px solid #dbeafe;
+            border-radius: 7px;
+            background: #eff6ff;
+            color: #2563eb;
+            font-size: 11px;
+            font-weight: 800;
+            line-height: 1.35;
+            white-space: nowrap;
+        }
+
+        .vod-duration-label.missing {
+            border-color: #e2e8f0;
+            background: #f8fafc;
+            color: #94a3b8;
+            font-weight: 650;
+        }
+
         .vod-meta-row .vod-status {
             display: inline-flex;
             align-items: center;
@@ -2568,6 +2591,11 @@
                                 <div class="vod-date">
                                     ${escapeHTML(formatDate(vod.date))}
                                 </div>
+
+                                <span class="vod-duration-label${String(vod.duration || "").trim() ? "" : " missing"}" title="재생 시간">
+                                    <span aria-hidden="true">◷</span>
+                                    ${String(vod.duration || "").trim() ? escapeHTML(String(vod.duration).trim()) : "시간 미등록"}
+                                </span>
 
                                 <div class="vod-status">
                                     ${createStatusHTML(vod)}
