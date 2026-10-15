@@ -772,6 +772,7 @@
         .admin-field { display:flex; flex-direction:column; gap:6px; }
         .admin-field > span { color:#475569; font-size:12px; font-weight:800; }
         .admin-field-full { grid-column:1 / -1; }
+        .admin-field-help { display:block; margin-top:0; color:#94a3b8; font-size:11px; line-height:1.45; }
         .admin-check-row { display:flex; flex-direction:row; align-items:center; gap:9px; padding:11px 12px; border:1px solid #e2e8f0; border-radius:10px; background:#f8fafc; color:#475569; font-size:13px; font-weight:800; cursor:pointer; }
         .admin-check-row input { width:17px; height:17px; margin:0; accent-color:#0ea5e9; }
         .admin-edit-actions { display:flex; justify-content:space-between; gap:8px; margin-top:18px; }
@@ -1452,6 +1453,7 @@
         <div class="admin-edit-grid">
             <label class="admin-field"><span>날짜</span><input id="edit-vod-date" class="admin-input" readonly></label>
             <label class="admin-field"><span>제목</span><input id="edit-vod-title" class="admin-input" placeholder="VOD 제목을 입력해주세요"></label>
+            <label class="admin-field"><span>재생 시간</span><input id="edit-vod-duration" class="admin-input" type="text" inputmode="numeric" placeholder="예: 0:44:07" aria-describedby="edit-vod-duration-help"><small id="edit-vod-duration-help" class="admin-field-help">시:분:초 형식으로 입력해주세요. 예: 0:44:07</small></label>
             <label class="admin-field admin-field-full"><span>태그</span><input id="edit-vod-tags" class="admin-input" placeholder="예: 소통, 노래, 게임"></label>
             <label class="admin-field admin-field-full"><span>영상 설명</span><textarea id="edit-vod-description" class="admin-input admin-textarea" rows="3"></textarea></label>
             <label class="admin-check-row admin-field-full"><input type="checkbox" id="edit-vod-sub-plus"><span>구독+ 전용</span></label>
@@ -1663,6 +1665,7 @@
     const vodJsonFileInput = document.getElementById("vod-json-file-input");
     const editVodDate = document.getElementById("edit-vod-date");
     const editVodTitle = document.getElementById("edit-vod-title");
+    const editVodDuration = document.getElementById("edit-vod-duration");
     const editVodTags = document.getElementById("edit-vod-tags");
     const editVodDescription = document.getElementById("edit-vod-description");
     const editVodSubPlus = document.getElementById("edit-vod-sub-plus");
@@ -1836,6 +1839,7 @@
         editingVodId = "";
         editVodDate.value = new Date().toISOString().slice(0, 10);
         editVodTitle.value = "";
+        editVodDuration.value = "";
         editVodTags.value = "";
         editVodDescription.value = "";
         editVodSubPlus.checked = false;
@@ -1870,6 +1874,7 @@
         editingVodId = id;
         editVodDate.value = vod.date || "";
         editVodTitle.value = vod.title || "";
+        editVodDuration.value = vod.duration || "";
         editVodTags.value = Array.isArray(vod.tags) ? vod.tags.join(", ") : "";
         editVodDescription.value = vod.description || "";
         editVodSubPlus.checked = !!vod.subscribed;
@@ -1957,11 +1962,13 @@
                 const link = document.getElementById("edit-vod-link").value.trim();
                 const date = editVodDate.value.trim();
                 const title = editVodTitle.value.trim();
+                const duration = editVodDuration.value.trim();
                 if (!date || !title || !link) throw new Error("날짜, 제목, VOD 링크를 모두 입력해주세요.");
+                if (duration && !/^\d{1,2}:\d{2}:\d{2}$/.test(duration)) throw new Error("재생 시간은 시:분:초 형식으로 입력해주세요. 예: 0:44:07");
                 const tags = editVodTags.value.split(",").map(tag => tag.trim()).filter(Boolean);
                 VOD_DATA.push({
                     id: link || `${date}-${Date.now()}`,
-                    date, title, url: link, duration: "",
+                    date, title, url: link, duration,
                     subscribed: editVodSubPlus.checked,
                     adultVerified: editVodAdult.checked,
                     tags,
@@ -1971,7 +1978,7 @@
                         date,
                         title,
                         link,
-                        duration: "",
+                        duration,
                         subPlus: editVodSubPlus.checked ? "Y" : "N",
                         adult: editVodAdult.checked ? "Y" : "N",
                         description: editVodDescription.value.trim(),
@@ -1982,8 +1989,13 @@
                 const vod = VOD_DATA.find(item => item.id === editingVodId);
                 if (!vod) throw new Error("수정할 VOD를 찾을 수 없습니다.");
                 const title = editVodTitle.value.trim();
+                const duration = editVodDuration.value.trim();
                 if (!title) throw new Error("VOD 제목을 입력해주세요.");
+                if (duration && !/^\d{1,2}:\d{2}:\d{2}$/.test(duration)) throw new Error("재생 시간은 시:분:초 형식으로 입력해주세요. 예: 0:44:07");
                 vod.title = title;
+                vod.duration = duration;
+                if (!vod.raw) vod.raw = {};
+                vod.raw.duration = duration;
                 vod.tags = editVodTags.value.split(",").map(tag => tag.trim()).filter(Boolean);
                 vod.description = editVodDescription.value.trim();
                 vod.subscribed = editVodSubPlus.checked;
