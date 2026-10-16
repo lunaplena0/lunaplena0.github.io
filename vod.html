@@ -1162,6 +1162,22 @@
         .vod-duration-card > span { color: #64748b; font-size: 11px; font-weight: 750; line-height: 1.45; }
         .vod-duration-card > strong { margin-top: 7px; color: #0f4c81; font-size: clamp(17px, 2vw, 22px); font-weight: 850; line-height: 1.25; overflow-wrap: anywhere; }
         .vod-duration-card > small { margin-top: 5px; color: #94a3b8; font-size: 10px; line-height: 1.4; }
+        .vod-monthly-chart { margin-top: 16px; padding: 14px; border: 1px solid #e5edf5; border-radius: 13px; background: #fff; }
+        .vod-monthly-chart-title { margin: 0; color: #334155; font-size: 13px; font-weight: 850; }
+        .vod-monthly-chart-subtitle { margin: 4px 0 12px; color: #94a3b8; font-size: 10px; line-height: 1.5; }
+        .vod-monthly-legend { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 12px; color: #64748b; font-size: 10px; font-weight: 700; }
+        .vod-monthly-legend-item { display: inline-flex; align-items: center; gap: 5px; }
+        .vod-monthly-legend-dot { width: 8px; height: 8px; border-radius: 3px; }
+        .vod-monthly-scroll { overflow-x: auto; padding-bottom: 4px; }
+        .vod-monthly-bars { display: flex; align-items: stretch; gap: 7px; min-width: 100%; width: max-content; }
+        .vod-monthly-column { display: flex; flex-direction: column; align-items: center; width: 43px; flex: 0 0 43px; }
+        .vod-monthly-values { display: flex; justify-content: center; align-items: end; gap: 3px; width: 100%; height: 22px; color: #64748b; font-size: 9px; font-weight: 750; font-variant-numeric: tabular-nums; }
+        .vod-monthly-plot { display: flex; align-items: end; justify-content: center; gap: 5px; width: 100%; height: 100px; padding: 0 3px; border-bottom: 1px solid #dbe5ef; background: repeating-linear-gradient(to top, transparent 0, transparent 24px, #f1f5f9 25px, transparent 26px); }
+        .vod-monthly-bar { display: block; width: 13px; min-height: 2px; border-radius: 4px 4px 0 0; transition: height .2s ease; }
+        .vod-monthly-bar.count { background: linear-gradient(180deg, #38bdf8, #0284c7); }
+        .vod-monthly-bar.duration { background: linear-gradient(180deg, #a78bfa, #7c3aed); }
+        .vod-monthly-label { margin-top: 7px; color: #64748b; font-size: 9px; font-weight: 700; white-space: nowrap; }
+        .vod-monthly-empty { padding: 20px 8px; color: #94a3b8; font-size: 11px; text-align: center; }
        /* 태그 비중: 가로형 컴팩트 타일 */
 .vod-tag-stat-list {
     display: grid;
@@ -2442,6 +2458,47 @@
             ? [...dailyTotals.values()].reduce((sum, seconds) => sum + seconds, 0) / dailyTotals.size
             : 0;
 
+        // 월별 VOD 수와 기록된 방송시간을 집계합니다.
+        const monthlyTotals = new Map();
+        VOD_DATA.forEach(vod => {
+            const dateText = String(vod.date || "").trim();
+            const match = dateText.match(/^(\d{4})-(\d{1,2})/);
+            if (!match) return;
+            const monthKey = `${match[1]}-${String(match[2]).padStart(2, "0")}`;
+            if (!monthlyTotals.has(monthKey)) monthlyTotals.set(monthKey, { count: 0, seconds: 0, timedCount: 0 });
+            const item = monthlyTotals.get(monthKey);
+            item.count++;
+            const seconds = parseVODDuration(vod.duration);
+            if (seconds > 0) {
+                item.seconds += seconds;
+                item.timedCount++;
+            }
+        });
+        const monthlyKeys = [...monthlyTotals.keys()].sort();
+        const visibleMonthKeys = monthlyKeys.slice(-12);
+        const visibleMonths = visibleMonthKeys.map(key => ({ key, ...monthlyTotals.get(key) }));
+        const maxMonthlyCount = Math.max(1, ...visibleMonths.map(item => item.count));
+        const maxMonthlyHours = Math.max(1, ...visibleMonths.map(item => item.seconds / 3600));
+        const monthlyChartHTML = visibleMonths.length ? `
+            <div class="vod-monthly-chart">
+                <h4 class="vod-monthly-chart-title">월별 방송 횟수 및 방송시간</h4>
+                <p class="vod-monthly-chart-subtitle">기록이 있는 최근 12개월 기준 · 방송시간은 재생 시간이 입력된 VOD만 합산합니다.</p>
+                <div class="vod-monthly-legend">
+                    <span class="vod-monthly-legend-item"><span class="vod-monthly-legend-dot" style="background:#0284c7"></span>방송 횟수</span>
+                    <span class="vod-monthly-legend-item"><span class="vod-monthly-legend-dot" style="background:#7c3aed"></span>방송시간</span>
+                </div>
+                <div class="vod-monthly-scroll"><div class="vod-monthly-bars">
+                    ${visibleMonths.map(item => {
+                        const hours = item.seconds / 3600;
+                        const countHeight = item.count / maxMonthlyCount * 100;
+                        const durationHeight = hours / maxMonthlyHours * 100;
+                        const [year, month] = item.key.split("-");
+                        const monthLabel = `${year}.${month}`;
+                        return `<div class="vod-monthly-column" title="${monthLabel} · 방송 ${item.count}회 · 방송시간 ${formatDurationAverage(item.seconds)}"><div class="vod-monthly-values"><span>${item.count}</span><span>${hours > 0 ? hours.toFixed(hours >= 10 ? 0 : 1) + 'h' : '—'}</span></div><div class="vod-monthly-plot"><span class="vod-monthly-bar count" style="height:${countHeight}%" aria-label="방송 ${item.count}회"></span><span class="vod-monthly-bar duration" style="height:${durationHeight}%" aria-label="방송시간 ${formatDurationAverage(item.seconds)}"></span></div><span class="vod-monthly-label">${monthLabel}</span></div>`;
+                    }).join("")}
+                </div></div>
+            </div>` : '<div class="vod-monthly-chart"><h4 class="vod-monthly-chart-title">월별 방송 횟수 및 방송시간</h4><div class="vod-monthly-empty">월별로 집계할 날짜 정보가 없습니다.</div></div>';
+
         typeContainer.innerHTML = `
             <div class="vod-type-chart-wrap">
                 <div class="vod-type-donut" style="background:${typeGradient}" role="img" aria-label="방송 유형별 비중 도넛 차트">
@@ -2458,6 +2515,7 @@
                 <div class="vod-duration-card"><span>전체 다시보기 평균 시간</span><strong>${formatDurationAverage(overallAverage)}</strong><small>${validDurations.length}개 영상 기준</small></div>
                 <div class="vod-duration-card"><span>최근 30일 방송시간 평균</span><strong>${formatDurationAverage(recentDailyAverage)}</strong><small>${dailyTotals.size}일의 기록 기준</small></div>
             </div>
+            ${monthlyChartHTML}
             ${total === 0 ? '<div class="vod-stats-empty">집계할 VOD가 없습니다.</div>' : ''}
         `;
 
