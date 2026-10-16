@@ -1172,8 +1172,12 @@
         .vod-monthly-lines { width: 100%; max-width: 760px; margin: 0 auto; }
         .vod-monthly-lines svg { display: block; width: 100%; height: auto; overflow: visible; }
         .vod-monthly-gridline { stroke: #eaf0f6; stroke-width: 1; }
-        .vod-monthly-axis-label { fill: #475569; font-size: 13px; font-weight: 800; }
-        .vod-monthly-axis-detail { fill: #64748b; font-size: 11px; font-weight: 700; }
+        .vod-monthly-month-label { transform-box: fill-box; transform-origin: center; transition: transform .16s ease; cursor: default; }
+        .vod-monthly-axis-label { fill: #334155; font-size: 15px; font-weight: 850; }
+        .vod-monthly-axis-detail { fill: #64748b; font-size: 12px; font-weight: 750; }
+        .vod-monthly-month-label:hover { transform: scale(1.22); }
+        .vod-monthly-month-label:hover .vod-monthly-axis-label { fill: #0284c7; }
+        .vod-monthly-month-label:hover .vod-monthly-axis-detail { fill: #334155; }
         .vod-monthly-line-count { fill: none; stroke: #0284c7; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
         .vod-monthly-line-duration { fill: none; stroke: #7c3aed; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
         .vod-monthly-point-count { fill: #0284c7; stroke: #fff; stroke-width: 2; }
@@ -2506,7 +2510,7 @@
             const label = `${year}.${month}`;
             const hours = String(Math.floor(item.seconds / 3600)).padStart(2, "0");
             const detail = `${item.count}회 ${hours}시간`;
-            return `<text class="vod-monthly-axis-label" x="${chartX(index)}" y="190" text-anchor="middle">${label}</text><text class="vod-monthly-axis-detail" x="${chartX(index)}" y="211" text-anchor="middle">${detail}</text>`;
+            return `<g class="vod-monthly-month-label"><text class="vod-monthly-axis-label" x="${chartX(index)}" y="190" text-anchor="middle">${label}</text><text class="vod-monthly-axis-detail" x="${chartX(index)}" y="211" text-anchor="middle">${detail}</text></g>`;
         }).join("");
         const monthlyChartHTML = visibleMonths.length ? `
             <div class="vod-monthly-chart">
