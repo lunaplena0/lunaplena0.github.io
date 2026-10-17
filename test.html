@@ -1624,6 +1624,8 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
         function resetDetailedFilters(){currentCountFilter='전체';currentCountFilterOperator='=';currentCountFilterValue='';excludeZeroCount=false;currentRecentFilter='전체';currentMonthFilter='전체';syncDetailFilterSelects();updateDateFilterAvailability();updateFilterButtonState();updateFilteredAndSorted();renderAllSongs()}
         function updateFilterButtonState(){const filterBtn=document.getElementById('integratedFilterBtn');if(!filterBtn)return;const hasActive=currentCountFilter!=='전체'||excludeZeroCount||currentRecentFilter!=='전체'||currentMonthFilter!=='전체';const iconHtml=`<svg class="filter-icon-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16l-6.5 7.2V18l-3 1v-6.8L4 5Z" fill="${hasActive?'white':'none'}" stroke="${hasActive?'white':'#0369a1'}" stroke-width="2" stroke-linejoin="round"></path></svg>`;filterBtn.classList.toggle('active-filter',hasActive);filterBtn.innerHTML=iconHtml}
 
+        const songMarqueeObservers = new Map();
+
         function setupSongTitleMarquees(container, scrollRoot = null) {
             if (!container) return;
 
@@ -1636,7 +1638,6 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
                     const overflow = Math.ceil(text.scrollWidth - viewport.clientWidth);
                     if (overflow > 0) {
                         viewport.classList.add('marquee-active');
-                        viewport.classList.remove('marquee-visible');
                         text.style.setProperty('--song-title-shift', `${-overflow}px`);
                         marquees.push(viewport);
                     } else {
@@ -1645,16 +1646,39 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
                     }
                 });
 
-                if ('IntersectionObserver' in window) {
+                if (!('IntersectionObserver' in window)) {
+                    marquees.forEach(viewport => viewport.classList.add('marquee-visible'));
+                    return;
+                }
+
+                // 렌더링할 때마다 Observer를 새로 만들면 필터/검색을 반복할수록
+                // 이전 Observer가 남아 스크롤 중 불필요한 감시 작업이 누적될 수 있습니다.
+                // 스크롤 루트별 Observer 하나만 재사용하고, 제거된 노드는 관찰 해제합니다.
+                let record = songMarqueeObservers.get(scrollRoot);
+                if (!record) {
+                    const observed = new Set();
                     const observer = new IntersectionObserver(entries => {
                         entries.forEach(entry => {
                             entry.target.classList.toggle('marquee-visible', entry.isIntersecting);
                         });
                     }, { root: scrollRoot, threshold: 0.01 });
-                    marquees.forEach(viewport => observer.observe(viewport));
-                } else {
-                    marquees.forEach(viewport => viewport.classList.add('marquee-visible'));
+                    record = { observer, observed };
+                    songMarqueeObservers.set(scrollRoot, record);
                 }
+
+                for (const oldTarget of record.observed) {
+                    if (!oldTarget.isConnected || !container.contains(oldTarget)) {
+                        record.observer.unobserve(oldTarget);
+                        record.observed.delete(oldTarget);
+                    }
+                }
+
+                marquees.forEach(viewport => {
+                    if (!record.observed.has(viewport)) {
+                        record.observed.add(viewport);
+                        record.observer.observe(viewport);
+                    }
+                });
             });
         }
 
