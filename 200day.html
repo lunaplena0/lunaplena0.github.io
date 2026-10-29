@@ -299,6 +299,52 @@ async function loadModeData(mode,showMessage=true){
   return true;
  }catch(e){if(showMessage)setStatus(`${mode==="hard"?"하드모드":"일반 모드"} 데이터 불러오기 실패: ${e.message}`);return false;}
 }
+async function saveWorkerFile(fileType, content) {
+  if (!sessionToken) {
+    throw new Error("관리자 로그인이 필요합니다.");
+  }
+
+  let response;
+
+  try {
+    response = await fetch(WORKER_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+      },
+      body: JSON.stringify({
+        sessionToken: sessionToken,
+        fileType: fileType,
+        content: content
+      })
+    });
+  } catch (error) {
+    throw new Error(
+      "Worker 서버에 연결하지 못했습니다. " +
+      "서버 주소와 CORS 설정을 확인해 주세요."
+    );
+  }
+
+  const raw = await response.text();
+  let data;
+
+  try {
+    data = JSON.parse(raw);
+  } catch (error) {
+    throw new Error(
+      `서버 응답이 JSON 형식이 아닙니다. (HTTP ${response.status})`
+    );
+  }
+
+  if (!response.ok || data.error) {
+    throw new Error(
+      data.error || `서버 저장에 실패했습니다. (HTTP ${response.status})`
+    );
+  }
+
+  return data;
+}
 async function loadServerData(showMessage=true){return loadModeData("normal",showMessage);}
 async function switchAdminMode(mode){
  if(currentMode===mode){renderAdminEditor();return;}
