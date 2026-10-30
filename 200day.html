@@ -28,6 +28,29 @@ button,input{font:inherit}button{cursor:pointer;border:0;border-radius:14px;padd
 .image-lightbox{position:fixed;inset:0;z-index:5000;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(18,43,61,.82);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px)}
 .image-lightbox.hidden{display:none!important}.image-lightbox img{display:block;max-width:min(96vw,1400px);max-height:88vh;width:auto;height:auto;object-fit:contain;border-radius:12px;box-shadow:0 18px 60px #0005}.image-lightbox-close{position:absolute;top:14px;right:16px;width:42px;height:42px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;padding:0;margin:0;border:1px solid #ffffff66;border-radius:50%;background:#ffffffea;color:#24516d;font-family:Arial,sans-serif;font-size:24px;font-weight:400;line-height:1;text-align:center;cursor:pointer;appearance:none;-webkit-appearance:none}.review-item .explain img{cursor:zoom-in;transition:transform .15s ease}.review-item .explain img:hover{transform:scale(1.015)}
 
+
+/* 하드모드 결과표 전용 스타일 */
+.result-mode-badge{display:inline-flex;align-items:center;margin-bottom:7px;padding:5px 9px;border-radius:7px;background:#172b4d;color:#d9e8ff;font-size:10px;font-weight:900;letter-spacing:.14em}
+.result-capture.hard-result{background:linear-gradient(155deg,#101c33 0%,#172b4d 55%,#203b60 100%);border-color:#30496b;color:#f3f7ff}
+.result-capture.hard-result .result-head{border-bottom-color:#3c5273}
+.result-capture.hard-result .result-heading{color:#f3f7ff}
+.result-capture.hard-result .result-name-inline{background:#263d60;color:#e0ebff;border:1px solid #405a7e}
+.result-capture.hard-result .result-date-label{color:#9fb4d3}
+.result-capture.hard-result .result-date{color:#c0cee3}
+.result-capture.hard-result .result-score-panel{background:linear-gradient(135deg,#233d63,#1b3152);border:1px solid #47638a}
+.result-capture.hard-result .result-score-label{color:#c0d3f3}
+.result-capture.hard-result .result-score{color:#f6d78b}
+.result-capture.hard-result .result-score small{color:#d5e1f5}
+.result-capture.hard-result .result-bar{background:#3c5273}
+.result-capture.hard-result .result-bar-fill{background:linear-gradient(90deg,#8ab8ff,#f6d78b)}
+.result-capture.hard-result .result-stat{background:#1b3152;border-color:#3c5273}
+.result-capture.hard-result .result-label{color:#b6c8e2}
+.result-capture.hard-result .result-stat-value{color:#fff}
+.result-capture.hard-result .result-tier{color:#f6d78b}
+.result-capture.hard-result:after{content:"◆ BADABI HARD MODE · CHALLENGE COMPLETE ◆";color:#b8c9e4;letter-spacing:.08em}
+#resultScreen.hard-result-screen{border-color:#c7d5e8;background:linear-gradient(160deg,#f8fbff,#edf3fb)}
+@media(max-width:480px){.result-mode-badge{font-size:9px}.result-capture.hard-result{border-width:6px}}
+
 </style>
 </head>
 <body>
@@ -62,13 +85,13 @@ button,input{font:inherit}button{cursor:pointer;border:0;border-radius:14px;padd
     <section id="resultScreen" class="card hidden">
       <div class="result-toolbar"><button type="button" class="secondary screenshot-btn" id="saveResultScreenshotBtn" aria-label="스크린샷 저장" title="스크린샷 저장" data-html2canvas-ignore="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h3l1.5-2h7L17 7h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1Z"/><circle cx="12" cy="13" r="3.5"/></svg></button></div>
       <div id="resultCaptureArea" class="result-capture">
-        <div class="result-head"><div><h2 class="result-heading">능력평가 결과표</h2></div><div class="result-name-inline" id="resultNameInline">응시자 : 닉네임</div></div>
+        <div class="result-head"><div><span id="resultModeBadge" class="result-mode-badge hidden">HARD MODE</span><h2 class="result-heading" id="resultHeading">능력평가 결과표</h2></div><div class="result-name-inline" id="resultNameInline">응시자 : 닉네임</div></div>
         <div class="result-date-block"><div class="result-date-label">결과 제출 일시</div><div class="result-date" id="resultDateTime">-</div></div>
-        <div class="result-score-panel"><div class="result-score-label">FINAL SCORE</div><div class="result-score"><span id="scoreNum">0</span> <small>점</small></div><div class="result-bar"><div class="result-bar-fill" id="resultScoreBar"></div></div></div>
+        <div class="result-score-panel"><div class="result-score-label" id="resultScoreLabel">FINAL SCORE</div><div class="result-score"><span id="scoreNum">0</span> <small>점</small></div><div class="result-bar"><div class="result-bar-fill" id="resultScoreBar"></div></div></div>
         <div class="result-stats"><div class="result-stat"><div class="result-label">정답 개수</div><div class="result-stat-value" id="resultCorrectCount">0 / 30</div></div><div class="result-stat"><div class="result-label">평가 결과</div><div class="result-stat-value result-tier" id="resultTier">등급</div></div></div>
       </div>
       <div class="result-actions"><button class="primary full" id="showAnswersBtn">정답과 해설 확인하기</button><button class="secondary full" id="retryBtn">다시 풀기</button></div><button class="primary full hidden" id="hardModeBtn" style="margin-top:12px">🔒 하드모드 도전하기 (80점 이상 달성!)</button>
-      <div id="reviewArea" class="hidden" style="margin-top:26px"><div class="review-head"><h2 style="font-size:20px;margin:0">정답 & 해설</h2><button class="secondary small" id="hideAnswersBtn">접기</button></div><div id="reviewList"></div><div class="review-pagination"><button type="button" class="secondary" id="prevReviewBtn">← 이전 문제</button><span class="review-page-label" id="reviewPageLabel">1 / 30</span><button type="button" class="primary" id="nextReviewBtn">다음 문제 →</button></div></div>
+      <div id="reviewArea" class="hidden" style="margin-top:26px"><div class="review-head"><h2 id="reviewHeading" style="font-size:20px;margin:0">정답 & 해설</h2><button class="secondary small" id="hideAnswersBtn">접기</button></div><div id="reviewList"></div><div class="review-pagination"><button type="button" class="secondary" id="prevReviewBtn">← 이전 문제</button><span class="review-page-label" id="reviewPageLabel">1 / 30</span><button type="button" class="primary" id="nextReviewBtn">다음 문제 →</button></div></div>
     </section>
   </main>
   <div id="adminManagerModal" class="admin-modal hidden" role="dialog" aria-modal="true" aria-label="문제 관리">
@@ -200,7 +223,7 @@ function renderQuestion(){const q=getRuntimeQuestion(state.index);if(!q)return;$
 function isCorrect(q,a){if(a===undefined||a===null||a==="")return false;return String(a).toUpperCase()===String(q.answer).toUpperCase();}
 function grade(){let got=0,total=0;questionData.forEach((_,i)=>{const q=getRuntimeQuestion(i);if(q){total++;if(isCorrect(q,state.answers[i]))got++;}});const bonus=currentMode==="normal"?(got===30?1:(got>=15?0.5:0)):0;const score=total?(currentMode==="hard"?Number((got/total*100).toFixed(1)):Number((got*3.3+bonus).toFixed(1))):0;return {got,total,score,bonus};}
 function submitQuiz(){const g=grade();state.submitted=true;state.submittedAt=Date.now();state.score=g.score;state.showAnswers=false;save();renderResult();}
-function renderResult(){screen("resultScreen");const g=grade();state.score=g.score;score=state.score;const tier=score===0?"장난해?":score>=95?"다비 밖에 모르는 존재":score>=80?"진정한 꼬용이":score>=71?"조금 잘 아는 꼬용이":score>=50?"어느정도 본 꼬용이":score>=30?"입문하기 시작한 꼬용이":"이제부터 알아가보자";$("scoreNum").textContent=String(score);$("resultNameInline").textContent=`응시자 : ${state.name||"닉네임"}`;const submittedDate=state.submittedAt?new Date(state.submittedAt):null;$("resultDateTime").textContent=submittedDate&&!Number.isNaN(submittedDate.getTime())?submittedDate.toLocaleString("ko-KR",{year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false}):"제출 일시 정보 없음";$("resultCorrectCount").textContent=`${g.got} / ${g.total}`;$("resultTier").textContent=tier;$("resultScoreBar").style.width=`${Math.max(0,Math.min(100,score))}%`;$("reviewArea").classList.toggle("hidden",!state.showAnswers);$("showAnswersBtn").textContent=state.showAnswers?"정답과 해설이 표시 중":"정답과 해설 확인하기";const hardBtn=$("hardModeBtn");hardBtn.classList.toggle("hidden",currentMode!=="normal"||score<80);hardBtn.textContent="🔓 하드모드 도전하기";if(state.showAnswers)renderReview();}
+function renderResult(){screen("resultScreen");const g=grade(),isHard=currentMode==="hard";state.score=g.score;score=state.score;const normalTier=score===0?"장난해?":score>=95?"다비 밖에 모르는 존재":score>=80?"진정한 꼬용이":score>=71?"조금 잘 아는 꼬용이":score>=50?"어느정도 본 꼬용이":score>=30?"입문하기 시작한 꼬용이":"이제부터 알아가보자";const hardTier=g.got===10?"다비없으면 죽는 수준에 온 꼬용이":g.got>=8?"바다비 그 자체":g.got>=6?"다비에 대해 관심이 많은 꼬용이":g.got>=4?"다비에 조금씩 알아가는 꼬용이":g.got>=1?"그냥 꼬용이를 넘어 진정한 꼬용이로 가는 단계":"아쉽게 상급 꼬용이단계";$("resultCaptureArea").classList.toggle("hard-result",isHard);$("resultScreen").classList.toggle("hard-result-screen",isHard);$("resultModeBadge").classList.toggle("hidden",!isHard);$("resultHeading").textContent=isHard?"능력평가 결과표 (고급)":"능력평가 결과표";$("resultScoreLabel").textContent="FINAL SCORE";$("scoreNum").textContent=String(score);$("resultNameInline").textContent=`응시자 : ${state.name||"닉네임"}`;const submittedDate=state.submittedAt?new Date(state.submittedAt):null;$("resultDateTime").textContent=submittedDate&&!Number.isNaN(submittedDate.getTime())?submittedDate.toLocaleString("ko-KR",{year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false}):"제출 일시 정보 없음";$("resultCorrectCount").textContent=`${g.got} / ${g.total}`;$("resultTier").textContent=isHard?hardTier:normalTier;$("resultScoreBar").style.width=`${Math.max(0,Math.min(100,score))}%`;$("reviewArea").classList.toggle("hidden",!state.showAnswers);$("showAnswersBtn").textContent=state.showAnswers?"정답과 해설이 표시 중":"정답과 해설 확인하기";$("reviewHeading").textContent=isHard?"하드모드 정답 & 해설":"정답 & 해설";$("retryBtn").textContent=isHard?"일반 모드 30문제 다시 풀기":"다시 풀기";const hardBtn=$("hardModeBtn");hardBtn.classList.toggle("hidden",isHard||score<80);hardBtn.textContent="🔓 하드모드 도전하기";if(state.showAnswers)renderReview();}
 let reviewIndex=0;
 function openImageLightbox(src,alt='확대된 이미지'){const modal=$('imageLightbox'),img=$('imageLightboxImage');if(!modal||!img)return;img.src=src;img.alt=alt;modal.classList.remove('hidden');document.body.style.overflow='hidden';$('imageLightboxClose').focus();}
 function closeImageLightbox(){const modal=$('imageLightbox');if(!modal)return;modal.classList.add('hidden');$('imageLightboxImage').removeAttribute('src');document.body.style.overflow='';}
