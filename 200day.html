@@ -288,6 +288,24 @@ function applyQuestionEdit(){const question=$('editQuestionText').value.trim(),c
 function applySolutionEdit(){const sourceUrl=$('editSolutionSourceUrl').value.trim();if(sourceUrl&&!validHttpUrl(sourceUrl)){setStatus("자료 주소는 http:// 또는 https://로 시작하는 주소를 입력해 주세요.");return false;}solutionData[editIndex].정답=$('editCorrectAnswer').value;solutionData[editIndex].자료주소=sourceUrl;LETTERS.forEach(l=>solutionData[editIndex].choices[l]={설명:document.querySelector(`[data-explain="${l}"]`)?.value||'',이미지:document.querySelector(`[data-image="${l}"]`)?.value.trim()||''});if(currentMode==='hard')hardSolutionData=solutionData;else normalSolutionData=solutionData;setStatus(`${editIndex+1}번 정답·해설이 반영되었습니다. 서버에 반영하려면 JSON 관리에서 서버 저장을 누르세요.`);return true;}
 function setStatus(msg){$('adminToast').textContent=msg;}
 async function loadWorkerJson(type){let r;try{r=await fetch(`${WORKER_URL}?type=${encodeURIComponent(type)}&t=${Date.now()}`,{cache:'no-store',headers:{'Accept':'application/json'}});}catch(e){const local=location.protocol==='file:';throw new Error(local?'다운로드한 HTML 파일을 컴퓨터에서 직접 열면 서버 보안 설정(CORS) 때문에 불러오기가 차단될 수 있습니다. HTML을 사이트에 배포한 뒤 다시 시도해 주세요.':'Worker 서버에 연결하지 못했습니다. Worker 주소, 인터넷 연결, CORS의 허용 도메인(ALLOWED_ORIGINS)을 확인해 주세요.');}const raw=await r.text();let data;try{data=JSON.parse(raw);}catch{throw new Error(`${type} 응답이 JSON 형식이 아닙니다. Worker 응답을 확인해 주세요. (HTTP ${r.status})`);}if(!r.ok)throw new Error(data.error||`${type} 불러오기 실패 (HTTP ${r.status})`);return data;}
+async function saveWorkerFile(fileType,content){
+ if(!sessionToken)throw new Error('관리자 로그인이 만료되었습니다. 다시 로그인해 주세요.');
+ let response;
+ try{
+  response=await fetch(WORKER_URL,{
+   method:'POST',
+   headers:{'Content-Type':'application/json','Accept':'application/json'},
+   body:JSON.stringify({sessionToken,action:'save',fileType,content})
+  });
+ }catch(error){
+  throw new Error(location.protocol==='file:'?'HTML 파일을 직접 열면 서버 보안 설정(CORS) 때문에 저장이 차단될 수 있습니다. 사이트에 배포한 뒤 다시 시도해 주세요.':'Worker 서버에 연결하지 못했습니다. 인터넷 연결과 Worker 설정을 확인해 주세요.');
+ }
+ const raw=await response.text();
+ let result;
+ try{result=JSON.parse(raw);}catch{throw new Error(`서버 응답이 JSON 형식이 아닙니다. (HTTP ${response.status})`);}
+ if(!response.ok||result.success!==true)throw new Error(result.error||`서버 저장 실패 (HTTP ${response.status})`);
+ return result;
+}
 async function loadModeData(mode,showMessage=true){
  const hard=mode==="hard",qType=hard?"200dayhard":"200day",sType=hard?"200dayhardSolution":"200daySolution",count=hard?10:30;
  try{
