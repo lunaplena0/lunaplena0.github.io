@@ -1549,20 +1549,28 @@ function getPoint(value, type) {
    다음 목표 표시
 ========================================================= */
 
-function getNextGoal(value, type) {
+function getNextGoal(value, type, weight) {
 
     const list = scoreTable[type];
 
-    // 점수표에서 현재 입력값보다 높은 가장 가까운 기준을 찾습니다.
+    // 현재 입력값보다 높은 가장 가까운 점수 기준을 찾습니다.
     const nextTarget = [...list]
         .reverse()
         .find(item => value < item.limit);
 
     if (!nextTarget) {
-        return "최고 단계 달성";
+        return null;
     }
 
-    return nextTarget.limit.toLocaleString("ko-KR");
+    // 다음 목표 달성 시 현재 상태보다 추가되는 가중 점수
+    const currentPoint = getPoint(value, type);
+    const additionalPoint =
+        (nextTarget.s - currentPoint) * weight;
+
+    return {
+        limit: nextTarget.limit.toLocaleString("ko-KR"),
+        additionalPoint: additionalPoint.toFixed(1)
+    };
 }
 
 
@@ -1828,21 +1836,25 @@ function updateScores() {
     ).textContent =
         `(${timeWeighted.toFixed(1)}점)`;
 
-    // 각 항목의 다음 점수 기준을 표시합니다.
+    // 다음 목표와 해당 목표 달성 시 추가되는 가중 점수를 표시합니다.
+    const viewerNextGoal = getNextGoal(viewer, "viewer", 0.4);
+    const fanNextGoal = getNextGoal(fan, "fan", 0.4);
+    const timeNextGoal = getNextGoal(time, "time", 0.2);
+
     document.getElementById("next-viewer").textContent =
-        getNextGoal(viewer, "viewer") === "최고 단계 달성"
-            ? "최고 단계 달성"
-            : `다음 목표: ${getNextGoal(viewer, "viewer")}명`;
+        viewerNextGoal
+            ? `다음 목표: ${viewerNextGoal.limit}명 (+${viewerNextGoal.additionalPoint}점)`
+            : "최고 단계 달성";
 
     document.getElementById("next-fan").textContent =
-        getNextGoal(fan, "fan") === "최고 단계 달성"
-            ? "최고 단계 달성"
-            : `다음 목표: ${getNextGoal(fan, "fan")}명`;
+        fanNextGoal
+            ? `다음 목표: ${fanNextGoal.limit}명 (+${fanNextGoal.additionalPoint}점)`
+            : "최고 단계 달성";
 
     document.getElementById("next-time").textContent =
-        getNextGoal(time, "time") === "최고 단계 달성"
-            ? "최고 단계 달성"
-            : `다음 목표: ${getNextGoal(time, "time")}시간`;
+        timeNextGoal
+            ? `다음 목표: ${timeNextGoal.limit}시간 (+${timeNextGoal.additionalPoint}점)`
+            : "최고 단계 달성";
 
 
     /* -----------------------------------------
