@@ -283,6 +283,13 @@
             font-weight: 800;
         }
 
+        .next-goal {
+            color: #64748b;
+            font-size: 10px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
         .number-input,
         .select-input {
             width: 100%;
@@ -949,6 +956,9 @@
                         >
                             (0.0점)
                         </span>
+                        <span class="next-goal" id="next-viewer">
+                            다음 목표: 10명
+                        </span>
                     </label>
 
                     <input
@@ -981,6 +991,9 @@
                         >
                             (0.0점)
                         </span>
+                        <span class="next-goal" id="next-fan">
+                            다음 목표: 1,000명
+                        </span>
                     </label>
 
                     <input
@@ -1012,6 +1025,9 @@
                             id="val-time"
                         >
                             (0.0점)
+                        </span>
+                        <span class="next-goal" id="next-time">
+                            다음 목표: 100시간
                         </span>
                     </label>
 
@@ -1529,6 +1545,27 @@ function getPoint(value, type) {
 
 
 /* =========================================================
+   다음 목표 표시
+========================================================= */
+
+function getNextGoal(value, type) {
+
+    const list = scoreTable[type];
+
+    // 점수표에서 현재 입력값보다 높은 가장 가까운 기준을 찾습니다.
+    const nextTarget = [...list]
+        .reverse()
+        .find(item => value < item.limit);
+
+    if (!nextTarget) {
+        return "최고 단계 달성";
+    }
+
+    return nextTarget.limit.toLocaleString("ko-KR");
+}
+
+
+/* =========================================================
    저장
 ========================================================= */
 
@@ -1789,6 +1826,22 @@ function updateScores() {
         "val-time"
     ).textContent =
         `(${timeWeighted.toFixed(1)}점)`;
+
+    // 각 항목의 다음 점수 기준을 표시합니다.
+    document.getElementById("next-viewer").textContent =
+        getNextGoal(viewer, "viewer") === "최고 단계 달성"
+            ? "최고 단계 달성"
+            : `다음 목표: ${getNextGoal(viewer, "viewer")}명`;
+
+    document.getElementById("next-fan").textContent =
+        getNextGoal(fan, "fan") === "최고 단계 달성"
+            ? "최고 단계 달성"
+            : `다음 목표: ${getNextGoal(fan, "fan")}명`;
+
+    document.getElementById("next-time").textContent =
+        getNextGoal(time, "time") === "최고 단계 달성"
+            ? "최고 단계 달성"
+            : `다음 목표: ${getNextGoal(time, "time")}시간`;
 
 
     /* -----------------------------------------
