@@ -665,20 +665,84 @@ footer { position:relative; z-index:1; }
 </style>
 
 <style>
-/* 모바일: 추가설명 태그가 길어져도 장르 태그는 폭이 줄어들지 않도록 고정 */
-@media (max-width:768px) {
-  .song-summary-row .song-badges .badge-genre {
-    flex:0 0 auto !important;
-    flex-shrink:0 !important;
-    width:max-content !important;
-    min-width:max-content !important;
-    max-width:none !important;
-    white-space:nowrap !important;
-  }
-  .song-summary-row .song-badges .badge-etc {
-    flex:0 1 auto !important;
-    min-width:0 !important;
-  }
+/* 노래책 제목 영역을 왼쪽 사이드바에서 살짝 위로 이동 */
+.sidebar-brand .title-summary-box {
+  transform: translateY(-3px);
+}
+
+/* 변경 기록 관리 */
+.songbook-log-toolbar {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  margin:12px 0 14px;
+  flex-wrap:wrap;
+}
+.songbook-log-actions { display:flex; gap:7px; flex-wrap:wrap; }
+.songbook-log-action {
+  border:1px solid #cfe5f3;
+  background:#f5fbff;
+  color:#287ca7;
+  border-radius:10px;
+  padding:8px 11px;
+  font-size:12px;
+  font-weight:700;
+  cursor:pointer;
+}
+.songbook-log-action.danger {
+  border-color:#f2d2d2;
+  background:#fff7f7;
+  color:#c45b65;
+}
+.songbook-log-status {
+  color:#7892a5;
+  font-size:12px;
+  line-height:1.5;
+}
+.songbook-log-list { display:flex; flex-direction:column; gap:10px; }
+.songbook-log-day {
+  border:1px solid #e1edf5;
+  border-radius:13px;
+  background:#fff;
+  padding:12px 13px;
+}
+.songbook-log-day-head {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  margin-bottom:8px;
+}
+.songbook-log-date {
+  color:#285c7d;
+  font-size:14px;
+  font-weight:800;
+}
+.songbook-log-delete {
+  border:0;
+  background:transparent;
+  color:#b66b73;
+  font-size:11px;
+  cursor:pointer;
+  padding:4px 6px;
+}
+.songbook-log-messages {
+  margin:0;
+  padding-left:18px;
+  color:#587487;
+  font-size:12px;
+  line-height:1.75;
+  overflow-wrap:anywhere;
+}
+.songbook-log-empty {
+  padding:28px 12px;
+  text-align:center;
+  color:#8aa1b1;
+  font-size:13px;
+  border:1px dashed #d7e7f1;
+  border-radius:13px;
+  background:#fbfdff;
 }
 </style>
 
@@ -714,7 +778,17 @@ footer { position:relative; z-index:1; }
  패스워드 인증
  </h3><button class="modal-close-btn" onclick="closeSongAuthModal()">✕</button></div><div id="songAuthModalContent"></div></div></div><div class="modal-overlay" id="songEditModal"><div class="filter-modal-box" style="width: 92%; max-width: 520px; max-height: 85vh;"><div class="modal-header"><h3 class="modal-title"><svg class="btn-icon-svg" viewbox="0 0 24 24"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L8 18l-4 1 1-4Z"></path></svg>
  노래 수정
- </h3><button class="modal-close-btn" onclick="closeSongEditModal()">✕</button></div><div class="edit-form-grid"><div class="edit-form-field full"><label class="edit-form-label" for="editSongTitle">노래 제목</label><input class="edit-form-input" id="editSongTitle" type="text"/></div><div class="edit-form-field full"><label class="edit-form-label" for="editSongArtist">가수</label><input class="edit-form-input" id="editSongArtist" type="text"/></div><div class="edit-form-field"><label class="edit-form-label" for="editSongGenre">장르</label><input class="edit-form-input" id="editSongGenre" placeholder="예: K팝" type="text"/></div><div class="edit-form-field"><label class="edit-form-label" for="editSongLimit">제한</label><input class="edit-form-input" id="editSongLimit" placeholder="예: [200]" type="text"/></div><div class="edit-form-field full"><label class="edit-form-label" for="editSongEtc">추가설명</label><input class="edit-form-input" id="editSongEtc" type="text"/></div></div><div class="modal-actions" style="margin-top: 14px;"><button class="modal-btn modal-btn-close" onclick="saveEditingSong()">저장</button><button class="modal-btn modal-btn-danger" onclick="deleteEditingSong()">삭제</button><button class="modal-btn modal-btn-refresh" onclick="closeSongEditModal()">취소</button></div></div></div><div class="modal-overlay" id="songManageModal"><div class="song-manage-modal-box"><div class="modal-header"><h3 class="modal-title"><svg aria-hidden="true" class="btn-icon-svg" viewbox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v17H6.5A2.5 2.5 0 0 0 4 22V5.5Z"></path><path d="M4 5.5V19.5"></path><path d="M15.8 10.2l.6 1.4 1.5.4-.9 1.2.1 1.5-1.5-.2-1.2.9-.6-1.4-1.5-.4.9-1.2-.1-1.5 1.5.2 1.2-.9Z"></path><circle cx="15.8" cy="13.2" r="1.4"></circle></svg>노래책 관리</h3><button class="modal-close-btn" onclick="closeSongManageModal()">✕</button></div><div class="song-manage-layout"><aside class="song-manage-sidebar"><button class="song-manage-nav" data-manage-view="add" onclick="handleSongManageNav(event, 'add')" type="button"><span class="song-manage-nav-icon"><svg viewbox="0 0 24 24"><path d="M12 5v14M5 12h14"></path><path d="M4 4h11l5 5v11H4z"></path></svg></span><span>노래 추가</span></button><button class="song-manage-nav" data-manage-view="json" onclick="handleSongManageNav(event, 'json')" type="button"><span class="song-manage-nav-icon"><svg viewbox="0 0 24 24"><path d="M6 3h9l4 4v14H6z"></path><path d="M15 3v5h5M9 12h6M9 16h6"></path></svg></span><span>JSON 백업하기</span></button><button class="song-manage-nav" data-manage-view="excel" onclick="handleSongManageNav(event, 'excel')" type="button"><span class="song-manage-nav-icon"><svg viewbox="0 0 24 24"><path d="M4 4h10v16H4z"></path><path d="M14 8h6v12h-6z"></path><path d="M7 8h4M7 12h4M7 16h4"></path></svg></span><span>엑셀로 받기</span></button><button class="song-manage-nav" data-manage-view="artist" onclick="handleSongManageNav(event, 'artist')" type="button"><span class="song-manage-nav-icon"><svg viewbox="0 0 24 24"><circle cx="9" cy="8" r="3"></circle><path d="M3.5 19c.6-3 2.5-4.5 5.5-4.5s4.9 1.5 5.5 4.5"></path><path d="M16 11h5M18.5 8.5v5"></path></svg></span><span>가수명 수정</span></button><button class="song-manage-nav" data-manage-view="searchdata" onclick="handleSongManageNav(event, 'searchdata')" type="button"><span class="song-manage-nav-icon"><svg viewbox="0 0 24 24"><path d="M4 5h16v14H4z"></path><path d="M7 9h6M7 13h10M7 17h6"></path><circle cx="18" cy="17" r="3"></circle><path d="m20.2 19.2 2 2"></path></svg></span><span>검색 데이터</span></button></aside><section class="song-manage-content"><div aria-hidden="true" class="song-manage-view" id="songManageHome"><div class="song-manage-welcome-icon"><svg viewbox="0 0 24 24"><path d="M9 18V5l10-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="16" cy="16" r="3"></circle><path d="M19 6v6M16 9h6"></path></svg></div><h4>노래책 관리</h4><p>왼쪽 메뉴에서 원하는 관리 기능을 선택해주세요.</p></div><div aria-hidden="true" class="song-manage-view" id="songManageJson"><div class="song-manage-view-header"><h4>JSON 백업하기</h4><p>현재 노래책에서 사용 중인 JSON을 선택하여 다운로드합니다.</p></div><div class="song-json-list"><button class="song-json-download" onclick="downloadCurrentJson('songlist')" type="button"><span><strong>songlist.json</strong><small>노래공지 · 설정여부 · 노래책 목록</small></span><svg viewbox="0 0 24 24"><path d="M12 3v12"></path><path d="m7 10 5 5 5-5"></path><path d="M5 20h14"></path></svg></button><button class="song-json-download" onclick="downloadCurrentJson('fansongstats')" type="button"><span><strong>fansongstats.json</strong><small>VOD · 등록/미등록 노래기록</small></span><svg viewbox="0 0 24 24"><path d="M12 3v12"></path><path d="m7 10 5 5 5-5"></path><path d="M5 20h14"></path></svg></button><button class="song-json-download" onclick="downloadCurrentJson('songPronunciation')" type="button"><span><strong>songPronunciation.json</strong><small>노래 · 가수 발음 검색 데이터</small></span><svg viewbox="0 0 24 24"><path d="M12 3v12"></path><path d="m7 10 5 5 5-5"></path><path d="M5 20h14"></path></svg></button></div><div class="song-manage-view-header json-replace-header"><h4>JSON 교체하기</h4><p>선택한 JSON 파일의 내용으로 서버에 저장된 데이터를 교체합니다. 교체 전에는 반드시 백업해주세요.</p></div><div class="song-json-list"><button class="song-json-download json-replace-button" onclick="replaceCurrentJson('songlist')" type="button"><span><strong>songlist.json 교체</strong><small>공지 · 설정 · 노래 목록을 파일 내용으로 교체</small></span><svg viewbox="0 0 24 24"><path d="M12 3v12"></path><path d="m7 10 5 5 5-5"></path><path d="M5 20h14"></path></svg></button><button class="song-json-download json-replace-button" onclick="replaceCurrentJson('fansongstats')" type="button"><span><strong>fansongstats.json 교체</strong><small>VOD · 등록/미등록 노래 기록을 파일 내용으로 교체</small></span><svg viewbox="0 0 24 24"><path d="M12 3v12"></path><path d="m7 10 5 5 5-5"></path><path d="M5 20h14"></path></svg></button><button class="song-json-download json-replace-button" onclick="replaceCurrentJson('songPronunciation')" type="button"><span><strong>songPronunciation.json 교체</strong><small>노래 · 가수 발음 검색 데이터를 파일 내용으로 교체</small></span><svg viewbox="0 0 24 24"><path d="M12 3v12"></path><path d="m7 10 5 5 5-5"></path><path d="M5 20h14"></path></svg></button></div></div><div aria-hidden="true" class="song-manage-view" id="songManageExcel"><div class="song-manage-view-header"><h4>엑셀로 받기</h4><p>현재 사용 중인 songlist.json을 지정한 양식의 Excel 파일로 저장합니다.</p></div><div class="song-json-list"><button class="song-json-download" onclick="downloadSongExcelFile()" type="button"><span><strong>songlist.xlsx</strong><small>songlist.json 기준 · A1:E1 notice · A2 recommendationPopupEnabled · A3:E3 title / artist / genre / limit / etc</small></span><svg viewbox="0 0 24 24"><path d="M12 3v12"></path><path d="m7 10 5 5 5-5"></path><path d="M5 20h14"></path></svg></button></div></div><div aria-hidden="true" class="song-manage-view" id="songManageArtist"><div class="song-manage-view-header"><h4>가수명 한번에 수정하기</h4><p>기존 가수명을 선택하거나 검색한 뒤 새 가수명으로 한 번에 변경합니다.</p></div><div class="artist-bulk-form"><div class="edit-form-field full"><label class="edit-form-label">기존 가수명</label><div class="song-autocomplete-wrap"><input autocomplete="off" class="edit-form-input" id="bulkArtistOld" placeholder="가수명을 검색하거나 목록에서 선택" type="text"/><div class="song-autocomplete-list" id="bulkArtistSuggestions"></div></div></div><div class="artist-bulk-preview" id="bulkArtistPreview">수정할 가수를 선택해주세요.</div><div class="edit-form-field full"><label class="edit-form-label">새 가수명</label><input class="edit-form-input" id="bulkArtistNew" placeholder="변경할 가수명을 입력하세요" type="text"/></div><div class="artist-bulk-actions"><button class="modal-btn modal-btn-close" onclick="applyBulkArtistRename()" type="button">한번에 수정</button></div></div></div><div aria-hidden="true" class="song-manage-view" id="songManageSearchData"><div class="song-manage-view-header"><h4>검색 데이터 관리</h4><p>노래 · 가수 발음 검색에 사용하는 데이터를 추가, 수정, 삭제합니다.</p></div><div class="search-data-toolbar"><div class="edit-form-field full"><label class="edit-form-label">검색</label><input autocomplete="off" class="edit-form-input" id="searchDataQuery" placeholder="원문 또는 발음으로 검색" type="text"/></div><button class="modal-btn modal-btn-close search-data-add-btn" onclick="prepareSearchDataAdd()" type="button">＋ 검색 데이터 추가</button></div><div class="search-data-editor" id="searchDataEditor"><div class="edit-form-field"><label class="edit-form-label">원문</label><input class="edit-form-input" id="searchDataKey" placeholder="노래 제목 또는 가수명" type="text"/></div><div class="edit-form-field"><label class="edit-form-label">검색 발음</label><input class="edit-form-input" id="searchDataValue" placeholder="예: 에브리띵" type="text"/></div><div class="search-data-editor-actions"><button class="modal-btn modal-btn-close" onclick="saveSearchDataEntry()" type="button">저장</button><button class="modal-btn modal-btn-refresh" onclick="cancelSearchDataEdit()" type="button">취소</button></div></div><div class="search-data-list" id="searchDataList"></div></div><div aria-hidden="true" class="song-manage-view" id="songAddModal"><div class="song-manage-view-header"><h4>노래 추가</h4><p>불러주었지만 미등록된 노래를 입력하거나 새 노래 정보를 입력할 수 있습니다.</p></div><div class="song-add-form"><div class="song-unregistered-section collapsed"><button aria-expanded="false" class="song-unregistered-header" onclick="toggleUnregisteredSongs(event)" type="button"><span class="song-unregistered-header-main"><span class="song-unregistered-title">미등록된 노래</span><span class="song-unregistered-help">클릭하면 정보로 자동 입력됩니다.</span></span><span aria-hidden="true" class="song-unregistered-toggle"><svg viewbox="0 0 24 24"><path d="m6 9 6 6 6-6"></path></svg></span></button><div class="song-unregistered-list" id="unregisteredSongList"></div></div><div class="edit-form-field full"><label class="edit-form-label">노래 제목</label><input class="edit-form-input" id="addSongTitle" type="text"/></div><div class="edit-form-field full"><label class="edit-form-label">가수</label><div class="song-autocomplete-wrap"><input autocomplete="off" class="edit-form-input" id="addSongArtist" placeholder="가수명을 입력하거나 기존 가수 선택" type="text"/><div class="song-autocomplete-list" id="addSongArtistSuggestions"></div></div></div><div class="edit-form-field"><label class="edit-form-label">장르</label><div class="song-autocomplete-wrap"><input autocomplete="off" class="edit-form-input" id="addSongGenre" placeholder="장르를 입력하거나 기존 장르 선택" type="text"/><div class="song-autocomplete-list" id="addSongGenreSuggestions"></div></div></div><div class="edit-form-field"><label class="edit-form-label">제한</label><div class="song-autocomplete-wrap"><input autocomplete="off" class="edit-form-input" id="addSongLimit" placeholder="제한을 입력하거나 기존 제한 선택" type="text"/><div class="song-autocomplete-list" id="addSongLimitSuggestions"></div></div></div><div class="edit-form-field full"><label class="edit-form-label">추가설명</label><input class="edit-form-input" id="addSongEtc" type="text"/></div></div><div class="modal-actions" style="margin-top:14px;"><button class="modal-btn modal-btn-close" onclick="addNewSong()">추가</button><button class="modal-btn modal-btn-refresh" onclick="showSongManageView('add')">취소</button></div></div></section></div></div></div><div class="modal-overlay" id="noticeEditModal"><div class="filter-modal-box" style="width:92%;max-width:620px;max-height:85vh;"><div class="modal-header"><h3 class="modal-title">✎ 노래공지 수정</h3><button class="modal-close-btn" onclick="closeNoticeEditModal()">✕</button></div><div class="edit-form-field"><label class="edit-form-label">공지 내용</label><div aria-label="공지 서식" class="notice-format-toolbar" role="toolbar"><button aria-label="굵게" class="notice-format-btn" onmousedown="event.preventDefault(); applyNoticeFormat('bold')" title="굵게" type="button"><svg aria-hidden="true" class="notice-format-icon" viewbox="0 0 24 24"><path d="M7 4h6c2.8 0 4.5 1.4 4.5 3.6 0 1.5-.7 2.6-2 3.2 1.7.5 2.7 1.7 2.7 3.7 0 3.3-2.1 5.5-5.5 5.5H7V4Zm3 2.8v3.8h2.7c1.3 0 2.2-.7 2.2-1.9 0-1.2-.9-1.9-2.2-1.9H10Zm0 6.6v3.8h3c1.4 0 2.3-.7 2.3-1.9s-.9-1.9-2.3-1.9h-3Z" fill="currentColor"></path></svg></button><button aria-label="취소선" class="notice-format-btn" onmousedown="event.preventDefault(); applyNoticeFormat('strikeThrough')" title="취소선" type="button"><svg aria-hidden="true" class="notice-format-icon" viewbox="0 0 24 24"><path d="M4 12h16" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"></path><path d="M8 8.3c.4-2 1.8-3.1 4.1-3.1 2.2 0 3.6.9 4 2.6M16 15.7c-.4 2-1.8 3.1-4 3.1-2.3 0-3.7-.9-4.1-2.6" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.8"></path></svg></button><button aria-label="밑줄" class="notice-format-btn" onmousedown="event.preventDefault(); applyNoticeFormat('underline')" title="밑줄" type="button"><svg aria-hidden="true" class="notice-format-icon" viewbox="0 0 24 24"><path d="M7 4v7a5 5 0 0 0 10 0V4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"></path><path d="M5 20h14" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"></path></svg></button><button aria-label="기울임" class="notice-format-btn" onmousedown="event.preventDefault(); applyNoticeFormat('italic')" title="기울임" type="button"><svg aria-hidden="true" class="notice-format-icon italic-format-icon" viewbox="0 0 24 24"><path d="M15.5 4H9" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2.2"></path><path d="M15 20H8.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2.2"></path><path d="M13.5 4L10.5 20" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2.2"></path></svg></button><label class="recommend-popup-setting" title="메인 화면 왼쪽 아래에 오늘의 노래 추천을 표시합니다."><input id="recommendPopupEnabled" type="checkbox"/><span>부른 노래 추천 팝업</span></label></div><div aria-multiline="true" class="notice-edit-textarea notice-edit-content" contenteditable="true" id="noticeEditTextarea" oninput="saveNoticeSelection()" onkeyup="saveNoticeSelection()" onmouseup="saveNoticeSelection()" role="textbox"></div></div><div class="modal-actions" style="margin-top:14px;"><button class="modal-btn modal-btn-close" onclick="saveNoticeEdit()">저장</button><button class="modal-btn modal-btn-refresh" onclick="cancelNoticeEdit()">취소</button></div></div></div><div class="modal-overlay" id="noticeModal"><div class="notice-modal-box"><div class="modal-header"><h3 class="modal-title"><svg class="btn-icon-svg" style="width: 18px; height: 18px;" viewbox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+ </h3><button class="modal-close-btn" onclick="closeSongEditModal()">✕</button></div><div class="edit-form-grid"><div class="edit-form-field full"><label class="edit-form-label" for="editSongTitle">노래 제목</label><input class="edit-form-input" id="editSongTitle" type="text"/></div><div class="edit-form-field full"><label class="edit-form-label" for="editSongArtist">가수</label><input class="edit-form-input" id="editSongArtist" type="text"/></div><div class="edit-form-field"><label class="edit-form-label" for="editSongGenre">장르</label><input class="edit-form-input" id="editSongGenre" placeholder="예: K팝" type="text"/></div><div class="edit-form-field"><label class="edit-form-label" for="editSongLimit">제한</label><input class="edit-form-input" id="editSongLimit" placeholder="예: [200]" type="text"/></div><div class="edit-form-field full"><label class="edit-form-label" for="editSongEtc">추가설명</label><input class="edit-form-input" id="editSongEtc" type="text"/></div></div><div class="modal-actions" style="margin-top: 14px;"><button class="modal-btn modal-btn-close" onclick="saveEditingSong()">저장</button><button class="modal-btn modal-btn-danger" onclick="deleteEditingSong()">삭제</button><button class="modal-btn modal-btn-refresh" onclick="closeSongEditModal()">취소</button></div></div></div><div class="modal-overlay" id="songManageModal"><div class="song-manage-modal-box"><div class="modal-header"><h3 class="modal-title"><svg aria-hidden="true" class="btn-icon-svg" viewbox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v17H6.5A2.5 2.5 0 0 0 4 22V5.5Z"></path><path d="M4 5.5V19.5"></path><path d="M15.8 10.2l.6 1.4 1.5.4-.9 1.2.1 1.5-1.5-.2-1.2.9-.6-1.4-1.5-.4.9-1.2-.1-1.5 1.5.2 1.2-.9Z"></path><circle cx="15.8" cy="13.2" r="1.4"></circle></svg>노래책 관리</h3><button class="modal-close-btn" onclick="closeSongManageModal()">✕</button></div><div class="song-manage-layout"><aside class="song-manage-sidebar"><button class="song-manage-nav" data-manage-view="add" onclick="handleSongManageNav(event, 'add')" type="button"><span class="song-manage-nav-icon"><svg viewbox="0 0 24 24"><path d="M12 5v14M5 12h14"></path><path d="M4 4h11l5 5v11H4z"></path></svg></span><span>노래 추가</span></button><button class="song-manage-nav" data-manage-view="json" onclick="handleSongManageNav(event, 'json')" type="button"><span class="song-manage-nav-icon"><svg viewbox="0 0 24 24"><path d="M6 3h9l4 4v14H6z"></path><path d="M15 3v5h5M9 12h6M9 16h6"></path></svg></span><span>JSON 백업하기</span></button><button class="song-manage-nav" data-manage-view="excel" onclick="handleSongManageNav(event, 'excel')" type="button"><span class="song-manage-nav-icon"><svg viewbox="0 0 24 24"><path d="M4 4h10v16H4z"></path><path d="M14 8h6v12h-6z"></path><path d="M7 8h4M7 12h4M7 16h4"></path></svg></span><span>엑셀로 받기</span></button><button class="song-manage-nav" data-manage-view="artist" onclick="handleSongManageNav(event, 'artist')" type="button"><span class="song-manage-nav-icon"><svg viewbox="0 0 24 24"><circle cx="9" cy="8" r="3"></circle><path d="M3.5 19c.6-3 2.5-4.5 5.5-4.5s4.9 1.5 5.5 4.5"></path><path d="M16 11h5M18.5 8.5v5"></path></svg></span><span>가수명 수정</span></button><button class="song-manage-nav" data-manage-view="logs" onclick="handleSongManageNav(event, 'logs')" type="button"><span class="song-manage-nav-icon"><svg viewbox="0 0 24 24"><path d="M5 4h14v16H5z"></path><path d="M8 8h8M8 12h8M8 16h5"></path></svg></span><span>변경 기록</span></button><button class="song-manage-nav" data-manage-view="searchdata" onclick="handleSongManageNav(event, 'searchdata')" type="button"><span class="song-manage-nav-icon"><svg viewbox="0 0 24 24"><path d="M4 5h16v14H4z"></path><path d="M7 9h6M7 13h10M7 17h6"></path><circle cx="18" cy="17" r="3"></circle><path d="m20.2 19.2 2 2"></path></svg></span><span>검색 데이터</span></button></aside><section class="song-manage-content"><div aria-hidden="true" class="song-manage-view" id="songManageHome"><div class="song-manage-welcome-icon"><svg viewbox="0 0 24 24"><path d="M9 18V5l10-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="16" cy="16" r="3"></circle><path d="M19 6v6M16 9h6"></path></svg></div><h4>노래책 관리</h4><p>왼쪽 메뉴에서 원하는 관리 기능을 선택해주세요.</p></div><div aria-hidden="true" class="song-manage-view" id="songManageJson"><div class="song-manage-view-header"><h4>JSON 백업하기</h4><p>현재 노래책에서 사용 중인 JSON을 선택하여 다운로드합니다.</p></div><div class="song-json-list"><button class="song-json-download" onclick="downloadCurrentJson('songlist')" type="button"><span><strong>songlist.json</strong><small>노래공지 · 설정여부 · 노래책 목록</small></span><svg viewbox="0 0 24 24"><path d="M12 3v12"></path><path d="m7 10 5 5 5-5"></path><path d="M5 20h14"></path></svg></button><button class="song-json-download" onclick="downloadCurrentJson('fansongstats')" type="button"><span><strong>fansongstats.json</strong><small>VOD · 등록/미등록 노래기록</small></span><svg viewbox="0 0 24 24"><path d="M12 3v12"></path><path d="m7 10 5 5 5-5"></path><path d="M5 20h14"></path></svg></button><button class="song-json-download" onclick="downloadCurrentJson('songPronunciation')" type="button"><span><strong>songPronunciation.json</strong><small>노래 · 가수 발음 검색 데이터</small></span><svg viewbox="0 0 24 24"><path d="M12 3v12"></path><path d="m7 10 5 5 5-5"></path><path d="M5 20h14"></path></svg></button></div><div class="song-manage-view-header json-replace-header"><h4>JSON 교체하기</h4><p>선택한 JSON 파일의 내용으로 서버에 저장된 데이터를 교체합니다. 교체 전에는 반드시 백업해주세요.</p></div><div class="song-json-list"><button class="song-json-download json-replace-button" onclick="replaceCurrentJson('songlist')" type="button"><span><strong>songlist.json 교체</strong><small>공지 · 설정 · 노래 목록을 파일 내용으로 교체</small></span><svg viewbox="0 0 24 24"><path d="M12 3v12"></path><path d="m7 10 5 5 5-5"></path><path d="M5 20h14"></path></svg></button><button class="song-json-download json-replace-button" onclick="replaceCurrentJson('fansongstats')" type="button"><span><strong>fansongstats.json 교체</strong><small>VOD · 등록/미등록 노래 기록을 파일 내용으로 교체</small></span><svg viewbox="0 0 24 24"><path d="M12 3v12"></path><path d="m7 10 5 5 5-5"></path><path d="M5 20h14"></path></svg></button><button class="song-json-download json-replace-button" onclick="replaceCurrentJson('songPronunciation')" type="button"><span><strong>songPronunciation.json 교체</strong><small>노래 · 가수 발음 검색 데이터를 파일 내용으로 교체</small></span><svg viewbox="0 0 24 24"><path d="M12 3v12"></path><path d="m7 10 5 5 5-5"></path><path d="M5 20h14"></path></svg></button></div></div><div aria-hidden="true" class="song-manage-view" id="songManageExcel"><div class="song-manage-view-header"><h4>엑셀로 받기</h4><p>현재 사용 중인 songlist.json을 지정한 양식의 Excel 파일로 저장합니다.</p></div><div class="song-json-list"><button class="song-json-download" onclick="downloadSongExcelFile()" type="button"><span><strong>songlist.xlsx</strong><small>songlist.json 기준 · A1:E1 notice · A2 recommendationPopupEnabled · A3:E3 title / artist / genre / limit / etc</small></span><svg viewbox="0 0 24 24"><path d="M12 3v12"></path><path d="m7 10 5 5 5-5"></path><path d="M5 20h14"></path></svg></button></div></div><div aria-hidden="true" class="song-manage-view" id="songManageArtist"><div class="song-manage-view-header"><h4>가수명 한번에 수정하기</h4><p>기존 가수명을 선택하거나 검색한 뒤 새 가수명으로 한 번에 변경합니다.</p></div><div class="artist-bulk-form"><div class="edit-form-field full"><label class="edit-form-label">기존 가수명</label><div class="song-autocomplete-wrap"><input autocomplete="off" class="edit-form-input" id="bulkArtistOld" placeholder="가수명을 검색하거나 목록에서 선택" type="text"/><div class="song-autocomplete-list" id="bulkArtistSuggestions"></div></div></div><div class="artist-bulk-preview" id="bulkArtistPreview">수정할 가수를 선택해주세요.</div><div class="edit-form-field full"><label class="edit-form-label">새 가수명</label><input class="edit-form-input" id="bulkArtistNew" placeholder="변경할 가수명을 입력하세요" type="text"/></div><div class="artist-bulk-actions"><button class="modal-btn modal-btn-close" onclick="applyBulkArtistRename()" type="button">한번에 수정</button></div></div></div><div aria-hidden="true" class="song-manage-view" id="songManageSearchData"><div class="song-manage-view-header"><h4>검색 데이터 관리</h4><p>노래 · 가수 발음 검색에 사용하는 데이터를 추가, 수정, 삭제합니다.</p></div><div class="search-data-toolbar"><div class="edit-form-field full"><label class="edit-form-label">검색</label><input autocomplete="off" class="edit-form-input" id="searchDataQuery" placeholder="원문 또는 발음으로 검색" type="text"/></div><button class="modal-btn modal-btn-close search-data-add-btn" onclick="prepareSearchDataAdd()" type="button">＋ 검색 데이터 추가</button></div><div class="search-data-editor" id="searchDataEditor"><div class="edit-form-field"><label class="edit-form-label">원문</label><input class="edit-form-input" id="searchDataKey" placeholder="노래 제목 또는 가수명" type="text"/></div><div class="edit-form-field"><label class="edit-form-label">검색 발음</label><input class="edit-form-input" id="searchDataValue" placeholder="예: 에브리띵" type="text"/></div><div class="search-data-editor-actions"><button class="modal-btn modal-btn-close" onclick="saveSearchDataEntry()" type="button">저장</button><button class="modal-btn modal-btn-refresh" onclick="cancelSearchDataEdit()" type="button">취소</button></div></div><div class="search-data-list" id="searchDataList"></div></div><div aria-hidden="true" class="song-manage-view" id="songManageLogs">
+<div class="song-manage-view-header"><h4>노래책 변경 기록</h4><p>노래 추가·삭제, 노래기록 변경, 미등록곡 이동 및 JSON 백업 내역을 날짜별로 확인합니다.</p></div>
+<div class="songbook-log-toolbar">
+  <span class="songbook-log-status" id="songbookLogStatus">변경 기록을 불러오는 중...</span>
+  <div class="songbook-log-actions">
+    <button class="songbook-log-action" onclick="renderSongbookLogs()" type="button">새로고침</button>
+    <button class="songbook-log-action danger" id="clearSongbookLogsButton" onclick="clearSongbookLogs()" type="button">전체 기록 삭제</button>
+  </div>
+</div>
+<div class="songbook-log-list" id="songbookLogList"><div class="songbook-log-empty">변경 기록을 불러오는 중...</div></div>
+</div><div aria-hidden="true" class="song-manage-view" id="songAddModal"><div class="song-manage-view-header"><h4>노래 추가</h4><p>불러주었지만 미등록된 노래를 입력하거나 새 노래 정보를 입력할 수 있습니다.</p></div><div class="song-add-form"><div class="song-unregistered-section collapsed"><button aria-expanded="false" class="song-unregistered-header" onclick="toggleUnregisteredSongs(event)" type="button"><span class="song-unregistered-header-main"><span class="song-unregistered-title">미등록된 노래</span><span class="song-unregistered-help">클릭하면 정보로 자동 입력됩니다.</span></span><span aria-hidden="true" class="song-unregistered-toggle"><svg viewbox="0 0 24 24"><path d="m6 9 6 6 6-6"></path></svg></span></button><div class="song-unregistered-list" id="unregisteredSongList"></div></div><div class="edit-form-field full"><label class="edit-form-label">노래 제목</label><input class="edit-form-input" id="addSongTitle" type="text"/></div><div class="edit-form-field full"><label class="edit-form-label">가수</label><div class="song-autocomplete-wrap"><input autocomplete="off" class="edit-form-input" id="addSongArtist" placeholder="가수명을 입력하거나 기존 가수 선택" type="text"/><div class="song-autocomplete-list" id="addSongArtistSuggestions"></div></div></div><div class="edit-form-field"><label class="edit-form-label">장르</label><div class="song-autocomplete-wrap"><input autocomplete="off" class="edit-form-input" id="addSongGenre" placeholder="장르를 입력하거나 기존 장르 선택" type="text"/><div class="song-autocomplete-list" id="addSongGenreSuggestions"></div></div></div><div class="edit-form-field"><label class="edit-form-label">제한</label><div class="song-autocomplete-wrap"><input autocomplete="off" class="edit-form-input" id="addSongLimit" placeholder="제한을 입력하거나 기존 제한 선택" type="text"/><div class="song-autocomplete-list" id="addSongLimitSuggestions"></div></div></div><div class="edit-form-field full"><label class="edit-form-label">추가설명</label><input class="edit-form-input" id="addSongEtc" type="text"/></div></div><div class="modal-actions" style="margin-top:14px;"><button class="modal-btn modal-btn-close" onclick="addNewSong()">추가</button><button class="modal-btn modal-btn-refresh" onclick="showSongManageView('add')">취소</button></div></div></section></div></div></div><div class="modal-overlay" id="noticeEditModal"><div class="filter-modal-box" style="width:92%;max-width:620px;max-height:85vh;"><div class="modal-header"><h3 class="modal-title">✎ 노래공지 수정</h3><button class="modal-close-btn" onclick="closeNoticeEditModal()">✕</button></div><div class="edit-form-field"><label class="edit-form-label">공지 내용</label><div aria-label="공지 서식" class="notice-format-toolbar" role="toolbar"><button aria-label="굵게" class="notice-format-btn" onmousedown="event.preventDefault(); applyNoticeFormat('bold')" title="굵게" type="button"><svg aria-hidden="true" class="notice-format-icon" viewbox="0 0 24 24"><path d="M7 4h6c2.8 0 4.5 1.4 4.5 3.6 0 1.5-.7 2.6-2 3.2 1.7.5 2.7 1.7 2.7 3.7 0 3.3-2.1 5.5-5.5 5.5H7V4Zm3 2.8v3.8h2.7c1.3 0 2.2-.7 2.2-1.9 0-1.2-.9-1.9-2.2-1.9H10Zm0 6.6v3.8h3c1.4 0 2.3-.7 2.3-1.9s-.9-1.9-2.3-1.9h-3Z" fill="currentColor"></path></svg></button><button aria-label="취소선" class="notice-format-btn" onmousedown="event.preventDefault(); applyNoticeFormat('strikeThrough')" title="취소선" type="button"><svg aria-hidden="true" class="notice-format-icon" viewbox="0 0 24 24"><path d="M4 12h16" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"></path><path d="M8 8.3c.4-2 1.8-3.1 4.1-3.1 2.2 0 3.6.9 4 2.6M16 15.7c-.4 2-1.8 3.1-4 3.1-2.3 0-3.7-.9-4.1-2.6" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.8"></path></svg></button><button aria-label="밑줄" class="notice-format-btn" onmousedown="event.preventDefault(); applyNoticeFormat('underline')" title="밑줄" type="button"><svg aria-hidden="true" class="notice-format-icon" viewbox="0 0 24 24"><path d="M7 4v7a5 5 0 0 0 10 0V4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"></path><path d="M5 20h14" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2"></path></svg></button><button aria-label="기울임" class="notice-format-btn" onmousedown="event.preventDefault(); applyNoticeFormat('italic')" title="기울임" type="button"><svg aria-hidden="true" class="notice-format-icon italic-format-icon" viewbox="0 0 24 24"><path d="M15.5 4H9" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2.2"></path><path d="M15 20H8.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2.2"></path><path d="M13.5 4L10.5 20" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="2.2"></path></svg></button><label class="recommend-popup-setting" title="메인 화면 왼쪽 아래에 오늘의 노래 추천을 표시합니다."><input id="recommendPopupEnabled" type="checkbox"/><span>부른 노래 추천 팝업</span></label></div><div aria-multiline="true" class="notice-edit-textarea notice-edit-content" contenteditable="true" id="noticeEditTextarea" oninput="saveNoticeSelection()" onkeyup="saveNoticeSelection()" onmouseup="saveNoticeSelection()" role="textbox"></div></div><div class="modal-actions" style="margin-top:14px;"><button class="modal-btn modal-btn-close" onclick="saveNoticeEdit()">저장</button><button class="modal-btn modal-btn-refresh" onclick="cancelNoticeEdit()">취소</button></div></div></div><div class="modal-overlay" id="noticeModal"><div class="notice-modal-box"><div class="modal-header"><h3 class="modal-title"><svg class="btn-icon-svg" style="width: 18px; height: 18px;" viewbox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
  노래공지
  </h3><button class="modal-close-btn" onclick="closeNoticeModal()">✕</button></div><div class="notice-modal-content" id="noticeModalContent">로딩중입니다...</div></div></div><div class="modal-overlay" id="siteInfoModal" onclick="if(event.target === this) closeSiteInfoModal()"><div class="notice-modal-box"><div class="modal-header"><h3 class="modal-title">페이지 안내사항
  </h3><button aria-label="페이지 안내사항 닫기" class="modal-close-btn" onclick="closeSiteInfoModal()">✕</button></div><div class="notice-modal-content"><p class="site-info-intro"><strong>바다비 팬 제작 노래책은 팬이 직접 만든 비공식 팬 사이트입니다.</strong><br/>바다비 공식 사이트나 공식 운영 채널이 아니며, 팬들을 위해 노래 목록과 관련 정보를 편하게 볼 수 있도록 만든 팬 사이트입니다.</p><ul class="site-info-list"><li><strong>노래 목록이나 사이트 내용에 수정하거나 추가했으면 하는 내용</strong>이 있다면 팬카페를 통해 알려주세요.</li><li><strong>관리자 로그인</strong>을 사용하는 경우, 다음에 다시 방문했을 때 로그인 상태를 유지할 수 있도록 로그인에 필요한 정보가 사용자의 브라우저에 저장될 수 있습니다.</li><li>로그인 보안을 위해 <strong>Cloudflare Turnstile</strong>을 사용하여 자동 프로그램이나 봇에 의한 비정상적인 로그인 시도를 확인합니다.</li><li>반복적인 로그인 실패를 막기 위해 브라우저에 <strong>개인을 직접 알아볼 수 없는 임의의 식별값</strong>이 만들어질 수 있습니다. 이 값은 이름이나 연락처 등을 확인하기 위한 것이 아니며, <strong>로그인 제한을 위해 IP 주소를 별도의 식별값으로 저장하는 방식은 사용하지 않습니다.</strong></li><li>관리자 로그인에 사용하는 <strong>비밀번호 자체는 공개된 사이트에 저장하지 않습니다.</strong> 로그인에 성공하면 비밀번호 대신 별도의 보안 토큰을 사용하여 로그인 상태를 유지합니다.</li><li>사이트의 안정적인 운영과 보안을 위해 <strong>Cloudflare 등의 서비스</strong>를 이용하며, 사이트를 이용하는 과정에서 접속·보안·서비스 운영에 필요한 정보가 해당 서비스의 정책에 따라 처리될 수 있습니다.</li><li>사이트의 기능이나 내용은 운영 상황에 따라 <strong>별도의 안내 없이 변경되거나 수정될 수 있습니다.</strong></li></ul></div></div></div>
@@ -1142,6 +1216,205 @@ footer { position:relative; z-index:1; }
             fansongStatsData.unregisteredSongs = list.filter(item => songIdentity(item) !== songIdentity(song));
         }
 
+        function getSongbookLogDate() {
+            const parts = new Intl.DateTimeFormat("en-CA", {
+                timeZone: "Asia/Seoul", year: "numeric", month: "2-digit", day: "2-digit"
+            }).formatToParts(new Date());
+            const values = {};
+            parts.forEach(part => { if (part.type !== "literal") values[part.type] = part.value; });
+            return `${values.year}-${values.month}-${values.day}`;
+        }
+
+        function formatSongbookLogDate(date) {
+            const match = String(date || "").match(/^(\d{4})-(\d{2})-(\d{2})$/);
+            return match ? `${match[2]}월 ${match[3]}일` : String(date || "");
+        }
+
+        function hasSongbookLogEvent(event) {
+            return !!event && (
+                Number(event.recordAdded) > 0 ||
+                Number(event.songAdded) > 0 ||
+                Number(event.songDeleted) > 0 ||
+                (Array.isArray(event.movedToUnregistered) && event.movedToUnregistered.length > 0) ||
+                (Array.isArray(event.movedToRegistered) && event.movedToRegistered.length > 0) ||
+                event.backup === true
+            );
+        }
+
+        async function appendSongbookLogEvent(event) {
+            if (!hasSongbookLogEvent(event) || !isSongAuthenticated || songUserRole !== "admin") return;
+            const response = await fetch(`${WORKER_URL}?type=songbooklog&t=${Date.now()}`, { cache: "no-store" });
+            if (!response.ok) throw new Error("변경 기록을 불러오지 못했습니다.");
+            const current = await response.json().catch(() => ({}));
+            const days = Array.isArray(current.days) ? current.days : [];
+            const date = getSongbookLogDate();
+            let day = days.find(item => item && item.date === date);
+            if (!day) {
+                day = {
+                    date, recordAdded: 0, songAdded: 0, songDeleted: 0,
+                    movedToUnregistered: [], movedToRegistered: [], backup: false
+                };
+                days.push(day);
+            }
+            day.recordAdded = Math.max(0, Number(day.recordAdded) || 0) + Math.max(0, Number(event.recordAdded) || 0);
+            day.songAdded = Math.max(0, Number(day.songAdded) || 0) + Math.max(0, Number(event.songAdded) || 0);
+            day.songDeleted = Math.max(0, Number(day.songDeleted) || 0) + Math.max(0, Number(event.songDeleted) || 0);
+            day.movedToUnregistered = Array.isArray(day.movedToUnregistered) ? day.movedToUnregistered : [];
+            day.movedToRegistered = Array.isArray(day.movedToRegistered) ? day.movedToRegistered : [];
+            if (Array.isArray(event.movedToUnregistered)) day.movedToUnregistered.push(...event.movedToUnregistered.map(String));
+            if (Array.isArray(event.movedToRegistered)) day.movedToRegistered.push(...event.movedToRegistered.map(String));
+            day.backup = day.backup === true || event.backup === true;
+            days.sort((a, b) => String(b.date).localeCompare(String(a.date)));
+            await saveWorkerFile("songbooklog", { days });
+            const view = document.getElementById("songManageLogs");
+            if (view && view.classList.contains("active")) renderSongbookLogs();
+        }
+
+        function getSongbookLogMessages(day) {
+            const messages = [];
+            const dateText = formatSongbookLogDate(day.date);
+            const records = Number(day.recordAdded) || 0;
+            const added = Number(day.songAdded) || 0;
+            const deleted = Number(day.songDeleted) || 0;
+            if (records > 0 && added > 0 && deleted > 0) {
+                messages.push(`${dateText}에 노래기록 ${records}개 노래 ${added}곡이 추가 되었고 노래 ${deleted}곡이 삭제되었습니다`);
+            } else {
+                if (records > 0) messages.push(`${dateText}에 노래기록 ${records}개가 추가되었습니다`);
+                if (added > 0) messages.push(`${dateText}에 노래 ${added}곡이 추가되었습니다`);
+                if (deleted > 0) messages.push(`${dateText}에 노래 ${deleted}곡이 삭제되었습니다`);
+            }
+            const toUnregistered = Array.isArray(day.movedToUnregistered) ? day.movedToUnregistered : [];
+            if (toUnregistered.length) {
+                messages.push(`노래책에서 노래 ${toUnregistered.length}개가 미등록곡으로 이동되었습니다: ${toUnregistered.join(", ")}`);
+            }
+            const toRegistered = Array.isArray(day.movedToRegistered) ? day.movedToRegistered : [];
+            if (toRegistered.length) {
+                messages.push(`미등록곡에서 ${toRegistered.length}곡이 등록곡으로 이동되었습니다: ${toRegistered.join(", ")}`);
+            }
+            if (day.backup === true) messages.push(`JSON을 ${dateText}에 백업했습니다`);
+            return messages;
+        }
+
+        async function renderSongbookLogs() {
+            const list = document.getElementById("songbookLogList");
+            const status = document.getElementById("songbookLogStatus");
+            const clearButton = document.getElementById("clearSongbookLogsButton");
+            if (!list) return;
+            if (status) status.textContent = "변경 기록을 불러오는 중...";
+            if (clearButton) clearButton.style.display = songUserRole === "admin" ? "" : "none";
+            list.innerHTML = '<div class="songbook-log-empty">변경 기록을 불러오는 중...</div>';
+            try {
+                const response = await fetch(`${WORKER_URL}?type=songbooklog&t=${Date.now()}`, { cache: "no-store" });
+                if (!response.ok) throw new Error("변경 기록 조회에 실패했습니다.");
+                const data = await response.json().catch(() => ({}));
+                const days = Array.isArray(data.days) ? data.days.slice() : [];
+                days.sort((a, b) => String(b.date).localeCompare(String(a.date)));
+                list.innerHTML = "";
+                if (!days.length) {
+                    list.innerHTML = '<div class="songbook-log-empty">아직 기록된 변경 내역이 없습니다.</div>';
+                    if (status) status.textContent = "저장된 변경 기록이 없습니다.";
+                    return;
+                }
+                days.forEach(day => {
+                    const messages = getSongbookLogMessages(day);
+                    if (!messages.length) return;
+                    const card = document.createElement("section");
+                    card.className = "songbook-log-day";
+                    const head = document.createElement("div");
+                    head.className = "songbook-log-day-head";
+                    const date = document.createElement("strong");
+                    date.className = "songbook-log-date";
+                    date.textContent = `${day.date || ""} · ${formatSongbookLogDate(day.date)}`;
+                    head.appendChild(date);
+                    if (songUserRole === "admin") {
+                        const remove = document.createElement("button");
+                        remove.type = "button";
+                        remove.className = "songbook-log-delete";
+                        remove.textContent = "이 날짜 기록 삭제";
+                        remove.addEventListener("click", () => deleteSongbookLogDay(day.date));
+                        head.appendChild(remove);
+                    }
+                    const ul = document.createElement("ul");
+                    ul.className = "songbook-log-messages";
+                    messages.forEach(message => {
+                        const li = document.createElement("li");
+                        li.textContent = message;
+                        ul.appendChild(li);
+                    });
+                    card.append(head, ul);
+                    list.appendChild(card);
+                });
+                if (!list.children.length) list.innerHTML = '<div class="songbook-log-empty">표시할 변경 내역이 없습니다.</div>';
+                if (status) status.textContent = `총 ${days.length}일의 변경 기록`;
+            } catch (error) {
+                console.error("변경 기록 조회 실패:", error);
+                list.innerHTML = '<div class="songbook-log-empty">변경 기록을 불러오지 못했습니다. 잠시 후 새로고침해주세요.</div>';
+                if (status) status.textContent = error.message || "조회 실패";
+            }
+        }
+
+        async function saveSongbookLogDays(days) {
+            if (!isSongAuthenticated || songUserRole !== "admin") {
+                throw new Error("변경 기록을 관리할 권한이 없습니다.");
+            }
+            await saveWorkerFile("songbooklog", { days });
+        }
+
+        async function deleteSongbookLogDay(date) {
+            if (songUserRole !== "admin" || !confirm(`${formatSongbookLogDate(date)} 변경 기록을 삭제할까요?`)) return;
+            try {
+                const response = await fetch(`${WORKER_URL}?type=songbooklog&t=${Date.now()}`, { cache: "no-store" });
+                if (!response.ok) throw new Error("변경 기록 조회에 실패했습니다.");
+                const data = await response.json().catch(() => ({}));
+                const days = (Array.isArray(data.days) ? data.days : []).filter(item => item.date !== date);
+                await saveSongbookLogDays(days);
+                await renderSongbookLogs();
+                showToastMessage("선택한 날짜의 변경 기록을 삭제했습니다.");
+            } catch (error) {
+                showToastMessage(error.message || "변경 기록 삭제에 실패했습니다.");
+            }
+        }
+
+        async function clearSongbookLogs() {
+            if (songUserRole !== "admin" || !confirm("저장된 노래책 변경 기록을 모두 삭제할까요?")) return;
+            try {
+                await saveSongbookLogDays([]);
+                await renderSongbookLogs();
+                showToastMessage("노래책 변경 기록을 모두 삭제했습니다.");
+            } catch (error) {
+                showToastMessage(error.message || "변경 기록 삭제에 실패했습니다.");
+            }
+        }
+
+        function countAddedSongRecords(oldStats, newStats) {
+            const collect = stats => {
+                const keys = new Set();
+                ["registeredSongs", "unregisteredSongs"].forEach(name => {
+                    (Array.isArray(stats?.[name]) ? stats[name] : []).forEach(song => {
+                        const identity = songIdentity(song);
+                        (Array.isArray(song?.dateTimes) ? song.dateTimes : []).forEach(record => {
+                            keys.add(`${identity}::${JSON.stringify(record)}`);
+                        });
+                    });
+                });
+                return keys;
+            };
+            const before = collect(oldStats);
+            const after = collect(newStats);
+            let count = 0;
+            after.forEach(key => { if (!before.has(key)) count++; });
+            return count;
+        }
+
+        function getSonglistReplacementLog(oldSongs, newSongs) {
+            const before = new Set((Array.isArray(oldSongs) ? oldSongs : []).map(songIdentity));
+            const after = new Set((Array.isArray(newSongs) ? newSongs : []).map(songIdentity));
+            let songAdded = 0, songDeleted = 0;
+            after.forEach(key => { if (!before.has(key)) songAdded++; });
+            before.forEach(key => { if (!after.has(key)) songDeleted++; });
+            return { songAdded, songDeleted };
+        }
+
         async function saveWorkerFile(fileType, content) {
             if (!songSessionToken || !isSongAuthenticated) {
                 throw new Error("로그인 세션이 없습니다. 다시 로그인해주세요.");
@@ -1209,7 +1482,7 @@ footer { position:relative; z-index:1; }
             }).catch(error=>{console.error("전체 JSON 저장 실패:",error);showToastMessage(error.message||"전체 JSON 저장에 실패했습니다.");}).finally(()=>{setTimeout(()=>{isSongLocallyMutating=false},1000)});
         }
 
-        function enqueueSongServerSave() {
+        function enqueueSongServerSave(logEvent = null) {
             isSongLocallyMutating = true;
             songSaveQueue = songSaveQueue.then(async () => {
                 if (!isSongAuthenticated || !songSessionToken) {
@@ -1229,11 +1502,31 @@ footer { position:relative; z-index:1; }
 
                 await saveWorkerFile("songlist", songListContent);
                 await saveWorkerFile("fansongstats", statsContent);
+                if (hasSongbookLogEvent(logEvent)) {
+                    try {
+                        await appendSongbookLogEvent(logEvent);
+                    } catch (logError) {
+                        console.error("노래책 변경 기록 저장 실패:", logError);
+                        showToastMessage("노래책 데이터는 저장했지만 변경 기록 저장에 실패했습니다.");
+                    }
+                }
             }).catch(error => {
                 console.error("노래책/팬송 통계 저장 실패:", error);
                 showToastMessage(error.message || "서버 저장에 실패했습니다.");
             }).finally(() => {
                 setTimeout(() => { isSongLocallyMutating = false; }, 1000);
+            });
+        }
+
+        function enqueueSongbookLogSave(event) {
+            if (!hasSongbookLogEvent(event) || !isSongAuthenticated || songUserRole !== "admin") return;
+            songSaveQueue = songSaveQueue.then(async () => {
+                try {
+                    await appendSongbookLogEvent(event);
+                } catch (error) {
+                    console.error("노래책 변경 기록 저장 실패:", error);
+                    showToastMessage("변경 기록 저장에 실패했습니다.");
+                }
             });
         }
 
@@ -1314,7 +1607,7 @@ footer { position:relative; z-index:1; }
             renderAllSongs();
             renderUnregisteredSongs();
             animateNumber("animSongCount", allSongs.length);
-            enqueueSongServerSave();
+            enqueueSongServerSave({ songDeleted: 1, movedToUnregistered: movedToUnregistered ? [title] : [] });
 
             if (movedToUnregistered) {
                 showToastMessage("노래책에서 삭제하고 팬송 통계는 미등록 곡으로 이동했습니다.");
@@ -1420,7 +1713,7 @@ footer { position:relative; z-index:1; }
             modal.querySelectorAll(".song-manage-nav").forEach(btn=>btn.classList.remove("active"));
         }
         function showSongManageView(view){
-            const targetId=view==="home"?"songManageHome":view==="json"?"songManageJson":view==="excel"?"songManageExcel":view==="artist"?"songManageArtist":view==="searchdata"?"songManageSearchData":"songAddModal";
+            const targetId=view==="home"?"songManageHome":view==="json"?"songManageJson":view==="excel"?"songManageExcel":view==="artist"?"songManageArtist":view==="searchdata"?"songManageSearchData":view==="logs"?"songManageLogs":"songAddModal";
             const modal=document.getElementById("songManageModal");
             const target=document.getElementById(targetId);
             if(!modal||!target)return;
@@ -1444,6 +1737,7 @@ footer { position:relative; z-index:1; }
                 if(q&&!q.dataset.ready){q.dataset.ready="true";q.addEventListener("input",renderSearchDataList)}
                 renderSearchDataList();
             }
+            if(view==="logs")renderSongbookLogs();
             if(view==="add"){
                 renderUnregisteredSongs();
                 const section=modal.querySelector("#songManageModal #songAddModal .song-unregistered-section");
@@ -1467,7 +1761,7 @@ footer { position:relative; z-index:1; }
         function toggleUnregisteredSongs(event){if(event){event.preventDefault();event.stopPropagation()}const section=document.querySelector("#songManageModal #songAddModal .song-unregistered-section");if(!section)return;const collapsed=section.classList.toggle("collapsed");const button=section.querySelector(".song-unregistered-header");if(button)button.setAttribute("aria-expanded",String(!collapsed))}
          function openSongAddFromManage(){openSongAddModal()}
          function downloadBlobFile(blob,filename){const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000)}
-         function downloadCurrentJson(type){if(!isSongAuthenticated){openSongAuthModal();return}let content,filename;if(type==="songlist"){filename="songlist.json";content={notice:currentNoticeText||"",recommendationPopupEnabled:!!recommendationPopupEnabled,songs:getEditableSongContent()};}else if(type==="fansongstats"){filename="fansongstats.json";content={vodSources:Array.isArray(fansongStatsData.vodSources)?fansongStatsData.vodSources:[],registeredSongs:Array.isArray(fansongStatsData.registeredSongs)?fansongStatsData.registeredSongs:[],unregisteredSongs:Array.isArray(fansongStatsData.unregisteredSongs)?fansongStatsData.unregisteredSongs:[]};}else if(type==="songPronunciation"){filename="songPronunciation.json";content=getCurrentPronunciationContent();}else{return}downloadBlobFile(new Blob([JSON.stringify(content,null,2)],{type:"application/json;charset=utf-8"}),filename);showToastMessage(`${filename} 파일을 다운로드했습니다.`)}
+         function downloadCurrentJson(type){if(!isSongAuthenticated){openSongAuthModal();return}let content,filename;if(type==="songlist"){filename="songlist.json";content={notice:currentNoticeText||"",recommendationPopupEnabled:!!recommendationPopupEnabled,songs:getEditableSongContent()};}else if(type==="fansongstats"){filename="fansongstats.json";content={vodSources:Array.isArray(fansongStatsData.vodSources)?fansongStatsData.vodSources:[],registeredSongs:Array.isArray(fansongStatsData.registeredSongs)?fansongStatsData.registeredSongs:[],unregisteredSongs:Array.isArray(fansongStatsData.unregisteredSongs)?fansongStatsData.unregisteredSongs:[]};}else if(type==="songPronunciation"){filename="songPronunciation.json";content=getCurrentPronunciationContent();}else{return}downloadBlobFile(new Blob([JSON.stringify(content,null,2)],{type:"application/json;charset=utf-8"}),filename);enqueueSongbookLogSave({backup:true});showToastMessage(`${filename} 파일을 다운로드했습니다.`)}
         function replaceCurrentJson(type){
             if(!isSongAuthenticated){openSongAuthModal();return}
             const fileNames={songlist:"songlist.json",fansongstats:"fansongstats.json",songPronunciation:"songPronunciation.json"};
@@ -1498,7 +1792,21 @@ footer { position:relative; z-index:1; }
                     const selectedFile=file.name||fileName;
                     const confirmed=confirm(`${fileName} 데이터를 교체할까요?\n\n선택한 파일: ${selectedFile}\n\n현재 서버 데이터가 이 파일의 내용으로 완전히 교체됩니다. 이 작업은 되돌릴 수 없으니 백업 여부를 확인해주세요.`);
                     if(!confirmed)return;
+                    let replacementLog = null;
+                    if (type === "songlist") {
+                        replacementLog = getSonglistReplacementLog(allSongs, content.songs);
+                    } else if (type === "fansongstats") {
+                        replacementLog = { recordAdded: countAddedSongRecords(getCurrentStatsContent(), content) };
+                    }
                     await saveWorkerFile(type,content);
+                    if (hasSongbookLogEvent(replacementLog)) {
+                        try {
+                            await appendSongbookLogEvent(replacementLog);
+                        } catch (logError) {
+                            console.error("JSON 교체 후 변경 기록 저장 실패:", logError);
+                            showToastMessage("JSON은 교체했지만 변경 기록 저장에 실패했습니다.");
+                        }
+                    }
                     alert(`${fileName} 교체가 완료되었습니다. 최신 데이터를 불러오기 위해 페이지를 새로고침합니다.`);
                     location.reload();
                 }catch(error){
@@ -1634,7 +1942,7 @@ function addNewSong(){
             if((Array.isArray(allSongs)?allSongs:[]).some(song=>isSameSongRegistration(song,newSong))){showToastMessage("이미 등록된 노래입니다.");return}
             const unregistered=Array.isArray(fansongStatsData.unregisteredSongs)?fansongStatsData.unregisteredSongs:[]; const selected=unregistered.find(x=>songIdentity(x)===selectedUnregisteredKey)||unregistered.find(x=>songIdentity(x)===songIdentity(newSong)); const dt=selected&&Array.isArray(selected.dateTimes)?selected.dateTimes:[];
             allSongs.push(newSong); addSongToRegisteredStats(newSong,dt); if(selected)removeFromUnregisteredStats(selected);
-            closeSongAddModal();updateFilteredAndSorted();renderAllSongs();animateNumber("animSongCount",allSongs.length);enqueueSongServerSave();showToastMessage(selected?"미등록 곡을 노래책과 팬송 통계에 등록했습니다.":"노래책과 팬송 통계에 노래를 추가했습니다.");
+            closeSongAddModal();updateFilteredAndSorted();renderAllSongs();animateNumber("animSongCount",allSongs.length);enqueueSongServerSave(selected?{songAdded:1,movedToRegistered:[newSong.title]}:{songAdded:1});showToastMessage(selected?"미등록 곡을 노래책과 팬송 통계에 등록했습니다.":"노래책과 팬송 통계에 노래를 추가했습니다.");
         }
 
         function normalizeNoticeText(value) {
