@@ -767,10 +767,14 @@ footer { position:relative; z-index:1; }
 #filterModal .filter-modal-box { position: relative !important; margin: auto !important; left: auto !important; right: auto !important; top: auto !important; transform: translateY(10px); }
 #filterModal.active .filter-modal-box { transform: translateY(0); }
 .badge-unregistered-song { display:inline-flex; align-items:center; padding:3px 7px; border-radius:6px; background:#fff7ed; color:#c2410c; border:1px solid #fdba74; font-size:11px; font-weight:800; }
+
+.songbook-latest-change{margin-top:1px;font-size:10px;line-height:1.25;color:#94a3b8;font-weight:600;letter-spacing:.1px;min-height:12px}
+.edit-song-date-row .edit-song-time-value{min-width:0}
+#integratedFilterBtn.active-filter{background:#0ea5e9!important;border-color:#0ea5e9!important;color:#fff!important}
 </style>
 </head><body><div class="main-container songbook-layout"><aside class="songbook-sidebar"><div class="sidebar-brand"><div class="title-summary-box"><h1 class="page-title"><button aria-label="노래책 로그인 / 인증" class="song-title-login-trigger" id="songTitleLoginTrigger" onclick="openSongAuthModal()" title="노래책 로그인 / 인증"><svg class="page-title-svg" viewbox="0 0 24 24"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg></button>
  바다비 노래책
- </h1><div class="stats-summary-row"><div class="stats-summary" id="statsSummary">통계 계산 중...</div></div></div></div><div class="sidebar-actions"><button class="header-action-btn sidebar-action-btn" onclick="openNoticeModal()"><svg class="btn-icon-svg" viewbox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+ </h1><div class="stats-summary-row"><div class="stats-summary" id="statsSummary">통계 계산 중...</div></div><div class="songbook-latest-change" id="songbookLatestChange" aria-live="polite"></div></div></div><div class="sidebar-actions"><button class="header-action-btn sidebar-action-btn" onclick="openNoticeModal()"><svg class="btn-icon-svg" viewbox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
  노래공지
  </button><button class="header-action-btn sidebar-action-btn" onclick="openRecommendModal()"><svg class="btn-icon-svg" viewbox="0 0 24 24"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>
  노래 추천
@@ -838,6 +842,8 @@ footer { position:relative; z-index:1; }
             localStorage.setItem("badabi_rate_limit_id", rateLimitId);
         }
         let editingSongIndex = -1;
+        let editingSongIsUnregistered = false;
+        let editingUnregisteredIndex = -1;
         let songSaveQueue = Promise.resolve();
         let isSongLocallyMutating = false;
         let currentNoticeText = "";
@@ -1192,12 +1198,14 @@ footer { position:relative; z-index:1; }
             }
 
             const song = sortedSongs[index];
-            if (song?.__isUnregisteredSong) {
-                showToastMessage("미등록된 노래는 노래책에 추가한 뒤 수정할 수 있습니다.");
-                return;
-            }
-            editingSongIndex = allSongs.indexOf(song);
-            if (!song || editingSongIndex < 0) return;
+            if (!song) return;
+            editingSongIsUnregistered = song.__isUnregisteredSong === true;
+            editingSongIndex = editingSongIsUnregistered ? -1 : allSongs.indexOf(song);
+            editingUnregisteredIndex = editingSongIsUnregistered
+                ? (Array.isArray(fansongStatsData.unregisteredSongs) ? fansongStatsData.unregisteredSongs.findIndex(item => songIdentity(item) === songIdentity(song)) : -1)
+                : -1;
+            if (editingSongIsUnregistered && editingUnregisteredIndex < 0) return;
+            if (!editingSongIsUnregistered && editingSongIndex < 0) return;
 
             document.getElementById("editSongTitle").value = song.title || "";
             document.getElementById("editSongArtist").value = song.artist || "";
@@ -1205,7 +1213,8 @@ footer { position:relative; z-index:1; }
             document.getElementById("editSongLimit").value = song.limit || "";
             document.getElementById("editSongEtc").value = song.etc || "";
             renderEditingSongDateRows(song.dateTimes || []);
-
+            const modalTitle = document.querySelector("#songEditModal .modal-title");
+            if (modalTitle) modalTitle.lastChild.textContent = editingSongIsUnregistered ? "미등록곡 수정" : "노래 수정";
             showModalOnTop("songEditModal");
         }
 
@@ -1234,8 +1243,9 @@ footer { position:relative; z-index:1; }
             dateInput.placeholder = "YYYY-MM-DD 또는 YYYY-MM-DD(1)"; dateInput.value = date;
             dateInput.setAttribute("aria-label", "부른 날짜");
             const timeInput = document.createElement("input");
-            timeInput.type = "time"; timeInput.className = "edit-form-input edit-song-time-value";
-            timeInput.value = /^\d{1,2}:\d{2}/.test(time) ? time.slice(0,5) : "";
+            timeInput.type = "text"; timeInput.inputMode = "numeric"; timeInput.className = "edit-form-input edit-song-time-value";
+            timeInput.placeholder = "HH:MM 또는 HH:MM:SS";
+            timeInput.value = String(time || "");
             timeInput.setAttribute("aria-label", "부른 시간");
             const remove = document.createElement("button");
             remove.type = "button"; remove.className = "edit-date-remove-btn"; remove.textContent = "삭제";
@@ -1254,7 +1264,8 @@ footer { position:relative; z-index:1; }
                 if (!rawDate) continue;
                 const date = normalizeManualDate(rawDate, true);
                 if (!date) { showToastMessage("날짜는 YYYY-MM-DD 또는 YYYY-MM-DD(회차) 형식으로 입력해주세요."); return null; }
-                const time = row.querySelector(".edit-song-time-value")?.value || "";
+                const time = row.querySelector(".edit-song-time-value")?.value.trim() || "";
+                if (time && !/^\d{1,2}:\d{2}(?::\d{2})?$/.test(time)) { showToastMessage("시간은 시:분 또는 시:분:초 형식으로 입력해주세요. 예: 18:30"); return null; }
                 values.push({ date, time });
             }
             return normalizeSongDateTimes(values);
@@ -1262,6 +1273,8 @@ footer { position:relative; z-index:1; }
 
         function closeSongEditModal() {
             editingSongIndex = -1;
+            editingSongIsUnregistered = false;
+            editingUnregisteredIndex = -1;
             document.getElementById("songEditModal")?.classList.remove("active");
         }
 
@@ -1319,6 +1332,28 @@ footer { position:relative; z-index:1; }
             );
         }
 
+        async function refreshLatestSongbookChange() {
+            const target = document.getElementById("songbookLatestChange");
+            if (!target) return;
+            try {
+                const [bookResponse, statsResponse] = await Promise.all([
+                    fetch(`${WORKER_URL}?type=songbooklog&t=${Date.now()}`, { cache: "no-store" }),
+                    fetch(`${WORKER_URL}?type=songstatslog&t=${Date.now()}`, { cache: "no-store" })
+                ]);
+                const bookData = bookResponse.ok ? await bookResponse.json().catch(() => ({})) : {};
+                const statsData = statsResponse.ok ? await statsResponse.json().catch(() => ({})) : {};
+                const dates = [
+                    ...(Array.isArray(bookData.days) ? bookData.days : []),
+                    ...(Array.isArray(statsData.days) ? statsData.days : [])
+                ].map(item => String(item?.date || "")).filter(value => /^\d{4}-\d{2}-\d{2}$/.test(value)).sort((a,b)=>b.localeCompare(a));
+                if (!dates.length) { target.textContent = ""; return; }
+                const [year, month, day] = dates[0].split("-");
+                target.textContent = `노래책 내용 변경 ${month}.${day}`;
+            } catch (error) {
+                target.textContent = "";
+            }
+        }
+
         async function appendSongbookLogEvent(event) {
             if (!hasSongbookLogEvent(event) || !isSongAuthenticated || songUserRole !== "admin") return;
             const response = await fetch(`${WORKER_URL}?type=songbooklog&t=${Date.now()}`, { cache: "no-store" });
@@ -1344,6 +1379,7 @@ footer { position:relative; z-index:1; }
             day.backup = day.backup === true || event.backup === true;
             days.sort((a, b) => String(b.date).localeCompare(String(a.date)));
             await saveWorkerFile("songbooklog", { days });
+            refreshLatestSongbookChange();
             const view = document.getElementById("songManageLogs");
             if (view && view.classList.contains("active")) renderSongbookLogs();
         }
@@ -1380,6 +1416,7 @@ footer { position:relative; z-index:1; }
             });
             days.sort((a, b) => String(b.date).localeCompare(String(a.date)));
             await saveWorkerFile("songstatslog", { days });
+            refreshLatestSongbookChange();
             const view = document.getElementById("songManageLogs");
             if (view && view.classList.contains("active")) renderSongbookLogs();
         }
@@ -1752,22 +1789,72 @@ footer { position:relative; z-index:1; }
         }
 
         function saveEditingSong() {
-            if (!isSongAuthenticated || editingSongIndex < 0) return;
-            const song=allSongs[editingSongIndex]; if(!song) return;
-            const oldSong={...song};
-            const title=document.getElementById("editSongTitle").value.trim(); if(!title){showToastMessage("노래 제목을 입력해주세요.");return}
-            const editedDateTimes = collectEditingSongDateTimes(); if (editedDateTimes === null) return;
-            song.title=title; song.artist=document.getElementById("editSongArtist").value.trim(); song.genre=document.getElementById("editSongGenre").value.trim(); song.limit=document.getElementById("editSongLimit").value.trim(); song.etc=document.getElementById("editSongEtc").value.trim(); song.dateTimes=editedDateTimes;
-            updateRegisteredSongForCurrentSong(oldSong,song);
+            if (!isSongAuthenticated) return;
+            const title = document.getElementById("editSongTitle").value.trim();
+            if (!title) { showToastMessage("노래 제목을 입력해주세요."); return; }
+            const editedDateTimes = collectEditingSongDateTimes();
+            if (editedDateTimes === null) return;
+            const updated = {
+                title,
+                artist: document.getElementById("editSongArtist").value.trim(),
+                genre: document.getElementById("editSongGenre").value.trim(),
+                limit: document.getElementById("editSongLimit").value.trim(),
+                etc: document.getElementById("editSongEtc").value.trim(),
+                dateTimes: editedDateTimes
+            };
+
+            if (editingSongIsUnregistered) {
+                const list = Array.isArray(fansongStatsData.unregisteredSongs) ? fansongStatsData.unregisteredSongs : [];
+                const oldSong = list[editingUnregisteredIndex];
+                if (!oldSong) { showToastMessage("수정할 미등록곡을 찾을 수 없습니다."); return; }
+                const duplicate = list.some((item, i) => i !== editingUnregisteredIndex && songIdentity(item) === songIdentity(updated));
+                if (duplicate) { showToastMessage("같은 미등록곡이 이미 존재합니다."); return; }
+                list[editingUnregisteredIndex] = { ...oldSong, ...updated };
+                fansongStatsData.unregisteredSongs = list;
+                closeSongEditModal();
+                updateFilteredAndSorted();
+                renderAllSongs();
+                renderUnregisteredSongs();
+                enqueueSongServerSave({ statsLog: { unregisteredUpdated: [title] } });
+                showToastMessage("미등록곡 정보를 수정했습니다.");
+                return;
+            }
+
+            if (editingSongIndex < 0) return;
+            const song = allSongs[editingSongIndex];
+            if (!song) return;
+            const oldSong = { ...song };
+            Object.assign(song, updated);
+            updateRegisteredSongForCurrentSong(oldSong, song);
             const registeredStats = Array.isArray(fansongStatsData.registeredSongs) ? fansongStatsData.registeredSongs : [];
             const updatedStatsSong = registeredStats.find(item => songIdentity(item) === songIdentity(song));
             if (updatedStatsSong) updatedStatsSong.dateTimes = editedDateTimes;
-            closeSongEditModal(); updateFilteredAndSorted(); renderAllSongs(); enqueueSongServerSave(); showToastMessage("노래 정보와 팬송 통계를 저장했습니다.");
+            closeSongEditModal();
+            updateFilteredAndSorted();
+            renderAllSongs();
+            enqueueSongServerSave();
+            showToastMessage("노래 정보와 팬송 통계를 저장했습니다.");
         }
 
         function deleteEditingSong() {
-            if (!isSongAuthenticated || editingSongIndex < 0) return;
-
+            if (!isSongAuthenticated) return;
+            if (editingSongIsUnregistered) {
+                const list = Array.isArray(fansongStatsData.unregisteredSongs) ? fansongStatsData.unregisteredSongs : [];
+                const song = list[editingUnregisteredIndex];
+                if (!song) return;
+                const title = song.title || "이 미등록곡";
+                if (!confirm(`'${title}'을(를) 미등록곡 목록에서 삭제하시겠습니까?`)) return;
+                list.splice(editingUnregisteredIndex, 1);
+                fansongStatsData.unregisteredSongs = list;
+                closeSongEditModal();
+                updateFilteredAndSorted();
+                renderAllSongs();
+                renderUnregisteredSongs();
+                enqueueSongServerSave({ statsLog: { unregisteredDeleted: [title] } });
+                showToastMessage("미등록곡을 삭제했습니다.");
+                return;
+            }
+            if (editingSongIndex < 0) return;
             const song = allSongs[editingSongIndex];
             if (!song) return;
 
@@ -2533,8 +2620,21 @@ function openRecommendModal() { generateRecommendations(); showModalOnTop("recom
         function closeNoticeModal() { document.getElementById("noticeModal").classList.remove("active"); }
         function openSiteInfoModal() { document.getElementById("siteInfoModal").classList.add("active"); }
         function closeSiteInfoModal() { document.getElementById("siteInfoModal").classList.remove("active"); }
-        function openFilterModal(){refreshCountFilterOptions();refreshRecentFilterOptions();refreshMonthFilterOptions();syncCustomFilterSelects();const checkbox=document.getElementById("detailUnregisteredCheckbox");const list=document.getElementById("detailUnregisteredSongList");if(checkbox)checkbox.checked=detailUnregisteredExpanded;if(list)list.hidden=true;const count=document.getElementById("detailUnregisteredCount");if(count)count.textContent=`${Array.isArray(fansongStatsData.unregisteredSongs)?fansongStatsData.unregisteredSongs.length:0}곡`;showModalOnTop("filterModal")}
-        function closeFilterModal(){document.getElementById("filterModal").classList.remove("active")}
+        function openFilterModal(){
+            refreshCountFilterOptions();
+            refreshRecentFilterOptions();
+            refreshMonthFilterOptions();
+            syncCustomFilterSelects();
+            const checkbox=document.getElementById("detailUnregisteredCheckbox");
+            const list=document.getElementById("detailUnregisteredSongList");
+            if(checkbox)checkbox.checked=detailUnregisteredExpanded;
+            if(list)list.hidden=true;
+            const count=document.getElementById("detailUnregisteredCount");
+            if(count)count.textContent=`${Array.isArray(fansongStatsData.unregisteredSongs)?fansongStatsData.unregisteredSongs.length:0}곡`;
+            updateFilterButtonState();
+            showModalOnTop("filterModal");
+        }
+        function closeFilterModal(){document.getElementById("filterModal")?.classList.remove("active");updateFilterButtonState()}
         function closeAllCustomSelects(except=null){document.querySelectorAll('.custom-select.open').forEach(el=>{if(el!==except)el.classList.remove('open')});document.querySelectorAll('.custom-select-menu.custom-select-menu-portal').forEach(menu=>{const owner=menu.dataset.owner?document.getElementById(menu.dataset.owner):null;if(!owner||owner!==except)menu.style.display='none'})}
         function positionCustomSelectMenu(root,menu){if(!root||!menu)return;const rect=root.getBoundingClientRect(),gap=5,pad=8,maxH=window.innerWidth<=768?200:260;menu.style.display='block';menu.style.width=`${rect.width}px`;menu.style.maxHeight=`${maxH}px`;menu.style.left=`${Math.max(pad,Math.min(rect.left,window.innerWidth-rect.width-pad))}px`;const h=Math.min(menu.scrollHeight,maxH),below=window.innerHeight-rect.bottom-pad,above=rect.top-pad;menu.style.top=(below<Math.min(h,180)&&above>below)?`${Math.max(pad,rect.top-gap-h)}px`:`${Math.min(window.innerHeight-h-pad,rect.bottom+gap)}px`}
         document.addEventListener('click',e=>{if(e.target.closest('.custom-select')||e.target.closest('.custom-select-menu-portal'))return;closeAllCustomSelects()});
@@ -2554,7 +2654,16 @@ function openRecommendModal() { generateRecommendations(); showModalOnTop("recom
         function selectRecentFilter(daysType){if(currentCountFilter!=='전체'&&Number(currentCountFilterValue)===0){showToastMessage('0회를 선택하면 날짜 설정을 선택할 수 없습니다.');return}currentRecentFilter=daysType||'전체';if(currentRecentFilter!=='전체')currentMonthFilter='전체';refreshRecentFilterOptions();refreshMonthFilterOptions();syncCustomFilterSelects();updateDateFilterAvailability();updateFilterButtonState();updateFilteredAndSorted();renderAllSongs()}
         function selectMonthFilter(month){if(currentCountFilter!=='전체'&&Number(currentCountFilterValue)===0){showToastMessage('0회를 선택하면 날짜 설정을 선택할 수 없습니다.');return}currentMonthFilter=month||'전체';if(currentMonthFilter!=='전체')currentRecentFilter='전체';refreshRecentFilterOptions();refreshMonthFilterOptions();syncCustomFilterSelects();updateDateFilterAvailability();updateFilterButtonState();updateFilteredAndSorted();renderAllSongs()}
         function resetDetailedFilters(){currentCountFilter='전체';currentCountFilterOperator='=';currentCountFilterValue='';excludeZeroCount=false;currentRecentFilter='전체';currentMonthFilter='전체';syncDetailFilterSelects();updateDateFilterAvailability();updateFilterButtonState();updateFilteredAndSorted();renderAllSongs()}
-        function updateFilterButtonState(){const filterBtn=document.getElementById('integratedFilterBtn');if(!filterBtn)return;const hasActive=currentCountFilter!=='전체'||excludeZeroCount||currentRecentFilter!=='전체'||currentMonthFilter!=='전체'||detailUnregisteredExpanded;const iconHtml=`<svg class="filter-icon-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16l-6.5 7.2V18l-3 1v-6.8L4 5Z" fill="${hasActive?'white':'none'}" stroke="${hasActive?'white':'#0369a1'}" stroke-width="2" stroke-linejoin="round"></path></svg>`;filterBtn.classList.toggle('active-filter',hasActive);filterBtn.innerHTML=iconHtml}
+        function updateFilterButtonState(){
+            const filterBtn=document.getElementById("integratedFilterBtn");
+            if(!filterBtn)return;
+            const hasActive=currentCountFilter!=="전체"||excludeZeroCount||currentRecentFilter!=="전체"||currentMonthFilter!=="전체"||detailUnregisteredExpanded;
+            filterBtn.classList.toggle("active-filter",hasActive);
+            filterBtn.style.backgroundColor=hasActive?"#0ea5e9":"#ffffff";
+            filterBtn.style.borderColor=hasActive?"#0ea5e9":"#cbd5e1";
+            filterBtn.style.color=hasActive?"#ffffff":"#0369a1";
+            filterBtn.innerHTML='<svg class="filter-icon-svg" viewBox="0 0 24 24" aria-hidden="true" style="width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linejoin:round"><path d="M4 5h16l-6.5 7.2V18l-3 1v-6.8L4 5Z"></path></svg>';
+        }
 
         function setupSongTitleMarquees(container, scrollRoot = null) {
             if (!container) return;
@@ -3307,7 +3416,7 @@ function openRecommendModal() { generateRecommendations(); showModalOnTop("recom
                             ${etcBadge}
                             ${sideGenreBadge}
                             ${countBadge}
-                            ${isSongAuthenticated && !song.__isUnregisteredSong ? `<button class="song-edit-btn" onclick="event.stopPropagation(); openSongEditModal(${sortedIndex})" title="노래 수정">✎ 수정</button>` : ""}
+                            ${isSongAuthenticated ? `<button class="song-edit-btn" onclick="event.stopPropagation(); openSongEditModal(${sortedIndex})" title="노래 수정">✎ 수정</button>` : ""}
                         </div>
                     </div>
                     ${timestampsHTML}
@@ -3517,6 +3626,7 @@ function openRecommendModal() { generateRecommendations(); showModalOnTop("recom
         restoreSongAuthentication();
         loadSongPronunciation();
         loadData();
+        refreshLatestSongbookChange();
 
 (function(){
             const zeroCheck=document.getElementById("excludeZeroCountCheck");
