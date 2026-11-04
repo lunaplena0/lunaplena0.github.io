@@ -1206,7 +1206,7 @@ footer { position:relative; z-index:1; }
             document.getElementById("editSongEtc").value = song.etc || "";
             renderEditingSongDateRows(song.dateTimes || []);
 
-            showModalOnTop(songEditModal);
+            showModalOnTop("songEditModal");
         }
 
         function renderEditingSongDateRows(values) {
@@ -1262,7 +1262,7 @@ footer { position:relative; z-index:1; }
 
         function closeSongEditModal() {
             editingSongIndex = -1;
-            songEditModal.classList.remove("active");
+            document.getElementById("songEditModal")?.classList.remove("active");
         }
 
         function songIdentity(song) {
@@ -2413,14 +2413,14 @@ function plainNoticeToHtml(value){
                     noticeSavedRange=caret.cloneRange();
                 }
             };
-            showModalOnTop(noticeEditModal);
+            showModalOnTop("noticeEditModal");
         }
         function closeNoticeEditModal(){
             const editor=document.getElementById("noticeEditTextarea");
             if(editor) editor.innerHTML="";
             noticeSavedRange=null;
             noticeEditOriginalText="";
-            noticeEditModal.classList.remove("active");
+            document.getElementById("noticeEditModal")?.classList.remove("active");
         }
         function cancelNoticeEdit(){
             currentNoticeText=noticeEditOriginalText||"";
@@ -3278,12 +3278,22 @@ function openRecommendModal() { generateRecommendations(); showModalOnTop("recom
                 const safeTitle = (song.title || '').replace(/'/g, "\\'");
                 const safeArtist = (song.artist || '').replace(/'/g, "\\'");
 
+                const unregisteredBadge = song.__isUnregisteredSong
+                    ? '<span class="badge badge-unregistered-song">미등록</span>'
+                    : "";
+                // 미등록 표시는 곡 제목 바로 앞에 배치합니다. 제한/장르 태그와 겹치지 않도록
+                // 제한 태그 다음, 장르 태그 다음 순서로 표시합니다.
+                const titleGenreBadge = song.__isUnregisteredSong ? genreBadge : "";
+                const sideGenreBadge = song.__isUnregisteredSong ? "" : genreBadge;
+
                 card.innerHTML = `
                     <div class="song-summary-row">
                         <div class="song-info-left">
                             <div class="song-title-wrapper">
                                 <div class="song-title-line">
                                     ${limitBadge}
+                                    ${titleGenreBadge}
+                                    ${unregisteredBadge}
                                     <div class="song-text-viewport">
                                         <div class="song-text-marquee">
                                             <h3 class="song-title"><span class="song-title-copy" onclick="copySongInfo('${safeTitle}', '${safeArtist}', event)">${song.title || '제목없음'}</span></h3>
@@ -3295,9 +3305,8 @@ function openRecommendModal() { generateRecommendations(); showModalOnTop("recom
                         </div>
                         <div class="song-badges">
                             ${etcBadge}
-                            ${genreBadge}
+                            ${sideGenreBadge}
                             ${countBadge}
-                            ${song.__isUnregisteredSong ? '<span class="badge badge-unregistered-song">미등록</span>' : ""}
                             ${isSongAuthenticated && !song.__isUnregisteredSong ? `<button class="song-edit-btn" onclick="event.stopPropagation(); openSongEditModal(${sortedIndex})" title="노래 수정">✎ 수정</button>` : ""}
                         </div>
                     </div>
