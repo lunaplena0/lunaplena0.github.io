@@ -761,6 +761,12 @@ footer { position:relative; z-index:1; }
 .stats-empty{padding:20px;text-align:center;color:#94a3b8;font-size:11px;border:1px dashed #cbd5e1;border-radius:9px}.stats-top-song-list{display:flex;flex-direction:column;gap:7px}.stats-top-song{display:flex;align-items:center;gap:9px;height:56px;min-height:56px;box-sizing:border-box;padding:8px 9px;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc;overflow:hidden}.stats-rank{width:24px;height:24px;min-width:24px;min-height:24px;box-sizing:border-box;border-radius:7px;background:#e0f2fe;color:#0369a1;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;flex-shrink:0}.stats-top-song-main{min-width:0;flex:1;overflow:hidden}.stats-top-song-title{font-size:11.5px;font-weight:800;color:#334155;line-height:16px;height:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.stats-top-song-artist{font-size:10px;color:#94a3b8;line-height:14px;height:14px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.stats-top-song-count{font-size:11px;font-weight:800;color:#0369a1;line-height:16px;white-space:nowrap;flex-shrink:0}
 .data-check-grid{display:grid;grid-template-columns:1fr;gap:10px}.data-check-grid section{border:1px solid #e2e8f0;border-radius:10px;background:#f8fafc;padding:12px}.data-check-grid h4{margin:0 0 8px;font-size:13px;color:#0369a1}.data-check-grid ul{margin:0;padding-left:18px;max-height:180px;overflow:auto;font-size:12px;line-height:1.7}.data-check-grid small{color:#64748b}
 @media(min-width:769px){.data-check-grid{grid-template-columns:1fr 1fr}}@media(max-width:700px){.stats-chart-grid{grid-template-columns:1fr}.stats-chart-card.full{grid-column:auto}.stats-donut-wrap{flex-direction:column;align-items:stretch}.stats-donut{margin:0 auto}.stats-bar-row{grid-template-columns:90px 1fr 42px}.stats-dashboard-box{width:94vw!important}.song-add-actions{grid-template-columns:1fr 1fr!important}.song-add-actions button:last-child{grid-column:1/-1}}@media(max-width:768px){#songManageBulk .modal-actions{position:sticky;bottom:0;background:#fff;padding-top:10px}#songManageBulk textarea{min-height:220px}.song-manage-quick-actions{flex-direction:column}.song-manage-quick-actions .modal-btn{width:100%}}
+
+/* 팝업은 항상 화면 정중앙에 표시하고, 필터의 내부 목록은 메인 목록에 합쳐 표시합니다. */
+#filterModal { position: fixed !important; inset: 0 !important; width: 100vw !important; height: 100vh !important; display: flex !important; align-items: center !important; justify-content: center !important; padding: 16px !important; box-sizing: border-box !important; }
+#filterModal .filter-modal-box { position: relative !important; margin: auto !important; left: auto !important; right: auto !important; top: auto !important; transform: translateY(10px); }
+#filterModal.active .filter-modal-box { transform: translateY(0); }
+.badge-unregistered-song { display:inline-flex; align-items:center; padding:3px 7px; border-radius:6px; background:#fff7ed; color:#c2410c; border:1px solid #fdba74; font-size:11px; font-weight:800; }
 </style>
 </head><body><div class="main-container songbook-layout"><aside class="songbook-sidebar"><div class="sidebar-brand"><div class="title-summary-box"><h1 class="page-title"><button aria-label="노래책 로그인 / 인증" class="song-title-login-trigger" id="songTitleLoginTrigger" onclick="openSongAuthModal()" title="노래책 로그인 / 인증"><svg class="page-title-svg" viewbox="0 0 24 24"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg></button>
  바다비 노래책
@@ -848,6 +854,17 @@ footer { position:relative; z-index:1; }
         const songAuthModalContent = document.getElementById("songAuthModalContent");
         const songEditModal = document.getElementById("songEditModal");
         const songAuthBtn = document.getElementById("songTitleLoginTrigger");
+
+        // 모든 팝업을 body의 최상단으로 올려 다른 팝업/레이아웃에 가려지지 않게 합니다.
+        let modalLayerSequence = 1000;
+        function showModalOnTop(modalOrId) {
+            const modal = typeof modalOrId === "string" ? document.getElementById(modalOrId) : modalOrId;
+            if (!modal) return;
+            if (modal.parentElement !== document.body) document.body.appendChild(modal);
+            modal.style.zIndex = String(++modalLayerSequence);
+            modal.classList.add("active");
+        }
+
 
         function timeToSeconds(timeStr) {
             if (!timeStr) return 0;
@@ -1174,8 +1191,12 @@ footer { position:relative; z-index:1; }
                 return;
             }
 
-            editingSongIndex = allSongs.indexOf(sortedSongs[index]);
             const song = sortedSongs[index];
+            if (song?.__isUnregisteredSong) {
+                showToastMessage("미등록된 노래는 노래책에 추가한 뒤 수정할 수 있습니다.");
+                return;
+            }
+            editingSongIndex = allSongs.indexOf(song);
             if (!song || editingSongIndex < 0) return;
 
             document.getElementById("editSongTitle").value = song.title || "";
@@ -1185,7 +1206,7 @@ footer { position:relative; z-index:1; }
             document.getElementById("editSongEtc").value = song.etc || "";
             renderEditingSongDateRows(song.dateTimes || []);
 
-            songEditModal.classList.add("active");
+            showModalOnTop(songEditModal);
         }
 
         function renderEditingSongDateRows(values) {
@@ -1891,13 +1912,17 @@ footer { position:relative; z-index:1; }
             list.forEach(song=>{const b=document.createElement("button");b.type="button";b.className="song-unregistered-item";const m=document.createElement("span");m.className="song-unregistered-main";const t=document.createElement("span");t.className="song-unregistered-song";t.textContent=song.title||"제목없음";const meta=document.createElement("span");meta.className="song-unregistered-meta";meta.textContent=`${song.artist||"아티스트 미상"}${song.genre?` · ${song.genre}`:""}${song.limit?` · ${song.limit}`:""}`;m.append(t,meta);const n=document.createElement("span");n.className="song-unregistered-count";n.textContent=`${Array.isArray(song.dateTimes)?song.dateTimes.length:0}회`;b.append(m,n);b.onclick=()=>selectUnregisteredSong(song);c.appendChild(b)});
         }
         function toggleDetailUnregisteredSongs(checked) {
+            // 체크하면 필터 팝업 안이 아니라 메인 노래 목록에 미등록 곡을 함께 표시합니다.
             detailUnregisteredExpanded = !!checked;
             const list = document.getElementById("detailUnregisteredSongList");
             const checkbox = document.getElementById("detailUnregisteredCheckbox");
             if (checkbox) checkbox.checked = detailUnregisteredExpanded;
-            if (list) list.hidden = !detailUnregisteredExpanded;
+            if (list) list.hidden = true;
+            const count = document.getElementById("detailUnregisteredCount");
+            if (count) count.textContent = `${Array.isArray(fansongStatsData.unregisteredSongs) ? fansongStatsData.unregisteredSongs.length : 0}곡`;
             updateFilterButtonState();
-            if (detailUnregisteredExpanded) renderDetailUnregisteredSongs();
+            updateFilteredAndSorted();
+            renderAllSongs();
         }
 
         function renderDetailUnregisteredSongs() {
@@ -1924,7 +1949,7 @@ footer { position:relative; z-index:1; }
             const modal=document.getElementById("songManageModal");
             if(!modal)return;
             // 관리 팝업을 열 때 이전에 보던 화면 상태가 남지 않도록 먼저 모두 초기화합니다.
-            modal.classList.add("active");
+            showModalOnTop(modal);
             const views=modal.querySelectorAll(".song-manage-view");
             views.forEach(el=>{
                 el.classList.remove("active");
@@ -2388,7 +2413,7 @@ function plainNoticeToHtml(value){
                     noticeSavedRange=caret.cloneRange();
                 }
             };
-            noticeEditModal.classList.add("active");
+            showModalOnTop(noticeEditModal);
         }
         function closeNoticeEditModal(){
             const editor=document.getElementById("noticeEditTextarea");
@@ -2495,7 +2520,7 @@ function plainNoticeToHtml(value){
                 .replace(/^\n+|\n+$/g,"");
         }
 
-function openRecommendModal() { generateRecommendations(); document.getElementById("recommendModal").classList.add("active"); }
+function openRecommendModal() { generateRecommendations(); showModalOnTop("recommendModal"); }
         function closeRecommendModal() { document.getElementById("recommendModal").classList.remove("active"); }
         function openNoticeModal(){
             if (isSongAuthenticated) {
@@ -2503,12 +2528,12 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
                 return;
             }
             renderNoticeContent(currentNoticeText);
-            document.getElementById("noticeModal").classList.add("active");
+            showModalOnTop("noticeModal");
         }
         function closeNoticeModal() { document.getElementById("noticeModal").classList.remove("active"); }
         function openSiteInfoModal() { document.getElementById("siteInfoModal").classList.add("active"); }
         function closeSiteInfoModal() { document.getElementById("siteInfoModal").classList.remove("active"); }
-        function openFilterModal(){refreshCountFilterOptions();refreshRecentFilterOptions();refreshMonthFilterOptions();syncCustomFilterSelects();const checkbox=document.getElementById("detailUnregisteredCheckbox");const list=document.getElementById("detailUnregisteredSongList");if(checkbox)checkbox.checked=detailUnregisteredExpanded;if(list)list.hidden=!detailUnregisteredExpanded;if(detailUnregisteredExpanded)renderDetailUnregisteredSongs();document.getElementById("filterModal").classList.add("active")}
+        function openFilterModal(){refreshCountFilterOptions();refreshRecentFilterOptions();refreshMonthFilterOptions();syncCustomFilterSelects();const checkbox=document.getElementById("detailUnregisteredCheckbox");const list=document.getElementById("detailUnregisteredSongList");if(checkbox)checkbox.checked=detailUnregisteredExpanded;if(list)list.hidden=true;const count=document.getElementById("detailUnregisteredCount");if(count)count.textContent=`${Array.isArray(fansongStatsData.unregisteredSongs)?fansongStatsData.unregisteredSongs.length:0}곡`;showModalOnTop("filterModal")}
         function closeFilterModal(){document.getElementById("filterModal").classList.remove("active")}
         function closeAllCustomSelects(except=null){document.querySelectorAll('.custom-select.open').forEach(el=>{if(el!==except)el.classList.remove('open')});document.querySelectorAll('.custom-select-menu.custom-select-menu-portal').forEach(menu=>{const owner=menu.dataset.owner?document.getElementById(menu.dataset.owner):null;if(!owner||owner!==except)menu.style.display='none'})}
         function positionCustomSelectMenu(root,menu){if(!root||!menu)return;const rect=root.getBoundingClientRect(),gap=5,pad=8,maxH=window.innerWidth<=768?200:260;menu.style.display='block';menu.style.width=`${rect.width}px`;menu.style.maxHeight=`${maxH}px`;menu.style.left=`${Math.max(pad,Math.min(rect.left,window.innerWidth-rect.width-pad))}px`;const h=Math.min(menu.scrollHeight,maxH),below=window.innerHeight-rect.bottom-pad,above=rect.top-pad;menu.style.top=(below<Math.min(h,180)&&above>below)?`${Math.max(pad,rect.top-gap-h)}px`:`${Math.min(window.innerHeight-h-pad,rect.bottom+gap)}px`}
@@ -2995,7 +3020,14 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
             const keyword = normalizeSearchText(document.getElementById("searchInput").value);
             const now = new Date();
 
-            filteredSongs = allSongs.filter(song => {
+            const unregisteredForMainList = detailUnregisteredExpanded
+                ? (Array.isArray(fansongStatsData.unregisteredSongs) ? fansongStatsData.unregisteredSongs : [])
+                    .map(song => ({ ...song, __isUnregisteredSong: true }))
+                : [];
+            const songsForMainList = detailUnregisteredExpanded
+                ? [...allSongs, ...unregisteredForMainList]
+                : allSongs;
+            filteredSongs = songsForMainList.filter(song => {
                 const title = song.title || '';
                 const artist = song.artist || '';
                 const genre = song.genre || '';
@@ -3265,7 +3297,8 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
                             ${etcBadge}
                             ${genreBadge}
                             ${countBadge}
-                            ${isSongAuthenticated ? `<button class="song-edit-btn" onclick="event.stopPropagation(); openSongEditModal(${sortedIndex})" title="노래 수정">✎ 수정</button>` : ""}
+                            ${song.__isUnregisteredSong ? '<span class="badge badge-unregistered-song">미등록</span>' : ""}
+                            ${isSongAuthenticated && !song.__isUnregisteredSong ? `<button class="song-edit-btn" onclick="event.stopPropagation(); openSongEditModal(${sortedIndex})" title="노래 수정">✎ 수정</button>` : ""}
                         </div>
                     </div>
                     ${timestampsHTML}
