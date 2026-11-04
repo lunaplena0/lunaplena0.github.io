@@ -2389,7 +2389,7 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
                 const countBadge = `<span class="badge badge-count">${playCount}회</span>`;
                 const genreBadge = song.genre ? `<span class="badge badge-genre">${song.genre}</span>` : "";
                 let etcVal = song.etc || '';
-                let etcBadge = etcVal !== "" ? `<span class="badge" style="background-color: #f1f5f9; color: #475569; border: 1px solid #cbd5e1;">${etcVal}</span>` : "";
+                let etcBadge = etcVal !== "" ? `<span class="badge badge-etc">${escapeHtml(etcVal)}</span>` : "";
 
                 let timestampsHTML = '';
                 if (song.dateTimes && song.dateTimes.length > 0) {
@@ -2757,6 +2757,83 @@ function openRecommendModal() { generateRecommendations(); document.getElementBy
 <span style="display:inline-block;"><button onclick="openSiteInfoModal()" style="border:0;padding:0;margin:0 0 0 3px;background:transparent;color:#0077b6;font:inherit;font-weight:600;text-decoration:underline;text-underline-offset:2px;cursor:pointer;" type="button">안내사항</button> · <button onclick="location.href='fansongstats.html'" style="border:0;padding:0;background:transparent;color:#0077b6;font:inherit;font-weight:600;text-decoration:underline;text-underline-offset:2px;cursor:pointer;" type="button">바다비 노래통계</button></span>
 </p>
 </footer>
+
+<style>
+/* 최종 화면 조정: 배경 이미지 크기 복원, 제목선 높이 제한, 통계 가로 정렬, 추가설명 태그 통일 */
+@media (min-width:841px) {
+  body::after {
+    content:"" !important;
+    position:fixed !important;
+    z-index:0 !important;
+    top:0 !important;
+    right:0 !important;
+    width:calc((100vw - 840px)/2) !important;
+    height:100vh !important;
+    height:100dvh !important;
+    aspect-ratio:auto !important;
+    transform:none !important;
+    background-image:var(--desktop-background-image, url("Background.png")) !important;
+    background-position:center !important;
+    background-size:cover !important;
+    background-repeat:no-repeat !important;
+    opacity:1 !important;
+    pointer-events:none !important;
+    -webkit-mask-image:none !important;
+    mask-image:none !important;
+  }
+}
+@media (max-width:840px) { body::after { display:none !important; } }
+.sidebar-brand .title-summary-box {
+  border-left:0 !important;
+  padding-left:0 !important;
+}
+.sidebar-brand .page-title {
+  position:relative !important;
+  padding-left:12px !important;
+}
+.sidebar-brand .page-title::before {
+  content:"";
+  position:absolute;
+  left:0;
+  top:1px;
+  bottom:1px;
+  width:5px;
+  border-radius:4px;
+  background:#0ea5e9;
+}
+.sidebar-brand .stats-summary {
+  display:flex !important;
+  flex-direction:row !important;
+  align-items:center !important;
+  flex-wrap:nowrap !important;
+  white-space:nowrap !important;
+  gap:4px 10px !important;
+  font-size:12px !important;
+  line-height:1.25 !important;
+}
+.sidebar-brand .stats-summary .stat-line {
+  display:inline-flex !important;
+  align-items:baseline !important;
+  white-space:nowrap !important;
+  gap:2px !important;
+}
+.sidebar-brand .stats-summary #animSongCount,
+.sidebar-brand .stats-summary #animArtistCount {
+  font-size:17px !important;
+  margin:0 1px !important;
+}
+@media (max-width:760px) {
+  .sidebar-brand .stats-summary { font-size:11px !important; gap:3px 8px !important; }
+  .sidebar-brand .stats-summary #animSongCount,
+  .sidebar-brand .stats-summary #animArtistCount { font-size:14px !important; }
+}
+.badge.badge-etc {
+  background-color:#e0f2fe !important;
+  color:#0284c7 !important;
+  border:0 !important;
+}
+</style>
+
 </body></html>
 
 <style>
