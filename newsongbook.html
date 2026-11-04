@@ -1982,7 +1982,7 @@ footer { position:relative; z-index:1; }
         }
         function setupSongAutocomplete(inputId,listId,key){
             const input=document.getElementById(inputId), list=document.getElementById(listId); if(!input||!list||input.dataset.autocompleteReady==="true")return; input.dataset.autocompleteReady="true";
-            const render=()=>{const q=input.value.trim().toLocaleLowerCase();const vals=getUniqueSongValues(key).filter(v=>!q||v.toLocaleLowerCase().includes(q)).slice(0,30);list.innerHTML="";if(!vals.length){list.classList.remove("active");return}vals.forEach(v=>{const b=document.createElement("button");b.type="button";b.className="song-autocomplete-item";b.textContent=v;b.onmousedown=e=>{e.preventDefault();input.value=v;list.classList.remove("active")};list.appendChild(b)});list.classList.add("active")};
+            const render=()=>{const q=input.value.trim().toLocaleLowerCase();const vals=getUniqueSongValues(key).filter(v=>!q||v.toLocaleLowerCase().includes(q)).slice(0,30);list.innerHTML="";if(!vals.length){list.classList.remove("active");return}vals.forEach(v=>{const b=document.createElement("button");b.type="button";b.className="song-autocomplete-item";b.textContent=v;b.onmousedown=e=>{e.preventDefault();input.value=v;input.dispatchEvent(new Event("input",{bubbles:true}));list.classList.remove("active")};list.appendChild(b)});list.classList.add("active")};
             input.addEventListener("focus",render); input.addEventListener("input",render); input.addEventListener("blur",()=>setTimeout(()=>list.classList.remove("active"),150));
         }
         function setupSongAddAutocompletes(){
@@ -2008,7 +2008,12 @@ footer { position:relative; z-index:1; }
             const query=String(input.value||"").trim().toLocaleLowerCase();
             preview.replaceChildren();
             if(!query){preview.classList.remove("visible");return;}
-            const values=getUniqueSongValues(key);
+            // allSongs가 아직 비어 있거나 부분 로딩된 경우에도 현재 등록 데이터에서 후보를 구성합니다.
+            const sourceSongs=Array.isArray(allSongs)?allSongs:[];
+            const statsRegistered=Array.isArray(fansongStatsData?.registeredSongs)?fansongStatsData.registeredSongs:[];
+            const combined=[...sourceSongs,...statsRegistered];
+            const values=[...new Map(combined.map(song=>String(song?.[key]??"").trim()).filter(Boolean).map(value=>[value.toLocaleLowerCase(),value])).values()]
+                .sort((a,b)=>a.localeCompare(b,"ko"));
             const matches=values.filter(value=>value.toLocaleLowerCase().includes(query)).slice(0,6);
             if(!matches.length){preview.classList.remove("visible");return;}
             const label=document.createElement("span");
@@ -2016,11 +2021,12 @@ footer { position:relative; z-index:1; }
             label.textContent=key==="artist"?"기존에 입력된 가수 미리보기":"기존에 입력된 장르 미리보기";
             preview.appendChild(label);
             matches.forEach(value=>{
-                const related=(Array.isArray(allSongs)?allSongs:[]).filter(song=>String(song?.[key]??"").trim().toLocaleLowerCase()===value.toLocaleLowerCase());
+                const related=combined.filter(song=>String(song?.[key]??"").trim().toLocaleLowerCase()===value.toLocaleLowerCase());
+                const uniqueRelated=new Set(related.map(song=>`${String(song?.title??"").trim().toLocaleLowerCase()}|${String(song?.artist??"").trim().toLocaleLowerCase()}|${String(song?.genre??"").trim().toLocaleLowerCase()}`));
                 const chip=document.createElement("button");
                 chip.type="button";chip.className="song-reference-chip";
                 const name=document.createElement("span");name.textContent=value;chip.appendChild(name);
-                const count=document.createElement("small");count.textContent=`${related.length}곡`;chip.appendChild(count);
+                const count=document.createElement("small");count.textContent=`${uniqueRelated.size}곡`;chip.appendChild(count);
                 chip.addEventListener("mousedown",event=>event.preventDefault());
                 chip.addEventListener("click",()=>{input.value=value;input.dispatchEvent(new Event("input",{bubbles:true}));preview.classList.remove("visible");});
                 preview.appendChild(chip);
@@ -2174,6 +2180,10 @@ footer { position:relative; z-index:1; }
             if(view==="logs")renderSongbookLogs();
             if(view==="add"){
                 renderUnregisteredSongs();
+                // 사이드바에서 '노래 추가' 화면을 열어도 자동완성 및 기존 가수·장르 미리보기를 초기화합니다.
+                setupSongAddAutocompletes();
+                renderSongReferencePreview("addSongArtist","addSongArtistPreview","artist");
+                renderSongReferencePreview("addSongGenre","addSongGenrePreview","genre");
                 const section=modal.querySelector("#songManageModal #songAddModal .song-unregistered-section");
                 if(section){
                     section.classList.add("collapsed");
