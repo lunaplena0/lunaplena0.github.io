@@ -854,10 +854,9 @@ footer { position:relative; z-index:1; }
 </select>
 <div class="custom-select count-filter-operator-custom" id="countFilterOperatorCustom"></div>
 <label class="count-filter-exclude-zero"><input id="excludeZeroCountCheck" type="checkbox"/><span>0회 미포함</span></label>
-</div></div><div class="filter-section filter-date-combined-section"><h4 class="filter-section-title"><svg class="btn-icon-svg" style="width: 14px; height: 14px;" viewbox="0 0 24 24"><rect height="16" rx="2" width="18" x="3" y="5"></rect><path d="M7 3v4M17 3v4M3 10h18"></path></svg>날짜 설정</h4><div class="filter-options filter-date-combined-options"><div class="filter-date-choice"><span>최근 부른 기간</span><select aria-hidden="true" class="detail-filter-select-native" id="recentFilterSelect" tabindex="-1"><option value="전체">전체기간</option></select><div class="custom-select" id="recentFilterCustom"></div></div><div class="filter-date-choice"><span>월별 선택</span><select aria-hidden="true" class="detail-filter-select-native" id="monthFilterSelect" tabindex="-1"><option value="전체">전체 날짜</option></select><div class="custom-select" id="monthFilterCustom"></div></div></div><div class="filter-section filter-unregistered-section"><h4 class="filter-section-title">미등록 노래</h4>
-<label class="detail-filter-check"><input id="detailSongFilterEnabledCheckbox" type="checkbox" onchange="toggleDetailSongFilterEnabled(this.checked)"/><span>노래 보기 필터 설정</span></label>
-<label class="detail-filter-check"><input id="detailOnlyUnregisteredCheckbox" type="checkbox" onchange="toggleDetailOnlyUnregistered(this.checked)"/><span>미등록된 노래만 보기 설정</span></label>
-<label class="filter-unregistered-toggle" id="detailUnregisteredToggle"><input id="detailUnregisteredCheckbox" onchange="toggleDetailUnregisteredSongs(this.checked)" type="checkbox"/><span class="filter-unregistered-label">미등록된 노래 보기</span><span class="filter-unregistered-count" id="detailUnregisteredCount">0곡</span></label><div class="filter-unregistered-list" hidden="" id="detailUnregisteredSongList"></div></div></div><div class="modal-actions"><button class="modal-btn modal-btn-refresh" onclick="resetDetailedFilters()" type="button">초기화</button><button class="modal-btn modal-btn-close" onclick="closeFilterModal()">확인</button></div></div></div></div>
+</div></div><div class="filter-section filter-date-combined-section"><h4 class="filter-section-title"><svg class="btn-icon-svg" style="width: 14px; height: 14px;" viewbox="0 0 24 24"><rect height="16" rx="2" width="18" x="3" y="5"></rect><path d="M7 3v4M17 3v4M3 10h18"></path></svg>날짜 설정</h4><div class="filter-options filter-date-combined-options"><div class="filter-date-choice"><span>최근 부른 기간</span><select aria-hidden="true" class="detail-filter-select-native" id="recentFilterSelect" tabindex="-1"><option value="전체">전체기간</option></select><div class="custom-select" id="recentFilterCustom"></div></div><div class="filter-date-choice"><span>월별 선택</span><select aria-hidden="true" class="detail-filter-select-native" id="monthFilterSelect" tabindex="-1"><option value="전체">전체 날짜</option></select><div class="custom-select" id="monthFilterCustom"></div></div></div></div><div class="filter-section filter-unregistered-section"><h4 class="filter-section-title">미등록 노래</h4>
+<label class="detail-filter-check"><input id="detailOnlyUnregisteredCheckbox" type="checkbox" onchange="toggleDetailOnlyUnregistered(this.checked)"/><span>미등록된 노래만 보기</span></label>
+<label class="filter-unregistered-toggle" id="detailUnregisteredToggle"><input id="detailUnregisteredCheckbox" onchange="toggleDetailUnregisteredSongs(this.checked)" type="checkbox"/><span class="filter-unregistered-label">미등록된 노래 보기</span><span class="filter-unregistered-count" id="detailUnregisteredCount">0곡</span></label><div class="filter-unregistered-list" hidden="" id="detailUnregisteredSongList"></div></div><div class="modal-actions"><button class="modal-btn modal-btn-refresh" onclick="resetDetailedFilters()" type="button">초기화</button><button class="modal-btn modal-btn-close" onclick="closeFilterModal()">확인</button></div></div></div></div>
 <script>
         const WORKER_URL = "https://badabi-api.dalkkumli054.workers.dev/";
         const TURNSTILE_SITE_KEY = "0x4AAAAAAEbQ0YWNiL_WiyKR";
@@ -882,7 +881,6 @@ footer { position:relative; z-index:1; }
         let currentRecentFilter = '전체';
         let currentMonthFilter = '전체';
         let detailUnregisteredExpanded = false;
-        let detailSongFilterEnabled = false;
         let detailOnlyUnregistered = false;
         let currentSongSortMode = "artist";
         let toastTimer = null;
@@ -2695,9 +2693,7 @@ function openRecommendModal() { generateRecommendations(); showModalOnTop("recom
             const checkbox=document.getElementById("detailUnregisteredCheckbox");
             const list=document.getElementById("detailUnregisteredSongList");
             if(checkbox)checkbox.checked=detailUnregisteredExpanded;
-            const filterCheck=document.getElementById("detailSongFilterEnabledCheckbox");
             const onlyCheck=document.getElementById("detailOnlyUnregisteredCheckbox");
-            if(filterCheck)filterCheck.checked=detailSongFilterEnabled;
             if(onlyCheck)onlyCheck.checked=detailOnlyUnregistered;
             if(list)list.hidden=true;
             const count=document.getElementById("detailUnregisteredCount");
@@ -2727,17 +2723,12 @@ function openRecommendModal() { generateRecommendations(); showModalOnTop("recom
         function resetDetailedFilters(){
             currentCountFilter='전체';currentCountFilterOperator='=';currentCountFilterValue='';
             excludeZeroCount=false;currentRecentFilter='전체';currentMonthFilter='전체';
-            detailSongFilterEnabled=false;detailOnlyUnregistered=false;detailUnregisteredExpanded=false;
-            const filterCheck=document.getElementById('detailSongFilterEnabledCheckbox');
+            detailOnlyUnregistered=false;detailUnregisteredExpanded=false;
             const onlyCheck=document.getElementById('detailOnlyUnregisteredCheckbox');
             const unregCheck=document.getElementById('detailUnregisteredCheckbox');
-            if(filterCheck)filterCheck.checked=false;
             if(onlyCheck)onlyCheck.checked=false;
             if(unregCheck)unregCheck.checked=false;
             syncDetailFilterSelects();updateDateFilterAvailability();updateFilterButtonState();updateFilteredAndSorted();renderAllSongs();
-        }
-        function toggleDetailSongFilterEnabled(checked){
-            detailSongFilterEnabled=!!checked;updateFilterButtonState();updateFilteredAndSorted();renderAllSongs();
         }
         function toggleDetailOnlyUnregistered(checked){
             detailOnlyUnregistered=!!checked;
@@ -2747,7 +2738,7 @@ function openRecommendModal() { generateRecommendations(); showModalOnTop("recom
         function updateFilterButtonState(){
             const filterBtn=document.getElementById("integratedFilterBtn");
             if(!filterBtn)return;
-            const hasActive=detailSongFilterEnabled||detailOnlyUnregistered||currentCountFilter!=="전체"||excludeZeroCount||currentRecentFilter!=="전체"||currentMonthFilter!=="전체"||detailUnregisteredExpanded;
+            const hasActive=detailOnlyUnregistered||currentCountFilter!=="전체"||excludeZeroCount||currentRecentFilter!=="전체"||currentMonthFilter!=="전체"||detailUnregisteredExpanded;
             filterBtn.classList.toggle("active-filter",hasActive);
             filterBtn.style.backgroundColor=hasActive?"#0ea5e9":"#ffffff";
             filterBtn.style.borderColor=hasActive?"#0ea5e9":"#cbd5e1";
@@ -2926,7 +2917,10 @@ function openRecommendModal() { generateRecommendations(); showModalOnTop("recom
                     limitBadge = `<span class="badge badge-limit ${limitClass}" data-limit="${escapeHtml(song.limit)}">${escapeHtml(cleanLimitVal)}</span>`;
                 }
 
-                const genreBadge = song.genre ? `<span class="badge badge-genre">${escapeHtml(song.genre)}</span>` : "";
+                const isGuitarOnlyUnregistered = song.__isUnregisteredSong === true
+                    && String(song.limit || '').replace(/[\[\]]/g, '').includes('기타')
+                    && String(song.genre || '').replace(/\s/g, '').includes('기타연주');
+                const genreBadge = song.genre && !isGuitarOnlyUnregistered ? `<span class="badge badge-genre">${escapeHtml(song.genre)}</span>` : "";
                 const countBadge = `<span class="badge badge-count">${Array.isArray(song.dateTimes) ? song.dateTimes.length : 0}회</span>`;
                 const etcBadge = song.etc ? `<span class="badge badge-etc"><span class="song-text-viewport etc-text-viewport"><span class="song-text-marquee">${escapeHtml(song.etc)}</span></span></span>` : "";
 
@@ -3291,11 +3285,11 @@ function openRecommendModal() { generateRecommendations(); showModalOnTop("recom
                     }
                     return true;
                 };
-                const hasDateFilter = detailSongFilterEnabled && (currentMonthFilter !== '전체' || currentRecentFilter !== '전체');
+                const hasDateFilter = currentMonthFilter !== '전체' || currentRecentFilter !== '전체';
                 // 날짜 설정이 함께 선택되면, 부른 횟수도 해당 날짜 범위 안에서만 계산합니다.
                 const playCountToCheck = hasDateFilter ? dateTimes.filter(matchesDateFilter).length : dateTimes.length;
-                if (detailSongFilterEnabled && excludeZeroCount && playCountToCheck === 0) return false;
-                if (detailSongFilterEnabled && currentCountFilter !== '전체') {
+                if (excludeZeroCount && playCountToCheck === 0) return false;
+                if (currentCountFilter !== '전체') {
                     const countValue=Number(currentCountFilterValue);
                     if(currentCountFilterOperator==='=' && playCountToCheck!==countValue) return false;
                     if(currentCountFilterOperator==='>=' && playCountToCheck<countValue) return false;
@@ -3955,5 +3949,15 @@ async function runSongDataCheck(){
  .song-manage-nav-icon{width:26px !important;height:26px !important;flex-basis:26px !important}
 }
 </style>
+
+<style id="mobile-title-space-adjustment-v17">
+@media (max-width:768px){
+  .song-summary-row .song-info-left{flex:1 1 0% !important;min-width:0 !important;}
+  .song-summary-row .song-badges{flex:0 1 auto !important;width:auto !important;max-width:38% !important;min-width:0 !important;gap:3px !important;}
+  .song-summary-row .song-badges .badge-etc{flex:0 1 58px !important;width:auto !important;max-width:58px !important;min-width:0 !important;overflow:hidden !important;text-overflow:ellipsis !important;white-space:nowrap !important;}
+  .song-summary-row .song-badges .badge-genre{flex:0 1 auto !important;max-width:72px !important;min-width:0 !important;overflow:hidden !important;text-overflow:ellipsis !important;white-space:nowrap !important;}
+}
+</style>
+
 </body>
 </html>
