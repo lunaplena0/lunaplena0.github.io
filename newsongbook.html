@@ -2878,26 +2878,36 @@ function openRecommendModal() { generateRecommendations(); showModalOnTop("recom
             popup.classList.remove("active", "minimized");
         }
 
-        // 제한 태그만 정리합니다. "기타연주" 제한 표시는 제거하고,
-        // "기타전용"만 유지합니다. 장르(song.genre)는 이 함수에서 절대 변경하지 않습니다.
+        // 제한 태그 전용 정리 함수입니다.
+        // 제한값에 들어 있는 "기타연주"는 구분자 유무와 관계없이 제거하고,
+        // "기타전용"은 유지합니다. song.genre에는 적용하지 않으므로
+        // 장르 태그가 "기타연주"인 곡은 계속 정상 표시됩니다.
         function normalizeLimitBadgeText(value) {
+            // 제한값만 정리합니다. 장르(song.genre)는 이 함수에 전달하지 않습니다.
+            // 제한값의 "기타" 또는 "기타전용"은 제한 태그 하나인 "기타전용"으로 통일하고,
+            // 제한값에 들어간 "기타연주" 항목은 제거합니다.
             const raw = (Array.isArray(value) ? value.join(" ") : String(value ?? ""))
-                .replace(/[\[\]]/g, " ")
+                .replace(/[\[\]{}]/g, " ")
                 .replace(/\s+/g, " ")
                 .trim();
             if (!raw) return "";
 
-            // 여러 제한값이 함께 저장된 경우 기타연주 항목만 제거하고 나머지 제한값은 보존합니다.
-            const withoutGuitarPlay = raw
-                .replace(/(^|[\s,;|/·]+)기타\s*연주(?=$|[\s,;|/·]+)/g, " ")
-                .replace(/\s+/g, " ")
-                .trim();
-            if (!withoutGuitarPlay || /^기타\s*연주$/.test(withoutGuitarPlay)) return "";
+            const tokens = raw
+                .split(/[;,|/·，、\s]+/)
+                .map(token => token.trim())
+                .filter(Boolean);
 
-            if (/기타\s*전용/.test(withoutGuitarPlay) || /^기타$/.test(withoutGuitarPlay)) return "기타전용";
-            if (withoutGuitarPlay.includes("300")) return "300";
-            if (withoutGuitarPlay.includes("200")) return "200";
-            return withoutGuitarPlay;
+            // "기타연주"는 제한 태그로는 표시하지 않습니다.
+            const limitTokens = tokens.filter(token => !/^기타연주$/i.test(token));
+            if (!limitTokens.length) return "";
+
+            // 제한값이 "기타"이거나 "기타전용"이면 둘 다 "기타전용" 하나만 표시합니다.
+            if (limitTokens.some(token => /^기타(?:전용)?$/i.test(token))) return "기타전용";
+            if (limitTokens.some(token => /300/.test(token))) return "300";
+            if (limitTokens.some(token => /200/.test(token))) return "200";
+
+            // 나머지 제한값도 중복 없이 하나의 제한 태그로 표시합니다.
+            return [...new Set(limitTokens)].join(" ");
         }
 
         function renderDailyRecommendations() {
