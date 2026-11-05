@@ -2903,8 +2903,8 @@ function openRecommendModal() { generateRecommendations(); showModalOnTop("recom
 
             // 제한값이 "기타"이거나 "기타전용"이면 둘 다 "기타전용" 하나만 표시합니다.
             if (limitTokens.some(token => /^기타(?:전용)?$/i.test(token))) return "기타전용";
-            if (limitTokens.some(token => /300/.test(token))) return "300";
-            if (limitTokens.some(token => /200/.test(token))) return "200";
+            if (limitTokens.some(token => /300/.test(token))) return "300개";
+            if (limitTokens.some(token => /200/.test(token))) return "200개";
 
             // 나머지 제한값도 중복 없이 하나의 제한 태그로 표시합니다.
             return [...new Set(limitTokens)].join(" ");
@@ -2938,8 +2938,8 @@ function openRecommendModal() { generateRecommendations(); showModalOnTop("recom
                 const cleanLimitVal = normalizeLimitBadgeText(song.limit);
                 let limitBadge = "";
                 if (cleanLimitVal) {
-                    const limitClass = cleanLimitVal === "200" ? "limit-200"
-                        : cleanLimitVal === "300" ? "limit-300" : "limit-other";
+                    const limitClass = cleanLimitVal === "200개" ? "limit-200"
+                        : cleanLimitVal === "300개" ? "limit-300" : "limit-other";
                     limitBadge = `<span class="badge badge-limit ${limitClass}" data-limit="${escapeHtml(song.limit)}">${escapeHtml(cleanLimitVal)}</span>`;
                 }
 
@@ -3009,8 +3009,8 @@ function openRecommendModal() { generateRecommendations(); showModalOnTop("recom
                 const limitVal = normalizeLimitBadgeText(song.limit);
                 let limitBadgeHTML = "";
                 if (limitVal) {
-                    const limitClass = limitVal === "200" ? "limit-200"
-                        : limitVal === "300" ? "limit-300" : "limit-other";
+                    const limitClass = limitVal === "200개" ? "limit-200"
+                        : limitVal === "300개" ? "limit-300" : "limit-other";
                     limitBadgeHTML = `<span class="badge badge-limit ${limitClass}" data-limit="${escapeHtml(song.limit || "")}">${escapeHtml(limitVal)}</span>`;
                 }
                 const genreBadge = song.genre ? `<span class="badge badge-genre">${song.genre}</span>` : "";
@@ -3408,8 +3408,8 @@ function openRecommendModal() { generateRecommendations(); showModalOnTop("recom
                 const cleanLimitVal = normalizeLimitBadgeText(song.limit);
                 let limitBadge = "";
                 if (cleanLimitVal) {
-                    const limitClass = cleanLimitVal === "200" ? "limit-200"
-                        : cleanLimitVal === "300" ? "limit-300" : "limit-other";
+                    const limitClass = cleanLimitVal === "200개" ? "limit-200"
+                        : cleanLimitVal === "300개" ? "limit-300" : "limit-other";
                     limitBadge = `<span class="badge badge-limit ${limitClass}" data-limit="${escapeHtml(song.limit || "")}">${escapeHtml(cleanLimitVal)}</span>`;
                 }
 
@@ -4046,6 +4046,7 @@ async function runSongDataCheck(){
 }
 </style>
 
+
 </body>
 </html>
 
@@ -4088,4 +4089,80 @@ async function runSongDataCheck(){
   animation:songTitleMarquee 8s linear infinite !important;
 }
 .song-text-viewport.marquee-active:not(.marquee-visible) .song-text-marquee{animation:none !important;}
+</style>
+
+<style id="metadata-badge-unified-v24">
+/* 추가설명·장르·횟수 태그는 모양과 타이포그래피를 통일하고 색상만 구분 */
+.song-summary-row .song-badges .badge-etc,
+.song-summary-row .song-badges .badge-genre,
+.song-summary-row .song-badges .badge-count{
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  box-sizing:border-box !important;
+  min-height:20px !important;
+  padding:3px 7px !important;
+  border-radius:8px !important;
+  font-size:11px !important;
+  font-weight:600 !important;
+  line-height:1.2 !important;
+  white-space:nowrap !important;
+}
+/* 색상만 태그 종류별로 구분 */
+.song-summary-row .song-badges .badge-etc{
+  background:#fff7ed !important;
+  color:#c2410c !important;
+  border:1px solid #fdba74 !important;
+}
+.song-summary-row .song-badges .badge-genre{
+  background:#e0f2fe !important;
+  color:#0284c7 !important;
+  border:1px solid #7dd3fc !important;
+  flex:0 0 auto !important;
+  width:max-content !important;
+  min-width:max-content !important;
+  max-width:none !important;
+  overflow:visible !important;
+  text-overflow:clip !important;
+}
+.song-summary-row .song-badges .badge-count{
+  background:#f1f5f9 !important;
+  color:#475569 !important;
+  border:1px solid #cbd5e1 !important;
+  flex:0 0 auto !important;
+}
+/* 추가설명만 폭을 제한하고, 길 때만 setupSongTitleMarquees가 좌우 애니메이션 */
+.song-summary-row .song-badges .badge-etc{
+  flex:0 1 auto !important;
+  width:auto !important;
+  min-width:0 !important;
+  max-width:106px !important;
+  overflow:hidden !important;
+  text-overflow:clip !important;
+}
+.song-summary-row .song-badges .badge-etc .etc-text-viewport{
+  display:block !important;
+  width:100% !important;
+  max-width:100% !important;
+  min-width:0 !important;
+  overflow:hidden !important;
+  white-space:nowrap !important;
+}
+.song-summary-row .song-badges .badge-etc .song-text-marquee{
+  display:inline-block !important;
+  width:max-content !important;
+  max-width:none !important;
+  white-space:nowrap !important;
+  text-overflow:clip !important;
+}
+@media(max-width:768px){
+  .song-summary-row .song-badges{gap:4px !important;min-width:0 !important;}
+  .song-summary-row .song-badges .badge-genre{
+    flex:0 0 auto !important;width:max-content !important;min-width:max-content !important;
+    max-width:none !important;overflow:visible !important;text-overflow:clip !important;
+    white-space:nowrap !important;
+  }
+  .song-summary-row .song-badges .badge-count{flex:0 0 auto !important;}
+  .song-summary-row .song-badges .badge-etc{max-width:92px !important;}
+}
 </style>
