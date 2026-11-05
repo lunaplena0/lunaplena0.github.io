@@ -1423,8 +1423,17 @@ footer { position:relative; z-index:1; }
                 Number(event.recordAdded) > 0 ||
                 Number(event.songAdded) > 0 ||
                 Number(event.songDeleted) > 0 ||
+                (Array.isArray(event.songAddedNames) && event.songAddedNames.length > 0) ||
+                (Array.isArray(event.songDeletedNames) && event.songDeletedNames.length > 0) ||
+                (Array.isArray(event.songUpdated) && event.songUpdated.length > 0) ||
                 (Array.isArray(event.movedToUnregistered) && event.movedToUnregistered.length > 0) ||
                 (Array.isArray(event.movedToRegistered) && event.movedToRegistered.length > 0) ||
+                (Array.isArray(event.jsonSaved) && event.jsonSaved.length > 0) ||
+                (Array.isArray(event.jsonReplaced) && event.jsonReplaced.length > 0) ||
+                (event.searchData && (event.searchData.added?.length || event.searchData.deleted?.length || event.searchData.changed?.length)) ||
+                (Array.isArray(event.vodAdded) && event.vodAdded.length > 0) ||
+                (Array.isArray(event.vodDeleted) && event.vodDeleted.length > 0) ||
+                (Array.isArray(event.vodChanged) && event.vodChanged.length > 0) ||
                 event.backup === true
             );
         }
@@ -1461,18 +1470,30 @@ footer { position:relative; z-index:1; }
             let day = days.find(item => item && item.date === date);
             if (!day) {
                 day = {
-                    date, recordAdded: 0, songAdded: 0, songDeleted: 0,
-                    movedToUnregistered: [], movedToRegistered: [], backup: false
+                    date, recordAdded: 0,
+                    songAdded: 0, songDeleted: 0, songAddedNames: [], songDeletedNames: [],
+                    songUpdated: [], movedToUnregistered: [], movedToRegistered: [],
+                    jsonSaved: [], jsonReplaced: [], searchData: { added: [], deleted: [], changed: [] },
+                    vodAdded: [], vodDeleted: [], vodChanged: [], backup: false
                 };
                 days.push(day);
             }
             day.recordAdded = Math.max(0, Number(day.recordAdded) || 0) + Math.max(0, Number(event.recordAdded) || 0);
+            if (event.recordAddedRegistered !== undefined || event.recordAddedUnregistered !== undefined) {
+                day.recordAddedRegistered = Math.max(0, Number(day.recordAddedRegistered) || 0) + Math.max(0, Number(event.recordAddedRegistered) || 0);
+                day.recordAddedUnregistered = Math.max(0, Number(day.recordAddedUnregistered) || 0) + Math.max(0, Number(event.recordAddedUnregistered) || 0);
+            }
             day.songAdded = Math.max(0, Number(day.songAdded) || 0) + Math.max(0, Number(event.songAdded) || 0);
             day.songDeleted = Math.max(0, Number(day.songDeleted) || 0) + Math.max(0, Number(event.songDeleted) || 0);
-            day.movedToUnregistered = Array.isArray(day.movedToUnregistered) ? day.movedToUnregistered : [];
-            day.movedToRegistered = Array.isArray(day.movedToRegistered) ? day.movedToRegistered : [];
-            if (Array.isArray(event.movedToUnregistered)) day.movedToUnregistered.push(...event.movedToUnregistered.map(String));
-            if (Array.isArray(event.movedToRegistered)) day.movedToRegistered.push(...event.movedToRegistered.map(String));
+            ["songAddedNames", "songDeletedNames", "songUpdated", "movedToUnregistered", "movedToRegistered", "jsonSaved", "jsonReplaced", "vodAdded", "vodDeleted", "vodChanged"].forEach(key => {
+                day[key] = Array.isArray(day[key]) ? day[key] : [];
+                if (Array.isArray(event[key])) day[key].push(...event[key]);
+            });
+            day.searchData = day.searchData && typeof day.searchData === "object" ? day.searchData : { added: [], deleted: [], changed: [] };
+            ["added", "deleted", "changed"].forEach(key => {
+                day.searchData[key] = Array.isArray(day.searchData[key]) ? day.searchData[key] : [];
+                if (Array.isArray(event.searchData?.[key])) day.searchData[key].push(...event.searchData[key].map(String));
+            });
             day.backup = day.backup === true || event.backup === true;
             days.sort((a, b) => String(b.date).localeCompare(String(a.date)));
             await saveWorkerFile("songbooklog", { days });
@@ -1535,7 +1556,7 @@ footer { position:relative; z-index:1; }
             const after = Array.isArray(newStats?.unregisteredSongs) ? newStats.unregisteredSongs : [];
             const beforeMap = new Map(before.map(song => [songIdentity(song), song]));
             const afterMap = new Map(after.map(song => [songIdentity(song), song]));
-            const event = { recordsAdded: 0, recordsDeleted: 0, unregisteredAdded: [], unregisteredDeleted: [], unregisteredUpdated: [] };
+            const event = { recordsAdded: 0, recordsDeleted: 0, unregisteredAdded: [], unregisteredDeleted: [], unregisteredUpdated: [], songUpdatedDetails: [] };
             afterMap.forEach((song, key) => {
                 const oldSong = beforeMap.get(key);
                 if (!oldSong) {
@@ -1544,6 +1565,8 @@ footer { position:relative; z-index:1; }
                     const fields = ["title", "artist", "genre", "limit", "etc"];
                     if (fields.some(field => String(oldSong[field] ?? "") !== String(song[field] ?? ""))) {
                         event.unregisteredUpdated.push(song.title || oldSong.title || "제목없음");
+                        const detail = buildSongChangeLog(oldSong, song, "unregistered");
+                        if (detail) event.songUpdatedDetails.push(detail);
                     }
                 }
             });
@@ -1567,7 +1590,7 @@ footer { position:relative; z-index:1; }
             return event;
         }
 
-        function getSongStatsLogMessages(day) {
+        function getSongStatsLogMessages(day, options = {}) {
             const messages = [];
             const added = Array.isArray(day.unregisteredAdded) ? day.unregisteredAdded : [];
             const deleted = Array.isArray(day.unregisteredDeleted) ? day.unregisteredDeleted : [];
@@ -1576,13 +1599,13 @@ footer { position:relative; z-index:1; }
             const movedIn = Array.isArray(day.movedToRegistered) ? day.movedToRegistered : [];
             const recordsAdded = Number(day.recordsAdded) || 0;
             const recordsDeleted = Number(day.recordsDeleted) || 0;
-            if (added.length) messages.push(`미등록곡에 노래 ${added.length}곡이 추가되었습니다: ${added.join(", ")}`);
-            if (deleted.length) messages.push(`미등록곡에서 노래 ${deleted.length}곡이 삭제되었습니다: ${deleted.join(", ")}`);
-            if (updated.length) messages.push(`미등록곡 ${updated.length}곡의 정보가 수정되었습니다: ${updated.join(", ")}`);
-            if (recordsAdded) messages.push(`미등록곡 노래기록 ${recordsAdded}개가 추가되었습니다`);
+            if (added.length) messages.push(`노래 ${added.length}개가 미등록곡으로 추가되었습니다 (${added.join(", ")})`);
+            if (deleted.length) messages.push(`미등록곡 ${deleted.length}개가 삭제되었습니다 (${deleted.join(", ")})`);
+            if (updated.length && !options.skipUpdated) messages.push(`미등록곡 ${updated.length}곡의 정보가 수정되었습니다: ${updated.join(", ")}`);
+            if (recordsAdded && !options.skipRecordAdded) messages.push(`미등록곡 노래기록 ${recordsAdded}개가 추가되었습니다`);
             if (recordsDeleted) messages.push(`미등록곡 노래기록 ${recordsDeleted}개가 삭제되었습니다`);
-            if (movedOut.length) messages.push(`등록곡에서 노래 ${movedOut.length}곡이 미등록곡으로 이동되었습니다: ${movedOut.join(", ")}`);
-            if (movedIn.length) messages.push(`미등록곡에서 ${movedIn.length}곡이 등록곡으로 이동되었습니다: ${movedIn.join(", ")}`);
+            if (movedOut.length && !options.skipMovedOut) messages.push(`등록곡에서 노래 ${movedOut.length}곡이 미등록곡으로 이동되었습니다: ${movedOut.join(", ")}`);
+            if (movedIn.length && !options.skipMovedIn) messages.push(`미등록곡에서 ${movedIn.length}곡이 등록곡으로 이동되었습니다: ${movedIn.join(", ")}`);
             return messages;
         }
 
@@ -1590,27 +1613,54 @@ footer { position:relative; z-index:1; }
             const messages = [];
             const dateText = formatSongbookLogDate(day.date);
             const records = Number(day.recordAdded) || 0;
+            const registeredRecords = Number(day.recordAddedRegistered) || 0;
+            const unregisteredRecords = Number(day.recordAddedUnregistered) || 0;
             const added = Number(day.songAdded) || 0;
             const deleted = Number(day.songDeleted) || 0;
-            if (records > 0 && added > 0 && deleted > 0) {
-                messages.push(`${dateText}에 노래기록 ${records}개 노래 ${added}곡이 추가 되었고 노래 ${deleted}곡이 삭제되었습니다`);
-            } else {
-                if (records > 0) messages.push(`${dateText}에 노래기록 ${records}개가 추가되었습니다`);
-                if (added > 0) messages.push(`${dateText}에 노래 ${added}곡이 추가되었습니다`);
-                if (deleted > 0) messages.push(`${dateText}에 노래 ${deleted}곡이 삭제되었습니다`);
-            }
+            const addedNames = Array.isArray(day.songAddedNames) ? day.songAddedNames : [];
+            const deletedNames = Array.isArray(day.songDeletedNames) ? day.songDeletedNames : [];
+            const updates = Array.isArray(day.songUpdated) ? day.songUpdated : [];
             const toUnregistered = Array.isArray(day.movedToUnregistered) ? day.movedToUnregistered : [];
-            if (toUnregistered.length) {
-                messages.push(`노래책에서 노래 ${toUnregistered.length}개가 미등록곡으로 이동되었습니다: ${toUnregistered.join(", ")}`);
-            }
             const toRegistered = Array.isArray(day.movedToRegistered) ? day.movedToRegistered : [];
-            if (toRegistered.length) {
-                messages.push(`미등록곡에서 ${toRegistered.length}곡이 등록곡으로 이동되었습니다: ${toRegistered.join(", ")}`);
+            const jsonSaved = Array.isArray(day.jsonSaved) ? day.jsonSaved : [];
+            const jsonReplaced = Array.isArray(day.jsonReplaced) ? day.jsonReplaced : [];
+            const searchData = day.searchData && typeof day.searchData === "object" ? day.searchData : {};
+            const searchAdded = Array.isArray(searchData.added) ? searchData.added : [];
+            const searchDeleted = Array.isArray(searchData.deleted) ? searchData.deleted : [];
+            const searchChanged = Array.isArray(searchData.changed) ? searchData.changed : [];
+            const vodAdded = Array.isArray(day.vodAdded) ? day.vodAdded : [];
+            const vodDeleted = Array.isArray(day.vodDeleted) ? day.vodDeleted : [];
+            const vodChanged = Array.isArray(day.vodChanged) ? day.vodChanged : [];
+
+            if (records > 0) {
+                if (day.recordAddedRegistered !== undefined || day.recordAddedUnregistered !== undefined) {
+                    messages.push(`${dateText}에 노래기록 ${records}개가 추가되었습니다 (등록곡 ${registeredRecords}곡, 미등록곡 ${unregisteredRecords}곡)`);
+                } else {
+                    messages.push(`${dateText}에 노래기록 ${records}개가 추가되었습니다`);
+                }
             }
-            if (day.backup === true) messages.push(`JSON을 ${dateText}에 백업했습니다`);
+            if (deleted > 0) messages.push(`노래책에 노래 ${deleted}개가 삭제되었습니다 (${deletedNames.join(", ") || "곡명 미상"})`);
+            if (added > 0) messages.push(`노래책에 노래 ${added}개가 추가되었습니다 (${addedNames.join(", ") || "곡명 미상"})`);
+            if (toRegistered.length) messages.push(`미등록곡에서 노래책으로 노래 ${toRegistered.length}개가 이동되었습니다 (${toRegistered.join(", ")})`);
+            if (toUnregistered.length) messages.push(`노래 ${toUnregistered.length}개가 미등록곡으로 이동되었습니다 (${toUnregistered.join(", ")})`);
+            updates.forEach(item => {
+                const before = item?.before || {};
+                const after = item?.after || {};
+                const scope = item?.scope === "unregistered" ? "미등록곡의 노래" : "노래책에 노래";
+                const fields = Array.isArray(item?.fields) ? item.fields : [];
+                const beforeText = fields.map(field => `${field.label}: ${field.before || "없음"}`).join(", ");
+                const afterText = fields.map(field => `${field.label}: ${field.after || "없음"}`).join(", ");
+                messages.push(`${scope}가 수정되었습니다 (${before.title || "제목없음"} 노래 ${beforeText || "정보"} > ${after.title || "제목없음"} 노래 ${afterText || "정보"})`);
+            });
+            jsonSaved.forEach(file => messages.push(`JSON이 ${dateText}에 저장되었습니다 (${file})`));
+            jsonReplaced.forEach(file => messages.push(`JSON이 ${dateText}에 교체되었습니다 (${file})`));
+            if (searchAdded.length || searchDeleted.length || searchChanged.length) messages.push(`검색 데이터의 항목이 수정되었습니다 (${searchAdded.length} 추가, ${searchDeleted.length} 삭제, ${searchChanged.length} 변경)`);
+            vodAdded.forEach(value => messages.push(`vod 날짜가 추가되었습니다 (${value})`));
+            vodDeleted.forEach(value => messages.push(`vod 날짜가 삭제되었습니다 (${value})`));
+            vodChanged.forEach(value => messages.push(`vod 날짜가 변경되었습니다 (${value})`));
+            if (day.backup === true && !jsonSaved.length) messages.push(`JSON이 ${dateText}에 저장되었습니다 (파일명 미상)`);
             return messages;
         }
-
         async function renderSongbookLogs() {
             const list = document.getElementById("songbookLogList");
             const status = document.getElementById("songbookLogStatus");
@@ -1642,7 +1692,12 @@ footer { position:relative; z-index:1; }
                 const visibleDays = days.filter(day => {
                     const messages = [
                         ...(day._book ? getSongbookLogMessages(day._book) : []),
-                        ...(day._stats ? getSongStatsLogMessages(day._stats) : [])
+                        ...(day._stats ? getSongStatsLogMessages(day._stats, {
+                            skipRecordAdded: !!(day._book && (day._book.recordAddedRegistered !== undefined || day._book.recordAddedUnregistered !== undefined)),
+                            skipMovedOut: !!(day._book && Array.isArray(day._book.movedToUnregistered) && day._book.movedToUnregistered.length),
+                            skipMovedIn: !!(day._book && Array.isArray(day._book.movedToRegistered) && day._book.movedToRegistered.length),
+                            skipUpdated: !!(day._book && Array.isArray(day._book.songUpdated) && day._book.songUpdated.some(item => item?.scope === "unregistered"))
+                        }) : [])
                     ];
                     day._messages = messages;
                     return messages.length > 0;
@@ -1659,7 +1714,7 @@ footer { position:relative; z-index:1; }
                     head.className = "songbook-log-day-head";
                     const date = document.createElement("strong");
                     date.className = "songbook-log-date";
-                    date.textContent = `${day.date || ""} · ${formatSongbookLogDate(day.date)}`;
+                    date.textContent = `${day.date || ""}`;
                     head.appendChild(date);
                     if (songUserRole === "admin") {
                         const remove = document.createElement("button");
@@ -1752,13 +1807,84 @@ footer { position:relative; z-index:1; }
             return count;
         }
 
+        function getAddedSongRecordCounts(oldStats, newStats) {
+            const collect = stats => {
+                const registered = new Set(), unregistered = new Set();
+                [["registeredSongs", registered], ["unregisteredSongs", unregistered]].forEach(([name, keys]) => {
+                    (Array.isArray(stats?.[name]) ? stats[name] : []).forEach(song => {
+                        const identity = songIdentity(song);
+                        (Array.isArray(song?.dateTimes) ? song.dateTimes : []).forEach(record => keys.add(`${identity}::${JSON.stringify(record)}`));
+                    });
+                });
+                return { registered, unregistered };
+            };
+            const before = collect(oldStats), after = collect(newStats);
+            const count = (oldSet, newSet) => [...newSet].filter(key => !oldSet.has(key)).length;
+            return { registered: count(before.registered, after.registered), unregistered: count(before.unregistered, after.unregistered) };
+        }
+
+        function buildSongChangeLog(beforeSong, afterSong, scope = "registered") {
+            const labels = { title: "제목", artist: "가수", genre: "장르", limit: "제한", etc: "추가설명", dateTimes: "노래기록" };
+            const fields = [];
+            Object.keys(labels).forEach(key => {
+                const beforeValue = key === "dateTimes" ? JSON.stringify(normalizeSongDateTimes(beforeSong?.[key])) : String(beforeSong?.[key] ?? "");
+                const afterValue = key === "dateTimes" ? JSON.stringify(normalizeSongDateTimes(afterSong?.[key])) : String(afterSong?.[key] ?? "");
+                if (beforeValue !== afterValue) {
+                    const formatRecords = value => normalizeSongDateTimes(value).map(record => `${record.date || "날짜없음"}${record.time ? ` ${record.time}` : ""}`).join(" / ") || "없음";
+                    const beforeText = key === "dateTimes" ? formatRecords(beforeSong?.[key]) : beforeValue;
+                    const afterText = key === "dateTimes" ? formatRecords(afterSong?.[key]) : afterValue;
+                    fields.push({ label: labels[key], before: beforeText || "없음", after: afterText || "없음" });
+                }
+            });
+            return fields.length ? { scope, before: { title: beforeSong?.title || "제목없음" }, after: { title: afterSong?.title || "제목없음" }, fields } : null;
+        }
+
+        function getSearchDataDiff(oldData, newData) {
+            const before = oldData && typeof oldData === "object" ? oldData : {};
+            const after = newData && typeof newData === "object" ? newData : {};
+            const added = [], deleted = [], changed = [];
+            Object.keys(after).forEach(key => {
+                if (!Object.prototype.hasOwnProperty.call(before, key)) added.push(key);
+                else if (String(before[key]) !== String(after[key])) changed.push(key);
+            });
+            Object.keys(before).forEach(key => { if (!Object.prototype.hasOwnProperty.call(after, key)) deleted.push(key); });
+            return { added, deleted, changed };
+        }
+
+        function getVodDateDiff(oldSources, newSources) {
+            const before = Array.isArray(oldSources) ? oldSources : [];
+            const after = Array.isArray(newSources) ? newSources : [];
+            const added = [], deleted = [], changed = [];
+            const beforeByUrl = new Map(before.map(item => [String(item?.url || "").trim(), item]).filter(([url]) => url));
+            const afterByUrl = new Map(after.map(item => [String(item?.url || "").trim(), item]).filter(([url]) => url));
+            const matchedBefore = new Set(), matchedAfter = new Set();
+            after.forEach(item => {
+                const url = String(item?.url || "").trim(), oldItem = beforeByUrl.get(url);
+                if (oldItem) {
+                    matchedBefore.add(oldItem); matchedAfter.add(item);
+                    const oldDate = String(oldItem?.date || ""), newDate = String(item?.date || "");
+                    if (oldDate !== newDate) changed.push(`${oldDate} > ${newDate}`);
+                }
+            });
+            before.forEach(item => { if (!matchedBefore.has(item)) deleted.push(String(item?.date || "")); });
+            after.forEach(item => { if (!matchedAfter.has(item)) added.push(String(item?.date || "")); });
+            return { vodAdded: added.filter(Boolean), vodDeleted: deleted.filter(Boolean), vodChanged: changed };
+        }
+
         function getSonglistReplacementLog(oldSongs, newSongs) {
             const before = new Set((Array.isArray(oldSongs) ? oldSongs : []).map(songIdentity));
             const after = new Set((Array.isArray(newSongs) ? newSongs : []).map(songIdentity));
             let songAdded = 0, songDeleted = 0;
-            after.forEach(key => { if (!before.has(key)) songAdded++; });
-            before.forEach(key => { if (!after.has(key)) songDeleted++; });
-            return { songAdded, songDeleted };
+            const addedNames = [], deletedNames = [];
+            const beforeSongs = new Map((Array.isArray(oldSongs) ? oldSongs : []).map(song => [songIdentity(song), song]));
+            const afterSongs = new Map((Array.isArray(newSongs) ? newSongs : []).map(song => [songIdentity(song), song]));
+            const songUpdated = [];
+            after.forEach(key => {
+                if (!before.has(key)) { songAdded++; addedNames.push(afterSongs.get(key)?.title || "제목없음"); }
+                else { const detail = buildSongChangeLog(beforeSongs.get(key), afterSongs.get(key), "registered"); if (detail) songUpdated.push(detail); }
+            });
+            before.forEach(key => { if (!after.has(key)) { songDeleted++; deletedNames.push(beforeSongs.get(key)?.title || "제목없음"); } });
+            return { songAdded, songDeleted, songAddedNames: addedNames, songDeletedNames: deletedNames, songUpdated };
         }
 
         async function saveWorkerFile(fileType, content) {
@@ -1906,13 +2032,15 @@ footer { position:relative; z-index:1; }
                 if (!oldSong) { showToastMessage("수정할 미등록곡을 찾을 수 없습니다."); return; }
                 const duplicate = list.some((item, i) => i !== editingUnregisteredIndex && songIdentity(item) === songIdentity(updated));
                 if (duplicate) { showToastMessage("같은 미등록곡이 이미 존재합니다."); return; }
-                list[editingUnregisteredIndex] = { ...oldSong, ...updated };
+                const updatedUnregistered = { ...oldSong, ...updated };
+                const unregisteredChangeLog = buildSongChangeLog(oldSong, updatedUnregistered, "unregistered");
+                list[editingUnregisteredIndex] = updatedUnregistered;
                 fansongStatsData.unregisteredSongs = list;
                 closeSongEditModal();
                 updateFilteredAndSorted();
                 renderAllSongs();
                 renderUnregisteredSongs();
-                enqueueSongServerSave({ statsLog: { unregisteredUpdated: [title] } });
+                enqueueSongServerSave({ songUpdated: unregisteredChangeLog ? [unregisteredChangeLog] : [], statsLog: { unregisteredUpdated: [title] } });
                 showToastMessage("미등록곡 정보를 수정했습니다.");
                 return;
             }
@@ -1920,8 +2048,9 @@ footer { position:relative; z-index:1; }
             if (editingSongIndex < 0) return;
             const song = allSongs[editingSongIndex];
             if (!song) return;
-            const oldSong = { ...song };
+            const oldSong = { ...song, dateTimes: normalizeSongDateTimes(song.dateTimes) };
             Object.assign(song, updated);
+            const registeredChangeLog = buildSongChangeLog(oldSong, song, "registered");
             updateRegisteredSongForCurrentSong(oldSong, song);
             const registeredStats = Array.isArray(fansongStatsData.registeredSongs) ? fansongStatsData.registeredSongs : [];
             const updatedStatsSong = registeredStats.find(item => songIdentity(item) === songIdentity(song));
@@ -1929,7 +2058,7 @@ footer { position:relative; z-index:1; }
             closeSongEditModal();
             updateFilteredAndSorted();
             renderAllSongs();
-            enqueueSongServerSave();
+            enqueueSongServerSave({ songUpdated: registeredChangeLog ? [registeredChangeLog] : [] });
             showToastMessage("노래 정보와 팬송 통계를 저장했습니다.");
         }
 
@@ -2016,7 +2145,7 @@ footer { position:relative; z-index:1; }
             renderAllSongs();
             renderUnregisteredSongs();
             animateNumber("animSongCount", allSongs.length);
-            enqueueSongServerSave({ songDeleted: 1, movedToUnregistered: movedToUnregistered ? [title] : [], statsLog: movedToUnregistered ? { movedToUnregistered: [title] } : null });
+            enqueueSongServerSave({ songDeleted: movedToUnregistered ? 0 : 1, songDeletedNames: movedToUnregistered ? [] : [title], movedToUnregistered: movedToUnregistered ? [title] : [], statsLog: movedToUnregistered ? { movedToUnregistered: [title] } : null });
 
             if (movedToUnregistered) {
                 showToastMessage("노래책에서 삭제하고 팬송 통계는 미등록 곡으로 이동했습니다.");
@@ -2073,22 +2202,27 @@ footer { position:relative; z-index:1; }
             if(normalizeSearchText(oldName)===normalizeSearchText(newName)){showToastMessage("기존 가수명과 새 가수명이 같습니다.");return}
             const key=normalizeSearchText(oldName);
             let changed=0;
-            (Array.isArray(allSongs)?allSongs:[]).forEach(song=>{if(normalizeSearchText(song?.artist)===key){song.artist=newName;changed++;}});
+            const registeredSongChanges=[];
+            (Array.isArray(allSongs)?allSongs:[]).forEach(song=>{if(normalizeSearchText(song?.artist)===key){const before={...song};song.artist=newName;const change=buildSongChangeLog(before,song,"registered");if(change)registeredSongChanges.push(change);changed++;}});
             (Array.isArray(fansongStatsData.registeredSongs)?fansongStatsData.registeredSongs:[]).forEach(song=>{if(normalizeSearchText(song?.artist)===key)song.artist=newName;});
             const unregisteredArtistChanges=[];
-            (Array.isArray(fansongStatsData.unregisteredSongs)?fansongStatsData.unregisteredSongs:[]).forEach(song=>{if(normalizeSearchText(song?.artist)===key){unregisteredArtistChanges.push(`${song.title||"제목없음"} (${oldName} → ${newName})`);song.artist=newName;}});
+            const unregisteredSongChanges=[];
+            (Array.isArray(fansongStatsData.unregisteredSongs)?fansongStatsData.unregisteredSongs:[]).forEach(song=>{if(normalizeSearchText(song?.artist)===key){const before={...song};unregisteredArtistChanges.push(`${song.title||"제목없음"} (${oldName} → ${newName})`);song.artist=newName;const change=buildSongChangeLog(before,song,"unregistered");if(change)unregisteredSongChanges.push(change);}});
             let pronunciationChanged=0;
             const renamedPronunciation={};
             Object.entries(songPronunciationSourceMap||{}).forEach(([sourceKey,pronunciation])=>{
                 if(normalizeSearchText(sourceKey)===key){renamedPronunciation[newName]=pronunciation;pronunciationChanged++;}
                 else renamedPronunciation[sourceKey]=pronunciation;
             });
-            if(!changed && !pronunciationChanged){showToastMessage("해당 가수명이 등록된 데이터가 없습니다.");return}
+            if(!changed && !unregisteredArtistChanges.length && !pronunciationChanged){showToastMessage("해당 가수명이 등록된 데이터가 없습니다.");return}
+            const searchDataChange = getSearchDataDiff(songPronunciationSourceMap, renamedPronunciation);
             songPronunciationSourceMap=renamedPronunciation;
             songPronunciationMap={};
             Object.entries(songPronunciationSourceMap).forEach(([sourceKey,pronunciation])=>{const normalized=normalizeSearchText(sourceKey);if(normalized)songPronunciationMap[normalized]=String(pronunciation);});
             updateFilteredAndSorted();renderAllSongs();
             enqueueAllSongJsonSave(unregisteredArtistChanges.length?{unregisteredUpdated:unregisteredArtistChanges}:null);
+            if (registeredSongChanges.length || unregisteredSongChanges.length) enqueueSongbookLogSave({ songUpdated: [...registeredSongChanges, ...unregisteredSongChanges] });
+            if (searchDataChange.added.length || searchDataChange.deleted.length || searchDataChange.changed.length) enqueueSongbookLogSave({ searchData: searchDataChange });
             if(oldInput)oldInput.value="";if(newInput)newInput.value="";updateBulkArtistPreview();
             showToastMessage(`${changed}곡의 가수명을 '${newName}'으로 수정했습니다.`);
         }
@@ -2218,7 +2352,7 @@ footer { position:relative; z-index:1; }
         function toggleUnregisteredSongs(event){if(event){event.preventDefault();event.stopPropagation()}const section=document.querySelector("#songManageModal #songAddModal .song-unregistered-section");if(!section)return;const collapsed=section.classList.toggle("collapsed");const button=section.querySelector(".song-unregistered-header");if(button)button.setAttribute("aria-expanded",String(!collapsed))}
          function openSongAddFromManage(){openSongAddModal()}
          function downloadBlobFile(blob,filename){const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000)}
-         function downloadCurrentJson(type){if(!isSongAuthenticated){openSongAuthModal();return}let content,filename;if(type==="songlist"){filename="songlist.json";content={notice:currentNoticeText||"",recommendationPopupEnabled:!!recommendationPopupEnabled,songs:getEditableSongContent()};}else if(type==="fansongstats"){filename="fansongstats.json";content={vodSources:Array.isArray(fansongStatsData.vodSources)?fansongStatsData.vodSources:[],registeredSongs:Array.isArray(fansongStatsData.registeredSongs)?fansongStatsData.registeredSongs:[],unregisteredSongs:Array.isArray(fansongStatsData.unregisteredSongs)?fansongStatsData.unregisteredSongs:[]};}else if(type==="songPronunciation"){filename="songPronunciation.json";content=getCurrentPronunciationContent();}else{return}downloadBlobFile(new Blob([JSON.stringify(content,null,2)],{type:"application/json;charset=utf-8"}),filename);enqueueSongbookLogSave({backup:true});showToastMessage(`${filename} 파일을 다운로드했습니다.`)}
+         function downloadCurrentJson(type){if(!isSongAuthenticated){openSongAuthModal();return}let content,filename;if(type==="songlist"){filename="songlist.json";content={notice:currentNoticeText||"",recommendationPopupEnabled:!!recommendationPopupEnabled,songs:getEditableSongContent()};}else if(type==="fansongstats"){filename="fansongstats.json";content={vodSources:Array.isArray(fansongStatsData.vodSources)?fansongStatsData.vodSources:[],registeredSongs:Array.isArray(fansongStatsData.registeredSongs)?fansongStatsData.registeredSongs:[],unregisteredSongs:Array.isArray(fansongStatsData.unregisteredSongs)?fansongStatsData.unregisteredSongs:[]};}else if(type==="songPronunciation"){filename="songPronunciation.json";content=getCurrentPronunciationContent();}else{return}downloadBlobFile(new Blob([JSON.stringify(content,null,2)],{type:"application/json;charset=utf-8"}),filename);enqueueSongbookLogSave({backup:true,jsonSaved:[filename]});showToastMessage(`${filename} 파일을 다운로드했습니다.`)}
         function replaceCurrentJson(type){
             if(!isSongAuthenticated){openSongAuthModal();return}
             const fileNames={songlist:"songlist.json",fansongstats:"fansongstats.json",songPronunciation:"songPronunciation.json"};
@@ -2254,9 +2388,14 @@ footer { position:relative; z-index:1; }
                     if (type === "songlist") {
                         replacementLog = getSonglistReplacementLog(allSongs, content.songs);
                     } else if (type === "fansongstats") {
-                        replacementLog = { recordAdded: countAddedSongRecords(getCurrentStatsContent(), content) };
+                        const recordCounts = getAddedSongRecordCounts(getCurrentStatsContent(), content);
+                        replacementLog = { recordAdded: recordCounts.registered + recordCounts.unregistered, recordAddedRegistered: recordCounts.registered, recordAddedUnregistered: recordCounts.unregistered, ...getVodDateDiff(getCurrentStatsContent().vodSources, content.vodSources) };
                         statsReplacementLog = getUnregisteredStatsDiff(getCurrentStatsContent(), content);
+                        if (statsReplacementLog.songUpdatedDetails.length) replacementLog.songUpdated = statsReplacementLog.songUpdatedDetails;
+                    } else if (type === "songPronunciation") {
+                        replacementLog = { searchData: getSearchDataDiff(getCurrentPronunciationContent(), content) };
                     }
+                    replacementLog = { ...(replacementLog || {}), jsonReplaced: [selectedFile] };
                     await saveWorkerFile(type,content);
                     if (hasSongbookLogEvent(replacementLog)) {
                         try {
@@ -2364,17 +2503,25 @@ footer { position:relative; z-index:1; }
             const newNorm=normalizeSearchText(newKey);
             const duplicate=Object.keys(songPronunciationSourceMap||{}).some(key=>key!==editingSearchDataKey&&normalizeSearchText(key)===newNorm);
             if(duplicate){showToastMessage("같은 검색 데이터가 이미 등록되어 있습니다.");return}
+            const oldSearchData={...(songPronunciationSourceMap||{})};
             if(editingSearchDataKey && Object.prototype.hasOwnProperty.call(songPronunciationSourceMap,editingSearchDataKey))delete songPronunciationSourceMap[editingSearchDataKey];
             songPronunciationSourceMap[newKey]=newValue;
+            const searchDataChange=getSearchDataDiff(oldSearchData,songPronunciationSourceMap);
             songPronunciationMap={};Object.entries(songPronunciationSourceMap).forEach(([k,v])=>{const n=normalizeSearchText(k);if(n)songPronunciationMap[n]=String(v)});
             const wasEdit=!!editingSearchDataKey;
-            enqueueSongPronunciationSave();cancelSearchDataEdit();renderSearchDataList();showToastMessage(wasEdit?"검색 데이터를 수정했습니다.":"검색 데이터를 추가했습니다.");
+            enqueueSongPronunciationSave();
+            if(searchDataChange.added.length||searchDataChange.deleted.length||searchDataChange.changed.length)enqueueSongbookLogSave({searchData:searchDataChange});
+            cancelSearchDataEdit();renderSearchDataList();showToastMessage(wasEdit?"검색 데이터를 수정했습니다.":"검색 데이터를 추가했습니다.");
         }
         function deleteSearchDataEntry(key){
             if(!isSongAuthenticated)return;
             if(!confirm(`'${key}' 검색 데이터를 삭제하시겠습니까?`))return;
+            const oldSearchData={...(songPronunciationSourceMap||{})};
             delete songPronunciationSourceMap[key];songPronunciationMap={};Object.entries(songPronunciationSourceMap).forEach(([k,v])=>{const n=normalizeSearchText(k);if(n)songPronunciationMap[n]=String(v)});
-            enqueueSongPronunciationSave();renderSearchDataList();showToastMessage("검색 데이터를 삭제했습니다.");
+            const searchDataChange=getSearchDataDiff(oldSearchData,songPronunciationSourceMap);
+            enqueueSongPronunciationSave();
+            if(searchDataChange.added.length||searchDataChange.deleted.length||searchDataChange.changed.length)enqueueSongbookLogSave({searchData:searchDataChange});
+            renderSearchDataList();showToastMessage("검색 데이터를 삭제했습니다.");
         }
         function enqueueSongPronunciationSave(){
             isSongLocallyMutating=true;
@@ -2431,7 +2578,7 @@ function addNewSong(target='registered'){
             addSongToRegisteredStats(newSong,dateTimes);
             if(selected)removeFromUnregisteredStats(selected);
             selectedUnregisteredKey="";showSongManageView('home');updateFilteredAndSorted();renderAllSongs();animateNumber("animSongCount",allSongs.length);
-            enqueueSongServerSave(selected?{songAdded:1,movedToRegistered:[newSong.title],statsLog:{movedToRegistered:[newSong.title]}}:{songAdded:1});
+            enqueueSongServerSave(selected?{movedToRegistered:[newSong.title],statsLog:{movedToRegistered:[newSong.title]}}:{songAdded:1,songAddedNames:[newSong.title]});
             showToastMessage(selected?"미등록 곡을 노래책과 팬송 통계에 등록했습니다.":"노래책과 팬송 통계에 노래를 추가했습니다.");
         }
 
@@ -3925,7 +4072,7 @@ function closeVodModal(){showSongManageView('add');}
 function resetVodForm(){editingVodKey='';const d=document.getElementById('statsVodDate'),u=document.getElementById('statsVodUrl');if(d)d.value=localTodayString();if(u)u.value='';}
 function startAddVod(){if(!isSongAuthenticated){openSongAuthModal();return;}if(songUserRole!=='admin'){showToastMessage('VOD 관리는 총괄관리자만 사용할 수 있습니다.');return;}resetVodForm();document.getElementById('statsVodDate')?.focus();showToastMessage('새 VOD를 입력하세요.');}
 function editStatsVod(key){if(!isSongAuthenticated){openSongAuthModal();return;}if(songUserRole!=='admin'){showToastMessage('VOD 관리는 총괄관리자만 사용할 수 있습니다.');return;}const item=(fansongStatsData.vodSources||[]).find(x=>String(x.date||'')===String(key));if(!item){showToastMessage('해당 VOD를 찾을 수 없습니다.');return;}editingVodKey=String(key);document.getElementById('statsVodDate').value=String(item.date||'');document.getElementById('statsVodUrl').value=String(item.url||'');showSongManageView('vod');}
-function deleteStatsVod(key){if(!isSongAuthenticated){openSongAuthModal();return;}if(songUserRole!=='admin'){showToastMessage('VOD 관리는 총괄관리자만 사용할 수 있습니다.');return;}if(!confirm(`'${key}' VOD를 삭제하시겠습니까?`))return;fansongStatsData.vodSources=(fansongStatsData.vodSources||[]).filter(x=>String(x.date||'')!==String(key));delete vodMap[key];if(editingVodKey===String(key))resetVodForm();renderStatsVodList();enqueueSongServerSave();showToastMessage('VOD를 삭제했습니다.');}
+function deleteStatsVod(key){if(!isSongAuthenticated){openSongAuthModal();return;}if(songUserRole!=='admin'){showToastMessage('VOD 관리는 총괄관리자만 사용할 수 있습니다.');return;}if(!confirm(`'${key}' VOD를 삭제하시겠습니까?`))return;fansongStatsData.vodSources=(fansongStatsData.vodSources||[]).filter(x=>String(x.date||'')!==String(key));delete vodMap[key];if(editingVodKey===String(key))resetVodForm();renderStatsVodList();enqueueSongServerSave({vodDeleted:[String(key)]});showToastMessage('VOD를 삭제했습니다.');}
 function renderStatsVodList(){const c=document.getElementById('statsVodList');if(!c)return;const list=Array.isArray(fansongStatsData.vodSources)?fansongStatsData.vodSources:[];c.innerHTML=list.slice().sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))).map(v=>{const key=String(v.date||''),encoded=encodeURIComponent(key);return `<div class="stats-vod-row"><div class="stats-vod-info"><strong>${escapeHtml(key)}</strong><div>${escapeHtml(v.url||'')}</div></div><div class="stats-vod-actions"><button type="button" class="modal-btn modal-btn-refresh vod-edit-btn" data-vod-key="${encoded}">수정</button><button type="button" class="modal-btn modal-btn-danger vod-delete-btn" data-vod-key="${encoded}">삭제</button></div></div>`;}).join('')||'<div class="no-result">등록된 VOD가 없습니다.</div>';}
 function saveStatsVod(){
     if(!isSongAuthenticated){openSongAuthModal();return;}
@@ -3935,8 +4082,9 @@ function saveStatsVod(){
     const list=Array.isArray(fansongStatsData.vodSources)?fansongStatsData.vodSources:[];let key=base;
     if(!editingVodKey){if(!/\(\d+\)$/.test(base)&&list.some(v=>String(v.date||'')===base)){let n=1;while(list.some(v=>String(v.date||'')===`${base}(${n})`))n++;key=`${base}(${n})`;}if(list.some(v=>String(v.date||'')===key)){showToastMessage(`이미 '${key}' VOD가 등록되어 있습니다.`);return;}}
     else{const m=String(editingVodKey).match(/^(\d{4}-\d{2}-\d{2})(?:\((\d+)\))?$/),round=m&&m[2]?m[2]:'';key=/\(\d+\)$/.test(base)?base:(round?`${base}(${round})`:base);if(editingVodKey!==key&&list.some(v=>String(v.date||'')===key)){showToastMessage(`이미 '${key}' VOD가 등록되어 있습니다.`);return;}}
-    if(editingVodKey){const old=editingVodKey,item=list.find(v=>String(v.date||'')===old);if(!item){showToastMessage('수정할 VOD를 찾을 수 없습니다.');return;}item.date=key;item.url=url;delete item.time;if(old!==key)delete vodMap[old];}else list.push({date:key,url});
-    fansongStatsData.vodSources=list;vodMap[key]=url;editingVodKey='';renderStatsVodList();enqueueSongServerSave();showToastMessage('VOD를 저장했습니다.');
+    let vodLogEvent={};
+    if(editingVodKey){const old=editingVodKey,item=list.find(v=>String(v.date||'')===old);if(!item){showToastMessage('수정할 VOD를 찾을 수 없습니다.');return;}item.date=key;item.url=url;delete item.time;if(old!==key){delete vodMap[old];vodLogEvent.vodChanged=[`${old} > ${key}`];}}else{list.push({date:key,url});vodLogEvent.vodAdded=[key];}
+    fansongStatsData.vodSources=list;vodMap[key]=url;editingVodKey='';renderStatsVodList();enqueueSongServerSave(vodLogEvent);showToastMessage('VOD를 저장했습니다.');
 }
 function initVodListEvents(){const c=document.getElementById('statsVodList');if(!c||c.dataset.eventsBound==='1')return;c.dataset.eventsBound='1';c.addEventListener('click',e=>{const edit=e.target.closest('.vod-edit-btn');if(edit&&c.contains(edit)){editStatsVod(decodeURIComponent(edit.dataset.vodKey||''));return;}const del=e.target.closest('.vod-delete-btn');if(del&&c.contains(del))deleteStatsVod(decodeURIComponent(del.dataset.vodKey||''));});}
 initVodListEvents();
@@ -3968,7 +4116,7 @@ function applyBulkSongInput(){
         if(isRegistered){regAdded++;const visible=allSongs.find(x=>songIdentity(x)===songIdentity(song));if(visible)visible.dateTimes=normalizeSongDateTimes(dates);}else unregAdded++;
     });
     fansongStatsData.registeredSongs=reg;fansongStatsData.unregisteredSongs=unreg;updateFilteredAndSorted();renderAllSongs();if(typeof renderUnregisteredSongs==='function')renderUnregisteredSongs();
-    const event={};if(regAdded)event.recordAdded=regAdded;if(unregAdded)event.statsLog={recordsAdded:unregAdded};if(regAdded||unregAdded)enqueueSongServerSave(event);
+    const event={};if(regAdded){event.recordAdded=regAdded;event.recordAddedRegistered=regAdded;}if(unregAdded){event.recordAdded=(event.recordAdded||0)+unregAdded;event.recordAddedUnregistered=unregAdded;event.statsLog={recordsAdded:unregAdded};}if(regAdded||unregAdded)enqueueSongServerSave(event);
     const errors=failed.length?`<div style="margin-top:10px;border-top:1px solid #fecaca;padding-top:8px"><b style="color:#dc2626">실패 ${failed.length}건</b><ul>${failed.map(x=>`<li>${escapeHtml(x.line)} — ${escapeHtml(x.reason)}</li>`).join('')}</ul></div>`:'';
     result.innerHTML=`<div style="line-height:1.8"><b style="color:#16a34a">등록곡 ${regAdded}건 추가</b><br><b style="color:#2563eb">미등록곡 ${unregAdded}건 추가</b>${dupes?`<br>중복 ${dupes}건 제외`:''}${errors}</div>`;
 }
