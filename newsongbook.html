@@ -2878,6 +2878,20 @@ function openRecommendModal() { generateRecommendations(); showModalOnTop("recom
             popup.classList.remove("active", "minimized");
         }
 
+        // 제한 태그 표시를 한 곳에서 정규화합니다. 기타 관련 제한 값이 여러 표현으로
+        // 함께 들어 있어도 제한 태그는 "기타전용" 하나만 표시하며, 장르 태그에는 관여하지 않습니다.
+        function normalizeLimitBadgeText(value) {
+            const raw = (Array.isArray(value) ? value.join(" ") : String(value ?? ""))
+                .replace(/[\[\]]/g, " ")
+                .replace(/\s+/g, " ")
+                .trim();
+            if (!raw) return "";
+            if (/기타\s*(?:전용|연주)?/.test(raw.replace(/\s/g, ""))) return "기타전용";
+            if (raw.includes("300")) return "300";
+            if (raw.includes("200")) return "200";
+            return raw;
+        }
+
         function renderDailyRecommendations() {
             const popup = document.getElementById("dailyRecommendPopup");
             const container = document.getElementById("dailyRecommendList");
@@ -2903,24 +2917,16 @@ function openRecommendModal() { generateRecommendations(); showModalOnTop("recom
                 const item = document.createElement("div");
                 item.className = "daily-recommend-item";
 
-                let limitVal = song.limit || "";
+                const cleanLimitVal = normalizeLimitBadgeText(song.limit);
                 let limitBadge = "";
-                if (limitVal !== "") {
-                    let cleanLimitVal = limitVal.replace(/[\[\]]/g, "");
-                    let limitClass = "limit-other";
-                    if (cleanLimitVal.includes("200")) limitClass = "limit-200";
-                    else if (cleanLimitVal.includes("300")) limitClass = "limit-300";
-                    else if (cleanLimitVal.includes("기타")) {
-                        limitClass = "limit-other";
-                        cleanLimitVal = "기타전용";
-                    }
+                if (cleanLimitVal) {
+                    const limitClass = cleanLimitVal === "200" ? "limit-200"
+                        : cleanLimitVal === "300" ? "limit-300" : "limit-other";
                     limitBadge = `<span class="badge badge-limit ${limitClass}" data-limit="${escapeHtml(song.limit)}">${escapeHtml(cleanLimitVal)}</span>`;
                 }
 
-                const isGuitarOnlyUnregistered = song.__isUnregisteredSong === true
-                    && String(song.limit || '').replace(/[\[\]]/g, '').includes('기타')
-                    && String(song.genre || '').replace(/\s/g, '').includes('기타연주');
-                const genreBadge = song.genre && !isGuitarOnlyUnregistered ? `<span class="badge badge-genre">${escapeHtml(song.genre)}</span>` : "";
+                // 제한 태그와 장르 태그는 서로 독립적으로 표시합니다.
+                const genreBadge = song.genre ? `<span class="badge badge-genre">${escapeHtml(song.genre)}</span>` : "";
                 const countBadge = `<span class="badge badge-count">${Array.isArray(song.dateTimes) ? song.dateTimes.length : 0}회</span>`;
                 const etcBadge = song.etc ? `<span class="badge badge-etc"><span class="song-text-viewport etc-text-viewport"><span class="song-text-marquee">${escapeHtml(song.etc)}</span></span></span>` : "";
 
@@ -2980,17 +2986,12 @@ function openRecommendModal() { generateRecommendations(); showModalOnTop("recom
                 const item = document.createElement("div");
                 item.className = "song-card";
 
-                let limitVal = song.limit ? song.limit.replace(/[\[\]]/g, '') : '';
+                const limitVal = normalizeLimitBadgeText(song.limit);
                 let limitBadgeHTML = "";
-                if (limitVal !== "") {
-                    let limitClass = "limit-other";
-                    if (limitVal.includes("200")) limitClass = "limit-200";
-                    else if (limitVal.includes("300")) limitClass = "limit-300";
-                    else if (limitVal.includes("기타")) {
-                        limitClass = "limit-other";
-                        limitVal = "기타전용";
-                    }
-                    limitBadgeHTML = `<span class="badge badge-limit ${limitClass}" data-limit="${song.limit || ""}">${limitVal}</span>`;
+                if (limitVal) {
+                    const limitClass = limitVal === "200" ? "limit-200"
+                        : limitVal === "300" ? "limit-300" : "limit-other";
+                    limitBadgeHTML = `<span class="badge badge-limit ${limitClass}" data-limit="${escapeHtml(song.limit || "")}">${escapeHtml(limitVal)}</span>`;
                 }
                 const genreBadge = song.genre ? `<span class="badge badge-genre">${song.genre}</span>` : "";
                 const countBadge = `<span class="badge badge-count">${song.dateTimes ? song.dateTimes.length : 0}회</span>`;
@@ -3384,18 +3385,12 @@ function openRecommendModal() { generateRecommendations(); showModalOnTop("recom
                     toggleSongCard(card);
                 };
 
-                let limitVal = song.limit || '';
+                const cleanLimitVal = normalizeLimitBadgeText(song.limit);
                 let limitBadge = "";
-                if (limitVal !== "") {
-                    let cleanLimitVal = limitVal.replace(/[\[\]]/g, '');
-                    let limitClass = "limit-other";
-                    if (cleanLimitVal.includes("200")) limitClass = "limit-200";
-                    else if (cleanLimitVal.includes("300")) limitClass = "limit-300";
-                    else if (cleanLimitVal.includes("기타")) {
-                        limitClass = "limit-other";
-                        cleanLimitVal = "기타전용";
-                    }
-                    limitBadge = `<span class="badge badge-limit ${limitClass}" data-limit="${song.limit || ""}">${cleanLimitVal}</span>`;
+                if (cleanLimitVal) {
+                    const limitClass = cleanLimitVal === "200" ? "limit-200"
+                        : cleanLimitVal === "300" ? "limit-300" : "limit-other";
+                    limitBadge = `<span class="badge badge-limit ${limitClass}" data-limit="${escapeHtml(song.limit || "")}">${escapeHtml(cleanLimitVal)}</span>`;
                 }
 
                 const playCount = song.dateTimes ? song.dateTimes.length : 0;
@@ -3957,6 +3952,46 @@ async function runSongDataCheck(){
   .song-summary-row .song-badges .badge-etc{flex:0 1 58px !important;width:auto !important;max-width:58px !important;min-width:0 !important;overflow:hidden !important;text-overflow:ellipsis !important;white-space:nowrap !important;}
   .song-summary-row .song-badges .badge-genre{flex:0 1 auto !important;max-width:72px !important;min-width:0 !important;overflow:hidden !important;text-overflow:ellipsis !important;white-space:nowrap !important;}
 }
+</style>
+
+
+<style id="detail-filter-unregistered-flat-v18">
+/* 미등록 노래도 날짜/부른 횟수 섹션과 같은 제목 + 구분선 구조로 표시 */
+#filterModal .filter-unregistered-section{
+  grid-column:1 / -1 !important;
+  display:flex !important;
+  flex-direction:column !important;
+  gap:6px !important;
+  padding:0 !important;
+  border:0 !important;
+  border-radius:0 !important;
+  background:transparent !important;
+  overflow:visible !important;
+}
+#filterModal .filter-unregistered-section > .filter-section-title{
+  width:100%;
+  box-sizing:border-box;
+  padding-bottom:6px !important;
+  border-bottom:2px solid #e2e8f0 !important;
+}
+#filterModal .filter-unregistered-section > .detail-filter-check{
+  margin:0 !important;
+}
+#filterModal .filter-unregistered-section > .filter-unregistered-toggle{
+  padding:8px 10px !important;
+  border:1px solid #e2e8f0 !important;
+  border-radius:8px !important;
+  background:#fff !important;
+  color:#334155 !important;
+  font-size:12px !important;
+  font-weight:700 !important;
+}
+#filterModal .filter-unregistered-section > .filter-unregistered-list{
+  margin-top:0 !important;
+  padding:5px 2px 0 !important;
+  border-top:0 !important;
+}
+#filterModal .filter-unregistered-section > .filter-unregistered-list[hidden]{display:none !important;}
 </style>
 
 </body>
