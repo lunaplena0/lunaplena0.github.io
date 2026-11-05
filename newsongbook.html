@@ -963,7 +963,18 @@ footer { position:relative; z-index:1; }
         }
 
         async function openSongAuthModal() {
-            await restoreSongAuthentication();
+            // 세션 확인 요청이 끝날 때까지 팝업 표시가 지연되지 않도록 먼저 최상단에 엽니다.
+            showModalOnTop(songAuthModal);
+            songAuthModalContent.innerHTML = `
+                <div class="song-auth-panel" style="text-align:center;padding:24px 8px;color:#64748b;font-size:13px;">
+                    로그인 상태를 확인하고 있습니다...
+                </div>
+            `;
+            // 저장된 세션 검증이 느린 경우에도 로그인 입력 화면으로 진행할 수 있게 대기 시간을 제한합니다.
+            await Promise.race([
+                restoreSongAuthentication(),
+                new Promise(resolve => setTimeout(resolve, 1800))
+            ]);
             if (isSongAuthenticated) {
                 songAuthModalContent.innerHTML = `
                     <div class="song-logout-card">
@@ -1034,7 +1045,7 @@ footer { position:relative; z-index:1; }
                     waitForSongTurnstile();
                 }, 50);
             }
-            songAuthModal.classList.add("active");
+            showModalOnTop(songAuthModal);
         }
 
         function onSongTurnstileSuccess(token) {
