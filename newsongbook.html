@@ -1116,7 +1116,16 @@ footer { position:relative; z-index:1; }
 
         function closeSongAuthModal() {
             songAuthModal = songAuthModal || document.getElementById("songAuthModal");
-            if (songAuthModal) songAuthModal.classList.remove("active");
+            if (songAuthModal) {
+                // v32 복구 코드가 지정한 인라인 표시 스타일까지 함께 해제해야
+                // 닫힌 뒤에도 화면을 덮거나 다른 버튼 클릭을 막지 않습니다.
+                songAuthModal.classList.remove("active");
+                songAuthModal.style.removeProperty("display");
+                songAuthModal.style.removeProperty("opacity");
+                songAuthModal.style.removeProperty("pointer-events");
+                songAuthModal.style.removeProperty("z-index");
+                songAuthModal.setAttribute("aria-hidden", "true");
+            }
             if (!isSongAuthenticated) resetSongTurnstile();
         }
 
@@ -4026,6 +4035,18 @@ function openRecommendModal() { generateRecommendations(); showModalOnTop("recom
         if (!modal || !content || !title || title.dataset.songAuthBound === "true") return;
         title.dataset.songAuthBound = "true";
 
+        if (modal.dataset.songAuthDismissBound !== "true") {
+            modal.dataset.songAuthDismissBound = "true";
+            modal.addEventListener("click", function (event) {
+                if (event.target === modal) closeSongAuthModal();
+            });
+            document.addEventListener("keydown", function (event) {
+                if (event.key === "Escape" && modal.classList.contains("active")) {
+                    closeSongAuthModal();
+                }
+            });
+        }
+
         // 기존 인라인 onclick에 의존하지 않고 제목 영역 전체에 클릭 이벤트를 직접 연결합니다.
         if (trigger) trigger.removeAttribute("onclick");
         title.style.cursor = "pointer";
@@ -4042,6 +4063,7 @@ function openRecommendModal() { generateRecommendations(); showModalOnTop("recom
             modal.style.opacity = "1";
             modal.style.pointerEvents = "auto";
             modal.style.zIndex = "2147483000";
+            modal.setAttribute("aria-hidden", "false");
             modal.classList.add("active");
 
             try {
@@ -4073,7 +4095,7 @@ function openRecommendModal() { generateRecommendations(); showModalOnTop("recom
                             <button class="song-auth-action" type="button"
                                     onclick="if(typeof verifySongPassword==='function')verifySongPassword()">로그인</button>
                             <button class="song-auth-cancel" type="button"
-                                    onclick="document.getElementById('songAuthModal').classList.remove('active')">취소</button>
+                                    onclick="closeSongAuthModal()">취소</button>
                         </div>`;
                     if (typeof window.waitForSongTurnstile === "function") window.waitForSongTurnstile();
                 }
