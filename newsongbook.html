@@ -2878,18 +2878,26 @@ function openRecommendModal() { generateRecommendations(); showModalOnTop("recom
             popup.classList.remove("active", "minimized");
         }
 
-        // 제한 태그 표시를 한 곳에서 정규화합니다. 기타 관련 제한 값이 여러 표현으로
-        // 함께 들어 있어도 제한 태그는 "기타전용" 하나만 표시하며, 장르 태그에는 관여하지 않습니다.
+        // 제한 태그만 정리합니다. "기타연주" 제한 표시는 제거하고,
+        // "기타전용"만 유지합니다. 장르(song.genre)는 이 함수에서 절대 변경하지 않습니다.
         function normalizeLimitBadgeText(value) {
             const raw = (Array.isArray(value) ? value.join(" ") : String(value ?? ""))
                 .replace(/[\[\]]/g, " ")
                 .replace(/\s+/g, " ")
                 .trim();
             if (!raw) return "";
-            if (/기타\s*(?:전용|연주)?/.test(raw.replace(/\s/g, ""))) return "기타전용";
-            if (raw.includes("300")) return "300";
-            if (raw.includes("200")) return "200";
-            return raw;
+
+            // 여러 제한값이 함께 저장된 경우 기타연주 항목만 제거하고 나머지 제한값은 보존합니다.
+            const withoutGuitarPlay = raw
+                .replace(/(^|[\s,;|/·]+)기타\s*연주(?=$|[\s,;|/·]+)/g, " ")
+                .replace(/\s+/g, " ")
+                .trim();
+            if (!withoutGuitarPlay || /^기타\s*연주$/.test(withoutGuitarPlay)) return "";
+
+            if (/기타\s*전용/.test(withoutGuitarPlay) || /^기타$/.test(withoutGuitarPlay)) return "기타전용";
+            if (withoutGuitarPlay.includes("300")) return "300";
+            if (withoutGuitarPlay.includes("200")) return "200";
+            return withoutGuitarPlay;
         }
 
         function renderDailyRecommendations() {
@@ -2929,10 +2937,8 @@ function openRecommendModal() { generateRecommendations(); showModalOnTop("recom
                 const genreBadge = song.genre ? `<span class="badge badge-genre">${escapeHtml(song.genre)}</span>` : "";
                 const countBadge = `<span class="badge badge-count">${Array.isArray(song.dateTimes) ? song.dateTimes.length : 0}회</span>`;
                 const etcText = String(song.etc || '').trim();
-                // 기타전용 제한곡에 예전 데이터의 etc="기타연주"가 중복 제한 태그처럼 붙는 경우만 숨깁니다.
-                // 장르(song.genre) 표시는 이 조건과 무관하게 그대로 유지합니다.
-                const isDuplicateGuitarLimitText = cleanLimitVal === "기타전용" && /^(기타\s*(전용|연주)?|🎸)$/i.test(etcText);
-                const etcBadge = etcText && !isDuplicateGuitarLimitText ? `<span class="badge badge-etc"><span class="song-text-viewport etc-text-viewport"><span class="song-text-marquee">${escapeHtml(etcText)}</span></span></span>` : "";
+                // 추가설명은 제한 태그와 별개 항목이므로 내용이 같더라도 임의로 숨기지 않습니다.
+                const etcBadge = etcText ? `<span class="badge badge-etc"><span class="song-text-viewport etc-text-viewport"><span class="song-text-marquee">${escapeHtml(etcText)}</span></span></span>` : "";
 
                 item.innerHTML = `
                     <div class="song-summary-row">
@@ -3401,9 +3407,8 @@ function openRecommendModal() { generateRecommendations(); showModalOnTop("recom
                 const countBadge = `<span class="badge badge-count">${playCount}회</span>`;
                 const genreBadge = song.genre ? `<span class="badge badge-genre">${song.genre}</span>` : "";
                 let etcVal = String(song.etc || '').trim();
-                // 기타전용 제한곡의 구형 etc="기타연주" 중복표시만 제거합니다. 장르 태그는 유지합니다.
-                const isDuplicateGuitarLimitText = cleanLimitVal === "기타전용" && /^(기타\s*(전용|연주)?|🎸)$/i.test(etcVal);
-                let etcBadge = etcVal !== "" && !isDuplicateGuitarLimitText ? `<span class="badge badge-etc"><span class="song-text-viewport etc-text-viewport"><span class="song-text-marquee">${escapeHtml(etcVal)}</span></span></span>` : "";
+                // 추가설명은 제한 태그 및 장르 태그와 독립적으로 표시합니다.
+                let etcBadge = etcVal !== "" ? `<span class="badge badge-etc"><span class="song-text-viewport etc-text-viewport"><span class="song-text-marquee">${escapeHtml(etcVal)}</span></span></span>` : "";
 
                 let timestampsHTML = '';
                 if (song.dateTimes && song.dateTimes.length > 0) {
@@ -4014,4 +4019,36 @@ async function runSongDataCheck(){
   .song-summary-row .song-badges .badge-etc .etc-text-viewport{overflow:hidden !important;}
   .song-summary-row .song-badges .badge-etc .song-text-marquee{width:max-content !important;text-overflow:clip !important;}
 }
+</style>
+
+
+<style id="mobile-genre-full-etc-marquee-v20">
+@media (max-width:768px){
+  /* 장르 태그는 줄이거나 말줄임하지 않고 전체 문자열을 표시 */
+  .song-summary-row .song-badges .badge-genre{
+    flex:0 0 auto !important; width:max-content !important; min-width:max-content !important;
+    max-width:none !important; overflow:visible !important; text-overflow:clip !important;
+    white-space:nowrap !important;
+  }
+  /* 추가설명은 고정된 표시창 안에서 제목과 동일한 좌우 흐름 애니메이션 */
+  .song-summary-row .song-badges .badge-etc{
+    display:inline-flex !important; flex:0 1 92px !important; width:92px !important;
+    min-width:0 !important; max-width:92px !important; overflow:hidden !important;
+    white-space:nowrap !important; text-overflow:clip !important;
+  }
+  .song-summary-row .song-badges .badge-etc .etc-text-viewport{
+    display:block !important; flex:1 1 auto !important; width:100% !important;
+    min-width:0 !important; max-width:100% !important; overflow:hidden !important;
+    white-space:nowrap !important;
+  }
+  .song-summary-row .song-badges .badge-etc .song-text-marquee{
+    display:inline-block !important; width:max-content !important; max-width:none !important;
+    white-space:nowrap !important; text-overflow:clip !important;
+  }
+}
+/* setupSongTitleMarquees가 추가설명 viewport에도 동일한 marquee-active/visible 클래스를 부여합니다. */
+.song-text-viewport.marquee-active.marquee-visible .song-text-marquee{
+  animation:songTitleMarquee 8s linear infinite !important;
+}
+.song-text-viewport.marquee-active:not(.marquee-visible) .song-text-marquee{animation:none !important;}
 </style>
