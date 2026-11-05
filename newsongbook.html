@@ -274,7 +274,7 @@ footer { position:relative; z-index:1; }
   .songbook-content .filter-btn { padding:0 9px; font-size:11px; }
 }
 
-.filter-unregistered-section{grid-column:1/-1;padding:0;border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;background:#fff}.filter-unregistered-toggle{width:100%;display:flex;align-items:center;gap:9px;padding:11px 12px;border:0;background:#f8fafc;color:#0369a1;font:inherit;font-size:12px;font-weight:800;text-align:left;cursor:pointer;box-sizing:border-box}.filter-unregistered-count{margin-left:auto;padding:3px 7px;border-radius:7px;background:#e0f2fe;color:#0369a1;font-size:10px}.filter-unregistered-chevron{font-size:17px;line-height:1;transition:transform .18s}.filter-unregistered-list{max-height:180px;overflow-y:auto;padding:7px 9px;border-top:1px solid #e2e8f0}.filter-unregistered-list[hidden]{display:none}.filter-unregistered-item{display:flex;justify-content:space-between;gap:10px;padding:7px 5px;border-bottom:1px solid #f1f5f9;font-size:11px}.filter-unregistered-item:last-child{border-bottom:0}.filter-unregistered-item strong{color:#334155}.filter-unregistered-item span{color:#94a3b8;white-space:nowrap}.edit-date-header{display:flex;align-items:center;justify-content:space-between;gap:8px}.edit-date-add-btn,.edit-date-remove-btn{border:1px solid #bae6fd;background:#eff8ff;color:#0369a1;border-radius:7px;padding:5px 9px;font:inherit;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap}.edit-song-dates{display:flex;flex-direction:column;gap:7px;margin-top:7px}.edit-song-date-row{display:grid;grid-template-columns:minmax(0,1fr) 112px auto;gap:6px;align-items:center}.edit-song-date-row .edit-form-input{min-width:0}.edit-date-remove-btn{border-color:#fecdd3;background:#fff1f2;color:#be123c}.edit-date-empty,.edit-date-help{font-size:10.5px;color:#94a3b8}.edit-date-empty{padding:8px 10px;border:1px dashed #cbd5e1;border-radius:8px}.edit-date-help{margin:6px 0 0;line-height:1.5}@media(max-width:520px){.edit-song-date-row{grid-template-columns:minmax(0,1fr) 94px auto}}
+.filter-unregistered-section{grid-column:1/-1;padding:0;border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;background:#fff}.filter-unregistered-toggle{width:100%;display:flex;align-items:center;gap:9px;padding:11px 12px;border:0;background:#f8fafc;color:#0369a1;font:inherit;font-size:12px;font-weight:800;text-align:left;cursor:pointer;box-sizing:border-box}.filter-unregistered-count{margin-left:auto;padding:3px 7px;border-radius:7px;background:#e0f2fe;color:#0369a1;font-size:10px}.filter-unregistered-chevron{font-size:17px;line-height:1;transition:transform .18s}.filter-unregistered-list{max-height:180px;overflow-y:auto;padding:7px 9px;border-top:1px solid #e2e8f0}.filter-unregistered-list[hidden]{display:none}.filter-unregistered-item{display:flex;justify-content:space-between;gap:10px;padding:7px 5px;border-bottom:1px solid #f1f5f9;font-size:11px}.filter-unregistered-item:last-child{border-bottom:0}.filter-unregistered-item strong{color:#334155}.filter-unregistered-item span{color:#94a3b8;white-space:nowrap}.edit-date-header{display:flex;align-items:center;justify-content:space-between;gap:8px}.edit-date-add-btn,.edit-date-remove-btn{border:1px solid #bae6fd;background:#eff8ff;color:#0369a1;border-radius:7px;padding:5px 9px;font:inherit;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap}.edit-song-dates{display:flex;flex-direction:column;gap:7px;margin-top:7px}.edit-song-date-row{display:grid;grid-template-columns:minmax(0,1fr) 112px auto;gap:6px;align-items:center}.edit-song-date-row .edit-form-input{min-width:0}.edit-song-date-row .edit-song-date-autocomplete{min-width:0;width:100%}.edit-date-remove-btn{border-color:#fecdd3;background:#fff1f2;color:#be123c}.edit-date-empty,.edit-date-help{font-size:10.5px;color:#94a3b8}.edit-date-empty{padding:8px 10px;border:1px dashed #cbd5e1;border-radius:8px}.edit-date-help{margin:6px 0 0;line-height:1.5}@media(max-width:520px){.edit-song-date-row{grid-template-columns:minmax(0,1fr) 94px auto}}
 
 .filter-unregistered-toggle input[type="checkbox"]{width:16px;height:16px;flex:0 0 16px;margin:0;accent-color:#0ea5e9;cursor:pointer}.filter-unregistered-label{flex:1;min-width:0}.filter-unregistered-toggle:has(input:checked){background:#eff8ff;color:#0369a1}.filter-unregistered-toggle input:focus-visible{outline:2px solid #38bdf8;outline-offset:2px}
 </style>
@@ -1292,10 +1292,53 @@ footer { position:relative; z-index:1; }
             container.querySelector(".edit-date-empty")?.remove();
             const row = document.createElement("div");
             row.className = "edit-song-date-row";
+            const dateWrap = document.createElement("div");
+            dateWrap.className = "song-autocomplete-wrap edit-song-date-autocomplete";
             const dateInput = document.createElement("input");
-            dateInput.type = "text"; dateInput.className = "edit-form-input edit-song-date-value";
+            dateInput.type = "text"; dateInput.autocomplete = "off";
+            dateInput.className = "edit-form-input edit-song-date-value";
             dateInput.placeholder = "YYYY-MM-DD 또는 YYYY-MM-DD(1)"; dateInput.value = date;
             dateInput.setAttribute("aria-label", "부른 날짜");
+            const dateSuggestions = document.createElement("div");
+            dateSuggestions.className = "song-autocomplete-list edit-song-date-suggestions";
+            dateSuggestions.setAttribute("role", "listbox");
+            dateWrap.append(dateInput, dateSuggestions);
+            const renderDateSuggestions = () => {
+                const keyword = dateInput.value.trim().replace(/[./]/g, '-').toLowerCase();
+                dateSuggestions.innerHTML = "";
+                if (!keyword) { dateSuggestions.classList.remove("active"); return; }
+                const sourceSongs = [
+                    ...(Array.isArray(allSongs) ? allSongs : []),
+                    ...(Array.isArray(fansongStatsData?.unregisteredSongs) ? fansongStatsData.unregisteredSongs : [])
+                ];
+                const seen = new Set();
+                const matches = [];
+                sourceSongs.forEach(item => (Array.isArray(item?.dateTimes) ? item.dateTimes : []).forEach(dt => {
+                    const value = String(dt?.date || '').trim();
+                    const normalized = value.replace(/[./]/g, '-');
+                    if (normalized.toLowerCase().includes(keyword) && !seen.has(value)) {
+                        seen.add(value); matches.push(value);
+                    }
+                }));
+                matches.sort((a,b) => b.localeCompare(a, 'ko'));
+                matches.slice(0, 8).forEach(value => {
+                    const option = document.createElement("button");
+                    option.type = "button"; option.className = "song-autocomplete-item";
+                    option.setAttribute("role", "option"); option.textContent = value;
+                    option.addEventListener("mousedown", e => e.preventDefault());
+                    option.addEventListener("click", () => {
+                        dateInput.value = value;
+                        dateSuggestions.classList.remove("active");
+                        dateInput.dispatchEvent(new Event("change", { bubbles: true }));
+                    });
+                    dateSuggestions.appendChild(option);
+                });
+                if (matches.length) dateSuggestions.classList.add("active");
+                else dateSuggestions.classList.remove("active");
+            };
+            dateInput.addEventListener("focus", renderDateSuggestions);
+            dateInput.addEventListener("input", renderDateSuggestions);
+            dateInput.addEventListener("blur", () => setTimeout(() => dateSuggestions.classList.remove("active"), 150));
             const timeInput = document.createElement("input");
             timeInput.type = "text"; timeInput.inputMode = "numeric"; timeInput.className = "edit-form-input edit-song-time-value";
             timeInput.placeholder = "HH:MM 또는 HH:MM:SS";
@@ -1304,7 +1347,7 @@ footer { position:relative; z-index:1; }
             const remove = document.createElement("button");
             remove.type = "button"; remove.className = "edit-date-remove-btn"; remove.textContent = "삭제";
             remove.onclick = () => { row.remove(); if (!container.querySelector(".edit-song-date-row")) { const empty=document.createElement("div"); empty.className="edit-date-empty"; empty.textContent="등록된 날짜 정보가 없습니다."; container.appendChild(empty); } };
-            row.append(dateInput, timeInput, remove);
+            row.append(dateWrap, timeInput, remove);
             container.appendChild(row);
         }
 
@@ -2068,6 +2111,7 @@ footer { position:relative; z-index:1; }
             if (list) list.hidden = true;
             const count = document.getElementById("detailUnregisteredCount");
             if (count) count.textContent = `${Array.isArray(fansongStatsData.unregisteredSongs) ? fansongStatsData.unregisteredSongs.length : 0}곡`;
+            updateOtherGenreButtonVisibility();
             updateFilterButtonState();
             updateFilteredAndSorted();
             renderAllSongs();
@@ -2728,11 +2772,13 @@ function openRecommendModal() { generateRecommendations(); showModalOnTop("recom
             const unregCheck=document.getElementById('detailUnregisteredCheckbox');
             if(onlyCheck)onlyCheck.checked=false;
             if(unregCheck)unregCheck.checked=false;
+            updateOtherGenreButtonVisibility();
             syncDetailFilterSelects();updateDateFilterAvailability();updateFilterButtonState();updateFilteredAndSorted();renderAllSongs();
         }
         function toggleDetailOnlyUnregistered(checked){
             detailOnlyUnregistered=!!checked;
             if(checked){detailUnregisteredExpanded=true;const include=document.getElementById('detailUnregisteredCheckbox');if(include)include.checked=true;}
+            updateOtherGenreButtonVisibility();
             updateFilterButtonState();updateFilteredAndSorted();renderAllSongs();
         }
         function updateFilterButtonState(){
@@ -3156,9 +3202,11 @@ function openRecommendModal() { generateRecommendations(); showModalOnTop("recom
 
         function getOtherGenres() {
             const map = new Map();
+            // 미등록곡은 메인 목록 포함이 체크된 경우에만 그외 장르 목록에 포함합니다.
             const genreSource = [
                 ...(Array.isArray(allSongs) ? allSongs : []),
-                ...(Array.isArray(fansongStatsData?.unregisteredSongs) ? fansongStatsData.unregisteredSongs : [])
+                ...(detailUnregisteredExpanded && Array.isArray(fansongStatsData?.unregisteredSongs)
+                    ? fansongStatsData.unregisteredSongs : [])
             ];
             genreSource.forEach(song => {
                 if (isMainQuickGenre(song)) return;
@@ -3212,7 +3260,8 @@ function openRecommendModal() { generateRecommendations(); showModalOnTop("recom
 
             const genreSource = [
                 ...(Array.isArray(allSongs) ? allSongs : []),
-                ...(Array.isArray(fansongStatsData?.unregisteredSongs) ? fansongStatsData.unregisteredSongs : [])
+                ...(detailUnregisteredExpanded && Array.isArray(fansongStatsData?.unregisteredSongs)
+                    ? fansongStatsData.unregisteredSongs : [])
             ];
             const hasOtherGenre = genreSource.some(song => {
                 const genre = String(song.genre || '').toLowerCase().trim();
@@ -3230,7 +3279,12 @@ function openRecommendModal() { generateRecommendations(); showModalOnTop("recom
 
             btn.classList.toggle('visible', hasOtherGenre);
 
-            if (!hasOtherGenre && currentFilter === '그 외') {
+            const selectedOtherGenre = currentFilter.startsWith('장르:') ? currentFilter.slice(3).trim().toLowerCase() : '';
+            const selectedGenreStillVisible = !selectedOtherGenre || genreSource.some(song =>
+                String(song.genre || '').trim().toLowerCase() === selectedOtherGenre
+                && !isMainQuickGenre(song)
+            );
+            if ((!hasOtherGenre && currentFilter === '그 외') || !selectedGenreStillVisible) {
                 currentFilter = '전체';
                 document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
                 const allBtn = document.querySelector('.filter-btn[data-filter="전체"]');
@@ -4164,5 +4218,23 @@ async function runSongDataCheck(){
   }
   .song-summary-row .song-badges .badge-count{flex:0 0 auto !important;}
   .song-summary-row .song-badges .badge-etc{max-width:92px !important;}
+}
+</style>
+
+
+<style id="metadata-badge-genre-color-unified-v25">
+/* 추가설명·장르·횟수 태그 색상을 장르 태그와 동일하게 통일 */
+.song-summary-row .song-badges .badge-etc,
+.song-summary-row .song-badges .badge-genre,
+.song-summary-row .song-badges .badge-count{
+  background:#e0f2fe !important;
+  color:#0284c7 !important;
+  border:1px solid #7dd3fc !important;
+}
+/* 날짜 자동완성은 검색창과 동일한 드롭다운 UI */
+.edit-song-date-autocomplete{width:100%;min-width:0;}
+.edit-song-date-autocomplete .edit-song-date-value{width:100%;}
+.edit-song-date-autocomplete .edit-song-date-suggestions{
+  top:calc(100% + 4px);max-height:170px;overflow-y:auto;
 }
 </style>
