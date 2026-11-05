@@ -2928,7 +2928,11 @@ function openRecommendModal() { generateRecommendations(); showModalOnTop("recom
                 // 제한 태그와 장르 태그는 서로 독립적으로 표시합니다.
                 const genreBadge = song.genre ? `<span class="badge badge-genre">${escapeHtml(song.genre)}</span>` : "";
                 const countBadge = `<span class="badge badge-count">${Array.isArray(song.dateTimes) ? song.dateTimes.length : 0}회</span>`;
-                const etcBadge = song.etc ? `<span class="badge badge-etc"><span class="song-text-viewport etc-text-viewport"><span class="song-text-marquee">${escapeHtml(song.etc)}</span></span></span>` : "";
+                const etcText = String(song.etc || '').trim();
+                // 기타전용 제한곡에 예전 데이터의 etc="기타연주"가 중복 제한 태그처럼 붙는 경우만 숨깁니다.
+                // 장르(song.genre) 표시는 이 조건과 무관하게 그대로 유지합니다.
+                const isDuplicateGuitarLimitText = cleanLimitVal === "기타전용" && /^(기타\s*(전용|연주)?|🎸)$/i.test(etcText);
+                const etcBadge = etcText && !isDuplicateGuitarLimitText ? `<span class="badge badge-etc"><span class="song-text-viewport etc-text-viewport"><span class="song-text-marquee">${escapeHtml(etcText)}</span></span></span>` : "";
 
                 item.innerHTML = `
                     <div class="song-summary-row">
@@ -3396,8 +3400,10 @@ function openRecommendModal() { generateRecommendations(); showModalOnTop("recom
                 const playCount = song.dateTimes ? song.dateTimes.length : 0;
                 const countBadge = `<span class="badge badge-count">${playCount}회</span>`;
                 const genreBadge = song.genre ? `<span class="badge badge-genre">${song.genre}</span>` : "";
-                let etcVal = song.etc || '';
-                let etcBadge = etcVal !== "" ? `<span class="badge badge-etc"><span class="song-text-viewport etc-text-viewport"><span class="song-text-marquee">${escapeHtml(etcVal)}</span></span></span>` : "";
+                let etcVal = String(song.etc || '').trim();
+                // 기타전용 제한곡의 구형 etc="기타연주" 중복표시만 제거합니다. 장르 태그는 유지합니다.
+                const isDuplicateGuitarLimitText = cleanLimitVal === "기타전용" && /^(기타\s*(전용|연주)?|🎸)$/i.test(etcVal);
+                let etcBadge = etcVal !== "" && !isDuplicateGuitarLimitText ? `<span class="badge badge-etc"><span class="song-text-viewport etc-text-viewport"><span class="song-text-marquee">${escapeHtml(etcVal)}</span></span></span>` : "";
 
                 let timestampsHTML = '';
                 if (song.dateTimes && song.dateTimes.length > 0) {
@@ -3945,12 +3951,16 @@ async function runSongDataCheck(){
 }
 </style>
 
-<style id="mobile-title-space-adjustment-v17">
+<style id="mobile-title-space-adjustment-v19">
 @media (max-width:768px){
+  /* 장르 태그는 줄이거나 말줄임하지 않고 전체 문구를 표시 */
+  .song-summary-row .song-badges{flex:0 1 auto !important;width:auto !important;max-width:none !important;min-width:0 !important;gap:3px !important;overflow:visible !important;}
+  .song-summary-row .song-badges .badge-genre{flex:0 0 auto !important;width:auto !important;max-width:none !important;min-width:max-content !important;overflow:visible !important;text-overflow:clip !important;white-space:nowrap !important;}
+  /* 추가설명은 일정 폭까지만 보이고, 긴 내용은 제목과 같은 좌우 애니메이션 적용 */
+  .song-summary-row .song-badges .badge-etc{display:inline-flex !important;flex:0 1 92px !important;width:92px !important;max-width:92px !important;min-width:0 !important;overflow:hidden !important;white-space:nowrap !important;}
+  .song-summary-row .song-badges .badge-etc .etc-text-viewport{display:block !important;flex:1 1 auto !important;width:100% !important;max-width:100% !important;min-width:0 !important;overflow:hidden !important;white-space:nowrap !important;}
+  .song-summary-row .song-badges .badge-etc .song-text-marquee{display:inline-block !important;width:max-content !important;max-width:none !important;white-space:nowrap !important;text-overflow:clip !important;}
   .song-summary-row .song-info-left{flex:1 1 0% !important;min-width:0 !important;}
-  .song-summary-row .song-badges{flex:0 1 auto !important;width:auto !important;max-width:38% !important;min-width:0 !important;gap:3px !important;}
-  .song-summary-row .song-badges .badge-etc{flex:0 1 58px !important;width:auto !important;max-width:58px !important;min-width:0 !important;overflow:hidden !important;text-overflow:ellipsis !important;white-space:nowrap !important;}
-  .song-summary-row .song-badges .badge-genre{flex:0 1 auto !important;max-width:72px !important;min-width:0 !important;overflow:hidden !important;text-overflow:ellipsis !important;white-space:nowrap !important;}
 }
 </style>
 
@@ -3996,3 +4006,12 @@ async function runSongDataCheck(){
 
 </body>
 </html>
+
+<style id="mobile-genre-and-etc-marquee-v19">
+@media (max-width:768px){
+  .song-summary-row .song-badges .badge-genre{flex-shrink:0 !important;max-width:none !important;overflow:visible !important;text-overflow:clip !important;white-space:nowrap !important;}
+  .song-summary-row .song-badges .badge-etc{max-width:92px !important;overflow:hidden !important;text-overflow:clip !important;}
+  .song-summary-row .song-badges .badge-etc .etc-text-viewport{overflow:hidden !important;}
+  .song-summary-row .song-badges .badge-etc .song-text-marquee{width:max-content !important;text-overflow:clip !important;}
+}
+</style>
