@@ -3499,10 +3499,11 @@ function openRecommendModal() { generateRecommendations(); showModalOnTop("recom
                 const unregisteredBadge = song.__isUnregisteredSong
                     ? '<span class="badge badge-unregistered-song">미등록</span>'
                     : "";
-                // 미등록 표시는 곡 제목 바로 앞에 배치합니다. 제한/장르 태그와 겹치지 않도록
-                // 제한 태그 다음, 장르 태그 다음 순서로 표시합니다.
-                const titleGenreBadge = song.__isUnregisteredSong ? genreBadge : "";
-                const sideGenreBadge = song.__isUnregisteredSong ? "" : genreBadge;
+                // 등록곡과 미등록곡의 태그 위치를 동일하게 유지합니다.
+                // 제한 태그는 제목 앞, 장르 태그는 부른 횟수 앞에 표시합니다.
+                // 미등록 여부 표시는 제목 앞에 별도로 유지하며 장르 태그를 이동시키지 않습니다.
+                const titleGenreBadge = "";
+                const sideGenreBadge = genreBadge;
 
                 card.innerHTML = `
                     <div class="song-summary-row">
@@ -4017,6 +4018,32 @@ async function runSongDataCheck(){
   border-top:0 !important;
 }
 #filterModal .filter-unregistered-section > .filter-unregistered-list[hidden]{display:none !important;}
+</style>
+
+
+<style id="registered-unregistered-tag-unification-v23">
+/* 등록곡/미등록곡 태그는 동일한 모양과 간격을 사용하고 종류별 색상만 구분 */
+.song-summary-row .song-badges{display:flex;align-items:center;gap:4px;min-width:0;}
+.song-summary-row .song-badges .badge,
+.song-title-line .badge-limit,
+.song-title-line .badge-unregistered-song{
+  display:inline-flex;align-items:center;justify-content:center;
+  box-sizing:border-box;min-height:20px;padding:3px 7px;
+  border-radius:8px;font-size:11px;font-weight:600;line-height:1.2;
+  white-space:nowrap;flex:0 0 auto;
+}
+/* 제한 태그 */
+.song-title-line .badge-limit{background:#eef2ff;color:#6366f1;border:1px solid #c7d2fe;}
+/* 장르 태그 */
+.song-summary-row .song-badges .badge-genre{background:#e0f2fe;color:#0284c7;border:1px solid #7dd3fc;}
+/* 부른 횟수 */
+.song-summary-row .song-badges .badge-count{background:#f1f5f9;color:#475569;border:1px solid #cbd5e1;}
+/* 미등록 표시도 동일한 배지 형태 */
+.song-title-line .badge-unregistered-song{background:#fff7ed;color:#c2410c;border:1px solid #fdba74;}
+@media(max-width:768px){
+ .song-summary-row .song-badges{gap:4px!important;flex-wrap:nowrap!important;}
+ .song-summary-row .song-badges .badge-genre{flex:0 0 auto!important;width:auto!important;max-width:none!important;min-width:max-content!important;white-space:nowrap!important;overflow:visible!important;text-overflow:clip!important;}
+}
 </style>
 
 </body>
