@@ -825,7 +825,7 @@ footer { position:relative; z-index:1; }
 </style>
 </head><body><div class="main-container songbook-layout"><aside class="songbook-sidebar"><div class="sidebar-brand"><div class="title-summary-box"><h1 class="page-title"><button aria-label="노래책 로그인 / 인증" class="song-title-login-trigger" id="songTitleLoginTrigger" onclick="openSongAuthModal()" title="노래책 로그인 / 인증"><svg class="page-title-svg" viewbox="0 0 24 24"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg></button>
  바다비 노래책
- </h1><div class="stats-summary-row"><div class="stats-summary" id="statsSummary">통계 계산 중...</div></div></div></div><div class="sidebar-actions"><button class="header-action-btn sidebar-action-btn" onclick="openNoticeModal()"><svg class="btn-icon-svg" viewbox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+ </h1><div class="stats-summary-row"><div class="stats-summary" id="statsSummary">통계 계산 중...</div></div><div class="songbook-latest-change" id="songbookLatestChange" aria-live="polite"></div></div></div><div class="sidebar-actions"><button class="header-action-btn sidebar-action-btn" onclick="openNoticeModal()"><svg class="btn-icon-svg" viewbox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
  노래공지
  </button><button class="header-action-btn sidebar-action-btn" onclick="openRecommendModal()"><svg class="btn-icon-svg" viewbox="0 0 24 24"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>
  노래 추천
@@ -835,7 +835,7 @@ footer { position:relative; z-index:1; }
  부른 횟수순 보기
  </button><button class="header-action-btn sidebar-action-btn auth-only-sidebar-btn" id="songManageSidebarBtn" onclick="openSongManageModal()"><svg class="btn-icon-svg" viewbox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v17H6.5A2.5 2.5 0 0 0 4 22V5.5Z"></path><path d="M4 5.5V19.5"></path><path d="M15.8 10.2l.6 1.4 1.5.4-.9 1.2.1 1.5-1.5-.2-1.2.9-.6-1.4-1.5-.4.9-1.2-.1-1.5 1.5.2 1.2-.9Z"></path><circle cx="15.8" cy="13.2" r="1.4"></circle></svg>
  노래책 관리
- </button><div class="songbook-latest-change" id="songbookLatestChange" aria-live="polite"></div></div></aside><section class="songbook-content"><div class="search-container"><input autocomplete="off" class="search-box" id="searchInput" oninput="onSearchInput()" placeholder="노래 제목이나 가수, 장르를 검색하세요..." type="text"/><button aria-label="검색어 지우기" class="search-clear-btn" id="searchClearBtn" title="검색어 지우기" type="button">
+ </button></div></aside><section class="songbook-content"><div class="search-container"><input autocomplete="off" class="search-box" id="searchInput" oninput="onSearchInput()" placeholder="노래 제목이나 가수, 장르를 검색하세요..." type="text"/><button aria-label="검색어 지우기" class="search-clear-btn" id="searchClearBtn" title="검색어 지우기" type="button">
 <svg aria-hidden="true" focusable="false" viewbox="0 0 24 24">
 <path d="M6 6L18 18M18 6L6 18"></path>
 </svg>
@@ -4177,13 +4177,13 @@ function openSongStatsDashboard(){
     const reg=Array.isArray(fansongStatsData.registeredSongs)?fansongStatsData.registeredSongs:[],unreg=Array.isArray(fansongStatsData.unregisteredSongs)?fansongStatsData.unregisteredSongs:[],all=[...reg,...unreg];
     const counts={};reg.forEach(s=>{const n=Array.isArray(s.dateTimes)?s.dateTimes.length:0;counts[n]=(counts[n]||0)+1;});
     const countItems=Object.keys(counts).map(Number).sort((a,b)=>a-b).map(n=>({label:`${n}번 부른 노래`,value:counts[n]}));
-    const genres={};all.forEach(s=>{const g=String(s.genre||'기타/미지정').trim()||'기타/미지정';genres[g]=(genres[g]||0)+1;});
+    const genres={};reg.forEach(s=>{const g=String(s.genre||'기타/미지정').trim()||'기타/미지정';genres[g]=(genres[g]||0)+1;});
     const genreItems=Object.entries(genres).sort((a,b)=>b[1]-a[1]).map(([label,value])=>({label,value}));
     const artists={};all.forEach(s=>{const a=String(s.artist||'').trim();if(a&&a!=='동요')artists[a]=(artists[a]||0)+(Array.isArray(s.dateTimes)?s.dateTimes.length:0);});
     const artistItems=Object.entries(artists).map(([label,value])=>({label,value})).filter(x=>x.value>0).sort((a,b)=>b.value-a.value||a.label.localeCompare(b.label,'ko')).slice(0,5);
     const now=new Date();now.setHours(23,59,59,999);const cutoff=new Date(now);cutoff.setDate(cutoff.getDate()-29);cutoff.setHours(0,0,0,0);
     const recentTop=list=>{const rows=list.map(s=>{let n=0;(Array.isArray(s.dateTimes)?s.dateTimes:[]).forEach(dt=>{const normalized=normalizeSongDateTime(dt),d=parseStatsDate(songDateBase(normalized.date));if(d&&d>=cutoff&&d<=now)n++;});return {title:s.title||'제목없음',artist:s.artist||'',value:n};}).filter(x=>x.value>0);if(!rows.length)return [];const maxCount=Math.max(...rows.map(x=>x.value));return rows.filter(x=>x.value===maxCount).sort((a,b)=>a.title.localeCompare(b.title,'ko'));};
-    content.innerHTML=`<div class="stats-chart-grid"><div class="stats-chart-card"><h4 class="stats-chart-title">등록된 노래 · 부른 횟수 비율</h4><p class="stats-chart-sub">등록된 곡의 전체 기록 횟수 기준입니다.</p>${makeStatsBars(countItems,Math.max(1,...countItems.map(x=>x.value)))}</div><div class="stats-chart-card"><h4 class="stats-chart-title">전체 노래 · 장르 비율</h4><p class="stats-chart-sub">등록곡과 미등록곡을 합산합니다.</p>${makeStatsDonut(genreItems,all.length)}</div><div class="stats-chart-card full"><h4 class="stats-chart-title">가장 많이 부른 가수 TOP 5</h4><p class="stats-chart-sub">전체 기록 기준 · 가수명이 '동요'인 항목은 제외합니다.</p>${makeStatsBars(artistItems,Math.max(1,...artistItems.map(x=>x.value)))}</div><div class="stats-chart-card"><h4 class="stats-chart-title">최근 30일 · 등록곡 최다</h4><p class="stats-chart-sub">최다 횟수가 같으면 모두 표시합니다.</p>${makeRecentSongCards(recentTop(reg))}</div><div class="stats-chart-card"><h4 class="stats-chart-title">최근 30일 · 미등록곡 최다</h4><p class="stats-chart-sub">최다 횟수가 같으면 모두 표시합니다.</p>${makeRecentSongCards(recentTop(unreg))}</div></div>`;
+    content.innerHTML=`<div class="stats-chart-grid"><div class="stats-chart-card"><h4 class="stats-chart-title">등록된 노래 · 부른 횟수 비율</h4><p class="stats-chart-sub">등록된 곡의 전체 기록 횟수 기준입니다.</p>${makeStatsBars(countItems,Math.max(1,...countItems.map(x=>x.value)))}</div><div class="stats-chart-card"><h4 class="stats-chart-title">전체 노래 · 장르 비율</h4><p class="stats-chart-sub">등록된 곡만 집계합니다.</p>${makeStatsDonut(genreItems,reg.length)}</div><div class="stats-chart-card full"><h4 class="stats-chart-title">가장 많이 부른 가수 TOP 5</h4><p class="stats-chart-sub">전체 기록 기준 · 가수명이 '동요'인 항목은 제외합니다.</p>${makeStatsBars(artistItems,Math.max(1,...artistItems.map(x=>x.value)))}</div><div class="stats-chart-card"><h4 class="stats-chart-title">최근 30일 · 등록곡 최다</h4><p class="stats-chart-sub">최다 횟수가 같으면 모두 표시합니다.</p>${makeRecentSongCards(recentTop(reg))}</div><div class="stats-chart-card"><h4 class="stats-chart-title">최근 30일 · 미등록곡 최다</h4><p class="stats-chart-sub">최다 횟수가 같으면 모두 표시합니다.</p>${makeRecentSongCards(recentTop(unreg))}</div></div>`;
     modal.classList.add('active');
 }
 
@@ -4369,7 +4369,142 @@ async function runSongDataCheck(){
 </style>
 
 
-</body>
+<style id="songbook-requested-ui-adjustments">
+
+/* 요청 반영: 팝업 스크롤을 노래책의 하늘색 톤으로 통일 */
+.modal-box,
+.notice-modal-box,
+.filter-modal-box,
+.other-genre-modal-box,
+.song-manage-modal-box,
+.song-manage-content,
+.notice-modal-content,
+.notice-edit-content,
+.edit-form-grid,
+.recommend-list,
+.other-genre-list,
+.song-unregistered-list,
+.songbook-log-list,
+.stats-vod-list,
+.data-check-result {
+  scrollbar-width: thin;
+  scrollbar-color: #9bd5ef #f1f8fc;
+  overscroll-behavior: contain;
+}
+.modal-box::-webkit-scrollbar,
+.notice-modal-box::-webkit-scrollbar,
+.filter-modal-box::-webkit-scrollbar,
+.other-genre-modal-box::-webkit-scrollbar,
+.song-manage-modal-box::-webkit-scrollbar,
+.song-manage-content::-webkit-scrollbar,
+.notice-modal-content::-webkit-scrollbar,
+.notice-edit-content::-webkit-scrollbar,
+.edit-form-grid::-webkit-scrollbar,
+.recommend-list::-webkit-scrollbar,
+.other-genre-list::-webkit-scrollbar,
+.song-unregistered-list::-webkit-scrollbar,
+.songbook-log-list::-webkit-scrollbar,
+.stats-vod-list::-webkit-scrollbar,
+.data-check-result::-webkit-scrollbar {
+  width:7px;
+}
+.modal-box::-webkit-scrollbar-track,
+.notice-modal-box::-webkit-scrollbar-track,
+.filter-modal-box::-webkit-scrollbar-track,
+.other-genre-modal-box::-webkit-scrollbar-track,
+.song-manage-modal-box::-webkit-scrollbar-track,
+.song-manage-content::-webkit-scrollbar-track,
+.notice-modal-content::-webkit-scrollbar-track,
+.notice-edit-content::-webkit-scrollbar-track,
+.edit-form-grid::-webkit-scrollbar-track,
+.recommend-list::-webkit-scrollbar-track,
+.other-genre-list::-webkit-scrollbar-track,
+.song-unregistered-list::-webkit-scrollbar-track,
+.songbook-log-list::-webkit-scrollbar-track,
+.stats-vod-list::-webkit-scrollbar-track,
+.data-check-result::-webkit-scrollbar-track {
+  background:#f1f8fc;border-radius:8px;
+}
+.modal-box::-webkit-scrollbar-thumb,
+.notice-modal-box::-webkit-scrollbar-thumb,
+.filter-modal-box::-webkit-scrollbar-thumb,
+.other-genre-modal-box::-webkit-scrollbar-thumb,
+.song-manage-modal-box::-webkit-scrollbar-thumb,
+.song-manage-content::-webkit-scrollbar-thumb,
+.notice-modal-content::-webkit-scrollbar-thumb,
+.notice-edit-content::-webkit-scrollbar-thumb,
+.edit-form-grid::-webkit-scrollbar-thumb,
+.recommend-list::-webkit-scrollbar-thumb,
+.other-genre-list::-webkit-scrollbar-thumb,
+.song-unregistered-list::-webkit-scrollbar-thumb,
+.songbook-log-list::-webkit-scrollbar-thumb,
+.stats-vod-list::-webkit-scrollbar-thumb,
+.data-check-result::-webkit-scrollbar-thumb {
+  background:#9bd5ef;border:1px solid #f1f8fc;border-radius:8px;
+}
+.modal-box::-webkit-scrollbar-thumb:hover,
+.notice-modal-box::-webkit-scrollbar-thumb:hover,
+.filter-modal-box::-webkit-scrollbar-thumb:hover,
+.other-genre-modal-box::-webkit-scrollbar-thumb:hover,
+.song-manage-modal-box::-webkit-scrollbar-thumb:hover,
+.song-manage-content::-webkit-scrollbar-thumb:hover,
+.notice-modal-content::-webkit-scrollbar-thumb:hover,
+.notice-edit-content::-webkit-scrollbar-thumb:hover,
+.edit-form-grid::-webkit-scrollbar-thumb:hover,
+.recommend-list::-webkit-scrollbar-thumb:hover,
+.other-genre-list::-webkit-scrollbar-thumb:hover,
+.song-unregistered-list::-webkit-scrollbar-thumb:hover,
+.songbook-log-list::-webkit-scrollbar-thumb:hover,
+.stats-vod-list::-webkit-scrollbar-thumb:hover,
+.data-check-result::-webkit-scrollbar-thumb:hover {
+  background:#69bde3;
+}
+
+/* 모바일 사이드 메뉴: 한 줄 유지 + 가로 스크롤 */
+@media (max-width:760px) {
+  .sidebar-actions {
+    display:flex;
+    flex-direction:row;
+    flex-wrap:nowrap;
+    justify-content:flex-start;
+    gap:7px;
+    min-width:0;
+    max-width:100%;
+    overflow-x:auto;
+    overflow-y:hidden;
+    padding:2px 1px 7px;
+    scrollbar-width:thin;
+    scrollbar-color:#9bd5ef transparent;
+    -webkit-overflow-scrolling:touch;
+    overscroll-behavior-x:contain;
+  }
+  .sidebar-actions .sidebar-action-btn {
+    flex:0 0 auto;
+    width:auto;
+    min-width:max-content;
+    white-space:nowrap;
+    justify-content:center;
+  }
+  .sidebar-actions::-webkit-scrollbar { height:4px; }
+  .sidebar-actions::-webkit-scrollbar-track { background:transparent; }
+  .sidebar-actions::-webkit-scrollbar-thumb { background:#b8dff1;border-radius:8px; }
+  .songbook-sidebar { min-width:0; }
+  .songbook-sidebar .title-summary-box { position:relative; padding-right:76px; }
+  .songbook-sidebar .songbook-latest-change {
+    position:absolute;right:0;top:4px;width:auto;max-width:74px;
+    margin:0;padding:2px 0;text-align:right;font-size:9px;
+    white-space:nowrap;line-height:1.25;
+  }
+}
+@media (min-width:761px) {
+  .songbook-sidebar .title-summary-box { position:relative; padding-right:82px; }
+  .songbook-sidebar .songbook-latest-change {
+    position:absolute;right:0;top:5px;width:auto;max-width:80px;
+    margin:0;padding:2px 0;text-align:right;font-size:9px;
+    white-space:nowrap;line-height:1.25;
+  }
+}
+</style>\n</body>
 </html>
 
 <style id="mobile-genre-and-etc-marquee-v19">
