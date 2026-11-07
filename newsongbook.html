@@ -854,7 +854,7 @@ footer { position:relative; z-index:1; }
 </select>
 <div class="custom-select count-filter-operator-custom" id="countFilterOperatorCustom"></div>
 <label class="count-filter-exclude-zero"><input id="excludeZeroCountCheck" type="checkbox"/><span>0회 미포함</span></label>
-</div></div><div class="filter-section filter-date-combined-section"><h4 class="filter-section-title"><svg class="btn-icon-svg" style="width: 14px; height: 14px;" viewbox="0 0 24 24"><rect height="16" rx="2" width="18" x="3" y="5"></rect><path d="M7 3v4M17 3v4M3 10h18"></path></svg>날짜 설정</h4><div class="filter-options filter-date-combined-options"><div class="filter-date-choice"><span>최근 부른 기간</span><select aria-hidden="true" class="detail-filter-select-native" id="recentFilterSelect" tabindex="-1"><option value="전체">전체기간</option></select><div class="custom-select" id="recentFilterCustom"></div></div><div class="filter-date-choice"><span>월별 선택</span><select aria-hidden="true" class="detail-filter-select-native" id="monthFilterSelect" tabindex="-1"><option value="전체">전체 날짜</option></select><div class="custom-select" id="monthFilterCustom"></div></div></div></div><div class="filter-section filter-unregistered-section"><h4 class="filter-section-title">미등록 노래</h4>
+</div></div><div class="filter-section filter-date-combined-section"><h4 class="filter-section-title"><svg class="btn-icon-svg" style="width: 14px; height: 14px;" viewbox="0 0 24 24"><rect height="16" rx="2" width="18" x="3" y="5"></rect><path d="M7 3v4M17 3v4M3 10h18"></path></svg>날짜 설정</h4><div class="filter-options filter-date-combined-options"><div class="filter-date-choice"><span>최근 부른 기간</span><select aria-hidden="true" class="detail-filter-select-native" id="recentFilterSelect" tabindex="-1"><option value="전체">전체기간</option></select><div class="custom-select" id="recentFilterCustom"></div></div><div class="filter-date-choice"><span>월별 선택</span><select aria-hidden="true" class="detail-filter-select-native" id="monthFilterSelect" tabindex="-1"><option value="전체">전체 날짜</option></select><div class="custom-select" id="monthFilterCustom"></div></div></div></div><div class="filter-section filter-unregistered-section"><h4 class="filter-section-title"><svg class="btn-icon-svg" style="width: 14px; height: 14px;" viewbox="0 0 24 24" aria-hidden="true"><path d="M9 18V5l12-2v13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="6" cy="18" r="3" fill="none" stroke="currentColor" stroke-width="2"></circle><circle cx="18" cy="16" r="3" fill="none" stroke="currentColor" stroke-width="2"></circle></svg>미등록 노래</h4>
 <label class="detail-filter-check"><input id="detailOnlyUnregisteredCheckbox" type="checkbox" onchange="toggleDetailOnlyUnregistered(this.checked)"/><span>미등록된 노래만 보기</span></label>
 <label class="filter-unregistered-toggle" id="detailUnregisteredToggle"><input id="detailUnregisteredCheckbox" onchange="toggleDetailUnregisteredSongs(this.checked)" type="checkbox"/><span class="filter-unregistered-label">미등록된 노래 보기</span><span class="filter-unregistered-count" id="detailUnregisteredCount">0곡</span></label><div class="filter-unregistered-list" hidden="" id="detailUnregisteredSongList"></div></div><div class="modal-actions"><button class="modal-btn modal-btn-refresh" onclick="resetDetailedFilters()" type="button">초기화</button><button class="modal-btn modal-btn-close" onclick="closeFilterModal()">확인</button></div></div></div></div>
 <script>
@@ -948,12 +948,13 @@ footer { position:relative; z-index:1; }
 
         function toggleSongCard(cardElement) { cardElement.classList.toggle("expanded"); }
 
-        function showToastMessage(customText) {
+        function showToastMessage(customText, toastType = "") {
             const toast = document.getElementById("toastMessage");
             toast.textContent = customText;
+            toast.classList.toggle("warning", toastType === "warning");
             toast.classList.add("show");
             if (toastTimer) clearTimeout(toastTimer);
-            toastTimer = setTimeout(() => { toast.classList.remove("show"); }, 2000);
+            toastTimer = setTimeout(() => { toast.classList.remove("show", "warning"); }, 2000);
         }
 
         function copySongInfo(title, artist, event) {
@@ -2266,6 +2267,7 @@ footer { position:relative; z-index:1; }
         function toggleDetailUnregisteredSongs(checked) {
             // 체크하면 필터 팝업 안이 아니라 메인 노래 목록에 미등록 곡을 함께 표시합니다.
             detailUnregisteredExpanded = !!checked;
+            if (checked) showToastMessage("미등록된 노래는 기록용으로만 봐주세요", "warning");
             if(!checked)detailOnlyUnregistered=false;
             const onlyCheck=document.getElementById("detailOnlyUnregisteredCheckbox");
             if(onlyCheck)onlyCheck.checked=detailOnlyUnregistered;
@@ -3728,7 +3730,7 @@ function openRecommendModal() { generateRecommendations(); showModalOnTop("recom
                 const safeArtist = (song.artist || '').replace(/'/g, "\\'");
 
                 const unregisteredBadge = song.__isUnregisteredSong
-                    ? '<span class="badge badge-unregistered-song">미등록</span>'
+                    ? '<span class="badge badge-limit badge-unregistered-song">미등록</span>'
                     : "";
                 // 등록곡과 미등록곡의 태그 위치를 동일하게 유지합니다.
                 // 제한 태그는 제목 앞, 장르 태그는 부른 횟수 앞에 표시합니다.
@@ -4519,6 +4521,11 @@ async function runSongDataCheck(){
     text-align:right;font-size:10px;white-space:normal;line-height:1.3;
   }
 }
+</style>
+
+<style id="unregistered-badge-orange-override-v1">
+.song-title-line .badge-limit.badge-unregistered-song{background:#fff7ed!important;color:#c2410c!important;border:1px solid #fdba74!important;}
+.toast-message.warning{color:#ef4444!important;}
 </style>
 </body>
 </html>
