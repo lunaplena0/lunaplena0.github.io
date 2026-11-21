@@ -3650,10 +3650,41 @@ function openRecommendModal() { generateRecommendations(); showModalOnTop("recom
             }
 
             let lastArtist = "";
+            let lastDateKey = "";
             const fragment = document.createDocumentFragment();
             const now = new Date();
 
-            sortedSongs.forEach((song, sortedIndex) => {
+            // 날짜순에서는 songlist의 곡 정보에 fansongstats의 dateTimes 기록을 펼쳐
+            // 실제 재생 일자별로 한 번씩 배치합니다. 같은 곡이 여러 날짜에 불렸다면
+            // 각 날짜 그룹에 각각 표시하고, 해당 날짜 안에서는 실제 재생 시간순으로 정렬합니다.
+            let renderEntries = sortedSongs.map((song, sortedIndex) => ({ song, sortedIndex, dateOccurrence: null }));
+            if (currentSongSortMode === 'date') {
+                renderEntries = [];
+                sortedSongs.forEach((song, sortedIndex) => {
+                    const records = Array.isArray(song.dateTimes) ? song.dateTimes : [];
+                    const validRecords = records.filter(dt => dt && parseDateString(dt.date));
+                    if (validRecords.length) {
+                        validRecords.forEach(dt => renderEntries.push({ song, sortedIndex, dateOccurrence: dt }));
+                    } else {
+                        renderEntries.push({ song, sortedIndex, dateOccurrence: null });
+                    }
+                });
+                const getOccurrenceValue = entry => {
+                    if (!entry.dateOccurrence) return Number.POSITIVE_INFINITY;
+                    const date = parseDateString(entry.dateOccurrence.date);
+                    if (!date) return Number.POSITIVE_INFINITY;
+                    return date.getTime() + timeToSeconds(entry.dateOccurrence.time) * 1000;
+                };
+                renderEntries.sort((a, b) => {
+                    const av = getOccurrenceValue(a), bv = getOccurrenceValue(b);
+                    if (av !== bv) return currentSongDateSortDirection === 'oldest' ? av - bv : bv - av;
+                    const artistCompare = String(a.song.artist || '아티스트 미상').localeCompare(String(b.song.artist || '아티스트 미상'), 'ko', { sensitivity: 'base' });
+                    if (artistCompare) return artistCompare;
+                    return String(a.song.title || '').localeCompare(String(b.song.title || ''), 'ko', { sensitivity: 'base' });
+                });
+            }
+
+            renderEntries.forEach(({ song, sortedIndex, dateOccurrence }) => {
                 const currentArtist = song.artist || '아티스트 미상';
                 if (currentSongSortMode === 'artist' && currentArtist !== lastArtist) {
                     lastArtist = currentArtist;
@@ -3661,6 +3692,18 @@ function openRecommendModal() { generateRecommendations(); showModalOnTop("recom
                     groupHeader.className = 'artist-group-header';
                     groupHeader.innerHTML = `<svg class="artist-header-svg" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>${currentArtist}`;
                     fragment.appendChild(groupHeader);
+                } else if (currentSongSortMode === 'date') {
+                    const date = dateOccurrence ? parseDateString(dateOccurrence.date) : null;
+                    const dateKey = date ? `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}` : 'no-date';
+                    if (dateKey !== lastDateKey) {
+                        lastDateKey = dateKey;
+                        const groupHeader = document.createElement('div');
+                        groupHeader.className = 'artist-group-header';
+                        groupHeader.textContent = date
+                            ? `${date.getFullYear()}년 ${String(date.getMonth()+1).padStart(2,'0')}월 ${String(date.getDate()).padStart(2,'0')}일`
+                            : '날짜 기록 없음';
+                        fragment.appendChild(groupHeader);
+                    }
                 }
 
                 const card = document.createElement("div");
@@ -3686,9 +3729,12 @@ function openRecommendModal() { generateRecommendations(); showModalOnTop("recom
                 let etcBadge = etcVal !== "" ? `<span class="badge badge-etc"><span class="song-text-viewport etc-text-viewport"><span class="song-text-marquee">${escapeHtml(etcVal)}</span></span></span>` : "";
 
                 let timestampsHTML = '';
-                if (song.dateTimes && song.dateTimes.length > 0) {
+                const timestampsToShow = currentSongSortMode === 'date'
+                    ? (dateOccurrence ? [dateOccurrence] : [])
+                    : (Array.isArray(song.dateTimes) ? song.dateTimes : []);
+                if (timestampsToShow.length > 0) {
                     timestampsHTML = '<div class="timestamp-container">';
-                    song.dateTimes.forEach(dt => {
+                    timestampsToShow.forEach(dt => {
                         const vodUrl = vodMap[dt.date] || "#";
                         const finalLink = vodUrl !== "#" ? `${vodUrl}?change_second=${timeToSeconds(dt.time)}` : "#";
                         const cleanDate = dt.date.replace(/\(.*?\)/g, "").trim();
@@ -3744,7 +3790,7 @@ function openRecommendModal() { generateRecommendations(); showModalOnTop("recom
 
                         timestampsHTML += `
                             <a href="${finalLink}" target="_blank" rel="noopener noreferrer" class="${btnClass}" onclick="event.stopPropagation();">
-                                ${cleanDate}
+                                ${cleanDate}${currentSongSortMode === 'date' && dt.time ? ` · ${escapeHtml(dt.time)}` : ''}
                                 <svg class="timestamp-icon-svg" viewBox="0 0 24 24">
                                     <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
                                     <polyline points="15 3 21 3 21 9"></polyline>
