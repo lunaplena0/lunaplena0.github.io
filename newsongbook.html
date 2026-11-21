@@ -3692,12 +3692,36 @@ function openRecommendModal() { generateRecommendations(); showModalOnTop("recom
             };
             if (currentSongSortMode === 'date') {
                 renderEntries = [];
+                // 상세 필터의 날짜 범위는 곡을 남기는 데서 끝나지 않고,
+                // 날짜순 화면에 펼쳐지는 개별 기록에도 동일하게 적용합니다.
+                const hasActiveDateFilter = currentMonthFilter !== '전체' || currentRecentFilter !== '전체';
+                const matchesActiveDateFilter = (record) => {
+                    const recordDate = parseDateString(record && record.date);
+                    if (!recordDate) return false;
+                    if (currentMonthFilter !== '전체') {
+                        const [year, month] = currentMonthFilter.split('-').map(Number);
+                        return recordDate.getFullYear() === year && recordDate.getMonth() + 1 === month;
+                    }
+                    if (currentRecentFilter !== '전체') {
+                        const daysLimit = parseInt(currentRecentFilter, 10);
+                        const today = new Date();
+                        const todayOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+                        const recordOnly = new Date(recordDate.getFullYear(), recordDate.getMonth(), recordDate.getDate());
+                        const diffDays = (todayOnly - recordOnly) / 86400000;
+                        return diffDays >= 0 && diffDays <= daysLimit;
+                    }
+                    return true;
+                };
                 sortedSongs.forEach((song, sortedIndex) => {
                     const records = Array.isArray(song.dateTimes) ? song.dateTimes : [];
                     const validRecords = records.filter(dt => dt && parseDateString(dt.date));
-                    if (validRecords.length) {
-                        validRecords.forEach(dt => renderEntries.push({ song, sortedIndex, dateOccurrence: dt }));
-                    } else {
+                    // 날짜 필터가 켜져 있으면 범위에 해당하는 기록만 표시합니다.
+                    const visibleRecords = hasActiveDateFilter
+                        ? validRecords.filter(matchesActiveDateFilter)
+                        : validRecords;
+                    if (visibleRecords.length) {
+                        visibleRecords.forEach(dt => renderEntries.push({ song, sortedIndex, dateOccurrence: dt }));
+                    } else if (!hasActiveDateFilter && !validRecords.length) {
                         renderEntries.push({ song, sortedIndex, dateOccurrence: null });
                     }
                 });
