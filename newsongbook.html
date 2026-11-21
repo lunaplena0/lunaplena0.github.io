@@ -3716,13 +3716,14 @@ function openRecommendModal() { generateRecommendations(); showModalOnTop("recom
                             return currentSongDateSortDirection === 'oldest'
                                 ? ap.dateValue - bp.dateValue : bp.dateValue - ap.dateValue;
                         }
+                        // 최근순/오래된순은 날짜에만 적용합니다.
+                        // 같은 날짜 안에서는 VOD 등록 순서(1, 2, 3...)를 유지하고,
+                        // 각 VOD 안의 기록 시간은 항상 00:00:00에 가까운 순서로 표시합니다.
                         if (ap.vodIndex !== bp.vodIndex) {
-                            return currentSongDateSortDirection === 'oldest'
-                                ? ap.vodIndex - bp.vodIndex : bp.vodIndex - ap.vodIndex;
+                            return ap.vodIndex - bp.vodIndex;
                         }
                         if (ap.timeValue !== bp.timeValue) {
-                            return currentSongDateSortDirection === 'oldest'
-                                ? ap.timeValue - bp.timeValue : bp.timeValue - ap.timeValue;
+                            return ap.timeValue - bp.timeValue;
                         }
                     }
                     const artistCompare = String(a.song.artist || '아티스트 미상').localeCompare(String(b.song.artist || '아티스트 미상'), 'ko', { sensitivity: 'base' });
