@@ -829,6 +829,13 @@ footer { position:relative; z-index:1; }
   .main-container.songbook-layout > .songbook-content { position:static; left:auto; }
 }
 </style>
+<style>
+/* 날짜순 보기에서는 현재 날짜에 연결된 VOD 버튼만 은은한 파란색으로 강조합니다. */
+.timestamp-btn.date-sort-current{background:#e0f2fe;border-color:#7dd3fc;color:#0369a1;}
+.timestamp-btn.date-sort-current:hover{background:#0284c7;border-color:#0284c7;color:#fff;}
+.timestamp-btn.date-sort-muted{background:#f1f5f9;border-color:#e2e8f0;color:#94a3b8;opacity:.72;}
+.timestamp-btn.date-sort-muted:hover{background:#e2e8f0;border-color:#cbd5e1;color:#64748b;}
+</style>
 </head><body><div class="main-container songbook-layout"><aside class="songbook-sidebar"><div class="sidebar-brand"><div class="title-summary-box"><h1 class="page-title"><button aria-label="노래책 로그인 / 인증" class="song-title-login-trigger" id="songTitleLoginTrigger" onclick="openSongAuthModal()" title="노래책 로그인 / 인증"><svg class="page-title-svg" viewbox="0 0 24 24"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg></button>
  바다비 노래책
  </h1><div class="stats-summary-row"><div class="stats-summary" id="statsSummary">통계 계산 중...</div></div></div></div><div class="sidebar-actions"><button class="header-action-btn sidebar-action-btn" onclick="openNoticeModal()"><svg class="btn-icon-svg" viewbox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
@@ -3831,11 +3838,14 @@ function openRecommendModal() { generateRecommendations(); showModalOnTop("recom
                             }
                         }
 
-                        const btnClass = isHighlighted ? "timestamp-btn highlighted-date" : "timestamp-btn";
+                        const dateSortLinkClass = currentSongSortMode === 'date'
+                            ? (vodUrl !== "#" ? " date-sort-current" : " date-sort-muted")
+                            : "";
+                        const btnClass = (isHighlighted ? "timestamp-btn highlighted-date" : "timestamp-btn") + dateSortLinkClass;
 
                         timestampsHTML += `
                             <a href="${finalLink}" target="_blank" rel="noopener noreferrer" class="${btnClass}" onclick="event.stopPropagation();">
-                                ${cleanDate}${currentSongSortMode === 'date' && dt.time ? ` · ${escapeHtml(dt.time)}` : ''}
+                                ${cleanDate}
                                 <svg class="timestamp-icon-svg" viewBox="0 0 24 24">
                                     <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
                                     <polyline points="15 3 21 3 21 9"></polyline>
@@ -4265,7 +4275,7 @@ function updateSongSortButtons(){
         const label = currentSongSortMode === 'date'
             ? (currentSongDateSortDirection === 'oldest' ? '날짜별로 보기 · 오래된순' : '날짜별로 보기 · 최근순')
             : '날짜별로 보기 · 오래된순';
-        dateButton.innerHTML = '<svg class="btn-icon-svg" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M16 3v4M8 3v4M3 10h18"></path></svg>\\n ' + label;
+        dateButton.innerHTML = '<svg class="btn-icon-svg" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M16 3v4M8 3v4M3 10h18"></path></svg> ' + label;
     }
 }
 function applySongSortMode(){
