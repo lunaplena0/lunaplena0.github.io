@@ -1501,9 +1501,16 @@ footer { position:relative; z-index:1; }
                     ...(Array.isArray(bookData.days) ? bookData.days : []),
                     ...(Array.isArray(statsData.days) ? statsData.days : [])
                 ].map(item => String(item?.date || "")).filter(value => /^\d{4}-\d{2}-\d{2}$/.test(value)).sort((a,b)=>b.localeCompare(a));
-                if (!dates.length) { target.textContent = ""; return; }
+                const menuToggle = document.getElementById("mobileMenuToggle");
+                if (!dates.length) {
+                    target.textContent = "";
+                    if (menuToggle) menuToggle.setAttribute("data-latest-change", "");
+                    return;
+                }
                 const [year, month, day] = dates[0].split("-");
-                target.textContent = `노래책 갱신 ${month}.${day}`;
+                const latestLabel = `${month}.${day}`;
+                target.textContent = `노래책 갱신 ${latestLabel}`;
+                if (menuToggle) menuToggle.setAttribute("data-latest-change", latestLabel);
             } catch (error) {
                 target.textContent = "";
             }
@@ -5125,14 +5132,14 @@ async function runSongDataCheck(){
 </style>
 
 
-<style id="mobile-menu-open-title-label-v1">
+<style id="mobile-menu-open-title-label-v2">
 @media(max-width:760px){
-  /* 메뉴가 열렸을 때 우측 닫기 버튼 왼쪽에 사이트 이름 표시 */
+  /* 메뉴가 열렸을 때 닫기 버튼 왼쪽에 실제 갱신 날짜를 한 줄로 표시 */
   body.mobile-songbook-menu-open .songbook-sidebar .mobile-menu-toggle{
     z-index:10002 !important;
   }
   body.mobile-songbook-menu-open .songbook-sidebar .mobile-menu-toggle::before{
-    content:"바다비 노래책";
+    content:"노래책 갱신 " attr(data-latest-change);
     position:absolute !important;
     right:43px !important;
     top:50% !important;
@@ -5141,13 +5148,19 @@ async function runSongDataCheck(){
     width:max-content !important;
     max-width:calc(100vw - 110px) !important;
     color:#244e6b !important;
-    font-size:15px !important;
-    font-weight:800 !important;
-    letter-spacing:-.45px !important;
+    font-size:13px !important;
+    font-weight:750 !important;
+    letter-spacing:-.35px !important;
     line-height:1.2 !important;
     white-space:nowrap !important;
     pointer-events:none !important;
     text-shadow:0 1px 0 rgba(255,255,255,.8);
+  }
+  /* 팝업 제목 아래처럼 상단 헤더와 메뉴 본문을 구분하는 밑줄 */
+  body.mobile-songbook-menu-open .songbook-sidebar .sidebar-brand{
+    border-bottom:1px solid #e3edf4 !important;
+    padding-bottom:11px !important;
+    margin-bottom:10px !important;
   }
 }
 </style>
