@@ -4783,17 +4783,14 @@ async function runSongDataCheck(){
       if(!header){
         header=document.createElement('div');
         header.className='mobile-menu-header';
-        header.innerHTML='<span class="mobile-menu-header-title">바다비 노래책</span>';
+        header.innerHTML='<span class="mobile-menu-header-title">바다비 노래책</span><button type="button" class="mobile-menu-close" aria-label="메뉴 닫기" onclick="closeMobileSongbookMenu()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>';
       }
       if(header.parentNode!==actions)actions.insertBefore(header,actions.firstChild);
       if(latest.parentNode!==header)header.appendChild(latest);
-      var toggle=document.getElementById('mobileMenuToggle');
-      if(toggle&&toggle.parentNode!==header)header.appendChild(toggle);
+      /* 메뉴를 여는 햄버거 버튼(#mobileMenuToggle)은 헤더 바깥에 유지합니다.
+         서랍 안에는 별도의 닫기 버튼만 두어 다시 열 수 없게 되는 문제를 방지합니다. */
     }else{
       var header=actions.querySelector('.mobile-menu-header');
-      var toggle=document.getElementById('mobileMenuToggle');
-      var brand=document.querySelector('.songbook-sidebar .sidebar-brand');
-      if(toggle&&brand&&toggle.parentNode!==brand)brand.appendChild(toggle);
       if(header)header.remove();
       if(latest.parentNode!==actions||latest.previousElementSibling!==manage){
         manage.insertAdjacentElement('afterend',latest);
@@ -5209,7 +5206,7 @@ async function runSongDataCheck(){
 
 
 
-<style id="mobile-menu-header-title-date-close-one-row-v1">
+<style id="mobile-menu-header-title-date-close-one-row-v2">
 @media (max-width:760px){
   .sidebar-actions > .mobile-menu-header{
     display:flex !important;flex-direction:row !important;align-items:center !important;
@@ -5225,18 +5222,18 @@ async function runSongDataCheck(){
     flex:0 1 auto !important;min-width:0 !important;white-space:nowrap !important;
     overflow:hidden !important;text-overflow:ellipsis !important;
   }
-  .mobile-menu-header #mobileMenuToggle{
-    display:flex !important;position:static !important;inset:auto !important;
-    flex:0 0 32px !important;width:32px !important;height:32px !important;
-    min-width:32px !important;margin:0 0 0 auto !important;padding:0 !important;
-    align-items:center !important;justify-content:center !important;
-    border:0 !important;border-radius:9px !important;background:#eef7fc !important;
-    color:#287fa8 !important;box-shadow:none !important;
+  .mobile-menu-header .mobile-menu-close{
+    display:flex !important;position:static !important;flex:0 0 32px !important;
+    width:32px !important;height:32px !important;min-width:32px !important;
+    margin:0 0 0 auto !important;padding:0 !important;align-items:center !important;
+    justify-content:center !important;border:0 !important;border-radius:9px !important;
+    background:#eef7fc !important;color:#287fa8 !important;box-shadow:none !important;
+    cursor:pointer !important;
   }
-  .mobile-menu-header #mobileMenuToggle svg{display:none !important;}
-  .mobile-menu-header #mobileMenuToggle::before{
-    content:"×" !important;display:block !important;font-size:27px !important;
-    line-height:1 !important;font-weight:400 !important;
+  .mobile-menu-header .mobile-menu-close svg{
+    display:block !important;width:19px !important;height:19px !important;
+    fill:none !important;stroke:currentColor !important;stroke-width:2 !important;
+    stroke-linecap:round !important;
   }
 }
 @media(max-width:360px){
