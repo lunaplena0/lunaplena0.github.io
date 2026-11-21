@@ -4783,12 +4783,11 @@ async function runSongDataCheck(){
       if(!header){
         header=document.createElement('div');
         header.className='mobile-menu-header';
-        header.innerHTML='<span class="mobile-menu-header-title">바다비 노래책</span><button type="button" class="mobile-menu-close" aria-label="메뉴 닫기" onclick="closeMobileSongbookMenu()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>';
+        header.innerHTML='<span class="mobile-menu-header-title">바다비 노래책</span>';
       }
       if(header.parentNode!==actions)actions.insertBefore(header,actions.firstChild);
       if(latest.parentNode!==header)header.appendChild(latest);
-      /* 메뉴를 여는 햄버거 버튼(#mobileMenuToggle)은 헤더 바깥에 유지합니다.
-         서랍 안에는 별도의 닫기 버튼만 두어 다시 열 수 없게 되는 문제를 방지합니다. */
+      /* 기존 메뉴 토글 버튼은 열릴 때 헤더 오른쪽으로 이동하고, 닫히면 원래 자리로 돌아갑니다. */
     }else{
       var header=actions.querySelector('.mobile-menu-header');
       if(header)header.remove();
@@ -5065,12 +5064,48 @@ async function runSongDataCheck(){
   body.mobile-songbook-menu-open{overflow:hidden !important;}
 }
 </style>
-<script id="mobile-songbook-side-drawer-logic-v1">
+<script id="mobile-songbook-side-drawer-logic-v2">
 (function(){
+  var toggleButton=null, originalParent=null, originalNextSibling=null;
+  function ensureHeader(){
+    var actions=document.querySelector('.songbook-sidebar .sidebar-actions');
+    if(!actions)return null;
+    var header=actions.querySelector('.mobile-menu-header');
+    if(!header){
+      header=document.createElement('div');
+      header.className='mobile-menu-header';
+      header.innerHTML='<span class="mobile-menu-header-title">바다비 노래책</span>';
+      actions.insertBefore(header,actions.firstChild);
+    }
+    var latest=document.getElementById('songbookLatestChange');
+    if(latest && latest.parentNode!==header)header.appendChild(latest);
+    return header;
+  }
+  function rememberToggle(){
+    if(toggleButton)return;
+    toggleButton=document.getElementById('mobileMenuToggle');
+    if(toggleButton){originalParent=toggleButton.parentNode;originalNextSibling=toggleButton.nextSibling;}
+  }
+  function placeToggle(open){
+    rememberToggle();
+    if(!toggleButton)return;
+    if(open){
+      var header=ensureHeader();
+      if(header && toggleButton.parentNode!==header)header.appendChild(toggleButton);
+      toggleButton.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>';
+    }else{
+      if(originalParent && toggleButton.parentNode!==originalParent){
+        if(originalNextSibling && originalNextSibling.parentNode===originalParent)originalParent.insertBefore(toggleButton,originalNextSibling);
+        else originalParent.appendChild(toggleButton);
+      }
+      toggleButton.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"></path></svg>';
+    }
+    toggleButton.setAttribute('aria-expanded',open?'true':'false');
+    toggleButton.setAttribute('aria-label',open?'메뉴 닫기':'메뉴 열기');
+  }
   function setOpen(open){
     document.body.classList.toggle('mobile-songbook-menu-open',!!open);
-    var button=document.getElementById('mobileMenuToggle');
-    if(button){button.setAttribute('aria-expanded',open?'true':'false');button.setAttribute('aria-label',open?'메뉴 닫기':'메뉴 열기');}
+    placeToggle(!!open);
   }
   window.toggleMobileSongbookMenu=function(){
     setOpen(!document.body.classList.contains('mobile-songbook-menu-open'));
@@ -5086,6 +5121,8 @@ async function runSongDataCheck(){
     var action=event.target.closest && event.target.closest('.sidebar-actions .sidebar-action-btn');
     if(action)setOpen(false);
   });
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',rememberToggle);
+  else rememberToggle();
 })();
 </script>
 
@@ -5238,6 +5275,50 @@ async function runSongDataCheck(){
 }
 @media(max-width:360px){
   .sidebar-actions > .mobile-menu-header{gap:5px !important;}
+  .mobile-menu-header .mobile-menu-header-title{font-size:13px !important;}
+  .mobile-menu-header .songbook-latest-change{font-size:10px !important;}
+}
+</style>
+
+
+<style id="mobile-menu-single-existing-toggle-header-v1">
+@media(max-width:760px){
+  .sidebar-actions > .mobile-menu-header{
+    display:flex !important;flex-direction:row !important;align-items:center !important;
+    justify-content:flex-start !important;flex-wrap:nowrap !important;gap:8px !important;
+    width:100% !important;min-width:0 !important;box-sizing:border-box !important;
+    margin:0 0 8px !important;padding:5px 0 12px !important;
+    border:0 !important;border-bottom:1px solid #cbdde9 !important;
+  }
+  .mobile-menu-header .mobile-menu-header-title{
+    flex:0 0 auto !important;white-space:nowrap !important;
+    color:#0f172a !important;font-size:14px !important;font-weight:800 !important;
+    letter-spacing:-.4px !important;
+  }
+  .mobile-menu-header .songbook-latest-change{
+    display:block !important;position:static !important;flex:0 1 auto !important;
+    min-width:0 !important;width:auto !important;max-width:none !important;
+    margin:0 !important;padding:0 !important;color:#52748b !important;
+    font-size:11px !important;font-weight:750 !important;line-height:1.25 !important;
+    text-align:left !important;white-space:nowrap !important;overflow:hidden !important;
+    text-overflow:ellipsis !important;
+  }
+  .mobile-menu-header #mobileMenuToggle{
+    display:flex !important;position:static !important;inset:auto !important;
+    flex:0 0 34px !important;width:34px !important;height:34px !important;
+    min-width:34px !important;margin:0 0 0 auto !important;align-self:center !important;
+    align-items:center !important;justify-content:center !important;padding:0 !important;
+    border:1px solid #d8eaf5 !important;border-radius:10px !important;
+    background:#f4faff !important;color:#347fa5 !important;z-index:10001 !important;
+  }
+  .mobile-menu-header #mobileMenuToggle svg{
+    display:block !important;width:19px !important;height:19px !important;
+    fill:none !important;stroke:currentColor !important;stroke-width:2 !important;
+    stroke-linecap:round !important;
+  }
+  .mobile-menu-header .mobile-menu-close{display:none !important;}
+}
+@media(max-width:360px){
   .mobile-menu-header .mobile-menu-header-title{font-size:13px !important;}
   .mobile-menu-header .songbook-latest-change{font-size:10px !important;}
 }
