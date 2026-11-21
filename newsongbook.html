@@ -3658,6 +3658,24 @@ function openRecommendModal() { generateRecommendations(); showModalOnTop("recom
             // 실제 재생 일자별로 한 번씩 배치합니다. 같은 곡이 여러 날짜에 불렸다면
             // 각 날짜 그룹에 각각 표시하고, 해당 날짜 안에서는 실제 재생 시간순으로 정렬합니다.
             let renderEntries = sortedSongs.map((song, sortedIndex) => ({ song, sortedIndex, dateOccurrence: null }));
+            // fansongstats.vodSources에서 같은 날짜에 등록된 VOD를 찾아
+            // 원본 등록 순서대로 1, 2, 3... 번호를 부여합니다.
+            const getVodDateGroupInfo = (dateValue) => {
+                const rawDate = String(dateValue || '').trim();
+                const baseDate = rawDate.replace(/\s*\(\d+\)\s*$/, '').trim();
+                const vodList = Array.isArray(fansongStatsData?.vodSources) ? fansongStatsData.vodSources : [];
+                const sameDayVods = vodList.filter(v =>
+                    String(v?.date || '').trim().replace(/\s*\(\d+\)\s*$/, '').trim() === baseDate
+                );
+                let vodIndex = sameDayVods.findIndex(v => String(v?.date || '').trim() === rawDate);
+                if (vodIndex < 0) vodIndex = 0;
+                return {
+                    baseDate,
+                    vodIndex,
+                    vodCount: sameDayVods.length,
+                    vodNumber: vodIndex + 1
+                };
+            };
             if (currentSongSortMode === 'date') {
                 renderEntries = [];
                 sortedSongs.forEach((song, sortedIndex) => {
@@ -3669,15 +3687,37 @@ function openRecommendModal() { generateRecommendations(); showModalOnTop("recom
                         renderEntries.push({ song, sortedIndex, dateOccurrence: null });
                     }
                 });
-                const getOccurrenceValue = entry => {
-                    if (!entry.dateOccurrence) return Number.POSITIVE_INFINITY;
+                const getOccurrenceParts = (entry) => {
+                    if (!entry.dateOccurrence) return null;
                     const date = parseDateString(entry.dateOccurrence.date);
-                    if (!date) return Number.POSITIVE_INFINITY;
-                    return date.getTime() + timeToSeconds(entry.dateOccurrence.time) * 1000;
+                    if (!date) return null;
+                    const vodInfo = getVodDateGroupInfo(entry.dateOccurrence.date);
+                    return {
+                        dateValue: new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime(),
+                        vodIndex: vodInfo.vodIndex,
+                        vodCount: vodInfo.vodCount,
+                        vodNumber: vodInfo.vodNumber,
+                        timeValue: timeToSeconds(entry.dateOccurrence.time)
+                    };
                 };
                 renderEntries.sort((a, b) => {
-                    const av = getOccurrenceValue(a), bv = getOccurrenceValue(b);
-                    if (av !== bv) return currentSongDateSortDirection === 'oldest' ? av - bv : bv - av;
+                    const ap = getOccurrenceParts(a), bp = getOccurrenceParts(b);
+                    if (!ap && bp) return 1;
+                    if (ap && !bp) return -1;
+                    if (ap && bp) {
+                        if (ap.dateValue !== bp.dateValue) {
+                            return currentSongDateSortDirection === 'oldest'
+                                ? ap.dateValue - bp.dateValue : bp.dateValue - ap.dateValue;
+                        }
+                        if (ap.vodIndex !== bp.vodIndex) {
+                            return currentSongDateSortDirection === 'oldest'
+                                ? ap.vodIndex - bp.vodIndex : bp.vodIndex - ap.vodIndex;
+                        }
+                        if (ap.timeValue !== bp.timeValue) {
+                            return currentSongDateSortDirection === 'oldest'
+                                ? ap.timeValue - bp.timeValue : bp.timeValue - ap.timeValue;
+                        }
+                    }
                     const artistCompare = String(a.song.artist || '아티스트 미상').localeCompare(String(b.song.artist || '아티스트 미상'), 'ko', { sensitivity: 'base' });
                     if (artistCompare) return artistCompare;
                     return String(a.song.title || '').localeCompare(String(b.song.title || ''), 'ko', { sensitivity: 'base' });
@@ -3694,14 +3734,19 @@ function openRecommendModal() { generateRecommendations(); showModalOnTop("recom
                     fragment.appendChild(groupHeader);
                 } else if (currentSongSortMode === 'date') {
                     const date = dateOccurrence ? parseDateString(dateOccurrence.date) : null;
-                    const dateKey = date ? `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}` : 'no-date';
+                    const dateKeyBase = date ? `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}` : 'no-date';
+                    const vodInfo = dateOccurrence ? getVodDateGroupInfo(dateOccurrence.date) : null;
+                    const dateKey = date ? `${dateKeyBase}|vod-${vodInfo?.vodNumber || 1}` : 'no-date';
                     if (dateKey !== lastDateKey) {
                         lastDateKey = dateKey;
                         const groupHeader = document.createElement('div');
                         groupHeader.className = 'artist-group-header';
-                        groupHeader.textContent = date
+                        const dateLabel = date
                             ? `${date.getFullYear()}년 ${String(date.getMonth()+1).padStart(2,'0')}월 ${String(date.getDate()).padStart(2,'0')}일`
                             : '날짜 기록 없음';
+                        groupHeader.textContent = date
+                            ? `${dateLabel}${vodInfo && vodInfo.vodCount > 1 ? ` - ${vodInfo.vodNumber}` : ''}`
+                            : dateLabel;
                         fragment.appendChild(groupHeader);
                     }
                 }
