@@ -5328,14 +5328,18 @@ async function runSongDataCheck(){
   window.closeMobileSongbookMenu=function(){setOpen(false);};
   document.addEventListener('click',function(event){
     if(!document.body.classList.contains('mobile-songbook-menu-open'))return;
-    if(event.target.closest && (event.target.closest('.sidebar-actions') || event.target.closest('#mobileMenuToggle')))return;
+    var target=event.target;
+    if(!target.closest)return;
+    if(target.closest('#mobileMenuToggle'))return;
+    var action=target.closest('.sidebar-actions .sidebar-action-btn');
+    if(action){
+      if(!action.classList.contains('song-sort-option'))setOpen(false);
+      return;
+    }
+    if(target.closest('.sidebar-actions'))return;
     setOpen(false);
   });
   document.addEventListener('keydown',function(event){if(event.key==='Escape')setOpen(false);});
-  document.addEventListener('click',function(event){
-    var action=event.target.closest && event.target.closest('.sidebar-actions .sidebar-action-btn');
-    if(action && !action.classList.contains('song-sort-option'))setOpen(false);
-  });
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',rememberToggle);
   else rememberToggle();
 })();
