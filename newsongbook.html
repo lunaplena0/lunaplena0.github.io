@@ -1686,6 +1686,27 @@ footer { position:relative; z-index:1; }
             return isNaN(d.getTime()) ? null : d;
         }
 
+        // 상세 필터와 날짜순 기록 표시가 같은 날짜 판정 규칙을 사용하도록 공통화합니다.
+        function matchesActiveSongDateFilter(dateValue, monthFilter, recentFilter, referenceDate = new Date()) {
+            const targetDate = parseDateString(dateValue);
+            if (!targetDate) return false;
+
+            if (monthFilter !== '전체') {
+                const [year, month] = monthFilter.split('-').map(Number);
+                return targetDate.getFullYear() === year && targetDate.getMonth() + 1 === month;
+            }
+
+            if (recentFilter !== '전체') {
+                const daysLimit = parseInt(recentFilter, 10);
+                const referenceDateOnly = new Date(referenceDate.getFullYear(), referenceDate.getMonth(), referenceDate.getDate());
+                const targetDateOnly = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
+                const diffDays = (referenceDateOnly - targetDateOnly) / 86400000;
+                return diffDays >= 0 && diffDays <= daysLimit;
+            }
+
+            return true;
+        }
+
         function toggleSongCard(cardElement) { cardElement.classList.toggle("expanded"); }
 
         function showToastMessage(customText, toastType = "") {
@@ -2902,10 +2923,39 @@ footer { position:relative; z-index:1; }
         function getUniqueSongValues(key) {
             const values=new Map(); (Array.isArray(allSongs)?allSongs:[]).forEach(song=>{const v=String(song?.[key]??"").trim();if(v&&!values.has(v.toLocaleLowerCase()))values.set(v.toLocaleLowerCase(),v)}); return [...values.values()].sort((a,b)=>a.localeCompare(b,"ko"));
         }
-        function setupSongAutocomplete(inputId,listId,key){
-            const input=document.getElementById(inputId), list=document.getElementById(listId); if(!input||!list||input.dataset.autocompleteReady==="true")return; input.dataset.autocompleteReady="true";
-            const render=()=>{const q=input.value.trim().toLocaleLowerCase();const vals=getUniqueSongValues(key).filter(v=>!q||v.toLocaleLowerCase().includes(q)).slice(0,30);list.innerHTML="";if(!vals.length){list.classList.remove("active");return}vals.forEach(v=>{const b=document.createElement("button");b.type="button";b.className="song-autocomplete-item";b.textContent=v;b.onmousedown=e=>{e.preventDefault();input.value=v;input.dispatchEvent(new Event("input",{bubbles:true}));list.classList.remove("active")};list.appendChild(b)});list.classList.add("active")};
-            input.addEventListener("focus",render); input.addEventListener("input",render); input.addEventListener("blur",()=>setTimeout(()=>list.classList.remove("active"),150));
+        function setupSongAutocomplete(inputId,listId,key,options={}){
+            const input=document.getElementById(inputId), list=document.getElementById(listId);
+            if(!input||!list||input.dataset.autocompleteReady==="true")return;
+            input.dataset.autocompleteReady="true";
+            const limit=Number(options.limit)||30;
+            const render=()=>{
+                const q=input.value.trim().toLocaleLowerCase();
+                const values=getUniqueSongValues(key).filter(v=>!q||v.toLocaleLowerCase().includes(q)).slice(0,limit);
+                list.innerHTML="";
+                if(!values.length){
+                    list.classList.remove("active");
+                    if(typeof options.onEmpty==="function")options.onEmpty();
+                    return;
+                }
+                values.forEach(value=>{
+                    const button=document.createElement("button");
+                    button.type="button";
+                    button.className="song-autocomplete-item";
+                    button.textContent=value;
+                    button.onmousedown=event=>{
+                        event.preventDefault();
+                        input.value=value;
+                        if(options.dispatchInput!==false)input.dispatchEvent(new Event("input",{bubbles:true}));
+                        list.classList.remove("active");
+                        if(typeof options.onSelect==="function")options.onSelect(value);
+                    };
+                    list.appendChild(button);
+                });
+                list.classList.add("active");
+            };
+            input.addEventListener("focus",render);
+            input.addEventListener("input",render);
+            input.addEventListener("blur",()=>setTimeout(()=>list.classList.remove("active"),150));
         }
         function setupSongAddAutocompletes(){
             setupSongAutocomplete("addSongArtist","addSongArtistSuggestions","artist");
@@ -2916,15 +2966,12 @@ footer { position:relative; z-index:1; }
             const input=document.getElementById("bulkArtistOld"), list=document.getElementById("bulkArtistSuggestions");
             if(!input||!list||input.dataset.bulkReady==="true"){updateBulkArtistPreview();return}
             input.dataset.bulkReady="true";
-            const render=()=>{
-                const q=input.value.trim().toLocaleLowerCase();
-                const values=getUniqueSongValues("artist").filter(v=>!q||v.toLocaleLowerCase().includes(q)).slice(0,50);
-                list.innerHTML="";
-                if(!values.length){list.classList.remove("active");updateBulkArtistPreview();return}
-                values.forEach(v=>{const b=document.createElement("button");b.type="button";b.className="song-autocomplete-item";b.textContent=v;b.onmousedown=e=>{e.preventDefault();input.value=v;list.classList.remove("active");updateBulkArtistPreview()};list.appendChild(b)});
-                list.classList.add("active");
-            };
-            input.addEventListener("focus",render);input.addEventListener("input",render);input.addEventListener("blur",()=>setTimeout(()=>list.classList.remove("active"),150));
+            setupSongAutocomplete("bulkArtistOld","bulkArtistSuggestions","artist",{
+                limit:50,
+                dispatchInput:false,
+                onSelect:updateBulkArtistPreview,
+                onEmpty:updateBulkArtistPreview
+            });
             updateBulkArtistPreview();
         }
         function updateBulkArtistPreview(){
@@ -4205,22 +4252,9 @@ function openRecommendModal() { generateRecommendations(); showModalOnTop("recom
                 if (detailOnlyUnregistered && !song.__isUnregisteredSong) return false;
 
                 const dateTimes = song.dateTimes || [];
-                const matchesDateFilter = (dt) => {
-                    const songDate = parseDateString(dt.date);
-                    if (!songDate) return false;
-                    if (currentMonthFilter !== '전체') {
-                        const [year, month] = currentMonthFilter.split('-').map(Number);
-                        return songDate.getFullYear() === year && songDate.getMonth() + 1 === month;
-                    }
-                    if (currentRecentFilter !== '전체') {
-                        const daysLimit = parseInt(currentRecentFilter, 10);
-                        const nowDateOnly = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-                        const songDateOnly = new Date(songDate.getFullYear(), songDate.getMonth(), songDate.getDate());
-                        const diffDays = (nowDateOnly - songDateOnly) / 86400000;
-                        return diffDays >= 0 && diffDays <= daysLimit;
-                    }
-                    return true;
-                };
+                const matchesDateFilter = (dt) => matchesActiveSongDateFilter(
+                    dt && dt.date, currentMonthFilter, currentRecentFilter, now
+                );
                 const hasDateFilter = currentMonthFilter !== '전체' || currentRecentFilter !== '전체';
                 // 날짜 설정이 함께 선택되면, 부른 횟수도 해당 날짜 범위 안에서만 계산합니다.
                 const playCountToCheck = hasDateFilter ? dateTimes.filter(matchesDateFilter).length : dateTimes.length;
@@ -4399,23 +4433,9 @@ function openRecommendModal() { generateRecommendations(); showModalOnTop("recom
                 // 상세 필터의 날짜 범위는 곡을 남기는 데서 끝나지 않고,
                 // 날짜순 화면에 펼쳐지는 개별 기록에도 동일하게 적용합니다.
                 const hasActiveDateFilter = currentMonthFilter !== '전체' || currentRecentFilter !== '전체';
-                const matchesActiveDateFilter = (record) => {
-                    const recordDate = parseDateString(record && record.date);
-                    if (!recordDate) return false;
-                    if (currentMonthFilter !== '전체') {
-                        const [year, month] = currentMonthFilter.split('-').map(Number);
-                        return recordDate.getFullYear() === year && recordDate.getMonth() + 1 === month;
-                    }
-                    if (currentRecentFilter !== '전체') {
-                        const daysLimit = parseInt(currentRecentFilter, 10);
-                        const today = new Date();
-                        const todayOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-                        const recordOnly = new Date(recordDate.getFullYear(), recordDate.getMonth(), recordDate.getDate());
-                        const diffDays = (todayOnly - recordOnly) / 86400000;
-                        return diffDays >= 0 && diffDays <= daysLimit;
-                    }
-                    return true;
-                };
+                const matchesActiveDateFilter = (record) => matchesActiveSongDateFilter(
+                    record && record.date, currentMonthFilter, currentRecentFilter, now
+                );
                 sortedSongs.forEach((song, sortedIndex) => {
                     const records = Array.isArray(song.dateTimes) ? song.dateTimes : [];
                     const validRecords = records.filter(dt => dt && parseDateString(dt.date));
@@ -5125,7 +5145,8 @@ function openSongStatsDashboard(){
 }
 
 function openVodModal(){if(!isSongAuthenticated){openSongAuthModal();return;}if(songUserRole!=='admin'){showToastMessage('VOD 관리는 총괄관리자만 사용할 수 있습니다.');return;}resetVodForm();renderStatsVodList();showSongManageView('vod');requestAnimationFrame(()=>document.getElementById('statsVodDate')?.focus());}
-function closeVodModal(){showSongManageView('add');}
+function closeSongManageSubView(){showSongManageView('add');}
+function closeVodModal(){closeSongManageSubView();}
 function resetVodForm(){editingVodKey='';const d=document.getElementById('statsVodDate'),u=document.getElementById('statsVodUrl');if(d)d.value=localTodayString();if(u)u.value='';}
 function startAddVod(){if(!isSongAuthenticated){openSongAuthModal();return;}if(songUserRole!=='admin'){showToastMessage('VOD 관리는 총괄관리자만 사용할 수 있습니다.');return;}resetVodForm();document.getElementById('statsVodDate')?.focus();showToastMessage('새 VOD를 입력하세요.');}
 function editStatsVod(key){if(!isSongAuthenticated){openSongAuthModal();return;}if(songUserRole!=='admin'){showToastMessage('VOD 관리는 총괄관리자만 사용할 수 있습니다.');return;}const item=(fansongStatsData.vodSources||[]).find(x=>String(x.date||'')===String(key));if(!item){showToastMessage('해당 VOD를 찾을 수 없습니다.');return;}editingVodKey=String(key);document.getElementById('statsVodDate').value=String(item.date||'');document.getElementById('statsVodUrl').value=String(item.url||'');showSongManageView('vod');}
@@ -5149,7 +5170,7 @@ initVodListEvents();
 function updateBulkSongInputOrderUI(){const b=document.getElementById('bulkSongOrderToggle'),i=document.getElementById('bulkSongInput');if(!b||!i)return;if(bulkSongInputArtistFirst){b.textContent='노래제목 - 가수';i.placeholder='00:47:17 🎵 아이유 (IU) - 홀씨\n00:51:34 🎵 데이먼스 이어 - Auburn';}else{b.textContent='가수 - 노래제목';i.placeholder='00:47:17 🎵 홀씨 - 아이유 (IU)\n00:51:34 🎵 Auburn - 데이먼스 이어';}}
 function toggleBulkSongInputOrder(){bulkSongInputArtistFirst=!bulkSongInputArtistFirst;updateBulkSongInputOrderUI();}
 function openBulkSongInputModal(){if(!isSongAuthenticated){openSongAuthModal();return;}bulkSongInputArtistFirst=false;updateBulkSongInputOrderUI();document.getElementById('bulkSongDate').value=localTodayString();document.getElementById('bulkSongInput').value='';document.getElementById('bulkSongResult').innerHTML='';showSongManageView('bulk');}
-function closeBulkSongInputModal(){showSongManageView('add');}
+function closeBulkSongInputModal(){closeSongManageSubView();}
 
 function applyBulkSongInput(){
     if(!isSongAuthenticated){openSongAuthModal();return;}
@@ -5176,7 +5197,7 @@ function applyBulkSongInput(){
     result.innerHTML=`<div style="line-height:1.8"><b style="color:#16a34a">등록곡 ${regAdded}건 추가</b><br><b style="color:#2563eb">미등록곡 ${unregAdded}건 추가</b>${dupes?`<br>중복 ${dupes}건 제외`:''}${errors}</div>`;
 }
 
-function closeSongDataCheckModal(){showSongManageView('add');}
+function closeSongDataCheckModal(){closeSongManageSubView();}
 async function openSongDataCheckModal(){if(!isSongAuthenticated){openSongAuthModal();return;}showSongManageView('check');document.getElementById('songDataCheckResult').textContent='songlist와 fansongstats를 비교 중...';await runSongDataCheck();}
 function normalizeLimitForCheck(v){const x=String(v??'').trim().toLowerCase();if(['기타','기타전용','🎸'].includes(x))return '기타';if(['200','200개'].includes(x))return '200';if(['300','300개'].includes(x))return '300';return x;}
 async function runSongDataCheck(){
@@ -5218,6 +5239,28 @@ async function runSongDataCheck(){
 
 <script id="songbook-latest-change-location-logic-v4">
 (function(){
+  function ensureMobileSongbookHeader(actions,latest){
+    if(!actions)return null;
+    var header=actions.querySelector('.mobile-menu-header');
+    if(!header){
+      header=document.createElement('div');
+      header.className='mobile-menu-header';
+      header.innerHTML='<span class="mobile-menu-header-brand"><span class="mobile-menu-header-title">바다비 노래책</span></span>';
+    }
+    if(header.parentNode!==actions)actions.insertBefore(header,actions.firstChild);
+    var brand=header.querySelector('.mobile-menu-header-brand');
+    if(!brand){
+      brand=document.createElement('span');
+      brand.className='mobile-menu-header-brand';
+      var title=header.querySelector('.mobile-menu-header-title');
+      if(title)brand.appendChild(title);
+      header.insertBefore(brand,header.firstChild);
+    }
+    if(latest&&latest.parentNode!==brand)brand.appendChild(latest);
+    return header;
+  }
+  window.ensureMobileSongbookHeader=ensureMobileSongbookHeader;
+
   function placeLatestChange(){
     var latest=document.getElementById('songbookLatestChange');
     var actions=document.querySelector('.songbook-sidebar .sidebar-actions');
@@ -5225,14 +5268,7 @@ async function runSongDataCheck(){
     if(!latest||!actions||!manage)return;
     var mobile=window.matchMedia('(max-width:760px)').matches;
     if(mobile){
-      var header=actions.querySelector('.mobile-menu-header');
-      if(!header){
-        header=document.createElement('div');
-        header.className='mobile-menu-header';
-        header.innerHTML='<span class="mobile-menu-header-brand"><span class="mobile-menu-header-title">바다비 노래책</span></span>';
-      }
-      if(header.parentNode!==actions)actions.insertBefore(header,actions.firstChild);
-      var brand=header.querySelector('.mobile-menu-header-brand');if(!brand){brand=document.createElement('span');brand.className='mobile-menu-header-brand';var title=header.querySelector('.mobile-menu-header-title');if(title)brand.appendChild(title);header.insertBefore(brand,header.firstChild);}if(latest.parentNode!==brand)brand.appendChild(latest);
+      ensureMobileSongbookHeader(actions,latest);
       /* 기존 메뉴 토글 버튼은 열릴 때 헤더 오른쪽으로 이동하고, 닫히면 원래 자리로 돌아갑니다. */
     }else{
       var header=actions.querySelector('.mobile-menu-header');
@@ -5257,16 +5293,8 @@ async function runSongDataCheck(){
   function ensureHeader(){
     var actions=document.querySelector('.songbook-sidebar .sidebar-actions');
     if(!actions)return null;
-    var header=actions.querySelector('.mobile-menu-header');
-    if(!header){
-      header=document.createElement('div');
-      header.className='mobile-menu-header';
-      header.innerHTML='<span class="mobile-menu-header-brand"><span class="mobile-menu-header-title">바다비 노래책</span></span>';
-      actions.insertBefore(header,actions.firstChild);
-    }
     var latest=document.getElementById('songbookLatestChange');
-    if(latest){var brand=header.querySelector('.mobile-menu-header-brand');if(!brand){brand=document.createElement('span');brand.className='mobile-menu-header-brand';var title=header.querySelector('.mobile-menu-header-title');if(title)brand.appendChild(title);header.insertBefore(brand,header.firstChild);}if(latest.parentNode!==brand)brand.appendChild(latest);}
-    return header;
+    return window.ensureMobileSongbookHeader(actions,latest);
   }
   function rememberToggle(){
     if(toggleButton)return;
