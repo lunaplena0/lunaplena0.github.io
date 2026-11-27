@@ -766,19 +766,9 @@ footer { position:relative; z-index:1; }
 @media(min-width:761px){.data-check-grid{grid-template-columns:1fr 1fr}}@media(max-width:760px){.stats-chart-grid{grid-template-columns:1fr}.stats-chart-card.full{grid-column:auto}.stats-donut-wrap{flex-direction:column;align-items:center}.stats-legend{width:100%}.stats-donut{margin:0 auto}.stats-bar-row{grid-template-columns:90px 1fr 42px}.stats-dashboard-box{width:94vw!important}.song-add-actions{grid-template-columns:1fr 1fr!important}.song-add-actions button:last-child{grid-column:1/-1}}@media(max-width:760px){#songManageBulk .modal-actions{position:sticky;bottom:0;background:#fff;padding-top:10px}#songManageBulk textarea{min-height:220px}.song-manage-quick-actions{flex-direction:column}.song-manage-quick-actions .modal-btn{width:100%}}
 
 /* 팝업은 항상 화면 정중앙에 표시하고, 필터의 내부 목록은 메인 목록에 합쳐 표시합니다. */
-/* 상세 필터: 사이드바 내부 인라인 접이식 */
-.detail-filter-accordion{width:100%;display:flex;flex-direction:column;gap:0;}
-.detail-filter-accordion-toggle{position:relative;}
-.detail-filter-accordion-chevron{margin-left:auto;font-size:17px;line-height:1;transition:transform .22s ease;}
-.detail-filter-accordion.expanded .detail-filter-accordion-chevron{transform:rotate(180deg);}
-.detail-filter-accordion-panel{max-height:0;opacity:0;overflow:hidden;visibility:hidden;transition:max-height .28s ease,opacity .2s ease,visibility .2s;box-sizing:border-box;}
-.detail-filter-accordion.expanded .detail-filter-accordion-panel{max-height:760px;opacity:1;visibility:visible;overflow-y:auto;margin-top:8px;padding:10px;border:1px solid #dcebf5;border-radius:12px;background:#fff;}
-.detail-filter-accordion-panel .filter-grid-container{gap:12px;}
-.detail-filter-accordion-panel .filter-section{min-height:0;padding:0;}
-.detail-filter-accordion-actions{display:flex;justify-content:flex-end;margin-top:10px;}
-.detail-filter-accordion-actions .modal-btn{flex:0 0 auto;min-width:100px;}
-.detail-filter-accordion-toggle.active-filter{background:#0ea5e9!important;border-color:#0ea5e9!important;color:#fff!important;}
-@media(max-width:760px){.detail-filter-accordion.expanded .detail-filter-accordion-panel{max-height:70dvh;padding:9px;}.detail-filter-accordion-panel .filter-grid-container{grid-template-columns:1fr;gap:12px;}}
+#filterModal { position: fixed !important; inset: 0 !important; width: 100vw !important; height: 100vh !important; display: flex !important; align-items: center !important; justify-content: center !important; padding: 16px !important; box-sizing: border-box !important; }
+#filterModal .filter-modal-box { position: relative !important; margin: auto !important; left: auto !important; right: auto !important; top: auto !important; transform: translateY(10px); }
+#filterModal.active .filter-modal-box { transform: translateY(0); }
 .badge-unregistered-song { display:inline-flex; align-items:center; padding:3px 7px; border-radius:6px; background:#fff7ed; color:#c2410c; border:1px solid #fdba74; font-size:11px; font-weight:800; }
 
 .songbook-latest-change{margin-top:1px;font-size:10px;line-height:1.25;color:#94a3b8;font-weight:600;letter-spacing:.1px;min-height:12px}
@@ -790,7 +780,7 @@ footer { position:relative; z-index:1; }
 .song-reference-chip small{color:#94a3b8;font-size:9.5px;font-weight:600}
 
 .edit-song-date-row .edit-song-time-value{min-width:0}
-.detail-filter-accordion-toggle.active-filter{background:#0ea5e9!important;border-color:#0ea5e9!important;color:#fff!important}
+#integratedFilterBtn.active-filter{background:#0ea5e9!important;border-color:#0ea5e9!important;color:#fff!important}
 
 /* ===== 기존 스타일 블록 10 ===== */
 /* 사이드바와 노래 목록은 grid 흐름 안에서 배치한다. 상대 위치 이동으로 인한 겹침/잘림 방지 */
@@ -861,7 +851,7 @@ footer { position:relative; z-index:1; }
 
 /* ===== 기존 스타일 블록 14 ===== */
 /* 미등록 노래도 날짜/부른 횟수 섹션과 같은 제목 + 구분선 구조로 표시 */
-#detailFilterAccordionPanel .filter-unregistered-section{
+#filterModal .filter-unregistered-section{
   grid-column:1 / -1 !important;
   display:flex !important;
   flex-direction:column !important;
@@ -872,16 +862,16 @@ footer { position:relative; z-index:1; }
   background:transparent !important;
   overflow:visible !important;
 }
-#detailFilterAccordionPanel .filter-unregistered-section > .filter-section-title{
+#filterModal .filter-unregistered-section > .filter-section-title{
   width:100%;
   box-sizing:border-box;
   padding-bottom:6px !important;
   border-bottom:2px solid #e2e8f0 !important;
 }
-#detailFilterAccordionPanel .filter-unregistered-section > .detail-filter-check{
+#filterModal .filter-unregistered-section > .detail-filter-check{
   margin:0 !important;
 }
-#detailFilterAccordionPanel .filter-unregistered-section > .filter-unregistered-toggle{
+#filterModal .filter-unregistered-section > .filter-unregistered-toggle{
   padding:8px 10px !important;
   border:1px solid #e2e8f0 !important;
   border-radius:8px !important;
@@ -890,12 +880,12 @@ footer { position:relative; z-index:1; }
   font-size:12px !important;
   font-weight:700 !important;
 }
-#detailFilterAccordionPanel .filter-unregistered-section > .filter-unregistered-list{
+#filterModal .filter-unregistered-section > .filter-unregistered-list{
   margin-top:0 !important;
   padding:5px 2px 0 !important;
   border-top:0 !important;
 }
-#detailFilterAccordionPanel .filter-unregistered-section > .filter-unregistered-list[hidden]{display:none !important;}
+#filterModal .filter-unregistered-section > .filter-unregistered-list[hidden]{display:none !important;}
 
 /* ===== 기존 스타일 블록 15 ===== */
 /* 등록곡/미등록곡 태그는 동일한 모양과 간격을 사용하고 종류별 색상만 구분 */
@@ -1623,7 +1613,18 @@ footer { position:relative; z-index:1; }
  노래 추천
  </button><button class="header-action-btn sidebar-action-btn" id="statsDashboardBtn" onclick="openSongStatsDashboard()"><svg class="btn-icon-svg" viewbox="0 0 24 24"><path d="M4 19V5"></path><path d="M4 19h16"></path><rect height="5" rx=".6" width="2.8" x="7" y="11"></rect><rect height="8" rx=".6" width="2.8" x="11" y="8"></rect><rect height="11" rx=".6" width="2.8" x="15" y="5"></rect></svg>
  통계
- </button><button class="header-action-btn sidebar-action-btn song-sort-option" id="songSortArtistBtn" onclick="toggleSongArtistSort()"><svg class="btn-icon-svg" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"></circle><path d="M3 20v-1a6 6 0 0 1 12 0v1M17 8h4M19 6v4"></path></svg><span class="song-sort-label"><span class="song-sort-title">가수별 보기</span><span class="song-sort-direction" id="songSortArtistDirection"> [ # · 0 · 가 · A ]</span></span></button><button class="header-action-btn sidebar-action-btn song-sort-option" id="songSortCountBtn" onclick="toggleSongCountSort()"><svg class="btn-icon-svg" viewBox="0 0 24 24"><path d="M4 19V5M4 19h16"></path><path d="M8 15v-4M13 15V8M18 15V4"></path></svg><span class="song-sort-label"><span class="song-sort-title">횟수별 보기</span><span class="song-sort-direction" id="songSortCountDirection"> [ 많이 부른 순 ]</span></span></button><button class="header-action-btn sidebar-action-btn song-sort-option" id="songSortDateBtn" onclick="toggleSongDateSort()"><svg class="btn-icon-svg" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M16 3v4M8 3v4M3 10h18"></path></svg><span class="song-sort-label"><span class="song-sort-title">날짜별 보기</span><span class="song-sort-direction" id="songSortDateDirection"> [ 데뷔 날짜순 ]</span></span></button><div class="detail-filter-accordion" id="detailFilterAccordion"><button type="button" class="header-action-btn sidebar-action-btn detail-filter-accordion-toggle" id="detailFilterAccordionToggle" aria-expanded="false" onclick="toggleDetailedFilterAccordion()"><svg class="btn-icon-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16l-6.5 7.2V18l-3 1v-6.8L4 5Z"></path></svg><span>상세 필터 설정</span><span class="detail-filter-accordion-chevron" aria-hidden="true">⌄</span></button><div class="detail-filter-accordion-panel" id="detailFilterAccordionPanel" aria-hidden="true"><div class="filter-grid-container"><div class="filter-section"><h4 class="filter-section-title"><svg class="btn-icon-svg" style="width: 14px; height: 14px;" viewbox="0 0 24 24"><line x1="18" x2="18" y1="20" y2="10"></line><line x1="12" x2="12" y1="20" y2="4"></line><line x1="6" x2="6" y1="20" y2="14"></line></svg>부른 횟수</h4><div class="filter-options count-filter-options">
+ </button><button class="header-action-btn sidebar-action-btn song-sort-option" id="songSortArtistBtn" onclick="toggleSongArtistSort()"><svg class="btn-icon-svg" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"></circle><path d="M3 20v-1a6 6 0 0 1 12 0v1M17 8h4M19 6v4"></path></svg><span class="song-sort-label"><span class="song-sort-title">가수별 보기</span><span class="song-sort-direction" id="songSortArtistDirection"> [ # · 0 · 가 · A ]</span></span></button><button class="header-action-btn sidebar-action-btn song-sort-option" id="songSortCountBtn" onclick="toggleSongCountSort()"><svg class="btn-icon-svg" viewBox="0 0 24 24"><path d="M4 19V5M4 19h16"></path><path d="M8 15v-4M13 15V8M18 15V4"></path></svg><span class="song-sort-label"><span class="song-sort-title">횟수별 보기</span><span class="song-sort-direction" id="songSortCountDirection"> [ 많이 부른 순 ]</span></span></button><button class="header-action-btn sidebar-action-btn song-sort-option" id="songSortDateBtn" onclick="toggleSongDateSort()"><svg class="btn-icon-svg" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M16 3v4M8 3v4M3 10h18"></path></svg><span class="song-sort-label"><span class="song-sort-title">날짜별 보기</span><span class="song-sort-direction" id="songSortDateDirection"> [ 데뷔 날짜순 ]</span></span></button><button class="header-action-btn sidebar-action-btn auth-only-sidebar-btn" id="songManageSidebarBtn" onclick="openSongManageModal()"><svg class="btn-icon-svg" viewbox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v17H6.5A2.5 2.5 0 0 0 4 22V5.5Z"></path><path d="M4 5.5V19.5"></path><path d="M15.8 10.2l.6 1.4 1.5.4-.9 1.2.1 1.5-1.5-.2-1.2.9-.6-1.4-1.5-.4.9-1.2-.1-1.5 1.5.2 1.2-.9Z"></path><circle cx="15.8" cy="13.2" r="1.4"></circle></svg>
+ 노래책 관리
+ </button></div></aside><section class="songbook-content"><div class="search-container"><input autocomplete="off" class="search-box" id="searchInput" oninput="onSearchInput()" placeholder="노래 제목이나 가수, 장르를 검색하세요..." type="text"/><button aria-label="검색어 지우기" class="search-clear-btn" id="searchClearBtn" title="검색어 지우기" type="button">
+<svg aria-hidden="true" focusable="false" viewbox="0 0 24 24">
+<path d="M6 6L18 18M18 6L6 18"></path>
+</svg>
+</button><button class="search-icon-wrapper" onclick="triggerSearch()"><svg class="search-icon-svg" viewbox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" x2="16.65" y1="21" y2="16.65"></line></svg></button><div aria-label="노래 자동완성" class="song-autocomplete-list" id="songAutocompleteList" role="listbox"></div></div><div class="filter-row"><div class="filter-tags-container"><button class="filter-btn active" data-filter="전체">전체</button><button class="filter-btn" data-filter="기타연주">기타연주</button><button class="filter-btn" data-filter="k팝">KPOP</button><button class="filter-btn" data-filter="j팝">JPOP</button><button class="filter-btn" data-filter="팝">POP</button><button class="filter-btn other-genre-btn" data-filter="그 외" id="otherGenreFilterBtn" onclick="openOtherGenreModal()">그 외</button></div><button class="sub-filter-btn" id="integratedFilterBtn" onclick="openFilterModal()"><svg aria-hidden="true" class="filter-icon-svg" viewbox="0 0 24 24"><path d="M4 5h16l-6.5 7.2V18l-3 1v-6.8L4 5Z"></path></svg></button></div><div class="song-list-scroll-wrapper"><div class="song-list" id="songContainer"><p class="no-result">데이터를 불러오는 중...</p></div></div></section></div><div class="toast-message" id="toastMessage">노래가 복사되었습니다.</div><div aria-live="polite" class="daily-recommend-popup" id="dailyRecommendPopup"><div class="daily-recommend-header"><h3 class="daily-recommend-title"><svg aria-hidden="true" viewbox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"></path></svg><span>다비 없는 동안 부른 노래 추천</span></h3><span class="daily-recommend-date" id="dailyRecommendDate"></span><div class="daily-recommend-controls"><button aria-label="추천 팝업 최소화" class="daily-recommend-control-btn" id="dailyRecommendMinimizeBtn" onclick="toggleDailyRecommendMinimize(event)" title="최소화" type="button">
+<svg aria-hidden="true" viewbox="0 0 24 24">
+<path d="M6 12H18"></path>
+</svg>
+</button><button aria-label="추천 팝업 닫기" class="daily-recommend-control-btn daily-recommend-close" onclick="closeDailyRecommendPopup(event)" title="닫기" type="button">✕</button></div></div><div class="daily-recommend-list" id="dailyRecommendList"></div></div><div class="modal-overlay" id="songStatsDashboardModal"><div class="filter-modal-box stats-dashboard-box"><div class="modal-header"><h3 class="modal-title">노래 통계</h3><button class="modal-close-btn" onclick="closeSongStatsDashboard()" type="button">✕</button></div><div id="songStatsDashboardContent"></div></div></div>
+<div class="modal-overlay" id="filterModal"><div class="filter-modal-box"><div class="modal-header"><div class="modal-title-wrapper"><svg aria-hidden="true" class="filter-icon-svg" style="width: 18px; height: 18px;" viewbox="0 0 24 24"><path d="M4 5h16l-6.5 7.2V18l-3 1v-6.8L4 5Z" fill="none" stroke="#0369a1" stroke-linejoin="round" stroke-width="2"></path></svg><h3 class="modal-title">상세 필터 설정</h3></div><button class="modal-close-btn" onclick="closeFilterModal()">✕</button></div><div class="filter-grid-container"><div class="filter-section"><h4 class="filter-section-title"><svg class="btn-icon-svg" style="width: 14px; height: 14px;" viewbox="0 0 24 24"><line x1="18" x2="18" y1="20" y2="10"></line><line x1="12" x2="12" y1="20" y2="4"></line><line x1="6" x2="6" y1="20" y2="14"></line></svg>부른 횟수</h4><div class="filter-options count-filter-options">
 <select aria-hidden="true" class="detail-filter-select-native" id="countFilterSelect" tabindex="-1"><option value="전체">전체 횟수</option></select>
 <div class="custom-select" id="countFilterCustom"></div>
 <select aria-hidden="true" class="detail-filter-select-native" id="countFilterOperatorSelect" tabindex="-1">
@@ -1635,17 +1636,7 @@ footer { position:relative; z-index:1; }
 <label class="count-filter-exclude-zero"><input id="excludeZeroCountCheck" type="checkbox"/><span>0회 미포함</span></label>
 </div></div><div class="filter-section filter-date-combined-section"><h4 class="filter-section-title"><svg class="btn-icon-svg" style="width: 14px; height: 14px;" viewbox="0 0 24 24"><rect height="16" rx="2" width="18" x="3" y="5"></rect><path d="M7 3v4M17 3v4M3 10h18"></path></svg>날짜 설정</h4><div class="filter-options filter-date-combined-options"><div class="filter-date-choice"><span>최근 부른 기간</span><select aria-hidden="true" class="detail-filter-select-native" id="recentFilterSelect" tabindex="-1"><option value="전체">전체기간</option></select><div class="custom-select" id="recentFilterCustom"></div></div><div class="filter-date-choice"><span>월별 선택</span><select aria-hidden="true" class="detail-filter-select-native" id="monthFilterSelect" tabindex="-1"><option value="전체">전체 날짜</option></select><div class="custom-select" id="monthFilterCustom"></div></div></div></div><div class="filter-section filter-unregistered-section"><h4 class="filter-section-title"><svg class="btn-icon-svg" style="width: 14px; height: 14px;" viewbox="0 0 24 24" aria-hidden="true"><path d="M9 18V5l12-2v13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path><circle cx="6" cy="18" r="3" fill="none" stroke="currentColor" stroke-width="2"></circle><circle cx="18" cy="16" r="3" fill="none" stroke="currentColor" stroke-width="2"></circle></svg>미등록 노래</h4>
 <label class="detail-filter-check"><input id="detailOnlyUnregisteredCheckbox" type="checkbox" onchange="toggleDetailOnlyUnregistered(this.checked)"/><span>노래책에 미등록된 노래만 보기</span></label>
-<label class="filter-unregistered-toggle" id="detailUnregisteredToggle"><input id="detailUnregisteredCheckbox" onchange="toggleDetailUnregisteredSongs(this.checked)" type="checkbox"/><span class="filter-unregistered-label">노래책에 미등록된 노래 보기</span><span class="filter-unregistered-count" id="detailUnregisteredCount">0곡</span></label><div class="filter-unregistered-list" hidden="" id="detailUnregisteredSongList"></div></div><div class="detail-filter-accordion-actions"><button class="modal-btn modal-btn-refresh" onclick="resetDetailedFilters()" type="button">초기화</button</div></div></div><button class="header-action-btn sidebar-action-btn auth-only-sidebar-btn" id="songManageSidebarBtn" onclick="openSongManageModal()"><svg class="btn-icon-svg" viewbox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v17H6.5A2.5 2.5 0 0 0 4 22V5.5Z"></path><path d="M4 5.5V19.5"></path><path d="M15.8 10.2l.6 1.4 1.5.4-.9 1.2.1 1.5-1.5-.2-1.2.9-.6-1.4-1.5-.4.9-1.2-.1-1.5 1.5.2 1.2-.9Z"></path><circle cx="15.8" cy="13.2" r="1.4"></circle></svg>
- 노래책 관리
- </button></div></aside><section class="songbook-content"><div class="search-container"><input autocomplete="off" class="search-box" id="searchInput" oninput="onSearchInput()" placeholder="노래 제목이나 가수, 장르를 검색하세요..." type="text"/><button aria-label="검색어 지우기" class="search-clear-btn" id="searchClearBtn" title="검색어 지우기" type="button">
-<svg aria-hidden="true" focusable="false" viewbox="0 0 24 24">
-<path d="M6 6L18 18M18 6L6 18"></path>
-</svg>
-</button><button class="search-icon-wrapper" onclick="triggerSearch()"><svg class="search-icon-svg" viewbox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" x2="16.65" y1="21" y2="16.65"></line></svg></button><div aria-label="노래 자동완성" class="song-autocomplete-list" id="songAutocompleteList" role="listbox"></div></div><div class="filter-row"><div class="filter-tags-container"><button class="filter-btn active" data-filter="전체">전체</button><button class="filter-btn" data-filter="기타연주">기타연주</button><button class="filter-btn" data-filter="k팝">KPOP</button><button class="filter-btn" data-filter="j팝">JPOP</button><button class="filter-btn" data-filter="팝">POP</button><button class="filter-btn other-genre-btn" data-filter="그 외" id="otherGenreFilterBtn" onclick="openOtherGenreModal()">그 외</button></div></div><div class="song-list-scroll-wrapper"><div class="song-list" id="songContainer"><p class="no-result">데이터를 불러오는 중...</p></div></div></section></div><div class="toast-message" id="toastMessage">노래가 복사되었습니다.</div><div aria-live="polite" class="daily-recommend-popup" id="dailyRecommendPopup"><div class="daily-recommend-header"><h3 class="daily-recommend-title"><svg aria-hidden="true" viewbox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"></path></svg><span>다비 없는 동안 부른 노래 추천</span></h3><span class="daily-recommend-date" id="dailyRecommendDate"></span><div class="daily-recommend-controls"><button aria-label="추천 팝업 최소화" class="daily-recommend-control-btn" id="dailyRecommendMinimizeBtn" onclick="toggleDailyRecommendMinimize(event)" title="최소화" type="button">
-<svg aria-hidden="true" viewbox="0 0 24 24">
-<path d="M6 12H18"></path>
-</svg>
-</button><button aria-label="추천 팝업 닫기" class="daily-recommend-control-btn daily-recommend-close" onclick="closeDailyRecommendPopup(event)" title="닫기" type="button">✕</button></div></div><div class="daily-recommend-list" id="dailyRecommendList"></div></div><div class="modal-overlay" id="songStatsDashboardModal"><div class="filter-modal-box stats-dashboard-box"><div class="modal-header"><h3 class="modal-title">노래 통계</h3><button class="modal-close-btn" onclick="closeSongStatsDashboard()" type="button">✕</button></div><div id="songStatsDashboardContent"></div></div></div>
+<label class="filter-unregistered-toggle" id="detailUnregisteredToggle"><input id="detailUnregisteredCheckbox" onchange="toggleDetailUnregisteredSongs(this.checked)" type="checkbox"/><span class="filter-unregistered-label">노래책에 미등록된 노래 보기</span><span class="filter-unregistered-count" id="detailUnregisteredCount">0곡</span></label><div class="filter-unregistered-list" hidden="" id="detailUnregisteredSongList"></div></div><div class="modal-actions"><button class="modal-btn modal-btn-refresh" onclick="resetDetailedFilters()" type="button">초기화</button><button class="modal-btn modal-btn-close" onclick="closeFilterModal()">확인</button></div></div></div></div>
 <script>
         const WORKER_URL = "https://badabi-api.dalkkumli054.workers.dev/";
         const TURNSTILE_SITE_KEY = "0x4AAAAAAEbQ0YWNiL_WiyKR";
@@ -3688,18 +3679,23 @@ function openRecommendModal() { generateRecommendations(); showModalOnTop("recom
         function closeNoticeModal() { document.getElementById("noticeModal").classList.remove("active"); }
         function openSiteInfoModal() { document.getElementById("siteInfoModal").classList.add("active"); }
         function closeSiteInfoModal() { document.getElementById("siteInfoModal").classList.remove("active"); }
-        function openDetailedFilterAccordion(){
-            refreshCountFilterOptions();refreshRecentFilterOptions();refreshMonthFilterOptions();syncCustomFilterSelects();
-            const checkbox=document.getElementById("detailUnregisteredCheckbox"),list=document.getElementById("detailUnregisteredSongList");
+        function openFilterModal(){
+            refreshCountFilterOptions();
+            refreshRecentFilterOptions();
+            refreshMonthFilterOptions();
+            syncCustomFilterSelects();
+            const checkbox=document.getElementById("detailUnregisteredCheckbox");
+            const list=document.getElementById("detailUnregisteredSongList");
             if(checkbox)checkbox.checked=detailUnregisteredExpanded;
-            const onlyCheck=document.getElementById("detailOnlyUnregisteredCheckbox");if(onlyCheck)onlyCheck.checked=detailOnlyUnregistered;
+            const onlyCheck=document.getElementById("detailOnlyUnregisteredCheckbox");
+            if(onlyCheck)onlyCheck.checked=detailOnlyUnregistered;
             if(list)list.hidden=true;
-            const count=document.getElementById("detailUnregisteredCount");if(count)count.textContent=`${Array.isArray(fansongStatsData.unregisteredSongs)?fansongStatsData.unregisteredSongs.length:0}곡`;
-            setDetailedFilterAccordion(true);updateFilterButtonState();
+            const count=document.getElementById("detailUnregisteredCount");
+            if(count)count.textContent=`${Array.isArray(fansongStatsData.unregisteredSongs)?fansongStatsData.unregisteredSongs.length:0}곡`;
+            updateFilterButtonState();
+            showModalOnTop("filterModal");
         }
-        function setDetailedFilterAccordion(open){const root=document.getElementById("detailFilterAccordion"),toggle=document.getElementById("detailFilterAccordionToggle"),panel=document.getElementById("detailFilterAccordionPanel");if(!root||!toggle||!panel)return;root.classList.toggle("expanded",!!open);toggle.setAttribute("aria-expanded",!!open);panel.setAttribute("aria-hidden",!open);}
-        function toggleDetailedFilterAccordion(){const root=document.getElementById("detailFilterAccordion");if(root?.classList.contains("expanded"))setDetailedFilterAccordion(false);else openDetailedFilterAccordion();}
-        function closeDetailedFilterAccordion(){setDetailedFilterAccordion(false);updateFilterButtonState();}
+        function closeFilterModal(){document.getElementById("filterModal")?.classList.remove("active");updateFilterButtonState()}
         function closeAllCustomSelects(except=null){document.querySelectorAll('.custom-select.open').forEach(el=>{if(el!==except)el.classList.remove('open')});document.querySelectorAll('.custom-select-menu.custom-select-menu-portal').forEach(menu=>{const owner=menu.dataset.owner?document.getElementById(menu.dataset.owner):null;if(!owner||owner!==except)menu.style.display='none'})}
         function positionCustomSelectMenu(root,menu){if(!root||!menu)return;const rect=root.getBoundingClientRect(),gap=5,pad=8,maxH=window.innerWidth<=768?200:260;menu.style.display='block';menu.style.width=`${rect.width}px`;menu.style.maxHeight=`${maxH}px`;menu.style.left=`${Math.max(pad,Math.min(rect.left,window.innerWidth-rect.width-pad))}px`;const h=Math.min(menu.scrollHeight,maxH),below=window.innerHeight-rect.bottom-pad,above=rect.top-pad;menu.style.top=(below<Math.min(h,180)&&above>below)?`${Math.max(pad,rect.top-gap-h)}px`:`${Math.min(window.innerHeight-h-pad,rect.bottom+gap)}px`}
         document.addEventListener('click',e=>{if(e.target.closest('.custom-select')||e.target.closest('.custom-select-menu-portal'))return;closeAllCustomSelects()});
@@ -3736,7 +3732,7 @@ function openRecommendModal() { generateRecommendations(); showModalOnTop("recom
             updateFilterButtonState();updateFilteredAndSorted();renderAllSongs();
         }
         function updateFilterButtonState(){
-            const filterBtn=document.getElementById("detailFilterAccordionToggle");
+            const filterBtn=document.getElementById("integratedFilterBtn");
             if(!filterBtn)return;
             const hasActive=detailOnlyUnregistered||currentCountFilter!=="전체"||excludeZeroCount||currentRecentFilter!=="전체"||currentMonthFilter!=="전체"||detailUnregisteredExpanded;
             filterBtn.classList.toggle("active-filter",hasActive);
